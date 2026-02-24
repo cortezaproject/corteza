@@ -916,8 +916,20 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 
 	aProps.setChanged(new)
 
-	if err = dalutils.ComposeRecordCreate(ctx, svc.dal, m, new); err != nil {
+	var meta []map[string]any
+	if meta, err = dalutils.ComposeRecordCreate(ctx, svc.dal, m, new); err != nil {
 		return
+	}
+
+	if len(meta) > 0 {
+		id, ok := meta[0]["id"]
+		if ok {
+			auxID := new.ID
+			new.ID = cast.ToUint64(id)
+			if new.ID == 0 {
+				new.ID = auxID
+			}
+		}
 	}
 
 	// store revision
@@ -2051,7 +2063,9 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					}
 
 					return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-						return dalutils.ComposeRecordCreate(ctx, svc.dal, m, rec)
+						// @todo?
+						_, err = dalutils.ComposeRecordCreate(ctx, svc.dal, m, rec)
+						return err
 					})
 				case "update":
 					recordableAction = RecordActionIteratorUpdate
@@ -2210,7 +2224,8 @@ func (svc record) CreateSynthetic(ctx context.Context, src synteticRecordDataGen
 				return
 			}
 
-			if err = dalutils.ComposeRecordCreate(ctx, svc.dal, mod, synth); err != nil {
+			_, err = dalutils.ComposeRecordCreate(ctx, svc.dal, mod, synth)
+			if err != nil {
 				return
 			}
 

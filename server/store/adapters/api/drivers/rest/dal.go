@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
-	apidal "github.com/cortezaproject/corteza/server/store/adapters/api/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	apidal "github.com/cortezaproject/corteza/server/store/adapters/api/dal"
 )
 
 const (
@@ -61,7 +60,7 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 
 	// Load credentials into registry for all auth types
 	if parsed.ConnectionID > 0 && parsed.AuthType != "" {
-		cred := &cred_registry.Credential{
+		cred, err := cred_registry.NewCredential(cred_registry.CredentialConfig{
 			ConnectionID: parsed.ConnectionID,
 			AuthType:     parsed.AuthType,
 			Token:        parsed.Token,
@@ -69,11 +68,9 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 			ClientID:     parsed.ClientID,
 			ClientSecret: parsed.ClientSecret,
 			TokenURL:     parsed.TokenURL,
-		}
-
-		// force immediate refresh on first use for oauth2
-		if parsed.AuthType == "oauth2_client_credentials" {
-			cred.ExpiresAt = time.Now().Add(-1 * time.Hour)
+		})
+		if err != nil {
+			return nil, err
 		}
 
 		if err := cred_registry.Default().Store(cred); err != nil {

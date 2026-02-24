@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -60,6 +61,14 @@ type (
 				Location string `json:"location"`
 				Value    string `json:"value"`
 			} `json:"limit"`
+
+			Paging struct {
+				Type string `json:"type"`
+
+				// CurrentPath string
+				// NextPath string
+				// PagesPath string
+			} `json:"paging"`
 		} `json:"search"`
 
 		Update struct {
@@ -275,4 +284,34 @@ func (d apiDialect) EncrichEndpoint(endpoint string, xr drivers.XRequest) (out s
 	}
 
 	return fmt.Sprintf("%s?%s", endpoint, enc)
+}
+
+func (d apiDialect) EncodeBodyInsert(ee ...drivers.PayloadEntry) ([]byte, error) {
+	aux := make(map[string]any)
+
+	for _, e := range ee {
+		// @todo
+		aux[e.Path[0]] = e.Value
+	}
+
+	bb, err := json.Marshal(aux)
+	if err != nil {
+		return nil, err
+	}
+
+	return bb, nil
+}
+
+func (d apiDialect) ExtractInsertMeta(in []byte) (out map[string]any, err error) {
+	return
+}
+
+func (d apiDialect) DecodeBodySelect(buf []byte) (out map[string]any, err error) {
+	out = make(map[string]any)
+	err = json.Unmarshal(buf, &out)
+	if err != nil {
+		return
+	}
+
+	return
 }

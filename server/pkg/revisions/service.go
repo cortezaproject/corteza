@@ -15,7 +15,7 @@ type (
 
 	creatorSearcher interface {
 		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
-		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
+		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) (out []map[string]any, err error)
 	}
 
 	service struct {
@@ -31,7 +31,6 @@ func (svc *service) Search(ctx context.Context, mf dal.ModelRef, f filter.Filter
 	return svc.dal.Search(ctx, mf, dal.OperationSet{dal.Search}, f)
 }
 
-func (svc *service) Create(ctx context.Context, mf dal.ModelRef, revision *Revision) error {
+func (svc *service) Create(ctx context.Context, mf dal.ModelRef, revision *Revision) ([]map[string]any, error) {
 	return svc.dal.Create(ctx, mf, dal.OperationSet{dal.Create}, revision)
-
 }

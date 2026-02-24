@@ -17,7 +17,7 @@ type (
 	recordRevisions struct {
 		r interface {
 			Search(ctx context.Context, mf dal.ModelRef, f filter.Filter) (_ dal.Iterator, err error)
-			Create(ctx context.Context, mf dal.ModelRef, revision *revisions.Revision) error
+			Create(ctx context.Context, mf dal.ModelRef, revision *revisions.Revision) ([]map[string]any, error)
 		}
 	}
 )
@@ -70,7 +70,8 @@ func (svc *recordRevisions) created(ctx context.Context, new *types.Record) (err
 		return
 	}
 
-	return svc.r.Create(ctx, svc.modelRef(new.GetModule()), rev)
+	_, err = svc.r.Create(ctx, svc.modelRef(new.GetModule()), rev)
+	return err
 }
 
 func (svc *recordRevisions) updated(ctx context.Context, upd, old *types.Record) (err error) {
@@ -86,7 +87,8 @@ func (svc *recordRevisions) updated(ctx context.Context, upd, old *types.Record)
 		return
 	}
 
-	return svc.r.Create(ctx, svc.modelRef(upd.GetModule()), rev)
+	_, err = svc.r.Create(ctx, svc.modelRef(upd.GetModule()), rev)
+	return err
 }
 
 func (svc *recordRevisions) softDeleted(ctx context.Context, del *types.Record) (err error) {
@@ -100,7 +102,8 @@ func (svc *recordRevisions) softDeleted(ctx context.Context, del *types.Record) 
 		return
 	}
 
-	return svc.r.Create(ctx, svc.modelRef(del.GetModule()), rev)
+	_, err = svc.r.Create(ctx, svc.modelRef(del.GetModule()), rev)
+	return err
 }
 
 func (svc *recordRevisions) undeleted(ctx context.Context, undel *types.Record) (err error) {
@@ -114,7 +117,8 @@ func (svc *recordRevisions) undeleted(ctx context.Context, undel *types.Record) 
 		return
 	}
 
-	return svc.r.Create(ctx, svc.modelRef(undel.GetModule()), rev)
+	_, err = svc.r.Create(ctx, svc.modelRef(undel.GetModule()), rev)
+	return err
 }
 
 func (svc *recordRevisions) skippedField(mod *types.Module) []string {

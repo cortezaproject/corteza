@@ -40,7 +40,7 @@ type (
 		// DML stuff
 
 		// Create stores the given data into the underlying database
-		Create(ctx context.Context, m *Model, rr ...ValueGetter) error
+		Create(ctx context.Context, m *Model, rr ...ValueGetter) ([]map[string]any, error)
 
 		// Update updates the given value in the underlying connection
 		Update(ctx context.Context, m *Model, r ValueGetter) error
@@ -165,24 +165,24 @@ func RegisterDriver(d Driver) {
 }
 
 // connect opens a new StoreConnection for the given CRS
-func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (Connection, error) {
+func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, conID uint64, cp ConnectionParams) (Connection, error) {
 	if cp.Params == nil {
 		return nil, fmt.Errorf("cannot open connection: connection parameters not defined")
 	}
 
 	switch cp.Type {
 	case "corteza::dal:connection:dsn":
-		return connectRDBMS(ctx, log, isDevelopment, cp)
+		return connectRDBMS(ctx, log, isDevelopment, conID, cp)
 
 	case "corteza::dal:connection:rest":
-		return connectREST(ctx, log, isDevelopment, cp)
+		return connectREST(ctx, log, isDevelopment, conID, cp)
 
 	default:
 		return nil, fmt.Errorf("cannot open connection: unsupported connection (got: %q)", cp.Type)
 	}
 }
 
-func connectRDBMS(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (Connection, error) {
+func connectRDBMS(ctx context.Context, log *zap.Logger, isDevelopment bool, conID uint64, cp ConnectionParams) (Connection, error) {
 	if _, ok := cp.Params["dsn"]; !ok {
 		return nil, fmt.Errorf("cannot open connection: DSN not provided")
 	}
@@ -213,7 +213,7 @@ func connectRDBMS(ctx context.Context, log *zap.Logger, isDevelopment bool, cp C
 	}
 }
 
-func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (c Connection, err error) {
+func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, conID uint64, cp ConnectionParams) (c Connection, err error) {
 	if _, ok := cp.Params["url"]; !ok {
 		return nil, fmt.Errorf("cannot connect to the REST API: missing parameter: url")
 	}
@@ -228,7 +228,7 @@ func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Co
 		return
 	}
 
-	d, err = expandDSN(d, cp)
+	d, err = expandDSN(d, conID, cp)
 	if err != nil {
 		return
 	}
@@ -252,6 +252,11 @@ func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Co
 }
 
 func determineStoreType(d DSN) (out string, err error) {
+	switch strings.ToLower(d.Host) {
+	case "sheets.googleapis.com":
+		return "gsheets", nil
+	}
+
 	switch d.Scheme {
 	case "http", "https":
 		return "restapi", nil
@@ -262,20 +267,10 @@ func determineStoreType(d DSN) (out string, err error) {
 	}
 }
 
-func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
+func expandDSN(base DSN, connID uint64, cp ConnectionParams) (out DSN, err error) {
 	out = base
 
-	// Extract connection ID
-	if connID, ok := cp.Params["connectionID"]; ok {
-		switch v := connID.(type) {
-		case uint64:
-			out.ConnectionID = v
-		case int:
-			out.ConnectionID = uint64(v)
-		case float64:
-			out.ConnectionID = uint64(v)
-		}
-	}
+	out.ConnectionID = connID
 
 	if auth, ok := cp.Params["auth"]; ok {
 
@@ -304,6 +299,17 @@ func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
 		out.ClientID, _ = aux.Params["clientID"].(string)
 		out.ClientSecret, _ = aux.Params["clientSecret"].(string)
 		out.TokenURL, _ = aux.Params["tokenURL"].(string)
+
+		// JWT bearer / Google service account fields
+		if pk, _ := aux.Params["private_key"].(string); pk != "" {
+			out.Token = pk
+		}
+		if email, _ := aux.Params["client_email"].(string); email != "" {
+			out.Username = email
+		}
+		if tu, _ := aux.Params["token_uri"].(string); tu != "" {
+			out.TokenURL = tu
+		}
 	}
 
 	if dops, ok := cp.Params["defaultOps"]; ok {
@@ -366,6 +372,14 @@ func validateDSNAuth(dsn DSN) (err error) {
 		}
 		if dsn.TokenURL == "" {
 			return fmt.Errorf("OAuth2 authentication requires 'tokenURL' parameter")
+		}
+
+	case "jwt-bearer", "jwt_bearer", "google_service_account":
+		if dsn.Token == "" {
+			return fmt.Errorf("%s authentication requires 'private_key' parameter", dsn.AuthType)
+		}
+		if dsn.Username == "" {
+			return fmt.Errorf("%s authentication requires 'client_email' parameter", dsn.AuthType)
 		}
 
 	default:

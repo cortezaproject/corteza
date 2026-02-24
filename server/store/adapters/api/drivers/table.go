@@ -1,8 +1,6 @@
 package drivers
 
 import (
-	"encoding/json"
-
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 )
 
@@ -100,27 +98,25 @@ func (t *GenericTableCodec) GetColumn(name string) (c Column, ok bool) {
 }
 
 func (t *GenericTableCodec) Encode(r dal.ValueGetter) (_ []byte, err error) {
-	aux := make(map[string]any)
+	bits := []PayloadEntry{}
 
 	for _, c := range t.columns {
-		// @todo this won't fly
-		aux[c.Name()], err = c.Encode(r)
+		v, err := c.Encode(r)
 		if err != nil {
-			return
+			return nil, err
 		}
+
+		bits = append(bits, PayloadEntry{
+			Path:  []string{c.Name()},
+			Value: v,
+		})
 	}
 
-	bb, err := json.Marshal(aux)
-	if err != nil {
-		return
-	}
-
-	return bb, err
+	return t.dialect.EncodeBodyInsert(bits...)
 }
 
 func (t *GenericTableCodec) Decode(buf []byte, r dal.ValueSetter) (err error) {
-	payload := make(map[string]any)
-	err = json.Unmarshal(buf, &payload)
+	payload, err := t.dialect.DecodeBodySelect(buf)
 	if err != nil {
 		return
 	}

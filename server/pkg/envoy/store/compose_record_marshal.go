@@ -444,7 +444,8 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 
 			// Create a new record
 			if !exists {
-				err = dalutils.ComposeRecordCreate(ctx, pl.dal, mod, rec)
+				// @todo?
+				_, err = dalutils.ComposeRecordCreate(ctx, pl.dal, mod, rec)
 				return err
 			}
 

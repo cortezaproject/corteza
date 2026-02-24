@@ -13,7 +13,7 @@ import (
 
 type (
 	creator interface {
-		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
+		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) (out []map[string]any, err error)
 	}
 
 	updater interface {
@@ -95,7 +95,7 @@ func ComposeRecordsCount(ctx context.Context, c counter, mod *types.Module, filt
 	return c.Count(ctx, mod.ModelRef(), recLookupOperations(mod), dalFilter)
 }
 
-func ComposeRecordCreate(ctx context.Context, c creator, mod *types.Module, records ...*types.Record) (err error) {
+func ComposeRecordCreate(ctx context.Context, c creator, mod *types.Module, records ...*types.Record) (meta []map[string]any, err error) {
 	return c.Create(ctx, mod.ModelRef(), recCreateOperations(mod), recToGetters(records...)...)
 }
 

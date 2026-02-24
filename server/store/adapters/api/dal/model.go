@@ -49,21 +49,31 @@ func Model(m *dal.Model, c runner, d drivers.Dialect) *model {
 	return ms
 }
 
-func (d *model) Create(ctx context.Context, rr ...dal.ValueGetter) error {
+func (d *model) Create(ctx context.Context, rr ...dal.ValueGetter) ([]map[string]any, error) {
+	meta := make([]map[string]any, 0, len(rr))
+
 	for _, r := range rr {
 		method, endpoint, payload, err := d.makeCreatePayload(r)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		_, err = d.conn.Run(ctx, method, endpoint, payload, nil)
+		var body []byte
+		body, err = d.conn.Run(ctx, method, endpoint, payload, nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
+		var auxMeta map[string]any
+		auxMeta, err = d.dialect.ExtractInsertMeta(body)
+		if err != nil {
+			return nil, err
+		}
+
+		meta = append(meta, auxMeta)
 	}
 
-	return nil
+	return meta, nil
 }
 
 func (d *model) makeCreatePayload(r dal.ValueGetter) (method string, endpoint string, payload []byte, err error) {

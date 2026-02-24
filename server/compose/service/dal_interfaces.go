@@ -9,7 +9,7 @@ import (
 
 type (
 	dalDater interface {
-		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
+		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) (out []map[string]any, err error)
 		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
 		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 		Count(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (uint, error)

@@ -222,7 +222,7 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 			}
 
 			if len(creates) > recordBatchMaxChunk {
-				err = dalutils.ComposeRecordCreate(ctx, dl, mod, creates...)
+				_, err = dalutils.ComposeRecordCreate(ctx, dl, mod, creates...)
 				if err != nil {
 					return
 				}
@@ -257,7 +257,7 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 	}
 
 	if len(creates) > 0 {
-		err = dalutils.ComposeRecordCreate(ctx, dl, mod, creates...)
+		_, err = dalutils.ComposeRecordCreate(ctx, dl, mod, creates...)
 	}
 
 	if len(updates) > 0 {

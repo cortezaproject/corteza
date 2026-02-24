@@ -19,6 +19,11 @@ type (
 		Query map[string][]string
 	}
 
+	PayloadEntry struct {
+		Path  []string
+		Value any
+	}
+
 	Dialect interface {
 		// TypeWrap returns driver's type implementation for a particular attribute type
 		TypeWrap(dal.Type) Type
@@ -31,6 +36,10 @@ type (
 
 		SearchDataPath() string
 		SearchMetaPath() BodyMetaPath
+
+		EncodeBodyInsert(ee ...PayloadEntry) ([]byte, error)
+		ExtractInsertMeta(body []byte) (map[string]any, error)
+		DecodeBodySelect(body []byte) (map[string]any, error)
 	}
 )
 

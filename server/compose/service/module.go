@@ -8,11 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/compose/dalutils"
 	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/modern-go/reflect2"
-	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 
@@ -575,27 +572,27 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 
 		if changes&moduleFieldsChanged > 0 {
 			var (
-				set types.RecordSet
+			// set types.RecordSet
 
-				recFilter = types.RecordFilter{
-					Paging: filter.Paging{Limit: 1},
-					Check:  func(r *types.Record) (bool, error) { return true, nil },
-				}
+			// recFilter = types.RecordFilter{
+			// 	Paging: filter.Paging{Limit: 1},
+			// 	Check:  func(r *types.Record) (bool, error) { return true, nil },
+			// }
 			)
 
 			if modelIssues := svc.dal.SearchModelIssues(m.ID); len(modelIssues) == 0 {
-				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, recFilter); err != nil {
-					// we should not really abort the update here.
-					//
-					// if we do, in case of a misconfigured module
-					// a model issue is raised and the module cannot be updated.
-					//
-					// a solution similar to soft(warning)/hard(error) issues that
-					// we introduced on record could be used here.
-					logger.Default().Warn("could not list records due to DAL model issues", zap.Error(err))
-					err = nil
-				}
-				hasRecords = len(set) > 0
+				// if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, recFilter); err != nil {
+				// 	// we should not really abort the update here.
+				// 	//
+				// 	// if we do, in case of a misconfigured module
+				// 	// a model issue is raised and the module cannot be updated.
+				// 	//
+				// 	// a solution similar to soft(warning)/hard(error) issues that
+				// 	// we introduced on record could be used here.
+				// 	logger.Default().Warn("could not list records due to DAL model issues", zap.Error(err))
+				// 	err = nil
+				// }
+				// hasRecords = len(set) > 0
 			} else {
 				hasRecords = false
 			}

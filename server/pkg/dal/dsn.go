@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 // DSN represents a parsed REST API Data Source Name
@@ -109,6 +111,8 @@ func (d *DSN) parseQueryParams() error {
 	d.ClientID = q.Get("client_id")
 	d.ClientSecret = q.Get("client_secret")
 	d.TokenURL = q.Get("token_url")
+
+	d.ConnectionID = cast.ToUint64(q.Get("connectionID"))
 
 	// Connection timeouts
 	if timeout := q.Get("timeout"); timeout != "" {
@@ -325,21 +329,21 @@ func base64Encode(s string) string {
 }
 
 // String returns a string representation of the DSN (without sensitive data)
-func (d *DSN) String() string {
-	scheme := d.Scheme
-	auth := ""
+// func (d *DSN) String() string {
+// 	scheme := d.Scheme
+// 	auth := ""
 
-	if d.Username != "" {
-		auth = d.Username + ":***@"
-	}
+// 	if d.Username != "" {
+// 		auth = d.Username + ":***@"
+// 	}
 
-	port := ""
-	if d.Port != "" {
-		port = ":" + d.Port
-	}
+// 	port := ""
+// 	if d.Port != "" {
+// 		port = ":" + d.Port
+// 	}
 
-	return fmt.Sprintf("%s://%s%s%s%s", scheme, auth, d.Host, port, d.Path)
-}
+// 	return fmt.Sprintf("%s://%s%s%s%s", scheme, auth, d.Host, port, d.Path)
+// }
 
 func (d *DSN) ToDSN() string {
 	var sb strings.Builder
@@ -375,6 +379,9 @@ func (d *DSN) ToDSN() string {
 
 	// Query parameters
 	params := url.Values{}
+
+	// misc
+	params.Set("connectionID", cast.ToString(d.ConnectionID))
 
 	// Authentication parameters
 	if d.AuthType != "" && d.AuthType != "none" {
