@@ -29,7 +29,7 @@
 
   <!-- Form -->
   <div v-else-if="page" class="flex flex-col h-full">
-    <div class="container mx-auto p-5 flex-1">
+    <div class="container mx-auto p-4 flex-1">
       <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
         <template #content>
           <Tabs v-model:value="activeTab">

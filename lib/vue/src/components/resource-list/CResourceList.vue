@@ -1,17 +1,17 @@
 <template>
   <Card
     :pt="{
+      root: { class: 'overflow-hidden h-full flex flex-col min-w-0' },
       header: {
-        class: 'flex flex-wrap items-center justify-between gap-3 p-3 w-full border-b',
+        class: 'flex flex-wrap items-center justify-between gap-3 p-3 w-full border-b shrink-0',
       },
       body: {
-        class: 'p-0 overflow-auto h-full',
+        class: 'p-0 flex flex-col flex-1 min-h-0 min-w-0',
       },
       content: {
-        class: 'overflow-auto h-full',
+        class: 'flex-1 overflow-auto min-h-0 min-w-0',
       },
     }"
-    class="overflow-hidden h-full"
   >
     <template v-if="$slots.header || !hideSearch" #header>
       <div class="flex-1">
@@ -28,105 +28,112 @@
     </template>
 
     <template #content>
-      <DataTable
-        v-model:selection="selected"
-        :dataKey="primaryKey"
-        :value="items"
-        :loading="loading"
-        :sortOrder="sorting.sortDesc ? 1 : -1"
-        :sortField="sorting.sortBy"
-        scrollable
-        scrollHeight="flex"
-        row-hover
-        lazy
-        resizableColumns
-        columnResizeMode="expand"
-        tableStyle="min-width: 50rem"
-        :row-class="rowClass"
-        :pt="{ emptyMessageCell: { class: 'h-full' }, footer: { class: 'p-0 border-0' } }"
-        @sort="$emit('sort', $event)"
-        @row-click="$emit('row-click', $event)"
-      >
-        <template #empty>
-          <div class="flex items-center justify-center p-4 text-muted">
-            {{ translations.noItems || t('general.resourceList.noItems') }}
-          </div>
-        </template>
-
-        <Column v-if="selectable" selectionMode="multiple" headerStyle="width: 3rem" />
-        <Column
-          v-for="field in fields"
-          :key="field.key"
-          :field="field.key"
-          :header="field.header || field.label"
-          :sortable="field.sortable"
-          :class="field.class"
-          :style="field.style"
-          :pt="field.pt"
-          :frozen="field.frozen"
-          :alignFrozen="field.alignFrozen"
+      <div class="flex-1 overflow-auto min-h-0 min-w-0 flex flex-col h-full w-full">
+        <DataTable
+          v-model:selection="selected"
+          :dataKey="primaryKey"
+          :value="items"
+          :loading="loading"
+          :sortOrder="sorting.sortDesc ? 1 : -1"
+          :sortField="sorting.sortBy"
+          scrollable
+          scrollHeight="flex"
+          row-hover
+          lazy
+          resizableColumns
+          columnResizeMode="expand"
+          tableStyle="min-width: 50rem"
+          :row-class="rowClass"
+          :pt="{
+            root: { class: 'flex-1 flex flex-col min-h-0 max-w-full' },
+            tableContainer: { class: 'flex-1 overflow-auto max-w-full' },
+            emptyMessageCell: { class: 'h-full' },
+            footer: { class: 'p-0 border-0' },
+          }"
+          @sort="$emit('sort', $event)"
+          @row-click="$emit('row-click', $event)"
         >
-          <template #body="slotProps">
-            <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
-              {{ slotProps.data[field.key] }}
-            </slot>
+          <template #empty>
+            <div class="flex items-center justify-center p-4 text-muted">
+              {{ translations.noItems || t('general.resourceList.noItems') }}
+            </div>
           </template>
-        </Column>
 
-        <template #footer>
-          <div class="flex items-center flex-wrap gap-2 w-full p-3">
-            <div class="flex items-center text-sm">
-              <span v-if="!hideTotal" class="whitespace-nowrap">
-                {{ getPagination }}
-              </span>
+          <Column v-if="selectable" selectionMode="multiple" headerStyle="width: 3rem" />
+          <Column
+            v-for="field in fields"
+            :key="field.key"
+            :field="field.key"
+            :header="field.header || field.label"
+            :sortable="field.sortable"
+            :class="field.class"
+            :style="field.style"
+            :pt="field.pt"
+            :frozen="field.frozen"
+            :alignFrozen="field.alignFrozen"
+          >
+            <template #body="slotProps">
+              <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
+                {{ slotProps.data[field.key] }}
+              </slot>
+            </template>
+          </Column>
 
-              <Divider layout="vertical" />
-
-              <div v-if="!hidePerPageOption" class="flex items-center gap-2 whitespace-nowrap">
-                <span>
-                  {{ translations.recordsPerPage || 'Per Page' }}
+          <template #footer>
+            <div class="flex items-center flex-wrap gap-2 w-full p-3">
+              <div class="flex items-center text-sm">
+                <span v-if="!hideTotal" class="whitespace-nowrap">
+                  {{ getPagination }}
                 </span>
-                <Select
-                  :model-value="pagination.limit"
-                  :options="perPageOptions"
-                  class="w-30"
-                  @update:model-value="handlePerPageChange"
+
+                <Divider layout="vertical" />
+
+                <div v-if="!hidePerPageOption" class="flex items-center gap-2 whitespace-nowrap">
+                  <span>
+                    {{ translations.recordsPerPage || 'Per Page' }}
+                  </span>
+                  <Select
+                    :model-value="pagination.limit"
+                    :options="perPageOptions"
+                    class="w-30"
+                    @update:model-value="handlePerPageChange"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-center ml-auto gap-1">
+                <Button
+                  icon="pi pi-angle-double-left"
+                  text
+                  severity="secondary"
+                  size="small"
+                  :disabled="!hasPrevPage"
+                  @click="goToPage()"
+                />
+                <Button
+                  icon="pi pi-angle-left"
+                  :label="translations.prevPagination || 'Previous'"
+                  text
+                  severity="secondary"
+                  size="small"
+                  :disabled="!hasPrevPage"
+                  @click="goToPage('prevPage')"
+                />
+                <Button
+                  :label="translations.nextPagination || 'Next'"
+                  icon="pi pi-angle-right"
+                  iconPos="right"
+                  text
+                  severity="secondary"
+                  size="small"
+                  :disabled="!hasNextPage"
+                  @click="goToPage('nextPage')"
                 />
               </div>
             </div>
-
-            <div class="flex items-center ml-auto gap-1">
-              <Button
-                icon="pi pi-angle-double-left"
-                text
-                severity="secondary"
-                size="small"
-                :disabled="!hasPrevPage"
-                @click="goToPage()"
-              />
-              <Button
-                icon="pi pi-angle-left"
-                :label="translations.prevPagination || 'Previous'"
-                text
-                severity="secondary"
-                size="small"
-                :disabled="!hasPrevPage"
-                @click="goToPage('prevPage')"
-              />
-              <Button
-                :label="translations.nextPagination || 'Next'"
-                icon="pi pi-angle-right"
-                iconPos="right"
-                text
-                severity="secondary"
-                size="small"
-                :disabled="!hasNextPage"
-                @click="goToPage('nextPage')"
-              />
-            </div>
-          </div>
-        </template>
-      </DataTable>
+          </template>
+        </DataTable>
+      </div>
     </template>
   </Card>
 </template>

@@ -1,20 +1,19 @@
 <template>
-  <DatePicker
-    :model-value="dateValue"
+  <c-input-date-time
+    :model-value="modelValue"
     :show-time="showTime"
     :time-only="timeOnly"
     :min-date="minDate"
     :max-date="maxDate"
+    :only-date="onlyDate"
     :disabled="disabled"
-    date-format="yy-mm-dd"
-    show-icon
-    fluid
-    @update:model-value="onUpdate"
+    @update:model-value="$emit('update:modelValue', $event)"
   />
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { CInputDateTime } from '../../input'
 
 const props = defineProps({
   field: {
@@ -33,11 +32,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+const onlyDate = computed(() => !!props.field.options?.onlyDate)
 const timeOnly = computed(() => !!props.field.options?.onlyTime)
-const showTime = computed(() => {
-  if (props.field.options?.onlyDate) return false
-  return true
-})
+const showTime = computed(() => !onlyDate.value)
 
 const minDate = computed(() => {
   if (props.field.options?.onlyFutureValues) return new Date()
@@ -48,47 +45,4 @@ const maxDate = computed(() => {
   if (props.field.options?.onlyPastValues) return new Date()
   return undefined
 })
-
-const dateValue = computed(() => {
-  if (!props.modelValue) return null
-  if (timeOnly.value) {
-    const [h, m, s] = props.modelValue.split(':').map(Number)
-    const d = new Date()
-    d.setHours(h || 0, m || 0, s || 0, 0)
-    return d
-  }
-  // Append T00:00:00 to date-only strings to ensure local timezone parsing
-  const raw = props.modelValue
-  const d = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(raw + 'T00:00:00') : new Date(raw)
-  return isNaN(d.getTime()) ? null : d
-})
-
-function pad(n) {
-  return String(n).padStart(2, '0')
-}
-
-function onUpdate(value) {
-  if (!value) {
-    emit('update:modelValue', '')
-    return
-  }
-
-  if (timeOnly.value) {
-    emit(
-      'update:modelValue',
-      `${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`,
-    )
-    return
-  }
-
-  if (props.field.options?.onlyDate) {
-    emit(
-      'update:modelValue',
-      `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`,
-    )
-    return
-  }
-
-  emit('update:modelValue', value.toISOString())
-}
 </script>

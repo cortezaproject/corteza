@@ -1,6 +1,6 @@
 <template>
   <div
-    class="header-navigation flex flex-wrap items-center py-2 px-3 gap-2 border-b border-surface"
+    class="header-navigation flex flex-wrap items-center py-2 px-3 gap-3 border-b border-surface"
   >
     <!-- Sidebar toggle + small logo -->
     <div>

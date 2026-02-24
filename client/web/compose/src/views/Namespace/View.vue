@@ -12,9 +12,6 @@
 
   <!-- Loaded content -->
   <div v-else-if="namespace" class="flex h-full">
-    <!-- Namespace Sidebar (teleports content to CSidebar) -->
-    <CNamespaceSidebar :namespace="namespace" :namespaces="namespaceStore.set" />
-
     <!-- Main content area -->
     <div class="flex-1 overflow-auto">
       <RouterView :namespace="namespace" />
@@ -30,7 +27,6 @@
 </template>
 
 <script setup>
-import CNamespaceSidebar from '@/components/CNamespaceSidebar.vue'
 import { useChartStore } from '@/stores/chart'
 import { useModuleStore } from '@/stores/module'
 import { useNamespaceStore } from '@/stores/namespace'
@@ -96,6 +92,7 @@ async function loadNamespace() {
       await prepareNamespace()
 
       // Redirect to first page on initial namespace load
+      // Now guaranteed to have pages loaded because we awaited prepareNamespace!
       redirectToFirstPage()
     } catch (error) {
       console.error('Failed to load namespace:', error)
@@ -149,8 +146,8 @@ async function prepareNamespace() {
  * Redirect to the first visible root-level page when landing on the default namespace route.
  */
 function redirectToFirstPage() {
-  // Only redirect if on the default 'pages' route (not a specific page or admin route)
-  if (route.name !== 'pages') return
+  // Only redirect if on the default 'pages' route or the parent 'namespace.view'
+  if (route.name !== 'pages' && route.name !== 'namespace.view') return
 
   const pages = pageStore.set
 

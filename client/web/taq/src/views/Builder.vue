@@ -130,7 +130,9 @@
       :header="
         nodePickerCategory === 'trigger' ? $t('builder.selectTrigger') : $t('builder.addStep')
       "
-      :style="{ width: '500px' }"
+      :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+      :pt="{ content: { class: 'p-0' } }"
+      :style="{ width: '50vw' }"
     >
       <NodePicker
         :filter-category="nodePickerCategory"
@@ -147,7 +149,7 @@
     >
       <div
         v-if="selectedNode && showReferencePanel"
-        class="absolute top-0 bottom-[63px] my-7 bg-surface border-l border-surface shadow z-30 rounded-xl"
+        class="absolute top-0 bottom-[58px] my-7 bg-surface border-l border-surface shadow z-30 rounded-xl"
         :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '280px' }"
       >
         <ReferencePanel
@@ -171,7 +173,7 @@
     >
       <div
         v-if="selectedNode"
-        class="config-drawer flex absolute top-0 right-0 bottom-[63px] m-3 bg-surface border-l border-surface shadow z-30 rounded-xl"
+        class="config-drawer flex absolute top-0 right-0 bottom-[58px] m-3 bg-surface border-l border-surface shadow z-30 rounded-xl"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->

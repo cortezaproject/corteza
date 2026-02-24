@@ -24,7 +24,7 @@
   <div v-else-if="module" class="flex flex-col h-full">
     <div class="container mx-auto p-5 flex-1">
       <!-- Related Pages Actions -->
-      <div v-if="isEdit && namespace?.canManageNamespace" class="flex justify-end gap-2 mb-3">
+      <div v-if="isEdit && namespace?.canManageNamespace" class="flex justify-end gap-2 mb-4">
         <!-- Record Page Button -->
         <CRouterLinkButton
           v-if="recordPage"
@@ -150,31 +150,66 @@
                   </Column>
 
                   <Column field="kind" :header="$t('module.edit.fields.columns.type.label')">
-                    <template #body="{ data }">
-                      <Select
-                        v-model="data.kind"
-                        :options="fieldKinds"
-                        option-label="label"
-                        option-value="value"
-                        class="w-full"
-                        size="small"
-                      />
+                    <template #body="{ data, index }">
+                      <InputGroup>
+                        <Select
+                          v-model="data.kind"
+                          :options="fieldKinds"
+                          option-label="label"
+                          option-value="value"
+                          size="small"
+                        />
+                        <InputGroupAddon>
+                          <Button
+                            icon="pi pi-cog"
+                            severity="secondary"
+                            size="small"
+                            class="w-full"
+                            @click="openFieldConfigurator(data, index)"
+                          />
+                        </InputGroupAddon>
+                      </InputGroup>
                     </template>
                   </Column>
 
-                  <Column header-style="width: 6rem">
-                    <template #body="{ index }">
+                  <Column
+                    field="isRequired"
+                    :header="$t('module.edit.fields.columns.required.label')"
+                    header-style="width: 6rem"
+                    header-class="text-center"
+                    body-class="text-center"
+                  >
+                    <template #body="{ data }">
+                      <div class="flex justify-center">
+                        <Checkbox v-model="data.isRequired" :binary="true" />
+                      </div>
+                    </template>
+                  </Column>
+
+                  <Column
+                    field="isMulti"
+                    :header="$t('module.edit.fields.columns.multi.label')"
+                    header-style="width: 6rem"
+                    header-class="text-center"
+                    body-class="text-center"
+                  >
+                    <template #body="{ data }">
+                      <div class="flex justify-center">
+                        <Checkbox v-model="data.isMulti" :binary="true" />
+                      </div>
+                    </template>
+                  </Column>
+
+                  <Column header-style="width: 3rem">
+                    <template #body="{ data, index }">
                       <div class="flex justify-end gap-1">
-                        <CInputDelete
+                        <Button
+                          icon="pi pi-ellipsis-v"
                           text
+                          severity="secondary"
                           size="small"
-                          :message="$t('module.edit.fields.deleteConfirm')"
-                          :header="
-                            module.fields[index]?.label ||
-                            module.fields[index]?.name ||
-                            $t('module.edit.fields.columns.name.label')
-                          "
-                          @confirm="removeField(index)"
+                          class="row-action-btn w-full mr-2"
+                          @click.stop="toggleFieldActionsMenu($event, data, index)"
                         />
                       </div>
                     </template>
@@ -186,6 +221,15 @@
                     </div>
                   </template>
                 </DataTable>
+
+                <TieredMenu ref="fieldActionsMenu" :model="fieldActionsMenuItems" popup>
+                  <template #item="{ item, props }">
+                    <a v-ripple v-bind="props.action" :class="item.class">
+                      <span :class="item.icon" />
+                      <span class="ml-2">{{ item.label }}</span>
+                    </a>
+                  </template>
+                </TieredMenu>
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -193,7 +237,6 @@
       </Card>
     </div>
 
-    <!-- Toolbar -->
     <div class="shrink-0 border-t border-surface bg-surface">
       <div class="flex items-center justify-between p-3">
         <Button
@@ -221,6 +264,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Field Configurator Modal -->
+    <CFieldConfigurator
+      v-model:visible="configuratorVisible"
+      :field="activeConfiguratorField"
+      @save="onFieldSave"
+    />
   </div>
 </template>
 
@@ -228,8 +278,9 @@
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { compose } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref, watch } from 'vue'
+import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
 
 const { CInputDelete, CRouterLinkButton } = components
 import { useI18n } from 'vue-i18n'
@@ -245,6 +296,7 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
@@ -257,6 +309,15 @@ const module = ref(null)
 const activeTab = ref('fields')
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
+
+// Configurator State
+const configuratorVisible = ref(false)
+const activeConfiguratorField = ref(null)
+const activeConfiguratorFieldIndex = ref(-1)
+
+// Field actions menu
+const fieldActionsMenu = ref()
+const fieldActionsMenuItems = ref([])
 
 // Field type options
 const fieldKinds = [
@@ -352,6 +413,44 @@ function addField() {
 
 function removeField(index) {
   module.value.fields.splice(index, 1)
+}
+
+function toggleFieldActionsMenu(event, field, index) {
+  fieldActionsMenuItems.value = getFieldActionsMenuItems(field, index)
+  fieldActionsMenu.value.toggle(event)
+}
+
+function getFieldActionsMenuItems(field, index) {
+  const items = []
+
+  items.push({
+    label: t('general.label.delete'),
+    icon: 'pi pi-trash',
+    class: 'text-red-500',
+    command: () => onConfirmFieldDelete(field, index),
+  })
+
+  return items
+}
+
+function onConfirmFieldDelete(field, index) {
+  confirmDelete({
+    message: t('module.edit.fields.deleteConfirm'),
+    header: field.label || field.name || t('module.edit.fields.columns.name.label'),
+    onConfirm: () => removeField(index),
+  })
+}
+
+function openFieldConfigurator(field, index) {
+  activeConfiguratorField.value = field
+  activeConfiguratorFieldIndex.value = index
+  configuratorVisible.value = true
+}
+
+function onFieldSave(updatedField) {
+  if (activeConfiguratorFieldIndex.value > -1) {
+    module.value.fields.splice(activeConfiguratorFieldIndex.value, 1, updatedField)
+  }
 }
 
 async function handleSubmit() {

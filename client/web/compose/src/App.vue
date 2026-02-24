@@ -3,8 +3,14 @@
 
   <div class="h-screen flex">
     <!-- Sidebar: fixed position via Drawer -->
-    <!-- Content is teleported from CNamespaceSidebar in namespace routes -->
-    <CSidebar v-model="expanded" />
+    <CSidebar v-model="expanded">
+      <template v-if="!sidebarDisabled" #header>
+        <CSidebarNamespaceSwitcher />
+      </template>
+      <template v-if="!sidebarDisabled" #body>
+        <CSidebarNavigation />
+      </template>
+    </CSidebar>
 
     <!-- Main content area: pushed by sidebar margin on desktop -->
     <div
@@ -57,6 +63,8 @@
 </template>
 
 <script setup>
+import CSidebarNamespaceSwitcher from '@/components/CSidebarNamespaceSwitcher.vue'
+import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { useNamespaceStore } from '@/stores/namespace'
 import { useUserStore } from '@/stores/user'
 import { components, useRBACStore } from '@cortezaproject/corteza-vue-next'

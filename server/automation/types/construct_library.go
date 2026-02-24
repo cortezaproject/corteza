@@ -5,6 +5,7 @@ type (
 	ConstructTrigger struct {
 		ResourceType string                       `json:"resourceType"`
 		EventType    string                       `json:"eventType"`
+		Groups       []string                     `json:"groups,omitempty"`
 		Meta         *ConstructTriggerMeta        `json:"meta,omitempty"`
 		Constraints  []ConstructTriggerConstraint `json:"constraints"`
 		Properties   []ConstructTriggerProperty   `json:"properties"`
@@ -42,9 +43,10 @@ type (
 
 	// Function definitions
 	ConstructFunction struct {
-		Ref  string                 `json:"ref,omitempty"`
-		Kind string                 `json:"kind,omitempty"`
-		Meta *ConstructFunctionMeta `json:"meta,omitempty"`
+		Ref    string                 `json:"ref,omitempty"`
+		Kind   string                 `json:"kind,omitempty"`
+		Groups []string               `json:"groups,omitempty"`
+		Meta   *ConstructFunctionMeta `json:"meta,omitempty"`
 
 		Parameters ParamSet `json:"parameters,omitempty"`
 		Results    ParamSet `json:"results,omitempty"`

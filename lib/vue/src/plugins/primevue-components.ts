@@ -21,6 +21,8 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
+import InputGroup from 'primevue/inputgroup'
+import InputGroupAddon from 'primevue/inputgroupaddon'
 import Menu from 'primevue/menu'
 import Paginator from 'primevue/paginator'
 import Message from 'primevue/message'
@@ -65,6 +67,8 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('InputIcon', InputIcon)
     app.component('InputNumber', InputNumber)
     app.component('InputText', InputText)
+    app.component('InputGroup', InputGroup)
+    app.component('InputGroupAddon', InputGroupAddon)
     app.component('Menu', Menu)
     app.component('Message', Message)
     app.component('Paginator', Paginator)

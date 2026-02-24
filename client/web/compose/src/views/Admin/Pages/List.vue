@@ -3,8 +3,8 @@
     <span>{{ $t('page.navigation.page') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden">
-    <Card class="flex-1 overflow-auto" :pt="{ body: { class: 'p-0' } }">
+  <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
+    <Card class="flex-1 overflow-auto min-w-0" :pt="{ body: { class: 'p-0' } }">
       <template #header>
         <!-- Header: Create button + Search -->
         <div class="flex items-center justify-between gap-3 p-3 border-b">

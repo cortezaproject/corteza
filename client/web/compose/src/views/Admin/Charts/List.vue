@@ -3,7 +3,7 @@
     <span>{{ $t('chart.navigation.chart') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-5 h-full overflow-hidden">
+  <div class="container mx-auto p-5 h-full overflow-hidden min-w-0">
     <CResourceList
       primary-key="chartID"
       :fields="chartFields"

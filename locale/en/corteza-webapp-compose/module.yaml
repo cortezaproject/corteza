@@ -32,6 +32,10 @@ edit:
         label: Title
       type:
         label: Type
+      required:
+        label: Required
+      multi:
+        label: Multi
   federationSettings:
     downstream:
       allFields: All Fields

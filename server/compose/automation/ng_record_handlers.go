@@ -47,11 +47,33 @@ func (h ngRecordsHandler) register() {
 	h.reg.AddTriggers(atypes.ConstructTrigger{
 		ResourceType: "system",
 		EventType:    "onManual",
+		Groups:       []string{"Manual"},
+		Meta: &atypes.ConstructTriggerMeta{},
 	},
 
 		atypes.ConstructTrigger{
 			ResourceType: "system",
 			EventType:    "onInterval",
+			Groups:       []string{"Schedule"},
+			Meta:         &atypes.ConstructTriggerMeta{},
+			Segments: []atypes.ConstructSegment{
+				{
+					Sections: []atypes.ConstructSection{
+						{
+							Elements: []atypes.SectionElement{
+								{
+									Input: atypes.SectionElementInput{
+										Type:        "String",
+										Label:       "Interval (Cron)",
+										Argument:    "interval",
+										Placeholder: "* * * * *",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			Constraints: []atypes.ConstructTriggerConstraint{{
 				Name:  "interval",
 				Types: []string{"String"},
@@ -63,6 +85,26 @@ func (h ngRecordsHandler) register() {
 		atypes.ConstructTrigger{
 			ResourceType: "system",
 			EventType:    "onTimestamp",
+			Groups:       []string{"Schedule"},
+			Meta:         &atypes.ConstructTriggerMeta{},
+			Segments: []atypes.ConstructSegment{
+				{
+					Sections: []atypes.ConstructSection{
+						{
+							Elements: []atypes.SectionElement{
+								{
+									Input: atypes.SectionElementInput{
+										Type:        "DateTime",
+										Label:       "Timestamp (RFC3339)",
+										Argument:    "timestamp",
+										Placeholder: "2026-01-02T15:04:05Z",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			Constraints: []atypes.ConstructTriggerConstraint{{
 				Name:  "timestamp",
 				Types: []string{"String"},
@@ -74,6 +116,8 @@ func (h ngRecordsHandler) register() {
 		atypes.ConstructTrigger{
 			ResourceType: "compose:record",
 			EventType:    "afterCreate",
+			Groups:       []string{"Records"},
+			Meta:         &atypes.ConstructTriggerMeta{},
 			Segments: []atypes.ConstructSegment{
 				{
 					Sections: []atypes.ConstructSection{
@@ -148,6 +192,8 @@ func (h ngRecordsHandler) register() {
 		atypes.ConstructTrigger{
 			ResourceType: "compose:record",
 			EventType:    "afterUpdate",
+			Groups:       []string{"Records"},
+			Meta:         &atypes.ConstructTriggerMeta{},
 			Properties: []atypes.ConstructTriggerProperty{
 				{
 					Name: "record",
@@ -222,6 +268,8 @@ func (h ngRecordsHandler) register() {
 		atypes.ConstructTrigger{
 			ResourceType: "compose:record",
 			EventType:    "afterDelete",
+			Groups:       []string{"Records"},
+			Meta:         &atypes.ConstructTriggerMeta{},
 			Properties: []atypes.ConstructTriggerProperty{
 
 				{
@@ -304,6 +352,7 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:  "composeRecordsLookup",
 		Kind: "function",
+		Groups: []string{"Records"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Find Record",
 			Description: "Lookup record by ID",
@@ -490,10 +539,11 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 		Ref:    "composeRecordsCreate",
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
+		Groups: []string{"Records"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Create Record",
+			Short:       "Create Record",
 			Description: "Add new record to module",
-			Icon:  "database",
+			Icon:        "database",
 		},
 
 		Parameters: []*atypes.Param{

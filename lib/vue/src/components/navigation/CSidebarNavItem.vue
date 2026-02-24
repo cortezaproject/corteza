@@ -28,11 +28,8 @@
     <!-- Child items -->
     <button
       v-else
-      class="flex items-center gap-2 w-full text-left px-3 py-1.5 rounded-md transition-colors hover:bg-emphasis"
-      :class="
-        itemIsActive ? 'bg-highlight !text-primary' : 'text-surface-700 dark:text-surface-200'
-      "
-      :style="{ paddingLeft: `${depth * 16 + 12}px` }"
+      class="flex items-center gap-2 w-full text-left px-3 py-1.5 rounded-md transition-colors hover:bg-emphasis ml-2 mb-1"
+      :class="itemIsActive ? 'bg-highlight !text-primary' : 'text-color-muted'"
       @click="handleAction($event)"
     >
       <slot name="item" :item="node" :depth="depth" :active="itemIsActive">

@@ -4,29 +4,27 @@
     :modal="isMobile"
     :dismissable="isMobile"
     :pt="{
-      header: { class: 'px-2 py-1', header: { class: 'max-h-15' } },
+      root: 'border-r border-surface',
+      header: { class: 'pl-3 pt-3 pb-2 pr-1 h-15 gap-2' },
       content: 'p-3',
     }"
     :style="{ width: 'var(--sidebar-width)' }"
   >
     <template #header>
       <div class="grow">
-        <img :src="logo" class="w-auto h-full max-h-16 object-contain" />
+        <img :src="logo" class="flex-1 object-contain" />
       </div>
     </template>
 
-    <!-- Sidebar content area with teleport targets -->
+    <!-- Sidebar content area with named slots -->
     <div class="flex flex-col h-full gap-2">
-      <!-- Header teleport target (e.g., namespace switcher) -->
-      <div id="sidebar-header-expanded" />
+      <slot name="header" />
 
-      <!-- Body teleport target (e.g., navigation items) -->
-      <div id="sidebar-body-expanded" class="flex-1 overflow-auto" />
+      <div class="flex-1 overflow-auto">
+        <slot name="body" />
+      </div>
 
-      <!-- Footer teleport target -->
-      <div id="sidebar-footer-expanded" />
-
-      <!-- Default slot for direct content (fallback) -->
+      <!-- Default slot for any extra content -->
       <slot />
     </div>
   </Drawer>

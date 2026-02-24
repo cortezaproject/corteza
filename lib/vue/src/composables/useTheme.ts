@@ -115,13 +115,7 @@ export function getTheme(theme: Theme) {
         },
       },
     },
-    components: {
-      drawer: {
-        root: {
-          borderColor: '#ffffff00',
-        },
-      },
-    },
+    components: {},
     css: () => `
       :root {
         --topbar-height: 64px;

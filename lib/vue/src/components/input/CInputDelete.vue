@@ -64,11 +64,15 @@ const props = defineProps({
   },
   acceptProps: {
     type: Object,
-    default: undefined,
+    default: {
+      size: 'small',
+    },
   },
   rejectProps: {
     type: Object,
-    default: undefined,
+    default: {
+      size: 'small',
+    },
   },
 })
 

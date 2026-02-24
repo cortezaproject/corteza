@@ -14,9 +14,10 @@
     />
 
     <!-- Normal input mode — click opens reference panel (skip for aggregate types) -->
-    <div v-else @click="!isAggregate && onInputClick()">
+    <div v-else class="w-full" @click="!isAggregate && onInputClick()">
       <component
         :is="inputComponent"
+        class="w-full"
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
         @toggle-row-reference="onRowReferenceToggle"

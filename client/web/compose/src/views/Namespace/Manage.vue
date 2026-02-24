@@ -3,7 +3,7 @@
     <span>{{ $t('namespace.manage.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden">
+  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
       primary-key="namespaceID"
       :fields="namespaceFields"

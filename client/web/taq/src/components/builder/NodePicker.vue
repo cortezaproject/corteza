@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <!-- Search -->
-    <div class="mb-4">
+  <div class="flex flex-col h-[600px]">
+    <!-- Search Bar -->
+    <div class="px-4 pb-4 border-b border-surface shrink-0">
       <IconField>
         <InputIcon class="pi pi-search" />
         <InputText
@@ -17,38 +17,60 @@
       </IconField>
     </div>
 
-    <!-- Categories -->
-    <div class="space-y-6">
-      <div v-for="category in filteredCategories" :key="category.id">
-        <h4 class="text-sm font-semibold text-muted-color uppercase mb-2 flex items-center gap-2">
-          <i :class="category.icon" />
-          {{ category.label }}
-        </h4>
-        <div class="space-y-2">
-          <div
-            v-for="node in category.nodes"
-            :key="node.id"
-            class="node-item p-3 rounded-border border border-surface cursor-pointer transition-colors hover:bg-emphasis"
-            @click="selectNode(node)"
+    <!-- Panes -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Left Pane: Groups -->
+      <div class="w-1/3 border-r border-surface p-4 overflow-y-auto">
+        <div class="space-y-1">
+          <button
+            v-for="category in filteredCategories"
+            :key="category.id"
+            class="w-full flex items-center gap-3 px-3 py-2 rounded-border text-left transition-colors"
+            :class="
+              selectedGroup === category.id
+                ? 'bg-primary text-primary-contrast'
+                : 'hover:bg-emphasis text-color'
+            "
+            @click="selectedGroup = category.id"
           >
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-border flex items-center justify-center">
-                <TaqIcon :icon="node.icon" class="text-lg text-primary" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="font-medium text-color">{{ node.label }}</div>
-                <div class="text-sm text-muted-color truncate">{{ node.description }}</div>
+            <i :class="category.icon" />
+            <span class="flex-1 font-medium truncate">{{ category.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Pane: Items -->
+      <div class="flex-1 flex flex-col p-4 overflow-hidden">
+        <!-- Items Grid/List -->
+        <div class="flex-1 overflow-y-auto pr-2">
+          <div v-if="filteredNodes.length > 0" class="space-y-2">
+            <div
+              v-for="node in filteredNodes"
+              :key="node.id"
+              class="node-item p-3 rounded-border border border-surface cursor-pointer transition-colors hover:bg-emphasis"
+              @click="selectNode(node)"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-border flex items-center justify-center">
+                  <TaqIcon :icon="node.icon" class="text-lg text-primary" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-color">{{ node.label }}</div>
+                  <div class="text-sm text-muted-color truncate" :title="node.description">
+                    {{ node.description }}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          <!-- Empty state for search -->
+          <div v-else class="h-full flex flex-col items-center justify-center text-muted-color">
+            <i class="pi pi-search text-3xl mb-3 opacity-50" />
+            <p>{{ $t('builder.nodePicker.noResults', { query: searchQuery }) }}</p>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- Empty state -->
-    <div v-if="filteredCategories.length === 0" class="text-center py-8 text-muted-color">
-      <i class="pi pi-search text-2xl mb-2" />
-      <p>{{ $t('builder.nodePicker.noResults', { query: searchQuery }) }}</p>
     </div>
   </div>
 </template>
@@ -56,7 +78,7 @@
 <script setup>
 import { normalizeIcon } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TaqIcon from '../common/TaqIcon.vue'
 import { useAutomationStore } from '../../stores/automation'
@@ -68,15 +90,39 @@ const store = useAutomationStore()
 const props = defineProps({
   filterCategory: {
     type: String,
-    default: null,
+    default: null, // 'trigger' or 'step'
   },
 })
 
 const emit = defineEmits(['select', 'close'])
 
 const searchQuery = ref('')
+const selectedGroup = ref(null)
 
-// Helper to map a trigger to a node format with icons and i18n
+// Helper to reliably sanitize group names for IDs
+function slugify(text) {
+  return (text || '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]/g, '')
+}
+
+// Icon mapping for groups
+const GROUP_ICONS = {
+  manual: 'pi pi-user',
+  schedule: 'pi pi-calendar',
+  records: 'pi pi-database',
+  logic: 'pi pi-sitemap',
+  general: 'pi pi-bolt',
+  system: 'pi pi-cog',
+}
+
+function getGroupIcon(groupName) {
+  const slug = slugify(groupName)
+  return GROUP_ICONS[slug] || 'pi pi-folder'
+}
+
+// Helper to map a trigger to a node format
 function mapTriggerNode(trigger) {
   const meta = TRIGGER_META[trigger.eventType]
   const icon = normalizeIcon(trigger.meta?.icon) || meta?.icon || DEFAULT_TRIGGER_ICON
@@ -89,60 +135,43 @@ function mapTriggerNode(trigger) {
     description: trigger.meta?.description || (i18nPrefix ? t(`${i18nPrefix}.description`) : ''),
     eventType: trigger.eventType,
     resourceType: trigger.resourceType,
+    group: trigger.groups?.[0] || 'General',
   }
 }
 
-// Node categories - triggers grouped by resourceType, functions from API, logic nodes defined here
-const nodeCategories = computed(() => {
-  // Split triggers into General (non-record) and Record groups
-  const generalTriggers = store.triggers
-    .filter(t => t.resourceType !== 'compose:record')
-    .map(mapTriggerNode)
-  const recordTriggers = store.triggers
-    .filter(t => t.resourceType === 'compose:record')
-    .map(mapTriggerNode)
+// Compute all available categories based on `filterCategory`
+const availableCategories = computed(() => {
+  const groupsMap = {} // { "slug": { id, label, icon, nodes: [] } }
 
-  // Map API functions to node format (labels/descriptions from backend, exclude gateway - handled as logic)
-  const actionNodes = store.functions
-    .filter(fn => fn.kind !== 'gateway')
-    .map(fn => {
-      const icon = normalizeIcon(fn.meta?.icon) || DEFAULT_ACTION_ICON
-      return {
-        id: fn.ref,
-        type: 'action',
-        label: fn.meta?.short || fn.ref,
-        icon,
-        description: fn.meta?.description || '',
-        ref: fn.ref,
-        kind: fn.kind,
+  const addNodeToGroup = node => {
+    const label = node.group || 'System'
+    const id = slugify(label)
+
+    if (!groupsMap[id]) {
+      groupsMap[id] = {
+        id,
+        label,
+        icon: getGroupIcon(label),
+        nodes: [],
       }
-    })
+    }
+    groupsMap[id].nodes.push(node)
+  }
 
-  const categories = []
-
-  if (generalTriggers.length > 0) {
-    categories.push({
-      id: 'triggers-general',
-      label: t('builder.nodePicker.categories.triggersGeneral'),
-      icon: 'pi pi-bolt',
-      nodes: generalTriggers,
+  // Populate Triggers (if filterCategory is 'trigger')
+  if (props.filterCategory === 'trigger') {
+    store.triggers.forEach(t => {
+      addNodeToGroup(mapTriggerNode(t))
     })
   }
 
-  if (recordTriggers.length > 0) {
-    categories.push({
-      id: 'triggers-record',
-      label: t('builder.nodePicker.categories.triggersRecord'),
-      icon: 'pi pi-database',
-      nodes: recordTriggers,
-    })
-  }
-
-  categories.push(
-    {
+  // Populate Steps/Actions (if filterCategory isn't 'trigger')
+  if (props.filterCategory !== 'trigger') {
+    // 1. Manually add Logic group
+    groupsMap['logic'] = {
       id: 'logic',
-      label: t('builder.nodePicker.categories.logic'),
-      icon: 'pi pi-sitemap',
+      label: t('builder.nodePicker.categories.logic', 'Logic'),
+      icon: getGroupIcon('logic'),
       nodes: [
         {
           id: 'branch',
@@ -151,45 +180,78 @@ const nodeCategories = computed(() => {
           icon: DEFAULT_ICONS.BRANCH,
           description: t('builder.nodePicker.nodes.logic.branch.description'),
           ref: 'gateway',
+          group: 'Logic',
         },
       ],
-    },
-    {
-      id: 'actions',
-      label: t('builder.nodePicker.categories.actions'),
-      icon: 'pi pi-cog',
-      nodes: actionNodes,
-    },
-  )
+    }
 
-  return categories
+    // 2. Loop through Actions
+    store.functions
+      .filter(fn => fn.kind !== 'gateway') // Gateways are handled manually above
+      .forEach(fn => {
+        const icon = normalizeIcon(fn.meta?.icon) || DEFAULT_ACTION_ICON
+        addNodeToGroup({
+          id: fn.ref,
+          type: 'action',
+          label: fn.meta?.short || fn.ref,
+          icon,
+          description: fn.meta?.description || '',
+          ref: fn.ref,
+          kind: fn.kind,
+          group: fn.groups?.[0] || 'System',
+        })
+      })
+  }
+
+  return Object.values(groupsMap).sort((a, b) => a.label.localeCompare(b.label))
 })
 
 const filteredCategories = computed(() => {
-  let categories = nodeCategories.value
+  let categories = availableCategories.value
 
-  // Filter by category: 'trigger' shows only trigger groups, otherwise exclude them
-  if (props.filterCategory === 'trigger') {
-    categories = categories.filter(c => c.id.startsWith('triggers-'))
-  } else {
-    categories = categories.filter(c => !c.id.startsWith('triggers-'))
-  }
-
-  // Apply search filter
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+    const q = searchQuery.value.toLowerCase()
     categories = categories
       .map(category => ({
         ...category,
         nodes: category.nodes.filter(
           node =>
-            node.label.toLowerCase().includes(query) ||
-            node.description.toLowerCase().includes(query),
+            node.label.toLowerCase().includes(q) ||
+            (node.description && node.description.toLowerCase().includes(q)),
         ),
       }))
       .filter(category => category.nodes.length > 0)
   }
+
   return categories
+})
+
+// Auto-select the first category when the modal opens or search changes
+watch(
+  filteredCategories,
+  newVal => {
+    if (!selectedGroup.value || !newVal.find(c => c.id === selectedGroup.value)) {
+      if (newVal.length > 0) {
+        selectedGroup.value = newVal[0].id
+      } else {
+        selectedGroup.value = null
+      }
+    }
+  },
+  { immediate: true },
+)
+
+// Active category being viewed
+const activeCategory = computed(() => {
+  if (!selectedGroup.value) return null
+  return filteredCategories.value.find(c => c.id === selectedGroup.value) || null
+})
+
+// Filtered nodes of the active category
+const filteredNodes = computed(() => {
+  if (!activeCategory.value) return []
+  // Sort nodes alphabetically
+  return [...activeCategory.value.nodes].sort((a, b) => a.label.localeCompare(b.label))
 })
 
 function selectNode(node) {

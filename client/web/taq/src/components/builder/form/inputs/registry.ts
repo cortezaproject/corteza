@@ -6,6 +6,7 @@ import {
   CInputNamespace,
   CInputModule,
   CInputRecord,
+  CInputDateTime,
 } from '@cortezaproject/corteza-vue-next/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
 
@@ -38,6 +39,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   // Select/dropdown
   Select: CInputSelect,
   Dropdown: CInputSelect,
+
+  // Date/Time
+  DateTime: CInputDateTime,
 
   // Field-value map (for aggregate record values)
   FieldValueMap: CInputFieldValueMap,
