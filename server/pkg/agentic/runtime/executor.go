@@ -151,11 +151,23 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			for j, tc := range llmResp.ToolCalls {
 				toolNames[j] = tc.Name
 			}
-			decisions = append(decisions, DecisionInfo{
+			d := DecisionInfo{
 				Iteration: i + 1,
 				Decision:  "tool_call",
 				Tools:     toolNames,
 				Reasoning: llmResp.Text,
+			}
+			decisions = append(decisions, d)
+			r.emitEvent(observability.AgentEvent{
+				ID:             sid(),
+				TraceID:        traceID,
+				SpanID:         rootSpanID,
+				Timestamp:      time.Now(),
+				Event:          "agent.decision",
+				AgentID:        agentIDStr,
+				UserID:         userIDStr,
+				ConversationID: convIDStr,
+				Details:        map[string]any{"iteration": d.Iteration, "decision": d.Decision, "tools": d.Tools},
 			})
 
 			// Add assistant message with tool calls to history
@@ -170,9 +182,21 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 		} else {
-			decisions = append(decisions, DecisionInfo{
+			d := DecisionInfo{
 				Iteration: i + 1,
 				Decision:  "respond",
+			}
+			decisions = append(decisions, d)
+			r.emitEvent(observability.AgentEvent{
+				ID:             sid(),
+				TraceID:        traceID,
+				SpanID:         rootSpanID,
+				Timestamp:      time.Now(),
+				Event:          "agent.decision",
+				AgentID:        agentIDStr,
+				UserID:         userIDStr,
+				ConversationID: convIDStr,
+				Details:        map[string]any{"iteration": d.Iteration, "decision": d.Decision},
 			})
 
 			// agent.respond span — final response assembly
