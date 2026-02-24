@@ -2,9 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 
+	automationService "github.com/cortezaproject/corteza/server/automation/service"
+	atypes "github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
@@ -258,7 +262,91 @@ func (svc *connection) Install(ctx context.Context, new *types.ConfiguredConnect
 		return nil, err
 	}
 
+	svc.registerOperations(&new.Connection, new.ID)
+
 	return new, nil
+}
+
+// RegisterAllOperations loads all active configured connections and registers
+// their operations into the automation construct library.
+// Called on boot from service.go.
+func (svc *connection) RegisterAllOperations(ctx context.Context) {
+	set, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		Status: []string{"active"},
+	})
+	if err != nil {
+		return
+	}
+	for _, cc := range set {
+		svc.registerOperations(&cc.Connection, cc.ID)
+	}
+}
+
+// registerOperations converts each ConnectionOperation into a ConstructFunction
+// and adds it to the automation construct library.
+func (svc *connection) registerOperations(conn *types.Connection, ccID uint64) {
+	if len(conn.Operations) == 0 {
+		return
+	}
+
+	fns := make([]atypes.ConstructFunction, 0, len(conn.Operations))
+	for _, op := range conn.Operations {
+		fn := operationToFunction(conn, op, ccID)
+		fns = append(fns, fn)
+	}
+
+	automationService.ConstructLibrary().AddFunctions(fns...)
+}
+
+func operationToFunction(conn *types.Connection, op types.ConnectionOperation, ccID uint64) atypes.ConstructFunction {
+	params := make(atypes.ParamSet, 0, len(op.Input))
+	for _, in := range op.Input {
+		params = append(params, &atypes.Param{
+			ArgumentName: in.Name,
+			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
+			Types:    []string{in.Type},
+			Required: in.Required,
+			Meta: &atypes.ParamMeta{
+				Label: in.Name,
+			},
+		})
+	}
+
+	results := make(atypes.ParamSet, 0, len(op.Output))
+	for _, out := range op.Output {
+		results = append(results, &atypes.Param{
+			ArgumentName: out.Name,
+			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
+			Types: []string{out.Type},
+			Meta: &atypes.ParamMeta{
+				Label: out.Name,
+			},
+		})
+	}
+
+	ref := fmt.Sprintf("cc_%d_%s", ccID, op.Handle)
+
+	return atypes.ConstructFunction{
+		Ref:    ref,
+		Kind:   "function",
+		Groups: []string{conn.Meta.Short},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short:       op.Meta.Short,
+			Description: op.Meta.Description,
+			Icon:        conn.Meta.Icon,
+		},
+		Parameters: params,
+		Results:    results,
+		Labels: map[string]string{
+			"connection": "step,workflow",
+			op.Handle:    "step",
+		},
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			// TODO: dispatch HTTP action using resolved connection config
+			out = &expr.Vars{}
+			return
+		},
+	}
 }
 
 // dispatch orchestrates sub-system provisioning from a resolved connection definition.

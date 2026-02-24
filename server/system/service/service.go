@@ -245,6 +245,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultConnection = Connection()
 	DefaultConfiguredConnection = ConfiguredConnectionSvc()
 
+	// Register automation functions from all active configured connections
+	DefaultConnection.RegisterAllOperations(ctx)
+
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
 	}
