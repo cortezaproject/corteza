@@ -326,6 +326,22 @@ func operationToFunction(conn *types.Connection, op types.ConnectionOperation, c
 
 	ref := fmt.Sprintf("cc_%d_%s", ccID, op.Handle)
 
+	// Build UI segments from input fields
+	elements := make([]atypes.SectionElement, 0, len(op.Input))
+	for _, in := range op.Input {
+		inputType := in.Type
+		if inputType == "" {
+			inputType = "String"
+		}
+		elements = append(elements, atypes.SectionElement{
+			Input: atypes.SectionElementInput{
+				Type:     inputType,
+				Label:    in.Name,
+				Argument: in.Name,
+			},
+		})
+	}
+
 	return atypes.ConstructFunction{
 		Ref:    ref,
 		Kind:   "function",
@@ -337,6 +353,11 @@ func operationToFunction(conn *types.Connection, op types.ConnectionOperation, c
 		},
 		Parameters: params,
 		Results:    results,
+		Segments: []atypes.ConstructSegment{{
+			Sections: []atypes.ConstructSection{{
+				Elements: elements,
+			}},
+		}},
 		Labels: map[string]string{
 			"connection": "step,workflow",
 			op.Handle:    "step",
