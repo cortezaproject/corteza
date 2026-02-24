@@ -56,6 +56,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	var finalResponse string
 	var usage Usage
 	var executedTools []ToolCallInfo
+	var decisions []DecisionInfo
 
 	for i := 0; i < maxIterations; i++ {
 		config := LLMConfig{
@@ -78,6 +79,17 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 		// Process response
 		if len(llmResp.ToolCalls) > 0 {
+			toolNames := make([]string, len(llmResp.ToolCalls))
+			for j, tc := range llmResp.ToolCalls {
+				toolNames[j] = tc.Name
+			}
+			decisions = append(decisions, DecisionInfo{
+				Iteration: i + 1,
+				Decision:  "tool_call",
+				Tools:     toolNames,
+				Reasoning: llmResp.Text,
+			})
+
 			// Add assistant message with tool calls to history
 			conversation.Messages = append(conversation.Messages, types.AiConversationMessage{
 				Role:      "assistant",
@@ -90,6 +102,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 		} else {
+			decisions = append(decisions, DecisionInfo{
+				Iteration: i + 1,
+				Decision:  "respond",
+			})
+
 			// Text response — done
 			finalResponse = llmResp.Text
 			conversation.Messages = append(conversation.Messages, types.AiConversationMessage{
@@ -110,6 +127,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		Output:         finalResponse,
 		ConversationID: conversation.ID,
 		ToolCalls:      executedTools,
+		Decisions:      decisions,
 		Usage:          usage,
 	}, nil
 }
