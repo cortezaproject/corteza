@@ -1,0 +1,27 @@
+template:
+  title: Security
+
+  password:
+    title: Password
+    change-link: Change your password
+
+  mfa:
+    title: Multi-factor authentication
+    totp:
+      title: TOTP (time-based one-time password via mobile app)
+      enforced: Enabled
+      configure: Configure
+      enable: Enable
+      disable: Disable
+      enabled: Time-based one-time-password enabled
+      disabled: Disabled
+
+    email:
+      title: Email OTP (one-time password sent to email)
+      enforced: Enabled
+      enable: Enable
+      disable: Disable
+      enabled: Two factor authentication over email enabled
+      disabled: Two factor authentication over email disabled
+
+    all-disabled: All MFA methods are currently disabled. Ask your administrator to enable them.

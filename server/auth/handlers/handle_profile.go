@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/auth/request"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
-	"strings"
 )
 
 func (h *AuthHandlers) profileForm(req *request.AuthReq) (err error) {
@@ -54,11 +55,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) (err error) {
 	req.Data["avatarEnabled"] = h.Settings.ProfileAvatarEnabled
 
 	if h.Settings.ProfileAvatarEnabled {
-		req.Data["isAvatar"] = false
-
-		if u.Meta.AvatarKind == types.AttachmentKindAvatar {
-			req.Data["isAvatar"] = true
-		}
+		req.Data["isAvatar"] = u.Meta.AvatarID != 0
 	}
 
 	return nil

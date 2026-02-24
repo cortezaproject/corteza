@@ -22,7 +22,7 @@
 
   <!-- Form -->
   <div v-else-if="module" class="flex flex-col h-full">
-    <div class="container mx-auto p-5 flex-1">
+    <div class="container mx-auto p-4 flex-1">
       <!-- Related Pages Actions -->
       <div v-if="isEdit && namespace?.canManageNamespace" class="flex justify-end gap-2 mb-4">
         <!-- Record Page Button -->

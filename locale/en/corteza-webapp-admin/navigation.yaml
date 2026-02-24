@@ -1,3 +1,15 @@
+appMenu: Menu
+help:
+  documentation: Documentation
+  feedback: Send feedback
+  forum: Help
+  version: 'Version:'
+userSettings:
+  changePassword: Change password
+  logout: Logout
+  profile: Profile
+  theme: Theme
+
 dashboard: Dashboard
 
 system:
@@ -10,6 +22,7 @@ system:
     applications: Applications
     authclients: Auth Clients
     connections: Connections
+    data-sources: Data Sources
     code-snippets: Code Snippets
     sensitivityLevel: Sensitivity Levels
     permissions: Permissions
@@ -47,3 +60,8 @@ ui:
     theming: Theming
     navigation: Navigation
     location: Location
+
+themes:
+  labels:
+    light: Light
+    dark: Dark

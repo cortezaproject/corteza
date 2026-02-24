@@ -1,35 +1,30 @@
 <template>
-  <div
-    class="header-navigation flex flex-wrap items-center py-2 px-3 gap-3 border-b border-surface"
-  >
+  <div class="header-navigation flex flex-wrap items-center p-2 !pr-3 border-b border-surface">
     <!-- Sidebar toggle + small logo -->
-    <div>
+    <div v-if="!sidebarExpanded">
       <!-- When sidebar is disabled on this route, show only icon logo -->
       <img v-if="sidebarDisabled" :src="iconLogo" class="h-8 w-8 object-contain" />
 
       <!-- Normal mode: hamburger toggle only when collapsed -->
       <template v-else>
         <Button
-          v-if="!sidebarExpanded"
           data-test-id="button-sidebar-toggle"
+          severity="secondary"
           icon="pi pi-bars"
           variant="text"
-          size="large"
+          rounded
           @click="sidebarExpanded = true"
         />
       </template>
     </div>
 
-    <div
-      id="topbar-title"
-      class="title flex text-truncate items-center text-2xl font-medium mb-0"
-    />
+    <div id="topbar-title" class="flex text-truncate items-center text-2xl font-medium mb-0 ml-2" />
 
     <div id="topbar-tools" class="tools-wrapper ml-auto flex items-center gap-2">
       <slot name="tools" />
     </div>
 
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1 ml-2">
       <Button
         v-if="!hideAppSelector && !settings?.hideAppSelector"
         data-test-id="app-selector"
@@ -37,7 +32,6 @@
         severity="secondary"
         variant="text"
         size="small"
-        class="mr-[-0.5rem]"
       >
         {{ labels.appMenu }}
       </Button>
@@ -49,7 +43,6 @@
           ref="helpMenuRef"
           data-test-id="dropdown-helper"
           icon="pi pi-question-circle"
-          size="large"
           severity="secondary"
           variant="text"
           rounded
@@ -59,21 +52,25 @@
         <Menu ref="helpMenu" :model="helpMenuItems" :popup="true" class="mt-2" />
       </div>
 
-      <div v-if="!settings?.hideProfile" class="profile-dropdown">
+      <div v-if="!settings?.hideProfile" class="flex">
         <Button
           ref="profileMenuRef"
           data-test-id="dropdown-profile"
           rounded
           variant="outlined"
-          icon="pi pi-user"
           severity="secondary"
           size="large"
-          class="text-color"
-          :class="{ 'p-0': avatar }"
+          class="text-color !p-0 !w-[2.5rem] !h-[2.5rem]"
           @click="toggleProfileMenu"
         >
-          <template v-if="avatar" #default>
-            <Avatar :image="avatar" shape="circle" class="w-full h-full" />
+          <template #default>
+            <Avatar
+              :image="avatar || undefined"
+              :label="!avatar ? userInitials : undefined"
+              :icon="!avatar && !userInitials ? 'pi pi-user' : undefined"
+              shape="circle"
+              class="!w-full !h-full !text-sm"
+            />
           </template>
         </Button>
 
@@ -291,7 +288,24 @@ const profileMenuItems = computed(() => {
 })
 
 const avatar = computed(() => {
-  return `${$SystemAPI.baseURL}/attachment/avatar/${$Auth.user.meta.avatarID}/original/profile-photo-avatar`
+  const avatarID = $Auth.user?.meta?.avatarID
+  if (!avatarID || avatarID === '0') return ''
+  return `${$SystemAPI.baseURL}/attachment/avatar/${avatarID}/original/profile-photo-avatar`
+})
+
+const userInitials = computed(() => {
+  const name = $Auth.user?.name
+  if (name) {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+  const email = $Auth.user?.email
+  if (email) return email[0].toUpperCase()
+  return ''
 })
 
 const toggleHelpMenu = event => {
@@ -323,15 +337,6 @@ const logout = () => {
   width: 100%;
   min-height: var(--topbar-height);
   background-color: var(--topbar-bg);
-}
-
-.nav-icon {
-  width: calc(var(--topbar-height) - 24px);
-  height: calc(var(--topbar-height) - 24px);
-}
-
-.title {
-  min-height: calc(var(--topbar-height) - 15px);
 }
 
 .tools-wrapper > :deep(*) {

@@ -1,0 +1,136 @@
+scripts:
+  list:
+    columns:
+      name: Name
+      updatedAt: Last update
+    filter:
+      absoluteTime: Show absolute time
+      incScriptsWithErrors: Errors ({{ count }})
+      incScriptsWithIterator: Iterator ({{ count }})
+      incScriptsWithSecurity: Security ({{ count }})
+      incScriptsWithTriggers: Triggers ({{ count }})
+      searchQuery: Search query
+    flags:
+      iterator: Iterator
+      security: Security
+      triggers: Triggers
+    labelMissing: <label missing>
+    title: Corredor Scripts
+
+sessions:
+  editor:
+    info:
+      completedAt: Completed at
+      createdAt: Created at
+      createdBy: Created by - ID
+      createdByUserName: Created by - Name
+      delete: Delete
+      deletedAt: Deleted at
+      suspendedAt: Suspended at
+      error: Error
+      eventType: Event type
+      id: ID
+      resourceType: Resource type
+      status: Status
+      title: Basic information
+      workflowID: WorkflowID
+      openWorkflow: Open workflow
+      cancel: Cancel session
+    title: Session
+  list:
+    columns:
+      actions: ""
+      createdAt: Created At
+      eventType: Event type
+      sessionID: SessionID
+      state: State
+      status: Status
+      workflowID: WorkflowID
+    filterForm:
+      all:
+        label: All
+      completed:
+        label: Completed
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      failed:
+        label: Failed
+      inProgress:
+        label: completed sessions
+      inclusive:
+        label: Including
+      prompted:
+        label: Prompted
+      sessions:
+        label: sessions
+      started:
+        label: Started
+      suspended:
+        label: Suspended
+      canceled:
+        label: Canceled
+    loading: Loading sessions
+    title: Sessions
+
+workflows:
+  editor:
+    info:
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      enabled: Enabled
+      handle: Handle
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      id: ID
+      name: Name *
+      openBuilder: Open builder
+      title: Basic information
+      undelete: Undelete
+      updatedAt: Updated at
+    new: New Workflow
+    permissions: Permissions
+    title:
+      create: Create workflow
+      edit: Edit workflow
+    triggers:
+      and: and
+      columns:
+        constraints: Constraints
+        eventType: Event
+        resourceType: Resource
+      title: Triggers
+  list:
+    columns:
+      actions: ""
+      createdAt: Created
+      enabled: Enabled
+      handle: Handle
+      name: Name
+      state: State
+    delete: Delete
+    undelete: Undelete
+
+    export: Export
+    rows:
+      filters:
+        deleted: Deleted
+    filterForm:
+      deleted:
+        label: deleted workflows
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter workflows list
+        placeholder: Filter workflows by name
+    loading: Loading workflows
+    new: New Workflow
+    permissions: Permissions
+    title: Workflows
+    yaml: YAML

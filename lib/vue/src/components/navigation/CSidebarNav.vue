@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-0.5">
+  <div class="flex flex-col gap-1">
     <CSidebarNavItem
       v-for="node in tree"
       :key="node[idKey]"
@@ -77,11 +77,27 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
+  expandAll: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['select'])
 
-const expandedIds = ref(new Set())
+// Collect IDs of all items that have children
+function getAllParentIds(items) {
+  const childParents = new Set()
+  for (const item of items) {
+    const parentId = item[props.parentKey] || props.rootId
+    if (parentId !== props.rootId) {
+      childParents.add(parentId)
+    }
+  }
+  return childParents
+}
+
+const expandedIds = ref(props.expandAll ? getAllParentIds(props.items) : new Set())
 
 // Build tree from flat items
 const tree = computed(() => {
@@ -165,11 +181,6 @@ if (props.routeKey) {
 }
 
 function onSelect(item) {
-  // Auto-expand parent when clicking it
-  const itemId = item[props.idKey]
-  if (!expandedIds.value.has(itemId)) {
-    expandedIds.value.add(itemId)
-  }
   emit('select', item)
 }
 

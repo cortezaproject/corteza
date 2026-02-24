@@ -39,6 +39,7 @@
           droppable-nodes
           :pt="treePT"
           selection-mode="single"
+          class="p-0"
           @node-select="onNodeSelect"
           @node-drop="onNodeDrop"
         >

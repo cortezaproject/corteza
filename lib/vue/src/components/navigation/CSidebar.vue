@@ -5,8 +5,14 @@
     :dismissable="isMobile"
     :pt="{
       root: 'border-r border-surface',
-      header: { class: 'pl-3 pt-3 pb-2 pr-1 h-15 gap-2' },
-      content: 'p-3',
+      header: { class: 'pl-4 pt-4 pb-2 pr-1 h-15 gap-3' },
+      content: 'p-2',
+      pcCloseButton: {
+        root: {
+          tabindex: -1,
+          class: '!shadow-none !outline-none focus:!shadow-none focus:!outline-none',
+        },
+      },
     }"
     :style="{ width: 'var(--sidebar-width)' }"
   >
@@ -58,3 +64,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', checkIfMobile)
 })
 </script>
+
+<style scoped>
+:deep(.p-drawer-close-button) {
+  box-shadow: none !important;
+  outline: none !important;
+}
+</style>

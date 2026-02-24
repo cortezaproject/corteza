@@ -1,0 +1,6 @@
+errors:
+  empty: This field is required
+  invalidValue: Invalid field value
+  invalidRef: Invalid field reference
+  duplicateValueInSet: The values [{{value}}] already exist in another record
+  duplicateValue: The value "{{value}}" already exists in another record

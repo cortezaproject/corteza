@@ -3,11 +3,11 @@
     <!-- True value label -->
     <div class="flex flex-col gap-2">
       <label class="font-medium text-surface-500 text-sm">
-        {{ $t('field.kind.bool.trueLabel') }}
+        {{ $t('field.kind.bool.checkedValueLabel') }}
       </label>
       <InputText
         v-model="field.options.trueLabel"
-        :placeholder="$t('field.kind.bool.truePlaceholder', { default: $t('general.label.yes') })"
+        :placeholder="$t('field.kind.bool.checkedValuePlaceholder')"
         class="w-full"
       />
     </div>
@@ -15,11 +15,11 @@
     <!-- False value label -->
     <div class="flex flex-col gap-2">
       <label class="font-medium text-surface-500 text-sm">
-        {{ $t('field.kind.bool.falseLabel') }}
+        {{ $t('field.kind.bool.uncheckedValueLabel') }}
       </label>
       <InputText
         v-model="field.options.falseLabel"
-        :placeholder="$t('field.kind.bool.falsePlaceholder', { default: $t('general.label.no') })"
+        :placeholder="$t('field.kind.bool.uncheckedValuePlaceholder')"
         class="w-full"
       />
     </div>

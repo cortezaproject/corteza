@@ -2,7 +2,6 @@
   <div class="flex flex-col h-full">
     <!-- Page tree navigation (grows to fill) -->
     <div v-if="pageNavItems.length" class="flex-1 overflow-auto">
-      <Divider class="my-0 mb-2" />
       <CSidebarNav
         :items="pageNavItems"
         id-key="pageID"

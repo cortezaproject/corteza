@@ -152,13 +152,7 @@ func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err
 
 		uaProps.setUser(u)
 
-		// If profile avatar settings is enabled and a user doesn't have an avatar image,
-		// generate one automatically when fetching their user information.
-		if svc.settings.Auth.Internal.ProfileAvatar.Enabled && u.Meta.AvatarID == 0 && u.Meta.AvatarColor == "" {
-			if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
-				return err
-			}
-		}
+
 
 		if !svc.ac.CanReadUser(ctx, u) {
 			return UserErrNotAllowedToRead()
@@ -401,10 +395,7 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			new.Meta = &types.UserMeta{}
 		}
 
-		// Process avatar initials Image
-		if err = svc.generateUserAvatarInitial(ctx, new); err != nil {
-			return
-		}
+
 
 		//add default user's theme
 		new.Meta.Theme = sass.LightTheme
@@ -490,9 +481,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			u.Meta = upd.Meta
 		}
 
-		if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
-			return
-		}
+
 
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
 			return
@@ -1187,7 +1176,7 @@ func (svc user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
 			return err
 		}
 
-		if att.Meta.Labels["key"] != types.AttachmentKindAvatar {
+		if att.Meta.Labels["key"] != types.AttachmentKindAvatar && att.Meta.Labels["key"] != types.AttachmentKindAvatarInitials {
 			return nil
 		}
 
@@ -1201,10 +1190,7 @@ func (svc user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
 
 		u.Meta.AvatarID = 0
 
-		// When an uploaded avatar is deleted, generate avatar initial
-		if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
-			return err
-		}
+
 
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return

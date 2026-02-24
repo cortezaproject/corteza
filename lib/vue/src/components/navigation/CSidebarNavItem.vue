@@ -1,14 +1,17 @@
 <template>
-  <div>
+  <div class="w-full">
     <Divider v-if="showDivider" class="my-1" />
 
     <!-- Root level items styled as PrimeVue text buttons -->
     <Button
-      v-if="depth === 0"
       severity="secondary"
       text
-      class="w-full justify-between font-medium"
-      :class="{ 'bg-highlight !text-primary': itemIsActive }"
+      size="small"
+      class="w-full justify-between"
+      :class="{
+        'bg-highlight !text-primary': itemIsActive,
+        '!w-[calc(100%-0.5rem)] ml-2': depth > 0,
+      }"
       @click="handleAction($event)"
     >
       <template #default>
@@ -24,25 +27,6 @@
         />
       </template>
     </Button>
-
-    <!-- Child items -->
-    <button
-      v-else
-      class="flex items-center gap-2 w-full text-left px-3 py-1.5 rounded-md transition-colors hover:bg-emphasis ml-2 mb-1"
-      :class="itemIsActive ? 'bg-highlight !text-primary' : 'text-color-muted'"
-      @click="handleAction($event)"
-    >
-      <slot name="item" :item="node" :depth="depth" :active="itemIsActive">
-        <i v-if="itemIcon" :class="[itemIcon, 'text-xs opacity-60']" />
-        <span class="truncate flex-1">{{ label }}</span>
-        <i
-          v-if="hasChildren"
-          class="text-xs opacity-60 cursor-pointer transition-transform ml-auto p-2 -m-2"
-          :class="isExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          @click.stop="$emit('toggle', node[idKey])"
-        />
-      </slot>
-    </button>
 
     <Transition
       v-if="hasChildren"
@@ -154,14 +138,17 @@ const itemIsActive = computed(() => {
 
 // Unified click action: navigate (route) or emit select (non-route)
 function handleAction(e) {
-  // Auto-expand children when clicking a parent
-  if (hasChildren.value && !isExpanded.value) {
-    emit('toggle', props.node[props.idKey])
-  }
-
   if (nodeRoute.value) {
+    // Items with route: auto-expand but never collapse
+    if (hasChildren.value && !isExpanded.value) {
+      emit('toggle', props.node[props.idKey])
+    }
     navigate(e)
   } else {
+    // Items without route: toggle collapse/expand
+    if (hasChildren.value) {
+      emit('toggle', props.node[props.idKey])
+    }
     emit('select', props.node)
   }
 }

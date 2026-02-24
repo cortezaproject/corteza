@@ -4,12 +4,12 @@ Visual automation/workflow builder using VueFlow. Create triggers, steps, branch
 
 ## Routes
 
-| Path | Name | View | Description |
-|------|------|------|-------------|
-| `/` | `dashboard` | `Dashboard.vue` | List automations |
-| `/builder` | `builder` | `Builder.vue` | Create new automation |
-| `/builder/:id` | `builder-edit` | `Builder.vue` | Edit existing automation |
-| `/:pathMatch(.*)*` | — | redirect to `/` | Catch-all |
+| Path               | Name           | View            | Description              |
+| ------------------ | -------------- | --------------- | ------------------------ |
+| `/`                | `dashboard`    | `Dashboard.vue` | List automations         |
+| `/builder`         | `builder`      | `Builder.vue`   | Create new automation    |
+| `/builder/:id`     | `builder-edit` | `Builder.vue`   | Edit existing automation |
+| `/:pathMatch(.*)*` | —              | redirect to `/` | Catch-all                |
 
 ## Stores
 
@@ -41,6 +41,7 @@ Core composable managing the VueFlow automation editor. ~800 lines.
 **State:** `automation`, `nodes[]`, `edges[]`, `loading`, `saving`, `running`
 
 **Key operations:**
+
 - `load(id)` — fetch automation, convert to VueFlow via `automationToVueFlow()`
 - `save()` — convert back via `vueFlowToAutomation()`, push to API
 - `exec()` — run automation with tracing
@@ -61,6 +62,7 @@ Card grid of automations. Create dialog with name/description. Delete with confi
 ### Builder.vue
 
 Full VueFlow canvas with:
+
 - Custom node types: `trigger`, `step`, `branch`, `end`
 - Custom edge type: `addable` (+ button to insert nodes)
 - Bottom toolbar: zoom controls, undo/redo, run, save, back
@@ -73,9 +75,11 @@ Full VueFlow canvas with:
 ## Components
 
 ### Common
+
 - `TaqIcon.vue` — renders an `IconDef` object. Supports `type: 'name'` (PrimeIcons), `type: 'url'` (image URL), `type: 'attachment'` (attachment ID, placeholder). Props: `icon?: IconDef`, `fallback?: IconDef`.
 
 ### Flow Nodes
+
 - `TriggerNode.vue` — entry point node with delete action
 - `StepNode.vue` — action node with delete action
 - `BranchNode.vue` — conditional gateway with multiple outputs
@@ -83,11 +87,13 @@ Full VueFlow canvas with:
 - `AddableEdge.vue` — edge with + button to insert nodes between
 
 ### Builder UI
+
 - `NodePicker.vue` — dialog to select functions/triggers from catalog
 - `ConfigSidebar.vue` — right drawer to configure selected node (shows FunctionForm for steps, TriggerForm for triggers). Exposes `applyReference()` for applying step result references from the ReferencePanel.
 - `ReferencePanel.vue` — panel showing upstream step results for binding to input fields. Displays an accordion of ancestor steps with their available result outputs.
 
 ### Form System
+
 Architecture: `useSegmentForm` composable (shared logic) → type-specific controller → `DynamicForm` renderer → `DynamicInput` components.
 
 - `DynamicForm.vue` — pure renderer: takes `processedSegments`, renders `DynamicInput` list
@@ -115,5 +121,6 @@ Converts between API format (NgAutomation) and VueFlow format (nodes/edges).
 ## Dependencies
 
 Extra dependencies beyond the shared stack:
+
 - `@vue-flow/core` + `@vue-flow/background` + `@vue-flow/controls` — flow editor
 - `dagre` — graph layout algorithm

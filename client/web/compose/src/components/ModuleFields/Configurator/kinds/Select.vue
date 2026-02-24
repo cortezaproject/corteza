@@ -8,7 +8,7 @@
         :disabled="field.isMulti"
       />
       <label for="multipleSelect" class="cursor-pointer">
-        {{ $t('field.kind.select.multiple') }}
+        {{ $t('field.kind.select.optionType.multiple') }}
       </label>
     </div>
 
@@ -18,14 +18,14 @@
       <div v-for="(opt, index) in optionsList" :key="index" class="flex gap-2 items-center">
         <InputText
           v-model="opt.value"
-          :placeholder="$t('field.kind.select.optionValuePlaceholder')"
+          :placeholder="$t('field.kind.select.options.value')"
           class="flex-1"
           size="small"
           @change="updateOptions"
         />
         <InputText
           v-model="opt.text"
-          :placeholder="$t('field.kind.select.optionTextPlaceholder')"
+          :placeholder="$t('field.kind.select.options.label')"
           class="flex-1"
           size="small"
           @change="updateOptions"

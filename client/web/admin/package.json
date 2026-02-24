@@ -1,0 +1,18 @@
+{
+  "name": "corteza-webapp-admin",
+  "version": "2026.3.0-dev.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "@cortezaproject/corteza-js-next": "workspace:*",
+    "@cortezaproject/corteza-vue-next": "workspace:*"
+  }
+}

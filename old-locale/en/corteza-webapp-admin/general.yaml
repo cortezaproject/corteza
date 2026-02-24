@@ -1,0 +1,75 @@
+label:
+  add: Add
+  general:
+    yes: Yes
+    no: No
+  template:
+    single: Template
+    plural: Templates
+  user:
+    single: User
+    plural: Users
+  role:
+    single: Role
+    plural: Roles
+  user-group:
+    single: User Group
+    plural: User Groups
+  application:
+    single: Application
+    plural: Applications
+  auth-client:
+    single: Auth Client
+    plural: Auth Clients
+  queue:
+    single: Messaging Queue
+    plural: Messaging Queues
+  route:
+    single: Route
+    plural: Routes
+  connection:
+    single: Database Connection
+    plural: Database Connections
+  sensitivity-level:
+    single: Sensitivity Level
+    plural: Sensitivity Levels
+  session:
+    single: Session
+    plural: Sessions
+  workflow:
+    single: Workflow
+    plural: Workflows
+  plus-add: + Add
+  clear: Clear
+  all: All
+  none: None
+  experimental: Experimental
+  now: Now
+  openMap: Open Map
+  today: Today
+  routes: Routes
+  requests: Requests
+  refresh: Refresh
+  loadMore: Load more
+  loading: Loading
+  saveAndClose: Save and close
+  cancel: Cancel
+  submit: Submit
+  delete: Delete
+  undelete: Undelete
+  fileTypeNotAllowed: File type not allowed
+  uploading: Uploading
+  dropFiles: Click or drop files here to upload
+editor:
+  unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+resourceList:
+  pagination:
+    recordsPerPage: Per page
+themes:
+  labels:
+    light: Light
+    dark: Dark
+extendSession:
+  labels:
+    extend: Extend Session
+    warning: You will be logged out in {{ countdownTime }} seconds

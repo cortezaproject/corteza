@@ -118,9 +118,9 @@ export function getTheme(theme: Theme) {
     components: {},
     css: () => `
       :root {
-        --topbar-height: 64px;
+        --topbar-height: 3.5rem;
         --topbar-bg: ${variables['topbar-bg']};
-        --sidebar-width: 320px;
+        --sidebar-width: 20rem;
         --sidebar-bg: ${variables['sidebar-bg']};
         --body-bg: ${variables['body-bg']};
         --p-drawer-border-color: #ffffff00;
