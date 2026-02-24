@@ -33,6 +33,9 @@ type (
 		CanCreateConnection(context.Context) bool
 		CanUpdateConnection(context.Context, *types.Connection) bool
 		CanDeleteConnection(context.Context, *types.Connection) bool
+
+		CanUpdateConfiguredConnection(context.Context, *types.ConfiguredConnection) bool
+		CanDeleteConfiguredConnection(context.Context, *types.ConfiguredConnection) bool
 	}
 
 	connectionService interface {
@@ -42,6 +45,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
+		Install(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 	}
 )
 
@@ -156,6 +160,23 @@ func (ctrl Connection) Generate(ctx context.Context, r *request.ConnectionGenera
 	return nil, nil
 }
 
+func (ctrl Connection) Install(ctx context.Context, r *request.ConnectionInstall) (interface{}, error) {
+	conn := &types.ConfiguredConnection{
+		ConnectionID: r.ConnectionID,
+		Name:         r.Name,
+		Config:       r.Config,
+		Status:       "active",
+		Labels:       r.Labels,
+	}
+
+	res, err := ctrl.svc.Install(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makeInstallPayload(ctx, res), nil
+}
+
 func (ctrl Connection) makeFilterPayload(ctx context.Context, set types.ConnectionSet, f types.ConnectionFilter) (*connectionSetPayload, error) {
 	out := &connectionSetPayload{
 		Filter: f,
@@ -174,5 +195,13 @@ func (ctrl Connection) makePayload(ctx context.Context, c *types.Connection) *co
 		Connection:          c,
 		CanUpdateConnection: ctrl.ac.CanUpdateConnection(ctx, c),
 		CanDeleteConnection: ctrl.ac.CanDeleteConnection(ctx, c),
+	}
+}
+
+func (ctrl Connection) makeInstallPayload(ctx context.Context, c *types.ConfiguredConnection) *configuredConnectionPayload {
+	return &configuredConnectionPayload{
+		ConfiguredConnection:          c,
+		CanUpdateConfiguredConnection: ctrl.ac.CanUpdateConfiguredConnection(ctx, c),
+		CanDeleteConfiguredConnection: ctrl.ac.CanDeleteConfiguredConnection(ctx, c),
 	}
 }

@@ -26,6 +26,7 @@ type (
 		Delete(context.Context, *request.ConnectionDelete) (interface{}, error)
 		Undelete(context.Context, *request.ConnectionUndelete) (interface{}, error)
 		Generate(context.Context, *request.ConnectionGenerate) (interface{}, error)
+		Install(context.Context, *request.ConnectionInstall) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -37,6 +38,7 @@ type (
 		Delete   func(http.ResponseWriter, *http.Request)
 		Undelete func(http.ResponseWriter, *http.Request)
 		Generate func(http.ResponseWriter, *http.Request)
+		Install  func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -154,6 +156,22 @@ func NewConnection(h ConnectionAPI) *Connection {
 
 			api.Send(w, r, value)
 		},
+		Install: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConnectionInstall()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Install(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -167,5 +185,6 @@ func (h Connection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 		r.Delete("/connections/{connectionID}", h.Delete)
 		r.Post("/connections/{connectionID}/undelete", h.Undelete)
 		r.Post("/connections/generate", h.Generate)
+		r.Post("/connections/{connectionID}/install", h.Install)
 	})
 }

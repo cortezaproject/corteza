@@ -404,6 +404,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "install",
+		},
+		{
 			"type": types.ConfiguredConnectionResourceType,
 			"any":  types.ConfiguredConnectionRbacResource(0),
 			"op":   "read",
@@ -412,6 +417,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ConfiguredConnectionResourceType,
 			"any":  types.ConfiguredConnectionRbacResource(0),
 			"op":   "delete",
+		},
+		{
+			"type": types.ConfiguredConnectionResourceType,
+			"any":  types.ConfiguredConnectionRbacResource(0),
+			"op":   "update",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -1033,6 +1043,13 @@ func (svc accessControl) CanDeleteConnection(ctx context.Context, r *types.Conne
 	return svc.can(ctx, "delete", r)
 }
 
+// CanInstallConnection checks if current user can install connection
+//
+// This function is auto-generated
+func (svc accessControl) CanInstallConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "install", r)
+}
+
 // CanReadConfiguredConnection checks if current user can read connection
 //
 // This function is auto-generated
@@ -1045,6 +1062,13 @@ func (svc accessControl) CanReadConfiguredConnection(ctx context.Context, r *typ
 // This function is auto-generated
 func (svc accessControl) CanDeleteConfiguredConnection(ctx context.Context, r *types.ConfiguredConnection) bool {
 	return svc.can(ctx, "delete", r)
+}
+
+// CanUpdateConfiguredConnection checks if current user can update connection
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateConfiguredConnection(ctx context.Context, r *types.ConfiguredConnection) bool {
+	return svc.can(ctx, "update", r)
 }
 
 // CanGrant checks if current user can manage system permissions
@@ -1573,14 +1597,16 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ConnectionResourceType:
 		return map[string]bool{
-			"read":   true,
-			"update": true,
-			"delete": true,
+			"read":    true,
+			"update":  true,
+			"delete":  true,
+			"install": true,
 		}
 	case types.ConfiguredConnectionResourceType:
 		return map[string]bool{
 			"read":   true,
 			"delete": true,
+			"update": true,
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{

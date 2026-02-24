@@ -72,6 +72,7 @@ configured_connection: {
 		operations: {
 			"read": description:   "Read connection"
 			"delete": description: "Delete connection"
+      "update": description: "Update connection"
 		}
 	}
 

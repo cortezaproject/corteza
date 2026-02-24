@@ -20,17 +20,15 @@ type (
 	// Internal API interface
 	ConfiguredConnectionAPI interface {
 		List(context.Context, *request.ConfiguredConnectionList) (interface{}, error)
-		Install(context.Context, *request.ConfiguredConnectionInstall) (interface{}, error)
 		Read(context.Context, *request.ConfiguredConnectionRead) (interface{}, error)
 		Delete(context.Context, *request.ConfiguredConnectionDelete) (interface{}, error)
 	}
 
 	// HTTP API interface
 	ConfiguredConnection struct {
-		List    func(http.ResponseWriter, *http.Request)
-		Install func(http.ResponseWriter, *http.Request)
-		Read    func(http.ResponseWriter, *http.Request)
-		Delete  func(http.ResponseWriter, *http.Request)
+		List   func(http.ResponseWriter, *http.Request)
+		Read   func(http.ResponseWriter, *http.Request)
+		Delete func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -45,22 +43,6 @@ func NewConfiguredConnection(h ConfiguredConnectionAPI) *ConfiguredConnection {
 			}
 
 			value, err := h.List(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		Install: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewConfiguredConnectionInstall()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Install(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -107,7 +89,6 @@ func (h ConfiguredConnection) MountRoutes(r chi.Router, middlewares ...func(http
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/configured-connections/", h.List)
-		r.Post("/configured-connections/", h.Install)
 		r.Get("/configured-connections/{connectionID}", h.Read)
 		r.Delete("/configured-connections/{connectionID}", h.Delete)
 	})

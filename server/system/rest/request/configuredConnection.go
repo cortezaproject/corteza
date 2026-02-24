@@ -11,15 +11,15 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/go-chi/chi/v5"
 )
 
 // dummy vars to prevent
@@ -81,28 +81,6 @@ type (
 		//
 		// Sort items
 		Sort string
-	}
-
-	ConfiguredConnectionInstall struct {
-		// ConnectionID POST parameter
-		//
-		// Connection ID
-		ConnectionID uint64 `json:",string"`
-
-		// Name POST parameter
-		//
-		// Connection name
-		Name string
-
-		// Config POST parameter
-		//
-		// Connection config
-		Config types.ConfiguredConnectionConfig
-
-		// Labels POST parameter
-		//
-		// Labels
-		Labels map[string]labelTypes.LabelValue
 	}
 
 	ConfiguredConnectionRead struct {
@@ -252,151 +230,6 @@ func (r *ConfiguredConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["sort"]; ok && len(val) > 0 {
 			r.Sort, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return err
-}
-
-// NewConfiguredConnectionInstall request
-func NewConfiguredConnectionInstall() *ConfiguredConnectionInstall {
-	return &ConfiguredConnectionInstall{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionInstall) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"connectionID": r.ConnectionID,
-		"name":         r.Name,
-		"config":       r.Config,
-		"labels":       r.Labels,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionInstall) GetConnectionID() uint64 {
-	return r.ConnectionID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionInstall) GetName() string {
-	return r.Name
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionInstall) GetConfig() types.ConfiguredConnectionConfig {
-	return r.Config
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionInstall) GetLabels() map[string]labelTypes.LabelValue {
-	return r.Labels
-}
-
-// Fill processes request and fills internal variables
-func (r *ConfiguredConnectionInstall) Fill(req *http.Request) (err error) {
-
-	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
-
-	{
-		// Caching 32MB to memory, the rest to disk
-		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
-			return err
-		} else if err == nil {
-			// Multipart params
-
-			if val, ok := req.MultipartForm.Value["connectionID"]; ok && len(val) > 0 {
-				r.ConnectionID, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
-				r.Name, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["config[]"]; ok {
-				r.Config, err = types.ParseConfiguredConnectionConfig(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["config"]; ok {
-				r.Config, err = types.ParseConfiguredConnectionConfig(val)
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
-				r.Labels, err = label.ParseStrings(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
-				r.Labels, err = label.ParseStrings(val)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	{
-		if err = req.ParseForm(); err != nil {
-			return err
-		}
-
-		// POST params
-
-		if val, ok := req.Form["connectionID"]; ok && len(val) > 0 {
-			r.ConnectionID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["name"]; ok && len(val) > 0 {
-			r.Name, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["config[]"]; ok {
-			r.Config, err = types.ParseConfiguredConnectionConfig(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["config"]; ok {
-			r.Config, err = types.ParseConfiguredConnectionConfig(val)
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["labels[]"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["labels"]; ok {
-			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

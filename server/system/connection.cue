@@ -87,6 +87,7 @@ connection: {
 			"read": description:   "Read connection"
 			"update": description: "Update connection"
 			"delete": description: "Delete connection"
+			"install": description: "Install connection"
 		}
 	}
 

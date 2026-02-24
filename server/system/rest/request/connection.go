@@ -205,6 +205,28 @@ type (
 		// Optional additional context
 		Context string
 	}
+
+	ConnectionInstall struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+
+		// Name POST parameter
+		//
+		// Connection name
+		Name string
+
+		// Config POST parameter
+		//
+		// Connection config
+		Config types.ConfiguredConnectionConfig
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]labelTypes.LabelValue
+	}
 )
 
 // NewConnectionList request
@@ -1018,6 +1040,149 @@ func (r *ConnectionGenerate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	return err
+}
+
+// NewConnectionInstall request
+func NewConnectionInstall() *ConnectionInstall {
+	return &ConnectionInstall{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionInstall) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID": r.ConnectionID,
+		"name":         r.Name,
+		"config":       r.Config,
+		"labels":       r.Labels,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionInstall) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionInstall) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionInstall) GetConfig() types.ConfiguredConnectionConfig {
+	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionInstall) GetLabels() map[string]labelTypes.LabelValue {
+	return r.Labels
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionInstall) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
+				r.Name, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["config[]"]; ok {
+				r.Config, err = types.ParseConfiguredConnectionConfig(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["config"]; ok {
+				r.Config, err = types.ParseConfiguredConnectionConfig(val)
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
+				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
+				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["config[]"]; ok {
+			r.Config, err = types.ParseConfiguredConnectionConfig(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["config"]; ok {
+			r.Config, err = types.ParseConfiguredConnectionConfig(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
