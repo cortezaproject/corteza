@@ -1,36 +1,38 @@
-interface PartialDalConnection extends Partial<Omit<DalConnection, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
+interface PartialDalConnection extends Partial<
+  Omit<DalConnection, 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 interface ConnectionMetaProperty {
-    enabled: boolean;
-    notes: string;
+  enabled: boolean
+  notes: string
 }
 interface ConnectionMetaProperties {
-    dataAtRestEncryption?: ConnectionMetaProperty;
-    dataAtRestProtection?: ConnectionMetaProperty;
-    dataAtTransitEncryption?: ConnectionMetaProperty;
-    dataRestoration?: ConnectionMetaProperty;
+  dataAtRestEncryption?: ConnectionMetaProperty
+  dataAtRestProtection?: ConnectionMetaProperty
+  dataAtTransitEncryption?: ConnectionMetaProperty
+  dataRestoration?: ConnectionMetaProperty
 }
 interface ConnectionMeta {
-    name: string;
-    ownership: string;
-    location?: object;
-    properties?: ConnectionMetaProperties;
+  name: string
+  ownership: string
+  location?: object
+  properties?: ConnectionMetaProperties
 }
 interface ConnectionConfigDAL {
-    type?: string;
-    params?: object;
-    modelIdent?: string;
-    modelIdentCheck?: Array<string>;
+  type?: string
+  params?: object
+  modelIdent?: string
+  modelIdentCheck?: Array<string>
 }
 interface ConnectionConfigPrivacy {
-    sensitivityLevelID: string;
+  sensitivityLevelID: string
 }
 interface ConnectionConfig {
-    privacy: ConnectionConfigPrivacy;
-    dal?: ConnectionConfigDAL;
+  privacy: ConnectionConfigPrivacy
+  dal?: ConnectionConfigDAL
 }
 export declare class DalConnection {
   connectionID: string
@@ -48,8 +50,8 @@ export declare class DalConnection {
   deletedBy: string
   canDeleteConnection: boolean
   canManageDalConfig: boolean
-  constructor(dc?: PartialDalConnection);
-  apply(dc?: PartialDalConnection): void;
-  clone(): DalConnection;
+  constructor(dc?: PartialDalConnection)
+  apply(dc?: PartialDalConnection): void
+  clone(): DalConnection
 }
 export {}

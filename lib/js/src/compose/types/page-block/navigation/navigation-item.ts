@@ -2,35 +2,35 @@ import { Apply } from '../../../../cast'
 import { PageBlock } from '../base'
 
 interface DropdownItem {
-  label: string;
-  url: string;
-  delimiter: boolean;
-  target: string;
+  label: string
+  url: string
+  delimiter: boolean
+  target: string
 }
 
 interface Dropdown {
-  label: string;
+  label: string
   items: DropdownItem[]
 }
 
 interface ItemOptions {
-  label: string;
-  url: string;
-  target: string;
-  delimiter: boolean;
-  pageID: string;
-  pageLayoutID: string;
-  moduleID: string;
-  displaySubPages: boolean;
-  dropdown: Dropdown;
-  align: string;
+  label: string
+  url: string
+  target: string
+  delimiter: boolean
+  pageID: string
+  pageLayoutID: string
+  moduleID: string
+  displaySubPages: boolean
+  dropdown: Dropdown
+  align: string
 }
 
 interface NavigationItemOptions {
-  enabled: boolean;
-  textColor: string;
-  backgroundColor: string;
-  item: ItemOptions;
+  enabled: boolean
+  textColor: string
+  backgroundColor: string
+  item: ItemOptions
 }
 
 export type NavigationItemInput = Partial<NavigationItem> | NavigationItem

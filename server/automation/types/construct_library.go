@@ -14,9 +14,9 @@ type (
 	}
 
 	ConstructTriggerMeta struct {
-		Short       string `json:"short,omitempty"`
-		Description string `json:"description,omitempty"`
-		Icon        string `json:"icon,omitempty"`
+		Short       string            `json:"short,omitempty"`
+		Description string            `json:"description,omitempty"`
+		Icon        *NgAutomationIcon `json:"icon,omitempty"`
 	}
 
 	ConstructTriggerProperty struct {
@@ -62,9 +62,9 @@ type (
 	}
 
 	ConstructFunctionMeta struct {
-		Short       string `json:"short,omitempty"`
-		Description string `json:"description,omitempty"`
-		Icon        string `json:"icon,omitempty"`
+		Short       string            `json:"short,omitempty"`
+		Description string            `json:"description,omitempty"`
+		Icon        *NgAutomationIcon `json:"icon,omitempty"`
 	}
 
 	// UI structure

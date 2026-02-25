@@ -6,50 +6,51 @@ import * as fmt from '../../../formatting'
 const kind = 'Number'
 
 interface Threshold {
-  value: number;
-  variant: string;
+  value: number
+  variant: string
 }
 
 interface NumberOptions extends Options {
-  presetFormat: string;
-  format: string;
-  prefix: string;
-  suffix: string;
-  precision: number;
-  multiDelimiter: string;
-  display: string;
-  min: number;
-  max: number;
-  step: number;
-  showValue: boolean;
-  showRelative: boolean;
-  showProgress: boolean;
-  animated: boolean;
-  variant: string;
-  thresholds: Threshold[];
+  presetFormat: string
+  format: string
+  prefix: string
+  suffix: string
+  precision: number
+  multiDelimiter: string
+  display: string
+  min: number
+  max: number
+  step: number
+  showValue: boolean
+  showRelative: boolean
+  showProgress: boolean
+  animated: boolean
+  variant: string
+  thresholds: Threshold[]
 }
 
-const defaults = (): Readonly<NumberOptions> => Object.freeze({
-  ...defaultOptions(),
-  presetFormat: 'custom',
-  precision: 3,
-  multiDelimiter: '\n',
-  display: 'number', // Either number or progress (progress bar)
-  // Number display options
-  format: '',
-  prefix: '',
-  suffix: '',
-  // Progress bar display options
-  min: 0,
-  max: 100,
-  step: 1,
-  showValue: true,
-  showRelative: true,
-  showProgress: false,
-  animated: false,
-  variant: 'success',
-  thresholds: [],
-})
+const defaults = (): Readonly<NumberOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    presetFormat: 'custom',
+    precision: 3,
+    multiDelimiter: '\n',
+    display: 'number', // Either number or progress (progress bar)
+    // Number display options
+    format: '',
+    prefix: '',
+    suffix: '',
+    // Progress bar display options
+    min: 0,
+    max: 100,
+    step: 1,
+    showValue: true,
+    showRelative: true,
+    showProgress: false,
+    animated: false,
+    variant: 'success',
+    thresholds: [],
+  })
 
 export class ModuleFieldNumber extends ModuleField {
   readonly kind = kind
@@ -65,7 +66,18 @@ export class ModuleFieldNumber extends ModuleField {
     if (!o) return
     super.applyOptions(o)
 
-    Apply(this.options, o, String, 'format', 'prefix', 'suffix', 'multiDelimiter', 'display', 'variant', 'presetFormat')
+    Apply(
+      this.options,
+      o,
+      String,
+      'format',
+      'prefix',
+      'suffix',
+      'multiDelimiter',
+      'display',
+      'variant',
+      'presetFormat',
+    )
     Apply(this.options, o, Number, 'precision', 'min', 'max', 'step')
     Apply(this.options, o, Boolean, 'showValue', 'showRelative', 'showProgress', 'animated')
 

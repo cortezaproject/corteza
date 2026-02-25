@@ -5,26 +5,26 @@ import { Apply } from '../../../cast'
 const kind = 'Table'
 
 interface TableColumns {
-  [key: string]: Array<FrameColumn>;
+  [key: string]: Array<FrameColumn>
 }
 
 interface Options {
-  source?: string;
-  datasources: Array<FrameDefinition>;
+  source?: string
+  datasources: Array<FrameDefinition>
 
-  columns?: TableColumns;
+  columns?: TableColumns
 
-  striped: boolean;
-  bordered: boolean;
-  borderless: boolean;
-  small: boolean;
-  hover: boolean;
-  dark: boolean;
-  fixed: boolean;
-  responsive: boolean;
-  noCollapse: boolean;
-  headVariant: string | null;
-  tableVariant: string;
+  striped: boolean
+  bordered: boolean
+  borderless: boolean
+  small: boolean
+  hover: boolean
+  dark: boolean
+  fixed: boolean
+  responsive: boolean
+  noCollapse: boolean
+  headVariant: string | null
+  tableVariant: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -61,7 +61,10 @@ export class DisplayElementTable extends DisplayElement {
 
     Apply(this.options, o, String, 'headVariant', 'tableVariant', 'source')
 
-    Apply(this.options, o, Boolean,
+    Apply(
+      this.options,
+      o,
+      Boolean,
       'striped',
       'bordered',
       'borderless',
@@ -110,10 +113,7 @@ export class DisplayElementTable extends DisplayElement {
           if (filter && filter.ref) {
             df.filter = {
               ref: 'and',
-              args: [
-                filter,
-                relatedDefinition.filter,
-              ],
+              args: [filter, relatedDefinition.filter],
             }
           } else {
             df.filter = relatedDefinition.filter
@@ -126,7 +126,7 @@ export class DisplayElementTable extends DisplayElement {
       }
 
       if (df.paging?.limit) {
-        df.paging.limit = parseInt((df.paging.limit as any))
+        df.paging.limit = parseInt(df.paging.limit as any)
       }
 
       dataframes.push(df)

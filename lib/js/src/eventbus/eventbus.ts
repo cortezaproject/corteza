@@ -23,13 +23,13 @@ import { Handler } from './handlers'
 import { Event, HandlerFn, onManual, scriptSorter, Trigger } from './shared'
 
 export interface WellKnownPairs {
-  [resource: string]: Array<string>;
+  [resource: string]: Array<string>
 }
 
 export interface Options {
-  pairs: WellKnownPairs;
-  strict: boolean;
-  verbose: boolean;
+  pairs: WellKnownPairs
+  strict: boolean
+  verbose: boolean
 }
 
 /**
@@ -85,7 +85,12 @@ export class EventBus {
     const matched = this.find(ev, script)
 
     if (matched.length === 0) {
-      if (this.verbose) console.debug('EventBus: no handlers found', { ev, script, registeredHandlers: this.handlers.length })
+      if (this.verbose)
+        console.debug('EventBus: no handlers found', {
+          ev,
+          script,
+          registeredHandlers: this.handlers.length,
+        })
       return null
     }
 
@@ -114,9 +119,7 @@ export class EventBus {
    * Filters and sorts all handlers by event & constraints
    */
   private find(ev: Event, script?: string): Handler[] {
-    return this.handlers
-      .filter(t => t.Match(ev, script))
-      .sort(scriptSorter)
+    return this.handlers.filter(t => t.Match(ev, script)).sort(scriptSorter)
   }
 
   /**
@@ -126,7 +129,8 @@ export class EventBus {
    * @param trigger Trigger definition
    */
   Register(handler: HandlerFn, trigger: Trigger): EventBus {
-    if (this.verbose) console.debug('EventBus: event handler registration for', trigger.scriptName, { trigger })
+    if (this.verbose)
+      console.debug('EventBus: event handler registration for', trigger.scriptName, { trigger })
 
     this.handlers.push(new Handler(handler, trigger))
     return this
@@ -153,7 +157,9 @@ export class EventBus {
 
       eventTypes.forEach(eventTypes => {
         if (!wket.includes(eventTypes)) {
-          throw new TypeError('unknown event type "' + eventTypes + '" for "' + resourceType + '" resource type')
+          throw new TypeError(
+            'unknown event type "' + eventTypes + '" for "' + resourceType + '" resource type',
+          )
         }
       })
     })

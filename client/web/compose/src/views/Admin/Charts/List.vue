@@ -3,7 +3,7 @@
     <span>{{ $t('chart.navigation.chart') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-5 h-full overflow-hidden min-w-0">
+  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
       primary-key="chartID"
       :fields="chartFields"
@@ -57,7 +57,7 @@
           text
           severity="secondary"
           size="small"
-          class="row-action-btn w-full mr-2"
+          class="row-action-btn w-full"
           @click.stop="toggleActionsMenu($event, data)"
         />
       </template>
@@ -187,17 +187,6 @@ function toggleActionsMenu(event, chart) {
 
 function getActionsMenuItems(chart) {
   const items = []
-
-  if (chart.canUpdateChart) {
-    items.push({
-      label: t('general.label.edit'),
-      icon: 'pi pi-pencil',
-      route: {
-        name: 'admin.charts.edit',
-        params: { chartID: chart.chartID },
-      },
-    })
-  }
 
   if (chart.canDeleteChart) {
     items.push({

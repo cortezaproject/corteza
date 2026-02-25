@@ -1,13 +1,13 @@
 import { BaseArgs } from './shared'
 import { Ctx } from './ctx'
 export interface ScriptExecFn {
-    (args: BaseArgs, ctx?: Ctx): unknown;
+  (args: BaseArgs, ctx?: Ctx): unknown
 }
 export interface ExecutableScript {
-    exec: ScriptExecFn;
+  exec: ScriptExecFn
 }
 interface Results {
-    result?: unknown;
+  result?: unknown
 }
 /**
  * Script executor
@@ -16,5 +16,5 @@ interface Results {
  * @param args - Arguments for the script
  * @param ctx - Exec context (exec function's 2nd param)
  */
-export declare function Exec(script: ExecutableScript, args: BaseArgs, ctx: Ctx): Promise<Results>;
+export declare function Exec(script: ExecutableScript, args: BaseArgs, ctx: Ctx): Promise<Results>
 export {}

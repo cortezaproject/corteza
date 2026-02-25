@@ -2,16 +2,16 @@ import { Apply } from '../../cast'
 import { Param } from './param'
 
 export interface FunctionMeta {
-  short: string;
-  description: string;
-  visual: { [_: string]: any };
+  short: string
+  description: string
+  visual: { [_: string]: any }
   // List of webapps where function can be used, if omitted it can be used everywhere
-  webapps: Array<string>;
+  webapps: Array<string>
 }
 
 interface FunctionCtr extends Partial<Omit<Function, 'parameters' | 'results'>> {
-  parameters?: Array<Partial<Param>>;
-  results?: Array<Partial<Param>>;
+  parameters?: Array<Partial<Param>>
+  results?: Array<Partial<Param>>
 }
 
 export class Function {

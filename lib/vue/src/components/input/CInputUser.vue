@@ -1,7 +1,8 @@
 <template>
   <AutoComplete
     :model-value="selectedUser"
-    @update:model-value="onSelect"
+    @update:model-value="onUpdateModelValue"
+    @item-select="onItemSelect"
     :suggestions="suggestions"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
@@ -38,9 +39,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  clearOnSelect: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'select'])
 
 const $SystemAPI = inject('$SystemAPI')
 
@@ -53,7 +58,7 @@ function getOptionLabel(user) {
   return user.name || user.handle || user.email || user.userID
 }
 
-const search = debounce(async (event) => {
+const search = debounce(async event => {
   loading.value = true
   try {
     const response = await $SystemAPI.userList({
@@ -61,16 +66,28 @@ const search = debounce(async (event) => {
       limit: 20,
     })
     suggestions.value = response.set || []
-  } catch (_e) {
+  } catch {
     suggestions.value = []
   } finally {
     loading.value = false
   }
 }, 300)
 
-function onSelect(value) {
+function onUpdateModelValue(value) {
+  // AutoComplete emits string when typing, and object when selected
   selectedUser.value = value
   emit('update:modelValue', value?.userID || null)
+}
+
+function onItemSelect(event) {
+  emit('select', event.value)
+  if (props.clearOnSelect) {
+    // defer clearing to allow event to propagate and component to finish updates
+    setTimeout(() => {
+      selectedUser.value = null
+      emit('update:modelValue', null)
+    }, 0)
+  }
 }
 
 async function loadUserById(userID) {
@@ -79,20 +96,24 @@ async function loadUserById(userID) {
   try {
     const user = await $SystemAPI.userRead({ userID })
     selectedUser.value = user
-  } catch (_e) {
+  } catch {
     // User not found or API error - leave selectedUser as null
   } finally {
     loading.value = false
   }
 }
 
-watch(() => props.modelValue, (newVal) => {
-  if (newVal && (!selectedUser.value || selectedUser.value.userID !== newVal)) {
-    loadUserById(newVal)
-  } else if (!newVal) {
-    selectedUser.value = null
-  }
-}, { immediate: true })
+watch(
+  () => props.modelValue,
+  newVal => {
+    if (newVal && (!selectedUser.value || selectedUser.value.userID !== newVal)) {
+      loadUserById(newVal)
+    } else if (!newVal) {
+      selectedUser.value = null
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   if (props.modelValue) {

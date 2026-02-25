@@ -6,8 +6,9 @@ interface KV {
   [_: string]: unknown
 }
 
-interface PartialReminder
-  extends Partial<Omit<Reminder, 'assignedAt' | 'dismissedAt' | 'remindAt' | 'createdAt'>> {
+interface PartialReminder extends Partial<
+  Omit<Reminder, 'assignedAt' | 'dismissedAt' | 'remindAt' | 'createdAt'>
+> {
   assignedAt?: string | number | Date
   dismissedAt?: string | number | Date
   remindAt?: string | number | Date

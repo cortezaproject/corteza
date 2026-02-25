@@ -7,23 +7,24 @@ import { Apply } from '../../../cast'
 const kind = 'Url'
 
 interface UrlOptions extends Options {
-  trimFragment: boolean;
-  trimQuery: boolean;
-  trimPath: boolean;
-  onlySecure: boolean;
-  outputPlain: boolean;
-  multiDelimiter: string;
+  trimFragment: boolean
+  trimQuery: boolean
+  trimPath: boolean
+  onlySecure: boolean
+  outputPlain: boolean
+  multiDelimiter: string
 }
 
-const defaults = (): Readonly<UrlOptions> => Object.freeze({
-  ...defaultOptions(),
-  trimFragment: false,
-  trimQuery: false,
-  trimPath: false,
-  onlySecure: false,
-  outputPlain: false,
-  multiDelimiter: '\n',
-})
+const defaults = (): Readonly<UrlOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    trimFragment: false,
+    trimQuery: false,
+    trimPath: false,
+    onlySecure: false,
+    outputPlain: false,
+    multiDelimiter: '\n',
+  })
 
 export class ModuleFieldUrl extends ModuleField {
   readonly kind = kind
@@ -40,7 +41,16 @@ export class ModuleFieldUrl extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, String, 'multiDelimiter')
-    Apply(this.options, o, Boolean, 'trimFragment', 'trimQuery', 'trimPath', 'onlySecure', 'outputPlain')
+    Apply(
+      this.options,
+      o,
+      Boolean,
+      'trimFragment',
+      'trimQuery',
+      'trimPath',
+      'onlySecure',
+      'outputPlain',
+    )
   }
 }
 

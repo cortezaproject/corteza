@@ -1,6 +1,9 @@
 import type { automation } from '@cortezaproject/corteza-js-next'
 import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
-import { DEFAULT_ICONS, normalizeIcon } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import {
+  DEFAULT_ICONS,
+  normalizeIcon,
+} from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import type { Edge, Node } from '@vue-flow/core'
 import dagre from 'dagre'
 
@@ -65,7 +68,10 @@ const RANK_SEP = NODE_DIMENSIONS.VERTICAL_SEP
  * Convert NgAutomation (API format) to VueFlow state (frontend format)
  * Pass catalog to resolve icons from the construct library inline.
  */
-export function automationToVueFlow(automation: NgAutomation, catalog?: ConversionCatalog): VueFlowState {
+export function automationToVueFlow(
+  automation: NgAutomation,
+  catalog?: ConversionCatalog,
+): VueFlowState {
   const nodes: Node<FlowNodeData>[] = []
   const edges: Edge[] = []
 
@@ -85,7 +91,7 @@ export function automationToVueFlow(automation: NgAutomation, catalog?: Conversi
       data: {
         label: trigger.meta?.short || trigger.eventType || 'Trigger',
         description: trigger.meta?.description || '',
-        icon: getTriggerIcon(trigger.eventType, catalog),
+        icon: normalizeIcon(trigger.meta?.icon) || getTriggerIcon(trigger.eventType, catalog),
         nodeType: trigger.eventType || 'trigger',
         config: trigger.input || {},
         arguments: [],
@@ -114,7 +120,9 @@ export function automationToVueFlow(automation: NgAutomation, catalog?: Conversi
         // Termination steps always display as "End" to user
         label: isTermination ? 'End' : step.meta?.short || step.ref || 'Step',
         description: step.meta?.description || '',
-        icon: isTermination ? DEFAULT_ICONS.END : getStepIcon(step.ref, isCondition, catalog),
+        icon: isTermination
+          ? DEFAULT_ICONS.END
+          : normalizeIcon(step.meta?.icon) || getStepIcon(step.ref, isCondition, catalog),
         nodeType: isTermination ? 'termination' : step.ref,
         config: {},
         arguments: step.arguments || [],
@@ -237,6 +245,7 @@ export function vueFlowToAutomation(
         meta: {
           short: data.label,
           description: data.description || '',
+          icon: data.icon,
         },
         input: data.config || {},
       })
@@ -263,6 +272,7 @@ export function vueFlowToAutomation(
         meta: {
           short: data.label,
           description: data.description || '',
+          icon: data.icon,
         },
         arguments: data.arguments || [],
       })

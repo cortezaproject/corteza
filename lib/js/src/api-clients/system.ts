@@ -22,10 +22,6 @@ interface CortezaResponse {
   response?: unknown
 }
 
-interface ExtraConfig {
-  headers?: Headers
-}
-
 function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)
@@ -7665,5 +7661,479 @@ export default class System {
 
   smtpConfigurationCheckerCheckEndpoint(): string {
     return '/smtp/configuration-checker/'
+  }
+
+  // List connections
+  async connectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, status, query, tags, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.connectionListEndpoint(),
+    }
+    cfg.params = {
+      handle,
+      status,
+      query,
+      tags,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionListEndpoint(): string {
+    return '/connections/'
+  }
+
+  // Create connection
+  async connectionCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, meta, service, resources, standardOperations, operations, labels } =
+      (a as KV) || {}
+    if (!handle) {
+      throw Error('field handle is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      meta,
+      service,
+      resources,
+      standardOperations,
+      operations,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionCreateEndpoint(): string {
+    return '/connections/'
+  }
+
+  // Update connection
+  async connectionUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      connectionID,
+      handle,
+      meta,
+      service,
+      resources,
+      standardOperations,
+      operations,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.connectionUpdateEndpoint({
+        connectionID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      meta,
+      service,
+      resources,
+      standardOperations,
+      operations,
+      labels,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionUpdateEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}`
+  }
+
+  // Read connection
+  async connectionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.connectionReadEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionReadEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}`
+  }
+
+  // Delete connection
+  async connectionDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.connectionDeleteEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionDeleteEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}`
+  }
+
+  // Undelete connection
+  async connectionUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionUndeleteEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionUndeleteEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}/undelete`
+  }
+
+  // Generate connection via builder agent
+  async connectionGenerate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { prompt, context } = (a as KV) || {}
+    if (!prompt) {
+      throw Error('field prompt is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionGenerateEndpoint(),
+    }
+    cfg.data = {
+      prompt,
+      context,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionGenerateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionGenerate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionGenerateEndpoint(): string {
+    return '/connections/generate'
+  }
+
+  // Install a connection (create configured connection)
+  async connectionInstall(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, name, config, labels } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!name) {
+      throw Error('field name is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionInstallEndpoint({
+        connectionID,
+      }),
+    }
+    cfg.data = {
+      name,
+      config,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionInstallCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionInstall(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionInstallEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}/install`
+  }
+
+  // List configured connections
+  async configuredConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, status, query, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.configuredConnectionListEndpoint(),
+    }
+    cfg.params = {
+      connectionID,
+      status,
+      query,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionListEndpoint(): string {
+    return '/configured-connections/'
+  }
+
+  // Read configured connection
+  async configuredConnectionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.configuredConnectionReadEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionReadEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/configured-connections/${connectionID}`
+  }
+
+  // Delete configured connection
+  async configuredConnectionDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.configuredConnectionDeleteEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionDeleteEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/configured-connections/${connectionID}`
   }
 }

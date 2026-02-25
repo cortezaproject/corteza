@@ -1,18 +1,20 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
-interface PartialApplication extends Partial<Omit<Application, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+interface PartialApplication extends Partial<
+  Omit<Application, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 interface Unify {
-  name: string;
-  listed: boolean,
-  url: string,
-  config: string,
-  iconID: string,
+  name: string
+  listed: boolean
+  url: string
+  config: string
+  iconID: string
   logoID: string
 }
 

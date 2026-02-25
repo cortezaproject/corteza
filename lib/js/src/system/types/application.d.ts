@@ -1,15 +1,17 @@
-interface PartialApplication extends Partial<Omit<Application, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>> {
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
+interface PartialApplication extends Partial<
+  Omit<Application, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 interface Unify {
-    name: string;
-    listed: boolean;
-    url: string;
-    config: string;
-    iconID: string;
-    logoID: string;
+  name: string
+  listed: boolean
+  url: string
+  config: string
+  iconID: string
+  logoID: string
 }
 export declare class Application {
   applicationID: undefined
@@ -24,16 +26,16 @@ export declare class Application {
   createdAt?: Date
   updatedAt?: Date
   deletedAt?: Date
-  constructor(r?: PartialApplication);
-  apply(r?: PartialApplication): void;
+  constructor(r?: PartialApplication)
+  apply(r?: PartialApplication): void
   /**
-     * Returns resource ID
-     */
-  get resourceID(): string;
+   * Returns resource ID
+   */
+  get resourceID(): string
   /**
-     * Resource type
-     */
-  get resourceType(): string;
-  clone(): Application;
+   * Resource type
+   */
+  get resourceType(): string
+  clone(): Application
 }
 export {}

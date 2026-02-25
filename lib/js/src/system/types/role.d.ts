@@ -1,16 +1,18 @@
-interface PartialRole extends Partial<Omit<Role, 'createdAt' | 'updatedAt' | 'deletedAt' | 'archivedAt'>> {
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
-    archivedAt?: string | number | Date;
+interface PartialRole extends Partial<
+  Omit<Role, 'createdAt' | 'updatedAt' | 'deletedAt' | 'archivedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  archivedAt?: string | number | Date
 }
 interface Meta {
-    description: string;
-    context: MetaContext;
+  description: string
+  context: MetaContext
 }
 interface MetaContext {
-    resourceTypes: Array<string>;
-    expr: string;
+  resourceTypes: Array<string>
+  expr: string
 }
 export declare class Role {
   roleID: string
@@ -30,17 +32,17 @@ export declare class Role {
   canUpdateRole: boolean
   canDeleteRole: boolean
   canManageMembersOnRole: boolean
-  constructor(r?: PartialRole);
-  apply(r?: PartialRole): void;
+  constructor(r?: PartialRole)
+  apply(r?: PartialRole): void
   /**
-     * Returns resource ID
-     */
-  get resourceID(): string;
+   * Returns resource ID
+   */
+  get resourceID(): string
   /**
-     * Resource type
-     */
-  get resourceType(): string;
-  get isContext(): boolean;
-  clone(): Role;
+   * Resource type
+   */
+  get resourceType(): string
+  get isContext(): boolean
+  clone(): Role
 }
 export {}

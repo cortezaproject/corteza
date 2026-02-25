@@ -21,7 +21,14 @@
   </div>
 
   <!-- Form -->
-  <div v-else-if="module" class="flex flex-col h-full">
+  <Form
+    v-else-if="module"
+    v-slot="$form"
+    :resolver="resolver"
+    :initialValues="initialValues"
+    @submit="handleSubmit"
+    class="flex flex-col h-full"
+  >
     <div class="container mx-auto p-4 flex-1">
       <!-- Related Pages Actions -->
       <div v-if="isEdit && namespace?.canManageNamespace" class="flex justify-end gap-2 mb-4">
@@ -79,31 +86,40 @@
             <TabPanels>
               <TabPanel value="fields">
                 <!-- Module Info -->
-                <h4 class="font-semibold text-lg mb-4 mt-2">
+                <h4 class="font-semibold text-lg mb-4">
                   {{ $t('module.edit.moduleInfo') }}
                 </h4>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div class="flex flex-col gap-2">
+                  <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
                       {{ $t('module.general.label.name') }}
                     </label>
-                    <InputText id="name" v-model="module.name" :invalid="!nameValid" />
-                  </div>
+                    <InputText id="name" name="name" v-model="module.name" />
+                    <Message
+                      v-if="$form.name?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
+                      {{ $form.name.error?.message }}
+                    </Message>
+                  </FormField>
 
-                  <div class="flex flex-col gap-2">
+                  <FormField name="handle" class="flex flex-col gap-2">
                     <label for="handle" class="font-medium text-primary">
                       {{ $t('module.general.label.handle') }}
                     </label>
-                    <InputText
-                      id="handle"
-                      v-model="module.handle"
-                      :invalid="handleState === false"
-                    />
-                    <small v-if="handleState === false" class="text-red-500">
-                      {{ $t('module.general.placeholder.invalid-handle-characters') }}
-                    </small>
-                  </div>
+                    <InputText id="handle" name="handle" v-model="module.handle" />
+                    <Message
+                      v-if="$form.handle?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
+                      {{ $form.handle.error?.message }}
+                    </Message>
+                  </FormField>
                 </div>
 
                 <Divider />
@@ -126,26 +142,17 @@
                   striped-rows
                   data-key="name"
                   class="border border-b-0 border-surface rounded-border overflow-auto"
+                  :pt="{ headerCell: { class: 'bg-highlight-emphasis' } }"
                 >
                   <Column field="name" :header="$t('module.edit.fields.columns.name.label')">
                     <template #body="{ data }">
-                      <InputText
-                        v-model="data.name"
-                        :placeholder="$t('field.name.placeholder')"
-                        class="w-full"
-                        size="small"
-                      />
+                      <InputText v-model="data.name" class="w-full" size="small" />
                     </template>
                   </Column>
 
                   <Column field="label" :header="$t('module.edit.fields.columns.title.label')">
                     <template #body="{ data }">
-                      <InputText
-                        v-model="data.label"
-                        :placeholder="$t('field.title.placeholder')"
-                        class="w-full"
-                        size="small"
-                      />
+                      <InputText v-model="data.label" class="w-full" size="small" />
                     </template>
                   </Column>
 
@@ -164,7 +171,7 @@
                             icon="pi pi-cog"
                             severity="secondary"
                             size="small"
-                            class="w-full"
+                            class="w-full border-none"
                             @click="openFieldConfigurator(data, index)"
                           />
                         </InputGroupAddon>
@@ -175,7 +182,7 @@
                   <Column
                     field="isRequired"
                     :header="$t('module.edit.fields.columns.required.label')"
-                    header-style="width: 6rem"
+                    header-style="width: 5rem"
                     header-class="text-center"
                     body-class="text-center"
                   >
@@ -189,7 +196,7 @@
                   <Column
                     field="isMulti"
                     :header="$t('module.edit.fields.columns.multi.label')"
-                    header-style="width: 6rem"
+                    header-style="width: 5rem"
                     header-class="text-center"
                     body-class="text-center"
                   >
@@ -208,7 +215,7 @@
                           text
                           severity="secondary"
                           size="small"
-                          class="row-action-btn w-full mr-2"
+                          class="row-action-btn w-full"
                           @click.stop="toggleFieldActionsMenu($event, data, index)"
                         />
                       </div>
@@ -255,11 +262,11 @@
             @confirm="handleDelete"
           />
           <Button
+            type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
             :loading="saving"
             :disabled="!canSave"
-            @click="handleSubmit"
           />
         </div>
       </div>
@@ -271,7 +278,7 @@
       :field="activeConfiguratorField"
       @save="onFieldSave"
     />
-  </div>
+  </Form>
 </template>
 
 <script setup>
@@ -341,19 +348,30 @@ const pageTitle = computed(() => {
   return isEdit.value ? t('module.edit.edit') : t('module.edit.create')
 })
 
-const nameValid = computed(() => {
-  return module.value?.name?.length > 0
+const initialValues = computed(() => {
+  return {
+    name: module.value?.name || '',
+    handle: module.value?.handle || '',
+  }
 })
 
-const handleState = computed(() => {
-  const handle = module.value?.handle
-  if (!handle) return null
-  return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(handle)
+const resolver = ref(({ values }) => {
+  const errors = {}
+
+  if (!values.name || values.name.trim().length === 0) {
+    errors.name = [{ message: t('general.label.required') }]
+  }
+
+  if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
+    errors.handle = [{ message: t('module.general.placeholder.invalid-handle-characters') }]
+  }
+
+  return { errors }
 })
 
 const canSave = computed(() => {
   if (isEdit.value && !module.value?.canUpdateModule) return false
-  return nameValid.value && handleState.value !== false
+  return true
 })
 
 // Related Pages - find existing pages for this module
@@ -453,7 +471,8 @@ function onFieldSave(updatedField) {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit({ valid }) {
+  if (!valid) return
   if (!canSave.value) return
 
   saving.value = true

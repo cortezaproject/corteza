@@ -6,6 +6,7 @@ import AccordionHeader from 'primevue/accordionheader'
 import AccordionPanel from 'primevue/accordionpanel'
 import Avatar from 'primevue/avatar'
 import Badge from 'primevue/badge'
+import BlockUI from 'primevue/blockui'
 import Breadcrumb from 'primevue/breadcrumb'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
@@ -17,14 +18,21 @@ import Dialog from 'primevue/dialog'
 import DatePicker from 'primevue/datepicker'
 import Divider from 'primevue/divider'
 import FloatLabel from 'primevue/floatlabel'
+import Form from '@primevue/forms/form'
+import FormField from '@primevue/forms/formfield'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
+
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 import Menu from 'primevue/menu'
+import Panel from 'primevue/panel'
+import Password from 'primevue/password'
+import Popover from 'primevue/popover'
 import Paginator from 'primevue/paginator'
+import RadioButton from 'primevue/radiobutton'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import Select from 'primevue/select'
@@ -62,7 +70,10 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('DatePicker', DatePicker)
     app.component('Dialog', Dialog)
     app.component('Divider', Divider)
+    app.component('BlockUI', BlockUI)
     app.component('FloatLabel', FloatLabel)
+    app.component('Form', Form)
+    app.component('FormField', FormField)
     app.component('IconField', IconField)
     app.component('InputIcon', InputIcon)
     app.component('InputNumber', InputNumber)
@@ -72,7 +83,11 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Menu', Menu)
     app.component('Message', Message)
     app.component('Paginator', Paginator)
+    app.component('Panel', Panel)
+    app.component('Password', Password)
+    app.component('Popover', Popover)
     app.component('ProgressSpinner', ProgressSpinner)
+    app.component('RadioButton', RadioButton)
     app.component('Select', Select)
     app.component('Tab', Tab)
     app.component('TabList', TabList)

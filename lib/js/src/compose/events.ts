@@ -7,10 +7,20 @@ import { ConstraintMatcher } from '../eventbus/constraints'
 import { IsOf } from '../guards'
 
 interface TriggerEndpoints {
-  automationTriggerScript (params: { script: string }): Promise<object>;
-  namespaceTriggerScript (params: { namespaceID: string; script: string }): Promise<object>;
-  moduleTriggerScript (params: { namespaceID: string; moduleID: string; script: string }): Promise<object>;
-  recordTriggerScript (params: { namespaceID: string; moduleID: string; recordID: string; values: Values; script: string }): Promise<object>;
+  automationTriggerScript(params: { script: string }): Promise<object>
+  namespaceTriggerScript(params: { namespaceID: string; script: string }): Promise<object>
+  moduleTriggerScript(params: {
+    namespaceID: string
+    moduleID: string
+    script: string
+  }): Promise<object>
+  recordTriggerScript(params: {
+    namespaceID: string
+    moduleID: string
+    recordID: string
+    values: Values
+    script: string
+  }): Promise<object>
 }
 
 function namespaceMatcher(r: Namespace, c: ConstraintMatcher, def: boolean): boolean {
@@ -132,8 +142,7 @@ export function TriggerComposeServerScriptOnManual(api: TriggerEndpoints) {
     const params = { script, args: ev.args }
 
     if (ev.resourceType === 'compose') {
-      return api
-        .automationTriggerScript({ ...params })
+      return api.automationTriggerScript({ ...params })
     }
 
     if (!ev.args) {
@@ -146,8 +155,7 @@ export function TriggerComposeServerScriptOnManual(api: TriggerEndpoints) {
       }
 
       const { namespaceID } = ev.args.namespace as Namespace
-      return api
-        .namespaceTriggerScript({ namespaceID, ...params })
+      return api.namespaceTriggerScript({ namespaceID, ...params })
     }
 
     if (ev.resourceType === 'compose:module') {
@@ -157,8 +165,7 @@ export function TriggerComposeServerScriptOnManual(api: TriggerEndpoints) {
 
       const { namespaceID, moduleID } = ev.args.module as Module
 
-      return api
-        .moduleTriggerScript({ namespaceID, moduleID, ...params })
+      return api.moduleTriggerScript({ namespaceID, moduleID, ...params })
     }
 
     if (ev.resourceType === 'compose:record') {

@@ -9,9 +9,12 @@ import { Caster } from './shared'
  * All these variables are casted (if passed as an argument) to proper types ($record => Record, $module => Module, ...)
  */
 export declare class Args {
-  constructor(args: {
-        [_: string]: unknown;
-    }, caster?: Caster);
+  constructor(
+    args: {
+      [_: string]: unknown
+    },
+    caster?: Caster,
+  )
 }
 /**
  * Handles arguments, passed to the script but preserves references to the original objects
@@ -24,7 +27,10 @@ export declare class Args {
  * already be in the correct type.
  */
 export declare class ArgsProxy {
-  constructor(args: {
-        [_: string]: unknown;
-    }, caster?: Caster);
+  constructor(
+    args: {
+      [_: string]: unknown
+    },
+    caster?: Caster,
+  )
 }

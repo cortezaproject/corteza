@@ -2,7 +2,14 @@ import { describe, it, beforeEach } from 'mocha'
 import { expect } from 'chai'
 import { StubbedInstance, stubObject } from 'ts-sinon'
 import ComposeHelper from './compose'
-import { Module, ModuleFieldNumber, ModuleFieldString, Namespace, Page, Record } from '../../compose'
+import {
+  Module,
+  ModuleFieldNumber,
+  ModuleFieldString,
+  Namespace,
+  Page,
+  Record,
+} from '../../compose'
 import { Compose as ComposeAPI } from '../../api-clients'
 import { kv } from './shared'
 import { NoID } from '../../cast'
@@ -26,17 +33,14 @@ describe('compose', () => {
       let h: StubbedInstance<ComposeHelper>
 
       beforeEach(() => {
-        h = stubObject<ComposeHelper>(
-          new ComposeHelper({ ComposeAPI: new ComposeAPI({}) }),
-          [
-            'findModuleByHandle',
-            'findModuleByName',
-            'findModuleByID',
-          ],
-        )
+        h = stubObject<ComposeHelper>(new ComposeHelper({ ComposeAPI: new ComposeAPI({}) }), [
+          'findModuleByHandle',
+          'findModuleByName',
+          'findModuleByID',
+        ])
       })
 
-      it('should return first valid module', async() => {
+      it('should return first valid module', async () => {
         const m = new Module({ moduleID: '1', namespaceID: '2' })
 
         expect(await h.resolveModule(undefined, null, false, 0, '', m)).to.deep.equal(m)
@@ -46,7 +50,7 @@ describe('compose', () => {
         expect(h.findModuleByID.notCalled, 'findModuleByID call not expected').true
       })
 
-      it('should resolve ID', async() => {
+      it('should resolve ID', async () => {
         const m = new Module({ moduleID: '444', namespaceID: '555' })
 
         h.findModuleByID.resolves(m)
@@ -58,7 +62,7 @@ describe('compose', () => {
         expect(h.findModuleByName.notCalled, 'findModuleByName call not expected').true
       })
 
-      it('should resolve handle', async() => {
+      it('should resolve handle', async () => {
         const m = new Module({ handle: 'm-handle' })
 
         h.findModuleByHandle.resolves(m)
@@ -66,11 +70,12 @@ describe('compose', () => {
         expect(await h.resolveModule(m.handle)).to.deep.equal(m)
 
         expect(h.findModuleByID.notCalled, 'findModuleByID call not expected').true
-        expect(h.findModuleByHandle.calledOnceWith(m.handle), 'findModuleByHandle call expected').true
+        expect(h.findModuleByHandle.calledOnceWith(m.handle), 'findModuleByHandle call expected')
+          .true
         expect(h.findModuleByName.notCalled, 'findModuleByName call not expected').true
       })
 
-      it('should resolve name', async() => {
+      it('should resolve name', async () => {
         const m = new Module({ name: 'm-name' })
 
         h.findModuleByName.resolves(m)
@@ -83,7 +88,7 @@ describe('compose', () => {
         expect(h.findModuleByName.calledOnceWith(m.name), 'findModuleByName call expected').true
       })
 
-      it('should resolve numeric name', async() => {
+      it('should resolve numeric name', async () => {
         const m = new Module({ name: '555' })
 
         h.findModuleByID.rejects(Error('compose.repository.ModuleNotFound'))
@@ -102,41 +107,42 @@ describe('compose', () => {
       let h: StubbedInstance<ComposeHelper>
 
       beforeEach(() => {
-        h = stubObject<ComposeHelper>(
-          new ComposeHelper({ ComposeAPI: new ComposeAPI({}) }),
-          [
-            'findNamespaceBySlug',
-            'findNamespaceByID',
-          ],
-        )
+        h = stubObject<ComposeHelper>(new ComposeHelper({ ComposeAPI: new ComposeAPI({}) }), [
+          'findNamespaceBySlug',
+          'findNamespaceByID',
+        ])
       })
 
-      it('should return first valid namespace', async() => {
+      it('should return first valid namespace', async () => {
         const ns = new Namespace({ namespaceID: '2' })
         expect(await h.resolveNamespace(undefined, null, false, 0, '', ns)).to.deep.equal(ns)
       })
 
-      it('should resolve ID', async() => {
+      it('should resolve ID', async () => {
         const ns = new Namespace({ namespaceID: '555' })
 
         h.findNamespaceByID.resolves(ns)
 
         expect(await h.resolveNamespace(ns.namespaceID)).to.deep.equal(ns)
 
-        expect(h.findNamespaceByID.calledOnceWith(ns.namespaceID), 'findNamespaceByID call expected').true
+        expect(
+          h.findNamespaceByID.calledOnceWith(ns.namespaceID),
+          'findNamespaceByID call expected',
+        ).true
       })
 
-      it('should resolve slug', async() => {
+      it('should resolve slug', async () => {
         const ns = new Namespace({ slug: 'ns-slug' })
 
         h.findNamespaceBySlug.resolves(ns)
 
         expect(await h.resolveNamespace(ns.slug)).to.deep.equal(ns)
 
-        expect(h.findNamespaceBySlug.calledOnceWith(ns.slug), 'findNamespaceBySlug call expected').true
+        expect(h.findNamespaceBySlug.calledOnceWith(ns.slug), 'findNamespaceBySlug call expected')
+          .true
       })
 
-      it('should resolve numeric slug', async() => {
+      it('should resolve numeric slug', async () => {
         const ns = new Namespace({ slug: '555' })
 
         h.findNamespaceByID.rejects(Error('compose.repository.NamespaceNotFound'))
@@ -145,7 +151,8 @@ describe('compose', () => {
         expect(await h.resolveNamespace(ns.slug)).to.deep.equal(ns)
 
         expect(h.findNamespaceByID.calledOnceWith(ns.slug), 'findNamespaceByID call expected').true
-        expect(h.findNamespaceBySlug.calledOnceWith(ns.slug), 'findNamespaceBySlug call expected').true
+        expect(h.findNamespaceBySlug.calledOnceWith(ns.slug), 'findNamespaceBySlug call expected')
+          .true
       })
     })
   })
@@ -160,14 +167,17 @@ describe('compose', () => {
       name: 'name of the name-space',
     })
 
-    const $module = new Module({
-      moduleID: '1',
-      fields: [
-        new ModuleFieldString({ name: 'str' }),
-        new ModuleFieldNumber({ name: 'num' }),
-        new ModuleFieldString({ name: 'multi', isMulti: true }),
-      ],
-    }, $namespace)
+    const $module = new Module(
+      {
+        moduleID: '1',
+        fields: [
+          new ModuleFieldString({ name: 'str' }),
+          new ModuleFieldNumber({ name: 'num' }),
+          new ModuleFieldString({ name: 'multi', isMulti: true }),
+        ],
+      },
+      $namespace,
+    )
 
     beforeEach(() => {
       composeApiStub = stubObject<ComposeAPI>(new ComposeAPI({}))
@@ -180,7 +190,7 @@ describe('compose', () => {
     })
 
     describe('record making', () => {
-      it('should make a record using $module', async() => {
+      it('should make a record using $module', async () => {
         const record = await h.makeRecord({ str: 'foo' })
 
         expect(record).to.instanceof(Record)
@@ -190,17 +200,19 @@ describe('compose', () => {
     })
 
     describe('record saving', () => {
-      it('should reject invalid record', async() => {
+      it('should reject invalid record', async () => {
         const tests = [
           { val: null, label: 'Null value' },
           { val: {}, label: 'Empty object' },
         ]
         for (const t of tests) {
-          expect(async() => { await h.saveRecord(t.val as unknown as Record) }, t.label).to.throw
+          expect(async () => {
+            await h.saveRecord(t.val as unknown as Record)
+          }, t.label).to.throw
         }
       })
 
-      it('should create new', async() => {
+      it('should create new', async () => {
         const record = await h.makeRecord({})
 
         composeApiStub.recordCreate.resolves(kv(record))
@@ -210,7 +222,7 @@ describe('compose', () => {
         expect(composeApiStub.recordCreate.calledOnceWith(kv(record))).true
       })
 
-      it('should update existing', async() => {
+      it('should update existing', async () => {
         const record = new Record($module, { recordID: '222' })
 
         composeApiStub.recordUpdate.resolves(kv(record))
@@ -222,23 +234,35 @@ describe('compose', () => {
     })
 
     describe('record deleting', () => {
-      it('should validate input', async() => {
-        expect(async() => { await h.deleteRecord(null as unknown as Record) }).to.throw
-        expect(async() => { await h.deleteRecord(false as unknown as Record) }).to.throw
-        expect(async() => { await h.deleteRecord(true as unknown as Record) }).to.throw
-        expect(async() => { await h.deleteRecord({} as unknown as Record) }).to.throw
-        expect(async() => { await h.deleteRecord($module as unknown as Record) }).to.throw
-        expect(async() => { await h.deleteRecord(Promise.resolve($module) as unknown as Record) }).to.throw
+      it('should validate input', async () => {
+        expect(async () => {
+          await h.deleteRecord(null as unknown as Record)
+        }).to.throw
+        expect(async () => {
+          await h.deleteRecord(false as unknown as Record)
+        }).to.throw
+        expect(async () => {
+          await h.deleteRecord(true as unknown as Record)
+        }).to.throw
+        expect(async () => {
+          await h.deleteRecord({} as unknown as Record)
+        }).to.throw
+        expect(async () => {
+          await h.deleteRecord($module as unknown as Record)
+        }).to.throw
+        expect(async () => {
+          await h.deleteRecord(Promise.resolve($module) as unknown as Record)
+        }).to.throw
       })
 
-      it('should delete existing record', async() => {
+      it('should delete existing record', async () => {
         const record = new Record($module, { recordID: '222' })
         composeApiStub.recordDelete.resolves(kv(record))
         await h.deleteRecord(record)
         expect(composeApiStub.recordDelete.calledOnceWith(kv(record))).true
       })
 
-      it('should not delete fresh record', async() => {
+      it('should not delete fresh record', async () => {
         const record = new Record($module)
         composeApiStub.recordDelete.resolves()
         await h.deleteRecord(record)
@@ -262,14 +286,14 @@ describe('compose', () => {
     })
 
     describe('page making', () => {
-      it('should make a page', async() => {
+      it('should make a page', async () => {
         // expect(await h.makeRecord({}, $module)).to.instanceof(Record)
         expect((await h.makePage({ title: 'foo' })).title).to.equal('foo')
       })
     })
 
     describe('page saving', () => {
-      it('should create new', async() => {
+      it('should create new', async () => {
         const page = await h.makePage(pagePayload)
         composeApiStub.pageCreate.resolves(pagePayload)
 
@@ -277,7 +301,7 @@ describe('compose', () => {
         expect(composeApiStub.pageCreate.calledWith(kv(page))).true
       })
 
-      it('should update existing', async() => {
+      it('should update existing', async () => {
         const page = await h.makePage({ ...pagePayload, pageID: '123' })
         composeApiStub.pageUpdate.resolves(pagePayload)
 
@@ -287,7 +311,7 @@ describe('compose', () => {
     })
 
     describe('page deleting', () => {
-      it('should delete existing page', async() => {
+      it('should delete existing page', async () => {
         const page = await h.makePage({ ...pagePayload, pageID: '123' })
         composeApiStub.pageDelete.resolves(kv(page))
 
@@ -295,7 +319,7 @@ describe('compose', () => {
         expect(composeApiStub.pageDelete.calledWith(kv(page))).true
       })
 
-      it('should not delete fresh page', async() => {
+      it('should not delete fresh page', async () => {
         const page = await h.makePage({ ...pagePayload })
         composeApiStub.pageDelete.resolves(kv(page))
 
@@ -305,7 +329,7 @@ describe('compose', () => {
     })
 
     describe('page finding', () => {
-      it('should find pages on current namespace', async() => {
+      it('should find pages on current namespace', async () => {
         composeApiStub.pageList.resolves({ filter: {}, set: [pagePayload] })
 
         await h.findPages()
@@ -313,21 +337,21 @@ describe('compose', () => {
         expect(composeApiStub.pageList.calledWith({ ...ns(h) })).true
       })
 
-      it('should find pages on given namespace', async() => {
+      it('should find pages on given namespace', async () => {
         composeApiStub.pageList.resolves({ filter: {}, set: [pagePayload] })
 
         await h.findPages(undefined, new Namespace({ namespaceID: '22' }))
         expect(composeApiStub.pageList.calledWith({ namespaceID: '22' })).true
       })
 
-      it('should filter (as string) pages on given namespace', async() => {
+      it('should filter (as string) pages on given namespace', async () => {
         composeApiStub.pageList.resolves({ filter: {}, set: [pagePayload] })
 
         await h.findPages('filter')
         expect(composeApiStub.pageList.calledWith({ ...ns(h), query: 'filter' })).true
       })
 
-      it('should filter (as object) pages on given namespace', async() => {
+      it('should filter (as object) pages on given namespace', async () => {
         composeApiStub.pageList.resolves({ filter: {}, set: [pagePayload] })
 
         await h.findPages({ query: 'filter', limit: 10 })
@@ -336,21 +360,21 @@ describe('compose', () => {
     })
 
     describe('findPageByID', () => {
-      it('should find page on current namespace', async() => {
+      it('should find page on current namespace', async () => {
         composeApiStub.pageRead.resolves(pagePayload)
 
         await h.findPageByID('1000')
         expect(composeApiStub.pageRead.calledWith({ ...ns(h), pageID: '1000' })).true
       })
 
-      it('should find page on given namespace', async() => {
+      it('should find page on given namespace', async () => {
         composeApiStub.pageRead.resolves(pagePayload)
 
         await h.findPageByID('1000', new Namespace({ namespaceID: '22' }))
         expect(composeApiStub.pageRead.calledWith({ namespaceID: '22', pageID: '1000' })).true
       })
 
-      it('should find page from Object', async() => {
+      it('should find page from Object', async () => {
         composeApiStub.pageRead.resolves(pagePayload)
         const page = await h.makePage({ ...pagePayload, pageID: '1001' })
 
@@ -369,15 +393,15 @@ describe('compose', () => {
     })
 
     describe('module making', () => {
-      it('should make new', async() => {
+      it('should make new', async () => {
         const module = await h.makeModule({ name: 'MyModule' })
         expect(module).to.be.instanceOf(Module)
         expect(module.name).to.equal('MyModule')
       })
     })
 
-    describe('module saving', async() => {
-      it('should create new', async() => {
+    describe('module saving', async () => {
+      it('should create new', async () => {
         const module = new Module()
 
         composeApiStub.moduleCreate.resolves(kv(module))
@@ -387,7 +411,7 @@ describe('compose', () => {
         expect(composeApiStub.moduleCreate.calledWith(kv(module))).true
       })
 
-      it('should update existing', async() => {
+      it('should update existing', async () => {
         const module = new Module({ moduleID: '555' })
 
         composeApiStub.moduleUpdate.resolves(kv(module))
@@ -406,7 +430,7 @@ describe('compose', () => {
     })
 
     describe('module finding by id', () => {
-      it('should find module by id on $namespace', async() => {
+      it('should find module by id on $namespace', async () => {
         const module = new Module({ moduleID: '555' })
 
         composeApiStub.moduleRead.resolves({ ...module })
@@ -418,7 +442,7 @@ describe('compose', () => {
     })
 
     describe('module finding by handle', () => {
-      it('should find module by handle on $namespace', async() => {
+      it('should find module by handle on $namespace', async () => {
         const module = new Module({ moduleID: '555' })
 
         composeApiStub.moduleList.resolves({ filter: { limit: 1 }, set: [module] })
@@ -430,7 +454,7 @@ describe('compose', () => {
     })
 
     describe('module finding by name', () => {
-      it('should find module by name on $namespace', async() => {
+      it('should find module by name on $namespace', async () => {
         const module = new Module({ moduleID: '555' })
 
         composeApiStub.moduleList.resolves({ filter: { limit: 1 }, set: [module] })
@@ -442,26 +466,26 @@ describe('compose', () => {
     })
 
     describe('namespace making', () => {
-      it('should make active namespace', async() => {
+      it('should make active namespace', async () => {
         expect((await h.makeNamespace()).enabled).to.be.true
       })
 
-      it('should use slug as name', async() => {
+      it('should use slug as name', async () => {
         const ns = await h.makeNamespace({ slug: 'sluggy-slug' })
         expect(ns.slug).to.equal('sluggy-slug')
         expect(ns.name).to.equal('sluggy-slug')
       })
     })
 
-    describe('namespace saving', async() => {
-      it('should create new', async() => {
+    describe('namespace saving', async () => {
+      it('should create new', async () => {
         const ns = new Namespace()
         composeApiStub.namespaceCreate.resolves(kv(ns))
         await h.saveNamespace(ns)
         expect(composeApiStub.namespaceCreate.calledWith(kv(ns))).true
       })
 
-      it('should update existing', async() => {
+      it('should update existing', async () => {
         const ns = new Namespace({ namespaceID: '555' })
         composeApiStub.namespaceUpdate.resolves(kv(ns))
         await h.saveNamespace(ns)
@@ -475,11 +499,7 @@ describe('compose', () => {
 
     describe('recordToPlainText', () => {
       const m = new Module({
-        fields: [
-          { name: 'dummy' },
-          { name: 'multi', isMulti: true },
-          { name: 'empty' },
-        ],
+        fields: [{ name: 'dummy' }, { name: 'multi', isMulti: true }, { name: 'empty' }],
       })
 
       it('should convert a given record to plain text', () => {
@@ -490,7 +510,9 @@ describe('compose', () => {
             { name: 'multi', value: 'v2' },
           ],
         })
-        expect(h.recordToPlainText(null, record)).to.eq('dummy:\nvalue\n\nmulti:\nv1, v2\n\nempty:\n/')
+        expect(h.recordToPlainText(null, record)).to.eq(
+          'dummy:\nvalue\n\nmulti:\nv1, v2\n\nempty:\n/',
+        )
       })
 
       it('should convert white-listed fields of a given record to plain text', () => {
@@ -501,7 +523,9 @@ describe('compose', () => {
             { name: 'multi', value: 'v2' },
           ],
         })
-        expect(h.recordToPlainText(['dummy', 'multi'], record)).to.eq('dummy:\nvalue\n\nmulti:\nv1, v2')
+        expect(h.recordToPlainText(['dummy', 'multi'], record)).to.eq(
+          'dummy:\nvalue\n\nmulti:\nv1, v2',
+        )
       })
     })
   })

@@ -7,15 +7,16 @@ import { Apply } from '../../../cast'
 const kind = 'Email'
 
 interface EmailOptions extends Options {
-  outputPlain: boolean;
-  multiDelimiter: string;
+  outputPlain: boolean
+  multiDelimiter: string
 }
 
-const defaults = (): Readonly<EmailOptions> => Object.freeze({
-  ...defaultOptions(),
-  outputPlain: true,
-  multiDelimiter: '\n',
-})
+const defaults = (): Readonly<EmailOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    outputPlain: true,
+    multiDelimiter: '\n',
+  })
 
 export class ModuleFieldEmail extends ModuleField {
   readonly kind = kind

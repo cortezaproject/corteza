@@ -1,4 +1,11 @@
-import { Validator, ValidatorFn, ValidatorResult, ValidatorError, Validated, IsEmpty } from '../../validator/validator'
+import {
+  Validator,
+  ValidatorFn,
+  ValidatorResult,
+  ValidatorError,
+  Validated,
+  IsEmpty,
+} from '../../validator/validator'
 import { Record } from '../types/record'
 import { Module } from '../types/module'
 import { ModuleField } from '../types/module-field'
@@ -9,14 +16,14 @@ const emptyErr = new ValidatorError({ kind: 'empty', message: 'field:required-fi
 
 // Validator value types
 interface FieldValidatorPayload {
-  field: ModuleField;
-  value: unknown | string | string[];
-  oldValue: unknown | string | string[];
+  field: ModuleField
+  value: unknown | string | string[]
+  oldValue: unknown | string | string[]
 }
 
 function genericFieldValidator(field: ModuleField): ValidatorFn<Record> {
   // newValue is of type unknown to satisfy ValidatorFn interface
-  return function(this: Record, arg0: unknown): ValidatorResult {
+  return function (this: Record, arg0: unknown): ValidatorResult {
     if (!IsOf<FieldValidatorPayload>(arg0, 'field', 'value', 'oldValue')) {
       throw Error('invalid field validator argument type')
     }
@@ -24,7 +31,9 @@ function genericFieldValidator(field: ModuleField): ValidatorFn<Record> {
 
     if (field.isRequired) {
       const isNewRecord = this.recordID === NoID
-      const canManageFieldValue = isNewRecord ? true : field.canReadRecordValue && field.canUpdateRecordValue
+      const canManageFieldValue = isNewRecord
+        ? true
+        : field.canReadRecordValue && field.canUpdateRecordValue
 
       if ((value === undefined || IsEmpty(value)) && canManageFieldValue) {
         return emptyErr
@@ -42,7 +51,7 @@ export class RecordValidator extends Validator<Record> {
    *
    * @param m
    */
-  constructor(m: Module|Record) {
+  constructor(m: Module | Record) {
     super()
 
     this.rfv = {}

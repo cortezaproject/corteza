@@ -28,7 +28,14 @@
   </div>
 
   <!-- Form -->
-  <div v-else-if="page" class="flex flex-col h-full">
+  <Form
+    v-else-if="page"
+    v-slot="$form"
+    :resolver="resolver"
+    :initialValues="initialValues"
+    @submit="handleSubmit"
+    class="flex flex-col h-full"
+  >
     <div class="container mx-auto p-4 flex-1">
       <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
         <template #content>
@@ -46,22 +53,35 @@
                 </h4>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div class="flex flex-col gap-2">
+                  <FormField name="title" class="flex flex-col gap-2">
                     <label for="title" class="font-medium text-primary">
                       {{ $t('page.label.title') }}
                     </label>
-                    <InputText id="title" v-model="page.title" :invalid="!titleValid" />
-                  </div>
+                    <InputText id="title" name="title" v-model="page.title" />
+                    <Message
+                      v-if="$form.title?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
+                      {{ $form.title.error?.message }}
+                    </Message>
+                  </FormField>
 
-                  <div class="flex flex-col gap-2">
+                  <FormField name="handle" class="flex flex-col gap-2">
                     <label for="handle" class="font-medium text-primary">
                       {{ $t('page.label.handle') }}
                     </label>
-                    <InputText id="handle" v-model="page.handle" :invalid="handleState === false" />
-                    <small v-if="handleState === false" class="text-red-500">
-                      {{ $t('module.general.placeholder.invalid-handle-characters') }}
-                    </small>
-                  </div>
+                    <InputText id="handle" name="handle" v-model="page.handle" />
+                    <Message
+                      v-if="$form.handle?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
+                      {{ $form.handle.error?.message }}
+                    </Message>
+                  </FormField>
                 </div>
 
                 <div class="flex flex-col gap-2">
@@ -129,16 +149,16 @@
             @confirm="handleDelete"
           />
           <Button
+            type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
             :loading="saving"
             :disabled="!canSave"
-            @click="handleSubmit"
           />
         </div>
       </div>
     </div>
-  </div>
+  </Form>
 </template>
 
 <script setup>
@@ -178,19 +198,30 @@ const pageTitle = computed(() => {
   return isEdit.value ? t('page.edit.edit') : t('page.edit.create')
 })
 
-const titleValid = computed(() => {
-  return page.value?.title?.length > 0
+const initialValues = computed(() => {
+  return {
+    title: page.value?.title || '',
+    handle: page.value?.handle || '',
+  }
 })
 
-const handleState = computed(() => {
-  const handle = page.value?.handle
-  if (!handle) return null
-  return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(handle)
+const resolver = ref(({ values }) => {
+  const errors = {}
+
+  if (!values.title || values.title.trim().length === 0) {
+    errors.title = [{ message: t('general.label.required') }]
+  }
+
+  if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
+    errors.handle = [{ message: t('page.block.general.invalid-handle-characters') }]
+  }
+
+  return { errors }
 })
 
 const canSave = computed(() => {
   if (isEdit.value && !page.value?.canUpdatePage) return false
-  return titleValid.value && handleState.value !== false
+  return true
 })
 
 // Parent page options — exclude the current page and its descendants
@@ -243,7 +274,8 @@ async function loadPage() {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit({ valid }) {
+  if (!valid) return
   if (!canSave.value) return
 
   saving.value = true

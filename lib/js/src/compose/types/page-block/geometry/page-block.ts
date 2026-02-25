@@ -8,19 +8,19 @@ const kind = 'Geometry'
 type Bounds = number[][]
 
 interface Options {
-  defaultView: string;
-  center: Array<number>;
-  feeds: Array<Feed>;
-  zoomStarting: number;
-  zoomMin: number;
-  zoomMax: number;
-  bounds: Bounds | null;
-  lockBounds: boolean;
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
-  displayOption: string;
-  hideGeoSearch: boolean;
+  defaultView: string
+  center: Array<number>
+  feeds: Array<Feed>
+  zoomStarting: number
+  zoomMin: number
+  zoomMax: number
+  bounds: Bounds | null
+  lockBounds: boolean
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
+  displayOption: string
+  hideGeoSearch: boolean
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -56,8 +56,8 @@ export class PageBlockGeometry extends PageBlock {
     if (!o) return
 
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
-    this.options.center = (o.center || [])
-    this.options.bounds = (o.bounds || null)
+    this.options.center = o.center || []
+    this.options.bounds = o.bounds || null
 
     Apply(this.options, o, String, 'magnifyOption', 'displayOption')
     Apply(this.options, o, Number, 'zoomStarting', 'zoomMin', 'zoomMax', 'refreshRate')

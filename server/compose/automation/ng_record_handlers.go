@@ -356,7 +356,7 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Find Record",
 			Description: "Lookup record by ID",
-			Icon:        "database",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
@@ -543,7 +543,7 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Create Record",
 			Description: "Add new record to module",
-			Icon:        "database",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
 		Parameters: []*atypes.Param{

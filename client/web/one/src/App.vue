@@ -19,6 +19,7 @@
           darkTheme: $t('navigation.themes.labels.dark'),
         }"
         :hide-app-selector="true"
+        :sidebar-disabled="true"
       />
     </header>
 

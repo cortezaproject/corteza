@@ -1,29 +1,29 @@
 interface PageBlockStyleVariants {
-    [_: string]: string;
+  [_: string]: string
 }
 interface PageBlockStyleWrap {
-    kind: string;
+  kind: string
 }
 interface PageBlockStyleBorder {
-    enabled?: boolean;
+  enabled?: boolean
 }
 interface PageBlockStyle {
-    variants: PageBlockStyleVariants;
-    wrap?: PageBlockStyleWrap;
-    border?: PageBlockStyleBorder;
+  variants: PageBlockStyleVariants
+  wrap?: PageBlockStyleWrap
+  border?: PageBlockStyleBorder
 }
 interface Visibility {
-    expression: string;
-    roles: string[];
+  expression: string
+  roles: string[]
 }
 interface PageBlockMeta {
-    hidden?: boolean;
-    tempID?: string;
-    customID?: string;
-    customCSSClass?: string;
-    visibility: Visibility;
+  hidden?: boolean
+  tempID?: string
+  customID?: string
+  customCSSClass?: string
+  visibility: Visibility
 }
-export type PageBlockInput = PageBlock | Partial<PageBlock>;
+export type PageBlockInput = PageBlock | Partial<PageBlock>
 export declare class PageBlock {
   blockID: string
   kind: string
@@ -33,11 +33,11 @@ export declare class PageBlock {
   options: {}
   meta: PageBlockMeta
   style: PageBlockStyle
-  constructor(i?: PageBlockInput);
-  apply(i?: PageBlockInput): void;
-  validate(): Array<string>;
-  setTempID(): void;
-  clone(): this;
+  constructor(i?: PageBlockInput)
+  apply(i?: PageBlockInput): void
+  validate(): Array<string>
+  setTempID(): void
+  clone(): this
 }
 export declare const Registry: Map<string, typeof PageBlock>
 export {}

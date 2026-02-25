@@ -78,8 +78,14 @@ type (
 	}
 
 	ConnectionResourceMeta struct {
-		Short       string `json:"short"`
-		Description string `json:"description"`
+		Short       string          `json:"short"`
+		Description string          `json:"description"`
+		Icon        *ConnectionIcon `json:"icon,omitempty"`
+	}
+
+	ConnectionIcon struct {
+		Type  string `json:"type"`
+		Value string `json:"value"`
 	}
 
 	ConnectionResourceField struct {

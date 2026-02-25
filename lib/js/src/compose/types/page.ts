@@ -4,10 +4,9 @@ import { AreObjectsOf, IsOf } from '../../guards'
 import { PageBlock, PageBlockMaker } from './page-block'
 const { merge } = lodash
 
-interface PartialPage
-  extends Partial<
-    Omit<Page, 'children' | 'meta' | 'blocks' | 'createdAt' | 'updatedAt' | 'deletedAt'>
-  > {
+interface PartialPage extends Partial<
+  Omit<Page, 'children' | 'meta' | 'blocks' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
   children?: Array<PartialPage>
 
   blocks?: PageBlock[]

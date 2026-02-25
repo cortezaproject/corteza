@@ -1,4 +1,12 @@
-import { extractID, genericPermissionUpdater, isFresh, kv, ListResponse, PermissionResource, PermissionRole } from './shared'
+import {
+  extractID,
+  genericPermissionUpdater,
+  isFresh,
+  kv,
+  ListResponse,
+  PermissionResource,
+  PermissionRole,
+} from './shared'
 import { Attachment } from '../../shared'
 import { Compose as ComposeAPI } from '../../api-clients'
 import { Namespace, Record, Module, Page } from '../../compose'
@@ -20,55 +28,55 @@ p { text-align: justify; line-height: 1.4;}
 `
 
 interface ComposeContext {
-  ComposeAPI: ComposeAPI;
-  $namespace?: Namespace;
-  $module?: Module;
-  $record?: Record;
+  ComposeAPI: ComposeAPI
+  $namespace?: Namespace
+  $module?: Module
+  $record?: Record
 }
 
 interface PageListFilter {
-  [key: string]: string|number|{[key: string]: string}|undefined;
-  namespaceID?: string;
-  selfID?: string;
-  query?: string;
-  handle?: string;
-  labels?: {[key: string]: string};
-  limit?: number;
-  pageCursor?: string;
-  sort?: string;
+  [key: string]: string | number | { [key: string]: string } | undefined
+  namespaceID?: string
+  selfID?: string
+  query?: string
+  handle?: string
+  labels?: { [key: string]: string }
+  limit?: number
+  pageCursor?: string
+  sort?: string
 }
 
 interface RecordListFilter {
-  [key: string]: string|number|{[key: string]: string}|undefined;
-  namespaceID?: string;
-  moduleID?: string;
-  query?: string;
-  labels?: {[key: string]: string};
-  limit?: number;
-  pageCursor?: string;
-  sort?: string;
+  [key: string]: string | number | { [key: string]: string } | undefined
+  namespaceID?: string
+  moduleID?: string
+  query?: string
+  labels?: { [key: string]: string }
+  limit?: number
+  pageCursor?: string
+  sort?: string
 }
 
 interface ModuleListFilter {
-  [key: string]: string|number|{[key: string]: string}|undefined;
-  namespaceID?: string;
-  query?: string;
-  name?: string;
-  handle?: string;
-  labels?: {[key: string]: string};
-  limit?: number;
-  pageCursor?: string;
-  sort?: string;
+  [key: string]: string | number | { [key: string]: string } | undefined
+  namespaceID?: string
+  query?: string
+  name?: string
+  handle?: string
+  labels?: { [key: string]: string }
+  limit?: number
+  pageCursor?: string
+  sort?: string
 }
 
 interface NamespaceListFilter {
-  [key: string]: string|number|{[key: string]: string}|undefined;
-  query?: string;
-  slug?: string;
-  labels?: {[key: string]: string};
-  limit?: number;
-  pageCursor?: string;
-  sort?: string;
+  [key: string]: string | number | { [key: string]: string } | undefined
+  query?: string
+  slug?: string
+  labels?: { [key: string]: string }
+  limit?: number
+  pageCursor?: string
+  sort?: string
 }
 
 /**
@@ -123,7 +131,10 @@ export default class ComposeHelper {
    * @param values
    * @param ns - defaults to current $namespace
    */
-  async makePage(values: Partial<Page> = {}, ns: Namespace|undefined = this.$namespace): Promise<Page> {
+  async makePage(
+    values: Partial<Page> = {},
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<Page> {
     return this.resolveNamespace(ns).then(ns => {
       return new Page({ ...values, namespaceID: ns.namespaceID })
     })
@@ -134,7 +145,7 @@ export default class ComposeHelper {
    *
    * @param page
    */
-  async savePage(page: Promise<Page>|Page|Partial<Page>): Promise<Page> {
+  async savePage(page: Promise<Page> | Page | Partial<Page>): Promise<Page> {
     return Promise.resolve(page).then(page => {
       if (!isPage(page)) {
         throw Error('expecting Page type')
@@ -175,14 +186,17 @@ export default class ComposeHelper {
    * @param filter
    * @param ns
    */
-  async findPages(filter: undefined|string|PageListFilter = {}, ns: Namespace|undefined = this.$namespace): Promise<ListResponse<Page[], PageListFilter>> {
+  async findPages(
+    filter: undefined | string | PageListFilter = {},
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<ListResponse<Page[], PageListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
 
     return this.resolveNamespace(ns).then(ns => {
       const namespaceID = extractID(ns, 'namespaceID')
-      return this.ComposeAPI.pageList({ namespaceID, ...filter as object }).then(res => {
+      return this.ComposeAPI.pageList({ namespaceID, ...(filter as object) }).then(res => {
         // Casting all we got to to Page
         res.set = (res.set as any[]).map(m => new Page(m))
         return res as unknown as ListResponse<Page[], PageListFilter>
@@ -204,8 +218,11 @@ export default class ComposeHelper {
    * @param page - accepts Page, pageID (when string string)
    * @param ns - namespace, defaults to current $namespace
    */
-  async findPageByID(page: string|Page, ns: Namespace|undefined = this.$namespace): Promise<Page> {
-    return this.resolveNamespace(ns).then((ns) => {
+  async findPageByID(
+    page: string | Page,
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<Page> {
+    return this.resolveNamespace(ns).then(ns => {
       const pageID = extractID(page, 'pageID')
       const namespaceID = extractID(ns, 'namespaceID')
 
@@ -245,7 +262,7 @@ export default class ComposeHelper {
    * @param values
    * @param module - defaults to current $module
    */
-  async makeRecord(values: Values = {}, module: Module|null = null): Promise<Record> {
+  async makeRecord(values: Values = {}, module: Module | null = null): Promise<Record> {
     return this.resolveModule(module, this.$module).then(module => {
       const record = new Record(module)
 
@@ -284,7 +301,7 @@ export default class ComposeHelper {
    *
    * @param record
    */
-  async saveRecord(record: Record|Promise<Record>): Promise<Record> {
+  async saveRecord(record: Record | Promise<Record>): Promise<Record> {
     return Promise.resolve(record).then(record => {
       if (!isRecord(record)) {
         throw Error('expecting Record type')
@@ -366,14 +383,17 @@ export default class ComposeHelper {
    * @property {number} filter.pageCursor - hashed string that retrieves a specific page
    * @param [module] - if not set, defaults to $module
    */
-  async findRecords(filter: string|RecordListFilter = '', module: Module|undefined = this.$module): Promise<ListResponse<Record[], RecordListFilter>> {
+  async findRecords(
+    filter: string | RecordListFilter = '',
+    module: Module | undefined = this.$module,
+  ): Promise<ListResponse<Record[], RecordListFilter>> {
     return this.resolveModule(module).then(module => {
       const { moduleID, namespaceID } = module
 
       let params = {
         moduleID,
         namespaceID,
-      } as { moduleID: string; namespaceID: string; query: string}
+      } as { moduleID: string; namespaceID: string; query: string }
 
       if (typeof filter === 'string') {
         params.query = filter
@@ -399,7 +419,7 @@ export default class ComposeHelper {
    *
    * @param module
    */
-  async findLastRecord(module: Module|undefined = this.$module): Promise<Record> {
+  async findLastRecord(module: Module | undefined = this.$module): Promise<Record> {
     return this.findRecords({ sort: 'createdAt DESC', limit: 1 }, module).then(res => {
       if (!Array.isArray(res.set) || res.set.length === 0) {
         throw new Error('records not found')
@@ -419,7 +439,7 @@ export default class ComposeHelper {
    *
    * @param module
    */
-  async findFirstRecord(module: Module|undefined = this.$module): Promise<Record> {
+  async findFirstRecord(module: Module | undefined = this.$module): Promise<Record> {
     return this.findRecords({ sort: 'createdAt', limit: 1 }, module).then(res => {
       if (!Array.isArray(res.set) || res.set.length === 0) {
         throw new Error('records not found')
@@ -440,17 +460,22 @@ export default class ComposeHelper {
    * @param record
    * @param module
    */
-  async findRecordByID(record: string|object|Record, module: Module|null = null): Promise<Record> {
+  async findRecordByID(
+    record: string | object | Record,
+    module: Module | null = null,
+  ): Promise<Record> {
     // We're handling module default a bit differently here
     // because we want to allow users to use record's module
-    return this.resolveModule(module, (record as Record || {}).module, this.$module).then((module) => {
-      const { moduleID, namespaceID } = module
-      return this.ComposeAPI.recordRead({
-        moduleID,
-        namespaceID,
-        recordID: extractID(record, 'recordID'),
-      }).then(r => new Record(module, r))
-    })
+    return this.resolveModule(module, ((record as Record) || {}).module, this.$module).then(
+      module => {
+        const { moduleID, namespaceID } = module
+        return this.ComposeAPI.recordRead({
+          moduleID,
+          namespaceID,
+          recordID: extractID(record, 'recordID'),
+        }).then(r => new Record(module, r))
+      },
+    )
   }
 
   /**
@@ -459,7 +484,10 @@ export default class ComposeHelper {
    * @param attachment Attachment to find
    * @param ns
    */
-  async findAttachmentByID(attachment: string|object|Attachment, ns: Namespace|undefined = this.$namespace): Promise<Attachment> {
+  async findAttachmentByID(
+    attachment: string | object | Attachment,
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<Attachment> {
     return this.resolveNamespace(ns).then(namespace => {
       const { namespaceID } = namespace
       return this.ComposeAPI.attachmentRead({
@@ -475,7 +503,8 @@ export default class ComposeHelper {
    * @param label Field's label
    */
   moduleFieldNameFromLabel(label: string): string {
-    return label.split(/[^a-zA-Z0-9_]/g)
+    return label
+      .split(/[^a-zA-Z0-9_]/g)
       .filter(p => !!p)
       .map(p => `${p[0].toUpperCase()}${p.slice(1)}`)
       .join('')
@@ -487,8 +516,11 @@ export default class ComposeHelper {
    * @param module
    * @param ns, defaults to current $namespace
    */
-  async makeModule(module: Promise<Module>|Module|Partial<Module> = {} as Module, ns: Namespace|undefined = this.$namespace): Promise<Module> {
-    return this.resolveNamespace(ns).then((ns) => {
+  async makeModule(
+    module: Promise<Module> | Module | Partial<Module> = {} as Module,
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<Module> {
+    return this.resolveNamespace(ns).then(ns => {
       return new Module({ ...module, namespaceID: ns.namespaceID })
     })
   }
@@ -498,7 +530,7 @@ export default class ComposeHelper {
    *
    * @param module
    */
-  async saveModule(module: Promise<Module>|Module): Promise<Module> {
+  async saveModule(module: Promise<Module> | Module): Promise<Module> {
     return Promise.resolve(module).then(module => {
       if (!isModule(module)) {
         throw new Error('expecting Module type')
@@ -519,15 +551,18 @@ export default class ComposeHelper {
    * @param filter
    * @param ns
    */
-  async findModules(filter: string|ModuleListFilter = '', ns: Namespace|undefined = this.$namespace): Promise<ListResponse<Module[], ModuleListFilter>> {
+  async findModules(
+    filter: string | ModuleListFilter = '',
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<ListResponse<Module[], ModuleListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
 
-    return this.resolveNamespace(ns).then((ns) => {
+    return this.resolveNamespace(ns).then(ns => {
       const namespaceID = extractID(ns, 'namespaceID')
 
-      return this.ComposeAPI.moduleList({ namespaceID, ...filter as object }).then(res => {
+      return this.ComposeAPI.moduleList({ namespaceID, ...(filter as object) }).then(res => {
         // Casting all we got to to Module
         res.set = (res.set as any[]).map(m => new Module(m))
         return res as unknown as ListResponse<Module[], ModuleListFilter>
@@ -554,8 +589,11 @@ export default class ComposeHelper {
    * @param module - accepts Module, moduleID (when string) or Record
    * @param ns - namespace, defaults to current $namespace
    */
-  async findModuleByID(module: string|Module|Record, ns: Namespace|undefined = this.$namespace): Promise<Module> {
-    return this.resolveNamespace(ns).then((ns) => {
+  async findModuleByID(
+    module: string | Module | Record,
+    ns: Namespace | undefined = this.$namespace,
+  ): Promise<Module> {
+    return this.resolveNamespace(ns).then(ns => {
       const moduleID = extractID(module, 'moduleID')
       const namespaceID = extractID(ns, 'namespaceID')
 
@@ -582,8 +620,11 @@ export default class ComposeHelper {
    * @param name - name of the module
    * @param ns - defaults to current $namespace
    */
-  async findModuleByName(name: string, ns: string|Namespace|object|undefined = this.$namespace): Promise<Module> {
-    return this.resolveNamespace(ns).then((ns) => {
+  async findModuleByName(
+    name: string,
+    ns: string | Namespace | object | undefined = this.$namespace,
+  ): Promise<Module> {
+    return this.resolveNamespace(ns).then(ns => {
       const namespaceID = extractID(ns, 'namespaceID')
       return this.ComposeAPI.moduleList({ namespaceID, name }).then(res => {
         if (!Array.isArray(res.set) || res.set.length === 0) {
@@ -614,8 +655,11 @@ export default class ComposeHelper {
    * @param handle - handle of the module
    * @param ns - defaults to current $namespace
    */
-  async findModuleByHandle(handle: string, ns: string|Namespace|object|undefined = this.$namespace): Promise<Module> {
-    return this.resolveNamespace(ns).then((ns) => {
+  async findModuleByHandle(
+    handle: string,
+    ns: string | Namespace | object | undefined = this.$namespace,
+  ): Promise<Module> {
+    return this.resolveNamespace(ns).then(ns => {
       const namespaceID = extractID(ns, 'namespaceID')
       return this.ComposeAPI.moduleList({ namespaceID, handle }).then(res => {
         if (!Array.isArray(res.set) || res.set.length === 0) {
@@ -640,7 +684,9 @@ export default class ComposeHelper {
    * @param namespace
    * @param namespace, defaults to current $namespace
    */
-  async makeNamespace(namespace: Promise<Namespace>|Namespace|Partial<Namespace> = {} as Namespace): Promise<Namespace> {
+  async makeNamespace(
+    namespace: Promise<Namespace> | Namespace | Partial<Namespace> = {} as Namespace,
+  ): Promise<Namespace> {
     return new Namespace({
       name: (namespace as Namespace).name || (namespace as Namespace).slug,
       meta: {},
@@ -657,7 +703,7 @@ export default class ComposeHelper {
    *
    * @param namespace
    */
-  async saveNamespace(namespace: Promise<Namespace>|Namespace): Promise<Namespace> {
+  async saveNamespace(namespace: Promise<Namespace> | Namespace): Promise<Namespace> {
     return Promise.resolve(namespace).then(namespace => {
       if (!(namespace instanceof Namespace)) {
         throw Error('expecting Namespace type')
@@ -677,7 +723,9 @@ export default class ComposeHelper {
    * @private
    * @param filter
    */
-  async findNamespaces(filter: string|NamespaceListFilter = ''): Promise<ListResponse<Namespace[], NamespaceListFilter>> {
+  async findNamespaces(
+    filter: string | NamespaceListFilter = '',
+  ): Promise<ListResponse<Namespace[], NamespaceListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
@@ -704,7 +752,9 @@ export default class ComposeHelper {
    *
    * @param ns - accepts Namespace, namespaceID (when string string) or Record
    */
-  async findNamespaceByID(ns: string|Namespace|Record|undefined = this.$namespace): Promise<Namespace> {
+  async findNamespaceByID(
+    ns: string | Namespace | Record | undefined = this.$namespace,
+  ): Promise<Namespace> {
     const namespaceID = extractID(ns, 'namespaceID')
 
     return this.ComposeAPI.namespaceRead({ namespaceID }).then(m => new Namespace(m))
@@ -747,7 +797,12 @@ export default class ComposeHelper {
    * @property {string} body.html - HTML body to be sent
    * @param Any additional addresses we want this to be sent to (carbon-copy)
    */
-  async sendMail(to: string|string[], subject: string, { html = '' }: { html?: string } = {}, { cc = [] }: { cc?: string|string[] } = {}): Promise<unknown> {
+  async sendMail(
+    to: string | string[],
+    subject: string,
+    { html = '' }: { html?: string } = {},
+    { cc = [] }: { cc?: string | string[] } = {},
+  ): Promise<unknown> {
     if (!to) {
       throw Error('expecting to email address')
     }
@@ -800,7 +855,7 @@ export default class ComposeHelper {
    * @param record - record to be converted (or leave for the current $record)
    */
   async sendRecordToMail(
-    to: string|string[],
+    to: string | string[],
     subject = '',
     {
       header = '',
@@ -808,8 +863,8 @@ export default class ComposeHelper {
       style = emailStyle,
       fields = null,
       ...mailHeader
-    }: { header?: string; footer?: string; style?: string; fields?: string[]|null } = {},
-    record: Promise<Record>|Record|undefined = this.$record,
+    }: { header?: string; footer?: string; style?: string; fields?: string[] | null } = {},
+    record: Promise<Record> | Record | undefined = this.$record,
   ): Promise<unknown> {
     // Wait for the record if we got a promise
 
@@ -833,12 +888,7 @@ export default class ComposeHelper {
       subject += record.updatedAt ? 'record updated' : 'record created'
     }
 
-    return this.sendMail(
-      to,
-      subject,
-      { html },
-      { ...mailHeader },
-    )
+    return this.sendMail(to, subject, { html }, { ...mailHeader })
   }
 
   /**
@@ -850,7 +900,11 @@ export default class ComposeHelper {
    *
    * @private
    */
-  walkFields(fwl: null|string[]|Record|undefined, record: Record, formatter: (...args: unknown[]) => string): Array<string> {
+  walkFields(
+    fwl: null | string[] | Record | undefined,
+    record: Record,
+    formatter: (...args: unknown[]) => string,
+  ): Array<string> {
     if (!formatter) {
       throw new Error('formatter.undefined')
     }
@@ -883,19 +937,20 @@ export default class ComposeHelper {
    * @param fwl - field white list (or leave empty/null/false for all fields)
    * @param record - record to be converted (or leave for the current $record)
    */
-  recordToHTML(fwl: null|string[]|Record = null, record: Record|undefined = this.$record): string {
+  recordToHTML(
+    fwl: null | string[] | Record = null,
+    record: Record | undefined = this.$record,
+  ): string {
     if (!record) {
       throw Error('record undefined')
     }
 
-    const rows = this
-      .walkFields(fwl, record, (f): string => {
-        const { name, label } = f as { name: string; label: string }
-        const v = record.values[name]
+    const rows = this.walkFields(fwl, record, (f): string => {
+      const { name, label } = f as { name: string; label: string }
+      const v = record.values[name]
 
-        return `<tr><td>${label || name}</td><td>${(Array.isArray(v) ? v : [v]).join(', ') || '&nbsp;'}</td></tr>`
-      })
-      .join('')
+      return `<tr><td>${label || name}</td><td>${(Array.isArray(v) ? v : [v]).join(', ') || '&nbsp;'}</td></tr>`
+    }).join('')
 
     return `<table width="800" cellspacing="0" cellpadding="0" border="0">${rows}</table>`
   }
@@ -913,17 +968,19 @@ export default class ComposeHelper {
    * @param fwl - field white list (or leave empty/null/false for all fields)
    * @param record - record to be converted (or leave for the current $record)
    */
-  recordToPlainText(fwl: null|string[]|Record = null, record: Record|undefined = this.$record): string {
+  recordToPlainText(
+    fwl: null | string[] | Record = null,
+    record: Record | undefined = this.$record,
+  ): string {
     if (!record) {
       throw Error('record undefined')
     }
 
-    return this
-      .walkFields(fwl, record, f => {
-        const { name, label } = f as { name: string; label: string }
-        const v = record.values[name]
-        return `${label || name}:\n${(Array.isArray(v) ? v : [v]).join(', ') || '/'}\n\n`
-      })
+    return this.walkFields(fwl, record, f => {
+      const { name, label } = f as { name: string; label: string }
+      const v = record.values[name]
+      return `${label || name}:\n${(Array.isArray(v) ? v : [v]).join(', ') || '/'}\n\n`
+    })
       .join('')
       .trim()
   }
@@ -934,7 +991,7 @@ export default class ComposeHelper {
    * @private
    */
   async resolveModule(...args: unknown[]): Promise<Module> {
-    const strResolve = async(module: string): Promise<Module> => {
+    const strResolve = async (module: string): Promise<Module> => {
       return this.findModuleByHandle(module)
         .then(m => {
           if (!m) {
@@ -998,7 +1055,10 @@ export default class ComposeHelper {
 
       if (!isModule(module)) {
         // not module? is it an object with moduleID & namespaceID?
-        if ((module as Module).moduleID === undefined || (module as Module).namespaceID === undefined) {
+        if (
+          (module as Module).moduleID === undefined ||
+          (module as Module).namespaceID === undefined
+        ) {
           break
         }
 
@@ -1052,7 +1112,10 @@ export default class ComposeHelper {
         return this.resolveNamespace(n.namespaceID)
       }
 
-      if ((ns as ListResponse<Namespace[], NamespaceListFilter>).set && (ns as ListResponse<Namespace[], NamespaceListFilter>).filter) {
+      if (
+        (ns as ListResponse<Namespace[], NamespaceListFilter>).set &&
+        (ns as ListResponse<Namespace[], NamespaceListFilter>).filter
+      ) {
         // We got a result set with modules
         ns = (ns as ListResponse<Namespace[], NamespaceListFilter>).set
       }
@@ -1136,7 +1199,9 @@ export default class ComposeHelper {
    *    operation: 'read',
    * })
    */
-  async inherit(...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
+  async inherit(
+    ...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]
+  ) {
     const rr = pr.map(p => ({
       role: p.role,
       resource: p.resource,

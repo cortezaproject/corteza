@@ -3,17 +3,17 @@ import { Apply, CortezaID, NoID } from '../../../cast'
 
 const kind = 'RecordOrganizer'
 interface Options {
-  moduleID: string;
-  labelField: string;
-  descriptionField: string;
-  filter: string;
-  positionField: string;
-  groupField: string;
-  group: string;
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
-  displayOption: string;
+  moduleID: string
+  labelField: string
+  descriptionField: string
+  filter: string
+  positionField: string
+  groupField: string
+  group: string
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
+  displayOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -44,7 +44,19 @@ export class PageBlockRecordOrganizer extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'labelField', 'descriptionField', 'filter', 'positionField', 'groupField', 'group', 'magnifyOption', 'displayOption')
+    Apply(
+      this.options,
+      o,
+      String,
+      'labelField',
+      'descriptionField',
+      'filter',
+      'positionField',
+      'groupField',
+      'group',
+      'magnifyOption',
+      'displayOption',
+    )
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
   }

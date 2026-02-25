@@ -7,9 +7,9 @@ import { Button } from './types'
 const kind = 'RecordList'
 
 interface FilterPreset {
-  name: string;
-  filter: unknown[];
-  roles: string[];
+  name: string
+  filter: unknown[]
+  roles: string[]
 }
 
 enum SummaryMetric {
@@ -25,78 +25,78 @@ enum SummaryMetric {
 }
 
 interface Summary {
-  label: string;
-  field: string[];
-  metric: SummaryMetric;
-  roles: string[];
+  label: string
+  field: string[]
+  metric: SummaryMetric
+  roles: string[]
 }
 
 export interface Options {
-  moduleID: string;
-  prefilter: string;
-  presort: string;
-  fields: unknown[];
-  inlineEditFields: unknown[];
-  hideHeader: boolean;
-  hideAddButton: boolean;
-  hideImportButton: boolean;
-  hideConfigureFieldsButton: boolean;
-  hideSearch: boolean;
-  hidePaging: boolean;
-  hideSorting: boolean;
-  hideFiltering: boolean;
-  hideRecordReminderButton: boolean;
-  hideRecordCloneButton: boolean;
-  hideRecordEditButton: boolean;
-  hideRecordViewButton: boolean;
-  hideRecordPermissionsButton: boolean;
-  hideRecordDeleteButton: boolean;
-  enableRecordPageNavigation: boolean;
-  allowExport: boolean;
-  perPage: number;
-  recordDisplayOption: string;
-  recordSelectorDisplayOption: string;
-  addRecordDisplayOption: string;
-  magnifyOption: string;
-  searchableFields: string[];
+  moduleID: string
+  prefilter: string
+  presort: string
+  fields: unknown[]
+  inlineEditFields: unknown[]
+  hideHeader: boolean
+  hideAddButton: boolean
+  hideImportButton: boolean
+  hideConfigureFieldsButton: boolean
+  hideSearch: boolean
+  hidePaging: boolean
+  hideSorting: boolean
+  hideFiltering: boolean
+  hideRecordReminderButton: boolean
+  hideRecordCloneButton: boolean
+  hideRecordEditButton: boolean
+  hideRecordViewButton: boolean
+  hideRecordPermissionsButton: boolean
+  hideRecordDeleteButton: boolean
+  enableRecordPageNavigation: boolean
+  allowExport: boolean
+  perPage: number
+  recordDisplayOption: string
+  recordSelectorDisplayOption: string
+  addRecordDisplayOption: string
+  magnifyOption: string
+  searchableFields: string[]
 
-  fullPageNavigation: boolean;
-  showTotalCount: boolean;
-  showDeletedRecordsOption: boolean;
-  customFilterPresets: boolean;
-  refreshRate: number;
-  showRefresh: boolean;
+  fullPageNavigation: boolean
+  showTotalCount: boolean
+  showDeletedRecordsOption: boolean
+  customFilterPresets: boolean
+  refreshRate: number
+  showRefresh: boolean
 
   // Record-lines
-  editable: boolean;
-  draggable?: boolean;
-  positionField?: string;
-  refField?: string; // When adding a new record, prefill refField value with parent record ID
-  editFields?: unknown[];
-  linkToParent: boolean; // Legacy
+  editable: boolean
+  draggable?: boolean
+  positionField?: string
+  refField?: string // When adding a new record, prefill refField value with parent record ID
+  editFields?: unknown[]
+  linkToParent: boolean // Legacy
 
   // Should records be opened in a new tab
   // legacy field that has been removed but we keep it for backwards compatibility
-  openInNewTab: boolean;
+  openInNewTab: boolean
 
   // Are table rows selectable
-  selectable: boolean;
-  selectMode: 'multi' | 'single' | 'range';
+  selectable: boolean
+  selectMode: 'multi' | 'single' | 'range'
 
   // Ordered list of buttons to display in the block
-  selectionButtons: Array<Button>;
+  selectionButtons: Array<Button>
 
-  bulkRecordEditEnabled: boolean;
-  inlineRecordEditEnabled: boolean;
-  inlineRecordEditAllowAddField: boolean;
-  inlineValueFiltering: boolean;
-  filterPresets: FilterPreset[];
-  showRecordPerPageOption: boolean;
-  openRecordInEditMode: boolean;
+  bulkRecordEditEnabled: boolean
+  inlineRecordEditEnabled: boolean
+  inlineRecordEditAllowAddField: boolean
+  inlineValueFiltering: boolean
+  filterPresets: FilterPreset[]
+  showRecordPerPageOption: boolean
+  openRecordInEditMode: boolean
 
   // Summaries
-  customSummaries: boolean;
-  summaries: Summary[];
+  customSummaries: boolean
+  summaries: Summary[]
 
   textStyles: {
     wrappedFields: Array<string>
@@ -185,7 +185,10 @@ export class PageBlockRecordList extends PageBlock {
 
     Apply(this.options, o, CortezaID, 'moduleID')
 
-    Apply(this.options, o, String,
+    Apply(
+      this.options,
+      o,
+      String,
       'prefilter',
       'presort',
       'selectMode',
@@ -223,7 +226,10 @@ export class PageBlockRecordList extends PageBlock {
       this.options.recordDisplayOption = 'newTab'
     }
 
-    Apply(this.options, o, Boolean,
+    Apply(
+      this.options,
+      o,
+      Boolean,
       'hideHeader',
       'hideAddButton',
       'hideImportButton',
@@ -274,7 +280,11 @@ export class PageBlockRecordList extends PageBlock {
     }
   }
 
-  async fetch(api: ComposeAPI, recordListModule: Module, filter: {[_: string]: unknown}): Promise<object> {
+  async fetch(
+    api: ComposeAPI,
+    recordListModule: Module,
+    filter: { [_: string]: unknown },
+  ): Promise<object> {
     if (recordListModule.moduleID !== this.options.moduleID) {
       throw Error('Module incompatible, module mismatch')
     }
@@ -282,12 +292,10 @@ export class PageBlockRecordList extends PageBlock {
     filter.moduleID = this.options.moduleID
     filter.namespaceID = recordListModule.namespaceID
 
-    return api
-      .recordList(filter)
-      .then(r => {
-        const { set: records, filter } = r as { filter: object; set: object[] }
-        return { records, filter }
-      })
+    return api.recordList(filter).then(r => {
+      const { set: records, filter } = r as { filter: object; set: object[] }
+      return { records, filter }
+    })
   }
 }
 

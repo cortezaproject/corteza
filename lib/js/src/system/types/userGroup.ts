@@ -1,16 +1,18 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf, AreStrings } from '../../guards'
 
-interface PartialUserGroup extends Partial<Omit<UserGroup, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
-  suspendedAt?: string|number|Date;
+interface PartialUserGroup extends Partial<
+  Omit<UserGroup, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  suspendedAt?: string | number | Date
 }
 
 interface Meta {
-  description: string;
-  short: string;
+  description: string
+  short: string
 }
 
 const defaultMeta = {
@@ -20,9 +22,9 @@ const defaultMeta = {
 
 interface Config {
   path: {
-    selfID: string;
-    name: string;
-  }[];
+    selfID: string
+    name: string
+  }[]
 }
 
 const defaultConfig = {
@@ -57,7 +59,16 @@ export class UserGroup {
     Apply(this, u, CortezaID, 'userGroupID')
     Apply(this, u, String, 'handle')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
-    Apply(this, u, Boolean, 'isRoot', 'canGrant', 'canUpdateUserGroup', 'canDeleteUserGroup', 'canManageMembersOnUserGroup')
+    Apply(
+      this,
+      u,
+      Boolean,
+      'isRoot',
+      'canGrant',
+      'canUpdateUserGroup',
+      'canDeleteUserGroup',
+      'canManageMembersOnUserGroup',
+    )
 
     if (u?.roles) {
       this.roles = []
@@ -102,11 +113,7 @@ export class UserGroup {
   }
 
   get fts(): string {
-    return [
-      this.meta.short,
-      this.handle,
-      this.userGroupID,
-    ].join(' ').toLocaleLowerCase()
+    return [this.meta.short, this.handle, this.userGroupID].join(' ').toLocaleLowerCase()
   }
 
   clone(): UserGroup {

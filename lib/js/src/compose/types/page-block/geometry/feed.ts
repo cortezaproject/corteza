@@ -2,9 +2,9 @@ import { Apply, NoID } from '../../../../cast'
 import { IsOf } from '../../../../guards'
 
 interface FeedOptions {
-  color: string;
-  prefilter: string;
-  moduleID: string;
+  color: string
+  prefilter: string
+  moduleID: string
 }
 
 export type FeedInput = Partial<Feed> | Feed

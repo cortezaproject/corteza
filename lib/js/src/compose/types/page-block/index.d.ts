@@ -17,7 +17,5 @@ export { PageBlockProgress } from './progress'
 export { PageBlockNavigation } from './navigation'
 export { PageBlockTab } from './tabs'
 export { PageBlockGeometry } from './geometry'
-export declare function PageBlockMaker<T extends PageBlock>(i: {
-    kind: string;
-}): T;
+export declare function PageBlockMaker<T extends PageBlock>(i: { kind: string }): T
 export { Registry as PageBlockRegistry, PageBlock }

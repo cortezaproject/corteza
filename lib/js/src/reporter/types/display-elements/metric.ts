@@ -5,17 +5,17 @@ import { Apply } from '../../../cast'
 const kind = 'Metric'
 
 interface Options {
-  source?: string;
-  datasources: Array<FrameDefinition>;
+  source?: string
+  datasources: Array<FrameDefinition>
 
-  valueColumn: string;
+  valueColumn: string
 
-  format: string;
-  prefix: string;
-  suffix: string;
+  format: string
+  prefix: string
+  suffix: string
 
-  color: string;
-  backgroundColor: string;
+  color: string
+  backgroundColor: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -45,7 +45,18 @@ export class DisplayElementMetric extends DisplayElement {
   applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'source', 'valueColumn', 'format', 'prefix', 'suffix', 'color', 'backgroundColor')
+    Apply(
+      this.options,
+      o,
+      String,
+      'source',
+      'valueColumn',
+      'format',
+      'prefix',
+      'suffix',
+      'color',
+      'backgroundColor',
+    )
 
     if (o.datasources) {
       this.options.datasources = o.datasources || []
@@ -79,10 +90,7 @@ export class DisplayElementMetric extends DisplayElement {
           if (filter && filter.ref) {
             df.filter = {
               ref: 'and',
-              args: [
-                filter,
-                relatedDefinition.filter,
-              ],
+              args: [filter, relatedDefinition.filter],
             }
           } else {
             df.filter = relatedDefinition.filter

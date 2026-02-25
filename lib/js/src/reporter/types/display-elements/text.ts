@@ -4,7 +4,7 @@ import { Apply } from '../../../cast'
 const kind = 'Text'
 
 interface Options {
-  value: string;
+  value: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

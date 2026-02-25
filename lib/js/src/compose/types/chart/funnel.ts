@@ -100,9 +100,11 @@ export default class FunnelChart extends BaseChart {
       },
       toolbox: {
         feature: {
-          saveAsImage: saveAsImage ? {
-            name: this.name,
-          } : undefined,
+          saveAsImage: saveAsImage
+            ? {
+                name: this.name,
+              }
+            : undefined,
         },
         top: 23,
         right: 2,

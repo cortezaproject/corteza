@@ -13,6 +13,7 @@
       :active-id="activeId"
       :expanded-ids="expandedIds"
       :depth="0"
+      :match-type="matchType"
       @select="onSelect"
       @toggle="onToggle"
     >
@@ -80,6 +81,10 @@ const props = defineProps({
   expandAll: {
     type: Boolean,
     default: false,
+  },
+  matchType: {
+    type: String,
+    default: 'exact',
   },
 })
 

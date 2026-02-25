@@ -334,18 +334,18 @@ export default class Chart extends BaseChart {
 
     const dataZoom = timeline
       ? [
-        {
-          show: timeline.includes('x'),
-          type: 'slider',
-          height: 30,
-        },
-        {
-          show: timeline.includes('y'),
-          type: 'slider',
-          width: 15,
-          yAxisIndex: 0,
-        },
-      ]
+          {
+            show: timeline.includes('x'),
+            type: 'slider',
+            height: 30,
+          },
+          {
+            show: timeline.includes('y'),
+            type: 'slider',
+            width: 15,
+            yAxisIndex: 0,
+          },
+        ]
       : undefined
 
     return {
@@ -359,8 +359,8 @@ export default class Chart extends BaseChart {
         feature: {
           saveAsImage: saveAsImage
             ? {
-              name: this.name,
-            }
+                name: this.name,
+              }
             : undefined,
         },
         top: 23,

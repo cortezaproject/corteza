@@ -7,44 +7,44 @@ const kind = 'Chart'
 export type PartialChartOptions = Partial<ChartOptions>
 
 interface XAxisOptions {
-  type: string;
-  label?: string;
-  unit?: string;
-  skipMissing: boolean;
-  defaultValue?: any;
-  labelRotation: number;
+  type: string
+  label?: string
+  unit?: string
+  skipMissing: boolean
+  defaultValue?: any
+  labelRotation: number
 }
 
 interface YAxisOptions {
-  label?: string;
-  labelPosition?: string;
-  labelRotation: number;
-  type?: string;
-  position?: string;
-  beginAtZero?: boolean;
-  stepSize?: string;
-  min?: string;
-  max?: string;
+  label?: string
+  labelPosition?: string
+  labelRotation: number
+  type?: string
+  position?: string
+  beginAtZero?: boolean
+  stepSize?: string
+  min?: string
+  max?: string
 }
 
 interface Legend {
-  hide: boolean;
-  orientation: string;
-  align: string;
-  scrollable: boolean;
-  position: Offset;
+  hide: boolean
+  orientation: string
+  align: string
+  scrollable: boolean
+  position: Offset
 }
 
 interface Tooltips {
-  showAlways: boolean;
+  showAlways: boolean
 }
 
 interface Offset {
-  default: boolean;
-  top?: string;
-  right?: string;
-  bottom?: string;
-  left?: string;
+  default: boolean
+  top?: string
+  right?: string
+  bottom?: string
+  left?: string
 }
 
 export class ChartOptions {
@@ -192,10 +192,7 @@ export class DisplayElementChart extends DisplayElement {
           if (filter && filter.ref) {
             df.filter = {
               ref: 'and',
-              args: [
-                filter,
-                relatedDefinition.filter,
-              ],
+              args: [filter, relatedDefinition.filter],
             }
           } else {
             df.filter = relatedDefinition.filter

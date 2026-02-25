@@ -1,27 +1,26 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
-interface PartialAuthClient
-  extends Partial<
-    Omit<AuthClient, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
-  > {
-  createdAt?: string | number | Date;
-  updatedAt?: string | number | Date;
-  deletedAt?: string | number | Date;
-  lastUsedAt?: string | number | Date;
+interface PartialAuthClient extends Partial<
+  Omit<AuthClient, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  lastUsedAt?: string | number | Date
 }
 
 interface AuthClientMeta {
-  name: string;
-  description: string;
+  name: string
+  description: string
 }
 
 interface DefSecurity {
-  userGroup: string;
-  impersonateUser: string;
-  permittedRoles: Array<string>;
-  prohibitedRoles: Array<string>;
-  forcedRoles: Array<string>;
+  userGroup: string
+  impersonateUser: string
+  permittedRoles: Array<string>
+  prohibitedRoles: Array<string>
+  forcedRoles: Array<string>
 }
 
 export class AuthClient {
@@ -69,7 +68,16 @@ export class AuthClient {
     Apply(this, o, CortezaID, 'authClientID')
     Apply(this, o, ISO8601Date, 'validFrom', 'expiresAt', 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, o, String, 'handle', 'scope', 'redirectURI', 'validGrant')
-    Apply(this, o, Boolean, 'enabled', 'trusted', 'canDeleteAuthClient', 'canGrant', 'canUpdateAuthClient')
+    Apply(
+      this,
+      o,
+      Boolean,
+      'enabled',
+      'trusted',
+      'canDeleteAuthClient',
+      'canGrant',
+      'canUpdateAuthClient',
+    )
 
     if (IsOf(o, 'meta')) {
       this.meta = { ...o.meta }

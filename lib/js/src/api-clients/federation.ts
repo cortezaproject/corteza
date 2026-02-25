@@ -22,10 +22,6 @@ interface CortezaResponse {
   response?: unknown
 }
 
-interface ExtraConfig {
-  headers?: Headers
-}
-
 function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)

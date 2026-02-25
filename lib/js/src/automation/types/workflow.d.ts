@@ -1,11 +1,13 @@
 interface Meta {
-    name: '';
+  name: ''
 }
-interface PartialWorkflow extends Partial<Omit<Workflow, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
-    meta?: Partial<Meta>;
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
+interface PartialWorkflow extends Partial<
+  Omit<Workflow, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>
+> {
+  meta?: Partial<Meta>
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 export declare class Workflow {
   workflowID: string
@@ -19,15 +21,15 @@ export declare class Workflow {
   createdAt?: Date
   updatedAt?: Date
   deletedAt?: Date
-  constructor(w?: PartialWorkflow);
-  apply(w?: PartialWorkflow): void;
+  constructor(w?: PartialWorkflow)
+  apply(w?: PartialWorkflow): void
   /**
-     * Returns resource ID
-     */
-  get resourceID(): string;
+   * Returns resource ID
+   */
+  get resourceID(): string
   /**
-     * Resource type
-     */
-  get resourceType(): string;
+   * Resource type
+   */
+  get resourceType(): string
 }
 export {}

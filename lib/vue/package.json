@@ -14,8 +14,7 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write src/",
-    "format:check": "prettier --check src/",
-    "cdeps": "yarn link @cortezaproject/corteza-js-next"
+    "format:check": "prettier --check src/"
   },
   "dependencies": {
     "@cortezaproject/corteza-js-next": "workspace:*"

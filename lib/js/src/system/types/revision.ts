@@ -2,7 +2,12 @@ import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 export type RevisionStatus = '' | 'draft'
-export type RevisionOperation = 'created' | 'updated' | 'soft-deleted' | 'undeleted' | 'hard-deleted'
+export type RevisionOperation =
+  | 'created'
+  | 'updated'
+  | 'soft-deleted'
+  | 'undeleted'
+  | 'hard-deleted'
 
 export interface RevisionChange {
   key: string

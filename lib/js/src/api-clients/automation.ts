@@ -22,10 +22,6 @@ interface CortezaResponse {
   response?: unknown
 }
 
-interface ExtraConfig {
-  headers?: Headers
-}
-
 function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)
@@ -1778,6 +1774,45 @@ export default class Automation {
   ngAutomationExecEndpoint(a: KV): string {
     const { automationID } = a || {}
     return `/ng-automation/${automationID}/exec`
+  }
+
+  // Get automation executions
+  async ngAutomationExecutions(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.ngAutomationExecutionsEndpoint({
+        automationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationExecutionsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationExecutions(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationExecutionsEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}/executions`
   }
 
   // Get automation execution trace

@@ -51,14 +51,14 @@ describe('cast', () => {
     })
 
     it('should assign simple array', () => {
-      Apply(foo, { arr: [42, '42'] }, (o) => o, 'arr')
+      Apply(foo, { arr: [42, '42'] }, o => o, 'arr')
       expect(foo.arr).to.deep.equal([42, '42'])
     })
 
     it('should assign array of Foos', () => {
       // just a primitive check, not actually casting
       // to Foo[] so we're not actually checking for that
-      Apply(foo, { ff: [{ baz: 'one' }, { baz: 'two' }] }, (o) => o, 'ff')
+      Apply(foo, { ff: [{ baz: 'one' }, { baz: 'two' }] }, o => o, 'ff')
       expect(foo.ff).to.deep.equal([{ baz: 'one' }, { baz: 'two' }])
     })
 

@@ -3,8 +3,9 @@ import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 const { merge } = lodash
 
-interface PartialDalConnection
-  extends Partial<Omit<DalConnection, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
+interface PartialDalConnection extends Partial<
+  Omit<DalConnection, 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
   deletedAt?: string | number | Date

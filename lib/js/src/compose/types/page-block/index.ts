@@ -32,7 +32,4 @@ export function PageBlockMaker<T extends PageBlock>(i: { kind: string }): T {
   return new PageBlockTemp(i) as T
 }
 
-export {
-  Registry as PageBlockRegistry,
-  PageBlock,
-}
+export { Registry as PageBlockRegistry, PageBlock }

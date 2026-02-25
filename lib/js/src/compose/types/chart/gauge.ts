@@ -1,13 +1,6 @@
 import { getColorschemeColors } from '../../../shared'
 import { BaseChart, PartialChart } from './base'
-import {
-  ChartType,
-  Dimension,
-  Metric,
-  Report,
-  TemporalDataPoint,
-  formatChartValue,
-} from './util'
+import { ChartType, Dimension, Metric, Report, TemporalDataPoint, formatChartValue } from './util'
 
 export default class GaugeChart extends BaseChart {
   constructor(def: PartialChart = {}) {
@@ -41,14 +34,16 @@ export default class GaugeChart extends BaseChart {
     return (d.meta?.steps || []).map(({ label }: any) => label)
   }
 
-  makeDataset(m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
-    const steps = (d.meta?.steps || [])
+  makeDataset(m: Metric, d: Dimension, data: Array<number | TemporalDataPoint>, alias: string) {
+    const steps = d.meta?.steps || []
 
     data = this.datasetPostProc(data, m)
 
-    const value = data.reduce((acc: any, cur: any) => {
-      return !isNaN(cur) ? acc + parseFloat(cur) : acc
-    }, 0).toFixed(3)
+    const value = data
+      .reduce((acc: any, cur: any) => {
+        return !isNaN(cur) ? acc + parseFloat(cur) : acc
+      }, 0)
+      .toFixed(3)
 
     const max = Math.max(...steps.map(({ value }: any) => parseFloat(value)))
 
@@ -105,9 +100,11 @@ export default class GaugeChart extends BaseChart {
       },
       toolbox: {
         feature: {
-          saveAsImage: saveAsImage ? {
-            name: this.name,
-          } : undefined,
+          saveAsImage: saveAsImage
+            ? {
+                name: this.name,
+              }
+            : undefined,
         },
         top: 23,
         right: 2,

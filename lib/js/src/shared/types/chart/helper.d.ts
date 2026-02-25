@@ -1,1 +1,4 @@
-export declare const getColorschemeColors: (colorscheme?: string, customColorSchemes?: any[]) => string[]
+export declare const getColorschemeColors: (
+  colorscheme?: string,
+  customColorSchemes?: any[],
+) => string[]

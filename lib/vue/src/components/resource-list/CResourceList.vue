@@ -49,6 +49,7 @@
             tableContainer: { class: 'flex-1 overflow-auto max-w-full' },
             emptyMessageCell: { class: 'h-full' },
             footer: { class: 'p-0 border-0' },
+            headerCell: { class: 'bg-highlight-emphasis' },
           }"
           @sort="$emit('sort', $event)"
           @row-click="$emit('row-click', $event)"
@@ -80,7 +81,7 @@
           </Column>
 
           <template #footer>
-            <div class="flex items-center flex-wrap gap-2 w-full p-3">
+            <div class="flex items-center flex-wrap gap-2 px-3 py-2">
               <div class="flex items-center text-sm">
                 <span v-if="!hideTotal" class="whitespace-nowrap">
                   {{ getPagination }}
@@ -95,7 +96,8 @@
                   <Select
                     :model-value="pagination.limit"
                     :options="perPageOptions"
-                    class="w-30"
+                    size="small"
+                    class="w-20"
                     @update:model-value="handlePerPageChange"
                   />
                 </div>

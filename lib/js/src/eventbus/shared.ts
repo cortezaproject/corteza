@@ -1,30 +1,27 @@
 import { ConstraintMatcher } from './constraints'
 
 export interface Constraint {
-  name?:
-      string;
-  op?:
-      string;
-  value:
-      string[];
+  name?: string
+  op?: string
+  value: string[]
 }
 
 export const onManual = 'onManual'
 
 export interface HandlerFn {
-  (ev: Event): Promise<unknown>;
+  (ev: Event): Promise<unknown>
 }
 
 export interface Trigger {
-  eventTypes: string[];
-  resourceTypes: string[];
-  weight?: number;
-  constraints?: Constraint[];
-  scriptName?: string;
+  eventTypes: string[]
+  resourceTypes: string[]
+  weight?: number
+  constraints?: Constraint[]
+  scriptName?: string
 }
 
 interface SortableScript {
-  weight: number;
+  weight: number
 }
 
 export function scriptSorter(a: SortableScript, b: SortableScript): number {
@@ -32,21 +29,30 @@ export function scriptSorter(a: SortableScript, b: SortableScript): number {
 }
 
 interface EventMatcher {
-  (c: ConstraintMatcher): boolean;
+  (c: ConstraintMatcher): boolean
 }
 
-interface EventArgs { [_: string]: unknown }
+interface EventArgs {
+  [_: string]: unknown
+}
 
 export interface Event {
-  resourceType: string;
-  eventType: string;
-  match?: EventMatcher;
-  args?: EventArgs;
+  resourceType: string
+  eventType: string
+  match?: EventMatcher
+  args?: EventArgs
 }
 
-interface ResourceTypeGetter { resourceType: string }
+interface ResourceTypeGetter {
+  resourceType: string
+}
 
-export function GenericEventMaker<T extends ResourceTypeGetter>(t: T, eventType: string, match: EventMatcher, args: EventArgs): Event {
+export function GenericEventMaker<T extends ResourceTypeGetter>(
+  t: T,
+  eventType: string,
+  match: EventMatcher,
+  args: EventArgs,
+): Event {
   return {
     resourceType: t.resourceType,
     eventType,

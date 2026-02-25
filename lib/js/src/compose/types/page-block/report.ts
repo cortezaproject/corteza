@@ -4,12 +4,12 @@ import { Apply, CortezaID, NoID } from '../../../cast'
 const kind = 'Report'
 
 interface Options {
-  reportID: string;
-  scenarioID: string;
-  elementID: string;
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
+  reportID: string
+  scenarioID: string
+  elementID: string
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

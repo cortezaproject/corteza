@@ -1,12 +1,14 @@
-interface PartialTemplate extends Partial<Omit<Template, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>> {
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
-    lastUsedAt?: string | number | Date;
+interface PartialTemplate extends Partial<
+  Omit<Template, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  lastUsedAt?: string | number | Date
 }
 interface Meta {
-    short?: string;
-    description?: string;
+  short?: string
+  description?: string
 }
 export declare class Template {
   templateID: string
@@ -23,16 +25,16 @@ export declare class Template {
   deletedAt?: Date
   lastUsedAt?: Date
   canDeleteTemplate: boolean
-  constructor(r?: PartialTemplate);
-  apply(r?: PartialTemplate): void;
+  constructor(r?: PartialTemplate)
+  apply(r?: PartialTemplate): void
   /**
-     * Returns resource ID
-     */
-  get resourceID(): string;
+   * Returns resource ID
+   */
+  get resourceID(): string
   /**
-     * Resource type
-     */
-  get resourceType(): string;
-  clone(): Template;
+   * Resource type
+   */
+  get resourceType(): string
+  clone(): Template
 }
 export {}

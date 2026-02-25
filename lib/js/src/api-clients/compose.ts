@@ -22,10 +22,6 @@ interface CortezaResponse {
   response?: unknown
 }
 
-interface ExtraConfig {
-  headers?: Headers
-}
-
 function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)
@@ -393,15 +389,12 @@ export default class Compose {
 
   // Export compose namespace
   async namespaceExport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, filename, ext } = (a as KV) || {}
+    const { namespaceID, filename } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
     if (!filename) {
       throw Error('field filename is empty')
-    }
-    if (!ext) {
-      throw Error('field ext is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -409,7 +402,6 @@ export default class Compose {
       url: this.namespaceExportEndpoint({
         namespaceID,
         filename,
-        ext,
       }),
     }
 
@@ -434,7 +426,7 @@ export default class Compose {
   }
 
   namespaceExportEndpoint(a: KV): string {
-    const { namespaceID, filename, ext } = a || {}
+    const { namespaceID, filename } = a || {}
     return `/namespace/${namespaceID}/export/${filename}.zip`
   }
 

@@ -1,11 +1,6 @@
 import { getColorschemeColors } from '../../../shared'
 import { BaseChart } from './base'
-import {
-  ChartType,
-  Dimension,
-  Metric,
-  formatChartValue,
-} from './util'
+import { ChartType, Dimension, Metric, formatChartValue } from './util'
 
 export default class RadarChart extends BaseChart {
   mtrCheck({ field, aggregate }: Metric) {
@@ -17,7 +12,7 @@ export default class RadarChart extends BaseChart {
     }
   }
 
-  makeDataset(m: Metric, d: Dimension, data: Array<number|any>) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number | any>) {
     return {
       type: m.type,
       label: m.label || m.field,
@@ -31,9 +26,7 @@ export default class RadarChart extends BaseChart {
     const { saveAsImage } = toolbox || {}
     const { labels, datasets = [], dimension = {}, themeVariables = {} } = data
 
-    const {
-      legend: l,
-    } = reports[0] || {}
+    const { legend: l } = reports[0] || {}
 
     const { formatting } = datasets[0] || {}
 
@@ -60,9 +53,11 @@ export default class RadarChart extends BaseChart {
       },
       toolbox: {
         feature: {
-          saveAsImage: saveAsImage ? {
-            name: this.name,
-          } : undefined,
+          saveAsImage: saveAsImage
+            ? {
+                name: this.name,
+              }
+            : undefined,
         },
         top: 23,
         right: 2,
@@ -128,11 +123,14 @@ export default class RadarChart extends BaseChart {
   }
 
   defDimension(): Dimension {
-    return Object.assign({}, {
-      shape: 'polygon',
-      fixTooltips: false,
-      conditions: {},
-      meta: {},
-    })
+    return Object.assign(
+      {},
+      {
+        shape: 'polygon',
+        fixTooltips: false,
+        conditions: {},
+        meta: {},
+      },
+    )
   }
 }

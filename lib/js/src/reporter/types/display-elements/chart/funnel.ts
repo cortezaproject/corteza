@@ -50,10 +50,19 @@ export class FunnelChartOptions extends ChartOptions {
       legend: {
         show: !this.legend.hide,
         type: this.legend.scrollable ? 'scroll' : 'plain',
-        top: (this.legend.position.default ? (this.title ? 25 : undefined) : this.legend.position.top) || undefined,
+        top:
+          (this.legend.position.default
+            ? this.title
+              ? 25
+              : undefined
+            : this.legend.position.top) || undefined,
         right: (this.legend.position.default ? undefined : this.legend.position.right) || undefined,
-        bottom: (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
-        left: (this.legend.position.default ? this.legend.align || 'center' : this.legend.position.left) || 'auto',
+        bottom:
+          (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
+        left:
+          (this.legend.position.default
+            ? this.legend.align || 'center'
+            : this.legend.position.left) || 'auto',
         orient: this.legend.orientation || 'horizontal',
         textStyle: {
           color: themeVariables.black,
@@ -145,7 +154,9 @@ export class FunnelChartOptions extends ChartOptions {
               }
 
               // Get row index that matches refValue
-              const refRowIndex = localDataframe.rows.findIndex(row => row[relColumnIndex] === refValue)
+              const refRowIndex = localDataframe.rows.findIndex(
+                row => row[relColumnIndex] === refValue,
+              )
               if (refRowIndex < 0) {
                 throw new Error(`Row that matches refRowIndex ${refValue} not found`)
               }

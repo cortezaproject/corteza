@@ -7,17 +7,17 @@ import { PageBlock, PageBlockInput, Registry } from './base'
 const kind = 'RecordRevisions'
 interface Options {
   // do we preload changes or not
-  preload: boolean;
+  preload: boolean
 
   // what fields do we want to display
   // empty array means all fields
-  displayedFields: string[];
+  displayedFields: string[]
 
   // referenced fields (records, users) we want to expand
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
-  sortDirection: string;
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
+  sortDirection: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -72,10 +72,12 @@ export class PageBlockRecordRevisions extends PageBlock {
 
     return api
       .recordRevisions({ namespaceID, moduleID, recordID, sort })
-      .then(payload => convertRevisionPayloadToRevision(
-        (payload as unknown) as RawRevisionPayload,
-        this.options.displayedFields,
-      ))
+      .then(payload =>
+        convertRevisionPayloadToRevision(
+          payload as unknown as RawRevisionPayload,
+          this.options.displayedFields,
+        ),
+      )
   }
 }
 

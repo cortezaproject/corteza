@@ -4,7 +4,7 @@ import { Page } from './page'
 import { PageBlock } from './page-block'
 
 describe('page', () => {
-  describe('initialization', () => {
+  ;(describe('initialization', () => {
     it('simple', () => {
       const page = new Page({})
 
@@ -53,9 +53,7 @@ describe('page', () => {
 
         visible: true,
 
-        blocks: [
-          { kind: 'RecordList', xywh: [0, 0, 3, 3] },
-        ] as PageBlock[],
+        blocks: [{ kind: 'RecordList', xywh: [0, 0, 3, 3] }] as PageBlock[],
 
         createdAt: dateNow,
         updatedAt: dateNow,
@@ -93,35 +91,34 @@ describe('page', () => {
       expect(page).to.have.property('canGrant').and.to.eq(true)
     })
   }),
+    describe('getters', () => {
+      const page = new Page({
+        pageID: '42',
+        selfID: '42',
+        moduleID: '42',
+        namespaceID: '42',
+      })
 
-  describe('getters', () => {
-    const page = new Page({
-      pageID: '42',
-      selfID: '42',
-      moduleID: '42',
-      namespaceID: '42',
-    })
+      const pg = new Page({})
 
-    const pg = new Page({})
+      it('resourceType', () => {
+        expect(page.resourceType).to.eq('compose:page')
+      })
 
-    it('resourceType', () => {
-      expect(page.resourceType).to.eq('compose:page')
-    })
+      it('resourceID', () => {
+        expect(page.resourceID).to.eq('compose:page:42')
+      })
 
-    it('resourceID', () => {
-      expect(page.resourceID).to.eq('compose:page:42')
-    })
+      it('isRecordPage', () => {
+        expect(page.isRecordPage).to.eq(true)
+        expect(pg.isRecordPage).to.eq(false)
+      })
 
-    it('isRecordPage', () => {
-      expect(page.isRecordPage).to.eq(true)
-      expect(pg.isRecordPage).to.eq(false)
-    })
-
-    it('firstLevel', () => {
-      expect(page.firstLevel).to.eq(false)
-      expect(pg.firstLevel).to.eq(true)
-    })
-  })
+      it('firstLevel', () => {
+        expect(page.firstLevel).to.eq(false)
+        expect(pg.firstLevel).to.eq(true)
+      })
+    }))
 
   describe('methods', () => {
     it('export', () => {
@@ -130,9 +127,7 @@ describe('page', () => {
         handle: 'handle',
         description: 'description',
         visible: true,
-        blocks: [
-          { kind: 'RecordList', xywh: [0, 0, 3, 3] },
-        ] as PageBlock[],
+        blocks: [{ kind: 'RecordList', xywh: [0, 0, 3, 3] }] as PageBlock[],
       })
 
       const pageExport = page.export()
@@ -145,9 +140,7 @@ describe('page', () => {
 
     it('validate', () => {
       const page = new Page({
-        blocks: [
-          { kind: 'RecordList', xywh: [0, 0, 3, 3] },
-        ] as PageBlock[],
+        blocks: [{ kind: 'RecordList', xywh: [0, 0, 3, 3] }] as PageBlock[],
       })
 
       expect(page.validate()).to.deep.eq([])

@@ -13,7 +13,7 @@ const uint64zeropad = '00000000000000000000'
  */
 export const NoID = '0'
 
-export function ISO8601Date(ts?: unknown): Date|undefined {
+export function ISO8601Date(ts?: unknown): Date | undefined {
   if (ts instanceof Date) {
     return ts
   }
@@ -26,7 +26,7 @@ export function ISO8601Date(ts?: unknown): Date|undefined {
 }
 
 interface Caster<T> {
-  (input: unknown): T;
+  (input: unknown): T
 }
 
 /**
@@ -44,7 +44,11 @@ interface Caster<T> {
 /**
  * Casts value to <type> or returns default
  */
-export function PropCast<T>(type: Caster<T>, o: {[_: string]: unknown}|undefined, prop: string): T|undefined {
+export function PropCast<T>(
+  type: Caster<T>,
+  o: { [_: string]: unknown } | undefined,
+  prop: string,
+): T | undefined {
   if (o === undefined || Object.prototype.hasOwnProperty.call(o, prop)) {
     return undefined
   }
@@ -92,7 +96,7 @@ export function CortezaID(value: unknown): string {
  * Apply caster interface that satisfies basic casting functions + String, Number etc...
  */
 interface ApplyCaster {
-  (val: unknown): unknown;
+  (val: unknown): unknown
 }
 
 /**
@@ -100,7 +104,12 @@ interface ApplyCaster {
  *
  * A casting function can be used (see ApplyCaster) to modify the values before assigning them
  */
-export function Apply<DST, SRC, T extends keyof DST>(dst: DST, src: SRC, cast: ApplyCaster|keyof DST, ...props: (keyof DST)[]): void {
+export function Apply<DST, SRC, T extends keyof DST>(
+  dst: DST,
+  src: SRC,
+  cast: ApplyCaster | keyof DST,
+  ...props: (keyof DST)[]
+): void {
   if (typeof cast !== 'function') {
     // Handle case where we do not use caster
     props.unshift(cast)
@@ -126,7 +135,7 @@ export function Apply<DST, SRC, T extends keyof DST>(dst: DST, src: SRC, cast: A
     }
 
     // sProp is prop from source
-    const sProp = (prop as unknown) as keyof SRC
+    const sProp = prop as unknown as keyof SRC
 
     // value on src should be defined
     if (!src || src[sProp] === undefined || src[sProp] === null) {
@@ -134,10 +143,10 @@ export function Apply<DST, SRC, T extends keyof DST>(dst: DST, src: SRC, cast: A
     }
 
     // Cast value from src to type of value from prop on dst
-    let val = (src[sProp] as unknown) as DST[T]
+    let val = src[sProp] as unknown as DST[T]
 
     // Run value through cast fn
-    val = ((cast as ApplyCaster)(val) as unknown) as DST[T]
+    val = (cast as ApplyCaster)(val) as unknown as DST[T]
     if (val === undefined) {
       return
     }
@@ -147,7 +156,12 @@ export function Apply<DST, SRC, T extends keyof DST>(dst: DST, src: SRC, cast: A
   })
 }
 
-export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(dst: DST, src: SRC, whitelist: (DST[T])[], ...props: (keyof DST)[]): void {
+export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(
+  dst: DST,
+  src: SRC,
+  whitelist: DST[T][],
+  ...props: (keyof DST)[]
+): void {
   if (typeof src !== 'object') {
     return
   }
@@ -164,7 +178,7 @@ export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(dst: DST, sr
     }
 
     // sProp is prop from source
-    const sProp = (prop as unknown) as keyof SRC
+    const sProp = prop as unknown as keyof SRC
 
     // value on src should be defined
     if (!src || src[sProp] === undefined) {
@@ -172,7 +186,7 @@ export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(dst: DST, sr
     }
 
     // Cast value from src to type of value from prop on dst
-    const val = (src[sProp] as unknown) as DST[T]
+    const val = src[sProp] as unknown as DST[T]
 
     if (whitelist.includes(val)) {
       dst[prop] = val

@@ -50,6 +50,7 @@
           :active-id="activeId"
           :expanded-ids="expandedIds"
           :depth="depth + 1"
+          :match-type="matchType"
           @select="$emit('select', $event)"
           @toggle="$emit('toggle', $event)"
         >
@@ -64,7 +65,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useLink } from 'vue-router'
+import { useLink, useRoute } from 'vue-router'
 
 const props = defineProps({
   node: {
@@ -107,6 +108,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  matchType: {
+    type: String,
+    default: 'exact', // 'exact' or 'prefix'
+  },
 })
 
 const emit = defineEmits(['select', 'toggle'])
@@ -126,9 +131,18 @@ const {
   navigate,
 } = useLink({ to: routeTo })
 
+const currentRoute = useRoute()
+
 // Unified active state: route-based when routeKey is set, otherwise prop-based
 const itemIsActive = computed(() => {
   if (nodeRoute.value) {
+    if (props.matchType === 'prefix') {
+      // If the route name matches or the current route name starts with the item's route name
+      if (nodeRoute.value.name && currentRoute.name?.startsWith(nodeRoute.value.name)) {
+        return true
+      }
+    }
+
     // Root items with children: highlight when any child route is active
     // Leaf items: highlight only on exact match
     return hasChildren.value ? routeIsActive.value : routeIsExactActive.value

@@ -34,7 +34,7 @@ interface CancellableResponse<T = any> {
 }
 
 export function useResourceList<T = any>(
-  apiFn: (params: ListParams) => CancellableResponse,
+  apiFn: (_params: ListParams) => CancellableResponse,
   options: {
     filter?: FilterState
     sorting?: SortingState
@@ -96,7 +96,10 @@ export function useResourceList<T = any>(
     }
 
     /// To prevent extra list fetch, check if pageCursor is defined (not first page)
-    const refresh = String(route.query.pageCursor) !== String(pagination.pageCursor)
+    const urlCursor = route.query.pageCursor || ''
+    const stateCursor = pagination.pageCursor || ''
+    const refresh = urlCursor !== stateCursor
+
     Object.assign(pagination, { limit, pageCursor, prevPage, nextPage, total, page })
 
     // Sorting
@@ -105,7 +108,9 @@ export function useResourceList<T = any>(
     sortDesc = sortDesc === true || sortDesc === 'true'
 
     // Reset pageCursor when sort changes, except on first fetch (so we use the pageCursor from url)
-    if (!initial && (sortBy !== sorting.sortBy || sortDesc !== sorting.sortDesc)) {
+    const urlSortBy = sortBy || ''
+    const stateSortBy = sorting.sortBy || ''
+    if (!initial && (urlSortBy !== stateSortBy || sortDesc !== sorting.sortDesc)) {
       pagination.pageCursor = ''
       pagination.page = 1
     }

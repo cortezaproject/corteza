@@ -41,8 +41,8 @@ export class BasicChartOptions extends ChartOptions {
       options.tooltip.trigger = 'item'
 
       options.series = datasets.map(({ label, data }, index) => {
-        const sr = startRadius + (index * radiusLength)
-        const er = startRadius + ((index + 1) * radiusLength)
+        const sr = startRadius + index * radiusLength
+        const er = startRadius + (index + 1) * radiusLength
 
         return {
           name: label,
@@ -158,7 +158,12 @@ export class BasicChartOptions extends ChartOptions {
         },
         nameTextStyle: {
           align: labelPosition === 'center' ? 'center' : position,
-          padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -20] : [0, -20, 2, 0]) : undefined,
+          padding:
+            labelPosition !== 'center'
+              ? position === 'left'
+                ? [0, 0, 2, -20]
+                : [0, -20, 2, 0]
+              : undefined,
         },
       }
 
@@ -184,9 +189,12 @@ export class BasicChartOptions extends ChartOptions {
             align: 'center',
             verticalAlign: 'middle',
           },
-          data: xType === 'time' ? labels.map((name, i) => {
-            return [moment(name).valueOf() || undefined, data[i]]
-          }) : data,
+          data:
+            xType === 'time'
+              ? labels.map((name, i) => {
+                  return [moment(name).valueOf() || undefined, data[i]]
+                })
+              : data,
         }
       })
     }
@@ -211,10 +219,19 @@ export class BasicChartOptions extends ChartOptions {
       legend: {
         show: !this.legend.hide,
         type: this.legend.scrollable ? 'scroll' : 'plain',
-        top: (this.legend.position.default ? (this.title ? 25 : undefined) : this.legend.position.top) || undefined,
+        top:
+          (this.legend.position.default
+            ? this.title
+              ? 25
+              : undefined
+            : this.legend.position.top) || undefined,
         right: (this.legend.position.default ? undefined : this.legend.position.right) || undefined,
-        bottom: (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
-        left: (this.legend.position.default ? this.legend.align || 'center' : this.legend.position.left) || 'auto',
+        bottom:
+          (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
+        left:
+          (this.legend.position.default
+            ? this.legend.align || 'center'
+            : this.legend.position.left) || 'auto',
         orient: this.legend.orientation || 'horizontal',
         textStyle: {
           color: themeVariables.black,
@@ -266,7 +283,9 @@ export class BasicChartOptions extends ChartOptions {
               }
 
               // Get row index that matches refValue
-              const refRowIndex = localDataframe.rows.findIndex(row => row[relColumnIndex] === refValue)
+              const refRowIndex = localDataframe.rows.findIndex(
+                row => row[relColumnIndex] === refValue,
+              )
               if (refRowIndex < 0) {
                 throw new Error(`Row that matches refRowIndex ${refValue} not found`)
               }
@@ -297,7 +316,8 @@ export class BasicChartOptions extends ChartOptions {
 
         if (localDataframe.rows) {
           for (const row of localDataframe.rows) {
-            const label = row[columnIndex] || (!this.xAxis.skipMissing ? this.xAxis.defaultValue : undefined)
+            const label =
+              row[columnIndex] || (!this.xAxis.skipMissing ? this.xAxis.defaultValue : undefined)
             labels.push(label)
           }
         }

@@ -106,12 +106,19 @@ type (
 		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
+		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
 	}
 
 	NgAutomationMeta struct {
 		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
+		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
+	}
+
+	NgAutomationIcon struct {
+		Type  string `json:"type"`
+		Value string `json:"value"`
 	}
 
 	NgAutomationVisual struct {
@@ -155,12 +162,14 @@ type (
 		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
+		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
 	}
 
 	NgAutomationPathMeta struct {
 		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
+		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
 	}
 )
 

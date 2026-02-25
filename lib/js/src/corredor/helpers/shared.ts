@@ -1,43 +1,45 @@
 import { CortezaID, NoID } from '../../cast'
 
 interface KV {
-  [_: string]: unknown;
+  [_: string]: unknown
 }
 
 interface PermissionUpdater {
-  permissionsUpdate({ roleID, rules }: { roleID: string; rules: Array<object>}): void;
+  permissionsUpdate({ roleID, rules }: { roleID: string; rules: Array<object> }): void
 }
 
 export interface PermissionResource {
-  resourceID: string;
-  [_: string]: any;
+  resourceID: string
+  [_: string]: any
 }
 
 export interface PermissionRole {
-  roleID: string;
-  [_: string]: any;
+  roleID: string
+  [_: string]: any
 }
 
 export interface PermissionRule {
-  role: PermissionRole;
-  resource: PermissionResource;
-  operation: string;
-  access: string;
+  role: PermissionRole
+  resource: PermissionResource
+  operation: string
+  access: string
 }
 
 export interface Permissions {
   [key: string]: {
-    resource: string;
-    operation: string;
-    access: string;
-  }[];
+    resource: string
+    operation: string
+    access: string
+  }[]
 }
 
-export function kv(a: unknown): KV { return a as KV }
+export function kv(a: unknown): KV {
+  return a as KV
+}
 
 export interface ListResponse<S, F> {
-  set: S;
-  filter: F;
+  set: S
+  filter: F
 }
 
 /**
@@ -52,7 +54,7 @@ export function extractID(value?: unknown, prop?: string): string {
       return NoID
     }
 
-    value = (value as {[_: string]: unknown})[prop]
+    value = (value as { [_: string]: unknown })[prop]
   }
 
   return CortezaID(value)

@@ -10,27 +10,28 @@ interface SelectOptionStyle {
 }
 
 interface SelectOption {
-  value: string;
-  text: string;
-  style: SelectOptionStyle;
+  value: string
+  text: string
+  style: SelectOptionStyle
 }
 
 interface SelectOptions extends Options {
-  options: Array<SelectOption>;
-  selectType: string;
-  displayType: 'text' | 'badge';
-  multiDelimiter: string;
-  isUniqueMultiValue: boolean;
+  options: Array<SelectOption>
+  selectType: string
+  displayType: 'text' | 'badge'
+  multiDelimiter: string
+  isUniqueMultiValue: boolean
 }
 
-const defaults = (): Readonly<SelectOptions> => Object.freeze({
-  ...defaultOptions(),
-  options: [],
-  selectType: 'default',
-  multiDelimiter: '\n',
-  isUniqueMultiValue: false,
-  displayType: 'text',
-})
+const defaults = (): Readonly<SelectOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    options: [],
+    selectType: 'default',
+    multiDelimiter: '\n',
+    isUniqueMultiValue: false,
+    displayType: 'text',
+  })
 
 export class ModuleFieldSelect extends ModuleField {
   readonly kind = kind
@@ -62,7 +63,11 @@ export class ModuleFieldSelect extends ModuleField {
     }
   }
 
-  createSelectOption({ value = '', text = '', style = {} }: Partial<SelectOption> = {}): SelectOption {
+  createSelectOption({
+    value = '',
+    text = '',
+    style = {},
+  }: Partial<SelectOption> = {}): SelectOption {
     const { textColor = '', backgroundColor = '' } = style || {}
     return {
       value,

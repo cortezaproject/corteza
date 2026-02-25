@@ -1,4 +1,8 @@
-.PHONY: dev test lint fresh audit
+.PHONY: dev test lint fresh audit codegen
+
+codegen:
+	@echo "---Running codegen---"
+	@(cd $(CURDIR)/lib && make codegen) || (echo "Failed to run codegen"; exit 1)
 
 dev:
 	@echo "---Installing dependencies---"

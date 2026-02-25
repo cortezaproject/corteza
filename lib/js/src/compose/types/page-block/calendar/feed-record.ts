@@ -5,27 +5,29 @@ import { Compose as ComposeAPI } from '../../../../api-clients'
 import { makeColors, Event } from './shared'
 
 interface FeedOptions {
-  color: string;
-  prefilter: string;
+  color: string
+  prefilter: string
 }
 
 interface Feed {
-  startField: string;
-  endField: string;
-  titleField: string;
-  options: FeedOptions;
-  allDay: boolean;
+  startField: string
+  endField: string
+  titleField: string
+  options: FeedOptions
+  allDay: boolean
 }
 
 interface Range {
-  end: Date;
-  start: Date;
+  end: Date
+  start: Date
 }
 
-function getRecordValue(record: Readonly<Record>, field: string): (string|undefined)[] {
+function getRecordValue(record: Readonly<Record>, field: string): (string | undefined)[] {
   const ef = record.module.fields.find(({ name }) => name === field)
   if (ef) {
-    return ef.isMulti ? record.values[field] as string[] : [(record.values[field] as string) || undefined]
+    return ef.isMulti
+      ? (record.values[field] as string[])
+      : [(record.values[field] as string) || undefined]
   } else {
     switch (field) {
       case 'recordID':
@@ -60,7 +62,7 @@ function expandRecord(record: Readonly<Record>, feed: Feed): Event[] {
   const title = getRecordValue(record, feed.titleField).shift() || record.recordID
 
   // Make sure ends is at least as long as starts, to avoid length checks
-  ends.push(...(new Array(Math.max(starts.length - ends.length, 0)).fill(undefined)))
+  ends.push(...new Array(Math.max(starts.length - ends.length, 0)).fill(undefined))
 
   const classNames = ['event', 'event-record']
   const { backgroundColor, borderColor, textColor } = makeColors(feed.options.color)
@@ -113,7 +115,14 @@ function recordFeedFilter(r: Readonly<Record>, field: string): boolean {
  * @param {Object} range Current date range
  * @returns {Promise<Array>} Resolves to a set of FC events to display
  */
-export async function RecordFeed($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, range: Range, options = {}): Promise<Event[]> {
+export async function RecordFeed(
+  $ComposeAPI: ComposeAPI,
+  module: Module,
+  namespace: Namespace,
+  feed: Feed,
+  range: Range,
+  options = {},
+): Promise<Event[]> {
   // Params for record fetching
   const params = {
     namespaceID: namespace.namespaceID,
@@ -131,17 +140,17 @@ export async function RecordFeed($ComposeAPI: ComposeAPI, module: Module, namesp
 
   const events: Array<Event> = []
   return $ComposeAPI.recordList(params, options).then(({ set }) => {
-    (set as Array<{ recordID: string }>)
+    ;(set as Array<{ recordID: string }>)
 
       // Removes all duplicates
-      .filter(({ recordID }, index, set) => set.findIndex((r) => recordID === r.recordID) === index)
+      .filter(({ recordID }, index, set) => set.findIndex(r => recordID === r.recordID) === index)
 
       // cast & freeze
       .map(r => Object.freeze(new Record(module, r)))
 
       // drop record w/o proper values
       .filter(r => recordFeedFilter(r, feed.startField))
-       
+
       .forEach(r => events.push(...expandRecord(r, feed)))
     return events
   })

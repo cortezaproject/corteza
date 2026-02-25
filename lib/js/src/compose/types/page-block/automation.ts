@@ -6,14 +6,14 @@ const kind = 'Automation'
 
 interface Options {
   // Ordered list of buttons to display in the block
-  buttons: Array<Button>;
+  buttons: Array<Button>
 
   // When true, new compatible buttons (ui-hooks) are NOT
   // added automatically to the block
   //
   // Default behaviour is to add new buttons automatically.
-  sealed: boolean;
-  magnifyOption: string;
+  sealed: boolean
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

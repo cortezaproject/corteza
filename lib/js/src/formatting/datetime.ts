@@ -4,8 +4,8 @@ import { currentLanguage } from './locale'
 declare type DateTimeInput = unknown | MomentInput
 
 declare type DateTimeFormatOptions = Intl.DateTimeFormatOptions & {
-  dateStyle?: 'full' | 'long' | 'medium' | 'short';
-  timeStyle?: 'full' | 'long' | 'medium' | 'short';
+  dateStyle?: 'full' | 'long' | 'medium' | 'short'
+  timeStyle?: 'full' | 'long' | 'medium' | 'short'
 }
 
 /**
@@ -18,7 +18,7 @@ function parse(input: DateTimeInput): Date {
 }
 
 function format(input: DateTimeInput, options: DateTimeFormatOptions): string {
-  return (new Intl.DateTimeFormat(currentLanguage(), options)).format(parse(input))
+  return new Intl.DateTimeFormat(currentLanguage(), options).format(parse(input))
 }
 
 /**
@@ -32,7 +32,10 @@ function format(input: DateTimeInput, options: DateTimeFormatOptions): string {
  * @param input
  * @param options
  */
-export function fullDateTime(input: DateTimeInput, options: DateTimeFormatOptions = { dateStyle: 'full', timeStyle: 'short' }): string {
+export function fullDateTime(
+  input: DateTimeInput,
+  options: DateTimeFormatOptions = { dateStyle: 'full', timeStyle: 'short' },
+): string {
   return format(input, options)
 }
 
@@ -45,7 +48,10 @@ export function fullDateTime(input: DateTimeInput, options: DateTimeFormatOption
  * @param input
  * @param options
  */
-export function date(input: DateTimeInput, options: DateTimeFormatOptions = { dateStyle: 'short' }): string {
+export function date(
+  input: DateTimeInput,
+  options: DateTimeFormatOptions = { dateStyle: 'short' },
+): string {
   return format(input, options)
 }
 
@@ -58,6 +64,9 @@ export function date(input: DateTimeInput, options: DateTimeFormatOptions = { da
  * @param input
  * @param options
  */
-export function time(input: DateTimeInput, options: DateTimeFormatOptions = { timeStyle: 'short' }): string {
+export function time(
+  input: DateTimeInput,
+  options: DateTimeFormatOptions = { timeStyle: 'short' },
+): string {
   return format(input, options)
 }

@@ -1,16 +1,18 @@
 interface Meta {
-    subtitle: string;
-    description: string;
-    hideSidebar: boolean;
-    icon: string;
-    logo: string;
-    logoEnabled: boolean;
+  subtitle: string
+  description: string
+  hideSidebar: boolean
+  icon: string
+  logo: string
+  logoEnabled: boolean
 }
-interface PartialNamespace extends Partial<Omit<Namespace, 'meta' | 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-    meta?: Partial<Meta>;
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
+interface PartialNamespace extends Partial<
+  Omit<Namespace, 'meta' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  meta?: Partial<Meta>
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 export declare class Namespace {
   namespaceID: string
@@ -33,20 +35,20 @@ export declare class Namespace {
   canGrant: boolean
   canExportCharts: boolean
   canExportModules: boolean
-  constructor(i?: PartialNamespace);
-  clone(): Namespace;
-  apply(n?: PartialNamespace | Namespace): void;
+  constructor(i?: PartialNamespace)
+  clone(): Namespace
+  apply(n?: PartialNamespace | Namespace): void
   /**
-     * Returns resource ID
-     */
-  get resourceID(): string;
+   * Returns resource ID
+   */
+  get resourceID(): string
   /**
-     * Resource type
-     */
-  get resourceType(): string;
+   * Resource type
+   */
+  get resourceType(): string
   /**
-     * Calculate namespace initials
-     */
-  get initials(): string;
+   * Calculate namespace initials
+   */
+  get initials(): string
 }
 export {}

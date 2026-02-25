@@ -5,15 +5,15 @@ import { Apply } from '../../../../cast'
 const kind = 'Navigation'
 
 interface DisplayOptions {
-  appearance: string;
-  alignment: string;
-  justify: string;
+  appearance: string
+  alignment: string
+  justify: string
 }
 
 interface Options {
-  display: DisplayOptions;
-  navigationItems: NavigationItem[];
-  magnifyOption: string;
+  display: DisplayOptions
+  navigationItems: NavigationItem[]
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

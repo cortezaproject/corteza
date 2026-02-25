@@ -2,34 +2,47 @@ import { Step, Block, FilterDefinition } from '../../reporter'
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
-interface PartialReport extends Partial<Omit<Report, 'steps' | 'blocks' | 'scenarios' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy' | 'deletedAt' | 'deletedBy'>> {
-  sources?: Array<ReportDataSource>;
-  blocks?: Array<unknown|Block>;
-  scenarios?: Array<ReportScenario>;
-  createdAt?: string|number|Date;
-  createdBy?: string;
-  updatedAt?: string|number|Date;
-  updatedBy?: string;
-  deletedAt?: string|number|Date;
-  deletedBy?: string;
+interface PartialReport extends Partial<
+  Omit<
+    Report,
+    | 'steps'
+    | 'blocks'
+    | 'scenarios'
+    | 'createdAt'
+    | 'createdBy'
+    | 'updatedAt'
+    | 'updatedBy'
+    | 'deletedAt'
+    | 'deletedBy'
+  >
+> {
+  sources?: Array<ReportDataSource>
+  blocks?: Array<unknown | Block>
+  scenarios?: Array<ReportScenario>
+  createdAt?: string | number | Date
+  createdBy?: string
+  updatedAt?: string | number | Date
+  updatedBy?: string
+  deletedAt?: string | number | Date
+  deletedBy?: string
 }
 
 interface Meta {
-  name?: string;
-  description?: string;
-  tags?: Array<string>;
+  name?: string
+  description?: string
+  tags?: Array<string>
 }
 
 interface ReportDataSource {
-  meta?: object;
-  step: Step;
+  meta?: object
+  step: Step
 }
 
 interface ReportScenario {
-  scenarioID: string;
-  label: string;
-  datasource: string;
-  filter: FilterDefinition;
+  scenarioID: string
+  label: string
+  datasource: string
+  filter: FilterDefinition
 }
 
 export class Report {
@@ -98,7 +111,10 @@ export class Report {
 
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, r, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
-    Apply(this, r, Boolean,
+    Apply(
+      this,
+      r,
+      Boolean,
       'canReadReport',
       'canUpdateReport',
       'canDeleteReport',

@@ -1,24 +1,26 @@
-interface PartialUser extends Partial<Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
-    suspendedAt?: string | number | Date;
+interface PartialUser extends Partial<
+  Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  suspendedAt?: string | number | Date
 }
 interface UserMeta {
-    preferredLanguage?: string;
-    securityPolicy?: SecurityPolicy;
-    avatarID?: string;
-    avatarKind?: string;
-    avatarColor?: string;
-    avatarBgColor?: string;
-    theme?: string;
+  preferredLanguage?: string
+  securityPolicy?: SecurityPolicy
+  avatarID?: string
+  avatarKind?: string
+  avatarColor?: string
+  avatarBgColor?: string
+  theme?: string
 }
 interface SecurityPolicy {
-    mfa: MFA;
+  mfa: MFA
 }
 interface MFA {
-    enforcedEmailOTP: boolean;
-    enforcedTOTP: boolean;
+  enforcedEmailOTP: boolean
+  enforcedTOTP: boolean
 }
 export declare class User {
   userID: string
@@ -37,18 +39,18 @@ export declare class User {
   deletedAt?: Date
   suspendedAt?: Date
   roles?: Array<string>
-  constructor(u?: PartialUser);
-  apply(u?: PartialUser): void;
+  constructor(u?: PartialUser)
+  apply(u?: PartialUser): void
   /**
-     * Returns resource ID
-     */
-  get resourceID(): string;
+   * Returns resource ID
+   */
+  get resourceID(): string
   /**
-     * Resource type
-     */
-  get resourceType(): string;
-  get fts(): string;
-  clone(): User;
-  properties(): string[];
+   * Resource type
+   */
+  get resourceType(): string
+  get fts(): string
+  clone(): User
+  properties(): string[]
 }
 export {}

@@ -1,14 +1,14 @@
 import { FilterDefinition } from './filter'
 export interface FrameColumn {
-    kind?: string;
-    label?: string;
-    name?: string;
-    primary?: boolean;
-    unique?: boolean;
+  kind?: string
+  label?: string
+  name?: string
+  primary?: boolean
+  unique?: boolean
 }
 export interface FramePaging {
-    limit?: number;
-    cursor?: string;
+  limit?: number
+  cursor?: string
 }
 export declare class FrameDefinition {
   name?: string
@@ -24,5 +24,5 @@ export declare class FrameDefinition {
   rows?: Array<string>
 }
 export interface DefinitionOptions {
-    [header: string]: FrameDefinition;
+  [header: string]: FrameDefinition
 }

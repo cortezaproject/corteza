@@ -4,25 +4,25 @@ import { Apply } from '../../../cast'
 const kind = 'Record'
 
 interface FieldCondition {
-  field: string;
-  condition: string;
-  clearOnHide?: boolean;
+  field: string
+  condition: string
+  clearOnHide?: boolean
 }
 
 interface Options {
-  fields: unknown[];
-  fieldConditions: FieldCondition[];
-  clearConditionalFieldsOnHide: boolean;
-  recordSelectorShowAddRecordButton: boolean;
-  magnifyOption: string;
-  recordSelectorDisplayOption: string;
-  recordSelectorAddRecordDisplayOption: string;
-  referenceField?: string;
-  referenceModuleID?: string;
-  inlineRecordEditEnabled: boolean;
-  horizontalFieldLayoutEnabled: boolean;
-  recordFieldLayoutOption: string;
-  inlineRecordEditAllowAddField: boolean;
+  fields: unknown[]
+  fieldConditions: FieldCondition[]
+  clearConditionalFieldsOnHide: boolean
+  recordSelectorShowAddRecordButton: boolean
+  magnifyOption: string
+  recordSelectorDisplayOption: string
+  recordSelectorAddRecordDisplayOption: string
+  referenceField?: string
+  referenceModuleID?: string
+  inlineRecordEditEnabled: boolean
+  horizontalFieldLayoutEnabled: boolean
+  recordFieldLayoutOption: string
+  inlineRecordEditAllowAddField: boolean
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -54,8 +54,27 @@ export class PageBlockRecord extends PageBlock {
   applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'recordSelectorAddRecordDisplayOption', 'referenceField', 'referenceModuleID', 'recordFieldLayoutOption')
-    Apply(this.options, o, Boolean, 'recordSelectorShowAddRecordButton', 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled', 'inlineRecordEditAllowAddField', 'clearConditionalFieldsOnHide')
+    Apply(
+      this.options,
+      o,
+      String,
+      'magnifyOption',
+      'recordSelectorDisplayOption',
+      'recordSelectorAddRecordDisplayOption',
+      'referenceField',
+      'referenceModuleID',
+      'recordFieldLayoutOption',
+    )
+    Apply(
+      this.options,
+      o,
+      Boolean,
+      'recordSelectorShowAddRecordButton',
+      'inlineRecordEditEnabled',
+      'horizontalFieldLayoutEnabled',
+      'inlineRecordEditAllowAddField',
+      'clearConditionalFieldsOnHide',
+    )
 
     if (o.fields) {
       this.options.fields = o.fields

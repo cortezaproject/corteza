@@ -2,14 +2,14 @@ import { System as SystemAPI } from '../../../../api-clients'
 import { User } from '../../../../system'
 import { Event } from './shared'
 interface FeedOptions {
-    color: string;
+  color: string
 }
 interface Feed {
-    options: FeedOptions;
+  options: FeedOptions
 }
 interface Range {
-    end: Date;
-    start: Date;
+  end: Date
+  start: Date
 }
 /**
  * Loads & converts reminder resource into FC events
@@ -19,5 +19,11 @@ interface Range {
  * @param {Object} range Current date range
  * @returns {Promise<Array>} Resolves to a set of FC events to display
  */
-export declare function ReminderFeed($SystemAPI: SystemAPI, user: User, feed: Feed, range: Range, options?: {}): Promise<Event[]>;
+export declare function ReminderFeed(
+  $SystemAPI: SystemAPI,
+  user: User,
+  feed: Feed,
+  range: Range,
+  options?: {},
+): Promise<Event[]>
 export {}

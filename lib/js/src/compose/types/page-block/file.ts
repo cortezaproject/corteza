@@ -4,19 +4,19 @@ import { Apply } from '../../../cast'
 const kind = 'File'
 
 interface Options {
-  mode: string;
-  attachments: string[];
-  hideFileName: boolean;
-  height: string;
-  width: string;
-  maxHeight: string;
-  maxWidth: string;
-  borderRadius: string;
-  margin: string;
-  backgroundColor: string;
-  magnifyOption: string;
-  clickToView?: boolean;
-  enableDownload?: boolean;
+  mode: string
+  attachments: string[]
+  hideFileName: boolean
+  height: string
+  width: string
+  maxHeight: string
+  maxWidth: string
+  borderRadius: string
+  margin: string
+  backgroundColor: string
+  magnifyOption: string
+  clickToView?: boolean
+  enableDownload?: boolean
 }
 
 const PageBlockFileDefaultMode = 'list'
@@ -61,7 +61,19 @@ export class PageBlockFile extends PageBlock {
     }
 
     Apply(this.options, o, Boolean, 'hideFileName', 'clickToView', 'enableDownload')
-    Apply(this.options, o, String, 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor', 'magnifyOption')
+    Apply(
+      this.options,
+      o,
+      String,
+      'height',
+      'width',
+      'maxHeight',
+      'maxWidth',
+      'borderRadius',
+      'margin',
+      'backgroundColor',
+      'magnifyOption',
+    )
 
     if (o.mode) {
       // Legacy

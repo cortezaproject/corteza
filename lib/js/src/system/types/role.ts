@@ -1,21 +1,23 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf, AreStrings } from '../../guards'
 
-interface PartialRole extends Partial<Omit<Role, 'createdAt' | 'updatedAt' | 'deletedAt' | 'archivedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
-  archivedAt?: string|number|Date;
+interface PartialRole extends Partial<
+  Omit<Role, 'createdAt' | 'updatedAt' | 'deletedAt' | 'archivedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  archivedAt?: string | number | Date
 }
 
 interface Meta {
-  description: string;
-  context: MetaContext;
+  description: string
+  context: MetaContext
 }
 
 interface MetaContext {
-  resourceTypes: Array<string>;
-  expr: string;
+  resourceTypes: Array<string>
+  expr: string
 }
 
 const defaultMeta = {
@@ -80,7 +82,18 @@ export class Role {
     }
 
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'archivedAt')
-    Apply(this, r, Boolean, 'isSystem', 'isClosed', 'isBypass', 'canGrant', 'canUpdateRole', 'canDeleteRole', 'canManageMembersOnRole')
+    Apply(
+      this,
+      r,
+      Boolean,
+      'isSystem',
+      'isClosed',
+      'isBypass',
+      'canGrant',
+      'canUpdateRole',
+      'canDeleteRole',
+      'canManageMembersOnRole',
+    )
   }
 
   /**

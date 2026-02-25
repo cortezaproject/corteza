@@ -6,6 +6,6 @@ export declare class Button {
   label?: string
   variant?: string
   enabled: boolean
-  constructor(b: Partial<Button>);
+  constructor(b: Partial<Button>)
 }
-export type PageBlockWrap = 'Plain' | 'Card';
+export type PageBlockWrap = 'Plain' | 'Card'

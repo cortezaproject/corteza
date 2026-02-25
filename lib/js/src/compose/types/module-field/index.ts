@@ -23,7 +23,4 @@ export function ModuleFieldMaker(i: { kind?: string }): ModuleField {
   return new (Registry.get(i.kind) as typeof ModuleField)(i)
 }
 
-export {
-  Registry as ModuleFieldRegistry,
-  ModuleField,
-}
+export { Registry as ModuleFieldRegistry, ModuleField }

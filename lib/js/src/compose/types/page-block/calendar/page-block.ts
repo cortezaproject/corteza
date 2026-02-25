@@ -80,12 +80,11 @@ export class PageBlockCalendar extends PageBlock {
 
     this.options.defaultView = PageBlockCalendar.handleLegacyView(o.defaultView) || 'dayGridMonth'
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
-    this.options.header = merge(
-      {},
-      this.options.header,
-      o.header,
-      { views: PageBlockCalendar.handleLegacyViews(o.header?.views || ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listMonth']) },
-    )
+    this.options.header = merge({}, this.options.header, o.header, {
+      views: PageBlockCalendar.handleLegacyViews(
+        o.header?.views || ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listMonth'],
+      ),
+    })
 
     this.options.locale = o.locale || 'en-gb'
   }

@@ -21,98 +21,103 @@
   </div>
 
   <!-- Form -->
-  <div v-else-if="namespace" class="flex flex-col h-full">
-    <div class="flex-1 overflow-auto py-6">
-      <div class="container mx-auto max-w-3xl px-4">
-        <Card>
-          <template #content>
-            <form class="flex flex-col gap-5" @submit.prevent="handleSubmit">
-              <!-- Name -->
-              <div class="flex flex-col gap-2">
-                <label for="name" class="font-medium text-primary">
-                  {{ $t('namespace.name.label') }}
-                </label>
-                <InputText
-                  id="name"
-                  v-model="namespace.name"
-                  :placeholder="$t('namespace.name.placeholder')"
-                  :invalid="!nameValid"
-                />
-                <small v-if="!nameValid" class="text-red-500">
-                  {{ $t('general.label.required') }}
-                </small>
-              </div>
+  <Form
+    v-else-if="namespace"
+    v-slot="$form"
+    :resolver="resolver"
+    :initialValues="initialValues"
+    @submit="handleSubmit"
+    class="flex flex-col h-full"
+  >
+    <div class="container mx-auto p-4 flex-1">
+      <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
+        <template #content>
+          <div class="flex flex-col gap-5 p-5">
+            <!-- Name -->
+            <FormField name="name" class="flex flex-col gap-2">
+              <label for="name" class="font-medium text-primary">
+                {{ $t('namespace.name.label') }}
+              </label>
+              <InputText
+                id="name"
+                name="name"
+                v-model="namespace.name"
+                :placeholder="$t('namespace.name.placeholder')"
+              />
+              <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
+                {{ $form.name.error?.message }}
+              </Message>
+            </FormField>
 
-              <!-- Slug -->
-              <div class="flex flex-col gap-2">
-                <label for="slug" class="font-medium text-primary">
-                  {{ $t('namespace.slug.label') }}
-                </label>
-                <InputText
-                  id="slug"
-                  v-model="namespace.slug"
-                  :placeholder="$t('namespace.slug.placeholder')"
-                  :invalid="slugState === false"
-                />
-                <small class="text-muted-color">
-                  {{ $t('namespace.slug.description') }}
-                </small>
-                <small v-if="slugState === false" class="text-red-500">
-                  {{ $t('namespace.slug.invalid-handle-characters') }}
-                </small>
-              </div>
+            <!-- Slug -->
+            <FormField name="slug" class="flex flex-col gap-2">
+              <label for="slug" class="font-medium text-primary">
+                {{ $t('namespace.slug.label') }}
+              </label>
+              <InputText
+                id="slug"
+                name="slug"
+                v-model="namespace.slug"
+                :placeholder="$t('namespace.slug.placeholder')"
+              />
+              <small class="text-muted-color">
+                {{ $t('namespace.slug.description') }}
+              </small>
+              <Message v-if="$form.slug?.invalid" severity="error" size="small" variant="simple">
+                {{ $form.slug.error?.message }}
+              </Message>
+            </FormField>
 
-              <!-- Enabled -->
-              <div class="flex items-center gap-2">
-                <Checkbox id="enabled" v-model="namespace.enabled" binary />
-                <label for="enabled">{{ $t('namespace.enabled.label') }}</label>
-              </div>
+            <!-- Enabled -->
+            <div class="flex items-center gap-2">
+              <Checkbox id="enabled" v-model="namespace.enabled" binary />
+              <label for="enabled">{{ $t('namespace.enabled.label') }}</label>
+            </div>
 
-              <Divider />
+            <Divider />
 
-              <!-- Logo -->
-              <div class="flex items-center gap-2">
-                <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
-                <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
-              </div>
+            <!-- Logo -->
+            <div class="flex items-center gap-2">
+              <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
+              <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
+            </div>
 
-              <!-- Subtitle -->
-              <div class="flex flex-col gap-2">
-                <label for="subtitle" class="font-medium text-primary">
-                  {{ $t('namespace.subtitle.label') }}
-                </label>
-                <InputText
-                  id="subtitle"
-                  v-model="namespace.meta.subtitle"
-                  :placeholder="$t('namespace.subtitle.placeholder')"
-                />
-              </div>
+            <!-- Subtitle -->
+            <div class="flex flex-col gap-2">
+              <label for="subtitle" class="font-medium text-primary">
+                {{ $t('namespace.subtitle.label') }}
+              </label>
+              <InputText
+                id="subtitle"
+                v-model="namespace.meta.subtitle"
+                :placeholder="$t('namespace.subtitle.placeholder')"
+              />
+            </div>
 
-              <!-- Description -->
-              <div class="flex flex-col gap-2">
-                <label for="description" class="font-medium text-primary">
-                  {{ $t('namespace.description.label') }}
-                </label>
-                <Textarea
-                  id="description"
-                  v-model="namespace.meta.description"
-                  :placeholder="$t('namespace.description.placeholder')"
-                  rows="3"
-                  auto-resize
-                />
-              </div>
+            <!-- Description -->
+            <div class="flex flex-col gap-2">
+              <label for="description" class="font-medium text-primary">
+                {{ $t('namespace.description.label') }}
+              </label>
+              <Textarea
+                id="description"
+                v-model="namespace.meta.description"
+                :placeholder="$t('namespace.description.placeholder')"
+                rows="3"
+                auto-resize
+              />
+            </div>
 
-              <Divider />
+            <Divider />
 
-              <!-- Sidebar -->
-              <div class="flex items-center gap-2">
-                <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
-                <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
-              </div>
-            </form>
-          </template>
-        </Card>
-      </div>
+            <!-- Sidebar -->
+            <div class="flex items-center gap-2">
+              <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
+              <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
+            </div>
+          </div>
+        </template>
+      </Card>
     </div>
 
     <!-- Toolbar -->
@@ -134,16 +139,16 @@
             @confirm="handleDelete"
           />
           <Button
+            type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
             :loading="saving"
             :disabled="!canSave"
-            @click="handleSubmit"
           />
         </div>
       </div>
     </div>
-  </div>
+  </Form>
 </template>
 
 <script setup>
@@ -175,20 +180,30 @@ const pageTitle = computed(() => {
   return isEdit.value ? t('namespace.edit') : t('namespace.create')
 })
 
-const nameValid = computed(() => {
-  return namespace.value?.name?.length > 0
+const initialValues = computed(() => {
+  return {
+    name: namespace.value?.name || '',
+    slug: namespace.value?.slug || '',
+  }
 })
 
-const slugState = computed(() => {
-  const slug = namespace.value?.slug
-  if (!slug) return null
-  // Valid handle: alphanumeric, underscore, must start with letter
-  return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(slug)
+const resolver = ref(({ values }) => {
+  const errors = {}
+
+  if (!values.name || values.name.trim().length === 0) {
+    errors.name = [{ message: t('general.label.required') }]
+  }
+
+  if (values.slug && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(values.slug)) {
+    errors.slug = [{ message: t('namespace.slug.invalid-handle-characters') }]
+  }
+
+  return { errors }
 })
 
 const canSave = computed(() => {
   if (isEdit.value && !namespace.value?.canUpdateNamespace) return false
-  return nameValid.value && slugState.value !== false
+  return true
 })
 
 // Methods
@@ -233,7 +248,8 @@ async function loadNamespace() {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit({ valid }) {
+  if (!valid) return
   if (!canSave.value) return
 
   saving.value = true

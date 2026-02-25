@@ -130,9 +130,8 @@
       :header="
         nodePickerCategory === 'trigger' ? $t('builder.selectTrigger') : $t('builder.addStep')
       "
-      :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
       :pt="{ content: { class: 'p-0' } }"
-      :style="{ width: '50vw' }"
+      :style="{ width: '50rem' }"
     >
       <NodePicker
         :filter-category="nodePickerCategory"

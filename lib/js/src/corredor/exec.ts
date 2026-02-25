@@ -2,15 +2,15 @@ import { BaseArgs } from './shared'
 import { Ctx } from './ctx'
 
 export interface ScriptExecFn {
-    (args: BaseArgs, ctx?: Ctx): unknown;
+  (args: BaseArgs, ctx?: Ctx): unknown
 }
 
 export interface ExecutableScript {
-  exec: ScriptExecFn;
+  exec: ScriptExecFn
 }
 
 interface Results {
-  result?: unknown;
+  result?: unknown
 }
 
 /**

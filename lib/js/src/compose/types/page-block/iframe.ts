@@ -4,12 +4,12 @@ import { PageBlockWrap } from './types'
 
 const kind = 'IFrame'
 interface Options {
-  srcField: string;
-  src: string;
-  wrap: PageBlockWrap;
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
+  srcField: string
+  src: string
+  wrap: PageBlockWrap
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

@@ -180,12 +180,16 @@ resources:
           title: Create new report
         reports.search:
           title: List and search reports
-        dal-connections.search:
+        connections.search:
           title: Search connections
-        dal-connection.create:
+        connection.create:
           title: Create connections
+        dal-connections.search:
+          title: Search data sources
+        dal-connection.create:
+          title: Create data sources
         dal-sensitivity-level.manage:
-          title: Manage connection sensitivity level
+          title: Manage data source sensitivity level
         data-privacy-requests.search:
           title: Search data privacy requests
         data-privacy-request.create:
@@ -342,7 +346,6 @@ resources:
           description: 'Default: deny'
           specific: Update {{target}}
           title: Update any template
-
 
     report:
       label: Reports

@@ -10,9 +10,5 @@ export { DalConnection } from './types/dalConnection'
 export { AuthClient } from './types/authClient'
 export { Notification } from './types/notification'
 export { Revision } from './types/revision'
-export {
-  SystemEvent,
-  RoleEvent,
-  UserEvent,
-  TriggerSystemServerScriptOnManual,
-} from './events'
+export { Connection } from './types/connection'
+export { SystemEvent, RoleEvent, UserEvent, TriggerSystemServerScriptOnManual } from './events'

@@ -33,7 +33,7 @@
             "
             @click="selectedGroup = category.id"
           >
-            <i :class="category.icon" />
+            <TaqIcon :icon="category.icon" class="text-lg" />
             <span class="flex-1 font-medium truncate">{{ category.label }}</span>
           </button>
         </div>
@@ -151,7 +151,6 @@ const availableCategories = computed(() => {
       groupsMap[id] = {
         id,
         label,
-        icon: getGroupIcon(label),
         nodes: [],
       }
     }
@@ -203,7 +202,18 @@ const availableCategories = computed(() => {
       })
   }
 
-  return Object.values(groupsMap).sort((a, b) => a.label.localeCompare(b.label))
+  return Object.values(groupsMap)
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .map(category => {
+      // Keep nodes unsorted internally in the group definition, or just use filteredNodes getter below.
+      // But we need to find what the first node WOULD be after filtering/sorting.
+      // Actually we can just sort here to grab the first one's icon reliably.
+      const sortedNodes = [...category.nodes].sort((a, b) => a.label.localeCompare(b.label))
+      return {
+        ...category,
+        icon: sortedNodes.length > 0 ? sortedNodes[0].icon : getGroupIcon(category.label),
+      }
+    })
 })
 
 const filteredCategories = computed(() => {

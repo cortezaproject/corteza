@@ -8,9 +8,9 @@
  *  Until this last thing is fixed or has a proper workaround, we're stuck with this.
  */
 export declare const NoID = '0'
-export declare function ISO8601Date(ts?: unknown): Date | undefined;
+export declare function ISO8601Date(ts?: unknown): Date | undefined
 interface Caster<T> {
-    (input: unknown): T;
+  (input: unknown): T
 }
 /**
  * Is native class?
@@ -21,31 +21,47 @@ interface Caster<T> {
 /**
  * Casts value to <type> or returns default
  */
-export declare function PropCast<T>(type: Caster<T>, o: {
-    [_: string]: unknown;
-} | undefined, prop: string): T | undefined;
+export declare function PropCast<T>(
+  type: Caster<T>,
+  o:
+    | {
+        [_: string]: unknown
+      }
+    | undefined,
+  prop: string,
+): T | undefined
 /**
  * Tests if a given value looks like corteza ID
  * @param ID
  * @constructor
  */
-export declare function IsCortezaID(ID: unknown): boolean;
+export declare function IsCortezaID(ID: unknown): boolean
 /**
  * @return {string}
  */
-export declare function CortezaID(value: unknown): string;
+export declare function CortezaID(value: unknown): string
 /**
  * Apply caster interface that satisfies basic casting functions + String, Number etc...
  */
 interface ApplyCaster {
-    (val: unknown): unknown;
+  (val: unknown): unknown
 }
 /**
  * Apply takes all given props, their values (from src) and assignes them to props (on dst)
  *
  * A casting function can be used (see ApplyCaster) to modify the values before assigning them
  */
-export declare function Apply<DST, SRC, T extends keyof DST>(dst: DST, src: SRC, cast: ApplyCaster | keyof DST, ...props: (keyof DST)[]): void;
-export declare function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(dst: DST, src: SRC, whitelist: (DST[T])[], ...props: (keyof DST)[]): void;
-export declare function makeIDSortable(ID?: string): string;
+export declare function Apply<DST, SRC, T extends keyof DST>(
+  dst: DST,
+  src: SRC,
+  cast: ApplyCaster | keyof DST,
+  ...props: (keyof DST)[]
+): void
+export declare function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(
+  dst: DST,
+  src: SRC,
+  whitelist: DST[T][],
+  ...props: (keyof DST)[]
+): void
+export declare function makeIDSortable(ID?: string): string
 export {}

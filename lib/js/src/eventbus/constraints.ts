@@ -2,18 +2,15 @@ import { Minimatch } from 'minimatch'
 import { IsOf } from '../guards'
 
 interface Constraint {
-  name?:
-      string;
-  op?:
-      string;
-  value:
-      string[];
+  name?: string
+  op?: string
+  value: string[]
 }
 
 export interface ConstraintMatcher {
-  Name (): string|undefined;
-  Values (): string[];
-  Match(value: string): boolean;
+  Name(): string | undefined
+  Values(): string[]
+  Match(value: string): boolean
 }
 
 export class Equal {
@@ -21,13 +18,13 @@ export class Equal {
   readonly values: string[]
   protected not: boolean
 
-  constructor(name: string|undefined, vv: string[], not = false) {
+  constructor(name: string | undefined, vv: string[], not = false) {
     this.name = name
     this.values = vv
     this.not = not
   }
 
-  Name(): string|undefined {
+  Name(): string | undefined {
     return this.name
   }
 
@@ -52,7 +49,7 @@ export class Equal {
  * See: https://github.com/isaacs/minimatch
  */
 export class Like extends Equal {
-  constructor(name: string|undefined, vv: string[], not = false) {
+  constructor(name: string | undefined, vv: string[], not = false) {
     super(
       name,
       vv.map(v => v.replace('%', '*').replace('_', '?')),
@@ -77,7 +74,7 @@ export class Like extends Equal {
  */
 export class Match extends Equal {
   protected re: RegExp[]
-  constructor(name: string|undefined, vv: string[], not = false) {
+  constructor(name: string | undefined, vv: string[], not = false) {
     super(name, vv, not)
     this.re = vv.map(v => new RegExp(v))
   }
@@ -93,7 +90,7 @@ export class Match extends Equal {
   }
 }
 
-export function ConstraintMaker(c: Constraint|unknown): ConstraintMatcher {
+export function ConstraintMaker(c: Constraint | unknown): ConstraintMatcher {
   if (!IsOf<Constraint>(c, 'value')) {
     throw new Error('invalid constraint input')
   }

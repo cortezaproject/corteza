@@ -1,4 +1,8 @@
-.PHONY: test test-js test-vue lint
+.PHONY: test test-js test-vue lint codegen
+
+codegen:
+	@echo "---Running codegen---"
+	@(cd $(CURDIR)/js && yarn codegen) || (echo "Failed to run codegen"; exit 1)
 
 test: test-js test-vue
 

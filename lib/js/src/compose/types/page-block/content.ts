@@ -4,7 +4,7 @@ import { Apply } from '../../../cast'
 const kind = 'Content'
 
 interface Options {
-  body: string;
+  body: string
   magnifyOption: string
 }
 

@@ -1,34 +1,34 @@
 import { User } from '../../system'
 
 export interface RevisionChange {
-  key: string;
-  old: Array<unknown>;
-  new: Array<unknown>;
+  key: string
+  old: Array<unknown>
+  new: Array<unknown>
 }
 
 export interface Revision {
-  changeID: string;
-  timestamp: Date;
-  resource: string;
-  revision: number;
-  operation: string;
-  userID: string;
-  user: User | null;
-  changes: Array<RevisionChange>;
-  comment: string;
+  changeID: string
+  timestamp: Date
+  resource: string
+  revision: number
+  operation: string
+  userID: string
+  user: User | null
+  changes: Array<RevisionChange>
+  comment: string
 }
 
 export interface RawRevisionPayload {
   set: Array<{
-    changeID: string;
-    timestamp: string;
-    resource: string;
-    revision: number;
-    operation: string;
-    userID: string;
-    changes: Array<RevisionChange>;
-    comment: string;
-  }>;
+    changeID: string
+    timestamp: string
+    resource: string
+    revision: number
+    operation: string
+    userID: string
+    changes: Array<RevisionChange>
+    comment: string
+  }>
 }
 
 function isRawRevisionPayload(raw: unknown): raw is RawRevisionPayload {
@@ -50,7 +50,10 @@ function isRawRevisionPayload(raw: unknown): raw is RawRevisionPayload {
   return true
 }
 
-export function convertRevisionPayloadToRevision(payload: unknown, validChangeKeys: string[]): Array<Revision> {
+export function convertRevisionPayloadToRevision(
+  payload: unknown,
+  validChangeKeys: string[],
+): Array<Revision> {
   if (!isRawRevisionPayload(payload)) {
     throw new Error('Invalid revision payload')
   }
@@ -59,7 +62,8 @@ export function convertRevisionPayloadToRevision(payload: unknown, validChangeKe
 
   if (validChangeKeys.length > 0) {
     // filter out changes that don't have valid keys
-    filterChanges = (cc: Array<RevisionChange>): Array<RevisionChange> => cc.filter(c => validChangeKeys.includes(c.key))
+    filterChanges = (cc: Array<RevisionChange>): Array<RevisionChange> =>
+      cc.filter(c => validChangeKeys.includes(c.key))
   }
 
   return payload.set.map(raw => ({

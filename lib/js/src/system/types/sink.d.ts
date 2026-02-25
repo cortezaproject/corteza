@@ -1,5 +1,5 @@
 interface KVV {
-    [key: string]: string[];
+  [key: string]: string[]
 }
 export declare class SinkRequest {
   method: string
@@ -12,12 +12,12 @@ export declare class SinkRequest {
   password: string
   remoteAddress: string
   rawBody: string
-  constructor(r?: Partial<SinkRequest>);
+  constructor(r?: Partial<SinkRequest>)
 }
 export declare class SinkResponse {
   status: number
   header: KVV
   body: unknown
-  constructor(r?: Partial<SinkResponse>);
+  constructor(r?: Partial<SinkResponse>)
 }
 export {}

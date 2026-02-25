@@ -1,4 +1,3 @@
- 
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import { Exec, ScriptExecFn } from './exec'
@@ -23,7 +22,7 @@ class Dummy {}
 
 describe('execution', () => {
   const execIt = (name: string, check: CheckerFn, exec: ScriptExecFn): void => {
-    it(name, async() => {
+    it(name, async () => {
       const scriptLogger = pino()
       const config: Config = { cServers: { compose: {}, system: {} } }
       const args: BaseArgs = {
@@ -152,7 +151,7 @@ describe('execution', () => {
       expect(error).to.be.eq('err')
     },
 
-    async() => {
+    async () => {
       return Promise.reject('err')
     },
   )
@@ -164,7 +163,7 @@ describe('execution', () => {
       expect(result.result).to.be.eq('ok')
       expect(error).to.be.undefined
     },
-    async() => {
+    async () => {
       return Promise.resolve('ok')
     },
   )

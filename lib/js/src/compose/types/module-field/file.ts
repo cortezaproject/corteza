@@ -11,47 +11,48 @@ export const modes = [
 ]
 
 interface FileOptions extends Options {
-  allowImages: boolean;
-  allowDocuments: boolean;
-  maxSize: number;
-  mode: string;
-  inline: boolean;
-  hideFileName: boolean;
-  mimetypes?: string;
-  height?: string;
-  width?: string;
-  maxHeight?: string;
-  maxWidth?: string;
-  borderRadius?: string;
-  margin?: string;
-  backgroundColor?: string;
-  clickToView?: boolean;
-  enableDownload?: boolean;
-  multiDelimiter: string;
+  allowImages: boolean
+  allowDocuments: boolean
+  maxSize: number
+  mode: string
+  inline: boolean
+  hideFileName: boolean
+  mimetypes?: string
+  height?: string
+  width?: string
+  maxHeight?: string
+  maxWidth?: string
+  borderRadius?: string
+  margin?: string
+  backgroundColor?: string
+  clickToView?: boolean
+  enableDownload?: boolean
+  multiDelimiter: string
   enableWebcam?: boolean
 }
 
-const defaults = (): Readonly<FileOptions> => Object.freeze({
-  ...defaultOptions(),
-  allowImages: true,
-  allowDocuments: true,
-  maxSize: 0,
-  mode: 'list',
-  inline: true,
-  hideFileName: false,
-  mimetypes: '',
-  height: '',
-  width: '',
-  maxHeight: '',
-  maxWidth: '',
-  borderRadius: '',
-  margin: 'auto',
-  backgroundColor: '#FFFFFF00',
-  clickToView: true,
-  enableDownload: true,
-  multiDelimiter: '\n',
-  enableWebcam: false,
-})
+const defaults = (): Readonly<FileOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    allowImages: true,
+    allowDocuments: true,
+    maxSize: 0,
+    mode: 'list',
+    inline: true,
+    hideFileName: false,
+    mimetypes: '',
+    height: '',
+    width: '',
+    maxHeight: '',
+    maxWidth: '',
+    borderRadius: '',
+    margin: 'auto',
+    backgroundColor: '#FFFFFF00',
+    clickToView: true,
+    enableDownload: true,
+    multiDelimiter: '\n',
+    enableWebcam: false,
+  })
 
 export class ModuleFieldFile extends ModuleField {
   readonly kind = kind
@@ -68,8 +69,31 @@ export class ModuleFieldFile extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, Number, 'maxSize')
-    Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName', 'clickToView', 'enableDownload', 'enableWebcam')
-    Apply(this.options, o, String, 'mimetypes', 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor')
+    Apply(
+      this.options,
+      o,
+      Boolean,
+      'allowImages',
+      'allowDocuments',
+      'inline',
+      'hideFileName',
+      'clickToView',
+      'enableDownload',
+      'enableWebcam',
+    )
+    Apply(
+      this.options,
+      o,
+      String,
+      'mimetypes',
+      'height',
+      'width',
+      'maxHeight',
+      'maxWidth',
+      'borderRadius',
+      'margin',
+      'backgroundColor',
+    )
 
     // Legacy
     if (o.mode === 'single') {

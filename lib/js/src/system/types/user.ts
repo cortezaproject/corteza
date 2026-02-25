@@ -1,8 +1,9 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { AreStrings, IsOf } from '../../guards'
 
-interface PartialUser
-  extends Partial<Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
+interface PartialUser extends Partial<
+  Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>
+> {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
   deletedAt?: string | number | Date

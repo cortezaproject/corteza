@@ -2,13 +2,15 @@ import { CortezaID, NoID, ISO8601Date, Apply } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface Meta {
-  [key: string]: unknown;
+  [key: string]: unknown
 }
 
-interface PartialAttachment extends Partial<Omit<Attachment, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+interface PartialAttachment extends Partial<
+  Omit<Attachment, 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class Attachment {

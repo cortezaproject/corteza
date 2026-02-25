@@ -60,7 +60,7 @@
           text
           severity="secondary"
           size="small"
-          class="row-action-btn w-full mr-2"
+          class="row-action-btn w-full"
           @click.stop="toggleActionsMenu($event, data)"
         />
       </template>
@@ -194,17 +194,6 @@ function toggleActionsMenu(event, module) {
 
 function getActionsMenuItems(module) {
   const items = []
-
-  if (module.canUpdateModule) {
-    items.push({
-      label: t('general.label.edit'),
-      icon: 'pi pi-pencil',
-      route: {
-        name: 'admin.modules.edit',
-        params: { moduleID: module.moduleID },
-      },
-    })
-  }
 
   if (module.canDeleteModule) {
     items.push({

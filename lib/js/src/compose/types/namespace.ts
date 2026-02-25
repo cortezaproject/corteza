@@ -2,29 +2,31 @@ import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface MetaAdminRecordList {
-  columns: string[];
+  columns: string[]
 }
 
 interface MetaAdmin {
-  recordList: MetaAdminRecordList;
+  recordList: MetaAdminRecordList
 }
 
 interface Meta {
-  subtitle: string;
-  description: string;
-  hideSidebar: boolean;
+  subtitle: string
+  description: string
+  hideSidebar: boolean
   // Temporary icon & logo URLs
   // @todo rework this when we rework attachment management
-  icon: string;
-  logo: string;
-  logoEnabled: boolean;
+  icon: string
+  logo: string
+  logoEnabled: boolean
 }
 
-interface PartialNamespace extends Partial<Omit<Namespace, 'meta' | 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-  meta?: Partial<Meta>;
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+interface PartialNamespace extends Partial<
+  Omit<Namespace, 'meta' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  meta?: Partial<Meta>
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class Namespace {
@@ -79,7 +81,10 @@ export class Namespace {
     }
 
     Apply(this, n, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, n, Boolean,
+    Apply(
+      this,
+      n,
+      Boolean,
       'canDeleteNamespace',
       'canUpdateNamespace',
       'canManageNamespace',
@@ -120,7 +125,11 @@ export class Namespace {
     }
 
     // split by space and take first letter of each word
-    base = base.split(/\s+/).map(w => w[0]).filter(c => /[a-zA-Z]/.test(c)).join('')
+    base = base
+      .split(/\s+/)
+      .map(w => w[0])
+      .filter(c => /[a-zA-Z]/.test(c))
+      .join('')
     if (base.length > 3) {
       base = base.slice(0, 3)
     }

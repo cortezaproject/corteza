@@ -2,7 +2,9 @@ import { ConstraintMaker, ConstraintMatcher } from './constraints'
 import { Event, HandlerFn, onManual, Trigger } from './shared'
 
 // Dummy handler, can be used for tests
-export async function DummyHandler(): Promise<undefined> { return undefined }
+export async function DummyHandler(): Promise<undefined> {
+  return undefined
+}
 
 export class Handler {
   readonly resourceTypes: string[]

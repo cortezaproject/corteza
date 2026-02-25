@@ -11,8 +11,8 @@
     </div>
 
     <div v-if="areAppsVisible" class="flex-1 overflow-auto">
-      <div class="container mx-auto">
-        <div class="flex flex-wrap justify-center gap-7 p-4 mx-2">
+      <div class="container mx-aut p-4">
+        <div class="flex flex-wrap justify-center gap-7">
           <a
             v-for="app in apps"
             :key="app.applicationID"

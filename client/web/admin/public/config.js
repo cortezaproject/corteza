@@ -1,5 +1,5 @@
 // Corteza API location
-window.CortezaAPI = 'http://localhost:1024/api';
+window.CortezaAPI = 'http://localhost:1043/api'
 
 // CortezaAuth can be autoconfigured by replacing /api with /auth in CortezaAPI
 // or by appending /auth to the end of CortezaAPI string
@@ -10,7 +10,6 @@ window.CortezaAPI = 'http://localhost:1024/api';
 // Configure CortezaWebapp when your web applications are not placed on the root.
 // This is autoconfigured from the value of <base> tag href attribute in most cases.
 // window.CortezaWebapp = 'https://cortezaproject.your-domain.tld';
-
 
 // Set to true to enable i18next-pseudo
 // Used to test translation string in a development environment

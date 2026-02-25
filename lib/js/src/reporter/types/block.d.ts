@@ -6,5 +6,5 @@ export declare class Block {
   layout: string
   elements: Array<DisplayElement>
   xywh: number[]
-  constructor(p: Partial<Block>);
+  constructor(p: Partial<Block>)
 }

@@ -1,4 +1,3 @@
- 
 import { expect } from 'chai'
 import { Module } from './module'
 import { Record, Values } from './record'
@@ -17,7 +16,7 @@ const m = Object.freeze(
 
 describe('record', () => {
   describe('record creation', () => {
-    const assertAllUndefined = function(r: Record): void {
+    const assertAllUndefined = function (r: Record): void {
       expect(r.module).to.eq(m)
       /**
        * It's extremely important that properties are set
@@ -31,7 +30,7 @@ describe('record', () => {
       expect(r.values).to.have.property('multiRequired').to.be.deep.eq([])
     }
 
-    const assertSimpleSet = function(r: Record): void {
+    const assertSimpleSet = function (r: Record): void {
       expect(r.module).to.eq(m)
       expect(r.values.bool).to.eq('0')
       expect(r.values.simple).to.eq('foo')

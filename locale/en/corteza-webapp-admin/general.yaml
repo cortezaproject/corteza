@@ -28,8 +28,11 @@ label:
     single: Route
     plural: Routes
   connection:
-    single: Database Connection
-    plural: Database Connections
+    single: Connection
+    plural: Connections
+  data-source:
+    single: Data Source
+    plural: Data Sources
   sensitivity-level:
     single: Sensitivity Level
     plural: Sensitivity Levels
@@ -53,7 +56,9 @@ label:
   loadMore: Load more
   loading: Loading
   saveAndClose: Save and close
+  save: Save
   cancel: Cancel
+  back: Back
   submit: Submit
   delete: Delete
   undelete: Undelete
@@ -61,9 +66,15 @@ label:
   uploading: Uploading
   dropFiles: Click or drop files here to upload
 editor:
-  unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 resourceList:
+  notFound: Not found
+  noItems: No items to show
   pagination:
+    next: Next
+    prev: Previous
+    showing: '{from} - {to} of {count} {data}'
+    single: 'No {data} | One {data} | {count} {data}'
     recordsPerPage: Per page
 themes:
   labels:

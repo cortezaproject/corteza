@@ -7,7 +7,6 @@
     :style="{ width: '50vw' }"
     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
     :pt="{
-      header: { class: 'pt-2 pb-0 pr-2' },
       content: { class: 'p-0 flex flex-col !overflow-hidden' },
       footer: { class: 'border-t border-surface p-3' },
     }"

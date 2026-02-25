@@ -55,7 +55,7 @@
           text
           severity="secondary"
           size="small"
-          class="row-action-btn w-full mr-2"
+          class="row-action-btn w-full"
           @click="toggleActionsMenu($event, data)"
         />
       </template>
@@ -167,17 +167,6 @@ const toggleActionsMenu = (event, namespace) => {
 
 const getActionsMenuItems = namespace => {
   const items = []
-
-  if (namespace.canUpdateNamespace) {
-    items.push({
-      label: t('general.label.edit'),
-      icon: 'pi pi-pencil',
-      route: {
-        name: 'namespace.edit',
-        params: { slug: namespace.slug || namespace.namespaceID },
-      },
-    })
-  }
 
   if (namespace.canDeleteNamespace) {
     items.push({

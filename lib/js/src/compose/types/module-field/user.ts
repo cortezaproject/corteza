@@ -7,21 +7,22 @@ import { User } from '../../../system'
 const kind = 'User'
 
 interface UserOptions extends Options {
-  roles: Array<string>;
-  presetWithAuthenticated: boolean;
-  selectType: string;
-  multiDelimiter: string;
-  isUniqueMultiValue: boolean;
+  roles: Array<string>
+  presetWithAuthenticated: boolean
+  selectType: string
+  multiDelimiter: string
+  isUniqueMultiValue: boolean
 }
 
-const defaults = (): Readonly<UserOptions> => Object.freeze({
-  ...defaultOptions(),
-  roles: [],
-  presetWithAuthenticated: false,
-  selectType: 'default',
-  multiDelimiter: '\n',
-  isUniqueMultiValue: false,
-})
+const defaults = (): Readonly<UserOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    roles: [],
+    presetWithAuthenticated: false,
+    selectType: 'default',
+    multiDelimiter: '\n',
+    isUniqueMultiValue: false,
+  })
 
 export class ModuleFieldUser extends ModuleField {
   readonly kind = kind
@@ -39,15 +40,20 @@ export class ModuleFieldUser extends ModuleField {
 
     Apply(this.options, o, Boolean, 'presetWithAuthenticated', 'isUniqueMultiValue')
     Apply(this.options, o, String, 'selectType', 'multiDelimiter')
-    Apply(this.options, o, (o) => {
-      if (!o) {
-        return []
-      }
-      if (!Array.isArray(o)) {
-        return [o]
-      }
-      return o
-    }, 'roles')
+    Apply(
+      this.options,
+      o,
+      o => {
+        if (!o) {
+          return []
+        }
+        if (!Array.isArray(o)) {
+          return [o]
+        }
+        return o
+      },
+      'roles',
+    )
   }
 
   formatter({ userID, name, username, email, handle }: Partial<User> = {}): string {

@@ -2,8 +2,4 @@ import { DisplayElementChart, ChartOptionsMaker, ChartOptionsRegistry } from './
 export { BasicChartOptions } from './basic'
 export { FunnelChartOptions } from './funnel'
 
-export {
-  ChartOptionsMaker,
-  ChartOptionsRegistry,
-  DisplayElementChart,
-}
+export { ChartOptionsMaker, ChartOptionsRegistry, DisplayElementChart }

@@ -3,6 +3,7 @@
   "type": "module",
   "dependencies": {
     "@primeuix/themes": "^2.0.2",
+    "@primevue/forms": "^4.5.4",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
     "lodash-es": "^4.17.21",

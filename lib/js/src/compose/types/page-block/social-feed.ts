@@ -3,13 +3,13 @@ import { Apply, CortezaID, NoID } from '../../../cast'
 
 const kind = 'SocialFeed'
 interface Options {
-  moduleID: string;
-  fields: unknown[];
-  profileSourceField: string;
-  profileUrl: string;
-  showRefresh: boolean;
-  refreshRate: number;
-  magnifyOption: string;
+  moduleID: string
+  fields: unknown[]
+  profileSourceField: string
+  profileUrl: string
+  showRefresh: boolean
+  refreshRate: number
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

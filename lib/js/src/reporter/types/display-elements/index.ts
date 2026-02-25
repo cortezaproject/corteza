@@ -18,7 +18,4 @@ export function DisplayElementMaker<T extends DisplayElement>(i: { kind: string 
   return new DisplayElementTemp(i) as T
 }
 
-export {
-  Registry as DisplayElementRegistry,
-  DisplayElement,
-}
+export { Registry as DisplayElementRegistry, DisplayElement }

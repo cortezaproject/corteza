@@ -7,30 +7,32 @@ export enum NotificationKind {
 }
 
 export interface SimpleNotificationConfig {
-  title: string;
-  description: string;
+  title: string
+  description: string
 }
 
 export interface RecordNotificationConfig {
-  title: string;
-  description: string;
-  moduleID: string;
-  namespaceID: string;
-  recordID: string;
-  openMode: string; // "modal", "newTab", or "sameTab" (default)
-  edit: boolean; // Whether to open the record in edit mode
+  title: string
+  description: string
+  moduleID: string
+  namespaceID: string
+  recordID: string
+  openMode: string // "modal", "newTab", or "sameTab" (default)
+  edit: boolean // Whether to open the record in edit mode
 }
 
 export interface NotificationConfig {
-  simple?: SimpleNotificationConfig;
-  record?: RecordNotificationConfig;
+  simple?: SimpleNotificationConfig
+  record?: RecordNotificationConfig
 }
 
-interface PartialNotification extends Partial<Omit<Notification, 'createdAt' | 'updatedAt' | 'deletedAt' | 'readAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
-  readAt?: string|number|Date;
+interface PartialNotification extends Partial<
+  Omit<Notification, 'createdAt' | 'updatedAt' | 'deletedAt' | 'readAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  readAt?: string | number | Date
 }
 
 export class Notification {

@@ -1,8 +1,7 @@
 import { User } from '../system'
 
 interface GenericCtor<T> {
-   
-  new (...args: any[]): T;
+  new (...args: any[]): T
 }
 
 /**
@@ -10,8 +9,8 @@ interface GenericCtor<T> {
  *
  * Takes argument (ref to class) and returns a function that will initialize class of that type
  */
-export function GenericCaster<T>(C: GenericCtor<T>): GenericGetterFn<T|undefined> {
-  return function(val: unknown): T|undefined {
+export function GenericCaster<T>(C: GenericCtor<T>): GenericGetterFn<T | undefined> {
+  return function (val: unknown): T | undefined {
     if (!val || typeof val !== 'object') {
       return undefined
     }
@@ -25,8 +24,10 @@ export function GenericCaster<T>(C: GenericCtor<T>): GenericGetterFn<T|undefined
  *
  * Takes argument (ref to class) and returns a function that will initialize class of that type
  */
-export function GenericCasterFreezer<T>(C: GenericCtor<T>): GenericGetterFn<Readonly<T>|undefined> {
-  return function(val: unknown): Readonly<T>|undefined {
+export function GenericCasterFreezer<T>(
+  C: GenericCtor<T>,
+): GenericGetterFn<Readonly<T> | undefined> {
+  return function (val: unknown): Readonly<T> | undefined {
     if (!val || typeof val !== 'object') {
       return undefined
     }
@@ -36,16 +37,16 @@ export function GenericCasterFreezer<T>(C: GenericCtor<T>): GenericGetterFn<Read
 }
 
 export interface BaseArgs {
-  $invoker: User;
-  authToken: string;
+  $invoker: User
+  authToken: string
 }
 
 export interface GenericGetterFn<T> {
-  (val: unknown): T;
+  (val: unknown): T
 }
 
 export interface GetterFn {
-  (key: unknown): unknown;
+  (key: unknown): unknown
 }
 
 export type Caster = Map<string, GetterFn>

@@ -3,17 +3,17 @@ import { Apply, NoID } from '../../../../cast'
 import { IsOf } from '../../../../guards'
 
 interface FeedOptions {
-  moduleID: string;
-  color: string;
-  prefilter: string;
+  moduleID: string
+  color: string
+  prefilter: string
 }
 
 interface LegacyFeed {
-  moduleID?: string;
-  startField?: string;
-  endField?: string;
-  titleField?: string;
-  allDay?: boolean;
+  moduleID?: string
+  startField?: string
+  endField?: string
+  titleField?: string
+  allDay?: boolean
 }
 
 export type FeedInput = Partial<Feed> | Feed | LegacyFeed

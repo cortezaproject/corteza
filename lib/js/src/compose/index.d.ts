@@ -9,4 +9,11 @@ export * from './types/page-block'
 export { RecordValidator } from './validators/record'
 export { getModuleFromYaml } from './helpers'
 export * from './types/chart'
-export { ComposeEvent, NamespaceEvent, ModuleEvent, RecordEvent, PageEvent, TriggerComposeServerScriptOnManual } from './events'
+export {
+  ComposeEvent,
+  NamespaceEvent,
+  ModuleEvent,
+  RecordEvent,
+  PageEvent,
+  TriggerComposeServerScriptOnManual,
+} from './events'

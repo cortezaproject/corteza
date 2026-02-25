@@ -1,3 +1,3 @@
 export declare const feedResources: {
-    record: string;
+  record: string
 }

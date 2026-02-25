@@ -36,15 +36,11 @@ describe('validator', () => {
     })
 
     it('should result in array with one error when given an object', () => {
-      expect(NormalizeValidatorResults({ kind: 'foo' }))
-        .to.have.lengthOf(1)
+      expect(NormalizeValidatorResults({ kind: 'foo' })).to.have.lengthOf(1)
     })
 
     it('should result in complex array', () => {
-      expect(NormalizeValidatorResults(
-        { kind: 'foo' },
-        { kind: 'foo' },
-      )).to.have.lengthOf(2)
+      expect(NormalizeValidatorResults({ kind: 'foo' }, { kind: 'foo' })).to.have.lengthOf(2)
     })
   })
 

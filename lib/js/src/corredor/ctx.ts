@@ -5,32 +5,29 @@ import { BaseArgs } from './shared'
 import { User } from '../system'
 
 export interface ConfigCServers {
-  system?: ConfigServer;
-  compose?: ConfigServer;
+  system?: ConfigServer
+  compose?: ConfigServer
 }
 
 export interface ConfigServer {
-  apiBaseURL?: string;
+  apiBaseURL?: string
 }
 
 export interface ConfigFrontend {
-  baseURL?: string;
+  baseURL?: string
 }
 
 export interface Config {
-  cServers?: ConfigCServers;
-  frontend?: ConfigFrontend;
+  cServers?: ConfigCServers
+  frontend?: ConfigFrontend
 }
 
 interface CtxInitArgs {
-  config?:
-    Config;
+  config?: Config
 
-  systemAPI?:
-    apiClients.System;
+  systemAPI?: apiClients.System
 
-  composeAPI?:
-    apiClients.Compose;
+  composeAPI?: apiClients.Compose
 }
 
 /**
@@ -50,11 +47,9 @@ export class Ctx {
 
   protected logger: Logger
 
-  protected systemAPI?:
-    apiClients.System
+  protected systemAPI?: apiClients.System
 
-  protected composeAPI?:
-    apiClients.Compose
+  protected composeAPI?: apiClients.Compose
 
   constructor(args: BaseArgs, logger: Logger, a?: CtxInitArgs) {
     this.args = args
@@ -148,7 +143,7 @@ export class Ctx {
   /**
    *
    */
-  get frontendBaseURL(): string|undefined {
+  get frontendBaseURL(): string | undefined {
     return this.config?.frontend?.baseURL
   }
 }

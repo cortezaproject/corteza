@@ -101,10 +101,9 @@ export const systemFields = Object.freeze(
   ].map(f => ModuleFieldMaker(f)),
 )
 
-interface PartialModule
-  extends Partial<
-    Omit<Module, 'fields' | 'meta' | 'labels' | 'createdAt' | 'updatedAt' | 'deletedAt'>
-  > {
+interface PartialModule extends Partial<
+  Omit<Module, 'fields' | 'meta' | 'labels' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
   fields?: Array<Partial<ModuleField>> | Array<ModuleField>
   meta?: Partial<Meta>
   config?: Partial<Config>

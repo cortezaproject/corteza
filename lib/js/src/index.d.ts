@@ -12,4 +12,16 @@ import * as automation from './automation'
 import * as shared from './shared'
 import * as apiClients from './api-clients'
 import * as fmt from './formatting'
-export { eventbus, corredor, validator, compose, system, reporter, automation, shared, apiClients, NoID, fmt }
+export {
+  eventbus,
+  corredor,
+  validator,
+  compose,
+  system,
+  reporter,
+  automation,
+  shared,
+  apiClients,
+  NoID,
+  fmt,
+}

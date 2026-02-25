@@ -70,7 +70,6 @@
         scrollable
         scroll-height="flex"
         row-hover
-        show-gridlines
         resizable-columns
         column-resize-mode="expand"
         data-key="recordID"
@@ -79,6 +78,9 @@
         @sort="onSort"
         @row-click="onRowClick"
         class="record-list-table"
+        :pt="{
+          headerCell: { class: 'bg-highlight-emphasis' },
+        }"
       >
         <template #empty>
           <div class="flex items-center justify-center p-4 text-muted">
@@ -124,7 +126,7 @@
               text
               size="small"
               severity="secondary"
-              class="row-action-btn w-full mr-2"
+              class="row-action-btn w-full"
               @click="openRowMenu($event, data)"
               @click.stop
             />
@@ -338,21 +340,6 @@ const rowMenuItems = computed(() => {
           pageID: recordPageID.value,
           recordID: record.recordID,
         },
-      },
-    })
-  }
-
-  if (recordPageID.value && record?.canUpdateRecord) {
-    items.push({
-      label: t('block.recordList.record.tooltip.edit'),
-      icon: 'pi pi-pencil',
-      route: {
-        name: 'page.record',
-        params: {
-          pageID: recordPageID.value,
-          recordID: record.recordID,
-        },
-        query: { edit: '1' },
       },
     })
   }

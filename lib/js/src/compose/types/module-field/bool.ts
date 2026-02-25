@@ -4,17 +4,18 @@ import { Apply } from '../../../cast'
 const kind = 'Bool'
 
 interface BoolOptions extends Options {
-  trueLabel: string;
-  falseLabel: string;
-  switch: boolean;
+  trueLabel: string
+  falseLabel: string
+  switch: boolean
 }
 
-const defaults = (): Readonly<BoolOptions> => Object.freeze({
-  ...defaultOptions(),
-  trueLabel: '',
-  falseLabel: '',
-  switch: false,
-})
+const defaults = (): Readonly<BoolOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    trueLabel: '',
+    falseLabel: '',
+    switch: false,
+  })
 
 export class ModuleFieldBool extends ModuleField {
   readonly kind = kind

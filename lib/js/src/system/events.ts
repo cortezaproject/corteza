@@ -3,9 +3,9 @@ import { Role } from './types/role'
 import { User } from './types/user'
 
 interface TriggerEndpoints {
-  automationTriggerScript (params: { script: string }): Promise<object>;
-  roleTriggerScript (params: { roleID: string; script: string }): Promise<object>;
-  userTriggerScript (params: { userID: string; script: string }): Promise<object>;
+  automationTriggerScript(params: { script: string }): Promise<object>
+  roleTriggerScript(params: { roleID: string; script: string }): Promise<object>
+  userTriggerScript(params: { userID: string; script: string }): Promise<object>
 }
 
 // @todo refactor this into more compose-like event structure (see compose/events.ts
@@ -15,32 +15,42 @@ export function SystemEvent(eventType = onManual): Event {
 
 // @todo refactor this into more compose-like event structure (see compose/events.ts
 export function UserEvent(user: User, eventType: string = onManual): Event {
-  return GenericEventMaker(user, eventType, function(c) {
-    switch (c.Name()) {
-      case 'user':
-      case 'user.handle':
-        return c.Match(user.handle)
-      case 'user.email':
-        return c.Match(user.email)
-    }
+  return GenericEventMaker(
+    user,
+    eventType,
+    function (c) {
+      switch (c.Name()) {
+        case 'user':
+        case 'user.handle':
+          return c.Match(user.handle)
+        case 'user.email':
+          return c.Match(user.email)
+      }
 
-    return false
-  }, { user })
+      return false
+    },
+    { user },
+  )
 }
 
 // @todo refactor this into more compose-like event structure (see compose/events.ts
 export function RoleEvent(role: Role, eventType = onManual): Event {
-  return GenericEventMaker(role, eventType, function(c) {
-    switch (c.Name()) {
-      case 'role':
-      case 'role.handle':
-        return c.Match(role.handle)
-      case 'role.name':
-        return c.Match(role.name)
-    }
+  return GenericEventMaker(
+    role,
+    eventType,
+    function (c) {
+      switch (c.Name()) {
+        case 'role':
+        case 'role.handle':
+          return c.Match(role.handle)
+        case 'role.name':
+          return c.Match(role.name)
+      }
 
-    return false
-  }, { role })
+      return false
+    },
+    { role },
+  )
 }
 
 /**

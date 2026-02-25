@@ -6,7 +6,6 @@ import { NoID } from '../../cast'
 import { System as SystemAPI } from '../../api-clients'
 
 describe('shared', () => {
-
   describe('extractID', () => {
     it('should extract the ID', () => {
       expect(extractID(4200001)).to.equal('4200001')
@@ -28,14 +27,34 @@ describe('shared', () => {
   })
 
   describe('generic permission updater', () => {
-    it('should do group by role and make multiple calls to the API (one per role', async() => {
+    it('should do group by role and make multiple calls to the API (one per role', async () => {
       const API = stubObject<SystemAPI>(new SystemAPI({}))
 
       await genericPermissionUpdater(API, [
-        { role: { roleID: '1111' }, resource: { resourceID: 'r.0001' }, operation: 'read', access: '1' },
-        { role: { roleID: '1111' }, resource: { resourceID: 'r.0001' }, operation: 'read', access: '1' },
-        { role: { roleID: '5555' }, resource: { resourceID: 'r.0001' }, operation: 'read', access: '1' },
-        { role: { roleID: '5555' }, resource: { resourceID: 'r.0001' }, operation: 'read', access: '1' },
+        {
+          role: { roleID: '1111' },
+          resource: { resourceID: 'r.0001' },
+          operation: 'read',
+          access: '1',
+        },
+        {
+          role: { roleID: '1111' },
+          resource: { resourceID: 'r.0001' },
+          operation: 'read',
+          access: '1',
+        },
+        {
+          role: { roleID: '5555' },
+          resource: { resourceID: 'r.0001' },
+          operation: 'read',
+          access: '1',
+        },
+        {
+          role: { roleID: '5555' },
+          resource: { resourceID: 'r.0001' },
+          operation: 'read',
+          access: '1',
+        },
       ])
 
       expect(API.permissionsUpdate.calledTwice).true

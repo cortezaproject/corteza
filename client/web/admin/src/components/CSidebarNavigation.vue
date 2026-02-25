@@ -43,6 +43,27 @@ const navItems = computed(() => [
     _route: { name: 'system.connections' },
   },
   {
+    _id: 'users',
+    _parentId: 'system',
+    _label: t('navigation.system.items.users'),
+    _icon: 'pi pi-users',
+    _route: { name: 'system.users' },
+  },
+  {
+    _id: 'user-groups',
+    _parentId: 'system',
+    _label: t('navigation.system.items.usergroups', 'User Groups'),
+    _icon: 'pi pi-sitemap',
+    _route: { name: 'system.userGroups' },
+  },
+  {
+    _id: 'roles',
+    _parentId: 'system',
+    _label: t('navigation.system.items.roles', 'Roles'),
+    _icon: 'pi pi-id-card',
+    _route: { name: 'system.roles' },
+  },
+  {
     _id: 'data-sources',
     _parentId: 'system',
     _label: t('navigation.system.items.data-sources'),

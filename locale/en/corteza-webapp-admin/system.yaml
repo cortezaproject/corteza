@@ -426,10 +426,67 @@ code-snippets:
 connections:
   list:
     title: Connections
+    searchPlaceholder: Filter connections by handle or name
+    createLabel: New Connection
+    resourceSingle: connection
+    resourcePlural: connections
+    deleteConfirm: Are you sure you want to delete this connection?
+    columns:
+      handle: Handle
+      name: Name
+      status: Status
+      updatedAt: Changed at
   editor:
     title:
       edit: Edit connection
       create: New connection
+    info:
+      title: Basic settings
+      handle: Handle
+      placeholder-handle: simplified_connection_name
+      invalid-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Name *
+      description: Description
+      status: Status
+    service:
+      title: Service Configuration
+      baseURL: Base URL
+      protocol: Protocol
+      contentType: Content Type
+      authMethod: Authentication Method
+    configurations:
+      title: Advanced Configurations
+      resources: Resources (JSON)
+      standardOperations: Standard Operations (JSON)
+      operations: Operations (JSON)
+      invalidJSON: Invalid JSON
+    deleteConfirm: Are you sure you want to delete this connection?
+    delete: Delete
+    undelete: Undelete
+    deletedAt: Deleted at
+    updatedAt: Updated at
+    createdAt: Created at
+
+configuredConnections:
+  list:
+    title: Configured Connections
+    searchPlaceholder: Filter configured connections by name
+    createLabel: New Configured Connection
+    resourceSingle: configured connection
+    resourcePlural: configured connections
+    deleteConfirm: Are you sure you want to delete this configured connection?
+    columns:
+      name: Name
+      labels: Labels
+      updatedAt: Changed at
+  editor:
+    title:
+      edit: Edit configured connection
+      create: New configured connection
+    info:
+      name: Name
+      config: Configuration (JSON)
+      labels: Labels (JSON)
 
 data-sources:
   primary:
@@ -1066,6 +1123,7 @@ users:
       createdAt: Created at
       createdBy: Created by
       delete: Delete
+      deleteConfirm: Are you sure you want to delete this user?
       deletedAt: Deleted at
       email: Email *
       handle: Handle
@@ -1074,10 +1132,12 @@ users:
       name: Full name
       revokeAllSession: Revoke all active sessions
       suspend: Suspend
+      suspendConfirm: Are you sure you want to suspend this user?
       suspendedAt: Suspended at
       title: Basic information
       undelete: Undelete
       unsuspend: Unsuspend
+      unsuspendConfirm: Are you sure you want to unsuspend this user?
       updatedAt: Updated at
       userGroup:
         label: User group
@@ -1094,8 +1154,12 @@ users:
         instructions: Upload avatar
         uploading: Uploading user avatar
       colorPicker: Choose a color
+    security:
+      title: Security
     mfa:
       TOTP:
+        label: TOTP (Authenticator App)
+        description: Time-based one-time password via mobile app
         disabled:
           text: User did not configure TOTP protection
         enabled:
@@ -1103,6 +1167,8 @@ users:
         remove:
           label: Remove
       emailOTP:
+        label: Email OTP
+        description: User will receive an email with the security code on each login
         disable:
           label: Disable
         disabled:
@@ -1119,7 +1185,7 @@ users:
     new: New User
     password:
       confirm: Confirm password
-      length: The passwords must be at least {{length}} characters long!
+      length: The passwords must be at least {length} characters long!
       missmatch: The passwords must match
       new: New password
       title: Password
@@ -1155,7 +1221,7 @@ users:
         suspended: Suspended
     filterForm:
       deleted:
-        label: deleted users
+        label: Deleted users
       excluded:
         label: Without
       exclusive:
@@ -1166,7 +1232,7 @@ users:
         label: Filter users list
         placeholder: Filter users by name, email
       suspended:
-        label: suspended users
+        label: Suspended users
     loading: Loading users
     new: New User
     permissions: Permissions

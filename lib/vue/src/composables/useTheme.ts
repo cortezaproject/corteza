@@ -124,6 +124,9 @@ export function getTheme(theme: Theme) {
         --sidebar-bg: ${variables['sidebar-bg']};
         --body-bg: ${variables['body-bg']};
         --p-drawer-border-color: #ffffff00;
+        --p-overlay-modal-padding: 1rem;
+        --p-tabs-tabpanel-padding: 1rem;
+        --p-content-border-radius: var(--p-border-radius-xl);
       }
 
       body {
@@ -144,6 +147,25 @@ export function getTheme(theme: Theme) {
 
       .bg-surface {
         background-color: var(--p-content-background);
+      }
+
+      .p-panel {
+        border-radius: var(--p-card-border-radius);
+        .p-panel-header {
+          padding: 0.5rem 0.5rem 0.5rem 1rem !important;
+  
+          .p-panel-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+          }
+        }
+        .p-panel-content {
+          padding: 0.5rem 1rem 1rem 1rem !important;
+        }
+      }
+
+      .p-dialog-header {
+        padding-bottom: 0!;
       }
 
       .p-datatable-column-resizer {

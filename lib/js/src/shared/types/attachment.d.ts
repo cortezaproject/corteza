@@ -1,10 +1,12 @@
 interface Meta {
-    [key: string]: unknown;
+  [key: string]: unknown
 }
-interface PartialAttachment extends Partial<Omit<Attachment, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-    createdAt?: string | number | Date;
-    updatedAt?: string | number | Date;
-    deletedAt?: string | number | Date;
+interface PartialAttachment extends Partial<
+  Omit<Attachment, 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 export declare class Attachment {
   attachmentID: string
@@ -17,8 +19,8 @@ export declare class Attachment {
   createdAt?: Date
   updatedAt?: Date
   deletedAt?: Date
-  constructor(i?: PartialAttachment, baseURL?: string);
-  apply(i?: PartialAttachment): void;
-  setBaseURL(baseURL: string): void;
+  constructor(i?: PartialAttachment, baseURL?: string)
+  apply(i?: PartialAttachment): void
+  setBaseURL(baseURL: string): void
 }
 export {}

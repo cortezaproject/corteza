@@ -1,16 +1,18 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
-interface PartialTemplate extends Partial<Omit<Template, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
-  lastUsedAt?: string|number|Date;
+interface PartialTemplate extends Partial<
+  Omit<Template, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  lastUsedAt?: string | number | Date
 }
 
 interface Meta {
-  short?: string;
-  description?: string;
+  short?: string
+  description?: string
 }
 
 export class Template {

@@ -4,22 +4,22 @@ import { Apply } from '../../../cast'
 const kind = 'Tabs'
 
 interface Style {
-  appearance: string;
-  alignment: string;
-  justify: string;
-  orientation: string;
-  position: string;
+  appearance: string
+  alignment: string
+  justify: string
+  orientation: string
+  position: string
 }
 
 interface Tab {
-  blockID: string;
-  title: string;
+  blockID: string
+  title: string
 }
 
 interface Options {
-  style: Style;
-  tabs: Tab[];
-  magnifyOption: string;
+  style: Style
+  tabs: Tab[]
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({

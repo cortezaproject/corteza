@@ -631,7 +631,7 @@ func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutoma
 		if exe.RunAs, err = DefaultUser.FindByAny(sysUserCtx(), out.RunAs); err != nil {
 			out.Issues = append(out.Issues, &types.NgAutomationIssue{
 				Culprit:     nil,
-				Description: fmt.Sprintf("failed to load run-as user %d: %w", out.RunAs, err),
+				Description: fmt.Sprintf("failed to load run-as user %d: %v", out.RunAs, err),
 			})
 		} else if !exe.RunAs.Valid() {
 			out.Issues = append(out.Issues, &types.NgAutomationIssue{

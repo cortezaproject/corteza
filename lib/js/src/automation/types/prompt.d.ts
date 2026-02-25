@@ -4,6 +4,6 @@ export declare class Prompt {
   stateID: string
   createdAt?: Date
   payload: any
-  constructor(u?: Partial<Prompt>);
-  apply(u?: Partial<Prompt>): void;
+  constructor(u?: Partial<Prompt>)
+  apply(u?: Partial<Prompt>): void
 }

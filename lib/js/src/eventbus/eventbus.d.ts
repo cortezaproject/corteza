@@ -20,12 +20,12 @@
  */
 import { Event, HandlerFn, Trigger } from './shared'
 export interface WellKnownPairs {
-    [resource: string]: Array<string>;
+  [resource: string]: Array<string>
 }
 export interface Options {
-    pairs: WellKnownPairs;
-    strict: boolean;
-    verbose: boolean;
+  pairs: WellKnownPairs
+  strict: boolean
+  verbose: boolean
 }
 /**
  * EventBus for event dispatching and handling
@@ -35,39 +35,39 @@ export interface Options {
  */
 export declare class EventBus {
   /**
-     * List of wellknown resource & event type pairs
-     *
-     * If set, eventbus will throw error if unresognized pair is registered or dispatched
-     */
+   * List of wellknown resource & event type pairs
+   *
+   * If set, eventbus will throw error if unresognized pair is registered or dispatched
+   */
   readonly pairs?: WellKnownPairs
   readonly strict: boolean
   readonly verbose: boolean
   private handlers
-  constructor(opt?: Partial<Options>);
+  constructor(opt?: Partial<Options>)
   /**
-     * Dispatches event and sequentially calls all handlers.
-     *
-     * Handling handler results works a bit different then on backend.
-     * Scripts executed with handlers have DIRECT access to values passed (by reference)
-     * as arguments via event so there's no need to do an explicit return
-     *
-     * @param {Event} ev Event to dispatch
-     */
-  Dispatch(ev: Event, script?: string): Promise<null>;
+   * Dispatches event and sequentially calls all handlers.
+   *
+   * Handling handler results works a bit different then on backend.
+   * Scripts executed with handlers have DIRECT access to values passed (by reference)
+   * as arguments via event so there's no need to do an explicit return
+   *
+   * @param {Event} ev Event to dispatch
+   */
+  Dispatch(ev: Event, script?: string): Promise<null>
   /**
-     * Filters and sorts all handlers by event & constraints
-     */
+   * Filters and sorts all handlers by event & constraints
+   */
   private find
   /**
-     * Registers Event handler
-     *
-     * @param handler Handler function
-     * @param trigger Trigger definition
-     */
-  Register(handler: HandlerFn, trigger: Trigger): EventBus;
+   * Registers Event handler
+   *
+   * @param handler Handler function
+   * @param trigger Trigger definition
+   */
+  Register(handler: HandlerFn, trigger: Trigger): EventBus
   /**
-     * Unregisters all handlers
-     */
-  UnregisterAll(): EventBus;
-  protected checkPairs(resourceTypes: string[], eventTypes: string[]): void;
+   * Unregisters all handlers
+   */
+  UnregisterAll(): EventBus
+  protected checkPairs(resourceTypes: string[], eventTypes: string[]): void
 }

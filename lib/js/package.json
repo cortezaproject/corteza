@@ -18,8 +18,8 @@
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
     "test:unit": "mocha",
-    "test": "yarn test:unit",
-    "codegen": "node tools/codegen/corteza-api-client.js"
+    "test": "pnpm run test:unit",
+    "codegen": "node tools/codegen/corteza-api-client.js && prettier --write src/api-clients/*.ts && eslint --fix src/api-clients/*.ts"
   },
   "dependencies": {
     "@isaacs/brace-expansion": "^5.0.0",

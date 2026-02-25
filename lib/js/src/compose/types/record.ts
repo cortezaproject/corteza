@@ -1,4 +1,3 @@
- 
 import { AreObjectsOf, IsOf } from '../../guards'
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { Module } from './module'
@@ -8,31 +7,31 @@ const fieldIndex = Symbol('fieldIndex')
 const propModule = Symbol('module')
 const cleanValues = Symbol('cleanValues')
 
-const reservedFieldNames = [
-  'toJSON',
-]
+const reservedFieldNames = ['toJSON']
 
 interface FieldIndex {
-  isMulti: boolean;
-  kind: string;
-  defaultValue: Array<{ value: string }>;
+  isMulti: boolean
+  kind: string
+  defaultValue: Array<{ value: string }>
 }
 
 interface RawValue {
-  name: string;
-  value?: string;
+  name: string
+  value?: string
 }
 
-interface PartialRecord extends Partial<Omit<Record, 'values' | 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-  values?: RawValue[];
+interface PartialRecord extends Partial<
+  Omit<Record, 'values' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  values?: RawValue[]
 
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export interface Values {
-  [name: string]: string|string[]|undefined;
+  [name: string]: string | string[] | undefined
 }
 
 /**
@@ -143,11 +142,11 @@ export class Record {
 
       case AreObjectsOf<RawValue>(p, 'name'):
         // assuming p1 is array of raw values
-        r = ({ values: p as RawValue[] }) as PartialRecord
+        r = { values: p as RawValue[] } as PartialRecord
         break
 
       default:
-        r = ({ values: p }) as Record
+        r = { values: p } as Record
     }
 
     r = r as PartialRecord
@@ -168,11 +167,12 @@ export class Record {
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, r, CortezaID, 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
 
-    Apply(this, r, Number,
-      'revision',
-    )
+    Apply(this, r, Number, 'revision')
 
-    Apply(this, r, Boolean,
+    Apply(
+      this,
+      r,
+      Boolean,
       'canUpdateRecord',
       'canReadRecord',
       'canDeleteRecord',
@@ -240,13 +240,8 @@ export class Record {
       this[propModule] = Object.freeze(new Module(m))
     }
 
-    (this[propModule] as Module).fields.forEach(f => {
-      const {
-        name,
-        isMulti,
-        kind,
-        defaultValue,
-      } = f
+    ;(this[propModule] as Module).fields.forEach(f => {
+      const { name, isMulti, kind, defaultValue } = f
 
       if (reservedFieldNames.includes(name)) {
         throw new Error('can not use reserved field name ' + name)
@@ -275,7 +270,7 @@ export class Record {
         return
       }
 
-      const val = this.values[name] as string|string[]
+      const val = this.values[name] as string | string[]
 
       if (isMulti) {
         if (Array.isArray(this.values[name])) {
@@ -349,11 +344,11 @@ export class Record {
   protected updateValues(...combo: ValueCombo[]): void {
     // If all values are formatted as raw value
     if (combo.length === 1 && AreObjectsOf<RawValue>(combo[0], 'name')) {
-      (combo[0] as Array<RawValue>).forEach(({ name, value }) => this.setValue(name, value))
+      ;(combo[0] as Array<RawValue>).forEach(({ name, value }) => this.setValue(name, value))
       return
     }
 
-    (combo as Array<Values>).forEach(v => {
+    ;(combo as Array<Values>).forEach(v => {
       if (Array.isArray(v)) {
         this.updateValues(...v)
         return
@@ -376,7 +371,7 @@ export class Record {
    * @param name
    * @param value
    */
-  public setValue(name: string, value: undefined|string|string[], index = -1): void {
+  public setValue(name: string, value: undefined | string | string[], index = -1): void {
     // Skip reserved names
     if (reservedFieldNames.includes(name)) {
       return
@@ -390,7 +385,7 @@ export class Record {
 
     if (value === undefined || value.length === 0) {
       // nothing given, nothing set
-      this.values[name] = isMulti ? [] : (kind === 'Bool' ? '0' : undefined)
+      this.values[name] = isMulti ? [] : kind === 'Bool' ? '0' : undefined
       return
     }
 
@@ -406,11 +401,11 @@ export class Record {
       }
 
       if (index === -1) {
-        (this.values[name] as string[]).push(value)
+        ;(this.values[name] as string[]).push(value)
         return
       }
 
-      (this.values[name] as string[])[index] = value
+      ;(this.values[name] as string[])[index] = value
       return
     }
 

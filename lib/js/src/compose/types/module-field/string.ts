@@ -4,17 +4,18 @@ import { Apply } from '../../../cast'
 const kind = 'String'
 
 interface StringOptions extends Options {
-  multiLine: boolean;
-  useRichTextEditor: boolean;
-  multiDelimiter: string;
+  multiLine: boolean
+  useRichTextEditor: boolean
+  multiDelimiter: string
 }
 
-const defaults = (): Readonly<StringOptions> => Object.freeze({
-  ...defaultOptions(),
-  multiLine: false,
-  useRichTextEditor: false,
-  multiDelimiter: '\n',
-})
+const defaults = (): Readonly<StringOptions> =>
+  Object.freeze({
+    ...defaultOptions(),
+    multiLine: false,
+    useRichTextEditor: false,
+    multiDelimiter: '\n',
+  })
 
 export class ModuleFieldString extends ModuleField {
   readonly kind = kind

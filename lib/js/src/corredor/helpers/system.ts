@@ -1,43 +1,51 @@
-import { extractID, genericPermissionUpdater, isFresh, kv, ListResponse, PermissionRole, PermissionResource } from './shared'
+import {
+  extractID,
+  genericPermissionUpdater,
+  isFresh,
+  kv,
+  ListResponse,
+  PermissionRole,
+  PermissionResource,
+} from './shared'
 import { System as SystemAPI } from '../../api-clients'
 import { User, Role, Application } from '../../system/'
 import { IsCortezaID } from '../../cast'
 
 interface SystemContext {
-  SystemAPI: SystemAPI;
-  $user?: User;
-  $role?: Role;
-  $application?: Application;
+  SystemAPI: SystemAPI
+  $user?: User
+  $role?: Role
+  $application?: Application
 }
 
 interface UserListFilter {
-  [key: string]: string|boolean|number|{[key: string]: string}|undefined;
-  userID?: string;
-  roleID?: string;
-  query?: string;
-  username?: string;
-  email?: string;
-  handle?: string;
-  kind?: string;
-  incDeleted?: boolean;
-  incSuspended?: boolean;
-  deleted?: boolean;
-  suspended?: boolean;
-  labels?: {[key: string]: string};
-  limit?: number;
-  pageCursor?: string;
-  sort?: string;
+  [key: string]: string | boolean | number | { [key: string]: string } | undefined
+  userID?: string
+  roleID?: string
+  query?: string
+  username?: string
+  email?: string
+  handle?: string
+  kind?: string
+  incDeleted?: boolean
+  incSuspended?: boolean
+  deleted?: boolean
+  suspended?: boolean
+  labels?: { [key: string]: string }
+  limit?: number
+  pageCursor?: string
+  sort?: string
 }
 
 interface RoleListFilter {
-  [key: string]: string|boolean|number|{[key: string]: string}|undefined;
-  query?: string;
-  deleted?: boolean;
-  archived?: boolean;
-  labels?: {[key: string]: string};
-  limit?: number;
-  pageCursor?: string;
-  sort?: string;
+  [key: string]: string | boolean | number | { [key: string]: string } | undefined
+  query?: string
+  deleted?: boolean
+  archived?: boolean
+  labels?: { [key: string]: string }
+  limit?: number
+  pageCursor?: string
+  sort?: string
 }
 
 /**
@@ -88,17 +96,15 @@ export default class SystemHelper {
    * @property filter.perPage - max returned records per page
    * @property filter.page - page to return (1-based)
    */
-  async findUsers(filter?: string|UserListFilter): Promise<ListResponse<User[], UserListFilter>> {
+  async findUsers(filter?: string | UserListFilter): Promise<ListResponse<User[], UserListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
 
-    return this.SystemAPI
-      .userList(filter || {})
-      .then(res => {
-        res.set = (res.set as any[]).map(u => new User(u))
-        return res as unknown as ListResponse<User[], UserListFilter>
-      })
+    return this.SystemAPI.userList(filter || {}).then(res => {
+      res.set = (res.set as any[]).map(u => new User(u))
+      return res as unknown as ListResponse<User[], UserListFilter>
+    })
   }
 
   /**
@@ -109,7 +115,7 @@ export default class SystemHelper {
    *
    * @param user
    */
-  async findUserByID(user: string|User): Promise<User> {
+  async findUserByID(user: string | User): Promise<User> {
     const userID = extractID(user, 'userID')
     return this.SystemAPI.userRead({ userID }).then(u => new User(u))
   }
@@ -187,7 +193,7 @@ export default class SystemHelper {
    * @param password
    * @param user
    */
-  async setPassword(password: string, user: User|undefined = this.$user): Promise<User> {
+  async setPassword(password: string, user: User | undefined = this.$user): Promise<User> {
     return this.resolveUser(user).then(user => {
       const { userID } = user
       if (isFresh(userID)) {
@@ -208,7 +214,7 @@ export default class SystemHelper {
    *
    * @param user
    */
-  async deleteUser(user: string|User): Promise<unknown> {
+  async deleteUser(user: string | User): Promise<unknown> {
     return Promise.resolve(user).then(user => {
       const userID = extractID(user, 'userID')
 
@@ -223,17 +229,15 @@ export default class SystemHelper {
    *
    * @param filter
    */
-  async findRoles(filter?: string|RoleListFilter): Promise<ListResponse<Role[], RoleListFilter>> {
+  async findRoles(filter?: string | RoleListFilter): Promise<ListResponse<Role[], RoleListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
 
-    return this.SystemAPI
-      .roleList(filter || {})
-      .then(res => {
-        res.set = (res.set as any[]).map(r => new Role(r))
-        return res as unknown as ListResponse<Role[], RoleListFilter>
-      })
+    return this.SystemAPI.roleList(filter || {}).then(res => {
+      res.set = (res.set as any[]).map(r => new Role(r))
+      return res as unknown as ListResponse<Role[], RoleListFilter>
+    })
   }
 
   /**
@@ -241,7 +245,7 @@ export default class SystemHelper {
    *
    * @param role
    */
-  async findRoleByID(role: string|Role): Promise<Role> {
+  async findRoleByID(role: string | Role): Promise<Role> {
     const roleID = extractID(role, 'roleID')
     return this.SystemAPI.roleRead({ roleID }).then(r => new Role(r))
   }
@@ -309,17 +313,19 @@ export default class SystemHelper {
    * @param user resolvable user input
    * @param role resolvable role input
    */
-  async addUserToRole(user: User|string, role: Role|string): Promise<unknown> {
+  async addUserToRole(user: User | string, role: Role | string): Promise<unknown> {
     let userID: string
     let roleID: string
 
-    return this.resolveUser(user, this.$user).then(user => {
-      userID = extractID(user, 'userID')
-      return this.resolveRole(role, this.$role)
-    }).then(role => {
-      roleID = extractID(role, 'roleID')
-      return this.SystemAPI.roleMemberAdd({ roleID, userID })
-    })
+    return this.resolveUser(user, this.$user)
+      .then(user => {
+        userID = extractID(user, 'userID')
+        return this.resolveRole(role, this.$role)
+      })
+      .then(role => {
+        roleID = extractID(role, 'roleID')
+        return this.SystemAPI.roleMemberAdd({ roleID, userID })
+      })
   }
 
   /**
@@ -330,17 +336,19 @@ export default class SystemHelper {
    * @param user - resolvable user input
    * @param role - resolvable role input
    */
-  async removeUserFromRole(user: User|string, role: Role|string): Promise<unknown> {
+  async removeUserFromRole(user: User | string, role: Role | string): Promise<unknown> {
     let userID: string
     let roleID: string
 
-    return this.resolveUser(user, this.$user).then(user => {
-      userID = extractID(user, 'userID')
-      return this.resolveRole(role, this.$role)
-    }).then(role => {
-      roleID = extractID(role, 'roleID')
-      return this.SystemAPI.roleMemberRemove({ roleID, userID })
-    })
+    return this.resolveUser(user, this.$user)
+      .then(user => {
+        userID = extractID(user, 'userID')
+        return this.resolveRole(role, this.$role)
+      })
+      .then(role => {
+        roleID = extractID(role, 'roleID')
+        return this.SystemAPI.roleMemberRemove({ roleID, userID })
+      })
   }
 
   /**
@@ -388,10 +396,7 @@ export default class SystemHelper {
       }
 
       // Other kind of object with properties that might hold user ID
-      const {
-        userID,
-        ownerID,
-      } = u as { userID?: string; ownerID?: string}
+      const { userID, ownerID } = u as { userID?: string; ownerID?: string }
       return this.resolveUser(userID, ownerID)
     }
 
@@ -435,9 +440,7 @@ export default class SystemHelper {
       }
 
       // Other kind of object with properties that might hold role ID
-      const {
-        roleID,
-      } = r as { roleID?: string}
+      const { roleID } = r as { roleID?: string }
       return this.resolveRole(roleID)
     }
 
@@ -497,7 +500,9 @@ export default class SystemHelper {
    *    operation: 'read',
    * })
    */
-  async inherit(...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
+  async inherit(
+    ...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]
+  ) {
     const rr = pr.map(p => ({
       role: p.role,
       resource: p.resource,
