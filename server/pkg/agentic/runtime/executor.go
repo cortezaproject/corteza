@@ -10,6 +10,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 
 	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
+	"github.com/cortezaproject/corteza/server/pkg/agentic/policy"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -178,7 +179,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			})
 
 			// Execute tools and append results to conversation
-			results, infos := r.executeTools(ctx, llmResp.ToolCalls, traceID, rootSpanID, agentIDStr, userIDStr, convIDStr)
+			results, infos := r.executeTools(ctx, agent, llmResp.ToolCalls, traceID, rootSpanID, agentIDStr, userIDStr, convIDStr)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 		} else {
@@ -310,7 +311,7 @@ func (u *Usage) accumulate(other Usage) {
 }
 
 // executeTools runs each tool call and returns conversation messages + telemetry info.
-func (r *runtime) executeTools(ctx context.Context, calls []ToolCall, traceID, parentSpanID, agentID, userID, convID string) ([]types.AiConversationMessage, []ToolCallInfo) {
+func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, traceID, parentSpanID, agentID, userID, convID string) ([]types.AiConversationMessage, []ToolCallInfo) {
 	var (
 		messages []types.AiConversationMessage
 		infos    []ToolCallInfo
@@ -319,7 +320,52 @@ func (r *runtime) executeTools(ctx context.Context, calls []ToolCall, traceID, p
 	for _, tc := range calls {
 		start := time.Now()
 
-		// TODO: Policy check (allow/deny)
+		policyStart := time.Now()
+		decision := policy.Evaluate(agent, tc.Name, tc.Args)
+		policySpan := observability.AgentSpan{
+			ID:             sid(),
+			ParentID:       parentSpanID,
+			TraceID:        traceID,
+			Name:           "policy.evaluate",
+			AgentID:        agentID,
+			UserID:         userID,
+			ConversationID: convID,
+			StartedAt:      policyStart,
+			EndedAt:        time.Now(),
+			Attributes:     map[string]any{"tool": tc.Name, "allowed": decision.Allowed, "reason": decision.Reason},
+		}
+		if decision.Allowed {
+			policySpan.Status = observability.StatusOK
+		} else {
+			policySpan.Status = observability.StatusError
+		}
+		r.emitSpan(policySpan)
+
+		if !decision.Allowed {
+			r.emitEvent(observability.AgentEvent{
+				ID:             sid(),
+				TraceID:        traceID,
+				SpanID:         parentSpanID,
+				Timestamp:      time.Now(),
+				Event:          "tool.denied",
+				AgentID:        agentID,
+				UserID:         userID,
+				ConversationID: convID,
+				Details:        map[string]any{"tool": tc.Name, "reason": decision.Reason},
+			})
+			infos = append(infos, ToolCallInfo{
+				Tool:  tc.Name,
+				Args:  tc.Args,
+				Error: decision.Reason,
+			})
+			messages = append(messages, types.AiConversationMessage{
+				Role: "tool",
+				ToolResults: []types.AiConversationToolResult{
+					{CallID: tc.ID, Data: decision.Reason, Error: decision.Reason},
+				},
+			})
+			continue
+		}
 
 		r.emitEvent(observability.AgentEvent{
 			ID:             sid(),
@@ -330,10 +376,10 @@ func (r *runtime) executeTools(ctx context.Context, calls []ToolCall, traceID, p
 			AgentID:        agentID,
 			UserID:         userID,
 			ConversationID: convID,
-			Details:        map[string]any{"tool": tc.Name, "args": tc.Args},
+			Details:        map[string]any{"tool": tc.Name, "args": decision.SanitizedArgs},
 		})
 
-		result, execErr := r.mcp.ExecuteTool(ctx, tc.Name, tc.Args)
+		result, execErr := r.mcp.ExecuteTool(ctx, tc.Name, decision.SanitizedArgs)
 		duration := int(time.Since(start).Milliseconds())
 
 		toolSpan := observability.AgentSpan{
@@ -367,6 +413,10 @@ func (r *runtime) executeTools(ctx context.Context, calls []ToolCall, traceID, p
 			ConversationID: convID,
 			Details:        map[string]any{"tool": tc.Name, "durationMs": duration},
 		})
+
+		if resultMap, ok := result.(map[string]any); ok {
+			result = policy.FilterResponse(ctx, agent, tc.Name, resultMap)
+		}
 
 		resultData, _ := json.Marshal(result)
 
