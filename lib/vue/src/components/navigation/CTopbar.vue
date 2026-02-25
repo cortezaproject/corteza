@@ -3,7 +3,7 @@
     <!-- Sidebar toggle + small logo -->
     <div v-if="!sidebarExpanded">
       <!-- When sidebar is disabled on this route, show only icon logo -->
-      <img v-if="sidebarDisabled" :src="iconLogo" class="h-8 w-8 object-contain" />
+      <img v-if="sidebarDisabled" :src="iconLogo" class="h-10 w-10 p-2 object-contain" />
 
       <!-- Normal mode: hamburger toggle only when collapsed -->
       <template v-else>
