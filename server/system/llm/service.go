@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	rt "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
+	"github.com/cortezaproject/corteza/server/system/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
@@ -134,7 +134,7 @@ func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProv
 	}
 }
 
-func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.AiConversationMessage, tools []rt.Tool, config rt.LLMConfig) (*rt.LLMResponse, error) {
+func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.AiConversationMessage, tools []runtime.Tool, config runtime.LLMConfig) (*runtime.LLMResponse, error) {
 	messages := []Message{{Role: "system", Content: prompt}}
 	for _, m := range history {
 		messages = append(messages, fromConversationMessage(m))
@@ -157,19 +157,19 @@ func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.
 		return nil, err
 	}
 
-	var toolCalls []rt.ToolCall
+	var toolCalls []runtime.ToolCall
 	for _, tc := range resp.Message.ToolCalls {
-		toolCalls = append(toolCalls, rt.ToolCall{
+		toolCalls = append(toolCalls, runtime.ToolCall{
 			ID:   tc.ID,
 			Name: tc.Name,
 			Args: tc.Arguments,
 		})
 	}
 
-	return &rt.LLMResponse{
+	return &runtime.LLMResponse{
 		Text:      resp.Message.Content,
 		ToolCalls: toolCalls,
-		Usage: rt.Usage{
+		Usage: runtime.Usage{
 			InputTokens:  resp.Usage.PromptTokens,
 			OutputTokens: resp.Usage.CompletionTokens,
 			TotalTokens:  resp.Usage.TotalTokens,

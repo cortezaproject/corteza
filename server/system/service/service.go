@@ -12,7 +12,7 @@ import (
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
-	agenticRuntime "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
+	"github.com/cortezaproject/corteza/server/system/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
@@ -47,7 +47,7 @@ type (
 		Limit      options.LimitOpt
 		Attachment options.AttachmentOpt
 		Webapps    options.WebappOpt
-		MCPClient  agenticRuntime.MCPClient
+		MCPClient  runtime.MCPClient
 		ObsBus     *observability.Bus
 	}
 
@@ -58,7 +58,7 @@ type (
 
 	// AgenticRunner abstracts the agentic runtime execution.
 	AgenticRunner interface {
-		Run(ctx context.Context, req *agenticRuntime.AgentRequest) (*agenticRuntime.AgentResponse, error)
+		Run(ctx context.Context, req *runtime.AgentRequest) (*runtime.AgentResponse, error)
 	}
 )
 
@@ -250,7 +250,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		return fmt.Errorf("could not initialize LLM service: %w", err)
 	}
 
-	DefaultAgenticRuntime = agenticRuntime.Runtime(
+	DefaultAgenticRuntime = runtime.Runtime(
 		DefaultAgent,
 		DefaultLlmService,
 		c.MCPClient,

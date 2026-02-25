@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	rt "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
+	"github.com/cortezaproject/corteza/server/system/runtime"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -42,8 +42,8 @@ func (r *Registry) RegisterResource(resource mcp.Resource, handler server.Resour
 	r.resources[resource.URI] = registeredResource{Resource: resource, Handler: handler}
 }
 
-func (r *Registry) GetTools(ctx context.Context, agentID uint64) ([]rt.Tool, error) {
-	out := make([]rt.Tool, 0, len(r.tools))
+func (r *Registry) GetTools(ctx context.Context, agentID uint64) ([]runtime.Tool, error) {
+	out := make([]runtime.Tool, 0, len(r.tools))
 	for _, t := range r.tools {
 		schema := map[string]any{
 			"type":       t.Tool.InputSchema.Type,
@@ -53,7 +53,7 @@ func (r *Registry) GetTools(ctx context.Context, agentID uint64) ([]rt.Tool, err
 			schema["required"] = t.Tool.InputSchema.Required
 		}
 
-		out = append(out, rt.Tool{
+		out = append(out, runtime.Tool{
 			Name:        t.Tool.Name,
 			Description: t.Tool.Description,
 			InputSchema: schema,
