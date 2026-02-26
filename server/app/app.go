@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/llm"
-	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
+	mcpkg "github.com/cortezaproject/corteza/server/system/agentic/mcp"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"

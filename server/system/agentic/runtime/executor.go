@@ -9,8 +9,8 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
-	"github.com/cortezaproject/corteza/server/pkg/agentic/policy"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
+	"github.com/cortezaproject/corteza/server/system/agentic/policy"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -414,11 +414,12 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			Details:        map[string]any{"tool": tc.Name, "durationMs": duration},
 		})
 
-		if resultMap, ok := result.(map[string]any); ok {
-			result = policy.FilterResponse(ctx, agent, tc.Name, resultMap)
-		}
-
 		resultData, _ := json.Marshal(result)
+		var resultMap map[string]any
+		if json.Unmarshal(resultData, &resultMap) == nil {
+			result = policy.FilterResponse(ctx, agent, tc.Name, resultMap)
+			resultData, _ = json.Marshal(result)
+		}
 
 		toolResult := types.AiConversationToolResult{
 			CallID: tc.ID,

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	rt "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
+	rt "github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )

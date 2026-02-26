@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	rt "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
+	rt "github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
