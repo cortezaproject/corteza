@@ -3,7 +3,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
