@@ -20,7 +20,7 @@ type (
 	}
 )
 
-func (svc *restAPIWrapper) Run(ctx context.Context, method string, path string, payload []byte, headers map[string][]string) (rsp []byte, err error) {
+func (svc *restAPIWrapper) Run(ctx context.Context, method string, path string, payload []byte, headers map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error) {
 	client := svc.client
 	client, err = svc.appendAuth(ctx, client)
 	if err != nil {
@@ -97,20 +97,20 @@ func (svc *restAPIWrapper) appendAuthOAuth2(ctx context.Context, client *httpCli
 }
 
 // @todo would make sense to stream the output
-func (svc *restAPIWrapper) procOut(resp *http.Response, err error) (rsp []byte, _ error) {
+func (svc *restAPIWrapper) procOut(resp *http.Response, err error) (statusCode int, outHeaders map[string][]string, rsp []byte, _ error) {
 	if err != nil {
-		return nil, err
+		return 0, nil, nil, err
 	}
 
 	if resp == nil {
-		return nil, fmt.Errorf("nil response")
+		return 0, nil, nil, fmt.Errorf("nil response")
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return body, nil
+	return resp.StatusCode, resp.Header, body, nil
 }

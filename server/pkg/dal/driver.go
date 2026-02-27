@@ -109,6 +109,10 @@ type (
 		SetValue(string, uint, any) error
 	}
 
+	RawExecutor interface {
+		Execute(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (statusCode int, outHeaders map[string][]string, responseBody []byte, err error)
+	}
+
 	ConnectorFn func(ctx context.Context, dsn string) (Connection, error)
 
 	DriverConnectionParam struct {
@@ -289,25 +293,30 @@ func expandDSN(base DSN, connID uint64, cp ConnectionParams) (out DSN, err error
 			return out, err
 		}
 
+		auxParams := make(map[string]any)
+		for k, v := range aux.Params {
+			auxParams[strings.ToLower(k)] = v
+		}
+
 		// @todo validation and all that :)
 		out.AuthType = strings.ToLower(aux.Method)
-		out.Username, _ = aux.Params["username"].(string)
-		out.Password, _ = aux.Params["password"].(string)
-		out.Token, _ = aux.Params["token"].(string)
-		out.APIKey, _ = aux.Params["APIKey"].(string)
-		out.APIKeyHeader, _ = aux.Params["APIKeyHeader"].(string)
-		out.ClientID, _ = aux.Params["clientID"].(string)
-		out.ClientSecret, _ = aux.Params["clientSecret"].(string)
-		out.TokenURL, _ = aux.Params["tokenURL"].(string)
+		out.Username, _ = auxParams["username"].(string)
+		out.Password, _ = auxParams["password"].(string)
+		out.Token, _ = auxParams["token"].(string)
+		out.APIKey, _ = auxParams["apikey"].(string)
+		out.APIKeyHeader, _ = auxParams["apikeyheader"].(string)
+		out.ClientID, _ = auxParams["clientid"].(string)
+		out.ClientSecret, _ = auxParams["clientsecret"].(string)
+		out.TokenURL, _ = auxParams["tokenurl"].(string)
 
 		// JWT bearer / Google service account fields
-		if pk, _ := aux.Params["private_key"].(string); pk != "" {
+		if pk, _ := auxParams["private_key"].(string); pk != "" {
 			out.Token = pk
 		}
-		if email, _ := aux.Params["client_email"].(string); email != "" {
+		if email, _ := auxParams["client_email"].(string); email != "" {
 			out.Username = email
 		}
-		if tu, _ := aux.Params["token_uri"].(string); tu != "" {
+		if tu, _ := auxParams["token_uri"].(string); tu != "" {
 			out.TokenURL = tu
 		}
 	}

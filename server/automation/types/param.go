@@ -125,7 +125,7 @@ func (set ParamSet) VerifyResults(ee ExprSet) error {
 	}
 
 	for _, p := range set {
-		e := ee.GetByTarget(p.Name)
+		e := ee.GetByArgumentName(p.Name)
 		if e == nil {
 			continue
 		}

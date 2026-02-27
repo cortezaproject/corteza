@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -34,11 +33,10 @@ func newWrapper(baseURL string, connectionID uint64) *gsheetsWrapper {
 // {"values":[["h1","h2"],["v1","v2"],...]} (array of arrays, row 0 = headers).
 // This method transforms it into [{"h1":"v1","h2":"v2"},...] so the
 // existing apidal iterator/table codec can process it unchanged.
-func (w *gsheetsWrapper) Run(ctx context.Context, method string, path string, payload []byte, extraHeaders map[string][]string) (rsp []byte, err error) {
+func (w *gsheetsWrapper) Run(ctx context.Context, method string, path string, payload []byte, extraHeaders map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error) {
 	token, err := cred_registry.Default().GetAccessToken(ctx, w.connectionID)
-	spew.Dump("REQUEST PAYLOAD", method, path, payload, extraHeaders)
 	if err != nil {
-		return nil, fmt.Errorf("x> failed to get access token: %w", err)
+		return 0, nil, nil, fmt.Errorf("failed to get access token: %w", err)
 	}
 
 	fullURL := w.baseURL + path
@@ -50,7 +48,7 @@ func (w *gsheetsWrapper) Run(ctx context.Context, method string, path string, pa
 
 	req, err := http.NewRequestWithContext(ctx, method, fullURL, bodyReader)
 	if err != nil {
-		return nil, err
+		return 0, nil, nil, err
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
@@ -64,30 +62,28 @@ func (w *gsheetsWrapper) Run(ctx context.Context, method string, path string, pa
 
 	resp, err := w.client.Do(req)
 	if err != nil {
-		return nil, err
+		return 0, nil, nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	spew.Dump("lalalsalsdaoiusdoydi76u", body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("sheets API returned %d: %s", resp.StatusCode, string(body))
+		return resp.StatusCode, resp.Header, nil, fmt.Errorf("sheets API returned %d: %s", resp.StatusCode, string(body))
 	}
 
 	// For GET operations, transform array-of-arrays into JSON objects
 	if method == "GET" {
 		body, err = transformSheetsResponse(body)
 		if err != nil {
-			return nil, fmt.Errorf("failed to transform sheets response: %w", err)
+			return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to transform sheets response: %w", err)
 		}
 	}
 
-	spew.Dump("ll", body)
-	return body, nil
+	return resp.StatusCode, resp.Header, body, nil
 }
 
 // transformSheetsResponse converts:

@@ -14,7 +14,7 @@ import (
 
 type (
 	runner interface {
-		Run(ctx context.Context, method string, endpoint string, payload []byte, headers map[string][]string) (rsp []byte, err error)
+		Run(ctx context.Context, method string, endpoint string, payload []byte, headers map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error)
 	}
 
 	model struct {
@@ -59,7 +59,7 @@ func (d *model) Create(ctx context.Context, rr ...dal.ValueGetter) ([]map[string
 		}
 
 		var body []byte
-		body, err = d.conn.Run(ctx, method, endpoint, payload, nil)
+		_, _, body, err = d.conn.Run(ctx, method, endpoint, payload, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +97,7 @@ func (d *model) Update(ctx context.Context, r dal.ValueGetter) error {
 		return err
 	}
 
-	_, err = d.conn.Run(ctx, method, endpoint, payload, nil)
+	_, _, _, err = d.conn.Run(ctx, method, endpoint, payload, nil)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (d *model) Delete(ctx context.Context, r dal.ValueGetter) error {
 		return err
 	}
 
-	_, err = d.conn.Run(ctx, method, endpoint, nil, nil)
+	_, _, _, err = d.conn.Run(ctx, method, endpoint, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func (d *model) Lookup(ctx context.Context, pkv dal.ValueGetter, r dal.ValueSett
 		return
 	}
 
-	rsp, err := d.conn.Run(ctx, method, endpoint, nil, nil)
+	_, _, rsp, err := d.conn.Run(ctx, method, endpoint, nil, nil)
 	if err != nil {
 		return
 	}

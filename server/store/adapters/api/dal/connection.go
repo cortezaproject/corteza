@@ -247,13 +247,19 @@ func (c *connection) AssertSchemaAlterations(ctx context.Context, model *dal.Mod
 	return
 }
 
-// ApplyAhlteration applies the given alterations to the underlying schema
+// ApplyAlteration applies the given alterations to the underlying schema
 //
 // The returned slice of error indicates what alterations failed.
 // If the corresponding index is nil, the alteration was successful.
 func (c *connection) ApplyAlteration(ctx context.Context, model *dal.Model, alt ...*dal.Alteration) (errs []error) {
 	errs = []error{errors.New("operations not supported by the API driver")}
 	return
+}
+
+// Execute performs a raw HTTP request bypassing the model layer.
+// This is used for custom connector operations.
+func (c *connection) Execute(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (statusCode int, outHeaders map[string][]string, responseBody []byte, err error) {
+	return c.runner.Run(ctx, method, path, payload, headers)
 }
 
 func cacheKey(m *dal.Model) (key string) {

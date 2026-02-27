@@ -88,7 +88,7 @@ func (i *iterator) fetch(ctx context.Context) (rows [][]byte, err error) {
 	}
 
 	// Run the request
-	data, err := i.src.conn.Run(ctx, i.method, i.dst.dialect.EncrichEndpoint(i.endpoint, xr), nil, nil)
+	_, _, data, err := i.src.conn.Run(ctx, i.method, i.dst.dialect.EncrichEndpoint(i.endpoint, xr), nil, nil)
 	if err != nil {
 		return
 	}
