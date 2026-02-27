@@ -20,10 +20,9 @@ type (
 		Meta    ConnectionMeta    `json:"meta"`
 		Service ConnectionService `json:"service"`
 
-		Resources          ConnectionResources      `json:"resources"`
-		StandardOperations ConnectionStandardOps    `json:"standardOperations"`
-		Operations         ConnectionOperations     `json:"operations"`
-		DerivedParams      []ConnectionDerivedParam `json:"derivedParams,omitempty"`
+		Resources     ConnectionResources      `json:"resources"`
+		Operations    ConnectionOperations     `json:"operations"`
+		DerivedParams []ConnectionDerivedParam `json:"derivedParams,omitempty"`
 
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
@@ -70,11 +69,12 @@ type (
 	}
 
 	ConnectionResource struct {
-		Handle   string                    `json:"handle"`
-		Meta     ConnectionResourceMeta    `json:"meta"`
-		Endpoint ConnectionTemplate        `json:"endpoint"`
-		Fields   []ConnectionResourceField `json:"fields"`
-		Webhooks []ConnectionWebhook       `json:"webhooks,omitempty"`
+		Handle     string                       `json:"handle"`
+		Meta       ConnectionResourceMeta       `json:"meta"`
+		Endpoint   ConnectionTemplate           `json:"endpoint"`
+		Operations ConnectionResourceOperations `json:"operations,omitempty"`
+		Fields     []ConnectionResourceField    `json:"fields"`
+		Webhooks   []ConnectionWebhook          `json:"webhooks,omitempty"`
 	}
 
 	ConnectionResourceMeta struct {
@@ -112,7 +112,7 @@ type (
 		ResponseMap  map[string]string             `json:"responseMap,omitempty"`
 	}
 
-	ConnectionStandardOps struct {
+	ConnectionResourceOperations struct {
 		List   *ConnectionHTTPAction `json:"list,omitempty"`
 		Read   *ConnectionHTTPAction `json:"read,omitempty"`
 		Create *ConnectionHTTPAction `json:"create,omitempty"`
@@ -183,13 +183,13 @@ func ParseConnectionService(ss []string) (m ConnectionService, err error) {
 	return
 }
 
-func (m *ConnectionMeta) Scan(src any) error                 { return sql.ParseJSON(src, m) }
-func (m ConnectionMeta) Value() (driver.Value, error)        { return json.Marshal(m) }
-func (m *ConnectionService) Scan(src any) error              { return sql.ParseJSON(src, m) }
-func (m ConnectionService) Value() (driver.Value, error)     { return json.Marshal(m) }
-func (m *ConnectionResources) Scan(src any) error            { return sql.ParseJSON(src, m) }
-func (m ConnectionResources) Value() (driver.Value, error)   { return json.Marshal(m) }
-func (m *ConnectionStandardOps) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ConnectionStandardOps) Value() (driver.Value, error) { return json.Marshal(m) }
-func (m *ConnectionOperations) Scan(src any) error           { return sql.ParseJSON(src, m) }
-func (m ConnectionOperations) Value() (driver.Value, error)  { return json.Marshal(m) }
+func (m *ConnectionMeta) Scan(src any) error                        { return sql.ParseJSON(src, m) }
+func (m ConnectionMeta) Value() (driver.Value, error)               { return json.Marshal(m) }
+func (m *ConnectionService) Scan(src any) error                     { return sql.ParseJSON(src, m) }
+func (m ConnectionService) Value() (driver.Value, error)            { return json.Marshal(m) }
+func (m *ConnectionResources) Scan(src any) error                   { return sql.ParseJSON(src, m) }
+func (m ConnectionResources) Value() (driver.Value, error)          { return json.Marshal(m) }
+func (m *ConnectionResourceOperations) Scan(src any) error          { return sql.ParseJSON(src, m) }
+func (m ConnectionResourceOperations) Value() (driver.Value, error) { return json.Marshal(m) }
+func (m *ConnectionOperations) Scan(src any) error                  { return sql.ParseJSON(src, m) }
+func (m ConnectionOperations) Value() (driver.Value, error)         { return json.Marshal(m) }

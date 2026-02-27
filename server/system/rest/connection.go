@@ -45,7 +45,8 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
-		Install(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
+		Configure(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
+		UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 	}
 )
 
@@ -96,9 +97,6 @@ func (ctrl Connection) Create(ctx context.Context, r *request.ConnectionCreate) 
 	if r.Resources != nil {
 		_ = json.Unmarshal(r.Resources, &connection.Resources)
 	}
-	if r.StandardOperations != nil {
-		_ = json.Unmarshal(r.StandardOperations, &connection.StandardOperations)
-	}
 	if r.Operations != nil {
 		_ = json.Unmarshal(r.Operations, &connection.Operations)
 	}
@@ -122,9 +120,6 @@ func (ctrl Connection) Update(ctx context.Context, r *request.ConnectionUpdate) 
 
 	if r.Resources != nil {
 		_ = json.Unmarshal(r.Resources, &connection.Resources)
-	}
-	if r.StandardOperations != nil {
-		_ = json.Unmarshal(r.StandardOperations, &connection.StandardOperations)
 	}
 	if r.Operations != nil {
 		_ = json.Unmarshal(r.Operations, &connection.Operations)
@@ -160,21 +155,39 @@ func (ctrl Connection) Generate(ctx context.Context, r *request.ConnectionGenera
 	return nil, nil
 }
 
-func (ctrl Connection) Install(ctx context.Context, r *request.ConnectionInstall) (interface{}, error) {
+func (ctrl Connection) Configure(ctx context.Context, r *request.ConnectionConfigure) (interface{}, error) {
 	conn := &types.ConfiguredConnection{
 		ConnectionID: r.ConnectionID,
 		Name:         r.Name,
 		Config:       r.Config,
-		Status:       "active",
+		Status:       "draft",
 		Labels:       r.Labels,
 	}
 
-	res, err := ctrl.svc.Install(ctx, conn)
+	res, err := ctrl.svc.Configure(ctx, conn)
 	if err != nil {
 		return nil, err
 	}
 
-	return ctrl.makeInstallPayload(ctx, res), nil
+	return ctrl.makeConfigurePayload(ctx, res), nil
+}
+
+func (ctrl Connection) UpdateConfiguration(ctx context.Context, r *request.ConnectionUpdateConfiguration) (interface{}, error) {
+	conn := &types.ConfiguredConnection{
+		ID:           r.ConfiguredConnectionID,
+		ConnectionID: r.ConnectionID,
+		Name:         r.Name,
+		Config:       r.Config,
+		Status:       "draft",
+		Labels:       r.Labels,
+	}
+
+	res, err := ctrl.svc.UpdateConfiguration(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makeConfigurePayload(ctx, res), nil
 }
 
 func (ctrl Connection) makeFilterPayload(ctx context.Context, set types.ConnectionSet, f types.ConnectionFilter) (*connectionSetPayload, error) {
@@ -198,7 +211,7 @@ func (ctrl Connection) makePayload(ctx context.Context, c *types.Connection) *co
 	}
 }
 
-func (ctrl Connection) makeInstallPayload(ctx context.Context, c *types.ConfiguredConnection) *configuredConnectionPayload {
+func (ctrl Connection) makeConfigurePayload(ctx context.Context, c *types.ConfiguredConnection) *configuredConnectionPayload {
 	return &configuredConnectionPayload{
 		ConfiguredConnection:          c,
 		CanUpdateConfiguredConnection: ctrl.ac.CanUpdateConfiguredConnection(ctx, c),

@@ -12,7 +12,7 @@ import (
 
 type (
 	ConfiguredConnection struct {
-		ID           uint64 `json:"connectionID,string"`
+		ID           uint64 `json:"configurationID,string"`
 		ConnectionID uint64 `json:"connectionID,string"`
 
 		Name   string `json:"name"`
@@ -32,8 +32,10 @@ type (
 	}
 
 	ConfiguredConnectionConfig struct {
+		NamespaceID     uint64 `json:"namespaceID,string"`
+		DalConnectionID uint64 `json:"dalConnectionID,string"`
+
 		CredentialID uint64                      `json:"credentialID,string"`
-		NamespaceID  uint64                      `json:"namespaceID,string"`
 		Params       []ConfiguredConnectionParam `json:"params,omitempty"`
 	}
 

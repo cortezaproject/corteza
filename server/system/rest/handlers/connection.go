@@ -26,19 +26,21 @@ type (
 		Delete(context.Context, *request.ConnectionDelete) (interface{}, error)
 		Undelete(context.Context, *request.ConnectionUndelete) (interface{}, error)
 		Generate(context.Context, *request.ConnectionGenerate) (interface{}, error)
-		Install(context.Context, *request.ConnectionInstall) (interface{}, error)
+		Configure(context.Context, *request.ConnectionConfigure) (interface{}, error)
+		UpdateConfiguration(context.Context, *request.ConnectionUpdateConfiguration) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Connection struct {
-		List     func(http.ResponseWriter, *http.Request)
-		Create   func(http.ResponseWriter, *http.Request)
-		Update   func(http.ResponseWriter, *http.Request)
-		Read     func(http.ResponseWriter, *http.Request)
-		Delete   func(http.ResponseWriter, *http.Request)
-		Undelete func(http.ResponseWriter, *http.Request)
-		Generate func(http.ResponseWriter, *http.Request)
-		Install  func(http.ResponseWriter, *http.Request)
+		List                func(http.ResponseWriter, *http.Request)
+		Create              func(http.ResponseWriter, *http.Request)
+		Update              func(http.ResponseWriter, *http.Request)
+		Read                func(http.ResponseWriter, *http.Request)
+		Delete              func(http.ResponseWriter, *http.Request)
+		Undelete            func(http.ResponseWriter, *http.Request)
+		Generate            func(http.ResponseWriter, *http.Request)
+		Configure           func(http.ResponseWriter, *http.Request)
+		UpdateConfiguration func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -156,15 +158,31 @@ func NewConnection(h ConnectionAPI) *Connection {
 
 			api.Send(w, r, value)
 		},
-		Install: func(w http.ResponseWriter, r *http.Request) {
+		Configure: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionInstall()
+			params := request.NewConnectionConfigure()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.Install(r.Context(), params)
+			value, err := h.Configure(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		UpdateConfiguration: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConnectionUpdateConfiguration()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UpdateConfiguration(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -185,6 +203,7 @@ func (h Connection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 		r.Delete("/connections/{connectionID}", h.Delete)
 		r.Post("/connections/{connectionID}/undelete", h.Undelete)
 		r.Post("/connections/generate", h.Generate)
-		r.Post("/connections/{connectionID}/install", h.Install)
+		r.Post("/connections/{connectionID}/configure", h.Configure)
+		r.Patch("/connections/{connectionID}/configure/{configuredConnectionID}", h.UpdateConfiguration)
 	})
 }

@@ -22,6 +22,8 @@ import (
 type (
 	configuredConnectionActionProps struct {
 		connection *types.ConfiguredConnection
+		new        *types.ConfiguredConnection
+		update     *types.ConfiguredConnection
 		filter     *types.ConfiguredConnectionFilter
 	}
 
@@ -58,6 +60,22 @@ func (p *configuredConnectionActionProps) setConnection(connection *types.Config
 	return p
 }
 
+// setNew updates configuredConnectionActionProps's new
+//
+// This function is auto-generated.
+func (p *configuredConnectionActionProps) setNew(new *types.ConfiguredConnection) *configuredConnectionActionProps {
+	p.new = new
+	return p
+}
+
+// setUpdate updates configuredConnectionActionProps's update
+//
+// This function is auto-generated.
+func (p *configuredConnectionActionProps) setUpdate(update *types.ConfiguredConnection) *configuredConnectionActionProps {
+	p.update = update
+	return p
+}
+
 // setFilter updates configuredConnectionActionProps's filter
 //
 // This function is auto-generated.
@@ -77,6 +95,14 @@ func (p configuredConnectionActionProps) Serialize() actionlog.Meta {
 	if p.connection != nil {
 		m.Set("connection.name", p.connection.Name, true)
 		m.Set("connection.ID", p.connection.ID, true)
+	}
+	if p.new != nil {
+		m.Set("new.name", p.new.Name, true)
+		m.Set("new.ID", p.new.ID, true)
+	}
+	if p.update != nil {
+		m.Set("update.name", p.update.Name, true)
+		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.filter != nil {
 		m.Set("filter.connectionID", p.filter.ConnectionID, true)
@@ -123,6 +149,34 @@ func (p configuredConnectionActionProps) Format(in string, err error) string {
 		)
 		pairs = append(pairs, "{{connection.name}}", fns(p.connection.Name))
 		pairs = append(pairs, "{{connection.ID}}", fns(p.connection.ID))
+	}
+
+	if p.new != nil {
+		// replacement for "{{new}}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{{new}}",
+			fns(
+				p.new.Name,
+				p.new.ID,
+			),
+		)
+		pairs = append(pairs, "{{new.name}}", fns(p.new.Name))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
+	}
+
+	if p.update != nil {
+		// replacement for "{{update}}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{{update}}",
+			fns(
+				p.update.Name,
+				p.update.ID,
+			),
+		)
+		pairs = append(pairs, "{{update.name}}", fns(p.update.Name))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
@@ -212,15 +266,34 @@ func ConfiguredConnectionActionLookup(props ...*configuredConnectionActionProps)
 	return a
 }
 
-// ConfiguredConnectionActionInstall returns "system:configured-connection.install" action
+// ConfiguredConnectionActionCreate returns "system:configured-connection.create" action
 //
 // This function is auto-generated.
-func ConfiguredConnectionActionInstall(props ...*configuredConnectionActionProps) *configuredConnectionAction {
+func ConfiguredConnectionActionCreate(props ...*configuredConnectionActionProps) *configuredConnectionAction {
 	a := &configuredConnectionAction{
 		timestamp: time.Now(),
 		resource:  "system:configured-connection",
-		action:    "install",
-		log:       "installed {{connection}}",
+		action:    "create",
+		log:       "created {{connection}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ConfiguredConnectionActionUpdate returns "system:configured-connection.update" action
+//
+// This function is auto-generated.
+func ConfiguredConnectionActionUpdate(props ...*configuredConnectionActionProps) *configuredConnectionAction {
+	a := &configuredConnectionAction{
+		timestamp: time.Now(),
+		resource:  "system:configured-connection",
+		action:    "update",
+		log:       "updated {{connection}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -240,6 +313,25 @@ func ConfiguredConnectionActionDelete(props ...*configuredConnectionActionProps)
 		resource:  "system:configured-connection",
 		action:    "delete",
 		log:       "deleted {{connection}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ConfiguredConnectionActionEnable returns "system:configured-connection.enable" action
+//
+// This function is auto-generated.
+func ConfiguredConnectionActionEnable(props ...*configuredConnectionActionProps) *configuredConnectionAction {
+	a := &configuredConnectionAction{
+		timestamp: time.Now(),
+		resource:  "system:configured-connection",
+		action:    "enable",
+		log:       "enabled {{connection}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -384,6 +476,38 @@ func ConfiguredConnectionErrDeletionNotSupported(mm ...*configuredConnectionActi
 	return e
 }
 
+// ConfiguredConnectionErrCannotUpdateInstalled returns "system:configured-connection.cannotUpdateInstalled" as *errors.Error
+//
+// This function is auto-generated.
+func ConfiguredConnectionErrCannotUpdateInstalled(mm ...*configuredConnectionActionProps) *errors.Error {
+	var p = &configuredConnectionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("cannot update installed connection", nil),
+
+		errors.Meta("type", "cannotUpdateInstalled"),
+		errors.Meta("resource", "system:configured-connection"),
+
+		errors.Meta(configuredConnectionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "configured-connection.errors.cannotUpdateInstalled"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ConfiguredConnectionErrNotAllowedToRead returns "system:configured-connection.notAllowedToRead" as *errors.Error
 //
 // This function is auto-generated.
@@ -408,6 +532,40 @@ func ConfiguredConnectionErrNotAllowedToRead(mm ...*configuredConnectionActionPr
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "configured-connection.errors.notAllowedToRead"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ConfiguredConnectionErrNotAllowedToCreate returns "system:configured-connection.notAllowedToCreate" as *errors.Error
+//
+// This function is auto-generated.
+func ConfiguredConnectionErrNotAllowedToCreate(mm ...*configuredConnectionActionProps) *errors.Error {
+	var p = &configuredConnectionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create configured connections", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "system:configured-connection"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(configuredConnectionLogMetaKey{}, "failed to create configured connections; insufficient permissions"),
+		errors.Meta(configuredConnectionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "configured-connection.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)

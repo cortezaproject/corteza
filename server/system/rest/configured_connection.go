@@ -38,6 +38,7 @@ type (
 		FindByID(ctx context.Context, ID uint64) (*types.ConfiguredConnection, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (types.ConfiguredConnectionSet, types.ConfiguredConnectionFilter, error)
+		Enable(ctx context.Context, ID uint64) (*types.ConfiguredConnection, error)
 	}
 )
 
@@ -86,6 +87,15 @@ func (ctrl ConfiguredConnection) Read(ctx context.Context, r *request.Configured
 
 func (ctrl ConfiguredConnection) Delete(ctx context.Context, r *request.ConfiguredConnectionDelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.DeleteByID(ctx, r.ConnectionID)
+}
+
+func (ctrl ConfiguredConnection) Enable(ctx context.Context, r *request.ConfiguredConnectionEnable) (interface{}, error) {
+	res, err := ctrl.svc.Enable(ctx, r.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makePayload(ctx, res), nil
 }
 
 func (ctrl ConfiguredConnection) makeFilterPayload(ctx context.Context, set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter) (*configuredConnectionSetPayload, error) {

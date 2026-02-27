@@ -14,52 +14,71 @@ import:
 
 props:
   - name: connection
-    type: "*types.ConfiguredConnection"
-    fields: [ name, ID ]
+    type: '*types.ConfiguredConnection'
+    fields: [name, ID]
+  - name: new
+    type: '*types.ConfiguredConnection'
+    fields: [name, ID]
+  - name: update
+    type: '*types.ConfiguredConnection'
+    fields: [name, ID]
   - name: filter
-    type: "*types.ConfiguredConnectionFilter"
-    fields: [ connectionID, query, status ]
+    type: '*types.ConfiguredConnectionFilter'
+    fields: [connectionID, query, status]
 
 actions:
   - action: search
-    log: "searched for matching connections"
+    log: 'searched for matching connections'
     severity: info
 
   - action: lookup
-    log: "looked-up for a {{connection}}"
+    log: 'looked-up for a {{connection}}'
     severity: info
 
-  - action: install
-    log: "installed {{connection}}"
+  - action: create
+    log: 'created {{connection}}'
+
+  - action: update
+    log: 'updated {{connection}}'
 
   - action: delete
-    log: "deleted {{connection}}"
+    log: 'deleted {{connection}}'
+
+  - action: enable
+    log: 'enabled {{connection}}'
 
 errors:
   - error: notFound
-    message: "connection not found"
+    message: 'connection not found'
     severity: warning
 
   - error: invalidID
-    message: "invalid ID"
+    message: 'invalid ID'
     severity: warning
 
   - error: deletionNotSupported
-    message: "connection deletion is not yet supported"
+    message: 'connection deletion is not yet supported'
     severity: warning
 
+  - error: cannotUpdateInstalled
+    message: 'cannot update installed connection'
+
   - error: notAllowedToRead
-    message: "not allowed to read this connection"
-    log: "failed to read {{connection.name}}; insufficient permissions"
+    message: 'not allowed to read this connection'
+    log: 'failed to read {{connection.name}}; insufficient permissions'
+
+  - error: notAllowedToCreate
+    message: 'not allowed to create configured connections'
+    log: 'failed to create configured connections; insufficient permissions'
 
   - error: notAllowedToSearch
-    message: "not allowed to search connections"
-    log: "failed to search for connections; insufficient permissions"
+    message: 'not allowed to search connections'
+    log: 'failed to search for connections; insufficient permissions'
 
   - error: notAllowedToInstall
-    message: "not allowed to install connections"
-    log: "failed to install connection; insufficient permissions"
+    message: 'not allowed to install connections'
+    log: 'failed to install connection; insufficient permissions'
 
   - error: notAllowedToDelete
-    message: "not allowed to delete this connection"
-    log: "failed to delete {{connection.name}}; insufficient permissions"
+    message: 'not allowed to delete this connection'
+    log: 'failed to delete {{connection.name}}; insufficient permissions'

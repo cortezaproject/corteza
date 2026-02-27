@@ -2,9 +2,21 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/url"
+	"strconv"
+	"strings"
 
+	automationService "github.com/cortezaproject/corteza/server/automation/service"
+	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	a "github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -12,6 +24,7 @@ import (
 type (
 	configuredConnection struct {
 		actionlog     actionlog.Recorder
+		dalConnection dalConMngmntSvc
 		store         store.Storer
 		ac            configuredConnectionAccessController
 		connectionSvc *connection
@@ -24,6 +37,10 @@ type (
 		CanReadConfiguredConnection(context.Context, *types.ConfiguredConnection) bool
 		CanDeleteConfiguredConnection(context.Context, *types.ConfiguredConnection) bool
 	}
+
+	dalConMngmntSvc interface {
+		Create(ctx context.Context, new *types.DalConnection) (*types.DalConnection, error)
+	}
 )
 
 func ConfiguredConnectionSvc() *configuredConnection {
@@ -35,30 +52,183 @@ func ConfiguredConnectionSvc() *configuredConnection {
 	}
 }
 
+func (svc *configuredConnection) WithDalConnection(s dalConMngmntSvc) *configuredConnection {
+	svc.dalConnection = s
+	return svc
+}
+
 func (svc *configuredConnection) FindByID(ctx context.Context, ID uint64) (res *types.ConfiguredConnection, err error) {
-	res, err = store.LookupConfiguredConnectionByID(ctx, svc.store, ID)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		aProps = &configuredConnectionActionProps{connection: &types.ConfiguredConnection{ID: ID}}
+	)
 
-	if !svc.ac.CanReadConfiguredConnection(ctx, res) {
-		return nil, errors.Unauthorized("connection read denied")
-	}
+	err = func() error {
+		if res, err = loadConfiguredConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
 
-	return
+		aProps.setConnection(res)
+
+		if !svc.ac.CanReadConfiguredConnection(ctx, res) {
+			return ConfiguredConnectionErrNotAllowedToRead()
+		}
+
+		return nil
+	}()
+
+	return res, svc.recordAction(ctx, aProps, ConfiguredConnectionActionLookup, err)
+}
+
+func (svc *configuredConnection) Create(ctx context.Context, new *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
+	var (
+		aProps = &configuredConnectionActionProps{new: new}
+	)
+
+	err = func() (err error) {
+		if !svc.ac.CanCreateConfiguredConnection(ctx) {
+			return ConfiguredConnectionErrNotAllowedToCreate()
+		}
+
+		// Fetch and snapshot the connection definition
+		var conn *types.Connection
+		if conn, err = svc.connectionSvc.FindByID(ctx, new.ConnectionID); err != nil {
+			return err
+		}
+
+		new.ID = nextID()
+		new.Connection = *conn
+		new.CreatedAt = *now()
+		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		if new.Status == "" {
+			new.Status = "draft"
+		}
+
+		if new.Labels == nil {
+			new.Labels = make(map[string]labelTypes.LabelValue)
+		}
+		new.Labels["corteza/connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(conn.ID, 10)}
+		new.Labels["corteza/connection-revision"] = labelTypes.LabelValue{Val: strconv.Itoa(conn.Revision)}
+
+		if err = store.CreateConfiguredConnection(ctx, svc.store, new); err != nil {
+			return err
+		}
+
+		if err = label.Create(ctx, svc.store, new); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return new, svc.recordAction(ctx, aProps, ConfiguredConnectionActionCreate, err)
+}
+
+func (svc *configuredConnection) Update(ctx context.Context, upd *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
+	var (
+		uaProps = &configuredConnectionActionProps{update: upd}
+	)
+
+	err = func() (err error) {
+		if res, err = loadConfiguredConnection(ctx, svc.store, upd.ID); err != nil {
+			return
+		}
+
+		if res.Status != "draft" {
+			return ConfiguredConnectionErrCannotUpdateInstalled()
+		}
+
+		uaProps.setUpdate(upd)
+
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return UserErrStaleData()
+		}
+
+		// Assign changed values
+		res.Name = upd.Name
+		res.UpdatedAt = now()
+		res.Config = upd.Config
+
+		if err = store.UpdateConfiguredConnection(ctx, svc.store, res); err != nil {
+			return
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, svc.store, upd); err != nil {
+				return
+			}
+
+			res.Labels = upd.Labels
+		}
+
+		return
+	}()
+
+	return res, svc.recordAction(ctx, uaProps, ConfiguredConnectionActionUpdate, err)
 }
 
 func (svc *configuredConnection) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	return ConfiguredConnectionErrDeletionNotSupported()
 }
 
-func (svc *configuredConnection) Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter, err error) {
-	if !svc.ac.CanSearchConfiguredConnections(ctx) {
-		return nil, f, errors.Unauthorized("connection search denied")
-	}
+func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *types.ConfiguredConnection, err error) {
+	var (
+		aProps = &configuredConnectionActionProps{connection: &types.ConfiguredConnection{ID: ID}}
+	)
 
-	set, f, err = store.SearchConfiguredConnections(ctx, svc.store, filter)
-	return
+	err = func() (err error) {
+		if res, err = loadConfiguredConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
+
+		aProps.setConnection(res)
+
+		if res.Status != "draft" {
+			return errors.InvalidData("only draft connections can be enabled")
+		}
+
+		// Resolve templates and provision sub-systems
+		resolved := svc.resolveTemplates(&res.Connection, res.Config.Params)
+		rsp, err := svc.dispatch(ctx, resolved, res)
+		if err != nil {
+			return err
+		}
+
+		res.Config.DalConnectionID = rsp.dalConnection.ID
+		res.Status = "active"
+		res.Labels["corteza/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
+
+		n := now()
+		res.UpdatedAt = n
+		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		if err = store.UpdateConfiguredConnection(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		svc.registerOperations(&res.Connection, rsp.dalConnection.ID)
+		return nil
+	}()
+
+	return res, svc.recordAction(ctx, aProps, ConfiguredConnectionActionEnable, err)
+}
+
+func (svc *configuredConnection) Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter, err error) {
+	var (
+		aProps = &configuredConnectionActionProps{filter: &filter}
+	)
+
+	err = func() error {
+		if !svc.ac.CanSearchConfiguredConnections(ctx) {
+			return ConfiguredConnectionErrNotAllowedToSearch()
+		}
+
+		set, f, err = store.SearchConfiguredConnections(ctx, svc.store, filter)
+		return err
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
 }
 
 func loadConfiguredConnection(ctx context.Context, s store.ConfiguredConnections, ID uint64) (res *types.ConfiguredConnection, err error) {
@@ -71,4 +241,385 @@ func loadConfiguredConnection(ctx context.Context, s store.ConfiguredConnections
 	}
 
 	return
+}
+
+// resolveTemplates substitutes all {{placeholder}} variables in a connection's
+// Template fields with values from the connection's scoped params.
+// Returns a deep copy of the connection with all templates resolved.
+func (svc *configuredConnection) resolveTemplates(conn *types.Connection, params []types.ConfiguredConnectionParam) *types.Connection {
+	// Build a quick lookup: "scope|name" → value
+	lookup := make(map[string]string, len(params))
+	for _, p := range params {
+		key := joinScope(p.Scope) + "|" + p.Name
+		lookup[key] = p.Value
+	}
+
+	resolve := func(tpl *types.ConnectionTemplate, scope []string) {
+		scopeKey := joinScope(scope)
+		tpl.Value = placeholderRe.ReplaceAllStringFunc(tpl.Value, func(match string) string {
+			sub := placeholderRe.FindStringSubmatch(match)
+			if len(sub) < 2 {
+				return match
+			}
+			if v, ok := lookup[scopeKey+"|"+sub[1]]; ok {
+				return v
+			}
+			return match
+		})
+	}
+
+	resolveHTTPAction := func(op *types.ConnectionHTTPAction, scope []string) {
+		if op == nil {
+			return
+		}
+		resolve(&op.Path, scope)
+		resolve(&op.BodyTemplate, scope)
+		for k, h := range op.Headers {
+			resolve(&h, scope)
+			op.Headers[k] = h
+		}
+		for k, q := range op.QueryParams {
+			resolve(&q, scope)
+			op.QueryParams[k] = q
+		}
+	}
+
+	// Deep-copy connection so we don't mutate the original
+	out := *conn
+
+	// Service-level
+	resolve(&out.Service.BaseURL, []string{"service", "baseURL"})
+
+	headers := make(map[string]types.ConnectionTemplate, len(out.Service.Headers))
+	for k, h := range out.Service.Headers {
+		resolve(&h, []string{"service", "headers"})
+		headers[k] = h
+	}
+	out.Service.Headers = headers
+
+	authParams := make(map[string]types.ConnectionTemplate, len(out.Service.Auth.Params))
+	for k, p := range out.Service.Auth.Params {
+		resolve(&p, []string{"service", "auth"})
+		authParams[k] = p
+	}
+	out.Service.Auth.Params = authParams
+
+	// Resources
+	resources := make(types.ConnectionResources, len(out.Resources))
+	copy(resources, out.Resources)
+	for i := range resources {
+		resolve(&resources[i].Endpoint, []string{"resources", resources[i].Handle, "endpoint"})
+
+		resolveHTTPAction(resources[i].Operations.List, []string{"resources", resources[i].Handle, "standardOperations", "list"})
+		resolveHTTPAction(resources[i].Operations.Read, []string{"resources", resources[i].Handle, "standardOperations", "read"})
+		resolveHTTPAction(resources[i].Operations.Create, []string{"resources", resources[i].Handle, "standardOperations", "create"})
+		resolveHTTPAction(resources[i].Operations.Update, []string{"resources", resources[i].Handle, "standardOperations", "update"})
+		resolveHTTPAction(resources[i].Operations.Delete, []string{"resources", resources[i].Handle, "standardOperations", "delete"})
+	}
+	out.Resources = resources
+
+	// Standard operations
+
+	// Custom operations
+	ops := make(types.ConnectionOperations, len(out.Operations))
+	copy(ops, out.Operations)
+	for i := range ops {
+		resolveHTTPAction(&ops[i].HTTP, []string{"operations", ops[i].Handle})
+	}
+	out.Operations = ops
+
+	return &out
+}
+
+// dispatch orchestrates sub-system provisioning from a resolved connection definition.
+// TODO: implement Compose, Automation, and IG provisioning.
+func (svc *configuredConnection) dispatch(ctx context.Context, resolved *types.Connection, conn *types.ConfiguredConnection) (rsp dispatchRsp, err error) {
+	rsp.dalConnection, err = svc.provisionDAL(ctx, resolved, conn)
+	if err != nil {
+		return rsp, err
+	}
+
+	// modules, err := svc.provisionModules(ctx, resolved.Resources, conn.Config.NamespaceID, dalConn.ID)
+	// err = svc.provisionAutomation(ctx, resolved.Operations, modules, dalConn.ID)
+	// err = svc.provisionWebhooks(ctx, resolved.Resources, modules)
+
+	return
+}
+
+func (svc *configuredConnection) provisionDAL(ctx context.Context, resolved *types.Connection, conn *types.ConfiguredConnection) (*types.DalConnection, error) {
+	// Build DAL connection params
+	params := map[string]any{
+		"url": resolved.Service.BaseURL.Value,
+	}
+
+	for k, h := range resolved.Service.Headers {
+		if params["headers"] == nil {
+			params["headers"] = map[string]string{}
+		}
+		params["headers"].(map[string]string)[k] = h.Value
+	}
+
+	// For Google service accounts or OAuth2, we use the credential ID.
+	// We'll pass it in params so the driver can retrieve it via cred_registry.
+	if conn.Config.CredentialID > 0 {
+		params["credentialID"] = conn.Config.CredentialID
+	}
+
+	if resolved.Service.Auth.Method != "" {
+		authParams := make(map[string]any)
+		for k, p := range resolved.Service.Auth.Params {
+			authParams[k] = p.Value
+		}
+
+		params["auth"] = map[string]any{
+			"method": resolved.Service.Auth.Method,
+			"params": authParams,
+		}
+	}
+
+	dalConn := &types.DalConnection{
+		Handle: fmt.Sprintf("%s_%d", resolved.Handle, conn.ID),
+		Type:   "corteza::system:dal-connection",
+		Meta: types.DalConnectionMeta{
+			Name: conn.Name,
+		},
+		Config: types.DalConnectionConfig{
+			DAL: &types.DalConnectionConfigDAL{
+				Type:   "corteza::dal:connection:rest",
+				Params: params,
+			},
+		},
+		Labels: map[string]string{
+			"corteza/connector-id":          strconv.FormatUint(resolved.ID, 10),
+			"corteza/connector-revision":    strconv.Itoa(resolved.Revision),
+			"corteza/configured-connection": strconv.FormatUint(conn.ID, 10),
+		},
+	}
+
+	// Create via dal connection service
+	if svc.dalConnection == nil {
+		return nil, fmt.Errorf("dalConnection service not injected")
+	}
+
+	return svc.dalConnection.Create(ctx, dalConn)
+}
+
+// RegisterAllOperations loads all active configured connections and registers
+// their operations into the automation construct library.
+// Called on boot from service.go.
+func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
+	set, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		Status: []string{"active"},
+	})
+	if err != nil {
+		return
+	}
+
+	for _, cc := range set {
+		svc.registerOperations(&cc.Connection, cc.Config.DalConnectionID)
+	}
+}
+
+// registerOperations converts each ConnectionOperation into a ConstructFunction
+// and adds it to the automation construct library.
+func (svc *configuredConnection) registerOperations(conn *types.Connection, ccID uint64) {
+	if len(conn.Operations) == 0 {
+		return
+	}
+
+	fns := make([]atypes.ConstructFunction, 0, len(conn.Operations))
+	for _, op := range conn.Operations {
+		fn := operationToFunction(conn, op, ccID)
+		fns = append(fns, fn)
+	}
+
+	automationService.ConstructLibrary().AddFunctions(fns...)
+}
+
+func operationToFunction(conn *types.Connection, op types.ConnectionOperation, ccID uint64) atypes.ConstructFunction {
+	var (
+		params   = make(atypes.ParamSet, 0, len(op.Input))
+		elements = make([]atypes.SectionElement, 0, len(op.Input))
+		inLookup = make(map[string]bool)
+	)
+
+	for _, in := range op.Input {
+		inLookup[in.Name] = true
+		params = append(params, &atypes.Param{
+			ArgumentName: in.Name,
+			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
+			Types:    []string{in.Type},
+			Required: in.Required,
+			Meta: &atypes.ParamMeta{
+				Label: in.Name,
+			},
+		})
+
+		inputType := in.Type
+		if inputType == "" {
+			inputType = "String"
+		}
+		elements = append(elements, atypes.SectionElement{
+			Input: atypes.SectionElementInput{
+				Type:     inputType,
+				Label:    in.Name,
+				Argument: in.Name,
+			},
+		})
+	}
+
+	for _, dp := range conn.DerivedParams {
+		if len(dp.Scope) == 2 && dp.Scope[0] == "operations" && dp.Scope[1] == op.Handle {
+			if !inLookup[dp.Name] {
+				inLookup[dp.Name] = true
+				params = append(params, &atypes.Param{
+					ArgumentName: dp.Name,
+					Types:        []string{dp.Type},
+					Required:     dp.Required,
+					Meta: &atypes.ParamMeta{
+						Label:       dp.Name,
+						Description: dp.Description,
+					},
+				})
+
+				inputType := dp.Type
+				if inputType == "" {
+					inputType = "String"
+				}
+				elements = append(elements, atypes.SectionElement{
+					Input: atypes.SectionElementInput{
+						Type:     inputType,
+						Label:    dp.Name,
+						Argument: dp.Name,
+					},
+				})
+			}
+		}
+	}
+
+	results := make(atypes.ParamSet, 0, len(op.Output))
+	for _, out := range op.Output {
+		results = append(results, &atypes.Param{
+			ArgumentName: out.Name,
+			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
+			Types: []string{out.Type},
+			Meta: &atypes.ParamMeta{
+				Label: out.Name,
+			},
+		})
+	}
+
+	ref := fmt.Sprintf("cc_%d_%s", conn.ID, op.Handle)
+
+	return atypes.ConstructFunction{
+		Ref:    ref,
+		Kind:   "function",
+		Groups: []string{conn.Meta.Short},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short:       op.Meta.Short,
+			Description: op.Meta.Description,
+			Icon:        conn.Meta.Icon,
+		},
+		Parameters: params,
+		Results:    results,
+		Segments: []atypes.ConstructSegment{{
+			Sections: []atypes.ConstructSection{{
+				Elements: elements,
+			}},
+		}},
+		Labels: map[string]string{
+			"connection": "step,workflow",
+			op.Handle:    "step",
+		},
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			out = &expr.Vars{}
+
+			cw := dal.Service().GetConnectionByID(ccID)
+			if cw == nil {
+				return nil, fmt.Errorf("configured connection with ID %d not found", ccID)
+			}
+
+			resolveTemplate := func(tpl string) string {
+				resolved := tpl
+				for k, v := range in.Dict() {
+					resolved = strings.ReplaceAll(resolved, "{{"+k+"}}", fmt.Sprintf("%v", v))
+				}
+				return resolved
+			}
+
+			// Resolve Path
+			path := resolveTemplate(op.HTTP.Path.Value)
+
+			// Resolve Query Params
+			if len(op.HTTP.QueryParams) > 0 {
+				q := url.Values{}
+				for k, tpl := range op.HTTP.QueryParams {
+					q.Add(k, resolveTemplate(tpl.Value))
+				}
+				if strings.Contains(path, "?") {
+					path += "&" + q.Encode()
+				} else {
+					path += "?" + q.Encode()
+				}
+			}
+
+			// Resolve Headers
+			headers := make(map[string][]string)
+			for k, tpl := range op.HTTP.Headers {
+				headers[k] = []string{resolveTemplate(tpl.Value)}
+			}
+
+			// Resolve Payload
+			var payload []byte
+			if op.HTTP.BodyTemplate.Value != "" {
+				payload = []byte(resolveTemplate(op.HTTP.BodyTemplate.Value))
+			} else if in.Len() > 0 && (op.HTTP.Method == "POST" || op.HTTP.Method == "PUT" || op.HTTP.Method == "PATCH") {
+				// Fallback: send input vars as JSON
+				payload, _ = json.Marshal(in.Dict())
+			}
+
+			statusCode, outHeaders, respBody, err := cw.Execute(ctx, op.HTTP.Method, path, headers, payload)
+			if err != nil {
+				return nil, fmt.Errorf("operation execution failed: %w", err)
+			}
+
+			_ = statusCode // @todo expose statusCode/headers in out vars if requested
+			_ = outHeaders
+
+			if len(respBody) == 0 || len(op.Output) == 0 {
+				return out, nil
+			}
+
+			// Parse response using selectors
+			var respData any
+			if err := json.Unmarshal(respBody, &respData); err != nil {
+				return out, fmt.Errorf("failed to parse response JSON: %w", err)
+			}
+
+			for _, outField := range op.Output {
+				if len(outField.Selector) == 0 {
+					// Fallback to name if no selector provided
+					_ = out.Set(outField.Name, extractByPath(respData, []string{outField.Name}))
+					continue
+				}
+				_ = out.Set(outField.Name, extractByPath(respData, outField.Selector))
+			}
+
+			return
+		},
+	}
+}
+
+// extractByPath walks a parsed JSON tree (`any`) using a slice of string keys.
+func extractByPath(data any, path []string) any {
+	current := data
+	for _, p := range path {
+		switch v := current.(type) {
+		case map[string]any:
+			current = v[p]
+		default:
+			return nil // Cannot traverse further
+		}
+	}
+	return current
 }

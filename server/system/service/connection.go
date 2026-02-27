@@ -2,14 +2,7 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"regexp"
-	"strconv"
-
-	automationService "github.com/cortezaproject/corteza/server/automation/service"
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -22,9 +15,10 @@ import (
 
 type (
 	connection struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        connectionAccessController
+		actionlog            actionlog.Recorder
+		store                store.Storer
+		ac                   connectionAccessController
+		configuredConnection *configuredConnection
 	}
 
 	connectionAccessController interface {
@@ -44,6 +38,17 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
 	}
+
+	ConfiguredConnectionService interface {
+		FindByID(ctx context.Context, ID uint64) (*types.ConfiguredConnection, error)
+		Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (types.ConfiguredConnectionSet, types.ConfiguredConnectionFilter, error)
+		DeleteByID(ctx context.Context, ID uint64) error
+		Enable(ctx context.Context, ID uint64) (*types.ConfiguredConnection, error)
+	}
+
+	dispatchRsp struct {
+		dalConnection *types.DalConnection
+	}
 )
 
 func Connection() *connection {
@@ -51,154 +56,202 @@ func Connection() *connection {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
+
+		configuredConnection: DefaultConfiguredConnection,
 	}
 }
 
 func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Connection, err error) {
-	res, err = loadConnection(ctx, svc.store, ID)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
+	)
 
-	if !svc.ac.CanReadConnection(ctx, res) {
-		return nil, ConnectionErrNotAllowedToRead()
-	}
+	err = func() error {
+		res, err = loadConnection(ctx, svc.store, ID)
+		if err != nil {
+			return err
+		}
 
-	if err = label.Load(ctx, svc.store, res); err != nil {
-		return nil, err
-	}
+		aProps.setConnection(res)
 
-	svc.deriveParams(res)
-	return
+		if !svc.ac.CanReadConnection(ctx, res) {
+			return ConnectionErrNotAllowedToRead()
+		}
+
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		svc.deriveParams(res)
+		return nil
+	}()
+
+	return res, svc.recordAction(ctx, aProps, ConnectionActionLookup, err)
 }
 
 func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *types.Connection, err error) {
-	if !svc.ac.CanCreateConnection(ctx) {
-		return nil, ConnectionErrNotAllowedToCreate()
-	}
+	var (
+		aProps = &connectionActionProps{new: new}
+	)
 
-	if err = svc.validateConnection(new); err != nil {
-		return nil, err
-	}
+	err = func() (err error) {
+		if !svc.ac.CanCreateConnection(ctx) {
+			return ConnectionErrNotAllowedToCreate()
+		}
 
-	if err = svc.uniqueHandleCheck(ctx, new.Handle, 0); err != nil {
-		return nil, err
-	}
+		if err = svc.validateConnection(new); err != nil {
+			return err
+		}
 
-	new.ID = nextID()
-	new.CreatedAt = *now()
-	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-	new.Revision = 1
+		if err = svc.uniqueHandleCheck(ctx, new.Handle, 0); err != nil {
+			return err
+		}
 
-	if new.Status == "" {
-		new.Status = "draft"
-	}
+		new.ID = nextID()
+		new.CreatedAt = *now()
+		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+		new.Revision = 1
 
-	if err = store.CreateConnection(ctx, svc.store, new); err != nil {
-		return nil, err
-	}
+		if new.Status == "" {
+			new.Status = "draft"
+		}
 
-	if err = label.Create(ctx, svc.store, new); err != nil {
-		return nil, err
-	}
+		if err = store.CreateConnection(ctx, svc.store, new); err != nil {
+			return err
+		}
 
-	return new, nil
+		if err = label.Create(ctx, svc.store, new); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return new, svc.recordAction(ctx, aProps, ConnectionActionCreate, err)
 }
 
 func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *types.Connection, err error) {
-	res, err = loadConnection(ctx, svc.store, upd.ID)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		aProps = &connectionActionProps{update: upd}
+	)
 
-	if !svc.ac.CanUpdateConnection(ctx, res) {
-		return nil, ConnectionErrNotAllowedToUpdate()
-	}
-
-	if err = svc.validateConnection(upd); err != nil {
-		return nil, err
-	}
-
-	if upd.Handle != res.Handle {
-		if err = svc.uniqueHandleCheck(ctx, upd.Handle, upd.ID); err != nil {
-			return nil, err
+	err = func() (err error) {
+		if res, err = loadConnection(ctx, svc.store, upd.ID); err != nil {
+			return err
 		}
-	}
 
-	res.Handle = upd.Handle
-	res.Meta = upd.Meta
-	res.Service = upd.Service
-	res.Resources = upd.Resources
-	res.StandardOperations = upd.StandardOperations
-	res.Operations = upd.Operations
-	res.Revision++
+		aProps.setConnection(res)
 
-	n := now()
-	res.UpdatedAt = n
-	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-	if err = store.UpdateConnection(ctx, svc.store, res); err != nil {
-		return nil, err
-	}
-
-	if label.Changed(res.Labels, upd.Labels) {
-		if err = label.Update(ctx, svc.store, upd); err != nil {
-			return nil, err
+		if !svc.ac.CanUpdateConnection(ctx, res) {
+			return ConnectionErrNotAllowedToUpdate()
 		}
-		res.Labels = upd.Labels
-	}
 
-	return
+		if err = svc.validateConnection(upd); err != nil {
+			return err
+		}
+
+		if upd.Handle != res.Handle {
+			if err = svc.uniqueHandleCheck(ctx, upd.Handle, upd.ID); err != nil {
+				return err
+			}
+		}
+
+		res.Handle = upd.Handle
+		res.Meta = upd.Meta
+		res.Service = upd.Service
+		res.Resources = upd.Resources
+		res.Operations = upd.Operations
+		res.Revision++
+
+		n := now()
+		res.UpdatedAt = n
+		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		if err = store.UpdateConnection(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, svc.store, upd); err != nil {
+				return err
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
+	}()
+
+	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err)
 }
 
 func (svc *connection) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	res, err := loadConnection(ctx, svc.store, ID)
-	if err != nil {
-		return err
-	}
+	var (
+		res    *types.Connection
+		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
+	)
 
-	if !svc.ac.CanDeleteConnection(ctx, res) {
-		return ConnectionErrNotAllowedToDelete()
-	}
+	err = func() (err error) {
+		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
 
-	// Fail if active connections exist
-	cc, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
-		ConnectionID: ID,
-	})
-	if err != nil {
-		return err
-	}
-	if len(cc) > 0 {
-		return ConnectionErrHasActiveConnections()
-	}
+		aProps.setConnection(res)
 
-	n := now()
-	res.DeletedAt = n
-	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+		if !svc.ac.CanDeleteConnection(ctx, res) {
+			return ConnectionErrNotAllowedToDelete()
+		}
 
-	return store.UpdateConnection(ctx, svc.store, res)
+		// Fail if active connections exist
+		cc, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+			ConnectionID: ID,
+		})
+		if err != nil {
+			return err
+		}
+		if len(cc) > 0 {
+			return ConnectionErrHasActiveConnections()
+		}
+
+		n := now()
+		res.DeletedAt = n
+		res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		return store.UpdateConnection(ctx, svc.store, res)
+	}()
+
+	return svc.recordAction(ctx, aProps, ConnectionActionDelete, err)
 }
 
 func (svc *connection) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	res, err := loadConnection(ctx, svc.store, ID)
-	if err != nil {
-		return err
-	}
+	var (
+		res    *types.Connection
+		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
+	)
 
-	if !svc.ac.CanDeleteConnection(ctx, res) {
-		return ConnectionErrNotAllowedToUndelete()
-	}
+	err = func() (err error) {
+		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
 
-	res.DeletedAt = nil
-	res.DeletedBy = 0
+		aProps.setConnection(res)
 
-	return store.UpdateConnection(ctx, svc.store, res)
+		if !svc.ac.CanDeleteConnection(ctx, res) {
+			return ConnectionErrNotAllowedToUndelete()
+		}
+
+		res.DeletedAt = nil
+		res.DeletedBy = 0
+
+		return store.UpdateConnection(ctx, svc.store, res)
+	}()
+
+	return svc.recordAction(ctx, aProps, ConnectionActionUndelete, err)
 }
 
 func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter) (set types.ConnectionSet, f types.ConnectionFilter, err error) {
-	if !svc.ac.CanSearchConnections(ctx) {
-		return nil, f, ConnectionErrNotAllowedToSearch()
-	}
+	var (
+		aProps = &connectionActionProps{filter: &filter}
+	)
 
 	filter.Check = func(res *types.Connection) (bool, error) {
 		if !svc.ac.CanReadConnection(ctx, res) {
@@ -207,264 +260,42 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 		return true, nil
 	}
 
-	set, f, err = store.SearchConnections(ctx, svc.store, filter)
+	err = func() error {
+		if !svc.ac.CanSearchConnections(ctx) {
+			return ConnectionErrNotAllowedToSearch()
+		}
+
+		set, f, err = store.SearchConnections(ctx, svc.store, filter)
+		if err != nil {
+			return err
+		}
+
+		if err = label.Load(ctx, svc.store, toLabeledConnections(set)...); err != nil {
+			return err
+		}
+
+		for _, c := range set {
+			svc.deriveParams(c)
+		}
+		return nil
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, ConnectionActionSearch, err)
+}
+
+// Configure creates a new ConfiguredConnection in draft status.
+// No provisioning is done yet; config can be freely edited.
+func (svc *connection) Configure(ctx context.Context, new *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
+	return svc.configuredConnection.Create(ctx, new)
+}
+
+func (svc *connection) UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
+	upd, err = svc.configuredConnection.Update(ctx, upd)
 	if err != nil {
-		return nil, f, err
+		return nil, err
 	}
 
-	if err = label.Load(ctx, svc.store, toLabeledConnections(set)...); err != nil {
-		return nil, f, err
-	}
-
-	for _, c := range set {
-		svc.deriveParams(c)
-	}
 	return
-}
-
-func (svc *connection) Install(ctx context.Context, new *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
-	// if !svc.ac.CanCreateConfiguredConnection(ctx) {
-	// 	return nil, errors.Unauthorized("connection install denied")
-	// }
-
-	// 1. Fetch and snapshot the connection definition
-	var conn *types.Connection
-	conn, err = svc.FindByID(ctx, new.ConnectionID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Resolve templates and dispatch sub-system provisioning
-	resolved := svc.resolveTemplates(conn, new.Config.Params)
-	if err = svc.dispatch(ctx, resolved, new); err != nil {
-		return nil, err
-	}
-
-	// 7. Store Connection record
-	new.ID = nextID()
-	new.Connection = *conn
-	new.CreatedAt = *now()
-	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-	if new.Status == "" {
-		new.Status = "active"
-	}
-
-	// Attach ownership labels
-	if new.Labels == nil {
-		new.Labels = make(map[string]labelTypes.LabelValue)
-	}
-	new.Labels["corteza/connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(conn.ID, 10)}
-	new.Labels["corteza/connection-revision"] = labelTypes.LabelValue{Val: strconv.Itoa(conn.Revision)}
-	new.Labels["corteza/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(new.ID, 10)}
-
-	if err = store.CreateConfiguredConnection(ctx, svc.store, new); err != nil {
-		return nil, err
-	}
-
-	svc.registerOperations(&new.Connection, new.ID)
-
-	return new, nil
-}
-
-// RegisterAllOperations loads all active configured connections and registers
-// their operations into the automation construct library.
-// Called on boot from service.go.
-func (svc *connection) RegisterAllOperations(ctx context.Context) {
-	set, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
-		Status: []string{"active"},
-	})
-	if err != nil {
-		return
-	}
-	for _, cc := range set {
-		svc.registerOperations(&cc.Connection, cc.ID)
-	}
-}
-
-// registerOperations converts each ConnectionOperation into a ConstructFunction
-// and adds it to the automation construct library.
-func (svc *connection) registerOperations(conn *types.Connection, ccID uint64) {
-	if len(conn.Operations) == 0 {
-		return
-	}
-
-	fns := make([]atypes.ConstructFunction, 0, len(conn.Operations))
-	for _, op := range conn.Operations {
-		fn := operationToFunction(conn, op, ccID)
-		fns = append(fns, fn)
-	}
-
-	automationService.ConstructLibrary().AddFunctions(fns...)
-}
-
-func operationToFunction(conn *types.Connection, op types.ConnectionOperation, ccID uint64) atypes.ConstructFunction {
-	params := make(atypes.ParamSet, 0, len(op.Input))
-	for _, in := range op.Input {
-		params = append(params, &atypes.Param{
-			ArgumentName: in.Name,
-			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
-			Types:    []string{in.Type},
-			Required: in.Required,
-			Meta: &atypes.ParamMeta{
-				Label: in.Name,
-			},
-		})
-	}
-
-	results := make(atypes.ParamSet, 0, len(op.Output))
-	for _, out := range op.Output {
-		results = append(results, &atypes.Param{
-			ArgumentName: out.Name,
-			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
-			Types: []string{out.Type},
-			Meta: &atypes.ParamMeta{
-				Label: out.Name,
-			},
-		})
-	}
-
-	ref := fmt.Sprintf("cc_%d_%s", ccID, op.Handle)
-
-	// Build UI segments from input fields
-	elements := make([]atypes.SectionElement, 0, len(op.Input))
-	for _, in := range op.Input {
-		inputType := in.Type
-		if inputType == "" {
-			inputType = "String"
-		}
-		elements = append(elements, atypes.SectionElement{
-			Input: atypes.SectionElementInput{
-				Type:     inputType,
-				Label:    in.Name,
-				Argument: in.Name,
-			},
-		})
-	}
-
-	return atypes.ConstructFunction{
-		Ref:    ref,
-		Kind:   "function",
-		Groups: []string{conn.Meta.Short},
-		Meta: &atypes.ConstructFunctionMeta{
-			Short:       op.Meta.Short,
-			Description: op.Meta.Description,
-			Icon:        conn.Meta.Icon,
-		},
-		Parameters: params,
-		Results:    results,
-		Segments: []atypes.ConstructSegment{{
-			Sections: []atypes.ConstructSection{{
-				Elements: elements,
-			}},
-		}},
-		Labels: map[string]string{
-			"connection": "step,workflow",
-			op.Handle:    "step",
-		},
-		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
-			// TODO: dispatch HTTP action using resolved connection config
-			out = &expr.Vars{}
-			return
-		},
-	}
-}
-
-// dispatch orchestrates sub-system provisioning from a resolved connection definition.
-// TODO: implement DAL, Compose, Automation, and IG provisioning.
-func (svc *connection) dispatch(ctx context.Context, resolved *types.Connection, conn *types.ConfiguredConnection) error {
-	// dalConn, err := svc.provisionDAL(ctx, resolved.Service, conn.Config.CredentialID)
-	// modules, err := svc.provisionModules(ctx, resolved.Resources, conn.Config.NamespaceID, dalConn.ID)
-	// err = svc.provisionAutomation(ctx, resolved.Operations, modules, dalConn.ID)
-	// err = svc.provisionWebhooks(ctx, resolved.Resources, modules)
-	return nil
-}
-
-// resolveTemplates substitutes all {{placeholder}} variables in a connection's
-// Template fields with values from the connection's scoped params.
-// Returns a deep copy of the connection with all templates resolved.
-func (svc *connection) resolveTemplates(conn *types.Connection, params []types.ConfiguredConnectionParam) *types.Connection {
-	// Build a quick lookup: "scope|name" → value
-	lookup := make(map[string]string, len(params))
-	for _, p := range params {
-		key := joinScope(p.Scope) + "|" + p.Name
-		lookup[key] = p.Value
-	}
-
-	resolve := func(tpl *types.ConnectionTemplate, scope []string) {
-		scopeKey := joinScope(scope)
-		tpl.Value = placeholderRe.ReplaceAllStringFunc(tpl.Value, func(match string) string {
-			sub := placeholderRe.FindStringSubmatch(match)
-			if len(sub) < 2 {
-				return match
-			}
-			if v, ok := lookup[scopeKey+"|"+sub[1]]; ok {
-				return v
-			}
-			return match
-		})
-	}
-
-	// Deep-copy connection so we don't mutate the original
-	out := *conn
-
-	// Service-level
-	resolve(&out.Service.BaseURL, []string{"service", "baseURL"})
-
-	headers := make(map[string]types.ConnectionTemplate, len(out.Service.Headers))
-	for k, h := range out.Service.Headers {
-		resolve(&h, []string{"service", "headers"})
-		headers[k] = h
-	}
-	out.Service.Headers = headers
-
-	authParams := make(map[string]types.ConnectionTemplate, len(out.Service.Auth.Params))
-	for k, p := range out.Service.Auth.Params {
-		resolve(&p, []string{"service", "auth"})
-		authParams[k] = p
-	}
-	out.Service.Auth.Params = authParams
-
-	// Resources
-	resources := make(types.ConnectionResources, len(out.Resources))
-	copy(resources, out.Resources)
-	for i := range resources {
-		resolve(&resources[i].Endpoint, []string{"resources", resources[i].Handle, "endpoint"})
-	}
-	out.Resources = resources
-
-	// Standard operations
-	resolveHTTPAction := func(op *types.ConnectionHTTPAction, scope []string) {
-		if op == nil {
-			return
-		}
-		resolve(&op.Path, scope)
-		resolve(&op.BodyTemplate, scope)
-		for k, h := range op.Headers {
-			resolve(&h, scope)
-			op.Headers[k] = h
-		}
-		for k, q := range op.QueryParams {
-			resolve(&q, scope)
-			op.QueryParams[k] = q
-		}
-	}
-
-	resolveHTTPAction(out.StandardOperations.List, []string{"standardOperations", "list"})
-	resolveHTTPAction(out.StandardOperations.Read, []string{"standardOperations", "read"})
-	resolveHTTPAction(out.StandardOperations.Create, []string{"standardOperations", "create"})
-	resolveHTTPAction(out.StandardOperations.Update, []string{"standardOperations", "update"})
-	resolveHTTPAction(out.StandardOperations.Delete, []string{"standardOperations", "delete"})
-
-	// Custom operations
-	ops := make(types.ConnectionOperations, len(out.Operations))
-	copy(ops, out.Operations)
-	for i := range ops {
-		resolveHTTPAction(&ops[i].HTTP, []string{"operations", ops[i].Handle})
-	}
-	out.Operations = ops
-
-	return &out
 }
 
 // -- validation ---------------------------------------------------------------
@@ -521,11 +352,6 @@ func (svc *connection) deriveParams(c *types.Connection) {
 		tt = append(tt, scopedTemplate{[]string{"service", "auth"}, p})
 	}
 
-	// Resource-level templates
-	for _, r := range c.Resources {
-		tt = append(tt, scopedTemplate{[]string{"resources", r.Handle, "endpoint"}, r.Endpoint})
-	}
-
 	// Standard operations
 	collectStdOp := func(name string, op *types.ConnectionHTTPAction) {
 		if op == nil {
@@ -535,11 +361,17 @@ func (svc *connection) deriveParams(c *types.Connection) {
 			tt = append(tt, scopedTemplate{[]string{"standardOperations", name}, t})
 		}
 	}
-	collectStdOp("list", c.StandardOperations.List)
-	collectStdOp("read", c.StandardOperations.Read)
-	collectStdOp("create", c.StandardOperations.Create)
-	collectStdOp("update", c.StandardOperations.Update)
-	collectStdOp("delete", c.StandardOperations.Delete)
+
+	// Resource-level templates
+	for _, r := range c.Resources {
+		tt = append(tt, scopedTemplate{[]string{"resources", r.Handle, "endpoint"}, r.Endpoint})
+
+		collectStdOp("list", r.Operations.List)
+		collectStdOp("read", r.Operations.Read)
+		collectStdOp("create", r.Operations.Create)
+		collectStdOp("update", r.Operations.Update)
+		collectStdOp("delete", r.Operations.Delete)
+	}
 
 	// Custom operations
 	for _, op := range c.Operations {

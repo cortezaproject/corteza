@@ -22,6 +22,7 @@ type (
 		List(context.Context, *request.ConfiguredConnectionList) (interface{}, error)
 		Read(context.Context, *request.ConfiguredConnectionRead) (interface{}, error)
 		Delete(context.Context, *request.ConfiguredConnectionDelete) (interface{}, error)
+		Enable(context.Context, *request.ConfiguredConnectionEnable) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -29,6 +30,7 @@ type (
 		List   func(http.ResponseWriter, *http.Request)
 		Read   func(http.ResponseWriter, *http.Request)
 		Delete func(http.ResponseWriter, *http.Request)
+		Enable func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -82,6 +84,22 @@ func NewConfiguredConnection(h ConfiguredConnectionAPI) *ConfiguredConnection {
 
 			api.Send(w, r, value)
 		},
+		Enable: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConfiguredConnectionEnable()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Enable(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -91,5 +109,6 @@ func (h ConfiguredConnection) MountRoutes(r chi.Router, middlewares ...func(http
 		r.Get("/configured-connections/", h.List)
 		r.Get("/configured-connections/{connectionID}", h.Read)
 		r.Delete("/configured-connections/{connectionID}", h.Delete)
+		r.Post("/configured-connections/{connectionID}/enable", h.Enable)
 	})
 }

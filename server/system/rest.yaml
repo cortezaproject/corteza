@@ -3242,13 +3242,41 @@ endpoints:
           post:
             - { type: 'string', name: 'prompt', required: true, title: 'Description or API docs' }
             - { type: 'string', name: 'context', title: 'Optional additional context' }
-      - name: install
+      - name: configure
         method: POST
-        title: Install a connection (create configured connection)
-        path: '/{connectionID}/install'
+        title: Configure a connection (create configured connection)
+        path: '/{connectionID}/configure'
         parameters:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+          post:
+            - { type: 'string', name: 'name', required: true, title: 'Connection name' }
+            - {
+                type: 'types.ConfiguredConnectionConfig',
+                name: 'config',
+                title: 'Connection config',
+                parser: 'types.ParseConfiguredConnectionConfig',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: 'labels',
+                title: 'Labels',
+                parser: 'label.ParseStrings',
+              }
+
+      - name: updateConfiguration
+        method: PATCH
+        title: Update connection configuration
+        path: '/{connectionID}/configure/{configuredConnectionID}'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+            - {
+                type: 'uint64',
+                name: 'configuredConnectionID',
+                required: true,
+                title: 'Configured Connection ID',
+              }
           post:
             - { type: 'string', name: 'name', required: true, title: 'Connection name' }
             - {
@@ -3309,6 +3337,13 @@ endpoints:
         method: DELETE
         title: Delete configured connection
         path: '/{connectionID}'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+      - name: enable
+        method: POST
+        title: Enable configured connection (validate, provision, lock to active)
+        path: '/{connectionID}/enable'
         parameters:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }

@@ -243,10 +243,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
 	DefaultExpression = Expression()
 	DefaultConnection = Connection()
-	DefaultConfiguredConnection = ConfiguredConnectionSvc()
+	DefaultConfiguredConnection = ConfiguredConnectionSvc().WithDalConnection(DefaultDalConnection)
 
 	// Register automation functions from all active configured connections
-	DefaultConnection.RegisterAllOperations(ctx)
+	DefaultConfiguredConnection.RegisterAllOperations(ctx)
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
