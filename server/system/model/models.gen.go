@@ -1069,14 +1069,6 @@ var Connection = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "StandardOperations",
-			Type: &dal.TypeJSON{
-				DefaultValue: "{}",
-			},
-			Store: &dal.CodecAlias{Ident: "standard_operations"},
-		},
-
-		&dal.Attribute{
 			Ident: "Operations",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",

@@ -207,7 +207,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
-		svc.registerOperations(&res.Connection, rsp.dalConnection.ID)
+		svc.registerOperations(rsp.dalConnection.ID, res)
 		return nil
 	}()
 
@@ -416,166 +416,62 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 	}
 
 	for _, cc := range set {
-		svc.registerOperations(&cc.Connection, cc.Config.DalConnectionID)
+		svc.registerOperations(cc.Config.DalConnectionID, cc)
 	}
 }
 
 // registerOperations converts each ConnectionOperation into a ConstructFunction
 // and adds it to the automation construct library.
-func (svc *configuredConnection) registerOperations(conn *types.Connection, ccID uint64) {
-	if len(conn.Operations) == 0 {
+func (svc *configuredConnection) registerOperations(dalConnectionID uint64, cc *types.ConfiguredConnection) {
+	if len(cc.Connection.Operations) == 0 {
 		return
 	}
 
-	fns := make([]atypes.ConstructFunction, 0, len(conn.Operations))
-	for _, op := range conn.Operations {
-		fn := operationToFunction(conn, op, ccID)
+	fns := make([]atypes.ConstructFunction, 0, len(cc.Connection.Operations))
+	for _, op := range cc.Connection.Operations {
+		fn := operationToFunction(dalConnectionID, cc, op)
 		fns = append(fns, fn)
 	}
 
 	automationService.ConstructLibrary().AddFunctions(fns...)
 }
 
-func operationToFunction(conn *types.Connection, op types.ConnectionOperation, ccID uint64) atypes.ConstructFunction {
-	var (
-		params   = make(atypes.ParamSet, 0, len(op.Input))
-		elements = make([]atypes.SectionElement, 0, len(op.Input))
-		inLookup = make(map[string]bool)
-	)
-
-	for _, in := range op.Input {
-		inLookup[in.Name] = true
-		params = append(params, &atypes.Param{
-			ArgumentName: in.Name,
-			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
-			Types:    []string{in.Type},
-			Required: in.Required,
-			Meta: &atypes.ParamMeta{
-				Label: in.Name,
-			},
-		})
-
-		inputType := in.Type
-		if inputType == "" {
-			inputType = "String"
-		}
-		elements = append(elements, atypes.SectionElement{
-			Input: atypes.SectionElementInput{
-				Type:     inputType,
-				Label:    in.Name,
-				Argument: in.Name,
-			},
-		})
-	}
-
-	for _, dp := range conn.DerivedParams {
-		if len(dp.Scope) == 2 && dp.Scope[0] == "operations" && dp.Scope[1] == op.Handle {
-			if !inLookup[dp.Name] {
-				inLookup[dp.Name] = true
-				params = append(params, &atypes.Param{
-					ArgumentName: dp.Name,
-					Types:        []string{dp.Type},
-					Required:     dp.Required,
-					Meta: &atypes.ParamMeta{
-						Label:       dp.Name,
-						Description: dp.Description,
-					},
-				})
-
-				inputType := dp.Type
-				if inputType == "" {
-					inputType = "String"
-				}
-				elements = append(elements, atypes.SectionElement{
-					Input: atypes.SectionElementInput{
-						Type:     inputType,
-						Label:    dp.Name,
-						Argument: dp.Name,
-					},
-				})
-			}
-		}
-	}
-
-	results := make(atypes.ParamSet, 0, len(op.Output))
-	for _, out := range op.Output {
-		results = append(results, &atypes.Param{
-			ArgumentName: out.Name,
-			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
-			Types: []string{out.Type},
-			Meta: &atypes.ParamMeta{
-				Label: out.Name,
-			},
-		})
-	}
-
-	ref := fmt.Sprintf("cc_%d_%s", conn.ID, op.Handle)
+func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
+	ref := fmt.Sprintf("cc_%d_%s", cc.ID, op.Handle)
+	params := generateFunctionArguments(cc.Connection, op)
+	segments := generateFunctionSegments(cc.Connection, op, params)
+	results := generateFunctionResults(cc.Connection, op)
 
 	return atypes.ConstructFunction{
 		Ref:    ref,
 		Kind:   "function",
-		Groups: []string{conn.Meta.Short},
+		Groups: []string{cc.Connection.Meta.Short},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       op.Meta.Short,
 			Description: op.Meta.Description,
-			Icon:        conn.Meta.Icon,
+			Icon:        cc.Connection.Meta.Icon,
 		},
 		Parameters: params,
 		Results:    results,
-		Segments: []atypes.ConstructSegment{{
-			Sections: []atypes.ConstructSection{{
-				Elements: elements,
-			}},
-		}},
+		Segments:   segments,
 		Labels: map[string]string{
 			"connection": "step,workflow",
 			op.Handle:    "step",
 		},
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			resolveTemplate := makeTemplateResolver(in.Dict())
 			out = &expr.Vars{}
 
-			cw := dal.Service().GetConnectionByID(ccID)
+			// @note we might want to pull this resolution away from the handler.
+			// The opeGetConnectionByID is a hash map lookup which should not produce a significant performance impact.
+			cw := dal.Service().GetConnectionByID(dalConnectionID)
 			if cw == nil {
-				return nil, fmt.Errorf("configured connection with ID %d not found", ccID)
+				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
 			}
 
-			resolveTemplate := func(tpl string) string {
-				resolved := tpl
-				for k, v := range in.Dict() {
-					resolved = strings.ReplaceAll(resolved, "{{"+k+"}}", fmt.Sprintf("%v", v))
-				}
-				return resolved
-			}
-
-			// Resolve Path
-			path := resolveTemplate(op.HTTP.Path.Value)
-
-			// Resolve Query Params
-			if len(op.HTTP.QueryParams) > 0 {
-				q := url.Values{}
-				for k, tpl := range op.HTTP.QueryParams {
-					q.Add(k, resolveTemplate(tpl.Value))
-				}
-				if strings.Contains(path, "?") {
-					path += "&" + q.Encode()
-				} else {
-					path += "?" + q.Encode()
-				}
-			}
-
-			// Resolve Headers
-			headers := make(map[string][]string)
-			for k, tpl := range op.HTTP.Headers {
-				headers[k] = []string{resolveTemplate(tpl.Value)}
-			}
-
-			// Resolve Payload
-			var payload []byte
-			if op.HTTP.BodyTemplate.Value != "" {
-				payload = []byte(resolveTemplate(op.HTTP.BodyTemplate.Value))
-			} else if in.Len() > 0 && (op.HTTP.Method == "POST" || op.HTTP.Method == "PUT" || op.HTTP.Method == "PATCH") {
-				// Fallback: send input vars as JSON
-				payload, _ = json.Marshal(in.Dict())
+			path, headers, payload, err := buildHTTPRequest(op.HTTP, in, resolveTemplate)
+			if err != nil {
+				return nil, err
 			}
 
 			statusCode, outHeaders, respBody, err := cw.Execute(ctx, op.HTTP.Method, path, headers, payload)
@@ -583,8 +479,10 @@ func operationToFunction(conn *types.Connection, op types.ConnectionOperation, c
 				return nil, fmt.Errorf("operation execution failed: %w", err)
 			}
 
-			_ = statusCode // @todo expose statusCode/headers in out vars if requested
-			_ = outHeaders
+			err = checkHTTPResponse(statusCode, outHeaders, respBody)
+			if err != nil {
+				return nil, err
+			}
 
 			if len(respBody) == 0 || len(op.Output) == 0 {
 				return out, nil
@@ -610,6 +508,74 @@ func operationToFunction(conn *types.Connection, op types.ConnectionOperation, c
 	}
 }
 
+// buildHTTPRequest resolves templates in path, query params, headers, and body
+// for a single HTTP operation, returning the final path, headers, and payload.
+func buildHTTPRequest(http types.ConnectionHTTPAction, in *expr.Vars, resolve func(string) string) (path string, headers map[string][]string, payload []byte, err error) {
+	path = resolve(http.Path.Value)
+
+	u, err := url.Parse(path)
+	if err != nil {
+		return "", nil, nil, fmt.Errorf("invalid path %q: %w", path, err)
+	}
+	q := u.Query()
+	for k, tpl := range http.QueryParams {
+		q.Set(k, resolve(tpl.Value))
+	}
+	u.RawQuery = q.Encode()
+	path = u.String()
+
+	headers = make(map[string][]string, len(http.Headers))
+	for k, tpl := range http.Headers {
+		headers[k] = []string{resolve(tpl.Value)}
+	}
+
+	if http.BodyTemplate.Value != "" {
+		payload = []byte(resolve(http.BodyTemplate.Value))
+	} else if in.Len() > 0 && (http.Method == "POST" || http.Method == "PUT" || http.Method == "PATCH") {
+		payload, _ = json.Marshal(in.Dict())
+	}
+
+	return
+}
+
+// checkHTTPResponse returns an error if the response indicates a failure,
+// combining the HTTP status code, any standard error headers, and the body.
+func checkHTTPResponse(statusCode int, headers map[string][]string, body []byte) error {
+	if statusCode < 400 {
+		return nil
+	}
+
+	var headerErr string
+	for _, h := range []string{"X-Error", "X-Error-Message", "X-Api-Error"} {
+		if vals := headers[h]; len(vals) > 0 && vals[0] != "" {
+			headerErr = vals[0]
+			break
+		}
+	}
+
+	switch {
+	case headerErr != "" && len(body) > 0:
+		return fmt.Errorf("request failed (status %d, %s): %s", statusCode, headerErr, body)
+	case headerErr != "":
+		return fmt.Errorf("request failed (status %d): %s", statusCode, headerErr)
+	case len(body) > 0:
+		return fmt.Errorf("request failed (status %d): %s", statusCode, body)
+	default:
+		return fmt.Errorf("request failed (status %d)", statusCode)
+	}
+}
+
+// makeTemplateResolver builds a single-pass replacer from a map of variables.
+// Keys are wrapped in {{...}} delimiters.
+func makeTemplateResolver(vars map[string]any) func(string) string {
+	pairs := make([]string, 0, len(vars)*2)
+	for k, v := range vars {
+		pairs = append(pairs, "{{"+k+"}}", fmt.Sprintf("%v", v))
+	}
+	r := strings.NewReplacer(pairs...)
+	return r.Replace
+}
+
 // extractByPath walks a parsed JSON tree (`any`) using a slice of string keys.
 func extractByPath(data any, path []string) any {
 	current := data
@@ -622,4 +588,91 @@ func extractByPath(data any, path []string) any {
 		}
 	}
 	return current
+}
+
+func generateFunctionArguments(conn types.Connection, op types.ConnectionOperation) (params atypes.ParamSet) {
+	inLookup := make(map[string]bool)
+
+	// Explicit arguments
+	for _, in := range op.Input {
+		inLookup[in.Name] = true
+		params = append(params, &atypes.Param{
+			ArgumentName: in.Name,
+			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
+			Types:    []string{in.Type},
+			Required: in.Required,
+			Meta: &atypes.ParamMeta{
+				Label: in.Name,
+			},
+		})
+
+		inputType := in.Type
+		if inputType == "" {
+			inputType = "String"
+		}
+	}
+
+	// Implicit from derived parameters
+	for _, dp := range conn.DerivedParams {
+		if len(dp.Scope) == 2 && dp.Scope[0] == "operations" && dp.Scope[1] == op.Handle {
+			if !inLookup[dp.Name] {
+				inLookup[dp.Name] = true
+				params = append(params, &atypes.Param{
+					ArgumentName: dp.Name,
+					Types:        []string{dp.Type},
+					Required:     dp.Required,
+					Meta: &atypes.ParamMeta{
+						Label:       dp.Name,
+						Description: dp.Description,
+					},
+				})
+			}
+		}
+	}
+
+	return
+}
+
+func generateFunctionResults(conn types.Connection, op types.ConnectionOperation) (results atypes.ParamSet) {
+	for _, out := range op.Output {
+		results = append(results, &atypes.Param{
+			ArgumentName: out.Name,
+			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
+			Types: []string{out.Type},
+			Meta: &atypes.ParamMeta{
+				Label: out.Name,
+			},
+		})
+	}
+
+	return
+}
+
+func generateFunctionSegments(conn types.Connection, op types.ConnectionOperation, parameters atypes.ParamSet) (out []atypes.ConstructSegment) {
+	var elements []atypes.SectionElement
+
+	for _, p := range parameters {
+		inputType := "string"
+		if len(p.Types) > 0 {
+			inputType = p.Types[0]
+		}
+
+		elements = append(elements, atypes.SectionElement{
+			Input: atypes.SectionElementInput{
+				Type:     inputType,
+				Label:    p.ArgumentName,
+				Argument: p.ArgumentName,
+			},
+		})
+	}
+
+	return []atypes.ConstructSegment{
+		{
+			Sections: []atypes.ConstructSection{
+				{
+					Elements: elements,
+				},
+			},
+		},
+	}
 }

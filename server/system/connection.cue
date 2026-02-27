@@ -37,12 +37,6 @@ connection: {
 				omitSetter: true
 				omitGetter: true
 			}
-			standard_operations: {
-				goType: "types.ConnectionStandardOps"
-				dal: { type: "JSON", defaultEmptyObject: true }
-				omitSetter: true
-				omitGetter: true
-			}
 			operations: {
 				goType: "types.ConnectionOperations"
 				dal: { type: "JSON", defaultEmptyObject: true }

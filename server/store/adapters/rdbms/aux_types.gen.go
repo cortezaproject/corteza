@@ -360,21 +360,20 @@ type (
 
 	// auxConnection is an auxiliary structure used for transporting to/from RDBMS store
 	auxConnection struct {
-		ID                 uint64                           `db:"id"`
-		Handle             string                           `db:"handle"`
-		Revision           int                              `db:"revision"`
-		Status             string                           `db:"status"`
-		Meta               systemType.ConnectionMeta        `db:"meta"`
-		Service            systemType.ConnectionService     `db:"service"`
-		Resources          systemType.ConnectionResources   `db:"resources"`
-		StandardOperations systemType.ConnectionStandardOps `db:"standard_operations"`
-		Operations         systemType.ConnectionOperations  `db:"operations"`
-		CreatedAt          time.Time                        `db:"created_at"`
-		UpdatedAt          *time.Time                       `db:"updated_at"`
-		DeletedAt          *time.Time                       `db:"deleted_at"`
-		CreatedBy          uint64                           `db:"created_by"`
-		UpdatedBy          uint64                           `db:"updated_by"`
-		DeletedBy          uint64                           `db:"deleted_by"`
+		ID         uint64                          `db:"id"`
+		Handle     string                          `db:"handle"`
+		Revision   int                             `db:"revision"`
+		Status     string                          `db:"status"`
+		Meta       systemType.ConnectionMeta       `db:"meta"`
+		Service    systemType.ConnectionService    `db:"service"`
+		Resources  systemType.ConnectionResources  `db:"resources"`
+		Operations systemType.ConnectionOperations `db:"operations"`
+		CreatedAt  time.Time                       `db:"created_at"`
+		UpdatedAt  *time.Time                      `db:"updated_at"`
+		DeletedAt  *time.Time                      `db:"deleted_at"`
+		CreatedBy  uint64                          `db:"created_by"`
+		UpdatedBy  uint64                          `db:"updated_by"`
+		DeletedBy  uint64                          `db:"deleted_by"`
 	}
 
 	// auxCredential is an auxiliary structure used for transporting to/from RDBMS store
@@ -1988,7 +1987,6 @@ func (aux *auxConnection) encode(res *systemType.Connection) (_ error) {
 	aux.Meta = res.Meta
 	aux.Service = res.Service
 	aux.Resources = res.Resources
-	aux.StandardOperations = res.StandardOperations
 	aux.Operations = res.Operations
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
@@ -2011,7 +2009,6 @@ func (aux auxConnection) decode() (res *systemType.Connection, _ error) {
 	res.Meta = aux.Meta
 	res.Service = aux.Service
 	res.Resources = aux.Resources
-	res.StandardOperations = aux.StandardOperations
 	res.Operations = aux.Operations
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
@@ -2034,7 +2031,6 @@ func (aux *auxConnection) scan(row scanner) error {
 		&aux.Meta,
 		&aux.Service,
 		&aux.Resources,
-		&aux.StandardOperations,
 		&aux.Operations,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
