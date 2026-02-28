@@ -55,6 +55,7 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
 		fix_2024_9_7_migrateLabelsValueToJsonb,
+		fix_2024_09_07_migrateNamespacePageBlocks,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
@@ -1312,6 +1313,14 @@ func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err 
 	return nil
 
 }
+
+func fix_2024_03_00_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_namespace",
+		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{DefaultValue: "[]"}},
+	)
+}
+
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {
 	db := s.DB.(goqu.SQLDatabase)
 

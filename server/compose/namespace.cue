@@ -27,6 +27,18 @@ namespace: {
 				omitSetter: true
 				omitGetter: true
 			}
+			blocks: {
+				goType: "types.GlobalBlocks"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
+			}
 			name: {
 				sortable: true
 				dal: {}
