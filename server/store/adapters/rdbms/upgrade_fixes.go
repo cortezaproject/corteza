@@ -1314,7 +1314,7 @@ func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err 
 
 }
 
-func fix_2024_03_00_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
+func fix_2024_09_07_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"compose_namespace",
 		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{DefaultValue: "[]"}},
