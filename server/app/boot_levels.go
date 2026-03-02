@@ -380,6 +380,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	reg := mcpkg.NewRegistry()
 	mcpkg.RecordHandler(reg)
 	app.McpServer = mcpkg.NewMCPServer(reg)
+	sysService.DefaultMCPRegistry = reg
 
 	obs := observability.NewBus(observability.NewLogDispatcher())
 

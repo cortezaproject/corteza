@@ -23,6 +23,7 @@ type (
 		Read(context.Context, *request.AiConversationRead) (interface{}, error)
 		Delete(context.Context, *request.AiConversationDelete) (interface{}, error)
 		Undelete(context.Context, *request.AiConversationUndelete) (interface{}, error)
+		Continue(context.Context, *request.AiConversationContinue) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -31,6 +32,7 @@ type (
 		Read     func(http.ResponseWriter, *http.Request)
 		Delete   func(http.ResponseWriter, *http.Request)
 		Undelete func(http.ResponseWriter, *http.Request)
+		Continue func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -100,6 +102,22 @@ func NewAiConversation(h AiConversationAPI) *AiConversation {
 
 			api.Send(w, r, value)
 		},
+		Continue: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAiConversationContinue()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Continue(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -110,5 +128,6 @@ func (h AiConversation) MountRoutes(r chi.Router, middlewares ...func(http.Handl
 		r.Get("/ai-conversations/{aiConversationID}", h.Read)
 		r.Delete("/ai-conversations/{aiConversationID}", h.Delete)
 		r.Post("/ai-conversations/{aiConversationID}/undelete", h.Undelete)
+		r.Post("/ai-conversations/{aiConversationID}/continue", h.Continue)
 	})
 }

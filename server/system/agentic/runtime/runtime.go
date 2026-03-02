@@ -105,9 +105,9 @@ type (
 	}
 
 	Tool struct {
-		Name        string
-		Description string
-		InputSchema map[string]any // JSON schema
+		Name        string         `json:"name"`
+		Description string         `json:"description"`
+		InputSchema map[string]any `json:"inputSchema"`
 	}
 )
 

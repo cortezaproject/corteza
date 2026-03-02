@@ -67,9 +67,12 @@ type (
 	}
 )
 
-func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, messages []Message, tools []Tool) (*Response, error) {
+func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, messages []Message, tools []Tool) (*Response, error) {
+	if model == "" {
+		model = provider.Config.Model
+	}
 	req := openaiRequest{
-		Model:    provider.Config.Model,
+		Model:    model,
 		Messages: toOpenAIMessages(messages),
 	}
 
@@ -149,6 +152,51 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 			TotalTokens:      oaiResp.Usage.TotalTokens,
 		},
 	}, nil
+}
+
+func fetchOpenAIModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential) ([]string, error) {
+	url := provider.Config.PromptURL + "/models"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	switch provider.Provider {
+	case "azure":
+		req.Header.Set("api-key", cred.Credentials)
+	default:
+		req.Header.Set("Authorization", "Bearer "+cred.Credentials)
+	}
+
+	resp, err := (&http.Client{Timeout: 10 * time.Second}).Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("models request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("provider returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse models response: %w", err)
+	}
+
+	models := make([]string, len(result.Data))
+	for i, m := range result.Data {
+		models[i] = m.ID
+	}
+	return models, nil
 }
 
 func toOpenAIMessages(messages []Message) []openaiMessage {

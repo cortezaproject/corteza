@@ -85,6 +85,18 @@ type (
 		// AI Conversation ID
 		AiConversationID uint64 `json:",string"`
 	}
+
+	AiConversationContinue struct {
+		// AiConversationID PATH parameter
+		//
+		// AI Conversation ID
+		AiConversationID uint64 `json:",string"`
+
+		// Input POST parameter
+		//
+		// User input message
+		Input string
+	}
 )
 
 // NewAiConversationList request
@@ -271,6 +283,89 @@ func (r AiConversationUndelete) GetAiConversationID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *AiConversationUndelete) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "aiConversationID")
+		r.AiConversationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewAiConversationContinue request
+func NewAiConversationContinue() *AiConversationContinue {
+	return &AiConversationContinue{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AiConversationContinue) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"aiConversationID": r.AiConversationID,
+		"input":            r.Input,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AiConversationContinue) GetAiConversationID() uint64 {
+	return r.AiConversationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AiConversationContinue) GetInput() string {
+	return r.Input
+}
+
+// Fill processes request and fills internal variables
+func (r *AiConversationContinue) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["input"]; ok && len(val) > 0 {
+				r.Input, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["input"]; ok && len(val) > 0 {
+			r.Input, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

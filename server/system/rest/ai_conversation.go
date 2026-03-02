@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -72,6 +73,19 @@ func (ctrl *AiConversation) Delete(ctx context.Context, r *request.AiConversatio
 
 func (ctrl *AiConversation) Undelete(ctx context.Context, r *request.AiConversationUndelete) (interface{}, error) {
 	return nil, ctrl.svc.UndeleteByID(ctx, r.AiConversationID)
+}
+
+func (ctrl *AiConversation) Continue(ctx context.Context, r *request.AiConversationContinue) (interface{}, error) {
+	conv, err := ctrl.svc.FindByID(ctx, r.AiConversationID)
+	if err != nil {
+		return nil, err
+	}
+
+	return service.DefaultAgenticRuntime.Run(ctx, &runtime.AgentRequest{
+		AgentID:        conv.AgentID,
+		ConversationID: conv.ID,
+		Input:          r.Input,
+	})
 }
 
 func (ctrl *AiConversation) makeFilterPayload(_ context.Context, nn types.AiConversationSet, f types.AiConversationFilter, err error) (*aiConversationSetPayload, error) {

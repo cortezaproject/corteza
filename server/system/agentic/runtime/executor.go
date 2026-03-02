@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -15,6 +16,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
+
+//go:embed corteza.md
+var cortezaSystemContext string
 
 const (
 	defaultMaxIterations = 10
@@ -74,6 +78,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
 	systemPrompt := agent.Behavior.SystemPrompt
+	if agent.Behavior.InjectSystemContext {
+		systemPrompt = cortezaSystemContext + "\n\n" + systemPrompt
+	}
 	r.emitSpan(observability.AgentSpan{
 		ID:             sid(),
 		ParentID:       rootSpanID,

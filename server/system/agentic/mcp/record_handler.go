@@ -24,6 +24,34 @@ func RecordHandler(reg *Registry) *recordHandler {
 }
 func (h *recordHandler) register() {
 	h.reg.RegisterTool(
+		mcp.NewTool("compose_namespace_list",
+			mcp.WithDescription("List all available Corteza namespaces"),
+		),
+		h.namespaceList,
+	)
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_module_list",
+			mcp.WithDescription("List all modules in a Corteza namespace"),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace ID, handle, or slug")),
+		),
+		h.moduleList,
+	)
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_namespace_lookup",
+			mcp.WithDescription("Look up a Corteza namespace by ID, handle, or slug"),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace ID, handle, or slug")),
+		),
+		h.namespaceLookup,
+	)
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_module_lookup",
+			mcp.WithDescription("Look up a Corteza module by ID, handle, or name within a namespace"),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace ID, handle, or slug")),
+			mcp.WithString("module", mcp.Required(), mcp.Description("Module ID, handle, or name")),
+		),
+		h.moduleLookup,
+	)
+	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
 			mcp.WithDescription("Look up a record by ID"),
 			mcp.WithString("namespaceID",mcp.Required(),mcp.Description("Namespace ID")),
@@ -60,6 +88,114 @@ func (h *recordHandler) register() {
 		),
 		h.del,
 	)
+}
+
+func (h *recordHandler) namespaceList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	set, _, err := cmpService.DefaultNamespace.Find(ctx, cmpTypes.NamespaceFilter{})
+	if err != nil {
+		return nil, fmt.Errorf("namespace list failed: %w", err)
+	}
+
+	type nsItem struct {
+		ID     uint64 `json:"namespaceID,string"`
+		Name   string `json:"name"`
+		Slug   string `json:"slug"`
+		Handle string `json:"handle"`
+	}
+	items := make([]nsItem, len(set))
+	for i, ns := range set {
+		items[i] = nsItem{ID: ns.ID, Name: ns.Name, Slug: ns.Slug}
+	}
+
+	out, err := json.Marshal(items)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal namespaces: %w", err)
+	}
+	return mcp.NewToolResultText(string(out)), nil
+}
+
+func (h *recordHandler) moduleList(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid request")
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	if err != nil {
+		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+	}
+
+	set, _, err := cmpService.DefaultModule.Find(ctx, cmpTypes.ModuleFilter{NamespaceID: ns.ID})
+	if err != nil {
+		return nil, fmt.Errorf("module list failed: %w", err)
+	}
+
+	type fieldItem struct {
+		Name string `json:"name"`
+		Kind string `json:"kind"`
+	}
+	type modItem struct {
+		ID          uint64      `json:"moduleID,string"`
+		NamespaceID uint64      `json:"namespaceID,string"`
+		Name        string      `json:"name"`
+		Handle      string      `json:"handle"`
+		Fields      []fieldItem `json:"fields"`
+	}
+	items := make([]modItem, len(set))
+	for i, mod := range set {
+		fields := make([]fieldItem, len(mod.Fields))
+		for j, f := range mod.Fields {
+			fields[j] = fieldItem{Name: f.Name, Kind: f.Kind}
+		}
+		items[i] = modItem{ID: mod.ID, NamespaceID: mod.NamespaceID, Name: mod.Name, Handle: mod.Handle, Fields: fields}
+	}
+
+	out, err := json.Marshal(items)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal modules: %w", err)
+	}
+	return mcp.NewToolResultText(string(out)), nil
+}
+
+func (h *recordHandler) namespaceLookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid request")
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	if err != nil {
+		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+	}
+
+	out, err := json.Marshal(ns)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal namespace: %w", err)
+	}
+	return mcp.NewToolResultText(string(out)), nil
+}
+
+func (h *recordHandler) moduleLookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid request")
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	if err != nil {
+		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+	}
+
+	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, args["module"])
+	if err != nil {
+		return nil, fmt.Errorf("module lookup failed: %w", err)
+	}
+
+	out, err := json.Marshal(mod)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal module: %w", err)
+	}
+	return mcp.NewToolResultText(string(out)), nil
 }
 
 func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

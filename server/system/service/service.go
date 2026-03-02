@@ -109,6 +109,7 @@ var (
 	DefaultAgent               *agent
 	DefaultAiConversation      *aiConversation
 	DefaultAgenticRuntime      AgenticRunner
+	DefaultMCPRegistry         agenticRuntime.MCPClient
 	DefaultLlmService          *llm.Service
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter

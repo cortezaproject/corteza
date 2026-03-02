@@ -3501,6 +3501,98 @@ endpoints:
                 title: Conversation ID for multi-turn,
               }
 
+  - title: MCP
+    path: '/mcp'
+    entrypoint: mcp
+    authentication: []
+    apis:
+      - name: listTools
+        method: GET
+        title: List available MCP tools
+        path: '/tools'
+
+  - title: LLM Providers
+    path: '/llm-providers'
+    entrypoint: llmProvider
+    authentication: []
+    imports:
+      - github.com/cortezaproject/corteza/server/system/types
+    apis:
+      - name: list
+        method: GET
+        title: List LLM providers
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: provider, title: Filter by provider type }
+            - { type: string, name: status, title: Filter by status }
+      - name: create
+        method: POST
+        title: Create LLM provider
+        path: '/'
+        parameters:
+          post:
+            - { type: string, name: handle, required: true, title: Handle }
+            - { type: string, name: provider, required: true, title: Provider type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: apiKey, title: API key }
+            - {
+                type: 'types.LLMProviderMeta',
+                name: meta,
+                title: Meta,
+                parser: 'types.ParseLLMProviderMeta',
+              }
+            - {
+                type: 'types.LLMProviderConfig',
+                name: config,
+                title: Config,
+                parser: 'types.ParseLLMProviderConfig',
+              }
+      - name: read
+        method: GET
+        title: Read LLM provider
+        path: '/{llmProviderID}'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+      - name: update
+        method: PUT
+        title: Update LLM provider
+        path: '/{llmProviderID}'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+          post:
+            - { type: string, name: handle, title: Handle }
+            - { type: string, name: provider, title: Provider type }
+            - { type: string, name: status, title: Status }
+            - {
+                type: 'types.LLMProviderMeta',
+                name: meta,
+                title: Meta,
+                parser: 'types.ParseLLMProviderMeta',
+              }
+            - {
+                type: 'types.LLMProviderConfig',
+                name: config,
+                title: Config,
+                parser: 'types.ParseLLMProviderConfig',
+              }
+      - name: delete
+        method: DELETE
+        title: Delete LLM provider
+        path: '/{llmProviderID}'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+      - name: models
+        method: GET
+        title: List available models for an LLM provider
+        path: '/{llmProviderID}/models'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+
   - title: AI Conversations
     path: '/ai-conversations'
     entrypoint: aiConversation
@@ -3546,3 +3638,12 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+      - name: continue
+        method: POST
+        title: Continue AI conversation
+        path: '/{aiConversationID}/continue'
+        parameters:
+          path:
+            - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+          post:
+            - { type: string, name: input, required: true, title: User input message }
