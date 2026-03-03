@@ -19,8 +19,6 @@
           darkTheme: $t('navigation.themes.labels.dark'),
         }"
         :hide-app-selector="true"
-        :sidebar-disabled="true"
-        :hide-logo="true"
       />
     </header>
 
@@ -48,7 +46,6 @@
 </template>
 
 <script setup>
-import { useApplicationsStore } from '@/stores/applications'
 import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
@@ -56,7 +53,6 @@ const { CTopbar, CLoaderLogo } = components
 
 const $Settings = inject('$Settings')
 
-const applicationsStore = useApplicationsStore()
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')
 })
@@ -64,11 +60,8 @@ const logoUrl = computed(() => {
 const loading = ref(true)
 
 onMounted(() => {
-  const fetchPromise = applicationsStore.fetchApplications()
-  const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
-
-  Promise.all([fetchPromise, delayPromise]).finally(() => {
+  setTimeout(() => {
     loading.value = false
-  })
+  }, 500)
 })
 </script>

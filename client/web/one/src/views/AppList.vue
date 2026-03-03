@@ -1,5 +1,5 @@
 <template>
-  <div class="app-selector flex flex-col h-full py-4 gap-7 my-3">
+  <div class="app-selector flex flex-col md:align-items-center h-full py-4 gap-7 my-3 md:mt-7">
     <div class="flex flex-col justify-center items-center mx-4 gap-4">
       <img v-if="logoUrl" :src="logoUrl" class="px-4 max-h-lg max-w-xl w-auto mb-6" alt="Logo" />
 

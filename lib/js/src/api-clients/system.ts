@@ -7713,9 +7713,6 @@ export default class System {
   async connectionCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { handle, meta, service, resources, standardOperations, operations, labels } =
       (a as KV) || {}
-    if (!handle) {
-      throw Error('field handle is empty')
-    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -8224,5 +8221,497 @@ export default class System {
   configuredConnectionEnableEndpoint(a: KV): string {
     const { connectionID } = a || {}
     return `/configured-connections/${connectionID}/enable`
+  }
+
+  // Check configured connection health (connectivity, auth, probe)
+  async configuredConnectionCheck(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.configuredConnectionCheckEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionCheckCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionCheck(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionCheckEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/configured-connections/${connectionID}/check`
+  }
+
+  // List agents
+  async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, handle, status, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.agentListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      handle,
+      status,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentListEndpoint(): string {
+    return '/agents/'
+  }
+
+  // Create agent
+  async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, status, meta, behavior, execution, access, invocation } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.agentCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      status,
+      meta,
+      behavior,
+      execution,
+      access,
+      invocation,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentCreateEndpoint(): string {
+    return '/agents'
+  }
+
+  // Read agent details
+  async agentRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID } = (a as KV) || {}
+    if (!agentID) {
+      throw Error('field agentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.agentReadEndpoint({
+        agentID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentReadEndpoint(a: KV): string {
+    const { agentID } = a || {}
+    return `/agents/${agentID}`
+  }
+
+  // Update agent details
+  async agentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID, handle, status, meta, behavior, execution, access, invocation, updatedAt } =
+      (a as KV) || {}
+    if (!agentID) {
+      throw Error('field agentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.agentUpdateEndpoint({
+        agentID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      status,
+      meta,
+      behavior,
+      execution,
+      access,
+      invocation,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentUpdateEndpoint(a: KV): string {
+    const { agentID } = a || {}
+    return `/agents/${agentID}`
+  }
+
+  // Delete agent
+  async agentDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID } = (a as KV) || {}
+    if (!agentID) {
+      throw Error('field agentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.agentDeleteEndpoint({
+        agentID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentDeleteEndpoint(a: KV): string {
+    const { agentID } = a || {}
+    return `/agents/${agentID}`
+  }
+
+  // Undelete agent
+  async agentUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID } = (a as KV) || {}
+    if (!agentID) {
+      throw Error('field agentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.agentUndeleteEndpoint({
+        agentID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentUndeleteEndpoint(a: KV): string {
+    const { agentID } = a || {}
+    return `/agents/${agentID}/undelete`
+  }
+
+  // Execute agent
+  async agentExec(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID, input, conversationID } = (a as KV) || {}
+    if (!agentID) {
+      throw Error('field agentID is empty')
+    }
+    if (!input) {
+      throw Error('field input is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.agentExecEndpoint({
+        agentID,
+      }),
+    }
+    cfg.data = {
+      input,
+      conversationID,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentExecCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentExec(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentExecEndpoint(a: KV): string {
+    const { agentID } = a || {}
+    return `/agents/${agentID}/exec`
+  }
+
+  // List AI conversations
+  async aiConversationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.aiConversationListEndpoint(),
+    }
+    cfg.params = {
+      agentID,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  aiConversationListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.aiConversationList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  aiConversationListEndpoint(): string {
+    return '/ai-conversations/'
+  }
+
+  // Read AI conversation details
+  async aiConversationRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { aiConversationID } = (a as KV) || {}
+    if (!aiConversationID) {
+      throw Error('field aiConversationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.aiConversationReadEndpoint({
+        aiConversationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  aiConversationReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.aiConversationRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  aiConversationReadEndpoint(a: KV): string {
+    const { aiConversationID } = a || {}
+    return `/ai-conversations/${aiConversationID}`
+  }
+
+  // Delete AI conversation
+  async aiConversationDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { aiConversationID } = (a as KV) || {}
+    if (!aiConversationID) {
+      throw Error('field aiConversationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.aiConversationDeleteEndpoint({
+        aiConversationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  aiConversationDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.aiConversationDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  aiConversationDeleteEndpoint(a: KV): string {
+    const { aiConversationID } = a || {}
+    return `/ai-conversations/${aiConversationID}`
+  }
+
+  // Undelete AI conversation
+  async aiConversationUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { aiConversationID } = (a as KV) || {}
+    if (!aiConversationID) {
+      throw Error('field aiConversationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.aiConversationUndeleteEndpoint({
+        aiConversationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  aiConversationUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.aiConversationUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  aiConversationUndeleteEndpoint(a: KV): string {
+    const { aiConversationID } = a || {}
+    return `/ai-conversations/${aiConversationID}/undelete`
   }
 }

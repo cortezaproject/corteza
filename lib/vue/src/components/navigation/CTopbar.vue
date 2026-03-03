@@ -1,7 +1,7 @@
 <template>
   <div class="header-navigation flex flex-wrap items-center p-2 !pr-3 border-b border-surface">
     <!-- Sidebar toggle + small logo -->
-    <div v-if="!sidebarExpanded">
+    <div v-if="!hideLogo && !sidebarExpanded">
       <!-- When sidebar is disabled on this route, show only icon logo -->
       <img v-if="sidebarDisabled" :src="iconLogo" class="h-10 w-10 p-2 object-contain" />
 
@@ -92,6 +92,10 @@ const sidebarExpanded = defineModel('sidebarExpanded', {
 })
 
 const props = defineProps({
+  hideLogo: {
+    type: Boolean,
+    default: false,
+  },
   sidebarDisabled: {
     type: Boolean,
     default: false,
