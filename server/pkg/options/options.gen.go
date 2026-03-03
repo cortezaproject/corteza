@@ -263,6 +263,7 @@ type (
 		Debug               bool   `env:"DISCOVERY_DEBUG"`
 		CortezaDomain       string `env:"DISCOVERY_CORTEZA_DOMAIN"`
 		BaseUrl             string `env:"DISCOVERY_BASE_URL"`
+		EmbeddingsEnabled   bool   `env:"DISCOVERY_EMBEDDINGS_ENABLED"`
 		EmbeddingsDimension int    `env:"DISCOVERY_EMBEDDINGS_DIMENSION"`
 		HnswEfConstruction  int    `env:"DISCOVERY_HNSW_EF_CONSTRUCTION"`
 		HnswM               int    `env:"DISCOVERY_HNSW_M"`
@@ -1062,6 +1063,7 @@ func Discovery() (o *DiscoveryOpt) {
 	o = &DiscoveryOpt{
 		Enabled:             false,
 		Debug:               false,
+		EmbeddingsEnabled:   false,
 		EmbeddingsDimension: 384,
 		HnswEfConstruction:  128,
 		HnswM:               16,

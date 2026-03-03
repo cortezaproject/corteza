@@ -97,7 +97,7 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config, esClient *elasti
 	}
 
 	// Reindexing existing mapping if needed
-	DefaultReIndexer = reindex.ReIndexer(log, DefaultEs, esClient, DefaultApiClient, DefaultEmbedder, c.ES, func(ctx context.Context) (err error) {
+	DefaultReIndexer = reindex.ReIndexer(log, DefaultEs, esClient, DefaultApiClient, DefaultEmbedder, c.ES, c.VectorSearch, func(ctx context.Context) (err error) {
 		err = DefaultMapper.Mappings(ctx, esClient, "private")
 		if err != nil {
 			return err

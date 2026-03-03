@@ -25,6 +25,11 @@ discovery: schema.#optionsGroup & {
 			type:        "string"
 			description: "Indicates host of corteza discovery server"
 		}
+		embeddings_enabled: {
+			type:          "bool"
+			defaultGoExpr: "false"
+			description:   "Enable discovery embeddings generation"
+		}
 		embeddings_dimension: {
       type:        "int"
       description: "Embeddings dimension"

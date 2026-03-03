@@ -66,6 +66,10 @@ func (embedder *embedder) GenerateEmbeddings(input string) ([]float64, error) {
 	}
 
 	url := embedder.vectorSearchOpt.EmbeddingsAPIUrl
+	if url == "" {
+		return nil, nil
+	}
+
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)

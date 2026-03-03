@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 )
@@ -96,8 +95,6 @@ func (a resourceActivity) ResourceActivities(ctx context.Context, limit uint, cu
 
 			return nil
 		})
-
-		spew.Dump("Zubi >>3", err)
 
 		if err != nil {
 			return err

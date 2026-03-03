@@ -4,6 +4,12 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
+const (
+	TraditionalSearchMode string = "traditional"
+	SemanticSearchMode    string = "semantic"
+	HybridSearchMode      string = "hybrid"
+)
+
 type (
 	VectorSearchOpt struct {
 		EmbeddingsAPIUrl string `env:"EMBEDDINGS_API_URL"`
@@ -26,7 +32,7 @@ func VectorSearch() (o *VectorSearchOpt, err error) {
 		o.LLMBaseURL = options.EnvString("LLM_BASE_URL", "")
 		o.LLMAPIKey = options.EnvString("LLM_API_KEY", "")
 		o.LLMModel = options.EnvString("LLM_MODEL", "mistral-medium-latest")
-		o.SearchMode = options.EnvString("SEARCH_MODE", "traditional")
+		o.SearchMode = options.EnvString("SEARCH_MODE", TraditionalSearchMode)
 
 		return nil
 	}()

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -325,10 +326,10 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 	if !noQ {
 
 		switch p.searchMode {
-		case "traditional":
+		case options.TraditionalSearchMode:
 			applyTraditionalSearch(query, index, sqs.Wrap.Query)
 
-		case "semantic":
+		case options.SemanticSearchMode:
 			vector, err := p.embedder.GenerateEmbeddings(sqs.Wrap.Query)
 			if err != nil {
 				log.Error("failed to generate embeddings", zap.Error(err))
@@ -337,7 +338,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				applySemanticSearch(query, index, vector)
 			}
 
-		case "hybrid":
+		case options.HybridSearchMode:
 			vector, err := p.embedder.GenerateEmbeddings(sqs.Wrap.Query)
 			if err != nil {
 				log.Error("failed to generate embeddings", zap.Error(err))

@@ -225,7 +225,9 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 		},
 	}
 
-	mapping.Mapping["vectorsValue"] = vector(m.opts)
+	if m.opts.EmbeddingsEnabled {
+		mapping.Mapping["vectorsValue"] = vector(m.opts)
+	}
 
 	return
 }

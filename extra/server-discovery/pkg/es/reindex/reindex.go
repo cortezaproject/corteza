@@ -101,13 +101,14 @@ type (
 	}
 
 	reIndexer struct {
-		log            *zap.Logger
-		esOpt          options.EsOpt
-		es             esService
-		esClient       *elasticsearch.Client
-		embedder       embedderService
-		api            apiClientService
-		assureMappings func(context.Context) error
+		log             *zap.Logger
+		esOpt           options.EsOpt
+		vectorSearchOpt options.VectorSearchOpt
+		es              esService
+		esClient        *elasticsearch.Client
+		embedder        embedderService
+		api             apiClientService
+		assureMappings  func(context.Context) error
 	}
 
 	NamespaceRef struct {
@@ -160,15 +161,16 @@ const (
 	MarkerID    = "last_index_time"
 )
 
-func ReIndexer(log *zap.Logger, es esService, esc *elasticsearch.Client, api apiClientService, embedderSvc embedderService, esOpt options.EsOpt, assureMappings func(context.Context) error) *reIndexer {
+func ReIndexer(log *zap.Logger, es esService, esc *elasticsearch.Client, api apiClientService, embedderSvc embedderService, esOpt options.EsOpt, vsOpt options.VectorSearchOpt, assureMappings func(context.Context) error) *reIndexer {
 	return &reIndexer{
-		log:            log,
-		esOpt:          esOpt,
-		es:             es,
-		esClient:       esc,
-		embedder:       embedderSvc,
-		api:            api,
-		assureMappings: assureMappings,
+		log:             log,
+		esOpt:           esOpt,
+		vectorSearchOpt: vsOpt,
+		es:              es,
+		esClient:        esc,
+		embedder:        embedderSvc,
+		api:             api,
+		assureMappings:  assureMappings,
 	}
 }
 
@@ -812,14 +814,15 @@ func (ri *reIndexer) processResource(source []byte) (*bytes.Reader, error) {
 		return nil, fmt.Errorf("records catch_all not found or empty")
 	}
 
-	catchAllValues := cast.ToStringSlice(record.CatchAll)
+	if ri.vectorSearchOpt.SearchMode != options.TraditionalSearchMode {
+		catchAllValues := cast.ToStringSlice(record.CatchAll)
+		embeddings, err := ri.embedder.GenerateEmbeddings(strings.Join(catchAllValues, ", "))
+		if err != nil {
+			return nil, err
+		}
 
-	embeddings, err := ri.embedder.GenerateEmbeddings(strings.Join(catchAllValues, ", "))
-	if err != nil {
-		return nil, err
+		record.VectorsValue = embeddings
 	}
-
-	record.VectorsValue = embeddings
 
 	updatedJSON, err := json.Marshal(record)
 	if err != nil {
@@ -837,8 +840,6 @@ func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
 	)
 
 	// create the index and the fields.
-
-	spew.Dump("Zubi >>2", res, err)
 
 	if err != nil {
 		return false, err
@@ -936,7 +937,6 @@ func (ri *reIndexer) fetchSinglePage(ctx context.Context, fromTime time.Time, to
 	defer rsp.Body.Close()
 
 	if rsp.StatusCode != http.StatusOK {
-		spew.Dump("Zubi >>1", rsp.StatusCode, rsp.Body)
 		ri.log.Error(fmt.Sprintf("request resulted in an unexpected status '%s' for feed", rsp.Status))
 		return nil, fmt.Errorf("unexpected status: %s", rsp.Status)
 	}
