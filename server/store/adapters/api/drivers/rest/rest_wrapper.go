@@ -21,8 +21,7 @@ type (
 )
 
 func (svc *restAPIWrapper) Run(ctx context.Context, method string, path string, payload []byte, headers map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error) {
-	client := svc.client
-	client, err = svc.appendAuth(ctx, client)
+	client, err := svc.appendAuth(ctx, svc.cloneClient())
 	if err != nil {
 		return
 	}
@@ -94,6 +93,13 @@ func (svc *restAPIWrapper) appendAuthOAuth2(ctx context.Context, client *httpCli
 
 	client.SetHeader("Authorization", fmt.Sprintf("Bearer %s", token))
 	return client, nil
+}
+
+func (svc *restAPIWrapper) cloneClient() *httpClient {
+	c := *svc.client
+	c.headers = make(map[string][]string, len(svc.client.headers))
+	maps.Copy(c.headers, svc.client.headers)
+	return &c
 }
 
 // @todo would make sense to stream the output

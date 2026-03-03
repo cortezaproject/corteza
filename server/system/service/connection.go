@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
@@ -56,9 +57,12 @@ func Connection() *connection {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
-
-		configuredConnection: DefaultConfiguredConnection,
 	}
+}
+
+func (svc *connection) WithConfiguredConnection(cc *configuredConnection) *connection {
+	svc.configuredConnection = cc
+	return svc
 }
 
 func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Connection, err error) {
@@ -310,6 +314,13 @@ func (svc *connection) validateConnection(c *types.Connection) error {
 	if c.Service.Auth.Method == "" {
 		return ConnectionErrMissingAuthMethod()
 	}
+
+	for _, op := range c.Operations {
+		if len(op.Steps) > 1 {
+			return fmt.Errorf("multi step operations are currently not supoorted")
+		}
+	}
+
 	return nil
 }
 
@@ -375,8 +386,11 @@ func (svc *connection) deriveParams(c *types.Connection) {
 
 	// Custom operations
 	for _, op := range c.Operations {
-		for _, t := range collectHTTPActionTemplates(&op.HTTP) {
-			tt = append(tt, scopedTemplate{[]string{"operations", op.Handle}, t})
+		for _, step := range op.Steps {
+			for _, t := range collectHTTPActionTemplates(step.HTTP) {
+				// @todo scope to given step
+				tt = append(tt, scopedTemplate{[]string{"operations", op.Handle}, t})
+			}
 		}
 	}
 

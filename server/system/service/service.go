@@ -245,6 +245,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultConnection = Connection()
 	DefaultConfiguredConnection = ConfiguredConnectionSvc().WithDalConnection(DefaultDalConnection)
 
+	DefaultConnection.WithConfiguredConnection(DefaultConfiguredConnection)
+
 	// Register automation functions from all active configured connections
 	DefaultConfiguredConnection.RegisterAllOperations(ctx)
 

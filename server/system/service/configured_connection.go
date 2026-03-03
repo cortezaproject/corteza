@@ -197,6 +197,11 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 
 		res.Config.DalConnectionID = rsp.dalConnection.ID
 		res.Status = "active"
+
+		if res.Labels == nil {
+			res.Labels = make(map[string]labelTypes.LabelValue)
+		}
+
 		res.Labels["corteza/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
 
 		n := now()
@@ -324,7 +329,11 @@ func (svc *configuredConnection) resolveTemplates(conn *types.Connection, params
 	ops := make(types.ConnectionOperations, len(out.Operations))
 	copy(ops, out.Operations)
 	for i := range ops {
-		resolveHTTPAction(&ops[i].HTTP, []string{"operations", ops[i].Handle})
+		for j := range ops[i].Steps {
+			if ops[i].Steps[j].HTTP != nil {
+				resolveHTTPAction(ops[i].Steps[j].HTTP, []string{"operations", ops[i].Handle})
+			}
+		}
 	}
 	out.Operations = ops
 
@@ -467,33 +476,41 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 			resolveTemplate := makeTemplateResolver(in.Dict())
 			out = &expr.Vars{}
 
-			// @note we might want to pull this resolution away from the handler.
-			// The opeGetConnectionByID is a hash map lookup which should not produce a significant performance impact.
 			cw := dal.Service().GetConnectionByID(dalConnectionID)
 			if cw == nil {
 				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
 			}
 
-			path, headers, payload, err := buildHTTPRequest(op.HTTP, in, resolveTemplate)
-			if err != nil {
-				return nil, err
-			}
+			var respBody []byte
+			for _, step := range op.Steps {
+				if step.Type != "http" || step.HTTP == nil {
+					continue
+				}
 
-			statusCode, outHeaders, respBody, err := cw.Execute(ctx, op.HTTP.Method, path, headers, payload)
-			if err != nil {
-				return nil, fmt.Errorf("operation execution failed: %w", err)
-			}
+				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, resolveTemplate)
+				if err != nil {
+					return nil, err
+				}
 
-			err = checkHTTPResponse(statusCode, outHeaders, respBody)
-			if err != nil {
-				return nil, err
+				statusCode, outHeaders, body, err := cw.Execute(ctx, step.HTTP.Method, path, headers, payload)
+				if err != nil {
+					return nil, fmt.Errorf("operation execution failed: %w", err)
+				}
+
+				if err = checkHTTPResponse(statusCode, outHeaders, body); err != nil {
+					return nil, err
+				}
+
+				respBody = body
+
+				// @todo fix up when we support multi-step operations
+				break
 			}
 
 			if len(respBody) == 0 || len(op.Output) == 0 {
 				return out, nil
 			}
 
-			// Parse response using selectors
 			var respData any
 			if err := json.Unmarshal(respBody, &respData); err != nil {
 				return out, fmt.Errorf("failed to parse response JSON: %w", err)
@@ -501,7 +518,6 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 
 			for _, outField := range op.Output {
 				if len(outField.Selector) == 0 {
-					// Fallback to name if no selector provided
 					_ = out.Set(outField.Name, extractByPath(respData, []string{outField.Name}))
 					continue
 				}
@@ -610,11 +626,6 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 				Label: in.Name,
 			},
 		})
-
-		inputType := in.Type
-		if inputType == "" {
-			inputType = "String"
-		}
 	}
 
 	// Implicit from derived parameters
