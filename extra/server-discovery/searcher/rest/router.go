@@ -22,18 +22,22 @@ func MountRoutes(log *zap.Logger, opt options.VectorSearchOpt) func(r chi.Router
 
 			r.Use(auth.HttpTokenValidator("discovery"))
 
-			llm, err := openai.New(
-				openai.WithBaseURL(opt.LLMBaseURL),
-				openai.WithToken(opt.LLMAPIKey),
-				openai.WithModel(opt.LLMModel),
-			)
-
-			if err != nil {
-				log.Error(err.Error())
-			}
-
+			// traditional search endpoint for Traditional and vectorsearch
 			handlers.NewSearch(search).MountRoutes(r)
-			handlers.NewRagQuery(Rag(search, llm, log)).MountRoutes(r)
+
+			if opt.SearchMode == options.HybridSearchMode {
+				llm, err := openai.New(
+					openai.WithBaseURL(opt.LLMBaseURL),
+					openai.WithToken(opt.LLMAPIKey),
+					openai.WithModel(opt.LLMModel),
+				)
+
+				if err != nil {
+					log.Error(err.Error())
+				}
+
+				handlers.NewRagQuery(Rag(search, llm, log)).MountRoutes(r)
+			}
 		})
 	}
 }
