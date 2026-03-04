@@ -49,11 +49,8 @@ const formatted = computed(() => {
   const v = value.value
 
   if (v === '1' || v === true) {
-    return trueLabel || t('general.label.yes', 'Yes')
-  } else if (v === '0' || v === false) {
-    return falseLabel || t('general.label.no', 'No')
+    return trueLabel || t('general.label.yes')
   }
-
-  return ''
+  return falseLabel || t('general.label.no')
 })
 </script>

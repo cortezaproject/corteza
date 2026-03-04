@@ -129,6 +129,13 @@ export const useUserStore = defineStore('user', () => {
     })
   }
 
+  /**
+   * Store pre-fetched users into the set (e.g. from search results).
+   */
+  function storeUsers(users) {
+    updateSet(users)
+  }
+
   return {
     // state
     pending: toRef(state, 'pending'),
@@ -142,5 +149,6 @@ export const useUserStore = defineStore('user', () => {
     load,
     fetchUsers,
     resolveUsers,
+    storeUsers,
   }
 })

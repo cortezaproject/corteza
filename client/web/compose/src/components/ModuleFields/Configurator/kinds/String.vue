@@ -20,10 +20,14 @@
         </label>
       </div>
     </div>
+
+    <CConfiguratorMultiDelimiter :field="field" />
   </div>
 </template>
 
 <script setup>
+import CConfiguratorMultiDelimiter from '../CConfiguratorMultiDelimiter.vue'
+
 defineProps({
   field: {
     type: Object,

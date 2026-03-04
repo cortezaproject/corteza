@@ -5,7 +5,12 @@
       :key="index"
       :class="{ block: isNewlineDelimiter, 'mt-1': isNewlineDelimiter && index !== 0 }"
     >
-      <Tag v-if="isBadgeDisplay" :value="v.text" :style="v.style" rounded class="mr-1" />
+      <Tag
+        v-if="isBadgeDisplay"
+        :value="v.text"
+        :pt="{ root: { style: v.style } }"
+        class="mr-1"
+      />
       <span v-else>{{ v.text }}{{ index !== resolvedValues.length - 1 ? delimiter : '' }}</span>
     </span>
   </div>
@@ -77,14 +82,18 @@ function resolveValue(val, options) {
   }
 }
 
+function toColor(hex) {
+  if (!hex) return null
+  return hex.startsWith('#') ? hex : '#' + hex
+}
+
 function getOptionStyle(opt) {
   const style = {}
 
   if (isBadgeDisplay.value) {
     const optStyle = opt.style || {}
-    style.fontSize = '0.9rem'
-    style.color = optStyle.textColor || 'var(--p-text-color)'
-    style.backgroundColor = optStyle.backgroundColor || 'var(--p-surface-200)'
+    style.color = toColor(optStyle.textColor) || undefined
+    style.backgroundColor = toColor(optStyle.backgroundColor) || undefined
   }
 
   return style

@@ -38,6 +38,18 @@ export const FIELD_REGISTRY: Record<string, FieldEntry> = {
     editor: CFieldStringEditor,
     viewer: defineAsyncComponent(() => import('./viewers/CFieldUrlViewer.vue')),
   },
+  User: {
+    editor: defineAsyncComponent(() => import('./editors/CFieldUserEditor.vue')),
+    viewer: defineAsyncComponent(() => import('./viewers/CFieldUserViewer.vue')),
+  },
+  Record: {
+    editor: defineAsyncComponent(() => import('./editors/CFieldRecordEditor.vue')),
+    viewer: defineAsyncComponent(() => import('./viewers/CFieldRecordViewer.vue')),
+  },
+  File: {
+    editor: defineAsyncComponent(() => import('./editors/CFieldFileEditor.vue')),
+    viewer: defineAsyncComponent(() => import('./viewers/CFieldFileViewer.vue')),
+  },
 }
 
 export function resolveFieldEditor(kind: string): Component {

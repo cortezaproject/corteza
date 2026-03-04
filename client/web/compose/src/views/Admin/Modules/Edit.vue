@@ -138,9 +138,9 @@
                 </div>
 
                 <DataTable
-                  :value="module.fields"
+                  :value="fieldsForTable"
                   striped-rows
-                  data-key="name"
+                  data-key="_dataKey"
                   class="border border-b-0 border-surface rounded-border overflow-auto"
                   :pt="{ headerCell: { class: 'bg-highlight-emphasis' } }"
                 >
@@ -341,6 +341,23 @@ const fieldKinds = [
   { label: t('general.fieldKinds.Geometry.label'), value: 'Geometry' },
 ]
 
+// Stable key counter for new fields (fieldID is '0' for unsaved fields, so not usable as key)
+let _fieldKeyCounter = 0
+
+function ensureFieldKey(field) {
+  if (!field._dataKey) {
+    field._dataKey =
+      field.fieldID && field.fieldID !== '0' ? field.fieldID : `new_${++_fieldKeyCounter}`
+  }
+}
+
+// Fields with stable _dataKey so DataTable doesn't re-mount rows on name changes
+const fieldsForTable = computed(() => {
+  if (!module.value?.fields) return []
+  module.value.fields.forEach(ensureFieldKey)
+  return module.value.fields
+})
+
 // Computed
 const isEdit = computed(() => !!route.params.moduleID)
 
@@ -426,7 +443,9 @@ function addField() {
   if (!module.value.fields) {
     module.value.fields = []
   }
-  module.value.fields.push(new compose.ModuleFieldString())
+  const field = new compose.ModuleFieldString()
+  ensureFieldKey(field)
+  module.value.fields.push(field)
 }
 
 function removeField(index) {

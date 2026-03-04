@@ -276,6 +276,8 @@ metric:
     valueLabel: Value style
   label: Metric
 record:
+  noModule: No module configured for this block
+  noRecord: No record available
   referenceRecordField: Reference record
   referenceRecordFieldPlaceholder: Select reference record field
   referenceRecordFieldDescription: Used to show record details of reference record. Multi value record selector fields are not available

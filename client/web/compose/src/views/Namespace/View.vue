@@ -34,7 +34,7 @@ import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { compose, NoID } from '@cortezaproject/corteza-js-next'
 import { useMinDuration } from '@cortezaproject/corteza-vue-next'
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -60,6 +60,9 @@ const pageLayoutStore = usePageLayoutStore()
 // State with minimum loading duration to prevent spinner flash
 const { loading, run } = useMinDuration(1000)
 const namespace = ref(null)
+
+// Provide namespace so deeply nested components (e.g. CFieldRecordEditor) can access it
+provide('$namespace', namespace)
 
 // Methods
 async function loadNamespace() {

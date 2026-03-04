@@ -11,6 +11,7 @@ import Breadcrumb from 'primevue/breadcrumb'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
+import ColorPicker from 'primevue/colorpicker'
 import Column from 'primevue/column'
 import ConfirmDialog from 'primevue/confirmdialog'
 import DataTable from 'primevue/datatable'
@@ -24,17 +25,18 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
-
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 import Menu from 'primevue/menu'
+import Message from 'primevue/message'
+import MultiSelect from 'primevue/multiselect'
 import Panel from 'primevue/panel'
 import Password from 'primevue/password'
 import Popover from 'primevue/popover'
 import Paginator from 'primevue/paginator'
 import RadioButton from 'primevue/radiobutton'
-import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'
@@ -46,6 +48,7 @@ import Textarea from 'primevue/textarea'
 import TieredMenu from 'primevue/tieredmenu'
 import Toast from 'primevue/toast'
 import ToggleSwitch from 'primevue/toggleswitch'
+import FileUpload from 'primevue/fileupload'
 import Tree from 'primevue/tree'
 
 /**
@@ -64,6 +67,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Button', Button)
     app.component('Card', Card)
     app.component('Checkbox', Checkbox)
+    app.component('ColorPicker', ColorPicker)
     app.component('Column', Column)
     app.component('ConfirmDialog', ConfirmDialog)
     app.component('DataTable', DataTable)
@@ -82,6 +86,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('InputGroupAddon', InputGroupAddon)
     app.component('Menu', Menu)
     app.component('Message', Message)
+    app.component('MultiSelect', MultiSelect)
     app.component('Paginator', Paginator)
     app.component('Panel', Panel)
     app.component('Password', Password)
@@ -89,6 +94,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('ProgressSpinner', ProgressSpinner)
     app.component('RadioButton', RadioButton)
     app.component('Select', Select)
+    app.component('SelectButton', SelectButton)
     app.component('Tab', Tab)
     app.component('TabList', TabList)
     app.component('TabPanel', TabPanel)
@@ -99,6 +105,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('TieredMenu', TieredMenu)
     app.component('Toast', Toast)
     app.component('ToggleSwitch', ToggleSwitch)
+    app.component('FileUpload', FileUpload)
     app.component('Tree', Tree)
   },
 }

@@ -442,6 +442,11 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 	segments := generateFunctionSegments(cc.Connection, op, params)
 	results := generateFunctionResults(cc.Connection, op)
 
+	var icon *atypes.NgAutomationIcon
+	if cc.Connection.Meta.Icon != "" {
+		icon = &atypes.NgAutomationIcon{Type: "name", Value: cc.Connection.Meta.Icon}
+	}
+
 	return atypes.ConstructFunction{
 		Ref:    ref,
 		Kind:   "function",
@@ -449,7 +454,7 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       op.Meta.Short,
 			Description: op.Meta.Description,
-			Icon:        cc.Connection.Meta.Icon,
+			Icon:        icon,
 		},
 		Parameters: params,
 		Results:    results,

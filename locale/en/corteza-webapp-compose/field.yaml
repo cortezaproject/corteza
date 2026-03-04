@@ -30,6 +30,15 @@ kind:
     outputFormat: Output format
     outputFormatFootnote: See {0} for formatting options
     relativeOutput: 'Output Relative value (eg: 3 days ago, 15 minutes ago)'
+    relative:
+      fewSecondsAgo: 'a few seconds ago'
+      inFewSeconds: 'in a few seconds'
+      minutesAgo: '{n}m ago'
+      inMinutes: 'in {n}m'
+      hoursAgo: '{n}h ago'
+      inHours: 'in {n}h'
+      daysAgo: '{n}d ago'
+      inDays: 'in {n}d'
     warning:
       futureValuesOnly: Only dates in the future will be saved
       pastValuesOnly: Only dates in the past will be saved

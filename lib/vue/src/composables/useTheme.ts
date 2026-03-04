@@ -126,7 +126,6 @@ export function getTheme(theme: Theme) {
         --p-drawer-border-color: #ffffff00;
         --p-overlay-modal-padding: 1rem;
         --p-tabs-tabpanel-padding: 1rem;
-        --p-content-border-radius: var(--p-border-radius-xl);
       }
 
       body {

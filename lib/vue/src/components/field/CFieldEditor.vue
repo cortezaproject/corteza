@@ -1,9 +1,21 @@
 <template>
-  <div v-if="field.isMulti" class="flex flex-col gap-2 w-full">
+  <!-- Multi-value fields where the editor absorbs the whole array (e.g. MultiSelect) -->
+  <component
+    v-if="multiAbsorbing"
+    :is="editorComponent"
+    :field="field"
+    :namespace="namespace"
+    :model-value="modelValue"
+    :disabled="disabled"
+    @update:model-value="$emit('update:modelValue', $event)"
+  />
+
+  <div v-else-if="field.isMulti" class="flex flex-col gap-2 w-full">
     <div v-for="entry in entries" :key="entry.id" class="flex items-center gap-2">
       <component
         :is="editorComponent"
         :field="field"
+        :namespace="namespace"
         :model-value="entry.value"
         :disabled="disabled"
         class="flex-1"
@@ -34,6 +46,7 @@
     v-else
     :is="editorComponent"
     :field="field"
+    :namespace="namespace"
     :model-value="singleValue"
     :disabled="disabled"
     @update:model-value="$emit('update:modelValue', $event)"
@@ -61,11 +74,24 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  namespace: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 const editorComponent = computed(() => resolveFieldEditor(props.field.kind))
+
+// When the editor absorbs the full multi-value array itself (not per-entry)
+const multiAbsorbing = computed(() => {
+  // File always manages an array of attachment IDs regardless of isMulti
+  if (props.field.kind === 'File') return true
+  if (!props.field.isMulti) return false
+  if (props.field.kind === 'Select' && props.field.options?.selectType === 'multiple') return true
+  return false
+})
 
 const singleValue = computed(() => {
   if (Array.isArray(props.modelValue)) return props.modelValue[0] ?? ''

@@ -66,9 +66,10 @@
 import CSidebarNamespaceSwitcher from '@/components/CSidebarNamespaceSwitcher.vue'
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { useNamespaceStore } from '@/stores/namespace'
+import { useRecordStore } from '@/stores/record'
 import { useUserStore } from '@/stores/user'
 import { components, useRBACStore } from '@cortezaproject/corteza-vue-next'
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 const { CTopbar, CLoaderLogo, CSidebar } = components
 
@@ -84,7 +85,12 @@ const loading = ref(true)
 
 const namespaceStore = useNamespaceStore()
 const usersStore = useUserStore()
+const recordStore = useRecordStore()
 const rbacStore = useRBACStore()
+
+// Provide stores to field editor/viewer components in lib/vue
+provide('$userStore', usersStore)
+provide('$recordStore', recordStore)
 
 onMounted(() => {
   const fetchPromises = [

@@ -1,11 +1,14 @@
 <template>
-  <div :class="viewerClasses">
+  <div>
     <span v-if="formatted">{{ formatted }}</span>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   field: {
@@ -103,21 +106,12 @@ function formatRelative(date) {
 
   const isFuture = diffMs < 0
 
-  if (diffSecs < 60) return isFuture ? 'in a few seconds' : 'a few seconds ago'
-  if (diffMins < 60) return isFuture ? `in ${diffMins}m` : `${diffMins}m ago`
-  if (diffHours < 24) return isFuture ? `in ${diffHours}h` : `${diffHours}h ago`
-  if (diffDays < 30) return isFuture ? `in ${diffDays}d` : `${diffDays}d ago`
+  if (diffSecs < 60) return isFuture ? t('field.kind.dateTime.relative.inFewSeconds') : t('field.kind.dateTime.relative.fewSecondsAgo')
+  if (diffMins < 60) return isFuture ? t('field.kind.dateTime.relative.inMinutes', { n: diffMins }) : t('field.kind.dateTime.relative.minutesAgo', { n: diffMins })
+  if (diffHours < 24) return isFuture ? t('field.kind.dateTime.relative.inHours', { n: diffHours }) : t('field.kind.dateTime.relative.hoursAgo', { n: diffHours })
+  if (diffDays < 30) return isFuture ? t('field.kind.dateTime.relative.inDays', { n: diffDays }) : t('field.kind.dateTime.relative.daysAgo', { n: diffDays })
 
   return date.toLocaleDateString()
 }
 
-const viewerClasses = computed(() => {
-  return props.field.isMulti ? ['multiline'] : []
-})
 </script>
-
-<style scoped>
-.multiline {
-  white-space: pre-line;
-}
-</style>

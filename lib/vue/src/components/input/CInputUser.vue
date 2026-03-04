@@ -11,12 +11,10 @@
     @complete="search"
     class="w-full"
     dropdown
+    :complete-on-focus="true"
   >
     <template #option="{ option }">
-      <div class="flex items-center gap-2">
-        <span>{{ getOptionLabel(option) }}</span>
-        <span v-if="option.email" class="text-muted-color text-xs">{{ option.email }}</span>
-      </div>
+      {{ getOptionLabel(option) }}
     </template>
   </AutoComplete>
 </template>
@@ -25,6 +23,7 @@
 import AutoComplete from 'primevue/autocomplete'
 import { debounce } from 'lodash-es'
 import { inject, onMounted, ref, watch } from 'vue'
+import { useUserResolver } from '../../composables/useUserResolver'
 
 const props = defineProps({
   modelValue: {
@@ -48,17 +47,20 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'select'])
 
 const $SystemAPI = inject('$SystemAPI')
+const { formatUser, resolveUser, cacheUsers } = useUserResolver()
 
 const suggestions = ref([])
 const selectedUser = ref(null)
 const loading = ref(false)
 
 function getOptionLabel(user) {
-  if (!user) return ''
-  return user.name || user.handle || user.email || user.userID
+  return formatUser(user)
 }
 
 const search = debounce(async event => {
+  // If empty query (focus click) and we already have suggestions, don't refetch
+  if (!event.query && suggestions.value.length > 0) return
+
   loading.value = true
   try {
     const response = await $SystemAPI.userList({
@@ -66,6 +68,7 @@ const search = debounce(async event => {
       limit: 20,
     })
     suggestions.value = response.set || []
+    cacheUsers(suggestions.value)
   } catch {
     suggestions.value = []
   } finally {
@@ -91,11 +94,12 @@ function onItemSelect(event) {
 }
 
 async function loadUserById(userID) {
-  if (!userID || !$SystemAPI) return
+  if (!userID) return
+
   loading.value = true
   try {
-    const user = await $SystemAPI.userRead({ userID })
-    selectedUser.value = user
+    const user = await resolveUser(userID)
+    if (user) selectedUser.value = user
   } catch {
     // User not found or API error - leave selectedUser as null
   } finally {

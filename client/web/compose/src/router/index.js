@@ -113,6 +113,16 @@ const router = createRouter({
               name: 'admin.modules.record.create',
               component: () => import('../views/Admin/Modules/Records/Create.vue'),
             },
+            {
+              path: 'admin/modules/:moduleID/records/:recordID',
+              name: 'admin.modules.record.view',
+              component: () => import('../views/Admin/Modules/Records/Edit.vue'),
+            },
+            {
+              path: 'admin/modules/:moduleID/records/:recordID/edit',
+              name: 'admin.modules.record.edit',
+              component: () => import('../views/Admin/Modules/Records/Edit.vue'),
+            },
 
             // Public - Record View
             {

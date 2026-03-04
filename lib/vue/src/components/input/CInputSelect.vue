@@ -10,6 +10,7 @@
     class="w-full"
     dropdown
     :showClear="showClear"
+    :complete-on-focus="completeOnFocus"
     @complete="onComplete"
   >
     <template #option="slotProps">
@@ -53,6 +54,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  completeOnFocus: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'search'])
@@ -79,6 +84,10 @@ function onSelect(value) {
 
 function onComplete(event) {
   const query = event.query || ''
+  // Always reassign for empty queries so AutoComplete sees a new reference and opens the panel
+  if (!query) {
+    filteredOptions.value = [...props.options]
+  }
   emit('search', query)
 }
 </script>

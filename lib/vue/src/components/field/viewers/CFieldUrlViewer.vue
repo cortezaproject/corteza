@@ -1,5 +1,5 @@
 <template>
-  <div :class="viewerClasses">
+  <div>
     <span v-for="(v, index) in formattedValues" :key="index" :class="{ block: isNewlineDelimiter }">
       <span v-if="field.options.outputPlain || disableClick">
         {{ fixUrl(v) }}{{ index !== formattedValues.length - 1 ? delimiter : '' }}

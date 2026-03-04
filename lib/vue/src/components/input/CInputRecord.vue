@@ -5,8 +5,9 @@
     :options="options"
     :option-label="getOptionLabel"
     :placeholder="effectivePlaceholder"
-    :disabled="disabled || !namespaceID || !moduleID"
+    :disabled="disabled || !namespaceId || !moduleId"
     :loading="loading"
+    :complete-on-focus="true"
     @search="onSearch"
   >
     <template #option="{ option }">
@@ -27,11 +28,11 @@ const props = defineProps({
     type: [String, Number],
     default: null,
   },
-  namespaceID: {
+  namespaceId: {
     type: [String, Number],
     default: null,
   },
-  moduleID: {
+  moduleId: {
     type: [String, Number],
     default: null,
   },
@@ -42,7 +43,7 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: '',
+    default: 'Select a record',
   },
   disabled: {
     type: Boolean,
@@ -62,13 +63,13 @@ const loading = ref(false)
 let cancelCurrentRequest = null
 
 const effectivePlaceholder = computed(() => {
-  if (!props.namespaceID) {
+  if (!props.namespaceId) {
     return 'Select a namespace first'
   }
-  if (!props.moduleID) {
+  if (!props.moduleId) {
     return 'Select a module first'
   }
-  return props.placeholder || 'Select a record'
+  return props.placeholder
 })
 
 function getOptionLabel(record) {
@@ -90,7 +91,7 @@ function getOptionLabel(record) {
 }
 
 async function fetchRecords(query = '') {
-  if (!props.namespaceID || !props.moduleID || !$ComposeAPI) {
+  if (!props.namespaceId || !props.moduleId || !$ComposeAPI) {
     options.value = []
     return
   }
@@ -104,8 +105,8 @@ async function fetchRecords(query = '') {
   loading.value = true
   try {
     const { response, cancel } = $ComposeAPI.recordListCancellable({
-      namespaceID: props.namespaceID,
-      moduleID: props.moduleID,
+      namespaceID: props.namespaceId,
+      moduleID: props.moduleId,
       query,
       limit: 50,
     })
@@ -124,7 +125,7 @@ async function fetchRecords(query = '') {
   }
 }
 
-const debouncedFetch = debounce((query) => {
+const debouncedFetch = debounce(query => {
   fetchRecords(query)
 }, 200)
 
@@ -142,7 +143,7 @@ function onSelect(value) {
 }
 
 async function loadRecordById(recordID) {
-  if (!recordID || !props.namespaceID || !props.moduleID || !$ComposeAPI) return
+  if (!recordID || !props.namespaceId || !props.moduleId || !$ComposeAPI) return
 
   // First check if already in options
   const existing = options.value.find(r => r.recordID === recordID)
@@ -155,8 +156,8 @@ async function loadRecordById(recordID) {
   loading.value = true
   try {
     const record = await $ComposeAPI.recordRead({
-      namespaceID: props.namespaceID,
-      moduleID: props.moduleID,
+      namespaceID: props.namespaceId,
+      moduleID: props.moduleId,
       recordID,
     })
     selectedRecord.value = record
@@ -173,7 +174,7 @@ async function loadRecordById(recordID) {
 
 // Watch for namespace/module changes - clear selection and reload records
 watch(
-  () => [props.namespaceID, props.moduleID],
+  () => [props.namespaceId, props.moduleId],
   ([newNs, newMod], [oldNs, oldMod]) => {
     if ((oldNs && newNs !== oldNs) || (oldMod && newMod !== oldMod)) {
       selectedRecord.value = null
@@ -187,19 +188,23 @@ watch(
   },
 )
 
-watch(() => props.modelValue, (newVal) => {
-  if (newVal && (!selectedRecord.value || selectedRecord.value.recordID !== newVal)) {
-    loadRecordById(newVal)
-  } else if (!newVal) {
-    selectedRecord.value = null
-  }
-}, { immediate: true })
+watch(
+  () => props.modelValue,
+  newVal => {
+    if (newVal && (!selectedRecord.value || selectedRecord.value.recordID !== newVal)) {
+      loadRecordById(newVal)
+    } else if (!newVal) {
+      selectedRecord.value = null
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
-  if (props.namespaceID && props.moduleID) {
+  if (props.namespaceId && props.moduleId) {
     fetchRecords()
   }
-  if (props.modelValue && props.namespaceID && props.moduleID) {
+  if (props.modelValue && props.namespaceId && props.moduleId) {
     loadRecordById(props.modelValue)
   }
 })

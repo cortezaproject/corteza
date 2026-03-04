@@ -11,6 +11,8 @@ export const useRecordStore = defineStore('record', () => {
     pending: false,
     // Map of records keyed by recordID
     records: new Map(),
+    // Lightweight cache for raw API records used by field viewers (no module required)
+    labelCache: new Map(),
   })
 
   /**
@@ -226,9 +228,39 @@ export const useRecordStore = defineStore('record', () => {
 
   /**
    * Get a cached record by ID (synchronous, no API call).
+   * Checks the full records map first, then the label cache.
    */
   function getByID(recordID) {
-    return state.records.get(recordID) || null
+    return state.records.get(recordID) || state.labelCache.get(recordID) || null
+  }
+
+  /**
+   * Resolve record labels for viewer components without requiring the module in moduleStore.
+   * Fetches missing records directly via API and caches them in labelCache.
+   *
+   * @param {Object} params
+   * @param {string} params.namespaceID
+   * @param {string} params.moduleID
+   * @param {string[]} params.recordIDs
+   */
+  async function resolveRecordLabels({ namespaceID, moduleID, recordIDs } = {}) {
+    if (!$ComposeAPI || !namespaceID || !moduleID || !recordIDs?.length) return
+
+    const missing = recordIDs.filter(id => id && !state.records.has(id) && !state.labelCache.has(id))
+    if (!missing.length) return
+
+    try {
+      const results = await Promise.all(
+        missing.map(recordID =>
+          $ComposeAPI.recordRead({ namespaceID, moduleID, recordID }).catch(() => null),
+        ),
+      )
+      results.forEach(r => {
+        if (r?.recordID) state.labelCache.set(r.recordID, r)
+      })
+    } catch (e) {
+      console.error('Failed to resolve record labels:', e)
+    }
   }
 
   /**
@@ -236,6 +268,7 @@ export const useRecordStore = defineStore('record', () => {
    */
   function clearAll() {
     state.records.clear()
+    state.labelCache.clear()
     state.loading = false
     state.pending = false
   }
@@ -254,6 +287,7 @@ export const useRecordStore = defineStore('record', () => {
     create,
     update,
     delete: deleteRecord,
+    resolveRecordLabels,
     clearAll,
   }
 })

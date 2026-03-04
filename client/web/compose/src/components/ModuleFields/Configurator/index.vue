@@ -22,12 +22,12 @@
 
       <TabPanels class="flex-1 overflow-y-auto">
         <!-- General Settings -->
-        <TabPanel value="basic" class="px-0 py-4">
+        <TabPanel value="basic" class="px-0">
           <CConfiguratorBasic :field="mockField" />
         </TabPanel>
 
         <!-- Field-Specific Settings -->
-        <TabPanel v-if="hasKindSettings" value="kind" class="px-0 py-4">
+        <TabPanel v-if="hasKindSettings" value="kind" class="px-0">
           <component :is="kindComponent" :field="mockField" />
         </TabPanel>
       </TabPanels>
@@ -50,7 +50,7 @@
 
 <script setup>
 import { compose } from '@cortezaproject/corteza-js-next'
-import { computed, defineAsyncComponent, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import CConfiguratorBasic from './CConfiguratorBasic.vue'
 
 const props = defineProps({
@@ -68,6 +68,7 @@ const emit = defineEmits(['update:visible', 'save'])
 
 const activeTab = ref('basic')
 const mockField = ref(null)
+const kindComponent = ref(null)
 
 watch(
   () => props.visible,
@@ -84,22 +85,29 @@ watch(
   { immediate: true },
 )
 
+// Try to import the kind-specific configurator; set to null if none exists
+watch(
+  () => mockField.value?.kind,
+  async kind => {
+    if (!kind) {
+      kindComponent.value = null
+      return
+    }
+    try {
+      const mod = await import(`./kinds/${kind}.vue`)
+      kindComponent.value = mod.default
+    } catch {
+      kindComponent.value = null
+    }
+  },
+  { immediate: true },
+)
+
+const hasKindSettings = computed(() => !!kindComponent.value)
+
 const header = computed(() => {
   if (!mockField.value) return ''
   return mockField.value.label || mockField.value.name || mockField.value.kind
-})
-
-// Dynamically load the specific configurator for this field kind
-const kindComponent = computed(() => {
-  if (!mockField.value?.kind) return null
-  return defineAsyncComponent(() => import(`./kinds/${mockField.value.kind}.vue`).catch(() => null))
-})
-
-// Hardcode which types have specific configurator settings for now
-const hasKindSettings = computed(() => {
-  if (!mockField.value?.kind) return false
-  const kindsWithSettings = ['String', 'Number', 'DateTime', 'Bool', 'Select']
-  return kindsWithSettings.includes(mockField.value.kind)
 })
 
 function handleSave() {
