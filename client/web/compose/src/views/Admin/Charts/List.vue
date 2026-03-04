@@ -140,7 +140,7 @@ const chartFields = [
     alignFrozen: 'right',
     pt: {
       headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'p-0 border-l-0' },
+      bodyCell: { class: 'px-2 py-1 border-l-0' },
     },
   },
 ]

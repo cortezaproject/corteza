@@ -39,7 +39,9 @@
       class="flex items-center gap-2 px-3 py-2 bg-highlight border-b border-surface"
     >
       <span class="text-sm font-medium">
-        {{ $t('block.recordList.selected', { count: selectedRecords.length, total: totalRecords }) }}
+        {{
+          $t('block.recordList.selected', { count: selectedRecords.length, total: totalRecords })
+        }}
       </span>
       <div class="flex-1" />
       <Button
@@ -79,11 +81,7 @@
         </template>
 
         <!-- Selection column -->
-        <Column
-          selection-mode="multiple"
-          header-style="width: 3rem"
-          frozen
-        />
+        <Column selection-mode="multiple" header-style="width: 3rem" frozen />
 
         <!-- Data columns -->
         <Column
@@ -103,7 +101,7 @@
           header-style="width: 3rem"
           :pt="{
             headerCell: { class: 'border-l-0' },
-            bodyCell: { class: 'p-0 border-l-0' },
+            bodyCell: { class: 'px-2 py-1 border-l-0' },
           }"
           frozen
           align-frozen="right"
@@ -132,7 +130,9 @@
       </span>
 
       <div class="flex items-center gap-2 ml-2">
-        <span class="text-sm text-muted-color">{{ $t('block.recordList.pagination.recordsPerPage') }}</span>
+        <span class="text-sm text-muted-color">
+          {{ $t('block.recordList.pagination.recordsPerPage') }}
+        </span>
         <Select
           v-model="perPage"
           :options="pageSizeOptions"

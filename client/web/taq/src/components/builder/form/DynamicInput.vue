@@ -96,10 +96,8 @@ const effectivePlaceholder = computed(() => {
   if (props.disabled && props.disabledPlaceholder) {
     return props.disabledPlaceholder
   }
-  return (
-    props.placeholder ||
-    (props.label ? t('builder.form.selectPlaceholder', { field: props.label.toLowerCase() }) : '')
-  )
+
+  return props.placeholder
 })
 
 function onInputClick() {
