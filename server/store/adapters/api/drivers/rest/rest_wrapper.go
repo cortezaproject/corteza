@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"strings"
 
@@ -74,18 +75,16 @@ func (svc *restAPIWrapper) appendAuth(ctx context.Context, client *httpClient) (
 }
 
 func (svc *restAPIWrapper) appendAuthBearer(client *httpClient, token string) (_ *httpClient, err error) {
-	client.SetHeader("Bearer", token)
+	client.SetHeader("Authorization", "Bearer "+token)
 	return client, nil
 }
 
 func (svc *restAPIWrapper) appendAuthApiKey(client *httpClient, apiKey string) (_ *httpClient, err error) {
-	// @todo this header could be custom
-	client.SetHeader("X-API-Key", apiKey)
+	client.SetHeader(svc.dsn.APIKeyHeader, "token "+apiKey)
 	return client, nil
 }
 
 func (svc *restAPIWrapper) appendAuthOAuth2(ctx context.Context, client *httpClient) (_ *httpClient, err error) {
-	// Get access token from credential registry (handles auto-refresh)
 	token, err := cred_registry.Default().GetAccessToken(ctx, svc.connectionID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get OAuth2 access token: %w", err)
