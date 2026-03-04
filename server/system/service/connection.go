@@ -294,7 +294,7 @@ func (svc *connection) Configure(ctx context.Context, new *types.ConfiguredConne
 }
 
 func (svc *connection) UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
-	upd, err = svc.configuredConnection.Update(ctx, upd)
+	res, err = svc.configuredConnection.Update(ctx, upd)
 	if err != nil {
 		return nil, err
 	}
