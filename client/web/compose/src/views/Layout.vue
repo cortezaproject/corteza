@@ -165,7 +165,7 @@ import CDraftButton from '../components/Drafts/CDraftButton'
 
 library.add(faFile)
 
-const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar, CTopbarSearch } = components
+const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar, CTopbarSearch, CSearchButton } = components
 
 export default {
   i18nOptions: {
@@ -183,7 +183,7 @@ export default {
     CNotificationSidebar,
     CDraftSidebar,
     CDraftButton,
-    CSearchButton: () => import('../components/CSearchButton.vue'),
+    CSearchButton,
     CTopbarSearch,
   },
 

@@ -118,6 +118,7 @@ export {
 
 export {
   CTopbarSearch,
+  CSearchButton,
   RecordItem,
   ItemGroup,
 } from './search'
