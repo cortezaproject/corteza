@@ -8557,6 +8557,283 @@ export default class System {
     return `/agents/${agentID}/exec`
   }
 
+  // List available MCP tools
+  async mcpListTools(extra: AxiosRequestConfig = {}): Promise<KV> {
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.mcpListToolsEndpoint(),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  mcpListToolsCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.mcpListTools(options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  mcpListToolsEndpoint(): string {
+    return '/mcp/tools'
+  }
+
+  // List LLM providers
+  async llmProviderList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { provider, status } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.llmProviderListEndpoint(),
+    }
+    cfg.params = {
+      provider,
+      status,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderListEndpoint(): string {
+    return '/llm-providers/'
+  }
+
+  // Create LLM provider
+  async llmProviderCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, provider, status, apiKey, meta, config } = (a as KV) || {}
+    if (!handle) {
+      throw Error('field handle is empty')
+    }
+    if (!provider) {
+      throw Error('field provider is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.llmProviderCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      provider,
+      status,
+      apiKey,
+      meta,
+      config,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderCreateEndpoint(): string {
+    return '/llm-providers/'
+  }
+
+  // Read LLM provider
+  async llmProviderRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { llmProviderID } = (a as KV) || {}
+    if (!llmProviderID) {
+      throw Error('field llmProviderID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.llmProviderReadEndpoint({
+        llmProviderID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderReadEndpoint(a: KV): string {
+    const { llmProviderID } = a || {}
+    return `/llm-providers/${llmProviderID}`
+  }
+
+  // Update LLM provider
+  async llmProviderUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { llmProviderID, handle, provider, status, meta, config } = (a as KV) || {}
+    if (!llmProviderID) {
+      throw Error('field llmProviderID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.llmProviderUpdateEndpoint({
+        llmProviderID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      provider,
+      status,
+      meta,
+      config,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderUpdateEndpoint(a: KV): string {
+    const { llmProviderID } = a || {}
+    return `/llm-providers/${llmProviderID}`
+  }
+
+  // Delete LLM provider
+  async llmProviderDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { llmProviderID } = (a as KV) || {}
+    if (!llmProviderID) {
+      throw Error('field llmProviderID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.llmProviderDeleteEndpoint({
+        llmProviderID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderDeleteEndpoint(a: KV): string {
+    const { llmProviderID } = a || {}
+    return `/llm-providers/${llmProviderID}`
+  }
+
+  // List available models for an LLM provider
+  async llmProviderModels(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { llmProviderID } = (a as KV) || {}
+    if (!llmProviderID) {
+      throw Error('field llmProviderID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.llmProviderModelsEndpoint({
+        llmProviderID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderModelsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderModels(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderModelsEndpoint(a: KV): string {
+    const { llmProviderID } = a || {}
+    return `/llm-providers/${llmProviderID}/models`
+  }
+
   // List AI conversations
   async aiConversationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { agentID, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
@@ -8713,5 +8990,49 @@ export default class System {
   aiConversationUndeleteEndpoint(a: KV): string {
     const { aiConversationID } = a || {}
     return `/ai-conversations/${aiConversationID}/undelete`
+  }
+
+  // Continue AI conversation
+  async aiConversationContinue(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { aiConversationID, input } = (a as KV) || {}
+    if (!aiConversationID) {
+      throw Error('field aiConversationID is empty')
+    }
+    if (!input) {
+      throw Error('field input is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.aiConversationContinueEndpoint({
+        aiConversationID,
+      }),
+    }
+    cfg.data = {
+      input,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  aiConversationContinueCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.aiConversationContinue(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  aiConversationContinueEndpoint(a: KV): string {
+    const { aiConversationID } = a || {}
+    return `/ai-conversations/${aiConversationID}/continue`
   }
 }

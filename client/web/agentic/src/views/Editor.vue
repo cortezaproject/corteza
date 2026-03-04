@@ -87,13 +87,17 @@
                       <label for="provider" class="font-medium text-primary">
                         {{ $t('agent.editor.fields.provider') }}
                       </label>
-                      <InputText id="provider" v-model="agent.execution.model.llmProviderID" />
+                      <CInputLLM id="provider" v-model="agent.execution.model.llmProviderID" />
                     </div>
                     <div class="flex flex-col gap-2">
                       <label for="model" class="font-medium text-primary">
                         {{ $t('agent.editor.fields.model') }}
                       </label>
-                      <InputText id="model" v-model="agent.execution.model.model" />
+                      <CInputModel
+                        id="model"
+                        v-model="agent.execution.model.model"
+                        :llmProviderID="agent.execution.model.llmProviderID"
+                      />
                     </div>
                     <div class="flex flex-col gap-2">
                       <label for="temperature" class="font-medium text-primary">
@@ -138,43 +142,49 @@
                       <InputText id="contextModule" v-model="agent.access.context.module" />
                     </div>
                     <div class="md:col-span-2 pt-2">
-                      <div class="flex items-center justify-between mb-2">
+                      <div class="flex flex-col gap-2 mb-2">
                         <label class="font-medium text-primary">
                           {{ $t('agent.editor.fields.tools') }}
                         </label>
-                        <Button
-                          icon="pi pi-plus"
-                          size="small"
-                          outlined
-                          @click="agent.access.tools.push({ name: '', hints: '' })"
-                        />
+                        <MultiSelect
+                          :modelValue="selectedToolNames"
+                          @update:modelValue="onToolSelectionChange"
+                          :options="availableTools"
+                          optionLabel="name"
+                          optionValue="name"
+                          :placeholder="$t('agent.editor.fields.tools')"
+                          :loading="loadingTools"
+                          filter
+                          display="chip"
+                          class="w-full"
+                        >
+                          <template #option="{ option }">
+                            <span class="font-medium">{{ option.description }}</span>
+                          </template>
+                        </MultiSelect>
                       </div>
                       <DataTable
+                        v-if="agent.access.tools.length"
                         :value="agent.access.tools"
-                        :emptyMessage="$t('agent.editor.fields.noTools')"
                         class="border border-surface rounded overflow-hidden"
                       >
                         <Column
                           field="name"
                           :header="$t('agent.editor.fields.toolName')"
                           class="w-1/3"
-                        >
-                          <template #body="{ data }">
-                            <InputText v-model="data.name" class="w-full" size="small" />
-                          </template>
-                        </Column>
+                        />
                         <Column field="hints" :header="$t('agent.editor.fields.toolHints')">
                           <template #body="{ data }">
                             <InputText v-model="data.hints" class="w-full" size="small" />
                           </template>
                         </Column>
                         <Column headerStyle="width: 3rem">
-                          <template #body="{ index }">
+                          <template #body="{ data }">
                             <Button
                               icon="pi pi-trash"
                               severity="danger"
                               text
-                              @click="agent.access.tools.splice(index, 1)"
+                              @click="removeTool(data.name)"
                             />
                           </template>
                         </Column>
@@ -326,12 +336,15 @@ import Panel from 'primevue/panel'
 import ProgressSpinner from 'primevue/progressspinner'
 import Select from 'primevue/select'
 import Slider from 'primevue/slider'
+import MultiSelect from 'primevue/multiselect'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'
 import TabPanel from 'primevue/tabpanel'
 import TabPanels from 'primevue/tabpanels'
 import Tabs from 'primevue/tabs'
 import Textarea from 'primevue/textarea'
+import { components } from '@cortezaproject/corteza-vue-next'
+const { CInputLLM, CInputModel } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -355,6 +368,14 @@ const statusOptions = ref([
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
 ])
+
+const availableTools = ref([])
+const loadingTools = ref(false)
+
+const selectedToolNames = computed(() => {
+  if (!agent.value?.access?.tools) return []
+  return agent.value.access.tools.map(t => t.name)
+})
 
 const emptyAgent = () => ({
   handle: '',
@@ -504,5 +525,41 @@ async function sendChatMessage() {
 
 onMounted(() => {
   loadAgent()
+  fetchAvailableTools()
 })
+
+async function fetchAvailableTools() {
+  loadingTools.value = true
+  try {
+    const response = await $SystemAPI.mcpListTools()
+    availableTools.value = Array.isArray(response) ? response : response.set || []
+  } catch {
+    availableTools.value = []
+  } finally {
+    loadingTools.value = false
+  }
+}
+
+function onToolSelectionChange(selectedNames) {
+  const currentTools = agent.value.access.tools
+  // Build a map of existing tools to preserve hints
+  const existingMap = {}
+  currentTools.forEach(t => {
+    existingMap[t.name] = t
+  })
+
+  // Rebuild tools array from selected names
+  agent.value.access.tools = selectedNames.map(name => {
+    if (existingMap[name]) {
+      return existingMap[name]
+    }
+    // New tool — use description from available tools as default hint
+    const available = availableTools.value.find(t => t.name === name)
+    return { name, hints: available?.description || '' }
+  })
+}
+
+function removeTool(toolName) {
+  agent.value.access.tools = agent.value.access.tools.filter(t => t.name !== toolName)
+}
 </script>
