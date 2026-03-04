@@ -810,13 +810,14 @@ func (ri *reIndexer) processResource(source []byte) (*bytes.Reader, error) {
 		return nil, fmt.Errorf("error unmarshaling record: %v", err)
 	}
 
-	if len(record.CatchAll) == 0 {
-		return nil, fmt.Errorf("records catch_all not found or empty")
-	}
-
 	if ri.vectorSearchOpt.SearchMode != options.TraditionalSearchMode {
-		catchAllValues := cast.ToStringSlice(record.CatchAll)
-		embeddings, err := ri.embedder.GenerateEmbeddings(strings.Join(catchAllValues, ", "))
+		joinedValues := ""
+		if len(record.CatchAll) > 0 {
+			catchAllValues := cast.ToStringSlice(record.CatchAll)
+			joinedValues = strings.TrimSpace(strings.Join(catchAllValues, ", "))
+		}
+
+		embeddings, err := ri.embedder.GenerateEmbeddings(joinedValues)
 		if err != nil {
 			return nil, err
 		}
