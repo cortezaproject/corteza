@@ -73,40 +73,55 @@ func (d *auxYamlDoc) unmarshalPageBlocksNode(r *types.Page, n *yaml.Node) (refs 
 	refs = map[string]envoyx.Ref{}
 
 	for index, b := range r.Blocks {
-		switch b.Kind {
-		case "RecordList":
-			refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(b, index))
+		idents, err = unmarshalResourceBlocksNode(b.Kind, b.Options, index, refs)
+	}
+	return
+}
 
-		case "Automation":
-			refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(b, index))
+func (d *auxYamlDoc) unmarshalNamespaceBlocksNode(r *types.Namespace, n *yaml.Node) (refs map[string]envoyx.Ref, idents envoyx.Identifiers, err error) {
+	refs = map[string]envoyx.Ref{}
 
-		case "RecordOrganizer":
-			refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(b, index))
-
-		case "Chart":
-			refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(b, index))
-
-		case "Calendar":
-			refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(b, index))
-
-		case "Metric":
-			refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(b, index))
-
-		case "Comment":
-			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
-
-		case "Progress":
-			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b, index))
-		}
+	for index, gBlock := range r.Blocks {
+		idents, err = unmarshalResourceBlocksNode(gBlock.Kind, gBlock.Options, index, refs)
 	}
 
 	return
 }
 
-func getPageBlockRecordListRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func unmarshalResourceBlocksNode(kind string, options map[string]interface{}, index int, refs map[string]envoyx.Ref) (idents envoyx.Identifiers, err error) {
+	switch kind {
+	case "RecordList":
+		refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(options, index))
+
+	case "Automation":
+		refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(options, index))
+
+	case "RecordOrganizer":
+		refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(options, index))
+
+	case "Chart":
+		refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(options, index))
+
+	case "Calendar":
+		refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(options, index))
+
+	case "Metric":
+		refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(options, index))
+
+	case "Comment":
+		refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(options, index))
+
+	case "Progress":
+		refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(options, index))
+	}
+
+	return
+}
+
+func getPageBlockRecordListRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 
-	id := optString(b.Options, "module", "moduleID")
+	id := optString(options, "module", "moduleID")
 	if id == "" || id == "0" {
 		return
 	}
@@ -119,10 +134,10 @@ func getPageBlockRecordListRefs(b types.PageBlock, index int) (refs map[string]e
 	return
 }
 
-func getPageBlockChartRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockChartRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 
-	id := optString(b.Options, "chart", "chartID")
+	id := optString(options, "chart", "chartID")
 	if id == "" || id == "0" {
 		return
 	}
@@ -135,10 +150,10 @@ func getPageBlockChartRefs(b types.PageBlock, index int) (refs map[string]envoyx
 	return
 }
 
-func getPageBlockCalendarRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockCalendarRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 
-	ff, _ := b.Options["feeds"].([]interface{})
+	ff, _ := options["feeds"].([]interface{})
 	for j, f := range ff {
 		feed, _ := f.(map[string]interface{})
 		opt, _ := (feed["options"]).(map[string]interface{})
@@ -157,10 +172,10 @@ func getPageBlockCalendarRefs(b types.PageBlock, index int) (refs map[string]env
 	return
 }
 
-func getPageBlockMetricRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockMetricRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 
-	mm, _ := b.Options["metrics"].([]interface{})
+	mm, _ := options["metrics"].([]interface{})
 	for j, m := range mm {
 		mops, _ := m.(map[string]interface{})
 
@@ -178,26 +193,26 @@ func getPageBlockMetricRefs(b types.PageBlock, index int) (refs map[string]envoy
 	return
 }
 
-func getPageBlockCommentRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockCommentRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	// Same difference
-	return getPageBlockRecordListRefs(b, index)
+	return getPageBlockRecordListRefs(options, index)
 }
 
-func getPageBlockProgressRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockProgressRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 	var aux *envoyx.Ref
 
-	aux = getPageBlockProgressValueRefs(b.Options["minValue"])
+	aux = getPageBlockProgressValueRefs(options["minValue"])
 	if aux != nil {
 		refs[fmt.Sprintf("Blocks.%d.Options.minValue.ModuleID", index)] = *aux
 	}
 
-	aux = getPageBlockProgressValueRefs(b.Options["maxValue"])
+	aux = getPageBlockProgressValueRefs(options["maxValue"])
 	if aux != nil {
 		refs[fmt.Sprintf("Blocks.%d.Options.maxValue.ModuleID", index)] = *aux
 	}
 
-	aux = getPageBlockProgressValueRefs(b.Options["value"])
+	aux = getPageBlockProgressValueRefs(options["value"])
 	if aux != nil {
 		refs[fmt.Sprintf("Blocks.%d.Options.value.ModuleID", index)] = *aux
 	}
@@ -226,15 +241,15 @@ func getPageBlockProgressValueRefs(val any) (ref *envoyx.Ref) {
 	}
 }
 
-func getPageBlockRecordOrganizerRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockRecordOrganizerRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	// Same difference
-	return getPageBlockRecordListRefs(b, index)
+	return getPageBlockRecordListRefs(options, index)
 }
 
-func getPageBlockAutomationRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+func getPageBlockAutomationRefs(options map[string]interface{}, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 
-	bb, _ := b.Options["buttons"].([]interface{})
+	bb, _ := options["buttons"].([]interface{})
 	for buttonIx, b := range bb {
 		button, _ := b.(map[string]interface{})
 		id := optString(button, "workflow", "workflowID")
