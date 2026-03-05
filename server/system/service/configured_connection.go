@@ -236,6 +236,68 @@ func (svc *configuredConnection) Search(ctx context.Context, filter types.Config
 	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
 }
 
+func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error) {
+	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &types.ConfiguredConnectionCheckResult{}
+
+	cw := dal.Service().GetConnectionByID(cc.Config.DalConnectionID)
+	if cw == nil {
+		msg := "DAL connection not found"
+		result.Connectivity = types.ConfiguredConnectionCheckStatus{OK: false, Message: msg}
+		result.Auth = types.ConfiguredConnectionCheckStatus{OK: false, Message: msg}
+		return result, nil
+	}
+
+	result.Connectivity = svc.checkConnectivity(ctx, cw)
+	result.Auth = svc.checkAuth(ctx, cw)
+
+	if probe := cc.Connection.Service.Probe; probe != nil {
+		ps := svc.checkProbe(ctx, cw, probe)
+		result.Probe = &ps
+	}
+
+	return result, nil
+}
+
+func (svc *configuredConnection) checkConnectivity(ctx context.Context, cw *dal.ConnectionWrap) types.ConfiguredConnectionCheckStatus {
+	_, _, _, err := cw.Execute(ctx, "HEAD", "/", nil, nil)
+	if err != nil {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
+	}
+	return types.ConfiguredConnectionCheckStatus{OK: true}
+}
+
+func (svc *configuredConnection) checkAuth(ctx context.Context, cw *dal.ConnectionWrap) types.ConfiguredConnectionCheckStatus {
+	statusCode, _, _, err := cw.Execute(ctx, "GET", "/", nil, nil)
+	if err != nil {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
+	}
+	if statusCode == 401 || statusCode == 403 {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("authentication failed (HTTP %d)", statusCode)}
+	}
+	return types.ConfiguredConnectionCheckStatus{OK: true}
+}
+
+func (svc *configuredConnection) checkProbe(ctx context.Context, cw *dal.ConnectionWrap, probe *types.ConnectionProbe) types.ConfiguredConnectionCheckStatus {
+	expected := probe.ExpectedStatus
+	if expected == 0 {
+		expected = 200
+	}
+
+	statusCode, _, _, err := cw.Execute(ctx, "GET", probe.Path.Value, nil, nil)
+	if err != nil {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
+	}
+	if statusCode != expected {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("probe returned HTTP %d, expected %d", statusCode, expected)}
+	}
+	return types.ConfiguredConnectionCheckStatus{OK: true}
+}
+
 func loadConfiguredConnection(ctx context.Context, s store.ConfiguredConnections, ID uint64) (res *types.ConfiguredConnection, err error) {
 	if ID == 0 {
 		return nil, errors.NotFound("connection not found")

@@ -47,6 +47,13 @@ type (
 		ContentType string                        `json:"contentType"`
 		Headers     map[string]ConnectionTemplate `json:"headers,omitempty"`
 		Auth        ConnectionAuth                `json:"auth"`
+		Probe       *ConnectionProbe              `json:"probe,omitempty"`
+	}
+
+	ConnectionProbe struct {
+		Path ConnectionTemplate `json:"path"`
+		// Default expected status is 200
+		ExpectedStatus int `json:"expectedStatus,omitempty"`
 	}
 
 	ConnectionAuth struct {

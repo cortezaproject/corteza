@@ -43,7 +43,10 @@ func (svc *restAPIWrapper) Run(ctx context.Context, method string, path string, 
 	case "DELETE":
 		return svc.procOut(client.Delete(ctx, path, headers))
 
-	// @todo HEAD and OPTIONS but those don't really do anything at the moment
+	case "HEAD":
+		return svc.procOut(client.Head(ctx, path, headers))
+
+	// @todo OPTIONS
 
 	default:
 		panic(fmt.Sprintf("not supported %s", method))
