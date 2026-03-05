@@ -381,6 +381,7 @@
 </template>
 
 <script>
+import { cloneDeep } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import pages from 'corteza-webapp-compose/src/mixins/pages'
 import NewBlockSelector from 'corteza-webapp-compose/src/components/Admin/Page/Builder/Selector'
@@ -1041,7 +1042,7 @@ export default {
 
       const namespace = this.namespaces.find((n) => n.namespaceID === this.namespace.namespaceID)
 
-      const existingGlobalBlocks = namespace.blocks
+      const existingGlobalBlocks = namespace ? (namespace.blocks || []) : []
 
       globalBlocks
         .filter(({ blockID }) => blockID !== NoID)

@@ -140,6 +140,14 @@ func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (i
 		return nil, err
 	}
 
+	if len(r.Blocks) > 2 {
+		// Process blocks if they were included in the request
+		// if not, do not assume that blocks were removed!
+		if err = r.Blocks.Unmarshal(&ns.Blocks); err != nil {
+			return nil, err
+		}
+	}
+
 	ns, err = ctrl.namespace.Create(ctx, ns)
 	return ctrl.makePayload(ctx, ns, err)
 }

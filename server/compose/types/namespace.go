@@ -117,4 +117,9 @@ func (nm *NamespaceMeta) Scan(src any) error          { return sql.ParseJSON(src
 func (nm NamespaceMeta) Value() (driver.Value, error) { return json.Marshal(nm) }
 
 func (nm *GlobalBlocks) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm GlobalBlocks) Value() (driver.Value, error) { return json.Marshal(nm) }
+func (nm GlobalBlocks) Value() (driver.Value, error) {
+	if nm == nil {
+		return "[]", nil
+	}
+	return json.Marshal(nm)
+}
