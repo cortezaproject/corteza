@@ -1,0 +1,31 @@
+# Git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+# Node_modules - the main cause of 4.55GB build context!
+# These get reinstalled inside the container
+**/node_modules
+**/node_modules/**/*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker files (not needed in build context)
+Dockerfile
+Dockerfile.*
+docker-compose*
+.dockerignore
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,78 @@
+# Dev Container for Corteza - Full Stack Development
+# Ubuntu 22.04 with Go, Node.js, and all required dependencies
+
+FROM ubuntu:22.04
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set environment variables
+ENV GOPATH=/root/go
+ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
+ENV CGO_ENABLED=1
+ENV GOFLAGS=-trimpath
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    pkg-config \
+    libpq-dev \
+    libsqlite3-dev \
+    libmysqlclient-dev \
+    libssl-dev \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Go 1.24.1
+RUN wget -q https://go.dev/dl/go1.24.1.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf go1.24.1.linux-amd64.tar.gz && \
+    rm go1.24.1.linux-amd64.tar.gz
+
+RUN go version
+
+# Install Node.js 22.x
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN node --version && npm --version
+
+# Install Yarn globally
+RUN npm install -g yarn
+
+# Install Dart Sass 1.85.1
+RUN wget -q https://github.com/sass/dart-sass/releases/download/1.85.1/dart-sass-1.85.1-linux-x64.tar.gz && \
+    tar -xzf dart-sass-1.85.1-linux-x64.tar.gz -C /opt/ && \
+    rm dart-sass-1.85.1-linux-x64.tar.gz && \
+    ln -s /opt/dart-sass/sass /usr/local/bin/sass
+
+# Install essential Go tools for development (one at a time to avoid conflicts)
+RUN go install github.com/codegangsta/gin@latest || true
+RUN go install github.com/golang/mock/mockgen@latest || true
+RUN go install honnef.co/go/tools/cmd/staticcheck@latest || true
+RUN go install github.com/golang/protobuf/protoc-gen-go@latest || true
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest || true
+RUN go install github.com/goware/statik@latest || true
+
+# CUE has version conflicts - install separately
+RUN go install cuelang.org/go/cmd/cue@v0.5.0 || true
+
+# Working directory
+WORKDIR /workspace
+
+# Expose ports
+EXPOSE 8000 5432 6379
+
+# Default shell
+CMD ["/bin/bash"]

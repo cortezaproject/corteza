@@ -1,4 +1,4 @@
-.PHONY: all install-fresh install-packages build clean cleaner
+.PHONY: all install-fresh install-packages build clean cleaner deps
 
 WGET         ?= wget
 WGET_FLAGS   ?= -q
@@ -9,7 +9,7 @@ APPS         ?= admin compose workflow reporter discovery privacy
 ALL_APPS     ?= $(APPS) one
 VERSION      ?= $(shell git describe --tags --abbrev=0)
 PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
-SOURCE_LOC   ?= "../../webapp-"
+SOURCE_LOC   ?= ../../client/
 SOURCES       = $(addprefix $(SOURCE_LOC),$(ALL_APPS))
 
 all: install-packages
@@ -32,21 +32,21 @@ $(PACKAGES):
 	$(info downloading $(RELEASE_PAGE)/$(@))
 	@ $(WGET) $(WGET_FLAGS) $(RELEASE_PAGE)/$(@)
 
-install-fresh: build
+install-fresh: #build
 	@ rm -rf public
-	@ cp -r $(SOURCE_LOC)one/dist       public/
-	@ cp -r $(SOURCE_LOC)admin/dist     public/admin
-	@ cp -r $(SOURCE_LOC)compose/dist   public/compose
-	@ cp -r $(SOURCE_LOC)workflow/dist  public/workflow
-	@ cp -r $(SOURCE_LOC)reporter/dist  public/reporter
-	@ cp -r $(SOURCE_LOC)discovery/dist public/discovery
-	@ cp -r $(SOURCE_LOC)privacy/dist 	public/privacy
+	@ cp -r $(SOURCE_LOC)web/one/dist       public/
+	@ cp -r $(SOURCE_LOC)web/admin/dist     public/admin
+	@ cp -r $(SOURCE_LOC)web/compose/dist   public/compose
+	@ cp -r $(SOURCE_LOC)web/workflow/dist  public/workflow
+	@ cp -r $(SOURCE_LOC)web/reporter/dist  public/reporter
+	@ cp -r $(SOURCE_LOC)web/discovery/dist public/discovery
+	@ cp -r $(SOURCE_LOC)web/privacy/dist 	public/privacy
 
-build: $(SOURCES)
-
-$(SOURCES):
-	$(info building $(@))
-	@ cd $(@) && yarn build
+build: 
+	$(info building libs first)
+	@ cd ../../lib && make dev
+	$(info building client apps)
+	@ cd $(SOURCE_LOC) && make build
 
 clean:
 	@ rm -f $(PACKAGES)

@@ -1,0 +1,120 @@
+# Multi-stage Dockerfile for local development
+# Builds Corteza from source (server + webapps) instead of downloading releases
+
+# Build arguments (matching release.yml)
+ARG GO_VERSION=1.24.1
+ARG NODE_VERSION=22
+ARG SASS_VERSION=1.85.1
+
+################################################################################
+# Stage 1: Build Go server
+################################################################################
+FROM golang:${GO_VERSION}-bookworm AS server-build
+
+# Install build dependencies
+RUN apt-get -y update && apt-get install -y git make gcc libc6-dev && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build/server
+
+# Copy Go modules
+COPY server/go.mod server/go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY server/ ./
+
+# Copy locale directory for language embedding
+COPY locale/ ./locale/
+
+# Copy English locale files to pkg/locale/src/en (embedding languages into binary)
+RUN mkdir -p pkg/locale/src/en && cp -r locale/en/* pkg/locale/src/en/
+
+# Copy essential files from root (matching CI: cp *.md DCO LICENSE server/)
+
+# Copy essential files from root (matching CI: cp *.md DCO LICENSE server/)
+# These files need to be in the server build directory
+COPY README.md LICENSE DCO ./
+RUN CGO_ENABLED=1 go build -o corteza-server ./cmd/corteza
+
+################################################################################
+# Stage 2: Build Web Console
+################################################################################
+FROM node:${NODE_VERSION}-bookworm AS webconsole-build
+
+WORKDIR /build/webconsole
+
+COPY server/webconsole/package.json server/webconsole/yarn.lock ./
+RUN yarn install
+
+COPY server/webconsole/ ./
+RUN yarn build
+
+################################################################################
+# Stage 4: Final runtime image
+################################################################################
+FROM ubuntu:22.04 AS runtime
+
+# Build arguments need to be redeclared in each stage
+ARG SASS_VERSION=1.85.1
+
+# Install runtime dependencies (matching official Dockerfile)
+RUN apt-get -y update && apt-get install -y \
+    ca-certificates \
+    curl \
+    sqlite3 \
+    libsqlite3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install Dart Sass (matching official Dockerfile)
+RUN curl -sOL https://github.com/sass/dart-sass/releases/download/${SASS_VERSION}/dart-sass-${SASS_VERSION}-linux-x64.tar.gz && \
+    tar -xzf dart-sass-${SASS_VERSION}-linux-x64.tar.gz && \
+    mv dart-sass /opt/dart-sass && \
+    rm dart-sass-${SASS_VERSION}-linux-x64.tar.gz
+
+ENV PATH="/opt/dart-sass:/corteza/bin:${PATH}"
+
+# Environment variables - defaults (can be overridden by docker-compose)
+ENV STORAGE_PATH="/data"
+ENV CORREDOR_ADDR="corredor:80"
+ENV HTTP_ADDR="0.0.0.0:80"
+ENV HTTP_WEBAPP_ENABLED="true"
+ENV ENVIRONMENT="dev"
+
+# Set working directory
+WORKDIR /corteza
+
+# Copy server binary
+COPY --from=server-build /build/server/corteza-server ./bin/corteza-server
+
+# Copy web console
+COPY --from=webconsole-build /build/webconsole/dist ./webconsole
+COPY client/ ./client/
+# Copy webapps from parallel build stages
+COPY client/web/one/dist ./webapp
+COPY client/web/admin/dist ./webapp/admin
+COPY client/web/compose/dist ./webapp/compose
+COPY client/web/one/dist ./webapp/one
+COPY client/web/workflow/dist ./webapp/workflow
+COPY client/web/discovery/dist ./webapp/discovery
+COPY client/web/privacy/dist ./webapp/privacy
+COPY client/web/reporter/dist ./webapp/reporter
+
+# Copy provision files
+COPY --from=server-build /build/server/provision ./provision
+
+# Copy essential files from root (matching CI: cp *.md DCO LICENSE server/)
+COPY --from=server-build /build/server/README.md .
+COPY --from=server-build /build/server/LICENSE .
+
+# Volume for data
+VOLUME /data
+
+# Health check
+HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
+    CMD curl --silent --fail --fail-early http://127.0.0.1:80/healthcheck || exit 1
+
+EXPOSE 80
+
+ENTRYPOINT ["./bin/corteza-server"]
+CMD ["serve-api"]

@@ -1,0 +1,57 @@
+{
+  "name": "Corteza Dev",
+  "dockerComposeFile": [
+    "../docker-compose.dev.yaml"
+  ],
+  "service": "corteza",
+  "workspaceFolder": "/workspace",
+  "overrideCommand": false,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": false,
+        "go.useLanguageServer": true,
+        "go.lintTool": "staticcheck",
+        "go.lintOnSave": "package",
+        "go.formatTool": "goimports",
+        "[go]": {
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "[vue]": {
+          "editor.defaultFormatter": "Vue.volar"
+        },
+        "editor.formatOnSave": true,
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1000
+      }
+    }
+  },
+  "portsAttributes": {
+    "8000": {
+      "label": "Corteza Server",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "ignore"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "ignore"
+    }
+  },
+  "remoteUser": "root",
+  "runArgs": [
+    "--network=corteza-dev"
+  ]
+}

@@ -1,10 +1,10 @@
-.PHONY: pack build help qa critic vet codegen provision docs build auth webapp
+.PHONY: pack build serve help qa critic vet codegen provision docs build auth webapp
 
 include Makefile.inc
 
 BUILD_FLAVOUR         ?= corteza
 BUILD_TIME            ?= $(shell date +%FT%T%z)
-BUILD_VERSION         ?= $(shell git describe --tags --abbrev=0)
+BUILD_VERSION         ?= dev
 BUILD_ARCH            ?= $(shell $(GO) env GOARCH)
 BUILD_OS              ?= $(shell $(GO) env GOOS)
 BUILD_OS_is_windows    = $(filter windows,$(BUILD_OS))
@@ -53,7 +53,7 @@ DEV_MAILHOG_SMTP_ADDR ?= 1025
 DEV_MAILHOG_HTTP_ADDR ?= 8025
 
 GIN_ARG_LADDR ?= localhost
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --build cmd/corteza --immediate --bin build/gin-bin
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --build cmd/corteza --bin build/gin-bin
 
 GIN_CORTEZA_ENV_FILE ?= .env
 GIN_CORTEZA_BIN_ARGS ?= --env-file $(GIN_CORTEZA_ENV_FILE)
@@ -82,6 +82,20 @@ build: $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME)
 
 $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME):
 		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) $(GO) build $(LDFLAGS) -o $@ cmd/corteza/main.go
+
+# Run the pre-built server (for development - faster than rebuilding)
+# Use this when you've already built and just want to run
+run:
+	cd /workspace/server && DB_DSN='postgres://corteza:corteza@postgres:5432/corteza?sslmode=disable' ENVIRONMENT=dev LOCALE_PATH=/workspace/locale LOCALE_DEVELOPMENT_MODE=true ./$(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) serve
+
+# Build and run the server (no hot reload - faster for development)
+serve: build
+	cd /workspace/server && DB_DSN='postgres://corteza:corteza@postgres:5432/corteza?sslmode=disable' ENVIRONMENT=dev LOCALE_PATH=/workspace/locale LOCALE_DEVELOPMENT_MODE=true ./$(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) serve
+
+# Setup locale files for development
+# Copies English locale files to pkg/locale/src/en for embedding
+locale-setup:
+	cd /workspace/server/pkg/locale && rm -rf src/en && cp -r /workspace/locale/en ./src
 
 release: build $(BUILD_DEST_DIR)/$(RELEASE_NAME)
 

@@ -1,0 +1,78 @@
+# Docker Compose for Corteza Full Stack Development
+# Run with: docker-compose -f docker-compose.dev.yaml up -d
+
+name: corteza-dev
+
+services:
+  # Corteza Development Container
+  corteza:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: corteza-dev
+    command: tail -f /dev/null
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Mount only the server directory for development
+      - ./:/workspace/
+      # Use named volume for Go module cache (much faster than host mount)
+      - go_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      # Tell Go to skip module cache for mounted paths
+      GOPROXY: direct
+      GOSUMDB: off
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - corteza-dev
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: corteza-postgres
+    environment:
+      POSTGRES_USER: corteza
+      POSTGRES_PASSWORD: corteza
+      POSTGRES_DB: corteza
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - corteza-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corteza"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: corteza-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - corteza-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  go_cache:
+  go_build_cache:
+
+networks:
+  corteza-dev:
+    driver: bridge
