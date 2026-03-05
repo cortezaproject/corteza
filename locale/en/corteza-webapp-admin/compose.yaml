@@ -9,6 +9,20 @@ automation:
 settings:
   editor:
     title: Compose settings
+    label:
+      toolbar-edit: Show Edit button in record toolbar
+      toolbar-delete: Show Delete button in record toolbar
+      toolbar-new: Show New button in record toolbar
+      toolbar-clone: Show Clone button in record toolbar
+      toolbar-back: Show Back button in record toolbar
+      namespace-switch: Namespace switcher enabled
+      page-layout: Page layout enabled
+      record-revisions: Record revisions enabled
+      default-namespace: Default namespace slug
+    group:
+      record-toolbar: Record Toolbar
+      ui: UI
+      general: General
     basic:
       attachments:
         max-size: Max size (MB)

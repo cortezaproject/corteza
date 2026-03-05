@@ -1,11 +1,11 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.data-sources.list.title') }}</span>
+    <span>{{ $t('system.sensitivityLevel.list.title', 'Sensitivity Levels') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
-      primary-key="connectionID"
+      primary-key="sensitivityLevelID"
       :fields="fields"
       :items="items"
       :filter="filter"
@@ -14,16 +14,16 @@
       :loading="loading"
       :translations="{
         searchPlaceholder: $t(
-          'system.data-sources.list.filterForm.query.placeholder',
-          'Filter data sources',
+          'system.sensitivityLevel.list.filterForm.query.placeholder',
+          'Filter sensitivity levels',
         ),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.data-sources.list.add-button'),
-        resourcePlural: $t('system.data-sources.list.title'),
+        resourceSingle: $t('system.sensitivityLevel.list.new'),
+        resourcePlural: $t('system.sensitivityLevel.list.title'),
       }"
       clickable
       class="h-full"
@@ -32,8 +32,8 @@
       @row-click="
         ({ data }) =>
           $router.push({
-            name: 'system.dataSources.edit',
-            params: { connectionID: data.connectionID },
+            name: 'system.sensitivityLevels.edit',
+            params: { sensitivityLevelID: data.sensitivityLevelID },
           })
       "
       @page-change="handlePageChange"
@@ -41,10 +41,10 @@
       <template #header>
         <div class="flex gap-2">
           <Button
-            :label="$t('system.data-sources.list.add-button')"
+            :label="$t('system.sensitivityLevel.list.new')"
             icon="pi pi-plus"
             size="small"
-            @click="$router.push({ name: 'system.dataSources.create' })"
+            @click="$router.push({ name: 'system.sensitivityLevels.create' })"
           />
           <Button
             icon="pi pi-filter"
@@ -54,14 +54,6 @@
             @click="toggleFilterMenu"
           />
         </div>
-      </template>
-
-      <template #body-name="{ data }">
-        {{ data.meta?.name || '—' }}
-      </template>
-
-      <template #body-type="{ data }">
-        <Tag :value="data.type || 'corteza::system:dal-connection'" severity="info" />
       </template>
 
       <template #body-createdAt="{ data }">
@@ -93,24 +85,24 @@
       <div class="flex flex-col gap-4 p-2 w-64">
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">
-            {{ $t('system.data-sources.list.filterForm.deleted.label') }}
+            {{ $t('system.sensitivityLevel.list.filterForm.deleted.label') }}
           </span>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
             <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('system.data-sources.list.filterForm.excluded.label') }}
+              {{ $t('system.sensitivityLevel.list.filterForm.excluded.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
             <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('system.data-sources.list.filterForm.inclusive.label') }}
+              {{ $t('system.sensitivityLevel.list.filterForm.inclusive.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
             <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('system.data-sources.list.filterForm.exclusive.label') }}
+              {{ $t('system.sensitivityLevel.list.filterForm.exclusive.label') }}
             </label>
           </div>
         </div>
@@ -150,22 +142,22 @@ const fields = [
   {
     key: 'handle',
     sortable: true,
-    header: t('system.data-sources.list.columns.handle', 'Handle'),
+    header: t('system.sensitivityLevel.list.columns.handle', 'Handle'),
   },
   {
     key: 'name',
-    sortable: false,
-    header: t('system.data-sources.list.columns.name', 'Name'),
+    sortable: true,
+    header: t('system.sensitivityLevel.list.columns.name', 'Name'),
   },
   {
-    key: 'type',
-    sortable: false,
-    header: t('system.data-sources.list.columns.type', 'Type'),
+    key: 'level',
+    sortable: true,
+    header: t('system.sensitivityLevel.list.columns.level', 'Level'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.data-sources.list.columns.createdAt', 'Created'),
+    header: t('system.sensitivityLevel.list.columns.createdAt', 'Created'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -183,9 +175,9 @@ const fields = [
 ]
 
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
-  useResourceList(params => $SystemAPI.dalConnectionListCancellable({ ...params }), {
+  useResourceList(params => $SystemAPI.dalSensitivityLevelListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
-    sorting: { sortBy: 'createdAt', sortDesc: true },
+    sorting: { sortBy: 'level', sortDesc: false },
     pagination: { limit: 50 },
   })
 
@@ -195,36 +187,34 @@ function toggleActionsMenu(event, item) {
 }
 
 function getActionsMenuItems(item) {
-  const items = []
-
-  if (item.canDeleteConnection) {
-    items.push({
+  return [
+    {
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
       class: 'text-red-500',
       command: () => onConfirmDelete(item),
-    })
-  }
-
-  return items
+    },
+  ]
 }
 
 function onConfirmDelete(item) {
   confirmDelete({
     message: t('general.confirm.delete'),
-    header: item.meta?.name || item.handle || item.connectionID,
+    header: item.name || item.handle || item.sensitivityLevelID,
     onConfirm: () => handleDelete(item),
   })
 }
 
 async function handleDelete(item) {
   try {
-    await $SystemAPI.dalConnectionDelete({ connectionID: item.connectionID })
-    $toast.toastSuccess(t('notification.data-source.delete.success', 'Data source deleted'))
+    await $SystemAPI.dalSensitivityLevelDelete({ sensitivityLevelID: item.sensitivityLevelID })
+    $toast.toastSuccess(
+      t('notification.sensitivityLevel.delete.success', 'Sensitivity level deleted'),
+    )
     filterList()
   } catch (e) {
     $toast.toastErrorHandler(
-      t('notification.data-source.delete.error', 'Failed to delete data source'),
+      t('notification.sensitivityLevel.delete.error', 'Failed to delete sensitivity level'),
     )(e)
   }
 }

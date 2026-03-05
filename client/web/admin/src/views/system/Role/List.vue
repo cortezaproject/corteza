@@ -29,12 +29,21 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <CRouterLinkButton
-          :to="{ name: 'system.roles.create' }"
-          :label="$t('system.roles.list.new', 'New Role')"
-          icon="pi pi-plus"
-          size="small"
-        />
+        <div class="flex gap-2">
+          <CRouterLinkButton
+            :to="{ name: 'system.roles.create' }"
+            :label="$t('system.roles.list.new', 'New Role')"
+            icon="pi pi-plus"
+            size="small"
+          />
+          <Button
+            icon="pi pi-filter"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="toggleFilterMenu"
+          />
+        </div>
       </template>
 
       <template #body-handle="{ data }">
@@ -75,6 +84,58 @@
         </a>
       </template>
     </TieredMenu>
+
+    <Popover ref="filterMenu">
+      <div class="flex flex-col gap-4 p-2 w-64">
+        <div class="flex flex-col gap-2">
+          <span class="font-medium text-sm text-primary">
+            {{ $t('system.roles.list.filterForm.deleted.label') }}
+          </span>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
+            <label for="del0" class="text-sm cursor-pointer">
+              {{ $t('system.roles.list.filterForm.excluded.label') }}
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
+            <label for="del1" class="text-sm cursor-pointer">
+              {{ $t('system.roles.list.filterForm.inclusive.label') }}
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
+            <label for="del2" class="text-sm cursor-pointer">
+              {{ $t('system.roles.list.filterForm.exclusive.label') }}
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <span class="font-medium text-sm text-primary">
+            {{ $t('system.roles.list.filterForm.archived.label') }}
+          </span>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.archived" inputId="arch0" value="0" />
+            <label for="arch0" class="text-sm cursor-pointer">
+              {{ $t('system.roles.list.filterForm.excluded.label') }}
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.archived" inputId="arch1" value="1" />
+            <label for="arch1" class="text-sm cursor-pointer">
+              {{ $t('system.roles.list.filterForm.inclusive.label') }}
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.archived" inputId="arch2" value="2" />
+            <label for="arch2" class="text-sm cursor-pointer">
+              {{ $t('system.roles.list.filterForm.exclusive.label') }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </Popover>
   </div>
 </template>
 
@@ -101,6 +162,12 @@ const $SystemAPI = inject('$SystemAPI')
 // Actions menu
 const actionsMenu = ref()
 const actionsMenuItems = ref([])
+
+// Filter menu
+const filterMenu = ref()
+function toggleFilterMenu(event) {
+  filterMenu.value.toggle(event)
+}
 
 // Column definitions
 const roleListFields = [
@@ -147,7 +214,7 @@ const {
   handlePageChange,
   filterList,
 } = useResourceList(params => $SystemAPI.roleListCancellable(params), {
-  filter: { query: '' },
+  filter: { query: '', deleted: '0', archived: '0' },
   sorting: { sortBy: 'createdAt', sortDesc: true },
   pagination: { limit: 50 },
 })

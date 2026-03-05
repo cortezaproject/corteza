@@ -1,41 +1,47 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.connections.list.title') }}</span>
+    <span>{{ $t('system.templates.list.title', 'Templates') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
-      primary-key="connectionID"
-      :fields="connectionListFields"
-      :items="connectionList"
+      primary-key="templateID"
+      :fields="fields"
+      :items="items"
       :filter="filter"
-      @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t('system.connections.list.searchPlaceholder'),
+        searchPlaceholder: $t(
+          'system.templates.list.filterForm.handle.placeholder',
+          'Filter templates by handle',
+        ),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.connections.list.resourceSingle'),
-        resourcePlural: $t('system.connections.list.resourcePlural'),
+        resourceSingle: $t('system.templates.list.new'),
+        resourcePlural: $t('system.templates.list.title'),
       }"
       clickable
       class="h-full"
+      @update:filter="Object.assign(filter, $event)"
       @sort="handleSort"
-      @row-click="handleRowClick"
+      @row-click="
+        ({ data }) =>
+          $router.push({ name: 'system.templates.edit', params: { templateID: data.templateID } })
+      "
       @page-change="handlePageChange"
     >
       <template #header>
         <div class="flex gap-2">
-          <CRouterLinkButton
-            :to="{ name: 'system.connections.create' }"
-            :label="$t('system.connections.list.createLabel')"
+          <Button
+            :label="$t('system.templates.list.new')"
             icon="pi pi-plus"
             size="small"
+            @click="$router.push({ name: 'system.templates.create' })"
           />
           <Button
             icon="pi pi-filter"
@@ -47,20 +53,11 @@
         </div>
       </template>
 
-      <template #body-handle="{ data }">
-        <span class="font-medium">{{ data.handle || '-' }}</span>
-      </template>
-
       <template #body-name="{ data }">
-        {{ data.meta?.short || '-' }}
+        {{ data.meta?.short || '—' }}
       </template>
 
-      <template #body-status="{ data }">
-        <Tag v-if="data.status" :value="data.status" />
-        <span v-else>-</span>
-      </template>
-
-      <template #body-updatedAt="{ data }">
+      <template #body-createdAt="{ data }">
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
@@ -78,13 +75,7 @@
 
     <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
       <template #item="{ item, props }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <a v-else v-ripple v-bind="props.action" :class="item.class">
+        <a v-ripple v-bind="props.action" :class="item.class">
           <span :class="item.icon" />
           <span class="ml-2">{{ item.label }}</span>
         </a>
@@ -95,24 +86,24 @@
       <div class="flex flex-col gap-4 p-2 w-64">
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">
-            {{ $t('system.connections.list.filterForm.deleted.label') }}
+            {{ $t('system.templates.list.filterForm.deleted.label') }}
           </span>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
             <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('system.connections.list.filterForm.excluded.label') }}
+              {{ $t('system.templates.list.filterForm.excluded.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
             <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('system.connections.list.filterForm.inclusive.label') }}
+              {{ $t('system.templates.list.filterForm.inclusive.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
             <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('system.connections.list.filterForm.exclusive.label') }}
+              {{ $t('system.templates.list.filterForm.exclusive.label') }}
             </label>
           </div>
         </div>
@@ -122,60 +113,59 @@
 </template>
 
 <script setup>
+import { inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   components,
   filters,
   useConfirmDelete,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
-const { CResourceList, CRouterLinkButton } = components
+const { CResourceList } = components
 const { locFullDateTime } = filters
 
-const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
-// Actions menu
 const actionsMenu = ref()
 const actionsMenuItems = ref([])
-
-// Filter menu
 const filterMenu = ref()
+
 function toggleFilterMenu(event) {
   filterMenu.value.toggle(event)
 }
 
-// Column definitions
-const connectionListFields = [
+const fields = [
   {
     key: 'handle',
     sortable: true,
-    header: t('system.connections.list.columns.handle'),
+    header: t('system.templates.list.columns.handle', 'Handle'),
   },
   {
     key: 'name',
     sortable: false,
-    header: t('system.connections.list.columns.name'),
+    header: t('system.templates.list.columns.meta.short', 'Name'),
   },
   {
-    key: 'status',
-    sortable: true,
-    header: t('system.connections.list.columns.status'),
+    key: 'type',
+    sortable: false,
+    header: t('system.templates.list.columns.type', 'Type'),
   },
   {
-    key: 'updatedAt',
+    key: 'language',
+    sortable: false,
+    header: t('system.templates.list.columns.language', 'Language'),
+  },
+  {
+    key: 'createdAt',
     sortable: true,
-    header: t('system.connections.list.columns.updatedAt'),
+    header: t('system.templates.list.columns.createdAt', 'Created'),
     class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
+    pt: { columnHeaderContent: 'justify-end' },
   },
   {
     key: 'actions',
@@ -190,72 +180,50 @@ const connectionListFields = [
   },
 ]
 
-// Resource list composable
-const {
-  items: connectionList,
-  loading,
-  filter,
-  sorting,
-  pagination,
-  handleSort,
-  handlePageChange,
-  filterList,
-} = useResourceList(params => $SystemAPI.connectionListCancellable(params), {
-  filter: { query: '', deleted: '0' },
-  sorting: { sortBy: 'createdAt', sortDesc: true },
-  pagination: { limit: 50 },
-})
-
-// Methods
-function handleRowClick({ data }) {
-  if (!data.canUpdateConnection && !data.canDeleteConnection) {
-    return
-  }
-  router.push({
-    name: 'system.connections.edit',
-    params: { connectionID: data.connectionID },
+const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
+  useResourceList(params => $SystemAPI.templateListCancellable({ ...params }), {
+    filter: { query: '', deleted: '0' },
+    sorting: { sortBy: 'createdAt', sortDesc: true },
+    pagination: { limit: 50 },
   })
-}
 
-// Actions menu methods
-function toggleActionsMenu(event, connection) {
-  actionsMenuItems.value = getActionsMenuItems(connection)
+function toggleActionsMenu(event, item) {
+  actionsMenuItems.value = getActionsMenuItems(item)
   actionsMenu.value.toggle(event)
 }
 
-function getActionsMenuItems(connection) {
-  const items = []
+function getActionsMenuItems(item) {
+  const menuItems = []
 
-  if (connection.canDeleteConnection) {
-    items.push({
+  if (item.canDeleteTemplate) {
+    menuItems.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
-      command: () => onConfirmDelete(connection),
+      class: 'text-red-500',
+      command: () => onConfirmDelete(item),
     })
   }
 
-  return items
+  return menuItems
 }
 
-function onConfirmDelete(connection) {
+function onConfirmDelete(item) {
   confirmDelete({
-    message: t('system.connections.list.deleteConfirm'),
-    header:
-      connection.meta?.short || connection.handle || t('system.connections.list.resourceSingle'),
-    onConfirm: () => handleDelete(connection),
+    message: t('general.confirm.delete'),
+    header: item.meta?.short || item.handle || item.templateID,
+    onConfirm: () => handleDelete(item),
   })
 }
 
-async function handleDelete(connection) {
+async function handleDelete(item) {
   try {
-    await $SystemAPI.connectionDelete({
-      connectionID: connection.connectionID,
-    })
-    $toast.toastSuccess(t('notification.connection.delete.success'))
-    filterList() // Refresh the list
+    await $SystemAPI.templateDelete({ templateID: item.templateID })
+    $toast.toastSuccess(t('notification.template.delete.success', 'Template deleted'))
+    filterList()
   } catch (e) {
-    console.error('Failed to delete connection:', e)
-    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+    $toast.toastErrorHandler(t('notification.template.delete.error', 'Failed to delete template'))(
+      e,
+    )
   }
 }
 </script>

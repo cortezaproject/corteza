@@ -1,11 +1,11 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.data-sources.list.title') }}</span>
+    <span>{{ $t('system.apigw.list.title', 'API Gateway') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
-      primary-key="connectionID"
+      primary-key="routeID"
       :fields="fields"
       :items="items"
       :filter="filter"
@@ -14,16 +14,16 @@
       :loading="loading"
       :translations="{
         searchPlaceholder: $t(
-          'system.data-sources.list.filterForm.query.placeholder',
-          'Filter data sources',
+          'system.apigw.list.filterForm.query.placeholder',
+          'Filter routes by name',
         ),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.data-sources.list.add-button'),
-        resourcePlural: $t('system.data-sources.list.title'),
+        resourceSingle: $t('system.apigw.list.new'),
+        resourcePlural: $t('system.apigw.list.title'),
       }"
       clickable
       class="h-full"
@@ -31,20 +31,17 @@
       @sort="handleSort"
       @row-click="
         ({ data }) =>
-          $router.push({
-            name: 'system.dataSources.edit',
-            params: { connectionID: data.connectionID },
-          })
+          $router.push({ name: 'system.apiGateway.edit', params: { routeID: data.routeID } })
       "
       @page-change="handlePageChange"
     >
       <template #header>
         <div class="flex gap-2">
           <Button
-            :label="$t('system.data-sources.list.add-button')"
+            :label="$t('system.apigw.list.new')"
             icon="pi pi-plus"
             size="small"
-            @click="$router.push({ name: 'system.dataSources.create' })"
+            @click="$router.push({ name: 'system.apiGateway.create' })"
           />
           <Button
             icon="pi pi-filter"
@@ -56,12 +53,19 @@
         </div>
       </template>
 
-      <template #body-name="{ data }">
-        {{ data.meta?.name || '—' }}
+      <template #body-method="{ data }">
+        <Tag :value="data.method" severity="info" />
       </template>
 
-      <template #body-type="{ data }">
-        <Tag :value="data.type || 'corteza::system:dal-connection'" severity="info" />
+      <template #body-enabled="{ data }">
+        <Tag
+          :value="
+            data.enabled
+              ? $t('general.label.enabled', 'Enabled')
+              : $t('general.label.disabled', 'Disabled')
+          "
+          :severity="data.enabled ? 'success' : 'secondary'"
+        />
       </template>
 
       <template #body-createdAt="{ data }">
@@ -93,24 +97,24 @@
       <div class="flex flex-col gap-4 p-2 w-64">
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">
-            {{ $t('system.data-sources.list.filterForm.deleted.label') }}
+            {{ $t('system.apigw.list.filterForm.deleted.label') }}
           </span>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
             <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('system.data-sources.list.filterForm.excluded.label') }}
+              {{ $t('system.apigw.list.filterForm.excluded.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
             <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('system.data-sources.list.filterForm.inclusive.label') }}
+              {{ $t('system.apigw.list.filterForm.inclusive.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
             <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('system.data-sources.list.filterForm.exclusive.label') }}
+              {{ $t('system.apigw.list.filterForm.exclusive.label') }}
             </label>
           </div>
         </div>
@@ -148,24 +152,29 @@ function toggleFilterMenu(event) {
 
 const fields = [
   {
-    key: 'handle',
+    key: 'endpoint',
     sortable: true,
-    header: t('system.data-sources.list.columns.handle', 'Handle'),
+    header: t('system.apigw.list.columns.endpoint', 'Endpoint'),
   },
   {
-    key: 'name',
-    sortable: false,
-    header: t('system.data-sources.list.columns.name', 'Name'),
+    key: 'method',
+    sortable: true,
+    header: t('system.apigw.list.columns.method', 'Method'),
   },
   {
-    key: 'type',
+    key: 'enabled',
     sortable: false,
-    header: t('system.data-sources.list.columns.type', 'Type'),
+    header: t('system.apigw.list.columns.enabled', 'Status'),
+  },
+  {
+    key: 'group',
+    sortable: true,
+    header: t('system.apigw.list.columns.group', 'Group'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.data-sources.list.columns.createdAt', 'Created'),
+    header: t('system.apigw.list.columns.createdAt', 'Created'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -183,7 +192,7 @@ const fields = [
 ]
 
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
-  useResourceList(params => $SystemAPI.dalConnectionListCancellable({ ...params }), {
+  useResourceList(params => $SystemAPI.apigwRouteListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
     sorting: { sortBy: 'createdAt', sortDesc: true },
     pagination: { limit: 50 },
@@ -195,37 +204,31 @@ function toggleActionsMenu(event, item) {
 }
 
 function getActionsMenuItems(item) {
-  const items = []
-
-  if (item.canDeleteConnection) {
-    items.push({
+  return [
+    {
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
       class: 'text-red-500',
       command: () => onConfirmDelete(item),
-    })
-  }
-
-  return items
+    },
+  ]
 }
 
 function onConfirmDelete(item) {
   confirmDelete({
     message: t('general.confirm.delete'),
-    header: item.meta?.name || item.handle || item.connectionID,
+    header: item.endpoint || item.routeID,
     onConfirm: () => handleDelete(item),
   })
 }
 
 async function handleDelete(item) {
   try {
-    await $SystemAPI.dalConnectionDelete({ connectionID: item.connectionID })
-    $toast.toastSuccess(t('notification.data-source.delete.success', 'Data source deleted'))
+    await $SystemAPI.apigwRouteDelete({ routeID: item.routeID })
+    $toast.toastSuccess(t('notification.gateway.delete.success', 'Route deleted'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.data-source.delete.error', 'Failed to delete data source'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.gateway.delete.error', 'Failed to delete route'))(e)
   }
 }
 </script>

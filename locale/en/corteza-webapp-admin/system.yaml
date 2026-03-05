@@ -436,6 +436,15 @@ connections:
       name: Name
       status: Status
       updatedAt: Changed at
+    filterForm:
+      deleted:
+        label: Deleted connections
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
   editor:
     title:
       edit: Edit connection
@@ -1088,7 +1097,9 @@ user-groups:
         deleted: Deleted
     filterForm:
       deleted:
-        label: deleted users
+        label: Deleted user groups
+      archived:
+        label: Archived user groups
       excluded:
         label: Without
       exclusive:

@@ -57,6 +57,19 @@
           </FormField>
         </div>
       </Panel>
+
+      <Panel
+        v-if="isEdit"
+        :header="$t('system.roles.editor.members.title', 'Members')"
+        toggleable
+        :collapsed="true"
+      >
+        <RoleMembers
+          :role="role"
+          :initialMemberIDs="initialMemberIDs"
+          v-model:memberIDs="memberIDs"
+        />
+      </Panel>
     </div>
 
     <!-- Bottom Actions Toolbar -->
@@ -104,6 +117,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
+import RoleMembers from '@/components/Role/RoleMembers.vue'
 
 const { CInputDelete } = components
 
@@ -119,6 +133,8 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const role = ref(null)
+const memberIDs = ref(new Set())
+const initialMemberIDs = ref(new Set())
 
 // Computed
 const isEdit = computed(() => !!route.params.roleID)
@@ -163,6 +179,12 @@ async function loadRole() {
   try {
     const raw = await $SystemAPI.roleRead({ roleID })
     role.value = new system.Role(raw)
+
+    // Load member IDs
+    const membersResult = await $SystemAPI.roleMemberList({ roleID })
+    const ids = new Set((membersResult?.set || membersResult || []).map(u => u.userID || u))
+    memberIDs.value = ids
+    initialMemberIDs.value = new Set(ids)
   } catch (e) {
     console.error('Failed to load role:', e)
     $toast.toastErrorHandler(t('notification.role.fetch.error', 'Failed to load Role'))(e)
@@ -189,6 +211,16 @@ async function handleSubmit({ valid }) {
       payload.roleID = role.value.roleID
       const raw = await $SystemAPI.roleUpdate(payload)
       role.value = new system.Role(raw)
+
+      // Sync member changes
+      const added = [...memberIDs.value].filter(id => !initialMemberIDs.value.has(id))
+      const removed = [...initialMemberIDs.value].filter(id => !memberIDs.value.has(id))
+      await Promise.all([
+        ...added.map(userID => $SystemAPI.roleMemberAdd({ roleID: role.value.roleID, userID })),
+        ...removed.map(userID => $SystemAPI.roleMemberRemove({ roleID: role.value.roleID, userID })),
+      ])
+      initialMemberIDs.value = new Set(memberIDs.value)
+
       $toast.toastSuccess(t('notification.role.update.success', 'Role updated'))
     } else {
       const created = await $SystemAPI.roleCreate(payload)
