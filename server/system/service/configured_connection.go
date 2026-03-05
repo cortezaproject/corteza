@@ -212,7 +212,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
-		svc.registerOperations(rsp.dalConnection.ID, res)
+		svc.registerOperations([]types.ConfiguredConnection{*res})
 		return nil
 	}()
 
@@ -424,42 +424,81 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 		return
 	}
 
+	// Group configured connections by their source connection (connector)
+	byConn := make(map[uint64][]types.ConfiguredConnection)
 	for _, cc := range set {
-		svc.registerOperations(cc.Config.DalConnectionID, cc)
+		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)
+	}
+
+	for _, ccs := range byConn {
+		svc.registerOperations(ccs)
 	}
 }
 
 // registerOperations converts each ConnectionOperation into a ConstructFunction
 // and adds it to the automation construct library.
-func (svc *configuredConnection) registerOperations(dalConnectionID uint64, cc *types.ConfiguredConnection) {
-	if len(cc.Connection.Operations) == 0 {
+func (svc *configuredConnection) registerOperations(ccs []types.ConfiguredConnection) {
+	if len(ccs) == 0 || len(ccs[0].Connection.Operations) == 0 {
 		return
 	}
 
-	fns := make([]atypes.ConstructFunction, 0, len(cc.Connection.Operations))
-	for _, op := range cc.Connection.Operations {
-		fn := operationToFunction(dalConnectionID, cc, op)
+	fns := make([]atypes.ConstructFunction, 0, len(ccs[0].Connection.Operations))
+	for _, op := range ccs[0].Connection.Operations {
+		fn := operationToFunction(ccs, op)
 		fns = append(fns, fn)
 	}
 
 	automationService.ConstructLibrary().AddFunctions(fns...)
 }
 
-func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
-	ref := fmt.Sprintf("cc_%d_%s", cc.ID, op.Handle)
-	params := generateFunctionArguments(cc.Connection, op)
-	segments := generateFunctionSegments(cc.Connection, op, params)
-	results := generateFunctionResults(cc.Connection, op)
+func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
+	conn := ccs[0].Connection
+	ref := fmt.Sprintf("conn_%d_%s", ccs[0].ConnectionID, op.Handle)
+
+	// Build a lookup map: configurationID → dalConnectionID
+	dalByConfig := make(map[uint64]uint64, len(ccs))
+	for _, cc := range ccs {
+		dalByConfig[cc.ID] = cc.Config.DalConnectionID
+	}
+
+	configParam := &atypes.Param{
+		ArgumentName: "configurationID",
+		Types:        []string{"ID"},
+		Required:     true,
+		Meta: &atypes.ParamMeta{
+			Label:       "Configuration",
+			Description: "Which configured connection to use",
+		},
+	}
+
+	params := generateFunctionArguments(conn, op)
+	segments := generateFunctionSegments(conn, op, params)
+	results := generateFunctionResults(conn, op)
+
+	// Add the parameter and segment for config ID
+	params = append(atypes.ParamSet{configParam}, params...)
+
+	input := generateSegmentInput(atypes.ParamSet{configParam})
+	configOptions := make([]atypes.SelectItem, len(ccs))
+	for i, cc := range ccs {
+		configOptions[i] = atypes.SelectItem{
+			Label: cc.Name,
+			Value: strconv.FormatUint(cc.ID, 10),
+		}
+	}
+	input[0].Input.Options = configOptions
+
+	segments[0].Sections[0].Elements = append(input, segments[0].Sections[0].Elements...)
 
 	var icon *atypes.NgAutomationIcon
-	if cc.Connection.Meta.Icon != "" {
-		icon = &atypes.NgAutomationIcon{Type: "name", Value: cc.Connection.Meta.Icon}
+	if conn.Meta.Icon != "" {
+		icon = &atypes.NgAutomationIcon{Type: "name", Value: conn.Meta.Icon}
 	}
 
 	return atypes.ConstructFunction{
 		Ref:    ref,
 		Kind:   "function",
-		Groups: []string{cc.Connection.Meta.Short},
+		Groups: []string{conn.Meta.Short},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       op.Meta.Short,
 			Description: op.Meta.Description,
@@ -473,13 +512,29 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 			op.Handle:    "step",
 		},
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
-			resolveTemplate := makeTemplateResolver(in.Dict())
 			out = &expr.Vars{}
+
+			// Resolve which configured connection to use
+			var configID uint64
+			if v, ok := in.Dict()["configurationID"]; ok {
+				switch id := v.(type) {
+				case uint64:
+					configID = id
+				case string:
+					configID, _ = strconv.ParseUint(id, 10, 64)
+				}
+			}
+			dalConnectionID, ok := dalByConfig[configID]
+			if !ok {
+				return nil, fmt.Errorf("unknown configurationID: %d", configID)
+			}
 
 			cw := dal.Service().GetConnectionByID(dalConnectionID)
 			if cw == nil {
 				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
 			}
+
+			resolveTemplate := makeTemplateResolver(in.Dict())
 
 			var respBody []byte
 			for _, step := range op.Steps {
@@ -667,6 +722,20 @@ func generateFunctionResults(conn types.Connection, op types.ConnectionOperation
 func generateFunctionSegments(conn types.Connection, op types.ConnectionOperation, parameters atypes.ParamSet) (out []atypes.ConstructSegment) {
 	var elements []atypes.SectionElement
 
+	elements = generateSegmentInput(parameters)
+
+	return []atypes.ConstructSegment{
+		{
+			Sections: []atypes.ConstructSection{
+				{
+					Elements: elements,
+				},
+			},
+		},
+	}
+}
+
+func generateSegmentInput(parameters atypes.ParamSet) (elements []atypes.SectionElement) {
 	for _, p := range parameters {
 		inputType := "string"
 		if len(p.Types) > 0 {
@@ -682,13 +751,5 @@ func generateFunctionSegments(conn types.Connection, op types.ConnectionOperatio
 		})
 	}
 
-	return []atypes.ConstructSegment{
-		{
-			Sections: []atypes.ConstructSection{
-				{
-					Elements: elements,
-				},
-			},
-		},
-	}
+	return
 }

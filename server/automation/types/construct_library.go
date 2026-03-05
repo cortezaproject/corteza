@@ -94,15 +94,21 @@ type (
 	}
 
 	SectionElementInput struct {
-		Type        string `json:"type,omitempty"`
-		Label       string `json:"label,omitempty"`
-		Placeholder string `json:"placeholder,omitempty"`
-		Argument    string `json:"argument,omitempty"`
+		Type        string       `json:"type,omitempty"`
+		Label       string       `json:"label,omitempty"`
+		Placeholder string       `json:"placeholder,omitempty"`
+		Argument    string       `json:"argument,omitempty"`
+		Options     []SelectItem `json:"options,omitempty"`
 
 		// Context defines data dependencies between inputs
 		Context SectionElementInputContext `json:"context,omitempty"`
 		// Visual is for styling/display options
 		Visual struct{} `json:"visual,omitempty"`
+	}
+
+	SelectItem struct {
+		Label string `json:"label,omitempty"`
+		Value string `json:"value,omitempty"`
 	}
 
 	SectionElementInputContext struct {
