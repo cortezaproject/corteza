@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/store"
+	restDriver "github.com/cortezaproject/corteza/server/store/adapters/api/drivers/rest"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -40,6 +41,12 @@ type (
 
 	dalConMngmntSvc interface {
 		Create(ctx context.Context, new *types.DalConnection) (*types.DalConnection, error)
+	}
+
+	// connectionRunner is the minimal interface needed by health-check helpers.
+	// Both *restAPIWrapper (via Run) and any future runner satisfy it.
+	connectionRunner interface {
+		Run(ctx context.Context, method, path string, payload []byte, headers map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error)
 	}
 )
 
@@ -242,37 +249,36 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 		return nil, err
 	}
 
-	result := &types.ConfiguredConnectionCheckResult{}
+	// Resolve templates from stored params — works for both draft and active CCs
+	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
 
-	cw := dal.Service().GetConnectionByID(cc.Config.DalConnectionID)
-	if cw == nil {
-		msg := "DAL connection not found"
-		result.Connectivity = types.ConfiguredConnectionCheckStatus{OK: false, Message: msg}
-		result.Auth = types.ConfiguredConnectionCheckStatus{OK: false, Message: msg}
-		return result, nil
+	runner, err := restDriver.RunnerFromConnection(resolved)
+	if err != nil {
+		return nil, fmt.Errorf("could not build connection runner: %w", err)
 	}
 
-	result.Connectivity = svc.checkConnectivity(ctx, cw)
-	result.Auth = svc.checkAuth(ctx, cw)
+	result := &types.ConfiguredConnectionCheckResult{}
+	result.Connectivity = svc.checkConnectivity(ctx, runner)
+	result.Auth = svc.checkAuth(ctx, runner)
 
-	if probe := cc.Connection.Service.Probe; probe != nil {
-		ps := svc.checkProbe(ctx, cw, probe)
+	if probe := resolved.Service.Probe; probe != nil {
+		ps := svc.checkProbe(ctx, runner, probe)
 		result.Probe = &ps
 	}
 
 	return result, nil
 }
 
-func (svc *configuredConnection) checkConnectivity(ctx context.Context, cw *dal.ConnectionWrap) types.ConfiguredConnectionCheckStatus {
-	_, _, _, err := cw.Execute(ctx, "HEAD", "/", nil, nil)
+func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
+	_, _, _, err := r.Run(ctx, "HEAD", "/", nil, nil)
 	if err != nil {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
 	}
 	return types.ConfiguredConnectionCheckStatus{OK: true}
 }
 
-func (svc *configuredConnection) checkAuth(ctx context.Context, cw *dal.ConnectionWrap) types.ConfiguredConnectionCheckStatus {
-	statusCode, _, _, err := cw.Execute(ctx, "GET", "/", nil, nil)
+func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
+	statusCode, _, _, err := r.Run(ctx, "GET", "/", nil, nil)
 	if err != nil {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
 	}
@@ -282,13 +288,13 @@ func (svc *configuredConnection) checkAuth(ctx context.Context, cw *dal.Connecti
 	return types.ConfiguredConnectionCheckStatus{OK: true}
 }
 
-func (svc *configuredConnection) checkProbe(ctx context.Context, cw *dal.ConnectionWrap, probe *types.ConnectionProbe) types.ConfiguredConnectionCheckStatus {
+func (svc *configuredConnection) checkProbe(ctx context.Context, r connectionRunner, probe *types.ConnectionProbe) types.ConfiguredConnectionCheckStatus {
 	expected := probe.ExpectedStatus
 	if expected == 0 {
 		expected = 200
 	}
 
-	statusCode, _, _, err := cw.Execute(ctx, "GET", probe.Path.Value, nil, nil)
+	statusCode, _, _, err := r.Run(ctx, "GET", probe.Path.Value, nil, nil)
 	if err != nil {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
 	}
