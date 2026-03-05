@@ -23,6 +23,7 @@
             :disabled="input.disabled"
             :required="input.required"
             :argument="input.argument"
+            :options="input.options || []"
             :is-reference="input.isReference"
             :reference-label="input.referenceLabel"
             :show-reference-toggle="showReferenceToggle"

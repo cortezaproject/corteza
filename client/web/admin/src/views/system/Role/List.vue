@@ -46,12 +46,12 @@
         </div>
       </template>
 
-      <template #body-handle="{ data }">
-        <span class="font-medium">{{ data.handle || '-' }}</span>
+      <template #body-name="{ data }">
+        <span class="font-medium">{{ data.name || '-' }}</span>
       </template>
 
-      <template #body-name="{ data }">
-        {{ data.name || '-' }}
+      <template #body-handle="{ data }">
+        {{ data.handle || '-' }}
       </template>
 
       <template #body-updatedAt="{ data }">
@@ -172,14 +172,14 @@ function toggleFilterMenu(event) {
 // Column definitions
 const roleListFields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('system.roles.list.columns.handle', 'Handle'),
-  },
-  {
     key: 'name',
     sortable: true,
     header: t('system.roles.list.columns.name', 'Name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('system.roles.list.columns.handle', 'Handle'),
   },
   {
     key: 'updatedAt',

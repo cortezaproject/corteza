@@ -45,15 +45,16 @@
         </div>
       </template>
 
+      <template #body-name="{ data }">
+        <span class="font-medium">{{ data.name || '-' }}</span>
+      </template>
+
       <template #body-email="{ data }">
         {{ data.email }}
       </template>
-      <template #body-handle="{ data }">
-        <span class="font-medium">{{ data.handle || '-' }}</span>
-      </template>
 
-      <template #body-name="{ data }">
-        {{ data.name || '-' }}
+      <template #body-handle="{ data }">
+        {{ data.handle || '-' }}
       </template>
 
       <template #body-state="{ data }">
@@ -188,6 +189,11 @@ function toggleFilterMenu(event) {
 // Column definitions
 const userListFields = [
   {
+    key: 'name',
+    sortable: true,
+    header: t('system.users.list.columns.name'),
+  },
+  {
     key: 'email',
     sortable: true,
     header: t('system.users.list.columns.email'),
@@ -196,11 +202,6 @@ const userListFields = [
     key: 'handle',
     sortable: true,
     header: t('system.users.list.columns.handle'),
-  },
-  {
-    key: 'name',
-    sortable: true,
-    header: t('system.users.list.columns.name'),
   },
   {
     key: 'state',

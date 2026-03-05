@@ -148,14 +148,14 @@ function toggleFilterMenu(event) {
 
 const fields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('system.data-sources.list.columns.handle', 'Handle'),
-  },
-  {
     key: 'name',
     sortable: false,
     header: t('system.data-sources.list.columns.name', 'Name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('system.data-sources.list.columns.handle', 'Handle'),
   },
   {
     key: 'type',

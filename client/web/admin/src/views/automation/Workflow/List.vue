@@ -155,14 +155,14 @@ function toggleFilterMenu(event) {
 
 const fields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('automation.workflows.list.columns.handle', 'Handle'),
-  },
-  {
     key: 'name',
     sortable: false,
     header: t('automation.workflows.list.columns.name', 'Name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('automation.workflows.list.columns.handle', 'Handle'),
   },
   {
     key: 'enabled',

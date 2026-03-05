@@ -449,6 +449,7 @@ connections:
     title:
       edit: Edit connection
       create: New connection
+    general: General
     info:
       title: Basic settings
       handle: Handle
@@ -465,16 +466,22 @@ connections:
       authMethod: Authentication Method
     configurations:
       title: Advanced Configurations
-      resources: Resources (JSON)
-      standardOperations: Standard Operations (JSON)
-      operations: Operations (JSON)
+      resources: Resources
+      standardOperations: Standard Operations
+      operations: Operations
       invalidJSON: Invalid JSON
+    configuration: Configuration
     deleteConfirm: Are you sure you want to delete this connection?
     delete: Delete
     undelete: Undelete
     deletedAt: Deleted at
     updatedAt: Updated at
     createdAt: Created at
+    statusValues:
+      active: Active
+      inactive: Inactive
+      pending: Pending
+      error: Error
 
 configuredConnections:
   list:
@@ -496,9 +503,16 @@ configuredConnections:
     info:
       name: Name
       status: Status
-      config: Configuration (JSON)
-      labels: Labels (JSON)
+      config: Configuration
+      labels: Labels
     enable: Enable
+    check: Check Connection
+    checkResult:
+      success: All checks passed
+      error: Failed to check connection
+      connectivity: Connectivity
+      auth: Authentication
+      probe: Probe
 
 data-sources:
   primary:

@@ -18,11 +18,13 @@
       <component
         :is="inputComponent"
         class="w-full"
-        :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
+        :model-value="displayValue"
+        @update:model-value="onValueUpdate"
         @toggle-row-reference="onRowReferenceToggle"
         :placeholder="effectivePlaceholder"
         :disabled="disabled"
+        :options="options"
+        :complete-on-focus="hasOptions"
         v-bind="$attrs"
       />
     </div>
@@ -82,6 +84,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  options: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference'])
@@ -91,6 +97,24 @@ const inputComponent = computed(() => resolveInputComponent(props.type))
 // Aggregate types handle their own per-row references (no whole-argument reference)
 const AGGREGATE_TYPES = ['FieldValueMap']
 const isAggregate = computed(() => AGGREGATE_TYPES.includes(props.type))
+
+// Options support: map stored ID ↔ option object for CInputSelect
+const hasOptions = computed(() => props.options.length > 0)
+
+const displayValue = computed(() => {
+  if (hasOptions.value && props.modelValue) {
+    return props.options.find(o => o.value === props.modelValue) || props.modelValue
+  }
+  return props.modelValue
+})
+
+function onValueUpdate(val) {
+  if (hasOptions.value && val && typeof val === 'object' && val.value !== undefined) {
+    emit('update:modelValue', val.value)
+  } else {
+    emit('update:modelValue', val)
+  }
+}
 
 const effectivePlaceholder = computed(() => {
   if (props.disabled && props.disabledPlaceholder) {

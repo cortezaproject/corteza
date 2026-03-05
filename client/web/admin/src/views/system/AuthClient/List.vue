@@ -155,14 +155,14 @@ function toggleFilterMenu(event) {
 
 const fields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('system.authclients.list.columns.handle', 'Handle'),
-  },
-  {
     key: 'name',
     sortable: false,
     header: t('system.authclients.list.columns.meta.name', 'Name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('system.authclients.list.columns.handle', 'Handle'),
   },
   {
     key: 'enabled',

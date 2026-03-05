@@ -135,9 +135,12 @@ export function useSegmentForm(options: {
             const isReference = !!refInfo
             const referenceLabel = refInfo ? buildReferenceLabel(refInfo.scope, refInfo.source) : ''
 
+            const inputOptions = element.input.options || []
+            const hasOptions = inputOptions.length > 0
+
             return {
               key: `input-${sIdx}-${secIdx}-${elIdx}`,
-              type: element.input.type,
+              type: hasOptions ? 'Select' : element.input.type,
               label: element.input.label,
               placeholder: element.input.placeholder,
               disabledPlaceholder,
@@ -150,6 +153,7 @@ export function useSegmentForm(options: {
                 : options.getValue(element.input.argument),
               isReference,
               referenceLabel,
+              options: inputOptions,
             }
           }),
       })),

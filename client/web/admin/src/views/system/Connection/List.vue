@@ -47,12 +47,12 @@
         </div>
       </template>
 
-      <template #body-handle="{ data }">
-        <span class="font-medium">{{ data.handle || '-' }}</span>
+      <template #body-name="{ data }">
+        <span class="font-medium">{{ data.meta?.short || '-' }}</span>
       </template>
 
-      <template #body-name="{ data }">
-        {{ data.meta?.short || '-' }}
+      <template #body-handle="{ data }">
+        {{ data.handle || '-' }}
       </template>
 
       <template #body-status="{ data }">
@@ -154,14 +154,14 @@ function toggleFilterMenu(event) {
 // Column definitions
 const connectionListFields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('system.connections.list.columns.handle'),
-  },
-  {
     key: 'name',
     sortable: false,
     header: t('system.connections.list.columns.name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('system.connections.list.columns.handle'),
   },
   {
     key: 'status',

@@ -28,65 +28,62 @@
         <template #content>
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
             <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.connections.editor.info.title') }}</Tab>
-              <Tab value="service">{{ $t('system.connections.editor.service.title') }}</Tab>
-              <Tab value="advanced">{{ $t('system.connections.editor.configurations.title') }}</Tab>
+              <Tab value="general">{{ $t('system.connections.editor.general') }}</Tab>
+              <Tab value="configuration">{{ $t('system.connections.editor.configuration') }}</Tab>
               <Tab v-if="isEdit" value="configured">
                 {{ $t('system.configuredConnections.list.title') }}
               </Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
-              <TabPanel value="basic">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField name="name" class="flex flex-col gap-2">
-                    <label for="name" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.info.name') }}
-                    </label>
-                    <InputText id="name" name="name" v-model="connection.meta.short" />
-                    <Message
-                      v-if="$form.name?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.name.error?.message }}
-                    </Message>
-                  </FormField>
-
-                  <FormField name="handle" class="flex flex-col gap-2">
-                    <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.info.handle') }}
-                    </label>
-                    <InputText id="handle" name="handle" v-model="connection.handle" />
-                    <Message
-                      v-if="$form.handle?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.handle.error?.message }}
-                    </Message>
-                  </FormField>
-
-                  <div class="flex flex-col gap-2 md:col-span-2">
-                    <label for="description" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.info.description') }}
-                    </label>
-                    <Textarea id="description" v-model="connection.meta.description" rows="3" />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="status" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.info.status') }}
-                    </label>
-                    <InputText id="status" v-model="connection.status" />
-                  </div>
-                </div>
-              </TabPanel>
-
-              <TabPanel value="service">
+              <TabPanel value="general">
                 <div class="flex flex-col gap-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField name="name" class="flex flex-col gap-2">
+                      <label for="name" class="font-medium text-primary">
+                        {{ $t('system.connections.editor.info.name') }}
+                      </label>
+                      <InputText id="name" name="name" v-model="connection.meta.short" />
+                      <Message
+                        v-if="$form.name?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $form.name.error?.message }}
+                      </Message>
+                    </FormField>
+
+                    <FormField name="handle" class="flex flex-col gap-2">
+                      <label for="handle" class="font-medium text-primary">
+                        {{ $t('system.connections.editor.info.handle') }}
+                      </label>
+                      <InputText id="handle" name="handle" v-model="connection.handle" />
+                      <Message
+                        v-if="$form.handle?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $form.handle.error?.message }}
+                      </Message>
+                    </FormField>
+
+                    <div class="flex flex-col gap-2 md:col-span-2">
+                      <label for="description" class="font-medium text-primary">
+                        {{ $t('system.connections.editor.info.description') }}
+                      </label>
+                      <Textarea id="description" v-model="connection.meta.description" rows="3" />
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                      <label for="status" class="font-medium text-primary">
+                        {{ $t('system.connections.editor.info.status') }}
+                      </label>
+                      <InputText id="status" v-model="connection.status" />
+                    </div>
+                  </div>
+
                   <FormField name="service" class="flex flex-col gap-2">
                     <label for="service" class="font-medium text-primary">
                       {{ $t('system.connections.editor.service.title') }}
@@ -112,76 +109,85 @@
                 </div>
               </TabPanel>
 
-              <TabPanel value="advanced">
-                <div class="flex flex-col gap-6">
-                  <FormField name="resources" class="flex flex-col gap-2">
-                    <label for="resources" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.configurations.resources') }}
-                    </label>
-                    <Textarea
-                      id="resources"
-                      name="resources"
-                      v-model="rawJSON.resources"
-                      rows="10"
-                      autoResize
-                      class="font-mono text-sm"
-                      @change="() => parseJSONField('resources')"
-                    />
-                    <Message
-                      v-if="$form.resources?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.resources.error?.message }}
-                    </Message>
-                  </FormField>
+              <TabPanel value="configuration">
+                <div class="flex flex-col gap-4">
+                  <Panel
+                    :header="$t('system.connections.editor.configurations.resources')"
+                    toggleable
+                    :collapsed="false"
+                    class="shadow"
+                  >
+                    <FormField name="resources" class="flex flex-col gap-2">
+                      <Textarea
+                        id="resources"
+                        name="resources"
+                        v-model="rawJSON.resources"
+                        rows="10"
+                        class="font-mono text-sm max-h-[50vh] overflow-y-auto"
+                        @change="() => parseJSONField('resources')"
+                      />
+                      <Message
+                        v-if="$form.resources?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $form.resources.error?.message }}
+                      </Message>
+                    </FormField>
+                  </Panel>
 
-                  <FormField name="standardOperations" class="flex flex-col gap-2">
-                    <label for="standardOperations" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.configurations.standardOperations') }}
-                    </label>
-                    <Textarea
-                      id="standardOperations"
-                      name="standardOperations"
-                      v-model="rawJSON.standardOperations"
-                      rows="10"
-                      autoResize
-                      class="font-mono text-sm"
-                      @change="() => parseJSONField('standardOperations')"
-                    />
-                    <Message
-                      v-if="$form.standardOperations?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.standardOperations.error?.message }}
-                    </Message>
-                  </FormField>
+                  <Panel
+                    :header="$t('system.connections.editor.configurations.standardOperations')"
+                    toggleable
+                    :collapsed="false"
+                    class="shadow"
+                  >
+                    <FormField name="standardOperations" class="flex flex-col gap-2">
+                      <Textarea
+                        id="standardOperations"
+                        name="standardOperations"
+                        v-model="rawJSON.standardOperations"
+                        rows="10"
+                        class="font-mono text-sm max-h-[50vh] overflow-y-auto"
+                        @change="() => parseJSONField('standardOperations')"
+                      />
+                      <Message
+                        v-if="$form.standardOperations?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $form.standardOperations.error?.message }}
+                      </Message>
+                    </FormField>
+                  </Panel>
 
-                  <FormField name="operations" class="flex flex-col gap-2">
-                    <label for="operations" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.configurations.operations') }}
-                    </label>
-                    <Textarea
-                      id="operations"
-                      name="operations"
-                      v-model="rawJSON.operations"
-                      rows="10"
-                      autoResize
-                      class="font-mono text-sm"
-                      @change="() => parseJSONField('operations')"
-                    />
-                    <Message
-                      v-if="$form.operations?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.operations.error?.message }}
-                    </Message>
-                  </FormField>
+                  <Panel
+                    :header="$t('system.connections.editor.configurations.operations')"
+                    toggleable
+                    :collapsed="false"
+                    class="shadow"
+                  >
+                    <FormField name="operations" class="flex flex-col gap-2">
+                      <Textarea
+                        id="operations"
+                        name="operations"
+                        v-model="rawJSON.operations"
+                        rows="10"
+                        class="font-mono text-sm max-h-[50vh] overflow-y-auto"
+                        @change="() => parseJSONField('operations')"
+                      />
+                      <Message
+                        v-if="$form.operations?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $form.operations.error?.message }}
+                      </Message>
+                    </FormField>
+                  </Panel>
                 </div>
               </TabPanel>
 
@@ -232,7 +238,13 @@
                   </template>
 
                   <template #body-status="{ data }">
-                    <Tag v-if="data.status" :value="data.status" />
+                    <Tag
+                      v-if="data.status"
+                      :value="
+                        $t(`system.connections.editor.statusValues.${data.status}`, data.status)
+                      "
+                      :severity="data.status === 'active' ? 'success' : 'secondary'"
+                    />
                     <span v-else>-</span>
                   </template>
 
@@ -316,7 +328,15 @@
               {{ $t('system.configuredConnections.editor.info.status') }}
             </label>
             <div>
-              <Tag :value="activeConfiguredConnection.status || '-'" />
+              <Tag
+                :value="
+                  $t(
+                    `system.connections.editor.statusValues.${activeConfiguredConnection.status}`,
+                    activeConfiguredConnection.status || '-',
+                  )
+                "
+                :severity="activeConfiguredConnection.status === 'active' ? 'success' : 'secondary'"
+              />
             </div>
           </div>
 
@@ -342,29 +362,6 @@
               {{ $modalForm.config.error?.message }}
             </Message>
           </FormField>
-
-          <FormField name="labels" class="flex flex-col gap-2">
-            <label for="ccLabels" class="font-medium text-primary">
-              {{ $t('system.configuredConnections.editor.info.labels') }}
-            </label>
-            <Textarea
-              id="ccLabels"
-              name="labels"
-              v-model="configuredConnectionRawLabels"
-              rows="3"
-              autoResize
-              class="font-mono text-sm"
-              @change="() => parseConfiguredConnectionLabels()"
-            />
-            <Message
-              v-if="$modalForm.labels?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-            >
-              {{ $modalForm.labels.error?.message }}
-            </Message>
-          </FormField>
         </div>
 
         <div class="border-t border-surface p-3 flex gap-2">
@@ -379,6 +376,19 @@
               size="small"
               @confirm="handleConfiguredConnectionDeleteFromModal"
             />
+
+            <div class="flex">
+              <Divider layout="vertical" />
+
+              <Button
+                :label="$t('system.configuredConnections.editor.check')"
+                size="small"
+                severity="info"
+                outlined
+                :loading="checkingConfiguredConnection"
+                @click="handleConfiguredConnectionCheck"
+              />
+            </div>
 
             <div v-if="activeConfiguredConnection.status !== 'active'" class="flex">
               <Divider layout="vertical" />
@@ -471,11 +481,12 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const connection = ref(null)
-const activeTab = ref('basic')
+const activeTab = ref('general')
 
 const configuredConnectionModal = ref(false)
 const savingConfiguredConnection = ref(false)
 const enablingConfiguredConnection = ref(false)
+const checkingConfiguredConnection = ref(false)
 const activeConfiguredConnection = ref(null)
 const configuredConnectionRawConfig = ref('{}')
 const configuredConnectionRawLabels = ref('{}')
@@ -738,11 +749,72 @@ async function handleConfiguredConnectionDeleteFromModal() {
   }
 }
 
+async function handleConfiguredConnectionCheck() {
+  if (!activeConfiguredConnection.value?.configurationID) return
+
+  checkingConfiguredConnection.value = true
+  try {
+    const result = await $SystemAPI.configuredConnectionCheck({
+      connectionID: activeConfiguredConnection.value.configurationID,
+    })
+
+    const allOk = result.connectivity?.ok && result.auth?.ok && (!result.probe || result.probe.ok)
+    if (allOk) {
+      $toast.toastSuccess(t('system.configuredConnections.editor.checkResult.success'))
+    } else {
+      const issues = []
+      if (!result.connectivity?.ok)
+        issues.push(
+          `${t('system.configuredConnections.editor.checkResult.connectivity')}: ${result.connectivity?.message || 'failed'}`,
+        )
+      if (!result.auth?.ok)
+        issues.push(
+          `${t('system.configuredConnections.editor.checkResult.auth')}: ${result.auth?.message || 'failed'}`,
+        )
+      if (result.probe && !result.probe.ok)
+        issues.push(
+          `${t('system.configuredConnections.editor.checkResult.probe')}: ${result.probe?.message || 'failed'}`,
+        )
+      $toast.toastWarning(issues.join('; '))
+    }
+  } catch (e) {
+    console.error('Failed to check configured connection:', e)
+    $toast.toastErrorHandler(t('system.configuredConnections.editor.checkResult.error'))(e)
+  } finally {
+    checkingConfiguredConnection.value = false
+  }
+}
+
 async function handleConfiguredConnectionEnable() {
   if (!activeConfiguredConnection.value?.configurationID) return
 
   enablingConfiguredConnection.value = true
   try {
+    // Check first
+    const result = await $SystemAPI.configuredConnectionCheck({
+      connectionID: activeConfiguredConnection.value.configurationID,
+    })
+
+    const allOk = result.connectivity?.ok && result.auth?.ok && (!result.probe || result.probe.ok)
+    if (!allOk) {
+      const issues = []
+      if (!result.connectivity?.ok)
+        issues.push(
+          `${t('system.configuredConnections.editor.checkResult.connectivity')}: ${result.connectivity?.message || 'failed'}`,
+        )
+      if (!result.auth?.ok)
+        issues.push(
+          `${t('system.configuredConnections.editor.checkResult.auth')}: ${result.auth?.message || 'failed'}`,
+        )
+      if (result.probe && !result.probe.ok)
+        issues.push(
+          `${t('system.configuredConnections.editor.checkResult.probe')}: ${result.probe?.message || 'failed'}`,
+        )
+      $toast.toastWarning(issues.join('; '))
+      return
+    }
+
+    // All checks passed, enable
     await $SystemAPI.configuredConnectionEnable({
       connectionID: activeConfiguredConnection.value.configurationID,
     })

@@ -140,14 +140,14 @@ function toggleFilterMenu(event) {
 
 const fields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('system.sensitivityLevel.list.columns.handle', 'Handle'),
-  },
-  {
     key: 'name',
     sortable: true,
     header: t('system.sensitivityLevel.list.columns.name', 'Name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('system.sensitivityLevel.list.columns.handle', 'Handle'),
   },
   {
     key: 'level',
