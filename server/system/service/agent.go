@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 
@@ -60,6 +61,10 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 			return AgentErrNotAllowedToCreate()
 		}
 
+		if err = validateAgentTools(new); err != nil {
+			return
+		}
+
 		new.ID = nextID()
 		new.CreatedAt = *now()
 		new.Revision = 1
@@ -84,6 +89,10 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 		var existing *types.Agent
 		if existing, err = store.LookupAgentByID(ctx, svc.store, upd.ID); err != nil {
 			return AgentErrNotFound()
+		}
+
+		if err = validateAgentTools(upd); err != nil {
+			return
 		}
 
 		// Test if stale (update has an older version of data)
@@ -174,6 +183,18 @@ func (svc *agent) Search(ctx context.Context, filter types.AgentFilter) (set typ
 	}()
 
 	return set, f, err
+}
+
+func validateAgentTools(a *types.Agent) error {
+	if DefaultMCPRegistry == nil {
+		return nil
+	}
+	for _, t := range a.Access.Tools {
+		if !DefaultMCPRegistry.HasTool(t.Name) {
+			return fmt.Errorf("unknown tool %q", t.Name)
+		}
+	}
+	return nil
 }
 
 func loadAgent(ctx context.Context, s store.Agents, ID uint64) (res *types.Agent, err error) {

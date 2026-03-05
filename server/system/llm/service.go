@@ -13,11 +13,12 @@ import (
 )
 
 type Service struct {
-	store store.Storer
+	store               store.Storer
+	anthropicAPIVersion string
 }
 
-func New(s store.Storer) (*Service, error) {
-	return &Service{store: s}, nil
+func New(s store.Storer, anthropicAPIVersion string) (*Service, error) {
+	return &Service{store: s, anthropicAPIVersion: anthropicAPIVersion}, nil
 }
 
 func (svc *Service) Create(ctx context.Context, p *sysTypes.LlmProvider, apiKey string) (*sysTypes.LlmProvider, error) {
@@ -119,7 +120,7 @@ func (svc *Service) ListModels(ctx context.Context, providerID uint64) ([]string
 	case "openai", "azure", "mistral":
 		return fetchOpenAIModels(ctx, provider, cred)
 	case "anthropic":
-		return fetchAnthropicModels(ctx, provider, cred)
+		return fetchAnthropicModels(ctx, provider, cred, svc.anthropicAPIVersion)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider type: %s", provider.Provider)
 	}
@@ -150,7 +151,7 @@ func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProv
 	case "openai", "azure", "mistral":
 		return promptOpenAI(ctx, provider, cred, model, messages, tools)
 	case "anthropic":
-		return promptAnthropic(ctx, provider, cred, model, messages, tools)
+		return promptAnthropic(ctx, provider, cred, model, messages, tools, svc.anthropicAPIVersion)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider type: %s", provider.Provider)
 	}

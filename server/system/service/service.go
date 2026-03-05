@@ -12,6 +12,7 @@ import (
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/system/agentic/observability"
+	agenticMcp "github.com/cortezaproject/corteza/server/system/agentic/mcp"
 	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
@@ -48,7 +49,7 @@ type (
 		Limit      options.LimitOpt
 		Attachment options.AttachmentOpt
 		Webapps    options.WebappOpt
-		MCPClient  agenticRuntime.MCPClient
+		Agentic    options.AgenticOpt
 		ObsBus     *observability.Bus
 	}
 
@@ -109,7 +110,7 @@ var (
 	DefaultAgent               *agent
 	DefaultAiConversation      *aiConversation
 	DefaultAgenticRuntime      AgenticRunner
-	DefaultMCPRegistry         agenticRuntime.MCPClient
+	DefaultMCPRegistry         *agenticMcp.Registry
 	DefaultLlmService          *llm.Service
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
@@ -254,15 +255,17 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAgent = Agent()
 	DefaultAiConversation = AiConversation()
 
-	DefaultLlmService, err = llm.New(s)
+	DefaultLlmService, err = llm.New(s, c.Agentic.AnthropicApiVersion)
 	if err != nil {
 		return fmt.Errorf("could not initialize LLM service: %w", err)
 	}
 
+	DefaultMCPRegistry = agenticMcp.NewRegistry()
+
 	DefaultAgenticRuntime = agenticRuntime.Runtime(
 		DefaultAgent,
 		DefaultLlmService,
-		c.MCPClient,
+		DefaultMCPRegistry,
 		DefaultAiConversation,
 		c.ObsBus,
 	)

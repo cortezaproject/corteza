@@ -12,8 +12,9 @@ import (
 
 type (
 	registeredTool struct {
-		Tool    mcp.Tool
-		Handler server.ToolHandlerFunc
+		Tool        mcp.Tool
+		Handler     server.ToolHandlerFunc
+		InputSchema map[string]any
 	}
 
 	registeredResource struct {
@@ -34,8 +35,21 @@ func NewRegistry() *Registry {
 	}
 }
 
-func (r *Registry) RegisterTool(tool mcp.Tool, handler server.ToolHandlerFunc){
-	r.tools[tool.Name]=registeredTool{Tool: tool, Handler: handler}
+func (r *Registry) RegisterTool(tool mcp.Tool, handler server.ToolHandlerFunc) {
+	schema := map[string]any{
+		"type":       tool.InputSchema.Type,
+		"properties": tool.InputSchema.Properties,
+	}
+	if len(tool.InputSchema.Required) > 0 {
+		schema["required"] = tool.InputSchema.Required
+	}
+
+	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema}
+}
+
+func (r *Registry) HasTool(name string) bool {
+	_, ok := r.tools[name]
+	return ok
 }
 
 func (r *Registry) RegisterResource(resource mcp.Resource, handler server.ResourceHandlerFunc){
@@ -45,18 +59,10 @@ func (r *Registry) RegisterResource(resource mcp.Resource, handler server.Resour
 func (r *Registry) GetTools(ctx context.Context, agentID uint64) ([]rt.Tool, error) {
 	out := make([]rt.Tool, 0, len(r.tools))
 	for _, t := range r.tools {
-		schema := map[string]any{
-			"type":       t.Tool.InputSchema.Type,
-			"properties": t.Tool.InputSchema.Properties,
-		}
-		if len(t.Tool.InputSchema.Required) > 0 {
-			schema["required"] = t.Tool.InputSchema.Required
-		}
-
 		out = append(out, rt.Tool{
 			Name:        t.Tool.Name,
 			Description: t.Tool.Description,
-			InputSchema: schema,
+			InputSchema: t.InputSchema,
 		})
 	}
 	return out, nil
@@ -78,12 +84,15 @@ func (r *Registry) ExecuteTool(ctx context.Context, toolName string, args map[st
 	}
 
 	for _, c := range result.Content {
-		if text, ok := c.(mcp.TextContent); ok {
+		switch v := c.(type) {
+		case mcp.TextContent:
 			var parsed any
-			if err := json.Unmarshal([]byte(text.Text), &parsed); err == nil {
+			if err := json.Unmarshal([]byte(v.Text), &parsed); err == nil {
 				return parsed, nil
 			}
-			return text.Text, nil
+			return v.Text, nil
+		default:
+			return nil, fmt.Errorf("tool %q returned unsupported content type %T", toolName, c)
 		}
 	}
 

@@ -56,9 +56,7 @@ type (
 	}
 )
 
-const anthropicAPIVersion = "2023-06-01"
-
-func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, messages []Message, tools []Tool) (*Response, error) {
+func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, messages []Message, tools []Tool, anthropicAPIVersion string) (*Response, error) {
 	if model == "" {
 		model = provider.Config.Model
 	}
@@ -150,7 +148,7 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 	}, nil
 }
 
-func fetchAnthropicModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential) ([]string, error) {
+func fetchAnthropicModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, anthropicAPIVersion string) ([]string, error) {
 	url := provider.Config.PromptURL + "/models"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 func TestEvaluate(t *testing.T) {
 	t.Run("denied when tool not in allow-list", func(t *testing.T) {
 		agent := &types.Agent{}
-		d := Evaluate(agent, "compose_record_lookup", nil)
+		d := Evaluate(agent, "compose_record_lookup", MapValues(nil))
 		assert.False(t, d.Allowed)
 		assert.Contains(t, d.Reason, "not in the agent's allow-list")
 	})
@@ -24,7 +24,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", map[string]any{"recordID": "123"})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"recordID": "123"})
 		assert.True(t, d.Allowed)
 		assert.Equal(t, "123", d.SanitizedArgs["recordID"])
 	})
@@ -33,14 +33,14 @@ func TestEvaluate(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Context: types.AgentAccessContext{
-					Defaults: map[string]any{"namespaceID": "ns1"},
+					Defaults: MapValues{"namespaceID": "ns1"},
 				},
 				Tools: []types.AgentAccessTool{
 					{Name: "compose_record_lookup"},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", map[string]any{})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{})
 		assert.True(t, d.Allowed)
 		assert.Equal(t, "ns1", d.SanitizedArgs["namespaceID"])
 	})
@@ -49,14 +49,14 @@ func TestEvaluate(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Context: types.AgentAccessContext{
-					Defaults: map[string]any{"namespaceID": "ns1"},
+					Defaults: MapValues{"namespaceID": "ns1"},
 				},
 				Tools: []types.AgentAccessTool{
 					{Name: "compose_record_lookup"},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", map[string]any{"namespaceID": "ns-custom"})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "ns-custom"})
 		assert.Equal(t, "ns-custom", d.SanitizedArgs["namespaceID"])
 	})
 
@@ -67,13 +67,13 @@ func TestEvaluate(t *testing.T) {
 					{
 						Name: "compose_record_lookup",
 						Context: types.AgentAccessToolContext{
-							Defaults: map[string]any{"moduleID": "mod1"},
+							Defaults: MapValues{"moduleID": "mod1"},
 						},
 					},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", map[string]any{})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{})
 		assert.Equal(t, "mod1", d.SanitizedArgs["moduleID"])
 	})
 
@@ -84,13 +84,13 @@ func TestEvaluate(t *testing.T) {
 					{
 						Name: "compose_record_lookup",
 						Context: types.AgentAccessToolContext{
-							Overrides: map[string]any{"namespaceID": "forced-ns"},
+							Overrides: MapValues{"namespaceID": "forced-ns"},
 						},
 					},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", map[string]any{"namespaceID": "user-ns"})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "user-ns"})
 		assert.Equal(t, "forced-ns", d.SanitizedArgs["namespaceID"])
 	})
 }
@@ -100,7 +100,7 @@ func TestFilterResponse(t *testing.T) {
 
 	t.Run("no matching allow entry returns empty map", func(t *testing.T) {
 		agent := &types.Agent{}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", map[string]any{"recordID": "123", "values": "data"})
+		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"recordID": "123", "values": "data"})
 		assert.Empty(t, result)
 	})
 
@@ -112,9 +112,9 @@ func TestFilterResponse(t *testing.T) {
 				},
 			},
 		}
-		data := map[string]any{"recordID": "123", "values": "data"}
+		data := MapValues{"recordID": "123", "values": "data"}
 		result := FilterResponse(ctx, agent, "compose_record_lookup", data)
-		assert.Equal(t, data, result)
+		assert.Equal(t, map[string]any{"recordID": "123", "values": "data"}, result)
 	})
 
 	t.Run("only allowed properties are returned", func(t *testing.T) {
@@ -130,7 +130,7 @@ func TestFilterResponse(t *testing.T) {
 				},
 			},
 		}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", map[string]any{"recordID": "123", "secret": "hidden"})
+		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"recordID": "123", "secret": "hidden"})
 		assert.Equal(t, "123", result["recordID"])
 		assert.NotContains(t, result, "secret")
 	})
@@ -146,7 +146,7 @@ func TestFilterResponse(t *testing.T) {
 				},
 			},
 		}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", map[string]any{"status": "active", "recordID": "123"})
+		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"status": "active", "recordID": "123"})
 		assert.Equal(t, "123", result["recordID"])
 	})
 
@@ -161,7 +161,7 @@ func TestFilterResponse(t *testing.T) {
 				},
 			},
 		}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", map[string]any{"status": "inactive", "recordID": "123"})
+		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"status": "inactive", "recordID": "123"})
 		assert.Empty(t, result)
 	})
 }

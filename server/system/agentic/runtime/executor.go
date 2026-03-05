@@ -328,7 +328,7 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		start := time.Now()
 
 		policyStart := time.Now()
-		decision := policy.Evaluate(agent, tc.Name, tc.Args)
+		decision := policy.Evaluate(agent, tc.Name, policy.MapValues(tc.Args))
 		policySpan := observability.AgentSpan{
 			ID:             sid(),
 			ParentID:       parentSpanID,
@@ -424,7 +424,7 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		resultData, _ := json.Marshal(result)
 		var resultMap map[string]any
 		if json.Unmarshal(resultData, &resultMap) == nil {
-			result = policy.FilterResponse(ctx, agent, tc.Name, resultMap)
+			result = policy.FilterResponse(ctx, agent, tc.Name, policy.MapValues(resultMap))
 			resultData, _ = json.Marshal(result)
 		}
 

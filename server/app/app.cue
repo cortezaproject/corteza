@@ -42,6 +42,8 @@ corteza: schema.#platform & {
 		options.discovery,
 		options.attachment,
 		options.webapp,
+		options.observability,
+		options.agentic,
 	]
 
 	// platform resources

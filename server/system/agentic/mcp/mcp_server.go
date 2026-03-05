@@ -10,10 +10,10 @@ type MCPServer struct {
 	httpServer *server.StreamableHTTPServer
 }
 
-func NewMCPServer(reg *Registry) *MCPServer {
+func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 	s := server.NewMCPServer(
-		"Corteza MCP",
-		"v1",
+		name,
+		version,
 		server.WithToolCapabilities(true),
 		server.WithResourceCapabilities(true,false),
 	)
