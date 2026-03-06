@@ -6,32 +6,32 @@ ARG VERSION=2022.9.0
 ARG SASS_VERSION=1.69.5
 ARG SERVER_VERSION=${VERSION}
 ARG WEBAPP_VERSION=${VERSION}
-ARG CORTEZA_SERVER_PATH=https://releases.cortezaproject.org/files/corteza-server-${SERVER_VERSION}-linux-amd64.tar.gz
-ARG CORTEZA_WEBAPP_PATH=https://releases.cortezaproject.org/files/corteza-webapp-${WEBAPP_VERSION}.tar.gz
+ARG HUMAN_SERVER_PATH=https://releases.cortezaproject.org/files/human-server-${SERVER_VERSION}-linux-amd64.tar.gz
+ARG HUMAN_WEBAPP_PATH=https://releases.cortezaproject.org/files/human-webapp-${WEBAPP_VERSION}.tar.gz
 ARG SASS_URL=https://github.com/sass/dart-sass/releases/download/${SASS_VERSION}/dart-sass-${SASS_VERSION}-linux-x64.tar.gz
 
 RUN mkdir /tmp/server
 RUN mkdir /tmp/webapp
 
-ADD $CORTEZA_SERVER_PATH /tmp/server
-ADD $CORTEZA_WEBAPP_PATH /tmp/webapp
+ADD $HUMAN_SERVER_PATH /tmp/server
+ADD $HUMAN_WEBAPP_PATH /tmp/webapp
 
 RUN apk update && apk add --no-cache file
 RUN apk add curl
 
-RUN file "/tmp/server/$(basename $CORTEZA_SERVER_PATH)" | grep -q 'gzip' && \
-    tar zxvf "/tmp/server/$(basename $CORTEZA_SERVER_PATH)" -C / || \
+RUN file "/tmp/server/$(basename $HUMAN_SERVER_PATH)" | grep -q 'gzip' && \
+    tar zxvf "/tmp/server/$(basename $HUMAN_SERVER_PATH)" -C / || \
     cp -a "/tmp/server" /
 
-RUN mv /corteza-server /corteza
+RUN mv /human-server /human
 
-WORKDIR /corteza
+WORKDIR /human
 
-RUN rm -rf /corteza/webapp
+RUN rm -rf /human/webapp
 
-RUN file "/tmp/webapp/$(basename $CORTEZA_WEBAPP_PATH)" | grep -q 'gzip' && \
-    mkdir /corteza/webapp && tar zxvf "/tmp/webapp/$(basename $CORTEZA_WEBAPP_PATH)" -C /corteza/webapp || \
-    cp -a "/tmp/webapp" /corteza/webapp
+RUN file "/tmp/webapp/$(basename $HUMAN_WEBAPP_PATH)" | grep -q 'gzip' && \
+    mkdir /human/webapp && tar zxvf "/tmp/webapp/$(basename $HUMAN_WEBAPP_PATH)" -C /human/webapp || \
+    cp -a "/tmp/webapp" /human/webapp
 
 WORKDIR /tmp
 
@@ -51,14 +51,14 @@ ENV STORAGE_PATH "/data"
 ENV CORREDOR_ADDR "corredor:80"
 ENV HTTP_ADDR "0.0.0.0:80"
 ENV HTTP_WEBAPP_ENABLED "true"
-ENV HTTP_WEBAPP_BASE_DIR "/corteza/webapp"
-ENV PATH "/opt/dart-sass:/corteza/bin:${PATH}"
+ENV HTTP_WEBAPP_BASE_DIR "/human/webapp"
+ENV PATH "/opt/dart-sass:/human/bin:${PATH}"
 
-WORKDIR /corteza
+WORKDIR /human
 
 VOLUME /data
 
-COPY --from=build-stage /corteza ./
+COPY --from=build-stage /human ./
 COPY --from=build-stage /tmp/dart-sass /opt/dart-sass
 
 HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
@@ -66,6 +66,6 @@ HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
 
 EXPOSE 80
 
-ENTRYPOINT ["./bin/corteza-server"]
+ENTRYPOINT ["./bin/human-server"]
 
 CMD ["serve-api"]
