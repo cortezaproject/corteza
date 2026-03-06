@@ -19,7 +19,7 @@ else
         echo "${CONFIGJS}" > "$prefix/config.js"
       else
         # Try to guess where the API is located by using DOMAIN or VIRTUAL_HOST and prefix it with "api."
-        API_HOST=${API_HOST:-"api.${VIRTUAL_HOST:-"${DOMAIN:-"localhost"}"}"}"}
+        API_HOST=${API_HOST:-"api.${VIRTUAL_HOST:-"${DOMAIN:-"localhost"}"}"}
         API_BASEURL=${API_FULL_URL:-"//${API_HOST}"}
 
         echo "window.CortezaAPI = '${API_BASEURL}'" > "$prefix/config.js"

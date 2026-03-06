@@ -1,10 +1,5 @@
 name: 'Release'
 
-# These jobs can be tested with nektos/act tool
-# https://github.com/nektos/act
-#
-# Look for "!env.ACT" in the DRY_RUN expression below
-
 on:
   push:
     tags:
@@ -20,10 +15,12 @@ env:
   NODE_VERSION: 22
   PNPM_VERSION: 10
 
-  RELEASE_BASE_URL: 'https://releases.cortezaproject.org/files'
   SASS_VERSION: 1.85.1
 
 jobs:
+  ########################################################################################################################
+  # Server
+
   server-test:
     name: 'Server tests'
     runs-on: ubuntu-22.04
@@ -46,8 +43,6 @@ jobs:
         working-directory: server
         run: make test.integration
 
-  # Building web console for server and cache it for release-* steps
-  # we'll do this in parallel with tests to gain a few seconds
   server-web-console-build:
     name: 'Server Web Console Build'
     runs-on: ubuntu-22.04
@@ -69,46 +64,40 @@ jobs:
       - name: 'Build Package'
         working-directory: server/webconsole
         run: yarn build
-      - name: 'Cache console build'
-        uses: actions/cache@v4
-        with: { path: ./server/webconsole/dist, key: console-build }
+      - name: 'Upload webconsole dist'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webconsole-dist
+          path: server/webconsole/dist
 
-  server-release:
-    name: 'Server Release (${{ matrix.os }})'
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - { runsOn: 'ubuntu-22.04', os: 'linux' }
-          - { runsOn: 'macos-latest', os: 'darwin' }
-    runs-on: ${{ matrix.runsOn }}
+  server-build:
+    name: 'Server Build'
+    runs-on: ubuntu-22.04
     needs: [server-web-console-build, server-test]
-    env:
-      BUILD_OS: ${{ matrix.os }}
-      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
-      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with: { go-version: '${{ env.GO_VERSION }}' }
-      - name: 'Restore web console dist from cache'
-        uses: actions/cache@v4
-        with: { path: ./server/webconsole/dist, key: console-build }
+      - name: 'Download webconsole dist'
+        uses: actions/download-artifact@v4
+        with:
+          name: webconsole-dist
+          path: server/webconsole/dist
       - name: 'Copy essentials'
         run: cp *.md DCO LICENSE server/
       - name: 'Copy language files'
         working-directory: server/pkg/locale
-        run: make src/en src/de src/fr
-      - name: 'Build'
+        run: make src/en
+      - name: 'Build server binary'
         working-directory: server
         run: make release-clean release
-      - name: 'Upload'
-        working-directory: server
-        run: make upload
-        if: ${{ !env.ACT }}
+      - name: 'Upload server build'
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-build
+          path: server/build/pkg/human-server
 
-  ########################################################################################################################
   ########################################################################################################################
   # Libs
 
@@ -131,9 +120,7 @@ jobs:
 
   # lib/vue has no build or test scripts — it exports TypeScript source directly.
   # Both libs are resolved via workspace:* protocol in the monorepo.
-  # No npm publishing is needed — Vite compiles lib TypeScript on-the-fly.
 
-  ########################################################################################################################
   ########################################################################################################################
   # Web clients
 
@@ -158,18 +145,14 @@ jobs:
         working-directory: client/web/${{ matrix.app }}
         run: pnpm test:unit
 
-  client-web-release:
-    name: 'Web client (${{ matrix.app }})'
+  client-web-build:
+    name: 'Web client build (${{ matrix.app }})'
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: true
       matrix: { app: [admin, agentic, compose, one, taq] }
     needs: [client-web-test]
-    env:
-      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
-      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
     steps:
-      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with: { version: '${{ env.PNPM_VERSION }}' }
@@ -182,149 +165,84 @@ jobs:
       - name: 'Build'
         working-directory: client/web/${{ matrix.app }}
         run: pnpm build
-      - name: 'Copy essentials'
-        run: cp *.md DCO LICENSE client/web/${{ matrix.app }}
-      - name: 'Release'
-        working-directory: client/web/${{ matrix.app }}
-        run: make release
-      - name: 'Upload'
-        working-directory: client/web/${{ matrix.app }}
-        run: make upload
-        if: ${{ !env.ACT }}
+      - name: 'Upload web app build'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-${{ matrix.app }}
+          path: client/web/${{ matrix.app }}/dist
 
   ########################################################################################################################
-
-  client-web-aio-release:
-    name: 'Web clients (all-in-one release)'
-    runs-on: ubuntu-22.04
-    needs: [client-web-release]
-    env:
-      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
-      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-      - name: 'Prepare dist dir'
-        run: |
-          mkdir -p \
-            client/web/dist/admin \
-            client/web/dist/agentic \
-            client/web/dist/compose \
-            client/web/dist/taq
-      - name: 'Download & unpack one'
-        run: |
-          curl --location "${{ env.RELEASE_BASE_URL }}/human-webapp-one-${{ env.BUILD_VERSION }}.tar.gz" | \
-            tar -xzmok -C client/web/dist
-      - name: 'Download & unpack admin'
-        run: |
-          curl --silent --location "${{ env.RELEASE_BASE_URL }}/human-webapp-admin-${{ env.BUILD_VERSION }}.tar.gz" | \
-            tar -xzmok -C client/web/dist/admin
-      - name: 'Download & unpack agentic'
-        run: |
-          curl --silent --location "${{ env.RELEASE_BASE_URL }}/human-webapp-agentic-${{ env.BUILD_VERSION }}.tar.gz" | \
-            tar -xzmok -C client/web/dist/agentic
-      - name: 'Download & unpack compose'
-        run: |
-          curl --silent --location "${{ env.RELEASE_BASE_URL }}/human-webapp-compose-${{ env.BUILD_VERSION }}.tar.gz" | \
-            tar -xzmok -C client/web/dist/compose
-      - name: 'Download & unpack taq'
-        run: |
-          curl --silent --location "${{ env.RELEASE_BASE_URL }}/human-webapp-taq-${{ env.BUILD_VERSION }}.tar.gz" | \
-            tar -xzmok -C client/web/dist/taq
-      - name: 'Copy essentials'
-        run: cp *.md DCO LICENSE client/web/dist/
-      - name: 'Pack all web clients'
-        working-directory: client/web
-        run: tar -C dist -czf human-webapp-${{ env.BUILD_VERSION }}.tar.gz $(dir dist)
-      - name: 'Upload'
-        working-directory: client/web
-        run: |
-          echo ${{ env.RELEASE_SFTP_KEY }} | base64 -d > .upload-rsa && chmod 0400 .upload-rsa
-          echo "put human-webapp-${{ env.BUILD_VERSION }}.tar.gz" | \
-            sftp -q -o "StrictHostKeyChecking no" -i .upload-rsa ${{ env.RELEASE_SFTP_URI }}
-          rm -f .upload-rsa
-        if: ${{ !env.ACT }}
-
-  ########################################################################################################################
-  ########################################################################################################################
-  # This is where it all comes together
-
-  release:
-    name: 'Human (${{ matrix.os }})'
-    runs-on: ubuntu-22.04
-    needs: [server-release, client-web-aio-release]
-    strategy:
-      fail-fast: true
-      matrix:
-        os: ['linux']
-    env:
-      ENDPOINT: https://releases.cortezaproject.org/files
-      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
-      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
-    steps:
-      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
-      - name: 'Download'
-        run: |
-          curl --silent --location "${{ env.RELEASE_BASE_URL }}/human-server-${{ env.BUILD_VERSION }}-${{ matrix.os }}-amd64.tar.gz" | \
-            tar -xzmok -C .
-          mv human-server dist
-          rm -rf dist/webapp
-          mkdir dist/webapp
-          curl --silent --location "${{ env.RELEASE_BASE_URL }}/human-webapp-${{ env.BUILD_VERSION }}.tar.gz" | \
-            tar -xzmok -C dist/webapp
-      - name: 'Pack'
-        run: |
-          tar -C dist -czf human-${{ env.BUILD_VERSION }}-linux-amd64.tar.gz $(dir dist)
-      - name: 'Upload'
-        run: |
-          echo ${{ env.RELEASE_SFTP_KEY }} | base64 -d > .upload-rsa
-          chmod 0400 .upload-rsa
-          echo "put human-${{ env.BUILD_VERSION }}-linux-amd64.tar.gz" | \
-            sftp -q -o "StrictHostKeyChecking no" -i .upload-rsa ${{ env.RELEASE_SFTP_URI }}
-          rm -f .upload-rsa
-        if: ${{ !env.ACT }}
-
-  ########################################################################################################################
-  ########################################################################################################################
+  # Docker images
 
   docker-images:
     name: 'Docker image ${{ matrix.image }}'
-
     runs-on: ubuntu-22.04
-    needs:
-      - server-release
-      - client-web-aio-release
+    needs: [server-build, client-web-build]
     strategy:
       fail-fast: true
       matrix:
         include:
-          - { context: 'client/web', image: 'crusttech/human-webapp' }
-          - { context: 'server', image: 'crusttech/human-server' }
-          - { context: '.', image: 'crusttech/human' }
-
+          - {
+              dockerfile: 'server/Dockerfile',
+              image: 'crusttech/human-server',
+              artifact: 'server-only',
+            }
+          - {
+              dockerfile: 'client/web/Dockerfile',
+              image: 'crusttech/human-webapp',
+              artifact: 'webapp-only',
+            }
+          - { dockerfile: 'Dockerfile', image: 'crusttech/human', artifact: 'all' }
     steps:
       - uses: actions/checkout@v4
+
+      - name: 'Download server build'
+        if: ${{ matrix.artifact == 'server-only' || matrix.artifact == 'all' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: server-build
+          path: .docker-build/server
+
+      - name: 'Download all webapp builds'
+        if: ${{ matrix.artifact == 'webapp-only' || matrix.artifact == 'all' }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: webapp-*
+          path: .docker-build/webapp
+          merge-multiple: false
+
+      - name: 'Arrange webapp files'
+        if: ${{ matrix.artifact == 'webapp-only' || matrix.artifact == 'all' }}
+        run: |
+          mkdir -p .docker-build/webapp-merged
+          for app in admin agentic compose one taq; do
+            if [ -d ".docker-build/webapp/webapp-${app}" ]; then
+              # "one" goes to root, others go to subdirs
+              if [ "$app" = "one" ]; then
+                cp -r .docker-build/webapp/webapp-${app}/* .docker-build/webapp-merged/
+              else
+                mkdir -p .docker-build/webapp-merged/${app}
+                cp -r .docker-build/webapp/webapp-${app}/* .docker-build/webapp-merged/${app}/
+              fi
+            fi
+          done
+
       - name: 'Parse version tag'
-        id: version
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-
           echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
-
           if [[ "$(echo ${TAG} | grep '-')" == "" ]]; then
-            # when releasing patched version (YYYY.MM.PATCH) we
-            # tag alias (YYYY.MM) as well
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
           fi
 
       - name: 'Build'
         run: |
           docker build \
+            -f ${{ matrix.dockerfile }} \
             --build-arg "VERSION=${{ env.DOCKER_IMAGE_TAG }}" \
             --build-arg "SASS_VERSION=${{ env.SASS_VERSION }}" \
             --tag ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
-            ${{ matrix.context }}
+            .
 
       - name: 'Login'
         uses: docker/login-action@v3
@@ -335,9 +253,7 @@ jobs:
 
       - name: 'Push ${{ env.DOCKER_IMAGE_TAG }}'
         if: ${{ !env.ACT }}
-        run: |
-          docker push \
-            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }}
+        run: docker push ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }}
 
       - name: 'Push ${{ env.DOCKER_IMAGE_ALIAS }}'
         if: ${{ !env.ACT && env.DOCKER_IMAGE_ALIAS }}
@@ -345,6 +261,4 @@ jobs:
           docker tag \
             ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
             ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
-
-          docker push \
-            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
+          docker push ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}

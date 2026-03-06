@@ -1,28 +1,13 @@
-# build-stage
-FROM alpine:3 as build-stage
-
-ARG VERSION=2022.9.0
-ARG HUMAN_WEBAPP_PATH=https://releases.cortezaproject.org/files/human-webapp-${VERSION}.tar.gz
-
-# Download package
-ADD $HUMAN_WEBAPP_PATH /tmp
-
-RUN apk update && apk add --no-cache file
-
-RUN rm -rf /html; mkdir /html
-WORKDIR /html
-
-RUN file "/tmp/$(basename $HUMAN_WEBAPP_PATH)" | grep -q 'gzip' && \
-    tar zxvf "/tmp/$(basename $HUMAN_WEBAPP_PATH)" -C /html
-
-# deploy-stage
+# Webapp-only Docker image
+# Build context is repo root (.)
+# Expects .docker-build/webapp-merged/ to contain the pre-built web apps
 FROM nginx:stable-alpine
 
 WORKDIR /usr/share/nginx/html
 
-COPY --from=build-stage /html /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY entrypoint.sh /entrypoint.sh
+COPY .docker-build/webapp-merged /usr/share/nginx/html
+COPY client/web/nginx.conf /etc/nginx/nginx.conf
+COPY client/web/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
