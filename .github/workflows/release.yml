@@ -163,15 +163,15 @@ jobs:
         include:
           - {
               dockerfile: 'server/Dockerfile',
-              image: 'crusttech/human-server',
+              image: 'planetcrust/human-server',
               artifact: 'server-only',
             }
           - {
               dockerfile: 'client/web/Dockerfile',
-              image: 'crusttech/human-webapp',
+              image: 'planetcrust/human-webapp',
               artifact: 'webapp-only',
             }
-          - { dockerfile: 'Dockerfile', image: 'crusttech/human', artifact: 'all' }
+          - { dockerfile: 'Dockerfile', image: 'planetcrust/human', artifact: 'all' }
     steps:
       - uses: actions/checkout@v4
 
