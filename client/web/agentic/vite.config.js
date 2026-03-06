@@ -21,12 +21,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     // Set base URL - similar to publicPath in webpack
-    base: isDevelopment ? '/' : './',
+    base: isDevelopment ? '/' : '/agentic/',
 
-    plugins: [
-      vue(),
-      vueDevTools(),
-    ],
+    build: {
+      assetsDir: '_assets',
+    },
+
+    plugins: [vue(), vueDevTools()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

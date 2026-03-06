@@ -21,7 +21,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     // Set base URL - similar to publicPath in webpack
-    base: isDevelopment ? '/' : './',
+    base: isDevelopment ? '/' : '/admin/',
+
+    build: {
+      assetsDir: '_assets',
+    },
 
     plugins: [vue(), vueDevTools()],
     resolve: {

@@ -21,17 +21,18 @@ export default defineConfig(({ mode }) => {
 
   return {
     // Set base URL - similar to publicPath in webpack
-    base: isDevelopment ? '/' : './',
+    base: isDevelopment ? '/' : '/taq/',
+
+    build: {
+      assetsDir: '_assets',
+    },
 
     // Handle CommonJS dependencies (dagre uses require())
     optimizeDeps: {
       include: ['dagre'],
     },
 
-    plugins: [
-      vue(),
-      vueDevTools(),
-    ],
+    plugins: [vue(), vueDevTools()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

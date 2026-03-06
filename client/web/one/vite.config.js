@@ -16,17 +16,18 @@ function getVersion() {
   }
 }
 
-export default defineConfig(({ mode }) => {
-  const isDevelopment = mode === 'development'
-
+export default defineConfig(() => {
   return {
-    // Set base URL - similar to publicPath in webpack
-    base: isDevelopment ? '/' : './',
+    // Root app always uses absolute base path
+    base: '/',
 
-    plugins: [
-      vue(),
-      vueDevTools(),
-    ],
+    build: {
+      // Use '_assets' instead of default 'assets' to avoid conflict
+      // with the Go server's embedded web assets route at /assets
+      assetsDir: '_assets',
+    },
+
+    plugins: [vue(), vueDevTools()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
