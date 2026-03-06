@@ -1,0 +1,7 @@
+general:
+  error: Error
+  success: Success
+  warning: Warning
+agent:
+  deleted: Agent deleted
+  deleteFailed: Failed to delete agent

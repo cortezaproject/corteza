@@ -124,6 +124,15 @@ importers:
         specifier: workspace:*
         version: link:../../../lib/vue
 
+  client/web/agentic:
+    dependencies:
+      '@cortezaproject/corteza-js-next':
+        specifier: workspace:*
+        version: link:../../../lib/js
+      '@cortezaproject/corteza-vue-next':
+        specifier: workspace:*
+        version: link:../../../lib/vue
+
   client/web/compose:
     dependencies:
       '@cortezaproject/corteza-js-next':

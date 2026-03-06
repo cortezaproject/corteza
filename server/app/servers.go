@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/docs"
 	federationRest "github.com/cortezaproject/corteza/server/federation/rest"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
+
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza/server/system/rest"
@@ -88,6 +89,10 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			r.Route("/automation", automationRest.MountRoutes())
 			r.Route("/compose", composeRest.MountRoutes())
 			r.Route("/websocket", app.WsServer.MountRoutes)
+			if app.McpServer != nil {
+				r.Route("/mcp", app.McpServer.MountRoutes)
+			}
+	
 
 			if app.Opt.Discovery.Enabled {
 				r.Route("/discovery", discoveryRest.MountRoutes())

@@ -275,6 +275,19 @@ type (
 	WebappOpt struct {
 		ScssDirPath string `env:"WEBAPP_SCSS_DIR_PATH"`
 	}
+
+	ObservabilityOpt struct {
+		LangfuseHost             string `env:"OBSERVABILITY_LANGFUSE_HOST"`
+		LangfusePublicKey        string `env:"OBSERVABILITY_LANGFUSE_PUBLIC_KEY"`
+		LangfuseSecretKey        string `env:"OBSERVABILITY_LANGFUSE_SECRET_KEY"`
+		OtelExporterOtlpEndpoint string `env:"OBSERVABILITY_OTEL_EXPORTER_OTLP_ENDPOINT"`
+	}
+
+	AgenticOpt struct {
+		McpServerName       string `env:"AGENTIC_MCP_SERVER_NAME"`
+		McpServerVersion    string `env:"AGENTIC_MCP_SERVER_VERSION"`
+		AnthropicApiVersion string `env:"AGENTIC_ANTHROPIC_API_VERSION"`
+	}
 )
 
 // DB initializes and returns a DBOpt with default values
@@ -1115,6 +1128,60 @@ func Attachment() (o *AttachmentOpt) {
 // This function is auto-generated
 func Webapp() (o *WebappOpt) {
 	o = &WebappOpt{}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Observability initializes and returns a ObservabilityOpt with default values
+//
+// This function is auto-generated
+func Observability() (o *ObservabilityOpt) {
+	o = &ObservabilityOpt{}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Agentic initializes and returns a AgenticOpt with default values
+//
+// This function is auto-generated
+func Agentic() (o *AgenticOpt) {
+	o = &AgenticOpt{
+		McpServerName:       "Corteza MCP",
+		McpServerVersion:    "v1",
+		AnthropicApiVersion: "2023-06-01",
+	}
 
 	// Custom defaults
 	func(o interface{}) {

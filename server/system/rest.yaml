@@ -3096,28 +3096,6 @@ endpoints:
           post:
             - { name: comment, type: 'string', title: 'Comment description', required: true }
 
-  - title: SMTP Configuration Checker
-    entrypoint: smtpConfigurationChecker
-    path: '/smtp'
-    apis:
-      - name: check
-        method: POST
-        title: Check SMTP server configuration settings
-        path: '/configuration-checker/'
-        parameters:
-          post:
-            - { name: host, type: string, title: SMTP server host name, required: true }
-            - { name: port, type: uint, title: SMTP server port }
-            - {
-                name: recipients,
-                type: '[]string',
-                title: List of recipients email addresses that should recieve test email,
-              }
-            - { name: username, type: string, title: SMTP server authentication username }
-            - { name: password, type: string, title: SMTP server authentication password }
-            - { name: tlsInsecure, type: bool, title: TLS mode }
-            - { name: tlsServerName, type: string, title: TLS server name }
-
   - title: Connections
     path: '/connections'
     entrypoint: connection
@@ -3353,3 +3331,319 @@ endpoints:
         parameters:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+
+  - title: MCP
+    path: '/mcp'
+    entrypoint: mcp
+    authentication: []
+    apis:
+      - name: listTools
+        method: GET
+        title: List available MCP tools
+        path: '/tools'
+
+  - title: SMTP Configuration Checker
+    entrypoint: smtpConfigurationChecker
+    path: '/smtp'
+    apis:
+      - name: check
+        method: POST
+        title: Check SMTP server configuration settings
+        path: '/configuration-checker/'
+        parameters:
+          post:
+            - { name: host, type: string, title: SMTP server host name, required: true }
+            - { name: port, type: uint, title: SMTP server port }
+            - {
+                name: recipients,
+                type: '[]string',
+                title: List of recipients email addresses that should recieve test email,
+              }
+            - { name: username, type: string, title: SMTP server authentication username }
+            - { name: password, type: string, title: SMTP server authentication password }
+            - { name: tlsInsecure, type: bool, title: TLS mode }
+            - { name: tlsServerName, type: string, title: TLS server name }
+
+  - title: Agents
+    path: '/agents'
+    entrypoint: agent
+    authentication: []
+    imports:
+      - github.com/cortezaproject/corteza/server/system/types
+      - time
+    apis:
+      - name: list
+        method: GET
+        title: List agents
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: string, name: handle, title: Search by handle }
+            - { type: string, name: status, title: Filter by status }
+            - {
+                type: uint,
+                name: deleted,
+                title: 'Exclude (0, default), include (1) or return only (2) deleted agents',
+              }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create agent
+        path: ''
+        parameters:
+          post:
+            - { type: string, name: handle, title: Agent handle }
+            - { type: string, name: status, title: Agent status }
+            - {
+                type: 'types.AgentMeta',
+                name: meta,
+                title: Agent meta,
+                parser: 'types.ParseAgentMeta',
+              }
+            - {
+                type: 'types.AgentBehavior',
+                name: behavior,
+                title: Agent behavior,
+                parser: 'types.ParseAgentBehavior',
+              }
+            - {
+                type: 'types.AgentExecution',
+                name: execution,
+                title: Agent execution,
+                parser: 'types.ParseAgentExecution',
+              }
+            - {
+                type: 'types.AgentAccess',
+                name: access,
+                title: Agent access,
+                parser: 'types.ParseAgentAccess',
+              }
+            - {
+                type: 'types.AgentInvocation',
+                name: invocation,
+                title: Agent invocation,
+                parser: 'types.ParseAgentInvocation',
+              }
+      - name: read
+        method: GET
+        title: Read agent details
+        path: '/{agentID}'
+        parameters:
+          path:
+            - { type: uint64, name: agentID, required: true, title: Agent ID }
+      - name: update
+        method: PUT
+        title: Update agent details
+        path: '/{agentID}'
+        parameters:
+          path:
+            - { type: uint64, name: agentID, required: true, title: Agent ID }
+          post:
+            - { type: string, name: handle, title: Agent handle }
+            - { type: string, name: status, title: Agent status }
+            - {
+                type: 'types.AgentMeta',
+                name: meta,
+                title: Agent meta,
+                parser: 'types.ParseAgentMeta',
+              }
+            - {
+                type: 'types.AgentBehavior',
+                name: behavior,
+                title: Agent behavior,
+                parser: 'types.ParseAgentBehavior',
+              }
+            - {
+                type: 'types.AgentExecution',
+                name: execution,
+                title: Agent execution,
+                parser: 'types.ParseAgentExecution',
+              }
+            - {
+                type: 'types.AgentAccess',
+                name: access,
+                title: Agent access,
+                parser: 'types.ParseAgentAccess',
+              }
+            - {
+                type: 'types.AgentInvocation',
+                name: invocation,
+                title: Agent invocation,
+                parser: 'types.ParseAgentInvocation',
+              }
+            - {
+                type: '*time.Time',
+                name: updatedAt,
+                required: false,
+                title: Last update (or creation) date,
+              }
+      - name: delete
+        method: DELETE
+        title: Delete agent
+        path: '/{agentID}'
+        parameters:
+          path:
+            - { type: uint64, name: agentID, required: true, title: Agent ID }
+      - name: undelete
+        method: POST
+        title: Undelete agent
+        path: '/{agentID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: agentID, required: true, title: Agent ID }
+      - name: exec
+        method: POST
+        title: Execute agent
+        path: '/{agentID}/exec'
+        parameters:
+          path:
+            - { type: uint64, name: agentID, required: true, title: Agent ID }
+          post:
+            - { type: string, name: input, required: true, title: User input message }
+            - {
+                type: uint64,
+                name: conversationID,
+                required: false,
+                title: Conversation ID for multi-turn,
+              }
+
+  - title: LLM Providers
+    path: '/llm-providers'
+    entrypoint: llmProvider
+    authentication: []
+    imports:
+      - github.com/cortezaproject/corteza/server/system/types
+    apis:
+      - name: list
+        method: GET
+        title: List LLM providers
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: provider, title: Filter by provider type }
+            - { type: string, name: status, title: Filter by status }
+      - name: create
+        method: POST
+        title: Create LLM provider
+        path: '/'
+        parameters:
+          post:
+            - { type: string, name: handle, required: true, title: Handle }
+            - { type: string, name: provider, required: true, title: Provider type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: apiKey, title: API key }
+            - {
+                type: 'types.LLMProviderMeta',
+                name: meta,
+                title: Meta,
+                parser: 'types.ParseLLMProviderMeta',
+              }
+            - {
+                type: 'types.LLMProviderConfig',
+                name: config,
+                title: Config,
+                parser: 'types.ParseLLMProviderConfig',
+              }
+      - name: read
+        method: GET
+        title: Read LLM provider
+        path: '/{llmProviderID}'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+      - name: update
+        method: PUT
+        title: Update LLM provider
+        path: '/{llmProviderID}'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+          post:
+            - { type: string, name: handle, title: Handle }
+            - { type: string, name: provider, title: Provider type }
+            - { type: string, name: status, title: Status }
+            - {
+                type: 'types.LLMProviderMeta',
+                name: meta,
+                title: Meta,
+                parser: 'types.ParseLLMProviderMeta',
+              }
+            - {
+                type: 'types.LLMProviderConfig',
+                name: config,
+                title: Config,
+                parser: 'types.ParseLLMProviderConfig',
+              }
+      - name: delete
+        method: DELETE
+        title: Delete LLM provider
+        path: '/{llmProviderID}'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+      - name: models
+        method: GET
+        title: List available models for an LLM provider
+        path: '/{llmProviderID}/models'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+
+  - title: AI Conversations
+    path: '/ai-conversations'
+    entrypoint: aiConversation
+    authentication: []
+    imports:
+      - github.com/cortezaproject/corteza/server/system/types
+      - time
+    apis:
+      - name: list
+        method: GET
+        title: List AI conversations
+        path: '/'
+        parameters:
+          get:
+            - { type: uint64, name: agentID, title: Filter by agent ID }
+            - {
+                type: uint,
+                name: deleted,
+                title: 'Exclude (0, default), include (1) or return only (2) deleted conversations',
+              }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: read
+        method: GET
+        title: Read AI conversation details
+        path: '/{aiConversationID}'
+        parameters:
+          path:
+            - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+      - name: delete
+        method: DELETE
+        title: Delete AI conversation
+        path: '/{aiConversationID}'
+        parameters:
+          path:
+            - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+      - name: undelete
+        method: POST
+        title: Undelete AI conversation
+        path: '/{aiConversationID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+      - name: continue
+        method: POST
+        title: Continue AI conversation
+        path: '/{aiConversationID}/continue'
+        parameters:
+          path:
+            - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+          post:
+            - { type: string, name: input, required: true, title: User input message }

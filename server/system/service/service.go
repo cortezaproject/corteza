@@ -11,6 +11,9 @@ import (
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
+	agenticMcp "github.com/cortezaproject/corteza/server/system/agentic/mcp"
+	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
@@ -25,6 +28,7 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
 	"github.com/cortezaproject/corteza/server/system/automation"
+	"github.com/cortezaproject/corteza/server/system/llm"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
@@ -45,11 +49,18 @@ type (
 		Limit      options.LimitOpt
 		Attachment options.AttachmentOpt
 		Webapps    options.WebappOpt
+		Agentic    options.AgenticOpt
+		ObsBus     *observability.Bus
 	}
 
 	eventDispatcher interface {
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
+	}
+
+	// AgenticRunner abstracts the agentic runtime execution.
+	AgenticRunner interface {
+		Run(ctx context.Context, req *agenticRuntime.AgentRequest) (*agenticRuntime.AgentResponse, error)
 	}
 )
 
@@ -80,28 +91,33 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth                 *auth
-	DefaultAuthClient           *authClient
-	DefaultUser                 *user
-	DefaultCredentials          *credentials
-	DefaultDalConnection        *dalConnection
-	DefaultDalSensitivityLevel  *dalSensitivityLevel
-	DefaultDalSchemaAlteration  *dalSchemaAlteration
-	DefaultRole                 *role
-	DefaultUserGroup            *userGroup
-	DefaultApplication          *application
-	DefaultReminder             ReminderService
-	DefaultNotification         NotificationService
-	DefaultAttachment           AttachmentService
-	DefaultRenderer             TemplateService
-	DefaultResourceTranslation  ResourceTranslationService
-	DefaultQueue                *queue
-	DefaultApigwRoute           *apigwRoute
-	DefaultApigwFilter          *apigwFilter
-	DefaultApigwProfiler        *apigwProfiler
-	DefaultReport               *report
-	DefaultDataPrivacy          *dataPrivacy
-	DefaultSMTPChecker          *smtpConfigurationChecker
+	DefaultAuth                *auth
+	DefaultAuthClient          *authClient
+	DefaultUser                *user
+	DefaultCredentials         *credentials
+	DefaultDalConnection       *dalConnection
+	DefaultDalSensitivityLevel *dalSensitivityLevel
+	DefaultDalSchemaAlteration *dalSchemaAlteration
+	DefaultRole                *role
+	DefaultUserGroup           *userGroup
+	DefaultApplication         *application
+	DefaultReminder            ReminderService
+	DefaultNotification        NotificationService
+	DefaultAttachment          AttachmentService
+	DefaultRenderer            TemplateService
+	DefaultResourceTranslation ResourceTranslationService
+	DefaultQueue               *queue
+	DefaultAgent               *agent
+	DefaultAiConversation      *aiConversation
+	DefaultAgenticRuntime      AgenticRunner
+	DefaultMCPRegistry         *agenticMcp.Registry
+	DefaultLlmService          *llm.Service
+	DefaultApigwRoute          *apigwRoute
+	DefaultApigwFilter         *apigwFilter
+	DefaultApigwProfiler       *apigwProfiler
+	DefaultReport              *report
+	DefaultDataPrivacy         *dataPrivacy
+	DefaultSMTPChecker         *smtpConfigurationChecker
 	DefaultExpression           *expression
 	DefaultConnection           *connection
 	DefaultConfiguredConnection *configuredConnection
@@ -236,6 +252,24 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultQueue = Queue()
+	DefaultAgent = Agent()
+	DefaultAiConversation = AiConversation()
+
+	DefaultLlmService, err = llm.New(s, c.Agentic.AnthropicApiVersion)
+	if err != nil {
+		return fmt.Errorf("could not initialize LLM service: %w", err)
+	}
+
+	DefaultMCPRegistry = agenticMcp.NewRegistry()
+
+	DefaultAgenticRuntime = agenticRuntime.Runtime(
+		DefaultAgent,
+		DefaultLlmService,
+		DefaultMCPRegistry,
+		DefaultAiConversation,
+		c.ObsBus,
+	)
+
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
@@ -339,7 +373,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 func Watchers(ctx context.Context) {
 	DefaultReminder.Watch(ctx)
-	return
 }
 
 func Activate(ctx context.Context) (err error) {

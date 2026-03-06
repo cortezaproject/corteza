@@ -17,6 +17,12 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("actionlog", func(t *testing.T) {
 		testActionlogs(t, s)
 	})
+	t.Run("agent", func(t *testing.T) {
+		testAgents(t, s)
+	})
+	t.Run("aiConversation", func(t *testing.T) {
+		testAiConversations(t, s)
+	})
 	t.Run("apigwFilter", func(t *testing.T) {
 		testApigwFilters(t, s)
 	})
@@ -118,6 +124,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	})
 	t.Run("label", func(t *testing.T) {
 		testLabels(t, s)
+	})
+	t.Run("llmProvider", func(t *testing.T) {
+		testLlmProviders(t, s)
 	})
 	t.Run("notification", func(t *testing.T) {
 		testNotifications(t, s)

@@ -1,0 +1,52 @@
+list:
+  title: Agents
+  searchPlaceholder: Search agents
+  create: Create agent
+  delete: Are you sure you want to delete this agent?
+  columns:
+    name: Name
+    handle: Handle
+    status: Status
+    updatedAt: Updated
+
+editor:
+  create: Create agent
+  edit: Edit agent
+  titleCreate: Create Agent
+  titleEdit: Edit Agent
+  tabs:
+    config: Configuration
+    exec: Playground
+  panels:
+    general: General
+    behavior: Behavior
+    execution: Execution
+    access: Access
+    invocation: Invocation
+  fields:
+    name: Name (Short)
+    description: Description
+    handle: Handle
+    status: Status
+    systemPrompt: System Prompt
+    guardrails: Guardrails
+    provider: LLM Provider ID
+    model: Model
+    temperature: Temperature
+    maxTokens: Max Tokens
+    limits: Limits
+    contextNamespace: Context Namespace
+    contextModule: Context Module
+    userEnabled: Enable User Chat Invocation
+    systemEnabled: Enable System Invocation
+    serviceAccount: Service Account
+    inputSchema: Input Schema (JSON)
+    outputFormat: 'Output Format'
+    tools: 'Allowed Tools'
+    toolName: 'Tool Name'
+    toolHints: 'Hints'
+    noTools: 'No tools configured'
+  playground:
+    placeholder: Send a message...
+    traceTitle: Execution Trace
+    emptyTrace: No execution trace yet...

@@ -20,6 +20,7 @@
         }"
         :hide-app-selector="true"
         :sidebar-disabled="true"
+        :hide-logo="true"
       />
     </header>
 

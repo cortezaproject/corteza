@@ -1,0 +1,81 @@
+# List of loggable service actions
+
+resource: system:agent
+service: agent
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: agent
+    type: "*types.Agent"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Agent"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Agent"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.AgentFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for agents"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{agent}}"
+    severity: info
+
+  - action: create
+    log: "created {{agent}}"
+
+  - action: update
+    log: "updated {{agent}}"
+
+  - action: delete
+    log: "deleted {{agent}}"
+
+  - action: undelete
+    log: "undeleted {{agent}}"
+
+errors:
+  - error: notFound
+    message: "agent not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "agent was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create an agent"
+    log: "failed to create an agent; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this agent"
+    log: "failed to read {{agent.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list agents"
+    log: "failed to search or list agents; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this agent"
+    log: "failed to update {{agent.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this agent"
+    log: "failed to delete {{agent.handle}}; insufficient permissions"

@@ -1,0 +1,16 @@
+label:
+  back: Back
+  edit: Edit
+  delete: Delete
+  cancel: Cancel
+  save: Save
+  saveAndClose: Save and close
+resourceList:
+  notFound: Not found
+  noItems: No items to show
+  pagination:
+    next: Next
+    prev: Previous
+    showing: '{from} - {to} of {count} {data}'
+    single: 'No {data} | One {data} | {count} {data}'
+    recordsPerPage: Per Page

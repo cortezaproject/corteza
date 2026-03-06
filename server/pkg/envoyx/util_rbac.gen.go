@@ -35,6 +35,32 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 	switch rt {
 
+	case "corteza::system:agent":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:agent",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:ai-conversation":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:ai-conversation",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
 	case "corteza::system:apigw-filter":
 		scope := Scope{}
 
@@ -239,6 +265,19 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 		out["Path.0"] = Ref{
 			ResourceType: "corteza::system:data-privacy-request-comment",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:llm-provider":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:llm-provider",
 			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
 			Scope:        scope,
 		}

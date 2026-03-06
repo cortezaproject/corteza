@@ -28,40 +28,44 @@ type (
 		Limit       LimitOpt
 		Discovery   DiscoveryOpt
 		Apigw       ApigwOpt
-		Attachment  AttachmentOpt
-		Webapp      WebappOpt
+		Attachment    AttachmentOpt
+		Webapp        WebappOpt
+		Observability ObservabilityOpt
+		Agentic       AgenticOpt
 	}
 )
 
 func Init() *Options {
 	return &Options{
-		Environment: *Environment(),
-		ActionLog:   *ActionLog(),
-		Auth:        *Auth(),
-		SMTP:        *SMTP(),
-		HTTPClient:  *HTTPClient(),
-		DB:          *DB(),
-		Template:    *Template(),
-		Upgrade:     *Upgrade(),
-		Provision:   *Provision(),
-		Sentry:      *Sentry(),
-		ObjStore:    *ObjectStore(),
-		Corredor:    *Corredor(),
-		Monitor:     *Monitor(),
-		WaitFor:     *WaitFor(),
-		HTTPServer:  *HttpServer(),
-		Websocket:   *Websocket(),
-		Eventbus:    *Eventbus(),
-		Messagebus:  *Messagebus(),
-		Federation:  *Federation(),
-		SCIM:        *SCIM(),
-		Workflow:    *Workflow(),
-		RBAC:        *Rbac(),
-		Locale:      *Locale(),
-		Limit:       *Limit(),
-		Discovery:   *Discovery(),
-		Apigw:       *Apigw(),
-		Attachment:  *Attachment(),
-		Webapp:      *Webapp(),
+		Environment:   *Environment(),
+		ActionLog:     *ActionLog(),
+		Auth:          *Auth(),
+		SMTP:          *SMTP(),
+		HTTPClient:    *HTTPClient(),
+		DB:            *DB(),
+		Template:      *Template(),
+		Upgrade:       *Upgrade(),
+		Provision:     *Provision(),
+		Sentry:        *Sentry(),
+		ObjStore:      *ObjectStore(),
+		Corredor:      *Corredor(),
+		Monitor:       *Monitor(),
+		WaitFor:       *WaitFor(),
+		HTTPServer:    *HttpServer(),
+		Websocket:     *Websocket(),
+		Eventbus:      *Eventbus(),
+		Messagebus:    *Messagebus(),
+		Federation:    *Federation(),
+		SCIM:          *SCIM(),
+		Workflow:      *Workflow(),
+		RBAC:          *Rbac(),
+		Locale:        *Locale(),
+		Limit:         *Limit(),
+		Discovery:     *Discovery(),
+		Apigw:         *Apigw(),
+		Attachment:    *Attachment(),
+		Webapp:        *Webapp(),
+		Observability: *Observability(),
+		Agentic:       *Agentic(),
 	}
 }

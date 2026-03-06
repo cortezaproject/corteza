@@ -45,6 +45,11 @@ import (
 	sysService "github.com/cortezaproject/corteza/server/system/service"
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
+	mcpkg "github.com/cortezaproject/corteza/server/system/agentic/mcp"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
@@ -373,6 +378,24 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
+	obs := observability.NewBus(observability.NewLogDispatcher())
+
+	if o := app.Opt.Observability; o.LangfuseHost != "" && o.LangfusePublicKey != "" && o.LangfuseSecretKey != "" {
+		obs.Register(observability.NewLangfuseDispatcher(o.LangfuseHost, o.LangfusePublicKey, o.LangfuseSecretKey))
+		app.Log.Info("Langfuse dispatcher registered", zap.String("host", o.LangfuseHost))
+	}
+
+	if o := app.Opt.Observability; o.OtelExporterOtlpEndpoint != "" {
+		exporter, err := otlptracehttp.New(ctx)
+		if err != nil {
+			app.Log.Warn("failed to initialize OTel exporter", zap.Error(err))
+		} else {
+			tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
+			obs.Register(observability.NewOtelDispatcher(tp))
+			app.Log.Info("OTel dispatcher registered", zap.String("endpoint", o.OtelExporterOtlpEndpoint))
+		}
+	}
+
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog:  app.Opt.ActionLog,
 		Discovery:  app.Opt.Discovery,
@@ -384,10 +407,16 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Limit:      app.Opt.Limit,
 		Attachment: app.Opt.Attachment,
 		Webapps:    app.Opt.Webapp,
+		Agentic:    app.Opt.Agentic,
+		ObsBus:     obs,
 	})
 	if err != nil {
 		return
 	}
+
+	cmpAgentic.RecordHandler(sysService.DefaultMCPRegistry)
+	app.McpServer = mcpkg.NewMCPServer(sysService.DefaultMCPRegistry, app.Opt.Agentic.McpServerName, app.Opt.Agentic.McpServerVersion)
+	app.LlmService = service.DefaultLlmService
 
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers
