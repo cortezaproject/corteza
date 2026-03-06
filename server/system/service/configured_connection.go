@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/store"
+	restDriver "github.com/cortezaproject/corteza/server/store/adapters/api/drivers/rest"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -40,6 +41,12 @@ type (
 
 	dalConMngmntSvc interface {
 		Create(ctx context.Context, new *types.DalConnection) (*types.DalConnection, error)
+	}
+
+	// connectionRunner is the minimal interface needed by health-check helpers.
+	// Both *restAPIWrapper (via Run) and any future runner satisfy it.
+	connectionRunner interface {
+		Run(ctx context.Context, method, path string, payload []byte, headers map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error)
 	}
 )
 
@@ -197,6 +204,11 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 
 		res.Config.DalConnectionID = rsp.dalConnection.ID
 		res.Status = "active"
+
+		if res.Labels == nil {
+			res.Labels = make(map[string]labelTypes.LabelValue)
+		}
+
 		res.Labels["corteza/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
 
 		n := now()
@@ -207,7 +219,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
-		svc.registerOperations(rsp.dalConnection.ID, res)
+		svc.registerOperations([]types.ConfiguredConnection{*res})
 		return nil
 	}()
 
@@ -229,6 +241,67 @@ func (svc *configuredConnection) Search(ctx context.Context, filter types.Config
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
+}
+
+func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error) {
+	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resolve templates from stored params — works for both draft and active CCs
+	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
+
+	runner, err := restDriver.RunnerFromConnection(resolved)
+	if err != nil {
+		return nil, fmt.Errorf("could not build connection runner: %w", err)
+	}
+
+	result := &types.ConfiguredConnectionCheckResult{}
+	result.Connectivity = svc.checkConnectivity(ctx, runner)
+	result.Auth = svc.checkAuth(ctx, runner)
+
+	if probe := resolved.Service.Probe; probe != nil {
+		ps := svc.checkProbe(ctx, runner, probe)
+		result.Probe = &ps
+	}
+
+	return result, nil
+}
+
+func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
+	_, _, _, err := r.Run(ctx, "HEAD", "/", nil, nil)
+	if err != nil {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
+	}
+	return types.ConfiguredConnectionCheckStatus{OK: true}
+}
+
+func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
+	statusCode, _, _, err := r.Run(ctx, "GET", "/", nil, nil)
+	if err != nil {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
+	}
+	if statusCode == 401 || statusCode == 403 {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("authentication failed (HTTP %d)", statusCode)}
+	}
+	return types.ConfiguredConnectionCheckStatus{OK: true}
+}
+
+func (svc *configuredConnection) checkProbe(ctx context.Context, r connectionRunner, probe *types.ConnectionProbe) types.ConfiguredConnectionCheckStatus {
+	expected := probe.ExpectedStatus
+	if expected == 0 {
+		expected = 200
+	}
+
+	statusCode, _, _, err := r.Run(ctx, "GET", probe.Path.Value, nil, nil)
+	if err != nil {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
+	}
+	if statusCode != expected {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("probe returned HTTP %d, expected %d", statusCode, expected)}
+	}
+	return types.ConfiguredConnectionCheckStatus{OK: true}
 }
 
 func loadConfiguredConnection(ctx context.Context, s store.ConfiguredConnections, ID uint64) (res *types.ConfiguredConnection, err error) {
@@ -324,7 +397,11 @@ func (svc *configuredConnection) resolveTemplates(conn *types.Connection, params
 	ops := make(types.ConnectionOperations, len(out.Operations))
 	copy(ops, out.Operations)
 	for i := range ops {
-		resolveHTTPAction(&ops[i].HTTP, []string{"operations", ops[i].Handle})
+		for j := range ops[i].Steps {
+			if ops[i].Steps[j].HTTP != nil {
+				resolveHTTPAction(ops[i].Steps[j].HTTP, []string{"operations", ops[i].Handle})
+			}
+		}
 	}
 	out.Operations = ops
 
@@ -415,42 +492,81 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 		return
 	}
 
+	// Group configured connections by their source connection (connector)
+	byConn := make(map[uint64][]types.ConfiguredConnection)
 	for _, cc := range set {
-		svc.registerOperations(cc.Config.DalConnectionID, cc)
+		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)
+	}
+
+	for _, ccs := range byConn {
+		svc.registerOperations(ccs)
 	}
 }
 
 // registerOperations converts each ConnectionOperation into a ConstructFunction
 // and adds it to the automation construct library.
-func (svc *configuredConnection) registerOperations(dalConnectionID uint64, cc *types.ConfiguredConnection) {
-	if len(cc.Connection.Operations) == 0 {
+func (svc *configuredConnection) registerOperations(ccs []types.ConfiguredConnection) {
+	if len(ccs) == 0 || len(ccs[0].Connection.Operations) == 0 {
 		return
 	}
 
-	fns := make([]atypes.ConstructFunction, 0, len(cc.Connection.Operations))
-	for _, op := range cc.Connection.Operations {
-		fn := operationToFunction(dalConnectionID, cc, op)
+	fns := make([]atypes.ConstructFunction, 0, len(ccs[0].Connection.Operations))
+	for _, op := range ccs[0].Connection.Operations {
+		fn := operationToFunction(ccs, op)
 		fns = append(fns, fn)
 	}
 
 	automationService.ConstructLibrary().AddFunctions(fns...)
 }
 
-func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
-	ref := fmt.Sprintf("cc_%d_%s", cc.ID, op.Handle)
-	params := generateFunctionArguments(cc.Connection, op)
-	segments := generateFunctionSegments(cc.Connection, op, params)
-	results := generateFunctionResults(cc.Connection, op)
+func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
+	conn := ccs[0].Connection
+	ref := fmt.Sprintf("conn_%d_%s", ccs[0].ConnectionID, op.Handle)
+
+	// Build a lookup map: configurationID → dalConnectionID
+	dalByConfig := make(map[uint64]uint64, len(ccs))
+	for _, cc := range ccs {
+		dalByConfig[cc.ID] = cc.Config.DalConnectionID
+	}
+
+	configParam := &atypes.Param{
+		ArgumentName: "configurationID",
+		Types:        []string{"ID"},
+		Required:     true,
+		Meta: &atypes.ParamMeta{
+			Label:       "Configuration",
+			Description: "Which configured connection to use",
+		},
+	}
+
+	params := generateFunctionArguments(conn, op)
+	segments := generateFunctionSegments(conn, op, params)
+	results := generateFunctionResults(conn, op)
+
+	// Add the parameter and segment for config ID
+	params = append(atypes.ParamSet{configParam}, params...)
+
+	input := generateSegmentInput(atypes.ParamSet{configParam})
+	configOptions := make([]atypes.SelectItem, len(ccs))
+	for i, cc := range ccs {
+		configOptions[i] = atypes.SelectItem{
+			Label: cc.Name,
+			Value: strconv.FormatUint(cc.ID, 10),
+		}
+	}
+	input[0].Input.Options = configOptions
+
+	segments[0].Sections[0].Elements = append(input, segments[0].Sections[0].Elements...)
 
 	var icon *atypes.NgAutomationIcon
-	if cc.Connection.Meta.Icon != "" {
-		icon = &atypes.NgAutomationIcon{Type: "name", Value: cc.Connection.Meta.Icon}
+	if conn.Meta.Icon != "" {
+		icon = &atypes.NgAutomationIcon{Type: "name", Value: conn.Meta.Icon}
 	}
 
 	return atypes.ConstructFunction{
 		Ref:    ref,
 		Kind:   "function",
-		Groups: []string{cc.Connection.Meta.Short},
+		Groups: []string{conn.Meta.Short},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       op.Meta.Short,
 			Description: op.Meta.Description,
@@ -464,36 +580,60 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 			op.Handle:    "step",
 		},
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
-			resolveTemplate := makeTemplateResolver(in.Dict())
 			out = &expr.Vars{}
 
-			// @note we might want to pull this resolution away from the handler.
-			// The opeGetConnectionByID is a hash map lookup which should not produce a significant performance impact.
+			// Resolve which configured connection to use
+			var configID uint64
+			if v, ok := in.Dict()["configurationID"]; ok {
+				switch id := v.(type) {
+				case uint64:
+					configID = id
+				case string:
+					configID, _ = strconv.ParseUint(id, 10, 64)
+				}
+			}
+			dalConnectionID, ok := dalByConfig[configID]
+			if !ok {
+				return nil, fmt.Errorf("unknown configurationID: %d", configID)
+			}
+
 			cw := dal.Service().GetConnectionByID(dalConnectionID)
 			if cw == nil {
 				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
 			}
 
-			path, headers, payload, err := buildHTTPRequest(op.HTTP, in, resolveTemplate)
-			if err != nil {
-				return nil, err
-			}
+			resolveTemplate := makeTemplateResolver(in.Dict())
 
-			statusCode, outHeaders, respBody, err := cw.Execute(ctx, op.HTTP.Method, path, headers, payload)
-			if err != nil {
-				return nil, fmt.Errorf("operation execution failed: %w", err)
-			}
+			var respBody []byte
+			for _, step := range op.Steps {
+				if step.Type != "http" || step.HTTP == nil {
+					continue
+				}
 
-			err = checkHTTPResponse(statusCode, outHeaders, respBody)
-			if err != nil {
-				return nil, err
+				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, resolveTemplate)
+				if err != nil {
+					return nil, err
+				}
+
+				statusCode, outHeaders, body, err := cw.Execute(ctx, step.HTTP.Method, path, headers, payload)
+				if err != nil {
+					return nil, fmt.Errorf("operation execution failed: %w", err)
+				}
+
+				if err = checkHTTPResponse(statusCode, outHeaders, body); err != nil {
+					return nil, err
+				}
+
+				respBody = body
+
+				// @todo fix up when we support multi-step operations
+				break
 			}
 
 			if len(respBody) == 0 || len(op.Output) == 0 {
 				return out, nil
 			}
 
-			// Parse response using selectors
 			var respData any
 			if err := json.Unmarshal(respBody, &respData); err != nil {
 				return out, fmt.Errorf("failed to parse response JSON: %w", err)
@@ -501,7 +641,6 @@ func operationToFunction(dalConnectionID uint64, cc *types.ConfiguredConnection,
 
 			for _, outField := range op.Output {
 				if len(outField.Selector) == 0 {
-					// Fallback to name if no selector provided
 					_ = out.Set(outField.Name, extractByPath(respData, []string{outField.Name}))
 					continue
 				}
@@ -610,11 +749,6 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 				Label: in.Name,
 			},
 		})
-
-		inputType := in.Type
-		if inputType == "" {
-			inputType = "String"
-		}
 	}
 
 	// Implicit from derived parameters
@@ -656,6 +790,20 @@ func generateFunctionResults(conn types.Connection, op types.ConnectionOperation
 func generateFunctionSegments(conn types.Connection, op types.ConnectionOperation, parameters atypes.ParamSet) (out []atypes.ConstructSegment) {
 	var elements []atypes.SectionElement
 
+	elements = generateSegmentInput(parameters)
+
+	return []atypes.ConstructSegment{
+		{
+			Sections: []atypes.ConstructSection{
+				{
+					Elements: elements,
+				},
+			},
+		},
+	}
+}
+
+func generateSegmentInput(parameters atypes.ParamSet) (elements []atypes.SectionElement) {
 	for _, p := range parameters {
 		inputType := "string"
 		if len(p.Types) > 0 {
@@ -671,13 +819,5 @@ func generateFunctionSegments(conn types.Connection, op types.ConnectionOperatio
 		})
 	}
 
-	return []atypes.ConstructSegment{
-		{
-			Sections: []atypes.ConstructSection{
-				{
-					Elements: elements,
-				},
-			},
-		},
-	}
+	return
 }

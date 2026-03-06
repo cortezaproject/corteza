@@ -74,6 +74,7 @@ export class Connection {
   public canDeleteConnection = false
 
   public createdAt?: Date = undefined
+  public createdBy?: string = undefined
   public updatedBy?: string = undefined
   public updatedAt?: Date = undefined
   public deletedBy?: string = undefined
@@ -85,7 +86,7 @@ export class Connection {
 
   apply(c?: PartialConnection): void {
     Apply(this, c, CortezaID, 'connectionID')
-    Apply(this, c, String, 'handle', 'status', 'updatedBy', 'deletedBy')
+    Apply(this, c, String, 'handle', 'status', 'createdBy', 'updatedBy', 'deletedBy')
     Apply(this, c, Number, 'revision')
 
     Apply(this, c, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')

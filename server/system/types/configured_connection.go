@@ -59,6 +59,17 @@ type (
 		filter.Paging
 		filter.Sorting
 	}
+
+	ConfiguredConnectionCheckResult struct {
+		Connectivity ConfiguredConnectionCheckStatus  `json:"connectivity"`
+		Auth         ConfiguredConnectionCheckStatus  `json:"auth"`
+		Probe        *ConfiguredConnectionCheckStatus `json:"probe,omitempty"`
+	}
+
+	ConfiguredConnectionCheckStatus struct {
+		OK      bool   `json:"ok"`
+		Message string `json:"message,omitempty"`
+	}
 )
 
 func ParseConfiguredConnectionConfig(ss []string) (m ConfiguredConnectionConfig, err error) {

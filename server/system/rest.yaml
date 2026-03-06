@@ -3160,7 +3160,7 @@ endpoints:
         path: '/'
         parameters:
           post:
-            - { type: 'string', name: 'handle', title: 'Connection handle', required: true }
+            - { type: 'string', name: 'handle', title: 'Connection handle' }
             - {
                 type: 'types.ConnectionMeta',
                 name: 'meta',
@@ -3298,7 +3298,6 @@ endpoints:
     authentication: []
     imports:
       - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
       - encoding/json
       - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
     apis:
@@ -3344,6 +3343,13 @@ endpoints:
         method: POST
         title: Enable configured connection (validate, provision, lock to active)
         path: '/{connectionID}/enable'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+      - name: check
+        method: POST
+        title: Check configured connection health (connectivity, auth, probe)
+        path: '/{connectionID}/check'
         parameters:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }

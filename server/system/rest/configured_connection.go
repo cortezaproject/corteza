@@ -39,6 +39,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (types.ConfiguredConnectionSet, types.ConfiguredConnectionFilter, error)
 		Enable(ctx context.Context, ID uint64) (*types.ConfiguredConnection, error)
+		Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error)
 	}
 )
 
@@ -96,6 +97,10 @@ func (ctrl ConfiguredConnection) Enable(ctx context.Context, r *request.Configur
 	}
 
 	return ctrl.makePayload(ctx, res), nil
+}
+
+func (ctrl ConfiguredConnection) Check(ctx context.Context, r *request.ConfiguredConnectionCheck) (interface{}, error) {
+	return ctrl.svc.Check(ctx, r.ConnectionID)
 }
 
 func (ctrl ConfiguredConnection) makeFilterPayload(ctx context.Context, set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter) (*configuredConnectionSetPayload, error) {

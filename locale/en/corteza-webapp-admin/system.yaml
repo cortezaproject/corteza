@@ -487,6 +487,7 @@ configuredConnections:
     columns:
       name: Name
       labels: Labels
+      status: Status
       updatedAt: Changed at
   editor:
     title:
@@ -494,8 +495,10 @@ configuredConnections:
       create: New configured connection
     info:
       name: Name
+      status: Status
       config: Configuration (JSON)
       labels: Labels (JSON)
+    enable: Enable
 
 data-sources:
   primary:

@@ -49,7 +49,6 @@
             tableContainer: { class: 'flex-1 overflow-auto max-w-full' },
             emptyMessageCell: { class: 'h-full' },
             footer: { class: 'p-0 border-0' },
-            headerCell: { class: 'bg-highlight-emphasis' },
           }"
           @sort="$emit('sort', $event)"
           @row-click="$emit('row-click', $event)"

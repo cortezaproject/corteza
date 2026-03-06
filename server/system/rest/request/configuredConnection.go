@@ -11,15 +11,14 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"strings"
-
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"strings"
 )
 
 // dummy vars to prevent
@@ -98,6 +97,13 @@ type (
 	}
 
 	ConfiguredConnectionEnable struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+	}
+
+	ConfiguredConnectionCheck struct {
 		// ConnectionID PATH parameter
 		//
 		// Connection ID
@@ -335,6 +341,41 @@ func (r ConfiguredConnectionEnable) GetConnectionID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ConfiguredConnectionEnable) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewConfiguredConnectionCheck request
+func NewConfiguredConnectionCheck() *ConfiguredConnectionCheck {
+	return &ConfiguredConnectionCheck{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionCheck) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID": r.ConnectionID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionCheck) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Fill processes request and fills internal variables
+func (r *ConfiguredConnectionCheck) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

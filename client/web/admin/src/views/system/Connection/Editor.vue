@@ -31,6 +31,9 @@
               <Tab value="basic">{{ $t('system.connections.editor.info.title') }}</Tab>
               <Tab value="service">{{ $t('system.connections.editor.service.title') }}</Tab>
               <Tab value="advanced">{{ $t('system.connections.editor.configurations.title') }}</Tab>
+              <Tab v-if="isEdit" value="configured">
+                {{ $t('system.configuredConnections.list.title') }}
+              </Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -181,80 +184,76 @@
                   </FormField>
                 </div>
               </TabPanel>
+
+              <TabPanel v-if="isEdit" value="configured" class="flex flex-col h-full min-h-0 p-">
+                <CResourceList
+                  primary-key="configurationID"
+                  :fields="configuredConnectionFields"
+                  :items="configuredConnectionList"
+                  :filter="configuredConnectionsFilter"
+                  @update:filter="Object.assign(configuredConnectionsFilter, $event)"
+                  :sorting="configuredConnectionsSorting"
+                  :pagination="configuredConnectionsPagination"
+                  :loading="configuredConnectionsLoading"
+                  :translations="{
+                    searchPlaceholder: $t('system.configuredConnections.list.searchPlaceholder'),
+                    showingPagination: 'general.resourceList.pagination.showing',
+                    singlePluralPagination: 'general.resourceList.pagination.single',
+                    prevPagination: $t('general.resourceList.pagination.prev'),
+                    nextPagination: $t('general.resourceList.pagination.next'),
+                    recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+                    resourceSingle: $t('system.configuredConnections.list.resourceSingle'),
+                    resourcePlural: $t('system.configuredConnections.list.resourcePlural'),
+                  }"
+                  clickable
+                  class="h-full"
+                  @sort="handleConfiguredConnectionsSort"
+                  @row-click="handleConfiguredConnectionClick"
+                  @page-change="handleConfiguredConnectionsPageChange"
+                >
+                  <template #header>
+                    <Button
+                      :label="$t('system.configuredConnections.list.createLabel')"
+                      icon="pi pi-plus"
+                      size="small"
+                      @click="createConfiguredConnection"
+                    />
+                  </template>
+
+                  <template #body-labels="{ data }">
+                    <div class="flex gap-1 flex-wrap">
+                      <Tag
+                        v-for="(val, key) in data.labels"
+                        :key="key"
+                        :value="`${key}: ${val}`"
+                        severity="info"
+                      />
+                    </div>
+                  </template>
+
+                  <template #body-status="{ data }">
+                    <Tag v-if="data.status" :value="data.status" />
+                    <span v-else>-</span>
+                  </template>
+
+                  <template #body-updatedAt="{ data }">
+                    {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+                  </template>
+
+                  <template #body-actions="{ data }">
+                    <Button
+                      icon="pi pi-ellipsis-v"
+                      text
+                      severity="secondary"
+                      size="small"
+                      class="row-action-btn w-full"
+                      @click.stop="toggleConfiguredConnectionActionsMenu($event, data)"
+                    />
+                  </template>
+                </CResourceList>
+              </TabPanel>
             </TabPanels>
           </Tabs>
-        </template>
-      </Card>
-
-      <Card
-        v-if="isEdit"
-        :pt="{
-          body: { class: 'p-0 flex flex-col h-full min-h-0' },
-          content: { class: 'p-0 flex flex-col h-full min-h-0' },
-        }"
-        class="overflow-hidden flex-1 min-h-0 flex flex-col"
-      >
-        <template #content>
-          <CResourceList
-            primary-key="configuredConnectionID"
-            :fields="configuredConnectionFields"
-            :items="configuredConnectionList"
-            :filter="configuredConnectionsFilter"
-            @update:filter="Object.assign(configuredConnectionsFilter, $event)"
-            :sorting="configuredConnectionsSorting"
-            :pagination="configuredConnectionsPagination"
-            :loading="configuredConnectionsLoading"
-            :translations="{
-              searchPlaceholder: $t('system.configuredConnections.list.searchPlaceholder'),
-              showingPagination: 'general.resourceList.pagination.showing',
-              singlePluralPagination: 'general.resourceList.pagination.single',
-              prevPagination: $t('general.resourceList.pagination.prev'),
-              nextPagination: $t('general.resourceList.pagination.next'),
-              recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-              resourceSingle: $t('system.configuredConnections.list.resourceSingle'),
-              resourcePlural: $t('system.configuredConnections.list.resourcePlural'),
-            }"
-            clickable
-            class="h-full"
-            @sort="handleConfiguredConnectionsSort"
-            @row-click="handleConfiguredConnectionClick"
-            @page-change="handleConfiguredConnectionsPageChange"
-          >
-            <template #header>
-              <Button
-                :label="$t('system.configuredConnections.list.createLabel')"
-                icon="pi pi-plus"
-                size="small"
-                @click="createConfiguredConnection"
-              />
-            </template>
-
-            <template #body-labels="{ data }">
-              <div class="flex gap-1 flex-wrap">
-                <Tag
-                  v-for="(val, key) in data.labels"
-                  :key="key"
-                  :value="`${key}: ${val}`"
-                  severity="info"
-                />
-              </div>
-            </template>
-
-            <template #body-updatedAt="{ data }">
-              {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
-            </template>
-
-            <template #body-actions="{ data }">
-              <Button
-                icon="pi pi-ellipsis-v"
-                text
-                severity="secondary"
-                size="small"
-                class="row-action-btn w-full"
-                @click.stop="toggleConfiguredConnectionActionsMenu($event, data)"
-              />
-            </template>
-          </CResourceList>
         </template>
       </Card>
     </div>
@@ -283,7 +282,7 @@
       v-model:visible="configuredConnectionModal"
       modal
       :header="
-        activeConfiguredConnection?.configuredConnectionID
+        activeConfiguredConnection?.configurationID
           ? $t('system.configuredConnections.editor.title.edit')
           : $t('system.configuredConnections.editor.title.create')
       "
@@ -311,6 +310,15 @@
               {{ $modalForm.name.error?.message }}
             </Message>
           </FormField>
+
+          <div v-if="activeConfiguredConnection.configurationID" class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.configuredConnections.editor.info.status') }}
+            </label>
+            <div>
+              <Tag :value="activeConfiguredConnection.status || '-'" />
+            </div>
+          </div>
 
           <FormField name="config" class="flex flex-col gap-2">
             <label for="ccConfig" class="font-medium text-primary">
@@ -359,20 +367,48 @@
           </FormField>
         </div>
 
-        <div class="border-t border-surface p-3 flex justify-end gap-2">
-          <Button
-            :label="$t('general.label.cancel')"
-            severity="secondary"
-            size="small"
-            outlined
-            @click="configuredConnectionModal = false"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            size="small"
-            :loading="savingConfiguredConnection"
-          />
+        <div class="border-t border-surface p-3 flex gap-2">
+          <div v-if="activeConfiguredConnection.configurationID" class="flex">
+            <CInputDelete
+              :label="$t('general.label.delete')"
+              :message="$t('system.configuredConnections.list.deleteConfirm')"
+              :header="
+                activeConfiguredConnection.name ||
+                $t('system.configuredConnections.list.resourceSingle')
+              "
+              size="small"
+              @confirm="handleConfiguredConnectionDeleteFromModal"
+            />
+
+            <div v-if="activeConfiguredConnection.status !== 'active'" class="flex">
+              <Divider layout="vertical" />
+
+              <Button
+                :label="$t('system.configuredConnections.editor.enable')"
+                icon="pi pi-check-circle"
+                size="small"
+                severity="success"
+                outlined
+                :loading="enablingConfiguredConnection"
+                @click="handleConfiguredConnectionEnable"
+              />
+            </div>
+          </div>
+          <div class="flex gap-2 ml-auto">
+            <Button
+              :label="$t('general.label.cancel')"
+              severity="secondary"
+              size="small"
+              outlined
+              @click="configuredConnectionModal = false"
+            />
+            <Button
+              type="submit"
+              :label="$t('general.label.save')"
+              size="small"
+              :loading="savingConfiguredConnection"
+            />
+          </div>
         </div>
       </Form>
     </Dialog>
@@ -439,6 +475,7 @@ const activeTab = ref('basic')
 
 const configuredConnectionModal = ref(false)
 const savingConfiguredConnection = ref(false)
+const enablingConfiguredConnection = ref(false)
 const activeConfiguredConnection = ref(null)
 const configuredConnectionRawConfig = ref('{}')
 const configuredConnectionRawLabels = ref('{}')
@@ -473,6 +510,11 @@ const configuredConnectionFields = [
     header: t('system.configuredConnections.list.columns.labels'),
   },
   {
+    key: 'status',
+    sortable: true,
+    header: t('system.configuredConnections.list.columns.status'),
+  },
+  {
     key: 'updatedAt',
     sortable: true,
     header: t('system.configuredConnections.list.columns.updatedAt'),
@@ -489,7 +531,7 @@ const configuredConnectionFields = [
     alignFrozen: 'right',
     pt: {
       headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'p-0 border-l-0' },
+      bodyCell: { class: 'px-2 py-1 border-l-0' },
     },
   },
 ]
@@ -672,14 +714,46 @@ function onConfirmConfiguredConnectionDelete(connection) {
 async function handleConfiguredConnectionDelete(connection) {
   try {
     await $SystemAPI.configuredConnectionDelete({
-      connectionID: route.params.connectionID,
-      configuredConnectionID: connection.configuredConnectionID,
+      connectionID: connection.configurationID,
     })
     $toast.toastSuccess(t('notification.connection.delete.success'))
     filterConfiguredConnectionsList()
   } catch (e) {
     console.error('Failed to delete configured connection:', e)
     $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+  }
+}
+
+async function handleConfiguredConnectionDeleteFromModal() {
+  try {
+    await $SystemAPI.configuredConnectionDelete({
+      connectionID: activeConfiguredConnection.value.configurationID,
+    })
+    $toast.toastSuccess(t('notification.connection.delete.success'))
+    configuredConnectionModal.value = false
+    filterConfiguredConnectionsList()
+  } catch (e) {
+    console.error('Failed to delete configured connection:', e)
+    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+  }
+}
+
+async function handleConfiguredConnectionEnable() {
+  if (!activeConfiguredConnection.value?.configurationID) return
+
+  enablingConfiguredConnection.value = true
+  try {
+    await $SystemAPI.configuredConnectionEnable({
+      connectionID: activeConfiguredConnection.value.configurationID,
+    })
+    $toast.toastSuccess(t('notification.connection.update.success'))
+    configuredConnectionModal.value = false
+    filterConfiguredConnectionsList()
+  } catch (e) {
+    console.error('Failed to enable configured connection:', e)
+    $toast.toastErrorHandler(t('notification.connection.update.error'))(e)
+  } finally {
+    enablingConfiguredConnection.value = false
   }
 }
 
@@ -703,21 +777,23 @@ async function handleConfiguredConnectionSubmit({ valid }) {
     parseConfiguredConnectionConfig()
     parseConfiguredConnectionLabels()
 
-    // We only support create initially based on the install endpoint,
-    // update could use configuredConnectionUpdate endpoint if available.
-
-    if (activeConfiguredConnection.value.configuredConnectionID) {
-      // Placeholder for update API call if we support modifying it later natively
-      // await $SystemAPI.configuredConnectionUpdate({ ... })
-      $toast.toastWarning('Update not supported yet for configured connections via UI')
+    if (activeConfiguredConnection.value.configurationID) {
+      await $SystemAPI.connectionUpdateConfiguration({
+        connectionID: route.params.connectionID,
+        configuredConnectionID: activeConfiguredConnection.value.configurationID,
+        name: activeConfiguredConnection.value.name,
+        config: activeConfiguredConnection.value.config,
+        labels: activeConfiguredConnection.value.labels,
+      })
+      $toast.toastSuccess(t('notification.connection.update.success'))
     } else {
-      await $SystemAPI.connectionInstall({
+      await $SystemAPI.connectionConfigure({
         connectionID: route.params.connectionID,
         name: activeConfiguredConnection.value.name,
         config: activeConfiguredConnection.value.config,
         labels: activeConfiguredConnection.value.labels,
       })
-      $toast.toastSuccess(t('notification.connection.update.success')) // using standard connection update toast for now
+      $toast.toastSuccess(t('notification.connection.create.success'))
     }
 
     configuredConnectionModal.value = false

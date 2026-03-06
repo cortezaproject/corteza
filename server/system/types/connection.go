@@ -47,6 +47,13 @@ type (
 		ContentType string                        `json:"contentType"`
 		Headers     map[string]ConnectionTemplate `json:"headers,omitempty"`
 		Auth        ConnectionAuth                `json:"auth"`
+		Probe       *ConnectionProbe              `json:"probe,omitempty"`
+	}
+
+	ConnectionProbe struct {
+		Path ConnectionTemplate `json:"path"`
+		// Default expected status is 200
+		ExpectedStatus int `json:"expectedStatus,omitempty"`
 	}
 
 	ConnectionAuth struct {
@@ -127,19 +134,30 @@ type (
 	}
 
 	ConnectionOperation struct {
-		Handle string                     `json:"handle"`
-		Meta   ConnectionResourceMeta     `json:"meta"`
-		HTTP   ConnectionHTTPAction       `json:"http"`
-		Input  []ConnectionOperationField `json:"input,omitempty"`
-		Output []ConnectionOperationField `json:"output,omitempty"`
+		Handle string                           `json:"handle"`
+		Meta   ConnectionResourceMeta           `json:"meta"`
+		Input  []ConnectionOperationInputField  `json:"input,omitempty"`
+		Output []ConnectionOperationOutputField `json:"output,omitempty"`
+		Steps  []ConnectionOperationStep        `json:"steps,omitempty"`
 	}
 
-	ConnectionOperationField struct {
+	ConnectionOperationInputField struct {
 		Name     string         `json:"name"`
 		Type     string         `json:"type"`
 		Required bool           `json:"required,omitempty"`
+		Meta     map[string]any `json:"meta,omitempty"`
+	}
+
+	ConnectionOperationOutputField struct {
+		Name     string         `json:"name"`
+		Type     string         `json:"type"`
 		Selector []string       `json:"selector,omitempty"`
 		Meta     map[string]any `json:"meta,omitempty"`
+	}
+
+	ConnectionOperationStep struct {
+		Type string                `json:"type"` // http | taq
+		HTTP *ConnectionHTTPAction `json:"http,omitempty"`
 	}
 
 	ConnectionDerivedParam struct {
