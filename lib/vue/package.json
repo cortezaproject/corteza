@@ -17,7 +17,9 @@
     "format:check": "prettier --check src/"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js-next": "workspace:*"
+    "@cortezaproject/corteza-js-next": "workspace:*",
+    "echarts": "^6.0.0",
+    "vue-echarts": "^8.0.1"
   },
   "peerDependencies": {
     "lodash-es": "^4.17.0",

@@ -11,6 +11,7 @@ import Badge from 'primevue/badge'
 import BlockUI from 'primevue/blockui'
 import Breadcrumb from 'primevue/breadcrumb'
 import Button from 'primevue/button'
+import ButtonGroup from 'primevue/buttongroup'
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
 import Chip from 'primevue/chip'
@@ -38,6 +39,7 @@ import Password from 'primevue/password'
 import Popover from 'primevue/popover'
 import Paginator from 'primevue/paginator'
 import RadioButton from 'primevue/radiobutton'
+import PickList from 'primevue/picklist'
 import ProgressSpinner from 'primevue/progressspinner'
 import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
@@ -53,6 +55,7 @@ import Toast from 'primevue/toast'
 import ToggleSwitch from 'primevue/toggleswitch'
 import FileUpload from 'primevue/fileupload'
 import Tree from 'primevue/tree'
+import Tooltip from 'primevue/tooltip'
 
 /**
  * Globally registers commonly used PrimeVue components.
@@ -69,6 +72,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Badge', Badge)
     app.component('Breadcrumb', Breadcrumb)
     app.component('Button', Button)
+    app.component('ButtonGroup', ButtonGroup)
     app.component('Card', Card)
     app.component('Checkbox', Checkbox)
     app.component('Chip', Chip)
@@ -95,6 +99,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Paginator', Paginator)
     app.component('Panel', Panel)
     app.component('Password', Password)
+    app.component('PickList', PickList)
     app.component('Popover', Popover)
     app.component('ProgressSpinner', ProgressSpinner)
     app.component('RadioButton', RadioButton)
@@ -112,6 +117,9 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('ToggleSwitch', ToggleSwitch)
     app.component('FileUpload', FileUpload)
     app.component('Tree', Tree)
+
+    // Directives
+    app.directive('tooltip', Tooltip)
 
     // Corteza shared components
     app.component('CInputSwitch', CInputSwitch)

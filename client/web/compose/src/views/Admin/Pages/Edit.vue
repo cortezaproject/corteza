@@ -4,22 +4,27 @@
   </Teleport>
 
   <Teleport to="#topbar-tools" defer>
-    <div v-if="isEdit" class="flex gap-2">
+    <ButtonGroup v-if="isEdit" class="gap-1">
+      <Button
+        v-if="page?.isRecordPage"
+        :label="$t('page.moduleEdit')"
+        icon="pi pi-database"
+        size="small"
+        @click="goToModuleEdit"
+      />
       <Button
         :label="$t('page.edit.pageBuilder')"
-        icon="pi pi-pencil"
+        icon="pi pi-wrench"
         size="small"
-        severity="secondary"
         @click="goToBuilder"
       />
       <Button
         :label="$t('page.edit.viewPage')"
         icon="pi pi-eye"
         size="small"
-        severity="secondary"
         @click="goToViewPage"
       />
-    </div>
+    </ButtonGroup>
   </Teleport>
 
   <!-- Loading -->
@@ -336,6 +341,15 @@ function goToViewPage() {
     name: 'page',
     params: { pageID: page.value.pageID },
   })
+}
+
+function goToModuleEdit() {
+  if (page.value?.moduleID) {
+    router.push({
+      name: 'admin.modules.edit',
+      params: { moduleID: page.value.moduleID },
+    })
+  }
 }
 
 // Lifecycle

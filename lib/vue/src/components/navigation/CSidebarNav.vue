@@ -174,10 +174,15 @@ if (props.routeKey) {
       for (const item of props.items) {
         const itemRoute = item[props.routeKey]
         if (!itemRoute) continue
-        const resolved = router.resolve(itemRoute)
-        if (resolved.path === currentRoute.path) {
-          expandAncestors(item[props.idKey])
-          break
+        try {
+          const resolved = router.resolve(itemRoute)
+          if (resolved.path === currentRoute.path) {
+            expandAncestors(item[props.idKey])
+            break
+          }
+        } catch {
+          // Route may have missing required params (e.g. slug not yet available)
+          continue
         }
       }
     },

@@ -6,14 +6,20 @@
 
   <!-- Page builder button in topbar tools -->
   <Teleport to="#topbar-tools" :defer="true">
-    <Button
-      v-if="page?.canUpdatePage"
-      :label="$t('page.block.general.label.pageBuilder')"
-      icon="pi pi-pencil"
-      severity="secondary"
-      size="small"
-      @click="goToBuilder"
-    />
+    <ButtonGroup v-if="page?.canUpdatePage" class="gap-1">
+      <Button
+        :label="$t('page.block.general.label.pageBuilder')"
+        icon="pi pi-wrench"
+        size="small"
+        @click="goToBuilder"
+      />
+      <Button
+        v-tooltip.bottom="$t('navigation.editPage')"
+        icon="pi pi-file"
+        size="small"
+        @click="goToEditPage"
+      />
+    </ButtonGroup>
   </Teleport>
 
   <!-- Loading state -->
@@ -22,7 +28,7 @@
   </div>
 
   <!-- Page content -->
-  <div v-else-if="page && positionedBlocks.length" class="p-4">
+  <div v-else-if="page && positionedBlocks.length">
     <Grid :blocks="positionedBlocks" :namespace="namespace" :page="page" />
   </div>
 
@@ -107,6 +113,15 @@ function goToBuilder() {
   if (page.value) {
     router.push({
       name: 'admin.pages.builder',
+      params: { pageID: page.value.pageID },
+    })
+  }
+}
+
+function goToEditPage() {
+  if (page.value) {
+    router.push({
+      name: 'admin.pages.edit',
       params: { pageID: page.value.pageID },
     })
   }

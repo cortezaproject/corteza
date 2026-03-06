@@ -65,7 +65,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useLink, useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps({
   node: {
@@ -123,41 +123,49 @@ const nodeRoute = computed(() => {
   return props.routeKey ? props.node[props.routeKey] : null
 })
 
-// Route-aware active state via vue-router's useLink
-const routeTo = computed(() => nodeRoute.value || '/')
-const {
-  isActive: routeIsActive,
-  isExactActive: routeIsExactActive,
-  navigate,
-} = useLink({ to: routeTo })
-
+const router = useRouter()
 const currentRoute = useRoute()
+
+// Safely resolve the item's route, returning null if params are missing
+const resolvedRoute = computed(() => {
+  if (!nodeRoute.value) return null
+  try {
+    return router.resolve(nodeRoute.value)
+  } catch {
+    return null
+  }
+})
 
 // Unified active state: route-based when routeKey is set, otherwise prop-based
 const itemIsActive = computed(() => {
   if (nodeRoute.value) {
     if (props.matchType === 'prefix') {
-      // If the route name matches or the current route name starts with the item's route name
       if (nodeRoute.value.name && currentRoute.name?.startsWith(nodeRoute.value.name)) {
         return true
       }
     }
 
-    // Root items with children: highlight when any child route is active
+    const resolved = resolvedRoute.value
+    if (!resolved) return false
+
+    if (hasChildren.value) {
+      // Root items with children: highlight when current path starts with this item's path
+      return currentRoute.path.startsWith(resolved.path)
+    }
     // Leaf items: highlight only on exact match
-    return hasChildren.value ? routeIsActive.value : routeIsExactActive.value
+    return currentRoute.path === resolved.path
   }
   return props.activeId === props.node[props.idKey]
 })
 
 // Unified click action: navigate (route) or emit select (non-route)
-function handleAction(e) {
+function handleAction() {
   if (nodeRoute.value) {
     // Items with route: auto-expand but never collapse
     if (hasChildren.value && !isExpanded.value) {
       emit('toggle', props.node[props.idKey])
     }
-    navigate(e)
+    router.push(nodeRoute.value)
   } else {
     // Items without route: toggle collapse/expand
     if (hasChildren.value) {

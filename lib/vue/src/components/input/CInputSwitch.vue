@@ -54,6 +54,6 @@ const props = defineProps({
 
 defineEmits(['update:modelValue'])
 
-const computedNoLabel = computed(() => props.noLabel || t('general.label.general.no'))
-const computedYesLabel = computed(() => props.yesLabel || t('general.label.general.yes'))
+const computedNoLabel = computed(() => props.noLabel || t('general.label.no'))
+const computedYesLabel = computed(() => props.yesLabel || t('general.label.yes'))
 </script>

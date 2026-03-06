@@ -30,12 +30,12 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <CRouterLinkButton
+        <Button
           v-if="namespace?.canCreateChart"
-          :to="{ name: 'admin.charts.create' }"
           :label="$t('chart.createLabel')"
           icon="pi pi-plus"
           size="small"
+          @click="showTypeSelector = true"
         />
       </template>
 
@@ -77,6 +77,26 @@
         </a>
       </template>
     </TieredMenu>
+
+    <!-- Chart Type Selector Dialog -->
+    <Dialog
+      v-model:visible="showTypeSelector"
+      :header="$t('chart.createLabel')"
+      modal
+      :style="{ width: '600px' }"
+    >
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-2">
+        <div
+          v-for="ct in chartTypes"
+          :key="ct.category"
+          class="flex flex-col items-center gap-2 p-4 border border-surface rounded cursor-pointer hover:bg-highlight transition-colors"
+          @click="createChart(ct.category)"
+        >
+          <i :class="ct.icon" class="text-2xl text-primary" />
+          <span class="text-sm font-medium text-center">{{ ct.label }}</span>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
 
@@ -91,7 +111,7 @@ import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { CResourceList, CRouterLinkButton } = components
+const { CResourceList } = components
 const { locFullDateTime } = filters
 
 const props = defineProps({
@@ -109,7 +129,15 @@ const $ComposeAPI = inject('$ComposeAPI')
 
 // Actions menu
 const actionsMenu = ref()
-const actionsMenuItems = ref([])
+const actionsMenuItems = ref()
+const showTypeSelector = ref(false)
+
+const chartTypes = [
+  { category: '', label: t('block.chart.addGeneric'), icon: 'pi pi-chart-bar' },
+  { category: 'funnel', label: t('block.chart.addFunnel'), icon: 'pi pi-sort-amount-down' },
+  { category: 'gauge', label: t('block.chart.addGauge'), icon: 'pi pi-gauge' },
+  { category: 'radar', label: t('block.chart.addRadar'), icon: 'pi pi-chart-scatter' },
+]
 
 // Column definitions
 const chartFields = [
@@ -176,6 +204,14 @@ function handleRowClick({ data }) {
   router.push({
     name: 'admin.charts.edit',
     params: { chartID: data.chartID },
+  })
+}
+
+function createChart(category) {
+  showTypeSelector.value = false
+  router.push({
+    name: 'admin.charts.create',
+    query: category ? { category } : {},
   })
 }
 

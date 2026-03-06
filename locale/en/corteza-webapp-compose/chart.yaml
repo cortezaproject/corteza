@@ -13,6 +13,21 @@ colorScheme:
         label: Colors
 configure:
   reportsLabel: Reports
+filter:
+  modal:
+    title: Chart filter
+    originalFilter:
+      label: Original filter
+    liveFilter:
+      label: Live filter
+      placeholder: Select a predefined filter
+    filterPreview:
+      label: Filter preview
+    options:
+      label: Combine option
+      and: Combine with AND
+      or: Combine with OR
+      overwrite: Overwrite original filter
 general:
   label:
     title: Label

@@ -163,7 +163,7 @@ export function getTheme(theme: Theme) {
       }
 
       .p-dialog-header {
-        padding-bottom: 0!;
+        padding-bottom: 0 !important;
       }
 
       .p-datatable-column-resizer {

@@ -33,6 +33,9 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    optimizeDeps: {
+      include: ['echarts', 'vue-echarts'],
+    },
     define: {
       VERSION: JSON.stringify(getVersion()),
       BUILD_TIME: JSON.stringify(new Date().toISOString()),

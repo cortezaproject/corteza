@@ -14,6 +14,8 @@
   "dependencies": {
     "@cortezaproject/corteza-js-next": "workspace:*",
     "@cortezaproject/corteza-vue-next": "workspace:*",
-    "grid-layout-plus": "^1.1.1"
+    "echarts": "^6.0.0",
+    "grid-layout-plus": "^1.1.1",
+    "vue-echarts": "^8.0.1"
   }
 }

@@ -160,7 +160,7 @@ function redirectToFirstPage() {
     .sort((a, b) => a.weight - b.weight)[0]
 
   if (firstPage) {
-    router.replace({ name: 'page', params: { pageID: firstPage.pageID } })
+    router.replace({ name: 'page', params: { slug: props.slug, pageID: firstPage.pageID } })
   }
 }
 

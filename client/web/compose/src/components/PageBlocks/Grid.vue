@@ -1,19 +1,20 @@
 <template>
   <GridLayout
-    :layout="layout"
+    v-model:layout="layoutModel"
     :col-num="48"
     :row-height="10"
-    :margin="[0, 0]"
+    :margin="[12, 12]"
     :is-draggable="editable"
     :is-resizable="editable"
     :responsive="true"
     :breakpoints="{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }"
     :cols="{ lg: 48, md: 48, sm: 1, xs: 1, xxs: 1 }"
     :vertical-compact="true"
+    :use-css-transforms="true"
     @layout-updated="onLayoutUpdated"
   >
     <GridItem
-      v-for="item in layout"
+      v-for="item in layoutModel"
       :key="item.i"
       :i="item.i"
       :x="item.x"
@@ -22,23 +23,34 @@
       :h="item.h"
       :min-w="6"
       :min-h="5"
+      :class="editable ? 'builder-grid-item' : 'view-grid-item'"
     >
-      <component
-        :is="resolveBlock(blockMap.get(item.i)?.kind)"
-        v-if="resolveBlock(blockMap.get(item.i)?.kind)"
-        :block="blockMap.get(item.i)"
-        :namespace="namespace"
-        :page="page"
-      />
-      <div v-else class="p-3 text-muted-color italic">
-        {{ $t('block.noConfiguration') }} ({{ blockMap.get(item.i)?.kind }})
+      <!-- Scoped slot for custom per-item overlay (e.g. builder toolbox) -->
+      <slot name="item-overlay" :item="item" :block="blockMap.get(item.i)" />
+
+      <!-- Block content — always fills the grid item -->
+      <div class="block-content" :class="{ 'pointer-events-none': editable }">
+        <component
+          :is="resolveBlock(blockMap.get(item.i)?.kind)"
+          v-if="resolveBlock(blockMap.get(item.i)?.kind)"
+          :block="blockMap.get(item.i)"
+          :namespace="namespace"
+          :page="page"
+          :record="record"
+        />
+        <div v-else class="flex items-center justify-center h-full text-muted-color italic p-2">
+          <div class="text-center">
+            <i class="pi pi-box text-2xl mb-2" />
+            <div>{{ blockMap.get(item.i)?.kind || $t('block.noConfiguration') }}</div>
+          </div>
+        </div>
       </div>
     </GridItem>
   </GridLayout>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
 import { resolveBlock } from './registry'
 
@@ -55,48 +67,120 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  record: {
+    type: Object,
+    default: undefined,
+  },
   editable: {
     type: Boolean,
     default: false,
   },
 })
 
-const emit = defineEmits(['update:blocks'])
+const emit = defineEmits(['update:blocks', 'layout-updated'])
 
+// Unique ID for each block — blockID '0' is NoID (unsaved), so fall back to tempID
+function getBlockId(block) {
+  const bid = block.blockID
+  if (bid && bid !== '0') return bid
+  return block.meta?.tempID || ''
+}
+
+// Block map for grid lookups
 const blockMap = computed(() => {
   const map = new Map()
   for (const block of props.blocks) {
-    const id = block.blockID || block.meta?.tempID
+    const id = getBlockId(block)
     if (id) map.set(String(id), block)
   }
   return map
 })
 
-const layout = computed(() => {
-  return props.blocks.map(block => {
-    const [x, y, w, h] = block.xywh || [0, 0, 48, 15]
+// Mutable layout ref so grid-layout-plus can update it directly during drag/resize
+const layoutModel = ref([])
+
+// Build layout from blocks
+function rebuildLayout() {
+  layoutModel.value = props.blocks.map(block => {
+    const [x, y, w, h] = block.xywh || [0, 0, 24, 18]
     return {
-      i: String(block.blockID || block.meta?.tempID),
+      i: String(getBlockId(block)),
       x,
       y,
       w,
       h,
     }
   })
-})
-
-function onLayoutUpdated(newLayout) {
-  if (!props.editable) return
-
-  const updated = props.blocks.map(block => {
-    const id = String(block.blockID || block.meta?.tempID)
-    const item = newLayout.find(l => l.i === id)
-    if (item) {
-      return { ...block, xywh: [item.x, item.y, item.w, item.h] }
-    }
-    return block
-  })
-
-  emit('update:blocks', updated)
 }
+
+// Rebuild when blocks array reference changes
+watch(() => props.blocks, rebuildLayout, { immediate: true })
+
+// Sync grid positions back to blocks
+function onLayoutUpdated(newLayout) {
+  if (props.editable) {
+    for (const item of newLayout) {
+      const block = props.blocks.find(b => String(getBlockId(b)) === item.i)
+      if (block) {
+        block.xywh = [item.x, item.y, item.w, item.h]
+      }
+    }
+  }
+  emit('layout-updated', newLayout)
+}
+
+// Expose rebuildLayout so parent can call it after add/clone/delete
+defineExpose({ rebuildLayout })
 </script>
+
+<style>
+.vgl-layout {
+  .vgl-item--placeholder {
+    background-color: var(--p-highlight-focus-background);
+    border-radius: var(--p-card-border-radius);
+  }
+}
+
+/* Disable grid-layout-plus slide animation globally */
+.vue-grid-item {
+  transition: none !important;
+}
+
+.vgl-item__resizer {
+  right: 0.25rem;
+  bottom: 0.25rem;
+}
+
+.vgl-item--transform {
+  right: auto;
+  left: 0;
+  transition-property: none;
+}
+</style>
+
+<style scoped>
+/* View mode — invisible border to match builder sizing */
+.view-grid-item {
+  border: 2px solid transparent;
+  border-radius: var(--p-card-border-radius);
+}
+
+/* Builder mode — dashed border, same 2px as view for layout parity */
+.builder-grid-item {
+  position: relative;
+  border: 2px dashed var(--p-content-border-color);
+  border-radius: var(--p-card-border-radius);
+}
+
+.builder-grid-item:hover {
+  border-color: var(--p-primary-color);
+}
+
+.builder-grid-item:hover :deep(.block-toolbox) {
+  opacity: 1;
+}
+
+.block-content {
+  height: 100%;
+}
+</style>

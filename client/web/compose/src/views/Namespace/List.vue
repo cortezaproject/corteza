@@ -21,7 +21,7 @@
 
     <div v-if="areNamespacesVisible" class="flex-1 overflow-auto">
       <div class="container mx-auto p-4">
-        <div class="flex flex-wrap justify-center gap-7 p-4 xl:mx-32">
+        <div class="flex flex-wrap justify-center gap-7">
           <RouterLink
             v-for="namespace in namespaceStore.set"
             :key="namespace.namespaceID"

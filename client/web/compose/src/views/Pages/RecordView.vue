@@ -4,6 +4,31 @@
     <span v-if="page">{{ page.title }}</span>
   </Teleport>
 
+  <!-- Admin tools in topbar -->
+  <Teleport to="#topbar-tools" :defer="true">
+    <ButtonGroup v-if="page?.canUpdatePage" class="gap-1">
+      <Button
+        v-if="page.isRecordPage"
+        :label="$t('page.moduleEdit')"
+        icon="pi pi-database"
+        size="small"
+        @click="goToModuleEdit"
+      />
+      <Button
+        :label="$t('page.block.general.label.pageBuilder')"
+        icon="pi pi-wrench"
+        size="small"
+        @click="goToBuilder"
+      />
+      <Button
+        v-tooltip.bottom="$t('navigation.editPage')"
+        icon="pi pi-file"
+        size="small"
+        @click="goToEditPage"
+      />
+    </ButtonGroup>
+  </Teleport>
+
   <!-- Loading state -->
   <div v-if="loading" class="flex items-center justify-center h-full">
     <ProgressSpinner style="width: 32px; height: 32px" />
@@ -17,8 +42,8 @@
     @submit="handleSave"
     class="flex flex-col h-full"
   >
-    <div class="flex-1 overflow-auto p-4">
-      <Grid :blocks="positionedBlocks" :namespace="namespace" :page="page" />
+    <div class="flex-1 overflow-auto">
+      <Grid :blocks="positionedBlocks" :namespace="namespace" :page="page" :record="record" />
     </div>
 
     <!-- Record Toolbar -->
@@ -312,10 +337,13 @@ async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) 
   formData.append('recordID', recordID || '')
   formData.append('fieldName', fieldName)
   formData.append('upload', file, file.name)
-  const { data } = await $ComposeAPI.api().post(url, formData, { headers: { 'Content-Type': undefined } })
+  const { data } = await $ComposeAPI
+    .api()
+    .post(url, formData, { headers: { 'Content-Type': undefined } })
   if (data?.error) throw new Error(data.error)
   const attachment = data?.response ?? data
-  if (!attachment?.attachmentID) throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
+  if (!attachment?.attachmentID)
+    throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
   return attachment.attachmentID
 }
 
@@ -430,6 +458,33 @@ async function handleDelete() {
     $toast.toastDanger(t('notification.record.deleteFailed'))
   } finally {
     deleting.value = false
+  }
+}
+
+function goToBuilder() {
+  if (page.value) {
+    router.push({
+      name: 'admin.pages.builder',
+      params: { pageID: page.value.pageID },
+    })
+  }
+}
+
+function goToEditPage() {
+  if (page.value) {
+    router.push({
+      name: 'admin.pages.edit',
+      params: { pageID: page.value.pageID },
+    })
+  }
+}
+
+function goToModuleEdit() {
+  if (page.value?.moduleID) {
+    router.push({
+      name: 'admin.modules.edit',
+      params: { moduleID: page.value.moduleID },
+    })
   }
 }
 

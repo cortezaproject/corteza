@@ -32,9 +32,11 @@ import { usePageStore } from '@/stores/page'
 import { components } from '@cortezaproject/corteza-vue-next'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 const { CSidebarNav } = components
 const { t } = useI18n()
+const route = useRoute()
 
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
@@ -43,7 +45,7 @@ const pageStore = usePageStore()
 const pageNavItems = computed(() => {
   return pageStore.set.map(p => ({
     ...p,
-    _route: { name: 'page', params: { pageID: p.pageID } },
+    _route: { name: 'page', params: { slug: route.params.slug, pageID: p.pageID } },
   }))
 })
 
@@ -55,26 +57,26 @@ const adminNavItems = computed(() => [
     _label: t('sidebar.modules'),
     _icon: 'pi pi-database',
     _divider: true,
-    _route: { name: 'admin.modules' },
+    _route: { name: 'admin.modules', params: { slug: route.params.slug } },
   },
   ...moduleStore.set.map(m => ({
     _id: m.moduleID,
     _parentId: 'modules',
     _label: m.name || m.handle || m.moduleID,
-    _route: { name: 'admin.modules.edit', params: { moduleID: m.moduleID } },
+    _route: { name: 'admin.modules.edit', params: { slug: route.params.slug, moduleID: m.moduleID } },
   })),
   {
     _id: 'pages',
     _parentId: '0',
     _label: t('sidebar.pages'),
     _icon: 'pi pi-file',
-    _route: { name: 'admin.pages' },
+    _route: { name: 'admin.pages', params: { slug: route.params.slug } },
   },
   ...pageStore.set.map(p => ({
     _id: `page-${p.pageID}`,
     _parentId: p.selfID && p.selfID !== '0' ? `page-${p.selfID}` : 'pages',
     _label: p.title || p.handle || p.pageID,
-    _route: { name: 'admin.pages.edit', params: { pageID: p.pageID } },
+    _route: { name: 'admin.pages.edit', params: { slug: route.params.slug, pageID: p.pageID } },
     weight: p.weight,
   })),
   {
@@ -82,7 +84,7 @@ const adminNavItems = computed(() => [
     _parentId: '0',
     _label: t('sidebar.charts'),
     _icon: 'pi pi-chart-bar',
-    _route: { name: 'admin.charts' },
+    _route: { name: 'admin.charts', params: { slug: route.params.slug } },
   },
 ])
 </script>
