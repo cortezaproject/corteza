@@ -26,7 +26,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// 1. Load and validate agent
 	agent, err := r.registry.Get(ctx, req.AgentID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load agent: %w", err)
+		return nil, errAgentNotFound(req.AgentID)
 	}
 
 	if err := validateAgent(agent); err != nil {
@@ -40,7 +40,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 	tools, err := r.mcp.GetTools(ctx, allowedToolNames)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tools: %w", err)
+		return nil, errMCP(err)
 	}
 
 	// 3. Load/Create Conversation
@@ -104,13 +104,26 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		maxIterations = defaultMaxIterations
 	}
 
+	if limits.Timeout != "" {
+		if d, parseErr := time.ParseDuration(limits.Timeout); parseErr == nil && d > 0 {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, d)
+			defer cancel()
+		}
+	}
+
 	var finalResponse string
 	var usage Usage
 	var executedTools []ToolCallInfo
 	var decisions []DecisionInfo
 	var runErr error
+	var windDownInjected bool
 
 	for i := 0; i < maxIterations; i++ {
+		if ctx.Err() != nil {
+			runErr = errTimeout()
+			break
+		}
 		config := LLMConfig{
 			ProviderID:  agent.Execution.Model.LLMProviderID,
 			Model:       agent.Execution.Model.Model,
@@ -138,7 +151,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			llmSpan.Status = observability.StatusError
 			llmSpan.Error = llmErr
 			r.emitSpan(llmSpan)
-			runErr = fmt.Errorf("llm chat failed: %w", llmErr)
+			if ctx.Err() != nil {
+				runErr = errTimeout()
+			} else {
+				runErr = errLLM(llmErr)
+			}
 			break
 		}
 		llmSpan.Status = observability.StatusOK
@@ -151,7 +168,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		usage.accumulate(llmResp.Usage)
 
 		if limits.MaxTokens > 0 && usage.TotalTokens > limits.MaxTokens {
-			runErr = fmt.Errorf("limit_exceeded: token limit reached")
+			runErr = errLimitExceeded(fmt.Sprintf("token limit of %d exceeded", limits.MaxTokens))
 			break
 		}
 
@@ -192,6 +209,21 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			results, infos := r.executeTools(ctx, agent, llmResp.ToolCalls, traceID, rootSpanID, agentIDStr, userIDStr, convIDStr)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
+
+			if ctx.Err() != nil {
+				runErr = errTimeout()
+				break
+			}
+
+			// Warn the LLM once when approaching the token limit so it can wrap up gracefully
+			if !windDownInjected && limits.MaxTokens > 0 && limits.SoftLimitRatio > 0 &&
+				usage.TotalTokens > int(float64(limits.MaxTokens)*limits.SoftLimitRatio) {
+				conversation.Messages = append(conversation.Messages, types.AiConversationMessage{
+					Role:    "user",
+					Content: "You are reaching the maximum token limit. Please finish up and give your final answer.",
+				})
+				windDownInjected = true
+			}
 		} else {
 			d := DecisionInfo{
 				Iteration: i + 1,
@@ -289,7 +321,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 func validateAgent(agent *types.Agent) error {
 	if agent.Status != "active" {
-		return fmt.Errorf("agent %d is not active (status: %s)", agent.ID, agent.Status)
+		return errAgentDisabled(agent.ID)
 	}
 	return nil
 }
@@ -298,7 +330,7 @@ func (r *runtime) resolveConversation(ctx context.Context, conversationID, agent
 	if conversationID != 0 {
 		conv, err := r.conversationStore.FindByID(ctx, conversationID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get conversation: %w", err)
+			return nil, errConversationNotFound(conversationID)
 		}
 		if conv != nil {
 			return conv, nil
@@ -445,8 +477,15 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		}
 
 		if execErr != nil {
-			toolResult.Error = execErr.Error()
-			info.Error = execErr.Error()
+			if ctx.Err() != nil {
+				toolResult.Data = "Tool timed out"
+				toolResult.Error = "Tool timed out"
+				info.Error = "Tool timed out"
+			} else {
+				toolResult.Data = "Error: " + execErr.Error()
+				toolResult.Error = execErr.Error()
+				info.Error = execErr.Error()
+			}
 		}
 
 		infos = append(infos, info)
