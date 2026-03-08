@@ -1,0 +1,26 @@
+name: agent
+
+functions:
+  run:
+    meta:
+      short: Invoke agent
+      description: Executes an agent with the given input and returns its response
+    labels:
+      agent: "step,workflow"
+    params:
+      agentID:
+        required: true
+        types:
+          - { wf: ID }
+      input:
+        required: true
+        types:
+          - { wf: String }
+      conversationID:
+        types:
+          - { wf: ID }
+    results:
+      output:
+        wf: String
+      conversationID:
+        wf: ID

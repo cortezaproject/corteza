@@ -83,6 +83,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	if agent.Behavior.InjectSystemContext {
 		systemPrompt = cortezaSystemContext + "\n\n" + systemPrompt
 	}
+	for _, t := range agent.Access.Tools {
+		if t.Hints != "" {
+			systemPrompt += "\n\n" + t.Hints
+		}
+	}
 	r.emitSpan(observability.AgentSpan{
 		ID:             sid(),
 		ParentID:       rootSpanID,

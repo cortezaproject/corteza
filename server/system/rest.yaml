@@ -3598,7 +3598,6 @@ endpoints:
     path: '/ai-conversations'
     entrypoint: aiConversation
     authentication: []
-  
     apis:
       - name: list
         method: GET

@@ -336,6 +336,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		log,
 	)
 
+	automation.AgentHandler(
+		automationService.Registry(),
+		DefaultAgenticRuntime,
+		DefaultAgent,
+		DefaultUser,
+	)
+
 	// ValuestoreHandler isn't (yet) a system thing but this initialization resides
 	// here just so we can easily register it
 

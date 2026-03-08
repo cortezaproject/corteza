@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/system/agentic/runtime"
@@ -132,6 +133,15 @@ func (ctrl *Agent) Undelete(ctx context.Context, r *request.AgentUndelete) (inte
 }
 
 func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{}, error) {
+	a, err := ctrl.svc.FindByID(ctx, r.AgentID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.Invocation.User.Enabled {
+		return nil, fmt.Errorf("agent is not available for user invocation")
+	}
+
 	return service.DefaultAgenticRuntime.Run(ctx, &runtime.AgentRequest{
 		AgentID:        r.AgentID,
 		Input:          r.Input,
