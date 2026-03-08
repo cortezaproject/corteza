@@ -106,7 +106,7 @@ type (
 
 	AgentInvocationSystem struct {
 		Enabled        bool            `json:"enabled"`
-		ServiceAccount string          `json:"serviceAccount,omitempty"`
+		ServiceAccount uint64          `json:"serviceAccount,string,omitempty"`
 		InputSchema    json.RawMessage `json:"inputSchema,omitempty"`
 		OutputFormat   string          `json:"outputFormat,omitempty"`
 	}

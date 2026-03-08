@@ -26,7 +26,7 @@ type (
 	}
 
 	agentHandlerUserService interface {
-		FindByHandle(ctx context.Context, handle string) (*types.User, error)
+		FindByID(ctx context.Context, ID uint64) (*types.User, error)
 	}
 )
 
@@ -46,10 +46,10 @@ func (h agentHandler) run(ctx context.Context, args *agentRunArgs) (*agentRunRes
 		return nil, fmt.Errorf("agent is not available for system invocation")
 	}
 
-	if a.Invocation.System.ServiceAccount != "" {
-		u, err := h.users.FindByHandle(ctx, a.Invocation.System.ServiceAccount)
+	if a.Invocation.System.ServiceAccount != 0 {
+		u, err := h.users.FindByID(ctx, a.Invocation.System.ServiceAccount)
 		if err != nil {
-			return nil, fmt.Errorf("could not resolve service account %q: %w", a.Invocation.System.ServiceAccount, err)
+			return nil, fmt.Errorf("could not resolve service account %d: %w", a.Invocation.System.ServiceAccount, err)
 		}
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(u.ID, u.Roles()...))
 	}

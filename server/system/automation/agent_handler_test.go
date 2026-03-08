@@ -34,7 +34,7 @@ type mockUserService struct {
 	err  error
 }
 
-func (m *mockUserService) FindByHandle(_ context.Context, _ string) (*types.User, error) {
+func (m *mockUserService) FindByID(_ context.Context, _ uint64) (*types.User, error) {
 	return m.user, m.err
 }
 
@@ -99,11 +99,11 @@ func TestAgentHandler_ServiceAccountResolved(t *testing.T) {
 			Invocation: types.AgentInvocation{
 				System: types.AgentInvocationSystem{
 					Enabled:        true,
-					ServiceAccount: "bot-user",
+					ServiceAccount: 42,
 				},
 			},
 		}},
-		users: &mockUserService{user: &types.User{ID: 42, Handle: "bot-user"}},
+		users: &mockUserService{user: &types.User{ID: 42}},
 	}
 
 	res, err := h.run(context.Background(), &agentRunArgs{AgentID: 1, Input: "hello"})
@@ -121,7 +121,7 @@ func TestAgentHandler_ServiceAccountNotFound(t *testing.T) {
 			Invocation: types.AgentInvocation{
 				System: types.AgentInvocationSystem{
 					Enabled:        true,
-					ServiceAccount: "nonexistent",
+					ServiceAccount: 99,
 				},
 			},
 		}},
