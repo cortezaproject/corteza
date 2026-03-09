@@ -13,12 +13,16 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
+        searchPlaceholder: $t(
+          'automation.sessions.list.filterForm.query.placeholder',
+          'Search sessions...',
+        ),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('automation.sessions.list.title'),
+        resourceSingle: $t('automation.sessions.list.single', 'session'),
         resourcePlural: $t('automation.sessions.list.title'),
       }"
       clickable

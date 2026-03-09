@@ -130,10 +130,6 @@ const debouncedFetch = debounce(query => {
 }, 200)
 
 function onSearch(query) {
-  // If empty query (dropdown click) and we already have options, don't refetch
-  if (!query && options.value.length > 0) {
-    return
-  }
   debouncedFetch(query)
 }
 

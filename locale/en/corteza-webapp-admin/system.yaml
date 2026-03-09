@@ -68,7 +68,7 @@ apigw:
       exclusive:
         label: Only
       deleted:
-        label: deleted routes
+        label: Deleted routes
       handle:
         placeholder: Filter endpoints by path
     delete: Delete
@@ -278,7 +278,7 @@ applications:
         deleted: Deleted
     filterForm:
       deleted:
-        label: deleted applications
+        label: Deleted applications
       excluded:
         label: Without
       exclusive:
@@ -385,7 +385,7 @@ authclients:
         deleted: Deleted
     filterForm:
       deleted:
-        label: deleted clients
+        label: Deleted clients
       excluded:
         label: Without
       exclusive:
@@ -699,7 +699,7 @@ queues:
         deleted: Deleted
     filterForm:
       deleted:
-        label: deleted queues
+        label: Deleted queues
       excluded:
         label: Without
       exclusive:
@@ -763,9 +763,9 @@ roles:
         deleted: Deleted
     filterForm:
       archived:
-        label: archived roles
+        label: Archived roles
       deleted:
-        label: deleted roles
+        label: Deleted roles
       excluded:
         label: Without
       exclusive:
@@ -820,7 +820,7 @@ sensitivityLevel:
         deleted: Deleted
     filterForm:
       deleted:
-        label: deleted sensitivity levels
+        label: Deleted sensitivity levels
       excluded:
         label: Without
       exclusive:
@@ -1046,7 +1046,7 @@ templates:
         deleted: Deleted
     filterForm:
       deleted:
-        label: deleted templates
+        label: Deleted templates
       excluded:
         label: Without
       exclusive:

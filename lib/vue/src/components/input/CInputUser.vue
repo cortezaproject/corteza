@@ -11,6 +11,7 @@
     @complete="search"
     class="w-full"
     dropdown
+    showClear
     :complete-on-focus="true"
   >
     <template #option="{ option }">
@@ -22,7 +23,7 @@
 <script setup>
 import AutoComplete from 'primevue/autocomplete'
 import { debounce } from 'lodash-es'
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useUserResolver } from '../../composables/useUserResolver'
 
 const props = defineProps({
@@ -53,26 +54,39 @@ const suggestions = ref([])
 const selectedUser = ref(null)
 const loading = ref(false)
 
+// Store cancel function for current request
+let cancelCurrentRequest = null
+
 function getOptionLabel(user) {
   return formatUser(user)
 }
 
 const search = debounce(async event => {
-  // If empty query (focus click) and we already have suggestions, don't refetch
-  if (!event.query && suggestions.value.length > 0) return
+  // Cancel previous request if pending
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+    cancelCurrentRequest = null
+  }
 
   loading.value = true
   try {
-    const response = await $SystemAPI.userList({
+    const { response, cancel } = $SystemAPI.userListCancellable({
       query: event.query,
       limit: 20,
     })
-    suggestions.value = response.set || []
+    cancelCurrentRequest = cancel
+
+    const result = await response()
+    suggestions.value = result.set || []
     cacheUsers(suggestions.value)
-  } catch {
-    suggestions.value = []
+  } catch (e) {
+    // Ignore cancelled requests
+    if (e?.message !== 'canceled') {
+      suggestions.value = []
+    }
   } finally {
     loading.value = false
+    cancelCurrentRequest = null
   }
 }, 300)
 
@@ -123,5 +137,13 @@ onMounted(() => {
   if (props.modelValue) {
     loadUserById(props.modelValue)
   }
+})
+
+onBeforeUnmount(() => {
+  // Cancel any pending request
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+  }
+  search.cancel()
 })
 </script>

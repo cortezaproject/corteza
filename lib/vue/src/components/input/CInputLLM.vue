@@ -10,6 +10,7 @@
     @complete="search"
     class="w-full"
     dropdown
+    showClear
   >
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
@@ -20,7 +21,7 @@
 <script setup>
 import AutoComplete from 'primevue/autocomplete'
 import { debounce } from 'lodash-es'
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -45,23 +46,39 @@ const suggestions = ref([])
 const selectedProvider = ref(null)
 const loading = ref(false)
 
+// Store cancel function for current request
+let cancelCurrentRequest = null
+
 function getOptionLabel(provider) {
   if (!provider) return ''
   return provider.handle || provider.meta?.short || provider.provider || provider.llmProviderID
 }
 
 const search = debounce(async event => {
+  // Cancel previous request if pending
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+    cancelCurrentRequest = null
+  }
+
   loading.value = true
   try {
-    const response = await $SystemAPI.llmProviderList({
+    const { response, cancel } = $SystemAPI.llmProviderListCancellable({
       provider: event.query || undefined,
       status: 'active',
     })
-    suggestions.value = Array.isArray(response) ? response : response.set || []
-  } catch {
-    suggestions.value = []
+    cancelCurrentRequest = cancel
+
+    const result = await response()
+    suggestions.value = Array.isArray(result) ? result : result.set || []
+  } catch (e) {
+    // Ignore cancelled requests
+    if (e?.message !== 'canceled') {
+      suggestions.value = []
+    }
   } finally {
     loading.value = false
+    cancelCurrentRequest = null
   }
 }, 300)
 
@@ -103,5 +120,13 @@ onMounted(() => {
   if (props.modelValue && props.modelValue !== '0') {
     loadProviderById(props.modelValue)
   }
+})
+
+onBeforeUnmount(() => {
+  // Cancel any pending request
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+  }
+  search.cancel()
 })
 </script>

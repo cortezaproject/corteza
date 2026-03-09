@@ -8,4 +8,4 @@ If you ever encounter something in the project that surprises you, please alert 
 - Make sure FE respects the permissioning(RBAC) system.
 
 - Always use translations for user facing text!
-  If translations don't exist(i18n). First look in old-locale if they exist, use that (file/string whatever). If they are not in old-locale, make sure to add the new translations to locale.
+  If translations don't exist(i18n). First look in old-locale if they exist, use that (file/string whatever). If they are not in old-locale, make sure to add the new translations to locale. Do not fallback translations, we need to know if they're missing.

@@ -9,229 +9,541 @@
 
   <div v-else class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <!-- General Authentication -->
-      <Panel
-        v-if="groups['auth'].length"
-        :header="$t('system.settings.editor.auth.title', 'Authentication')"
-        toggleable
-        :collapsed="false"
-        class="shadow"
-      >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in groups['auth']"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-            <div class="flex-shrink-0 w-64">
-              <ToggleSwitch
-                v-if="typeof setting.value === 'boolean'"
-                v-model="setting.value"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputText
-                v-else
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
-          </div>
-        </div>
-      </Panel>
-
       <!-- Internal Authentication -->
       <Panel
-        v-if="groups['auth.internal'].length"
         :header="$t('system.settings.editor.auth.internal.title', 'Internal')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in groups['auth.internal']"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-            <div class="flex-shrink-0 w-64">
-              <ToggleSwitch
-                v-if="typeof setting.value === 'boolean'"
-                v-model="setting.value"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputNumber
-                v-else-if="typeof setting.value === 'number'"
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputText
-                v-else
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CInputSwitch
+            v-model="settings['auth.internal.enabled']"
+            :label="
+              $t('system.settings.editor.auth.internal.enabled', 'Internal authentication enabled')
+            "
+          />
+
+          <CInputSwitch
+            v-model="settings['auth.internal.password-reset.enabled']"
+            :label="
+              $t(
+                'system.settings.editor.auth.internal.password-reset.enabled',
+                'Password reset enabled',
+              )
+            "
+          />
+
+          <CInputSwitch
+            v-model="settings['auth.internal.signup.email-confirmation-required']"
+            :label="
+              $t(
+                'system.settings.editor.auth.internal.signup.email-confirmation-required',
+                'Signup email confirmation required',
+              )
+            "
+          />
+
+          <CInputSwitch
+            v-model="settings['auth.internal.signup.enabled']"
+            :label="$t('system.settings.editor.auth.internal.signup.enabled', 'Signup enabled')"
+          />
+
+          <CInputSwitch
+            v-model="settings['auth.internal.profile-avatar.enabled']"
+            :label="
+              $t(
+                'system.settings.editor.auth.internal.profile-avatar.enabled',
+                'Profile avatar enabled',
+              )
+            "
+          />
+
+          <CInputSwitch
+            v-model="settings['auth.internal.split-credentials-check']"
+            :label="
+              $t(
+                'system.settings.editor.auth.internal.signup.split-credentials-check.label',
+                'Enable split-credentials check',
+              )
+            "
+            :description="
+              $t(
+                'system.settings.editor.auth.internal.signup.split-credentials-check.description',
+                'Split login into two steps: collect the email input first and show the input for the password on the 2nd screen.',
+              )
+            "
+          />
         </div>
       </Panel>
 
-      <!-- Authentication email sender mail -->
+      <!-- Password Constraints -->
       <Panel
-        v-if="groups['auth.mail'].length"
-        :header="$t('system.settings.editor.auth.mail.title', 'Authentication email sender mail')"
+        :header="
+          $t(
+            'system.settings.editor.auth.internal.password-constraints.title',
+            'Password constraints',
+          )
+        "
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in groups['auth.mail']"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-            <div class="flex-shrink-0 w-64">
-              <InputText
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
+        <Message v-if="!passwordSecurityEnabled" severity="warn" :closable="false" class="mb-4">
+          {{
+            $t(
+              'system.settings.editor.auth.internal.password-constraints.ignored-security',
+              'The system is configured to ignore password security constraints which is insecure on production deployments.',
+            )
+          }}
+        </Message>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-length',
+                  'Minimum length',
+                )
+              }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-length-description',
+                  'Must be at least 8 characters',
+                )
+              }}
+            </span>
+            <InputNumber
+              v-model="settings['auth.internal.password-constraints.min-length']"
+              :min="8"
+              placeholder="8"
+              class="w-full"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-num-count',
+                  'Minimum number of digits',
+                )
+              }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-num-count-description',
+                  'The password must include the specified number of digits (disabled if set to 0)',
+                )
+              }}
+            </span>
+            <InputNumber
+              v-model="settings['auth.internal.password-constraints.min-num-count']"
+              :min="0"
+              placeholder="0"
+              class="w-full"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-upper-case-length',
+                  'Minimum number of upper case characters',
+                )
+              }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-upper-case-description',
+                  'The password must include the specified number of upper case characters (disabled if set to 0)',
+                )
+              }}
+            </span>
+            <InputNumber
+              v-model="settings['auth.internal.password-constraints.min-upper-case']"
+              :min="0"
+              placeholder="0"
+              class="w-full"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-lower-case-length',
+                  'Minimum number of lower case characters',
+                )
+              }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-lower-case-description',
+                  'The password must include the specified number of lower case characters (disabled if set to 0)',
+                )
+              }}
+            </span>
+            <InputNumber
+              v-model="settings['auth.internal.password-constraints.min-lower-case']"
+              :min="0"
+              placeholder="0"
+              class="w-full"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-special-count',
+                  'Minimum number of special characters',
+                )
+              }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.password-constraints.min-special-count-description',
+                  'The password must include the specified number of special characters (disabled if set to 0)',
+                )
+              }}
+            </span>
+            <InputNumber
+              v-model="settings['auth.internal.password-constraints.min-special-count']"
+              :min="0"
+              placeholder="0"
+              class="w-full"
+            />
           </div>
         </div>
       </Panel>
 
       <!-- Multi-factor authentication -->
       <Panel
-        v-if="groups['auth.mfa'].length"
         :header="$t('system.settings.editor.auth.mfa.title', 'Multi-factor authentication')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in groups['auth.mfa']"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-            <div class="flex-shrink-0 w-64">
-              <ToggleSwitch
-                v-if="typeof setting.value === 'boolean'"
-                v-model="setting.value"
-                @update:modelValue="markDirty(setting)"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <CInputSwitch
+            v-model="settings['auth.multi-factor.email-otp.enabled']"
+            :label="$t('system.settings.editor.auth.mfa.emailOTP.enabled', 'Enable email OTP')"
+            @update:modelValue="
+              v => {
+                if (!v) settings['auth.multi-factor.email-otp.enforced'] = false
+              }
+            "
+          />
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.label', 'Valid for') }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.mfa.emailOTP.expires.description',
+                  'How long will password be valid before it expires',
+                )
+              }}
+            </span>
+            <InputGroup>
+              <InputNumber
+                v-model="settings['auth.multi-factor.email-otp.expires']"
+                placeholder="60"
               />
-              <InputText
-                v-else
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
+              <InputGroupAddon>{{ $t('general.label.seconds', 'seconds') }}</InputGroupAddon>
+            </InputGroup>
+          </div>
+
+          <CInputSwitch
+            v-if="settings['auth.multi-factor.email-otp.enabled']"
+            v-model="settings['auth.multi-factor.email-otp.enforced']"
+            :label="
+              $t(
+                'system.settings.editor.auth.mfa.emailOTP.enforced',
+                'Require all users to use email OTP',
+              )
+            "
+          />
+        </div>
+
+        <Divider />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CInputSwitch
+            v-model="settings['auth.multi-factor.totp.enabled']"
+            :label="$t('system.settings.editor.auth.mfa.TOTP.enabled', 'Enable TOTP')"
+            @update:modelValue="
+              v => {
+                if (!v) settings['auth.multi-factor.totp.enforced'] = false
+              }
+            "
+          />
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.label', 'Issuer') }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.mfa.TOTP.issuer.description',
+                  'Issuer name will be sent to authenticator app when user configures it',
+                )
+              }}
+            </span>
+            <InputText
+              v-model="settings['auth.multi-factor.totp.issuer']"
+              placeholder="Corteza"
+              class="w-full"
+            />
+          </div>
+
+          <CInputSwitch
+            v-if="settings['auth.multi-factor.totp.enabled']"
+            v-model="settings['auth.multi-factor.totp.enforced']"
+            :label="
+              $t('system.settings.editor.auth.mfa.TOTP.enforced', 'Require all users to use TOTP')
+            "
+          />
+        </div>
+      </Panel>
+
+      <!-- Authentication email sender mail -->
+      <Panel
+        :header="$t('system.settings.editor.auth.mail.title', 'Authentication email sender mail')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('system.settings.editor.auth.mail.from-address', "Sender's address") }}
+            </label>
+            <InputText v-model="settings['auth.mail.from-address']" type="email" class="w-full" />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('system.settings.editor.auth.mail.from-name', "Sender's name") }}
+            </label>
+            <InputText v-model="settings['auth.mail.from-name']" class="w-full" />
+          </div>
+        </div>
+      </Panel>
+
+      <!-- Invite email -->
+      <Panel
+        :header="
+          $t('system.settings.editor.auth.internal.send-user-invite-email.title', 'Invite email')
+        "
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CInputSwitch
+            v-model="settings['auth.internal.send-user-invite-email.enabled']"
+            :label="
+              $t(
+                'system.settings.editor.auth.internal.send-user-invite-email.enabled',
+                'Send invite email on user creation',
+              )
+            "
+            :description="
+              $t(
+                'system.settings.editor.auth.internal.send-user-invite-email.description',
+                'When enabled, this configuration sends an invite email to a newly created user via the CLI',
+              )
+            "
+          />
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.send-user-invite-email.expires.label',
+                  'Valid for',
+                )
+              }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.internal.send-user-invite-email.expires.description',
+                  'How long will the invite token be valid before it expires',
+                )
+              }}
+            </span>
+            <InputGroup>
+              <InputNumber v-model="settings['auth.internal.send-user-invite-email.expires']" />
+              <InputGroupAddon>{{ $t('general.label.hours', 'hours') }}</InputGroupAddon>
+            </InputGroup>
           </div>
         </div>
       </Panel>
 
       <!-- Auto logout -->
       <Panel
-        v-if="groups['auth.auto-logout'].length"
         :header="$t('system.settings.editor.auth.auto-logout.title', 'Auto logout')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in groups['auth.auto-logout']"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-            <div class="flex-shrink-0 w-64">
-              <ToggleSwitch
-                v-if="typeof setting.value === 'boolean'"
-                v-model="setting.value"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputNumber
-                v-else-if="typeof setting.value === 'number'"
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputText
-                v-else
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CInputSwitch
+            v-model="settings['auth.auto-logout.enabled']"
+            :label="$t('system.settings.editor.auth.auto-logout.enabled.label', 'Enabled')"
+            :description="
+              $t(
+                'system.settings.editor.auth.auto-logout.enabled.description',
+                'Automatically log out users after a certain period of inactivity',
+              )
+            "
+          />
+
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('system.settings.editor.auth.auto-logout.timeout.label', 'Timeout') }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{
+                $t(
+                  'system.settings.editor.auth.auto-logout.timeout.description',
+                  'The period of inactivity in seconds before a user is logged out',
+                )
+              }}
+            </span>
+            <InputGroup>
+              <InputNumber v-model="settings['auth.auto-logout.timeout']" />
+              <InputGroupAddon>{{ $t('general.label.seconds', 'seconds') }}</InputGroupAddon>
+            </InputGroup>
           </div>
         </div>
       </Panel>
 
       <!-- External Authentication Providers -->
       <Panel
-        v-if="groups['auth.external'].length"
         :header="$t('system.settings.editor.external.title', 'External Authentication Providers')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in groups['auth.external']"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-            <div class="flex-shrink-0 w-64">
-              <ToggleSwitch
-                v-if="typeof setting.value === 'boolean'"
-                v-model="setting.value"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputText
-                v-else
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <Button
+              :label="$t('system.settings.editor.external.oidc.add', 'Add an OIDC provider')"
+              icon="pi pi-plus"
+              severity="primary"
+              @click="newOIDC"
+            />
+            <CInputSwitch
+              v-model="external.enabled"
+              :label="
+                $t('system.settings.editor.external.enabled', 'Enable external authentication')
+              "
+            />
           </div>
+
+          <DataTable :value="providerItems" class="border rounded">
+            <Column
+              :header="$t('system.settings.editor.external.table.header.enabled', 'Enabled')"
+              style="width: 80px"
+            >
+              <template #body="{ data }">
+                <Checkbox
+                  :model-value="data.enabled"
+                  :binary="true"
+                  @update:model-value="data.enable($event)"
+                />
+              </template>
+            </Column>
+
+            <Column
+              :header="$t('system.settings.editor.external.table.header.provider', 'Provider')"
+              style="width: 200px"
+            >
+              <template #body="{ data }">
+                <span :class="{ 'line-through opacity-40': data.deleted }">
+                  {{ data.provider || data.tag }}
+                </span>
+              </template>
+            </Column>
+
+            <Column
+              :header="$t('system.settings.editor.external.table.header.info', 'Issuer, client ID')"
+            >
+              <template #body="{ data }">
+                <span :class="{ 'line-through opacity-40': data.deleted }">
+                  {{ data.info }}
+                </span>
+              </template>
+            </Column>
+
+            <Column style="width: 120px">
+              <template #body="{ data }">
+                <div class="flex items-center justify-end gap-1">
+                  <Button
+                    v-if="data.canDelete"
+                    :icon="data.deleted ? 'pi pi-undo' : 'pi pi-trash'"
+                    :severity="data.deleted ? 'warn' : 'danger'"
+                    text
+                    rounded
+                    size="small"
+                    @click="data.toggleDelete()"
+                  />
+                  <Button
+                    icon="pi pi-pencil"
+                    text
+                    rounded
+                    size="small"
+                    @click="openEditor(data.editor)"
+                  />
+                </div>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </Panel>
+
+      <!-- Provider editor dialog -->
+      <Dialog
+        v-model:visible="modal.open"
+        :header="modal.title"
+        modal
+        :style="{ width: '50rem' }"
+        :breakpoints="{ '768px': '90vw' }"
+      >
+        <component
+          :is="modal.component"
+          v-if="modal.component && modal.data"
+          v-model="modal.data"
+        />
+        <template #footer>
+          <Button
+            :label="$t('general.label.cancel', 'Cancel')"
+            severity="secondary"
+            text
+            @click="modal.open = false"
+          />
+          <Button
+            :label="$t('general.label.save', 'Save')"
+            icon="pi pi-check"
+            @click="applyModal"
+          />
+        </template>
+      </Dialog>
     </div>
 
     <div class="shrink-0 border-t border-surface bg-surface">
@@ -240,7 +552,6 @@
           :label="$t('general.label.save')"
           icon="pi pi-save"
           :loading="saving"
-          :disabled="dirtySettings.size === 0"
           @click="handleSave"
         />
       </div>
@@ -249,8 +560,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isEqual } from 'lodash-es'
+import ExternalStd from './auth/ExternalStd.vue'
+import ExternalOIDC from './auth/ExternalOIDC.vue'
+import ExternalSAML from './auth/ExternalSAML.vue'
 
 const { t } = useI18n()
 
@@ -259,148 +574,329 @@ const $SystemAPI = inject('$SystemAPI')
 
 const loading = ref(false)
 const saving = ref(false)
-const rawSettings = ref([])
-const dirtySettings = ref(new Set())
+const settings = reactive({})
+const passwordSecurityEnabled = ref(true)
 
-// Human-readable labels for known auth setting keys
-const settingLabels = computed(() => ({
-  'auth.url': t('system.settings.editor.auth.url', 'URL'),
-  'auth.internal.enabled': t(
-    'system.settings.editor.auth.internal.enabled',
-    'Internal authentication enabled',
-  ),
-  'auth.internal.signup.enabled': t(
-    'system.settings.editor.auth.internal.signup.enabled',
-    'Signup enabled',
-  ),
-  'auth.internal.signup.email-confirmation-required': t(
-    'system.settings.editor.auth.internal.signup.email-confirmation-required',
-    'Email confirmation required',
-  ),
-  'auth.internal.signup.split-credentials-check': t(
-    'system.settings.editor.auth.internal.signup.split-credentials-check.label',
-    'Enable split-credentials check',
-  ),
-  'auth.internal.password-reset.enabled': t(
-    'system.settings.editor.auth.internal.password-reset.enabled',
-    'Password reset enabled',
-  ),
-  'auth.internal.password-constraints.min-length': t(
-    'system.settings.editor.auth.internal.password-constraints.min-length',
-    'Minimum length',
-  ),
-  'auth.internal.password-constraints.min-num-count': t(
-    'system.settings.editor.auth.internal.password-constraints.min-num-count',
-    'Minimum number of digits',
-  ),
-  'auth.internal.password-constraints.min-special-count': t(
-    'system.settings.editor.auth.internal.password-constraints.min-special-count',
-    'Minimum number of special characters',
-  ),
-  'auth.internal.password-constraints.min-upper-case-length': t(
-    'system.settings.editor.auth.internal.password-constraints.min-upper-case-length',
-    'Minimum number of upper case characters',
-  ),
-  'auth.internal.password-constraints.min-lower-case-length': t(
-    'system.settings.editor.auth.internal.password-constraints.min-lower-case-length',
-    'Minimum number of lower case characters',
-  ),
-  'auth.internal.profile-avatar.enabled': t(
-    'system.settings.editor.auth.internal.profile-avatar.enabled',
-    'Profile avatar enabled',
-  ),
-  'auth.internal.send-user-invite-email.enabled': t(
-    'system.settings.editor.auth.internal.send-user-invite-email.enabled',
-    'Send invite email on user creation',
-  ),
-  'auth.internal.send-user-invite-email.expires': t(
-    'system.settings.editor.auth.internal.send-user-invite-email.expires.label',
-    'Valid for',
-  ),
-  'auth.mail.from-address': t('system.settings.editor.auth.mail.from-address', "Sender's address"),
-  'auth.mail.from-name': t('system.settings.editor.auth.mail.from-name', "Sender's name"),
-  'auth.mfa.totp.enabled': t('system.settings.editor.auth.mfa.TOTP.enabled', 'Enable TOTP'),
-  'auth.mfa.totp.enforced': t(
-    'system.settings.editor.auth.mfa.TOTP.enforced',
-    'Require all users to use TOTP',
-  ),
-  'auth.mfa.totp.issuer': t('system.settings.editor.auth.mfa.TOTP.issuer.label', 'Issuer'),
-  'auth.mfa.email-otp.enabled': t(
-    'system.settings.editor.auth.mfa.emailOTP.enabled',
-    'Enable email OTP',
-  ),
-  'auth.mfa.email-otp.enforced': t(
-    'system.settings.editor.auth.mfa.emailOTP.enforced',
-    'Require all users to use email OTP',
-  ),
-  'auth.mfa.email-otp.expires': t(
-    'system.settings.editor.auth.mfa.emailOTP.expires.label',
-    'Valid for',
-  ),
-  'auth.auto-logout.enabled': t('system.settings.editor.auth.auto-logout.enabled.label', 'Enabled'),
-  'auth.auto-logout.timeout': t('system.settings.editor.auth.auto-logout.timeout.label', 'Timeout'),
-  'auth.session-lifetime': t(
-    'system.settings.editor.label.auth-session-lifetime',
-    'Session lifetime',
-  ),
-  'auth.external.enabled': t(
-    'system.settings.editor.external.enabled',
-    'Enable external authentication',
-  ),
-}))
-
-// Group prefixes in display order (most specific first for matching)
-const groupPrefixes = [
-  'auth.internal',
-  'auth.mail',
-  'auth.mfa',
-  'auth.auto-logout',
-  'auth.external',
-  'auth',
-]
-
-// Build grouped settings
-const groups = computed(() => {
-  const result = {}
-  for (const prefix of groupPrefixes) {
-    result[prefix] = []
-  }
-
-  for (const setting of rawSettings.value) {
-    const prefix = getGroupPrefix(setting.name)
-    if (prefix && result[prefix]) {
-      result[prefix].push(setting)
-    }
-  }
-
-  return result
+// External auth state
+const external = reactive({
+  enabled: false,
+  saml: {},
+  oidc: [],
+  standard: [],
 })
 
-function getGroupPrefix(name) {
-  // Try longest matching prefix first
-  const sorted = [...groupPrefixes].sort((a, b) => b.length - a.length)
-  for (const prefix of sorted) {
-    if (name.startsWith(prefix + '.') || name === prefix) {
-      return prefix
-    }
-  }
-  return 'auth'
+// Original state for dirty tracking
+let originalExternal = null
+
+// Modal state
+const modal = reactive({
+  open: false,
+  component: null,
+  title: '',
+  data: null,
+  updater: null,
+})
+
+const idpStandard = ['google', 'github', 'facebook', 'linkedin']
+
+const idpSecurity = {
+  permittedRoles: [],
+  prohibitedRoles: [],
+  forcedRoles: [],
 }
 
-function markDirty(setting) {
-  dirtySettings.value = new Set([...dirtySettings.value, setting.name])
+// Table items
+const providerItems = computed(() => {
+  const items = []
+
+  // SAML row
+  items.push({
+    provider: external.saml.name,
+    info: external.saml.idp?.url || '',
+    tag: 'SAML',
+    enabled: external.saml.enabled,
+    enable: val => {
+      external.saml.enabled = val
+    },
+    canDelete: false,
+    deleted: false,
+    editor: {
+      component: ExternalSAML,
+      data: external.saml,
+      title: t('system.settings.editor.external.saml.title', 'SAML'),
+      updater: changed => updater('saml', changed),
+    },
+  })
+
+  // OIDC rows
+  external.oidc.forEach((p, i) => {
+    items.push({
+      provider: p.handle,
+      tag: 'OIDC',
+      info: p.issuer,
+      enabled: p.enabled,
+      deleted: p.deleted,
+      enable: val => {
+        external.oidc[i].enabled = val
+      },
+      canDelete: true,
+      toggleDelete: () => {
+        external.oidc[i].deleted = !p.deleted
+      },
+      editor: {
+        component: ExternalOIDC,
+        data: p,
+        title: p.handle || t('system.settings.editor.external.oidc.title', 'OpenID Connect'),
+        updater: changed => updater('oidc', changed, i),
+      },
+    })
+  })
+
+  // Standard rows
+  external.standard.forEach((p, i) => {
+    items.push({
+      provider: p.handle,
+      info: p.key,
+      enabled: p.enabled,
+      enable: val => {
+        external.standard[i].enabled = val
+      },
+      canDelete: false,
+      deleted: false,
+      editor: {
+        component: ExternalStd,
+        data: p,
+        title: p.handle,
+        updater: changed => updater('standard', changed, i),
+      },
+    })
+  })
+
+  return items
+})
+
+function openEditor({ component, title, data, updater }) {
+  modal.open = true
+  modal.component = shallowRef(component)
+  modal.title = title
+  modal.updater = updater
+  // Deep clone to avoid mutating original until confirmed
+  modal.data = JSON.parse(JSON.stringify(data))
+}
+
+function applyModal() {
+  if (modal.updater) {
+    modal.updater(modal.data)
+  }
+  modal.open = false
+}
+
+function newOIDC() {
+  const data = {
+    handle: '',
+    enabled: true,
+    issuer: '',
+    key: '',
+    secret: '',
+    scope: '',
+    fresh: true,
+    security: { ...idpSecurity },
+  }
+
+  openEditor({
+    component: ExternalOIDC,
+    title: t('system.settings.editor.external.oidc.add', 'Add an OIDC provider'),
+    data,
+    updater: changed => updater('oidc', changed, -1),
+  })
+}
+
+function updater(key, val, i = undefined) {
+  if (i === undefined) {
+    Object.assign(external[key], val)
+  } else if (i < 0) {
+    external[key].push(val)
+  } else {
+    external[key][i] = val
+  }
+}
+
+// Parse settings into structured external auth data
+function prepareExternal(allSettings) {
+  const extractKey = (name, type = 'string') => {
+    const v = allSettings.find(s => s.name === `auth.external.${name}`)
+    switch (type) {
+      case 'boolean':
+        return !!(v || { value: null }).value
+      case 'array':
+        return (v || { value: [] }).value || []
+      case undefined:
+        return v ? v.value : undefined
+      default:
+        return (v || { value: null }).value || ''
+    }
+  }
+
+  const extractKeys = (provider, base = {}) => {
+    const out = { ...base }
+    for (const k in base) {
+      out[k] = extractKey(
+        `providers.${provider}.${k}`,
+        Array.isArray(out[k]) ? 'array' : typeof out[k],
+      )
+    }
+    return out
+  }
+
+  const extractSec = prefix => {
+    return { ...idpSecurity, ...(extractKey(`${prefix}.security`, undefined) || {}) }
+  }
+
+  const data = {
+    enabled: !!(allSettings.find(v => v.name === 'auth.external.enabled') || {}).value,
+
+    saml: {
+      enabled: extractKey('saml.enabled'),
+      cert: extractKey('saml.cert'),
+      name: extractKey('saml.name'),
+      key: extractKey('saml.key'),
+      'sign-method': extractKey('saml.sign-method'),
+      'sign-requests': extractKey('saml.sign-requests', 'boolean'),
+      binding: extractKey('saml.binding'),
+      idp: {
+        url: extractKey('saml.idp.url'),
+        'ident-name': extractKey('saml.idp.ident-name'),
+        'ident-handle': extractKey('saml.idp.ident-handle'),
+        'ident-identifier': extractKey('saml.idp.ident-identifier'),
+      },
+      security: extractSec('saml'),
+    },
+
+    oidc: [],
+    standard: [],
+  }
+
+  // Standard providers
+  data.standard = idpStandard.map(handle => ({
+    handle,
+    ...extractKeys(handle, {
+      enabled: false,
+      secret: '',
+      key: '',
+      security: {},
+      usage: [],
+    }),
+    security: extractSec(`providers.${handle}`),
+  }))
+
+  // OIDC providers (dynamic)
+  const prefix = 'auth.external.providers.openid-connect.'
+  const oidcHandles = [
+    ...new Set(
+      allSettings
+        .filter(v => v.name.indexOf(prefix) === 0)
+        .map(({ name }) => name.substring(prefix.length).split('.', 2)[0]),
+    ),
+  ]
+
+  data.oidc = oidcHandles.map(handle => ({
+    ...extractKeys('openid-connect.' + handle, {
+      enabled: false,
+      issuer: '',
+      key: '',
+      secret: '',
+      scope: '',
+      security: {},
+    }),
+    handle,
+    security: extractSec('providers.openid-connect.' + handle),
+    deleted: false,
+  }))
+
+  return data
+}
+
+// Convert structured external data back to flat settings for saving
+function getExternalChanges() {
+  const c = []
+  const prefix = 'auth.external.providers'
+  const o = originalExternal
+  const e = external
+
+  if (!isEqual(o.enabled, e.enabled)) {
+    c.push({ name: 'auth.external.enabled', value: e.enabled })
+  }
+
+  const mapKeys = (pfx, wc, org, keys) => {
+    for (const k of keys) {
+      if (!isEqual(wc[k], org[k])) {
+        c.push({ name: `${pfx}.${k}`, value: wc[k] })
+      }
+    }
+  }
+
+  // Standard providers
+  e.standard.forEach((p, i) => {
+    mapKeys(`${prefix}.${p.handle}`, p, o.standard[i], [
+      'key',
+      'secret',
+      'enabled',
+      'security',
+      'usage',
+    ])
+  })
+
+  // OIDC providers
+  const oidcKeys = ['key', 'secret', 'enabled', 'issuer', 'scope', 'security']
+  e.oidc.forEach((p, i) => {
+    if (p.deleted) {
+      ;[...oidcKeys, 'weight', 'redirect', 'label'].forEach(name =>
+        c.push({ name: `${prefix}.openid-connect.${p.handle}.${name}`, value: null }),
+      )
+    } else {
+      mapKeys(`${prefix}.openid-connect.${p.handle}`, p, o.oidc[i] || {}, oidcKeys)
+    }
+  })
+
+  // SAML
+  mapKeys('auth.external.saml', e.saml, o.saml, [
+    'enabled',
+    'name',
+    'key',
+    'cert',
+    'sign-method',
+    'sign-requests',
+    'binding',
+    'security',
+  ])
+
+  mapKeys('auth.external.saml.idp', e.saml.idp, o.saml.idp, [
+    'url',
+    'ident-name',
+    'ident-handle',
+    'ident-identifier',
+  ])
+
+  return c
 }
 
 async function loadSettings() {
   loading.value = true
   try {
     const result = await $SystemAPI.settingsList({ prefix: 'auth.' })
-    rawSettings.value = (result || []).map(s => ({
-      name: s.name,
-      label: settingLabels.value[s.name] || s.name.split('.').pop(),
-      value: parseValue(s.value),
-      originalValue: s.value,
-    }))
+    const allSettings = result || []
+
+    for (const s of allSettings) {
+      settings[s.name] = parseValue(s.value)
+    }
+
+    // Check password security from settings
+    passwordSecurityEnabled.value = !!settings['auth.internal.passwordConstraints.passwordSecurity']
+
+    // Parse external auth into structured data
+    const parsed = prepareExternal(allSettings)
+    Object.assign(external, parsed)
+    originalExternal = JSON.parse(JSON.stringify(parsed))
   } catch (e) {
     $toast.toastErrorHandler(t('notification.settings.fetch.error', 'Failed to load settings'))(e)
   } finally {
@@ -419,25 +915,23 @@ function parseValue(raw) {
   return raw
 }
 
-function serializeValue(value) {
-  if (typeof value === 'boolean') return value
-  if (typeof value === 'number') return value
-  return value
-}
-
 async function handleSave() {
   saving.value = true
   try {
-    const values = rawSettings.value
-      .filter(s => dirtySettings.value.has(s.name))
-      .map(s => ({
-        name: s.name,
-        value: serializeValue(s.value),
-      }))
+    const values = Object.entries(settings).map(([name, value]) => ({
+      name,
+      value,
+    }))
+
+    // Add external auth changes
+    const externalChanges = getExternalChanges()
+    values.push(...externalChanges)
 
     await $SystemAPI.settingsUpdate({ values })
-    dirtySettings.value = new Set()
     $toast.toastSuccess(t('notification.settings.update.success', 'Settings saved'))
+
+    // Reload to refresh original state
+    await loadSettings()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.settings.update.error', 'Failed to save settings'))(e)
   } finally {

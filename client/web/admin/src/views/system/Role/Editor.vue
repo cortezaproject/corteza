@@ -62,7 +62,7 @@
         v-if="isEdit"
         :header="$t('system.roles.editor.members.title', 'Members')"
         toggleable
-        :collapsed="true"
+        :collapsed="false"
       >
         <RoleMembers
           :role="role"
@@ -217,7 +217,9 @@ async function handleSubmit({ valid }) {
       const removed = [...initialMemberIDs.value].filter(id => !memberIDs.value.has(id))
       await Promise.all([
         ...added.map(userID => $SystemAPI.roleMemberAdd({ roleID: role.value.roleID, userID })),
-        ...removed.map(userID => $SystemAPI.roleMemberRemove({ roleID: role.value.roleID, userID })),
+        ...removed.map(userID =>
+          $SystemAPI.roleMemberRemove({ roleID: role.value.roleID, userID }),
+        ),
       ])
       initialMemberIDs.value = new Set(memberIDs.value)
 

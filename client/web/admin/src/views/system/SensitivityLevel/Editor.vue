@@ -48,7 +48,12 @@
             </label>
             <InputNumber id="level" v-model="sensitivityLevel.level" :min="0" />
             <small class="text-surface-500">
-              {{ $t('system.sensitivityLevel.editor.info.level.hint', 'Higher number = more sensitive') }}
+              {{
+                $t(
+                  'system.sensitivityLevel.editor.info.level.hint',
+                  'Higher number = more sensitive',
+                )
+              }}
             </small>
           </div>
         </div>
@@ -65,7 +70,7 @@
         />
         <div class="flex gap-2">
           <CInputDelete
-            v-if="isEdit"
+            v-if="isEdit && sensitivityLevel.canDeleteDalSensitivityLevel"
             :label="$t('system.sensitivityLevel.editor.info.delete', 'Delete')"
             :message="$t('general.confirm.delete')"
             :header="sensitivityLevel.name || sensitivityLevel.handle"
@@ -125,7 +130,9 @@ const resolver = ref(({ values }) => {
   }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
-    errors.handle = [{ message: t('system.sensitivityLevel.editor.info.handle.invalid-characters') }]
+    errors.handle = [
+      { message: t('system.sensitivityLevel.editor.info.handle.invalid-characters') },
+    ]
   }
 
   return { errors }
@@ -142,7 +149,9 @@ async function loadSensitivityLevel() {
   try {
     sensitivityLevel.value = await $SystemAPI.dalSensitivityLevelRead({ sensitivityLevelID })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.sensitivityLevel.fetch.error', 'Failed to load sensitivity level'))(e)
+    $toast.toastErrorHandler(
+      t('notification.sensitivityLevel.fetch.error', 'Failed to load sensitivity level'),
+    )(e)
     router.push({ name: 'system.sensitivityLevels' })
   } finally {
     loading.value = false
@@ -163,15 +172,25 @@ async function handleSubmit({ valid }) {
     if (isEdit.value) {
       payload.sensitivityLevelID = sensitivityLevel.value.sensitivityLevelID
       sensitivityLevel.value = await $SystemAPI.dalSensitivityLevelUpdate(payload)
-      $toast.toastSuccess(t('notification.sensitivityLevel.update.success', 'Sensitivity level updated'))
+      $toast.toastSuccess(
+        t('notification.sensitivityLevel.update.success', 'Sensitivity level updated'),
+      )
     } else {
       const created = await $SystemAPI.dalSensitivityLevelCreate(payload)
-      $toast.toastSuccess(t('notification.sensitivityLevel.create.success', 'Sensitivity level created'))
-      router.push({ name: 'system.sensitivityLevels.edit', params: { sensitivityLevelID: created.sensitivityLevelID } })
+      $toast.toastSuccess(
+        t('notification.sensitivityLevel.create.success', 'Sensitivity level created'),
+      )
+      router.push({
+        name: 'system.sensitivityLevels.edit',
+        params: { sensitivityLevelID: created.sensitivityLevelID },
+      })
     }
   } catch (e) {
     $toast.toastErrorHandler(
-      t(`notification.sensitivityLevel.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save sensitivity level'),
+      t(
+        `notification.sensitivityLevel.${isEdit.value ? 'update' : 'create'}.error`,
+        'Failed to save sensitivity level',
+      ),
     )(e)
   } finally {
     saving.value = false
@@ -181,16 +200,25 @@ async function handleSubmit({ valid }) {
 async function handleDelete() {
   deleting.value = true
   try {
-    await $SystemAPI.dalSensitivityLevelDelete({ sensitivityLevelID: sensitivityLevel.value.sensitivityLevelID })
-    $toast.toastSuccess(t('notification.sensitivityLevel.delete.success', 'Sensitivity level deleted'))
+    await $SystemAPI.dalSensitivityLevelDelete({
+      sensitivityLevelID: sensitivityLevel.value.sensitivityLevelID,
+    })
+    $toast.toastSuccess(
+      t('notification.sensitivityLevel.delete.success', 'Sensitivity level deleted'),
+    )
     router.push({ name: 'system.sensitivityLevels' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.sensitivityLevel.delete.error', 'Failed to delete sensitivity level'))(e)
+    $toast.toastErrorHandler(
+      t('notification.sensitivityLevel.delete.error', 'Failed to delete sensitivity level'),
+    )(e)
   } finally {
     deleting.value = false
   }
 }
 
 onMounted(() => loadSensitivityLevel())
-watch(() => route.params.sensitivityLevelID, () => loadSensitivityLevel())
+watch(
+  () => route.params.sensitivityLevelID,
+  () => loadSensitivityLevel(),
+)
 </script>

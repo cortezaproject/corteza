@@ -187,14 +187,18 @@ function toggleActionsMenu(event, item) {
 }
 
 function getActionsMenuItems(item) {
-  return [
-    {
+  const items = []
+
+  if (item.canDeleteDalSensitivityLevel) {
+    items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
       class: 'text-red-500',
       command: () => onConfirmDelete(item),
-    },
-  ]
+    })
+  }
+
+  return items
 }
 
 function onConfirmDelete(item) {

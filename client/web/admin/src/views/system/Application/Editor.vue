@@ -51,7 +51,7 @@
       <Panel
         :header="$t('system.applications.editor.unify.title', 'Unify integration')"
         toggleable
-        :collapsed="true"
+        :collapsed="false"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
@@ -162,7 +162,9 @@ async function loadApplication() {
     const raw = await $SystemAPI.applicationRead({ applicationID })
     application.value = new system.Application(raw)
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.application.fetch.error', 'Failed to load application'))(e)
+    $toast.toastErrorHandler(
+      t('notification.application.fetch.error', 'Failed to load application'),
+    )(e)
     router.push({ name: 'system.applications' })
   } finally {
     loading.value = false
@@ -189,11 +191,17 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.applicationCreate(payload)
       $toast.toastSuccess(t('notification.application.create.success', 'Application created'))
-      router.push({ name: 'system.applications.edit', params: { applicationID: created.applicationID } })
+      router.push({
+        name: 'system.applications.edit',
+        params: { applicationID: created.applicationID },
+      })
     }
   } catch (e) {
     $toast.toastErrorHandler(
-      t(`notification.application.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save application'),
+      t(
+        `notification.application.${isEdit.value ? 'update' : 'create'}.error`,
+        'Failed to save application',
+      ),
     )(e)
   } finally {
     saving.value = false
@@ -207,12 +215,17 @@ async function handleDelete() {
     $toast.toastSuccess(t('notification.application.delete.success', 'Application deleted'))
     router.push({ name: 'system.applications' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.application.delete.error', 'Failed to delete application'))(e)
+    $toast.toastErrorHandler(
+      t('notification.application.delete.error', 'Failed to delete application'),
+    )(e)
   } finally {
     deleting.value = false
   }
 }
 
 onMounted(() => loadApplication())
-watch(() => route.params.applicationID, () => loadApplication())
+watch(
+  () => route.params.applicationID,
+  () => loadApplication(),
+)
 </script>

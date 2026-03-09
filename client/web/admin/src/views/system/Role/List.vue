@@ -243,6 +243,7 @@ function getActionsMenuItems(role) {
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
+      class: 'text-red-500',
       command: () => onConfirmDelete(role),
     })
   }

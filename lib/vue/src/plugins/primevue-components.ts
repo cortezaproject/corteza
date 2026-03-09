@@ -1,4 +1,5 @@
 import type { App, Plugin } from 'vue'
+import CInputSwitch from '../components/input/CInputSwitch.vue'
 
 import Accordion from 'primevue/accordion'
 import AccordionContent from 'primevue/accordioncontent'
@@ -107,5 +108,8 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('ToggleSwitch', ToggleSwitch)
     app.component('FileUpload', FileUpload)
     app.component('Tree', Tree)
+
+    // Corteza shared components
+    app.component('CInputSwitch', CInputSwitch)
   },
 }

@@ -75,7 +75,7 @@
         />
         <div class="flex gap-2">
           <CInputDelete
-            v-if="isEdit"
+            v-if="isEdit && queue.canDeleteQueue"
             :label="$t('system.queues.editor.delete', 'Delete')"
             :message="$t('general.confirm.delete')"
             :header="queue.queue || queue.queueID"
@@ -116,7 +116,10 @@ const queue = ref(null)
 
 const consumerOptions = computed(() => [
   { label: t('system.queues.editor.info.consumerOptions.store', 'Store'), value: 'store' },
-  { label: t('system.queues.editor.info.consumerOptions.eventbus', 'Event Bus'), value: 'eventbus' },
+  {
+    label: t('system.queues.editor.info.consumerOptions.eventbus', 'Event Bus'),
+    value: 'eventbus',
+  },
 ])
 
 const isEdit = computed(() => !!route.params.queueID)
@@ -225,5 +228,8 @@ async function handleDelete() {
 }
 
 onMounted(() => loadQueue())
-watch(() => route.params.queueID, () => loadQueue())
+watch(
+  () => route.params.queueID,
+  () => loadQueue(),
+)
 </script>

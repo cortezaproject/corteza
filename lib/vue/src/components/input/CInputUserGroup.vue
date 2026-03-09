@@ -11,6 +11,7 @@
     @complete="search"
     class="w-full"
     dropdown
+    showClear
   >
     <template #option="{ option }">
       <div class="flex items-center gap-2">
@@ -23,7 +24,7 @@
 <script setup>
 import AutoComplete from 'primevue/autocomplete'
 import { debounce } from 'lodash-es'
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -52,23 +53,39 @@ const suggestions = ref([])
 const selectedUserGroup = ref(null)
 const loading = ref(false)
 
+// Store cancel function for current request
+let cancelCurrentRequest = null
+
 function getOptionLabel(userGroup) {
   if (!userGroup) return ''
   return userGroup.name || userGroup.meta?.short || userGroup.handle || userGroup.userGroupID
 }
 
 const search = debounce(async event => {
+  // Cancel previous request if pending
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+    cancelCurrentRequest = null
+  }
+
   loading.value = true
   try {
-    const response = await $SystemAPI.userGroupList({
+    const { response, cancel } = $SystemAPI.userGroupListCancellable({
       query: event.query,
       limit: 20,
     })
-    suggestions.value = response.set || []
-  } catch {
-    suggestions.value = []
+    cancelCurrentRequest = cancel
+
+    const result = await response()
+    suggestions.value = result.set || []
+  } catch (e) {
+    // Ignore cancelled requests
+    if (e?.message !== 'canceled') {
+      suggestions.value = []
+    }
   } finally {
     loading.value = false
+    cancelCurrentRequest = null
   }
 }, 300)
 
@@ -119,5 +136,13 @@ onMounted(() => {
   ) {
     loadUserGroupById(props.modelValue)
   }
+})
+
+onBeforeUnmount(() => {
+  // Cancel any pending request
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+  }
+  search.cancel()
 })
 </script>

@@ -27,7 +27,9 @@
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
             <TabList class="rounded-t-lg shrink-0">
               <Tab value="route">{{ $t('system.apigw.editor.tabs.route', 'Route') }}</Tab>
-              <Tab v-if="isEdit" value="filters">{{ $t('system.apigw.editor.tabs.filters', 'Filters') }}</Tab>
+              <Tab v-if="isEdit" value="filters">
+                {{ $t('system.apigw.editor.tabs.filters', 'Filters') }}
+              </Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -37,8 +39,18 @@
                     <label for="endpoint" class="font-medium text-primary">
                       {{ $t('system.apigw.editor.info.endpoint', 'Endpoint') }} *
                     </label>
-                    <InputText id="endpoint" name="endpoint" v-model="route_.endpoint" placeholder="/api/v1/..." />
-                    <Message v-if="$form.endpoint?.invalid" severity="error" size="small" variant="simple">
+                    <InputText
+                      id="endpoint"
+                      name="endpoint"
+                      v-model="route_.endpoint"
+                      placeholder="/api/v1/..."
+                    />
+                    <Message
+                      v-if="$form.endpoint?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.endpoint.error?.message }}
                     </Message>
                   </FormField>
@@ -96,7 +108,10 @@
                   :pagination="filterPagination"
                   :loading="filtersLoading"
                   :translations="{
-                    searchPlaceholder: $t('system.apigw.editor.filters.searchPlaceholder', 'Search filters...'),
+                    searchPlaceholder: $t(
+                      'system.apigw.editor.filters.searchPlaceholder',
+                      'Search filters...',
+                    ),
                     showingPagination: 'general.resourceList.pagination.showing',
                     singlePluralPagination: 'general.resourceList.pagination.single',
                     prevPagination: $t('general.resourceList.pagination.prev'),
@@ -122,7 +137,11 @@
 
                   <template #body-enabled="{ data }">
                     <Tag
-                      :value="data.enabled ? $t('general.label.enabled', 'Enabled') : $t('general.label.disabled', 'Disabled')"
+                      :value="
+                        data.enabled
+                          ? $t('general.label.enabled', 'Enabled')
+                          : $t('general.label.disabled', 'Disabled')
+                      "
                       :severity="data.enabled ? 'success' : 'secondary'"
                     />
                   </template>
@@ -158,7 +177,11 @@
     <Dialog
       v-model:visible="filterDialogVisible"
       modal
-      :header="activeFilter?.filterID ? $t('system.apigw.editor.filters.edit', 'Edit Filter') : $t('system.apigw.editor.filters.create', 'New Filter')"
+      :header="
+        activeFilter?.filterID
+          ? $t('system.apigw.editor.filters.edit', 'Edit Filter')
+          : $t('system.apigw.editor.filters.create', 'New Filter')
+      "
       :style="{ width: '50vw' }"
       :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
       :pt="{ content: { class: '!overflow-hidden' } }"
@@ -210,7 +233,12 @@
             class="font-mono text-sm"
             @change="parseFilterParams"
           />
-          <Message v-if="$filterForm.params?.invalid" severity="error" size="small" variant="simple">
+          <Message
+            v-if="$filterForm.params?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
             {{ $filterForm.params.error?.message }}
           </Message>
         </div>
@@ -243,7 +271,7 @@
         />
         <div class="flex gap-2">
           <CInputDelete
-            v-if="isEdit"
+            v-if="isEdit && route_.canDeleteApigwRoute"
             :label="$t('system.apigw.editor.delete', 'Delete')"
             :message="$t('general.confirm.delete')"
             :header="route_.endpoint || route_.routeID"
@@ -354,7 +382,9 @@ const filterResolver = ref(({ values }) => {
   try {
     if (values.params) JSON.parse(values.params)
   } catch {
-    errors.params = [{ message: t('system.connections.editor.configurations.invalidJSON', 'Invalid JSON') }]
+    errors.params = [
+      { message: t('system.connections.editor.configurations.invalidJSON', 'Invalid JSON') },
+    ]
   }
 
   return { errors }
@@ -436,11 +466,16 @@ function onConfirmFilterDelete(filter) {
 
 async function handleFilterDelete(filter) {
   try {
-    await $SystemAPI.apigwFilterDelete({ routeID: vueRoute.params.routeID, filterID: filter.filterID })
+    await $SystemAPI.apigwFilterDelete({
+      routeID: vueRoute.params.routeID,
+      filterID: filter.filterID,
+    })
     $toast.toastSuccess(t('notification.gateway.filter.delete.success', 'Filter deleted'))
     reloadFilters()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.filter.delete.error', 'Failed to delete filter'))(e)
+    $toast.toastErrorHandler(
+      t('notification.gateway.filter.delete.error', 'Failed to delete filter'),
+    )(e)
   }
 }
 
@@ -471,7 +506,9 @@ async function handleFilterSubmit({ valid }) {
     filterDialogVisible.value = false
     reloadFilters()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.filter.save.error', 'Failed to save filter'))(e)
+    $toast.toastErrorHandler(t('notification.gateway.filter.save.error', 'Failed to save filter'))(
+      e,
+    )
   } finally {
     savingFilter.value = false
   }
@@ -548,5 +585,8 @@ async function handleDelete() {
 }
 
 onMounted(() => loadRoute())
-watch(() => vueRoute.params.routeID, () => loadRoute())
+watch(
+  () => vueRoute.params.routeID,
+  () => loadRoute(),
+)
 </script>

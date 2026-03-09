@@ -20,6 +20,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+        resourceSingle: $t('system.users.list.single', 'user'),
+        resourcePlural: $t('system.users.list.title'),
       }"
       clickable
       class="h-full"
@@ -283,9 +285,13 @@ function getActionsMenuItems(user) {
   }
 
   if (user.canDeleteUser) {
+    if (items.length > 0) {
+      items.push({ separator: true })
+    }
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
+      class: 'text-red-500',
       command: () => onConfirmDelete(user),
     })
   }

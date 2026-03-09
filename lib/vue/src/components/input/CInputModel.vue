@@ -10,6 +10,7 @@
     @complete="onComplete"
     class="w-full"
     dropdown
+    showClear
   >
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
@@ -19,7 +20,7 @@
 
 <script setup>
 import AutoComplete from 'primevue/autocomplete'
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -49,6 +50,9 @@ const filteredModels = ref([])
 const selectedModel = ref(null)
 const loading = ref(false)
 
+// Store cancel function for current request
+let cancelCurrentRequest = null
+
 function getOptionLabel(model) {
   if (!model) return ''
   if (typeof model === 'string') return model
@@ -62,19 +66,32 @@ async function fetchModels() {
     return
   }
 
+  // Cancel previous request if pending
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+    cancelCurrentRequest = null
+  }
+
   loading.value = true
   try {
-    const response = await $SystemAPI.llmProviderModels({
+    const { response, cancel } = $SystemAPI.llmProviderModelsCancellable({
       llmProviderID: props.llmProviderID,
     })
-    const models = Array.isArray(response) ? response : response.models || response.set || []
+    cancelCurrentRequest = cancel
+
+    const result = await response()
+    const models = Array.isArray(result) ? result : result.models || result.set || []
     allModels.value = models
     filteredModels.value = [...models]
-  } catch {
-    allModels.value = []
-    filteredModels.value = []
+  } catch (e) {
+    // Ignore cancelled requests
+    if (e?.message !== 'canceled') {
+      allModels.value = []
+      filteredModels.value = []
+    }
   } finally {
     loading.value = false
+    cancelCurrentRequest = null
   }
 }
 
@@ -144,6 +161,13 @@ watch(allModels, () => {
 onMounted(() => {
   if (props.llmProviderID && props.llmProviderID !== '0') {
     fetchModels()
+  }
+})
+
+onBeforeUnmount(() => {
+  // Cancel any pending request
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
   }
 })
 </script>

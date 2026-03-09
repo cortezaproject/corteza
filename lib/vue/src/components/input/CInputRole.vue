@@ -11,6 +11,7 @@
     @complete="search"
     class="w-full"
     dropdown
+    showClear
   >
     <template #option="{ option }">
       <div class="flex items-center gap-2">
@@ -23,7 +24,7 @@
 <script setup>
 import AutoComplete from 'primevue/autocomplete'
 import { debounce } from 'lodash-es'
-import { inject, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -56,21 +57,33 @@ const suggestions = ref([])
 const selectedRole = ref(null)
 const loading = ref(false)
 
+// Store cancel function for current request
+let cancelCurrentRequest = null
+
 function getOptionLabel(role) {
   if (!role) return ''
   return role.name || role.handle || role.roleID
 }
 
 const search = debounce(async event => {
+  // Cancel previous request if pending
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+    cancelCurrentRequest = null
+  }
+
   loading.value = true
   try {
-    const response = await $SystemAPI.roleList({
+    const { response, cancel } = $SystemAPI.roleListCancellable({
       query: event.query,
       limit: 20,
     })
+    cancelCurrentRequest = cancel
+
+    const result = await response()
 
     if (props.filterContextRoles) {
-      suggestions.value = (response.set || []).filter(r => {
+      suggestions.value = (result.set || []).filter(r => {
         // Filter out context-based roles (Authenticated, Anonymous, etc.)
         const isContext = r.meta?.context?.expr || r.meta?.context?.resourceTypes?.length > 0
         const isSpecialHandle = ['authenticated', 'anonymous', 'everyone'].includes(
@@ -79,12 +92,16 @@ const search = debounce(async event => {
         return !(isContext || isSpecialHandle)
       })
     } else {
-      suggestions.value = response.set || []
+      suggestions.value = result.set || []
     }
-  } catch {
-    suggestions.value = []
+  } catch (e) {
+    // Ignore cancelled requests
+    if (e?.message !== 'canceled') {
+      suggestions.value = []
+    }
   } finally {
     loading.value = false
+    cancelCurrentRequest = null
   }
 }, 300)
 
@@ -132,5 +149,13 @@ onMounted(() => {
   if (props.modelValue && (!selectedRole.value || selectedRole.value.roleID !== props.modelValue)) {
     loadRoleById(props.modelValue)
   }
+})
+
+onBeforeUnmount(() => {
+  // Cancel any pending request
+  if (cancelCurrentRequest) {
+    cancelCurrentRequest()
+  }
+  search.cancel()
 })
 </script>
