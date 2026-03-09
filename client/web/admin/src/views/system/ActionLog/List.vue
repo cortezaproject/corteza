@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.actionlog.list.title', 'Action Log') }}</span>
+    <span>{{ $t('system.actionlog.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,7 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t('system.actionlog.list.filter.search', 'Search'),
+        searchPlaceholder: $t('system.actionlog.list.filter.search'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -30,7 +30,7 @@
       <template #header>
         <div class="flex items-center gap-2">
           <label class="text-sm font-medium text-surface-500">
-            {{ $t('system.actionlog.list.filter.from', 'Starting from') }}
+            {{ $t('system.actionlog.list.filter.from') }}
           </label>
           <DatePicker
             v-model="dateFrom"
@@ -41,7 +41,7 @@
             @update:modelValue="filterList"
           />
           <label class="text-sm font-medium text-surface-500">
-            {{ $t('system.actionlog.list.filter.to', 'Ending at') }}
+            {{ $t('system.actionlog.list.filter.to') }}
           </label>
           <DatePicker
             v-model="dateTo"
@@ -92,27 +92,27 @@ const fields = [
   {
     key: 'timestamp',
     sortable: true,
-    header: t('system.actionlog.list.columns.timestamp', 'Timestamp'),
+    header: t('system.actionlog.list.columns.timestamp'),
   },
   {
     key: 'action',
     sortable: true,
-    header: t('system.actionlog.list.columns.action', 'Action'),
+    header: t('system.actionlog.list.columns.action'),
   },
   {
     key: 'actorID',
     sortable: false,
-    header: t('system.actionlog.list.columns.actor', 'Actor'),
+    header: t('system.actionlog.list.columns.actor'),
   },
   {
     key: 'resource',
     sortable: false,
-    header: t('system.actionlog.list.columns.resource', 'Resource'),
+    header: t('system.actionlog.list.columns.resource'),
   },
   {
     key: 'severity',
     sortable: true,
-    header: t('system.actionlog.list.columns.severity', 'Severity'),
+    header: t('system.actionlog.list.columns.severity'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },

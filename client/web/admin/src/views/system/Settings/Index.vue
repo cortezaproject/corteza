@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.settings.editor.title', 'System settings') }}</span>
+    <span>{{ $t('system.settings.editor.title') }}</span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">
@@ -11,7 +11,7 @@
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
       <!-- Internal Authentication -->
       <Panel
-        :header="$t('system.settings.editor.auth.internal.title', 'Internal')"
+        :header="$t('system.settings.editor.auth.internal.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -19,59 +19,34 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CInputSwitch
             v-model="settings['auth.internal.enabled']"
-            :label="
-              $t('system.settings.editor.auth.internal.enabled', 'Internal authentication enabled')
-            "
+            :label="$t('system.settings.editor.auth.internal.enabled')"
           />
 
           <CInputSwitch
             v-model="settings['auth.internal.password-reset.enabled']"
-            :label="
-              $t(
-                'system.settings.editor.auth.internal.password-reset.enabled',
-                'Password reset enabled',
-              )
-            "
+            :label="$t('system.settings.editor.auth.internal.password-reset.enabled')"
           />
 
           <CInputSwitch
             v-model="settings['auth.internal.signup.email-confirmation-required']"
-            :label="
-              $t(
-                'system.settings.editor.auth.internal.signup.email-confirmation-required',
-                'Signup email confirmation required',
-              )
-            "
+            :label="$t('system.settings.editor.auth.internal.signup.email-confirmation-required')"
           />
 
           <CInputSwitch
             v-model="settings['auth.internal.signup.enabled']"
-            :label="$t('system.settings.editor.auth.internal.signup.enabled', 'Signup enabled')"
+            :label="$t('system.settings.editor.auth.internal.signup.enabled')"
           />
 
           <CInputSwitch
             v-model="settings['auth.internal.profile-avatar.enabled']"
-            :label="
-              $t(
-                'system.settings.editor.auth.internal.profile-avatar.enabled',
-                'Profile avatar enabled',
-              )
-            "
+            :label="$t('system.settings.editor.auth.internal.profile-avatar.enabled')"
           />
 
           <CInputSwitch
             v-model="settings['auth.internal.split-credentials-check']"
-            :label="
-              $t(
-                'system.settings.editor.auth.internal.signup.split-credentials-check.label',
-                'Enable split-credentials check',
-              )
-            "
+            :label="$t('system.settings.editor.auth.internal.signup.split-credentials-check.label')"
             :description="
-              $t(
-                'system.settings.editor.auth.internal.signup.split-credentials-check.description',
-                'Split login into two steps: collect the email input first and show the input for the password on the 2nd screen.',
-              )
+              $t('system.settings.editor.auth.internal.signup.split-credentials-check.description')
             "
           />
         </div>
@@ -79,40 +54,24 @@
 
       <!-- Password Constraints -->
       <Panel
-        :header="
-          $t(
-            'system.settings.editor.auth.internal.password-constraints.title',
-            'Password constraints',
-          )
-        "
+        :header="$t('system.settings.editor.auth.internal.password-constraints.title')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
         <Message v-if="!passwordSecurityEnabled" severity="warn" :closable="false" class="mb-4">
-          {{
-            $t(
-              'system.settings.editor.auth.internal.password-constraints.ignored-security',
-              'The system is configured to ignore password security constraints which is insecure on production deployments.',
-            )
-          }}
+          {{ $t('system.settings.editor.auth.internal.password-constraints.ignored-security') }}
         </Message>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-length',
-                  'Minimum length',
-                )
-              }}
+              {{ $t('system.settings.editor.auth.internal.password-constraints.min-length') }}
             </label>
             <span class="text-xs text-surface-500">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-length-description',
-                  'Must be at least 8 characters',
                 )
               }}
             </span>
@@ -126,18 +85,12 @@
 
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-num-count',
-                  'Minimum number of digits',
-                )
-              }}
+              {{ $t('system.settings.editor.auth.internal.password-constraints.min-num-count') }}
             </label>
             <span class="text-xs text-surface-500">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-num-count-description',
-                  'The password must include the specified number of digits (disabled if set to 0)',
                 )
               }}
             </span>
@@ -154,7 +107,6 @@
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-upper-case-length',
-                  'Minimum number of upper case characters',
                 )
               }}
             </label>
@@ -162,7 +114,6 @@
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-upper-case-description',
-                  'The password must include the specified number of upper case characters (disabled if set to 0)',
                 )
               }}
             </span>
@@ -179,7 +130,6 @@
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-lower-case-length',
-                  'Minimum number of lower case characters',
                 )
               }}
             </label>
@@ -187,7 +137,6 @@
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-lower-case-description',
-                  'The password must include the specified number of lower case characters (disabled if set to 0)',
                 )
               }}
             </span>
@@ -202,17 +151,13 @@
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
               {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-special-count',
-                  'Minimum number of special characters',
-                )
+                $t('system.settings.editor.auth.internal.password-constraints.min-special-count')
               }}
             </label>
             <span class="text-xs text-surface-500">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-special-count-description',
-                  'The password must include the specified number of special characters (disabled if set to 0)',
                 )
               }}
             </span>
@@ -228,7 +173,7 @@
 
       <!-- Multi-factor authentication -->
       <Panel
-        :header="$t('system.settings.editor.auth.mfa.title', 'Multi-factor authentication')"
+        :header="$t('system.settings.editor.auth.mfa.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -236,7 +181,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <CInputSwitch
             v-model="settings['auth.multi-factor.email-otp.enabled']"
-            :label="$t('system.settings.editor.auth.mfa.emailOTP.enabled', 'Enable email OTP')"
+            :label="$t('system.settings.editor.auth.mfa.emailOTP.enabled')"
             @update:modelValue="
               v => {
                 if (!v) settings['auth.multi-factor.email-otp.enforced'] = false
@@ -246,34 +191,24 @@
 
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.label', 'Valid for') }}
+              {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.label') }}
             </label>
             <span class="text-xs text-surface-500">
-              {{
-                $t(
-                  'system.settings.editor.auth.mfa.emailOTP.expires.description',
-                  'How long will password be valid before it expires',
-                )
-              }}
+              {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.description') }}
             </span>
             <InputGroup>
               <InputNumber
                 v-model="settings['auth.multi-factor.email-otp.expires']"
                 placeholder="60"
               />
-              <InputGroupAddon>{{ $t('general.label.seconds', 'seconds') }}</InputGroupAddon>
+              <InputGroupAddon>{{ $t('general.label.seconds') }}</InputGroupAddon>
             </InputGroup>
           </div>
 
           <CInputSwitch
             v-if="settings['auth.multi-factor.email-otp.enabled']"
             v-model="settings['auth.multi-factor.email-otp.enforced']"
-            :label="
-              $t(
-                'system.settings.editor.auth.mfa.emailOTP.enforced',
-                'Require all users to use email OTP',
-              )
-            "
+            :label="$t('system.settings.editor.auth.mfa.emailOTP.enforced')"
           />
         </div>
 
@@ -282,7 +217,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CInputSwitch
             v-model="settings['auth.multi-factor.totp.enabled']"
-            :label="$t('system.settings.editor.auth.mfa.TOTP.enabled', 'Enable TOTP')"
+            :label="$t('system.settings.editor.auth.mfa.TOTP.enabled')"
             @update:modelValue="
               v => {
                 if (!v) settings['auth.multi-factor.totp.enforced'] = false
@@ -292,15 +227,10 @@
 
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.label', 'Issuer') }}
+              {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.label') }}
             </label>
             <span class="text-xs text-surface-500">
-              {{
-                $t(
-                  'system.settings.editor.auth.mfa.TOTP.issuer.description',
-                  'Issuer name will be sent to authenticator app when user configures it',
-                )
-              }}
+              {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.description') }}
             </span>
             <InputText
               v-model="settings['auth.multi-factor.totp.issuer']"
@@ -312,16 +242,14 @@
           <CInputSwitch
             v-if="settings['auth.multi-factor.totp.enabled']"
             v-model="settings['auth.multi-factor.totp.enforced']"
-            :label="
-              $t('system.settings.editor.auth.mfa.TOTP.enforced', 'Require all users to use TOTP')
-            "
+            :label="$t('system.settings.editor.auth.mfa.TOTP.enforced')"
           />
         </div>
       </Panel>
 
       <!-- Authentication email sender mail -->
       <Panel
-        :header="$t('system.settings.editor.auth.mail.title', 'Authentication email sender mail')"
+        :header="$t('system.settings.editor.auth.mail.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -329,14 +257,14 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mail.from-address', "Sender's address") }}
+              {{ $t('system.settings.editor.auth.mail.from-address') }}
             </label>
             <InputText v-model="settings['auth.mail.from-address']" type="email" class="w-full" />
           </div>
 
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mail.from-name', "Sender's name") }}
+              {{ $t('system.settings.editor.auth.mail.from-name') }}
             </label>
             <InputText v-model="settings['auth.mail.from-name']" class="w-full" />
           </div>
@@ -345,9 +273,7 @@
 
       <!-- Invite email -->
       <Panel
-        :header="
-          $t('system.settings.editor.auth.internal.send-user-invite-email.title', 'Invite email')
-        "
+        :header="$t('system.settings.editor.auth.internal.send-user-invite-email.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -355,40 +281,26 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CInputSwitch
             v-model="settings['auth.internal.send-user-invite-email.enabled']"
-            :label="
-              $t(
-                'system.settings.editor.auth.internal.send-user-invite-email.enabled',
-                'Send invite email on user creation',
-              )
-            "
+            :label="$t('system.settings.editor.auth.internal.send-user-invite-email.enabled')"
             :description="
-              $t(
-                'system.settings.editor.auth.internal.send-user-invite-email.description',
-                'When enabled, this configuration sends an invite email to a newly created user via the CLI',
-              )
+              $t('system.settings.editor.auth.internal.send-user-invite-email.description')
             "
           />
 
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.send-user-invite-email.expires.label',
-                  'Valid for',
-                )
-              }}
+              {{ $t('system.settings.editor.auth.internal.send-user-invite-email.expires.label') }}
             </label>
             <span class="text-xs text-surface-500">
               {{
                 $t(
                   'system.settings.editor.auth.internal.send-user-invite-email.expires.description',
-                  'How long will the invite token be valid before it expires',
                 )
               }}
             </span>
             <InputGroup>
               <InputNumber v-model="settings['auth.internal.send-user-invite-email.expires']" />
-              <InputGroupAddon>{{ $t('general.label.hours', 'hours') }}</InputGroupAddon>
+              <InputGroupAddon>{{ $t('general.label.hours') }}</InputGroupAddon>
             </InputGroup>
           </div>
         </div>
@@ -396,7 +308,7 @@
 
       <!-- Auto logout -->
       <Panel
-        :header="$t('system.settings.editor.auth.auto-logout.title', 'Auto logout')"
+        :header="$t('system.settings.editor.auth.auto-logout.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -404,30 +316,20 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CInputSwitch
             v-model="settings['auth.auto-logout.enabled']"
-            :label="$t('system.settings.editor.auth.auto-logout.enabled.label', 'Enabled')"
-            :description="
-              $t(
-                'system.settings.editor.auth.auto-logout.enabled.description',
-                'Automatically log out users after a certain period of inactivity',
-              )
-            "
+            :label="$t('system.settings.editor.auth.auto-logout.enabled.label')"
+            :description="$t('system.settings.editor.auth.auto-logout.enabled.description')"
           />
 
           <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.auto-logout.timeout.label', 'Timeout') }}
+              {{ $t('system.settings.editor.auth.auto-logout.timeout.label') }}
             </label>
             <span class="text-xs text-surface-500">
-              {{
-                $t(
-                  'system.settings.editor.auth.auto-logout.timeout.description',
-                  'The period of inactivity in seconds before a user is logged out',
-                )
-              }}
+              {{ $t('system.settings.editor.auth.auto-logout.timeout.description') }}
             </span>
             <InputGroup>
               <InputNumber v-model="settings['auth.auto-logout.timeout']" />
-              <InputGroupAddon>{{ $t('general.label.seconds', 'seconds') }}</InputGroupAddon>
+              <InputGroupAddon>{{ $t('general.label.seconds') }}</InputGroupAddon>
             </InputGroup>
           </div>
         </div>
@@ -435,7 +337,7 @@
 
       <!-- External Authentication Providers -->
       <Panel
-        :header="$t('system.settings.editor.external.title', 'External Authentication Providers')"
+        :header="$t('system.settings.editor.external.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -443,22 +345,20 @@
         <div class="flex flex-col gap-4">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <Button
-              :label="$t('system.settings.editor.external.oidc.add', 'Add an OIDC provider')"
+              :label="$t('system.settings.editor.external.oidc.add')"
               icon="pi pi-plus"
               severity="primary"
               @click="newOIDC"
             />
             <CInputSwitch
               v-model="external.enabled"
-              :label="
-                $t('system.settings.editor.external.enabled', 'Enable external authentication')
-              "
+              :label="$t('system.settings.editor.external.enabled')"
             />
           </div>
 
           <DataTable :value="providerItems" class="border rounded">
             <Column
-              :header="$t('system.settings.editor.external.table.header.enabled', 'Enabled')"
+              :header="$t('system.settings.editor.external.table.header.enabled')"
               style="width: 80px"
             >
               <template #body="{ data }">
@@ -471,7 +371,7 @@
             </Column>
 
             <Column
-              :header="$t('system.settings.editor.external.table.header.provider', 'Provider')"
+              :header="$t('system.settings.editor.external.table.header.provider')"
               style="width: 200px"
             >
               <template #body="{ data }">
@@ -481,9 +381,7 @@
               </template>
             </Column>
 
-            <Column
-              :header="$t('system.settings.editor.external.table.header.info', 'Issuer, client ID')"
-            >
+            <Column :header="$t('system.settings.editor.external.table.header.info')">
               <template #body="{ data }">
                 <span :class="{ 'line-through opacity-40': data.deleted }">
                   {{ data.info }}
@@ -532,16 +430,12 @@
         />
         <template #footer>
           <Button
-            :label="$t('general.label.cancel', 'Cancel')"
+            :label="$t('general.label.cancel')"
             severity="secondary"
             text
             @click="modal.open = false"
           />
-          <Button
-            :label="$t('general.label.save', 'Save')"
-            icon="pi pi-check"
-            @click="applyModal"
-          />
+          <Button :label="$t('general.label.save')" icon="pi pi-check" @click="applyModal" />
         </template>
       </Dialog>
     </div>
@@ -623,7 +517,7 @@ const providerItems = computed(() => {
     editor: {
       component: ExternalSAML,
       data: external.saml,
-      title: t('system.settings.editor.external.saml.title', 'SAML'),
+      title: t('system.settings.editor.external.saml.title'),
       updater: changed => updater('saml', changed),
     },
   })
@@ -646,7 +540,7 @@ const providerItems = computed(() => {
       editor: {
         component: ExternalOIDC,
         data: p,
-        title: p.handle || t('system.settings.editor.external.oidc.title', 'OpenID Connect'),
+        title: p.handle || t('system.settings.editor.external.oidc.title'),
         updater: changed => updater('oidc', changed, i),
       },
     })
@@ -705,7 +599,7 @@ function newOIDC() {
 
   openEditor({
     component: ExternalOIDC,
-    title: t('system.settings.editor.external.oidc.add', 'Add an OIDC provider'),
+    title: t('system.settings.editor.external.oidc.add'),
     data,
     updater: changed => updater('oidc', changed, -1),
   })
@@ -898,7 +792,7 @@ async function loadSettings() {
     Object.assign(external, parsed)
     originalExternal = JSON.parse(JSON.stringify(parsed))
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.settings.fetch.error', 'Failed to load settings'))(e)
+    $toast.toastErrorHandler(t('notification.settings.fetch.error'))(e)
   } finally {
     loading.value = false
   }
@@ -928,12 +822,12 @@ async function handleSave() {
     values.push(...externalChanges)
 
     await $SystemAPI.settingsUpdate({ values })
-    $toast.toastSuccess(t('notification.settings.update.success', 'Settings saved'))
+    $toast.toastSuccess(t('notification.settings.update.success'))
 
     // Reload to refresh original state
     await loadSettings()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.settings.update.error', 'Failed to save settings'))(e)
+    $toast.toastErrorHandler(t('notification.settings.update.error'))(e)
   } finally {
     saving.value = false
   }

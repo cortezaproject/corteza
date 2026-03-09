@@ -26,8 +26,8 @@
         <template #content>
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
             <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.templates.editor.tabs.basic', 'Basic') }}</Tab>
-              <Tab value="content">{{ $t('system.templates.editor.tabs.content', 'Content') }}</Tab>
+              <Tab value="basic">{{ $t('system.templates.editor.tabs.basic') }}</Tab>
+              <Tab value="content">{{ $t('system.templates.editor.tabs.content') }}</Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -35,27 +35,37 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.meta.short', 'Short name') }} *
+                      {{ $t('system.templates.editor.info.meta.short') }} *
                     </label>
                     <InputText id="name" name="name" v-model="template.meta.short" />
-                    <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.name?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.name.error?.message }}
                     </Message>
                   </FormField>
 
                   <FormField name="handle" class="flex flex-col gap-2">
                     <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.handle', 'Handle') }}
+                      {{ $t('system.templates.editor.info.handle') }}
                     </label>
                     <InputText id="handle" name="handle" v-model="template.handle" />
-                    <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.handle?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.handle.error?.message }}
                     </Message>
                   </FormField>
 
                   <div class="flex flex-col gap-2">
                     <label for="type" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.type', 'Type') }}
+                      {{ $t('system.templates.editor.info.type') }}
                     </label>
                     <Select
                       id="type"
@@ -68,14 +78,14 @@
 
                   <div class="flex flex-col gap-2">
                     <label for="language" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.language', 'Language') }}
+                      {{ $t('system.templates.editor.info.language') }}
                     </label>
                     <InputText id="language" v-model="template.language" placeholder="en" />
                   </div>
 
                   <div class="flex flex-col gap-2 md:col-span-2">
                     <label for="description" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.meta.description', 'Description') }}
+                      {{ $t('system.templates.editor.info.meta.description') }}
                     </label>
                     <Textarea id="description" v-model="template.meta.description" rows="2" />
                   </div>
@@ -83,7 +93,7 @@
                   <div class="flex items-center gap-3">
                     <ToggleSwitch id="partial" v-model="template.partial" />
                     <label for="partial" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.templates.editor.info.partial', 'Partial template') }}
+                      {{ $t('system.templates.editor.info.partial') }}
                     </label>
                   </div>
                 </div>
@@ -92,7 +102,7 @@
               <TabPanel value="content" class="h-full">
                 <div class="flex flex-col gap-2 h-full">
                   <label for="templateContent" class="font-medium text-primary">
-                    {{ $t('system.templates.editor.content.title', 'Template Content') }}
+                    {{ $t('system.templates.editor.content.title') }}
                   </label>
                   <Textarea
                     id="templateContent"
@@ -120,7 +130,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && template.canDeleteTemplate"
-            :label="$t('system.templates.editor.info.delete', 'Delete')"
+            :label="$t('system.templates.editor.info.delete')"
             :message="$t('general.confirm.delete')"
             :header="template.meta?.short || template.handle"
             :disabled="deleting"
@@ -161,17 +171,17 @@ const template = ref(null)
 const activeTab = ref('basic')
 
 const typeOptions = computed(() => [
-  { label: t('system.templates.editor.info.contentType.text_html', 'HTML'), value: 'text/html' },
-  { label: t('system.templates.editor.info.contentType.text_plain', 'Plain Text'), value: 'text/plain' },
-  { label: t('system.templates.editor.info.contentType.text_pdf', 'PDF'), value: 'text/pdf' },
+  { label: t('system.templates.editor.info.contentType.text_html'), value: 'text/html' },
+  { label: t('system.templates.editor.info.contentType.text_plain'), value: 'text/plain' },
+  { label: t('system.templates.editor.info.contentType.text_pdf'), value: 'text/pdf' },
 ])
 
 const isEdit = computed(() => !!route.params.templateID)
 
 const pageTitle = computed(() =>
   isEdit.value
-    ? t('system.templates.editor.title.edit', 'Edit Template')
-    : t('system.templates.editor.title.create', 'New Template'),
+    ? t('system.templates.editor.title.edit')
+    : t('system.templates.editor.title.create'),
 )
 
 const initialValues = computed(() => ({
@@ -205,7 +215,7 @@ async function loadTemplate() {
     const raw = await $SystemAPI.templateRead({ templateID })
     template.value = new system.Template(raw)
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.template.fetch.error', 'Failed to load template'))(e)
+    $toast.toastErrorHandler(t('notification.template.fetch.error'))(e)
     router.push({ name: 'system.templates' })
   } finally {
     loading.value = false
@@ -230,15 +240,18 @@ async function handleSubmit({ valid }) {
       payload.templateID = template.value.templateID
       const raw = await $SystemAPI.templateUpdate(payload)
       template.value = new system.Template(raw)
-      $toast.toastSuccess(t('notification.template.update.success', 'Template updated'))
+      $toast.toastSuccess(t('notification.template.update.success'))
     } else {
       const created = await $SystemAPI.templateCreate(payload)
-      $toast.toastSuccess(t('notification.template.create.success', 'Template created'))
+      $toast.toastSuccess(t('notification.template.create.success'))
       router.push({ name: 'system.templates.edit', params: { templateID: created.templateID } })
     }
   } catch (e) {
     $toast.toastErrorHandler(
-      t(`notification.template.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save template'),
+      t(
+        `notification.template.${isEdit.value ? 'update' : 'create'}.error`,
+        'Failed to save template',
+      ),
     )(e)
   } finally {
     saving.value = false
@@ -249,15 +262,18 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.templateDelete({ templateID: template.value.templateID })
-    $toast.toastSuccess(t('notification.template.delete.success', 'Template deleted'))
+    $toast.toastSuccess(t('notification.template.delete.success'))
     router.push({ name: 'system.templates' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.template.delete.error', 'Failed to delete template'))(e)
+    $toast.toastErrorHandler(t('notification.template.delete.error'))(e)
   } finally {
     deleting.value = false
   }
 }
 
 onMounted(() => loadTemplate())
-watch(() => route.params.templateID, () => loadTemplate())
+watch(
+  () => route.params.templateID,
+  () => loadTemplate(),
+)
 </script>

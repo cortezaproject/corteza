@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.queues.list.title', 'Queues') }}</span>
+    <span>{{ $t('system.queues.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.queues.list.filterForm.handle.placeholder',
-          'Filter queues by name',
-        ),
+        searchPlaceholder: $t('system.queues.list.filterForm.handle.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -139,17 +136,17 @@ const fields = [
   {
     key: 'queue',
     sortable: true,
-    header: t('system.queues.list.columns.queue', 'Name'),
+    header: t('system.queues.list.columns.queue'),
   },
   {
     key: 'consumer',
     sortable: true,
-    header: t('system.queues.list.columns.consumer', 'Consumer'),
+    header: t('system.queues.list.columns.consumer'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.queues.list.columns.createdAt', 'Created'),
+    header: t('system.queues.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -204,10 +201,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.queuesDelete({ queueID: item.queueID })
-    $toast.toastSuccess(t('notification.queue.delete.success', 'Queue deleted'))
+    $toast.toastSuccess(t('notification.queue.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.queue.delete.error', 'Failed to delete queue'))(e)
+    $toast.toastErrorHandler(t('notification.queue.delete.error'))(e)
   }
 }
 </script>

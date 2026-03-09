@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.authclients.list.title', 'Auth Clients') }}</span>
+    <span>{{ $t('system.authclients.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.authclients.list.filterForm.query.placeholder',
-          'Filter clients',
-        ),
+        searchPlaceholder: $t('system.authclients.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -62,11 +59,7 @@
 
       <template #body-enabled="{ data }">
         <Tag
-          :value="
-            data.enabled
-              ? $t('general.label.enabled', 'Enabled')
-              : $t('general.label.disabled', 'Disabled')
-          "
+          :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
           :severity="data.enabled ? 'success' : 'secondary'"
         />
       </template>
@@ -157,27 +150,27 @@ const fields = [
   {
     key: 'name',
     sortable: false,
-    header: t('system.authclients.list.columns.meta.name', 'Name'),
+    header: t('system.authclients.list.columns.meta.name'),
   },
   {
     key: 'handle',
     sortable: true,
-    header: t('system.authclients.list.columns.handle', 'Handle'),
+    header: t('system.authclients.list.columns.handle'),
   },
   {
     key: 'enabled',
     sortable: false,
-    header: t('system.authclients.list.columns.enabled', 'Status'),
+    header: t('system.authclients.list.columns.enabled'),
   },
   {
     key: 'validGrant',
     sortable: false,
-    header: t('system.authclients.list.columns.validGrant', 'Grant'),
+    header: t('system.authclients.list.columns.validGrant'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.authclients.list.columns.createdAt', 'Created'),
+    header: t('system.authclients.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -232,12 +225,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.authClientDelete({ authClientID: item.authClientID })
-    $toast.toastSuccess(t('notification.authclient.delete.success', 'Auth client deleted'))
+    $toast.toastSuccess(t('notification.authclient.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.authclient.delete.error', 'Failed to delete auth client'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.authclient.delete.error'))(e)
   }
 }
 </script>

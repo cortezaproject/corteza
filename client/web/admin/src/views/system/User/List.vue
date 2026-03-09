@@ -20,7 +20,7 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.users.list.single', 'user'),
+        resourceSingle: $t('system.users.list.single'),
         resourcePlural: $t('system.users.list.title'),
       }"
       clickable

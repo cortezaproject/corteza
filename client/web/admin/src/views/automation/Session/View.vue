@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('automation.sessions.editor.title', 'Session') }}</span>
+    <span>{{ $t('automation.sessions.editor.title') }}</span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">
@@ -9,24 +9,26 @@
 
   <div v-else-if="session" class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <Panel
-        :header="$t('automation.sessions.editor.info.title', 'Basic information')"
-        toggleable
-        :collapsed="false"
-      >
+      <Panel :header="$t('automation.sessions.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">{{ $t('automation.sessions.editor.info.id', 'ID') }}</span>
+            <span class="text-xs text-surface-500">
+              {{ $t('automation.sessions.editor.info.id') }}
+            </span>
             <span class="font-mono text-sm">{{ session.sessionID }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">{{ $t('automation.sessions.editor.info.workflowID', 'Workflow ID') }}</span>
+            <span class="text-xs text-surface-500">
+              {{ $t('automation.sessions.editor.info.workflowID') }}
+            </span>
             <span class="font-mono text-sm">{{ session.workflowID }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">{{ $t('automation.sessions.editor.info.status', 'Status') }}</span>
+            <span class="text-xs text-surface-500">
+              {{ $t('automation.sessions.editor.info.status') }}
+            </span>
             <Tag
               :value="session.status"
               :severity="statusSeverity(session.status)"
@@ -35,17 +37,23 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">{{ $t('automation.sessions.editor.info.createdAt', 'Created at') }}</span>
+            <span class="text-xs text-surface-500">
+              {{ $t('automation.sessions.editor.info.createdAt') }}
+            </span>
             <span>{{ locFullDateTime(session.createdAt) }}</span>
           </div>
 
           <div v-if="session.completedAt" class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">{{ $t('automation.sessions.editor.info.completedAt', 'Completed at') }}</span>
+            <span class="text-xs text-surface-500">
+              {{ $t('automation.sessions.editor.info.completedAt') }}
+            </span>
             <span>{{ locFullDateTime(session.completedAt) }}</span>
           </div>
 
           <div v-if="session.createdBy" class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">{{ $t('automation.sessions.editor.info.createdBy', 'Created by') }}</span>
+            <span class="text-xs text-surface-500">
+              {{ $t('automation.sessions.editor.info.createdBy') }}
+            </span>
             <span class="font-mono text-sm">{{ session.createdBy }}</span>
           </div>
         </div>
@@ -53,11 +61,14 @@
 
       <Panel
         v-if="session.error"
-        :header="$t('automation.sessions.editor.info.error', 'Error')"
+        :header="$t('automation.sessions.editor.info.error')"
         toggleable
         :collapsed="false"
       >
-        <pre class="text-sm text-red-500 whitespace-pre-wrap break-all font-mono bg-surface-100 rounded p-3">{{ session.error }}</pre>
+        <pre
+          class="text-sm text-red-500 whitespace-pre-wrap break-all font-mono bg-surface-100 rounded p-3"
+          >{{ session.error }}</pre
+        >
       </Panel>
     </div>
 
@@ -71,7 +82,7 @@
         />
         <Button
           v-if="isActive"
-          :label="$t('automation.sessions.editor.info.cancel', 'Cancel session')"
+          :label="$t('automation.sessions.editor.info.cancel')"
           icon="pi pi-times"
           severity="danger"
           :loading="canceling"
@@ -107,12 +118,17 @@ const isActive = computed(() => {
 
 function statusSeverity(status) {
   switch (status) {
-    case 'completed': return 'success'
-    case 'failed': return 'danger'
-    case 'canceled': return 'secondary'
+    case 'completed':
+      return 'success'
+    case 'failed':
+      return 'danger'
+    case 'canceled':
+      return 'secondary'
     case 'started':
-    case 'pending': return 'info'
-    default: return 'secondary'
+    case 'pending':
+      return 'info'
+    default:
+      return 'secondary'
   }
 }
 
@@ -121,7 +137,7 @@ async function loadSession() {
   try {
     session.value = await $AutomationAPI.sessionRead({ sessionID: route.params.sessionID })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.session.fetch.error', 'Failed to load session'))(e)
+    $toast.toastErrorHandler(t('notification.session.fetch.error'))(e)
     router.push({ name: 'automation.sessions' })
   } finally {
     loading.value = false
@@ -132,10 +148,10 @@ async function handleCancel() {
   canceling.value = true
   try {
     await $AutomationAPI.sessionCancel({ sessionID: session.value.sessionID })
-    $toast.toastSuccess(t('notification.session.cancel.success', 'Session canceled'))
+    $toast.toastSuccess(t('notification.session.cancel.success'))
     await loadSession()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.session.cancel.error', 'Failed to cancel session'))(e)
+    $toast.toastErrorHandler(t('notification.session.cancel.error'))(e)
   } finally {
     canceling.value = false
   }

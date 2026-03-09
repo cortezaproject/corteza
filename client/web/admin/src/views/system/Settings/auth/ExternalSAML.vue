@@ -2,144 +2,123 @@
   <div class="flex flex-col gap-4">
     <CInputSwitch
       v-model="modelValue.enabled"
-      :label="$t('system.settings.editor.external.saml.enabled', 'Enabled')"
+      :label="$t('system.settings.editor.external.saml.enabled')"
     />
 
     <div class="flex flex-col gap-1">
       <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.name', 'Name') }}
+        {{ $t('system.settings.editor.external.saml.name') }}
       </label>
       <span class="text-xs text-surface-500">
-        {{ $t('system.settings.editor.external.saml.desc.name', 'IdP name used on the login screen (Login with <name>)') }}
+        {{ $t('system.settings.editor.external.saml.desc.name') }}
       </span>
       <InputText v-model="modelValue.name" class="w-full" />
     </div>
 
     <Divider />
 
-    <!-- Certificate -->
-    <h5 class="text-sm font-semibold">
-      {{ $t('system.settings.editor.external.saml.certificate', 'Certificate') }}
-    </h5>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.cert.public') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.cert.public') }}
+      </span>
+      <Textarea v-model="modelValue.cert" rows="4" class="w-full" />
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.cert.public', 'Public key') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.cert.public', 'Content will be minimized') }}
-        </span>
-        <Textarea v-model="modelValue.cert" rows="4" class="w-full" />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.cert.private', 'Private key') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.cert.private', 'Content will be minimized') }}
-        </span>
-        <Textarea v-model="modelValue.key" rows="4" class="w-full" />
-      </div>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.cert.private') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.cert.private') }}
+      </span>
+      <Textarea v-model="modelValue.key" rows="4" class="w-full" />
     </div>
 
     <Divider />
-
-    <!-- Requests -->
-    <h5 class="text-sm font-semibold">
-      {{ $t('system.settings.editor.external.saml.requests.title', 'Requests') }}
-    </h5>
 
     <CInputSwitch
       v-model="modelValue['sign-requests']"
-      :label="$t('system.settings.editor.external.saml.requests.sign-requests', 'Sign requests')"
-      :description="$t('system.settings.editor.external.saml.desc.requests.sign-requests', 'Sign AuthNRequest and assertion')"
+      :label="$t('system.settings.editor.external.saml.requests.sign-requests')"
+      :description="$t('system.settings.editor.external.saml.desc.requests.sign-requests')"
     />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.requests.sign-method', 'Signature method') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.requests.sign-method', 'Method to use on signed requests') }}
-        </span>
-        <Select
-          v-model="modelValue['sign-method']"
-          :options="signMethods"
-          option-label="text"
-          option-value="value"
-          :placeholder="$t('general.label.selectOption', 'Select an option')"
-          class="w-full"
-        />
-      </div>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.requests.sign-method') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.requests.sign-method') }}
+      </span>
+      <Select
+        v-model="modelValue['sign-method']"
+        :options="signMethods"
+        option-label="text"
+        option-value="value"
+        :placeholder="$t('general.label.selectOption')"
+        class="w-full"
+      />
+    </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.requests.binding', 'Binding') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.requests.binding', 'The type of HTTP binding to use on AuthNRequest, defaults to HTTP Redirect (GET)') }}
-        </span>
-        <Select
-          v-model="modelValue['binding']"
-          :options="httpBindings"
-          option-label="text"
-          option-value="value"
-          :placeholder="$t('general.label.selectOption', 'Select an option')"
-          class="w-full"
-        />
-      </div>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.requests.binding') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.requests.binding') }}
+      </span>
+      <Select
+        v-model="modelValue['binding']"
+        :options="httpBindings"
+        option-label="text"
+        option-value="value"
+        :placeholder="$t('general.label.selectOption')"
+        class="w-full"
+      />
     </div>
 
     <Divider />
 
-    <!-- Identity Provider -->
-    <h5 class="text-sm font-semibold">
-      {{ $t('system.settings.editor.external.saml.idp.title', 'Identity provider') }}
-    </h5>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.idp.url') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.idp.url') }}
+      </span>
+      <InputText v-model="modelValue.idp.url" class="w-full" />
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.idp.url', 'URL') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.idp.url', 'Location of IdP metadata') }}
-        </span>
-        <InputText v-model="modelValue.idp.url" class="w-full" />
-      </div>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.idp.ident-name') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.idp.ident-name') }}
+      </span>
+      <InputText v-model="modelValue.idp['ident-name']" class="w-full" />
+    </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.idp.ident-name', 'Name field') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.idp.ident-name', 'Name of the IdP field used for filling Corteza user full name') }}
-        </span>
-        <InputText v-model="modelValue.idp['ident-name']" class="w-full" />
-      </div>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.idp.ident-handle') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.idp.ident-handle') }}
+      </span>
+      <InputText v-model="modelValue.idp['ident-handle']" class="w-full" />
+    </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.idp.ident-handle', 'Handle field') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.idp.ident-handle', 'Name of the IdP field used for filling Corteza user handle or nickname') }}
-        </span>
-        <InputText v-model="modelValue.idp['ident-handle']" class="w-full" />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.saml.idp.ident-identifier', 'Identifier field') }}
-        </label>
-        <span class="text-xs text-surface-500">
-          {{ $t('system.settings.editor.external.saml.desc.idp.ident-identifier', 'Name of the IdP field used for filling and matching Corteza user email') }}
-        </span>
-        <InputText v-model="modelValue.idp['ident-identifier']" class="w-full" />
-      </div>
+    <div class="flex flex-col gap-1">
+      <label class="font-medium text-sm">
+        {{ $t('system.settings.editor.external.saml.idp.ident-identifier') }}
+      </label>
+      <span class="text-xs text-surface-500">
+        {{ $t('system.settings.editor.external.saml.desc.idp.ident-identifier') }}
+      </span>
+      <InputText v-model="modelValue.idp['ident-identifier']" class="w-full" />
     </div>
 
     <ExternalSecurity v-model="modelValue.security" />
@@ -168,11 +147,11 @@ const signMethods = [
 const httpBindings = [
   {
     value: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-    text: t('system.settings.editor.external.saml.requests.binding-post', 'HTTP POST'),
+    text: t('system.settings.editor.external.saml.requests.binding-post'),
   },
   {
     value: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-    text: t('system.settings.editor.external.saml.requests.binding-redirect', 'HTTP Redirect'),
+    text: t('system.settings.editor.external.saml.requests.binding-redirect'),
   },
 ]
 </script>

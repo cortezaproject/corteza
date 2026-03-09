@@ -80,16 +80,9 @@
 
           <FormField name="userGroupID" class="flex flex-col gap-2">
             <label for="userGroupID" class="font-medium text-primary">
-              {{ $t('system.users.editor.info.userGroup.label', 'User group') }}
+              {{ $t('system.users.editor.info.userGroup.label') }}
             </label>
-            <CInputUserGroup
-              id="userGroupID"
-              v-model="user.userGroupID"
-              :placeholder="
-                $t('system.users.editor.info.userGroup.placeholder', 'Select a user group')
-              "
-              class="w-full"
-            />
+            <CInputUserGroup id="userGroupID" v-model="user.userGroupID" class="w-full" />
           </FormField>
         </div>
       </Panel>

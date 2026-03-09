@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('compose.settings.editor.title', 'Compose Settings') }}</span>
+    <span>{{ $t('compose.settings.editor.title') }}</span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">
@@ -9,57 +9,139 @@
 
   <div v-else class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <!-- Basic / Attachments -->
       <Panel
-        v-for="group in settingGroups"
-        :key="group.key"
-        :header="group.label"
+        :header="$t('compose.settings.editor.group.general')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <div class="flex flex-col divide-y">
-          <div
-            v-for="setting in group.settings"
-            :key="setting.name"
-            class="flex items-center justify-between py-3 gap-4"
-          >
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="font-medium text-sm">{{ setting.label }}</span>
-              <span class="text-xs text-surface-500 font-mono">{{ setting.name }}</span>
-            </div>
-
-            <div class="flex-shrink-0 w-64">
-              <ToggleSwitch
-                v-if="typeof setting.value === 'boolean'"
-                v-model="setting.value"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputNumber
-                v-else-if="typeof setting.value === 'number'"
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-              <InputText
-                v-else
-                v-model="setting.value"
-                size="small"
-                class="w-full"
-                @update:modelValue="markDirty(setting)"
-              />
-            </div>
+        <!-- Page attachments -->
+        <h5 class="text-sm font-semibold mb-2">
+          {{ $t('compose.settings.editor.basic.attachments.page') }}
+        </h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('compose.settings.editor.basic.attachments.max-size') }}
+            </label>
+            <InputNumber v-model="settings['compose.page.attachments.max-size']" class="w-full" />
           </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{ $t('compose.settings.editor.basic.attachments.type.description') }}
+            </span>
+            <InputText v-model="pageAttachmentWhitelist" class="w-full" />
+          </div>
+        </div>
 
-          <div v-if="group.settings.length === 0" class="py-6 text-center text-surface-500">
-            {{ $t('compose.settings.empty', 'No settings in this group.') }}
+        <Divider />
+
+        <!-- Record attachments -->
+        <h5 class="text-sm font-semibold mb-2">
+          {{ $t('compose.settings.editor.basic.attachments.record') }}
+        </h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('compose.settings.editor.basic.attachments.max-size') }}
+            </label>
+            <InputNumber v-model="settings['compose.record.attachments.max-size']" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{ $t('compose.settings.editor.basic.attachments.type.description') }}
+            </span>
+            <InputText v-model="recordAttachmentWhitelist" class="w-full" />
+          </div>
+        </div>
+
+        <Divider />
+
+        <!-- Icon attachments -->
+        <h5 class="text-sm font-semibold mb-2">
+          {{ $t('compose.settings.editor.basic.attachments.icon') }}
+        </h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('compose.settings.editor.basic.attachments.max-size') }}
+            </label>
+            <InputNumber v-model="settings['compose.icon.attachments.max-size']" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">
+              {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
+            </label>
+            <span class="text-xs text-surface-500">
+              {{ $t('compose.settings.editor.basic.attachments.type.description') }}
+            </span>
+            <InputText v-model="iconAttachmentWhitelist" class="w-full" />
           </div>
         </div>
       </Panel>
 
-      <div v-if="settingGroups.length === 0 && !loading" class="p-6 text-center text-surface-500">
-        {{ $t('compose.settings.noSettings', 'No compose settings found.') }}
-      </div>
+      <!-- User Interface -->
+      <Panel
+        :header="$t('compose.settings.editor.ui.title')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
+        <!-- Sidebar -->
+        <h5 class="text-sm font-semibold mb-2">
+          {{ $t('compose.settings.editor.ui.sidebar.title') }}
+        </h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <CInputSwitch
+            v-model="sidebar.hideNamespaceList"
+            :label="$t('compose.settings.editor.ui.sidebar.hide-namespace-list')"
+          />
+          <CInputSwitch
+            v-model="sidebar.hideNamespaceListLink"
+            :label="$t('compose.settings.editor.ui.sidebar.hide-namespace-list-link')"
+          />
+        </div>
+
+        <Divider />
+
+        <!-- Record Toolbar -->
+        <h5 class="text-sm font-semibold mb-2">
+          {{ $t('compose.settings.editor.ui.record-toolbar.title') }}
+        </h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CInputSwitch
+            v-model="recordToolbar.hideSubmit"
+            :label="$t('compose.settings.editor.ui.record-toolbar.hide-submit')"
+          />
+          <CInputSwitch
+            v-model="recordToolbar.hideDelete"
+            :label="$t('compose.settings.editor.ui.record-toolbar.hide-delete')"
+          />
+          <CInputSwitch
+            v-model="recordToolbar.hideEdit"
+            :label="$t('compose.settings.editor.ui.record-toolbar.hide-edit')"
+          />
+          <CInputSwitch
+            v-model="recordToolbar.hideNew"
+            :label="$t('compose.settings.editor.ui.record-toolbar.hide-new')"
+          />
+          <CInputSwitch
+            v-model="recordToolbar.hideClone"
+            :label="$t('compose.settings.editor.ui.record-toolbar.hide-clone')"
+          />
+          <CInputSwitch
+            v-model="recordToolbar.hideBack"
+            :label="$t('compose.settings.editor.ui.record-toolbar.hide-back')"
+          />
+        </div>
+      </Panel>
     </div>
 
     <div class="shrink-0 border-t border-surface bg-surface">
@@ -68,7 +150,6 @@
           :label="$t('general.label.save')"
           icon="pi pi-save"
           :loading="saving"
-          :disabled="dirtySettings.size === 0"
           @click="handleSave"
         />
       </div>
@@ -77,7 +158,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -87,109 +168,50 @@ const $SystemAPI = inject('$SystemAPI')
 
 const loading = ref(false)
 const saving = ref(false)
-const rawSettings = ref([])
-const dirtySettings = ref(new Set())
+const settings = reactive({})
 
-// Human-readable labels for known compose setting keys
-const settingLabels = computed(() => ({
-  'compose.ui.record-toolbar-buttons.edit': t(
-    'compose.settings.editor.label.toolbar-edit',
-    'Show Edit button in record toolbar',
-  ),
-  'compose.ui.record-toolbar-buttons.delete': t(
-    'compose.settings.editor.label.toolbar-delete',
-    'Show Delete button in record toolbar',
-  ),
-  'compose.ui.record-toolbar-buttons.new': t(
-    'compose.settings.editor.label.toolbar-new',
-    'Show New button in record toolbar',
-  ),
-  'compose.ui.record-toolbar-buttons.clone': t(
-    'compose.settings.editor.label.toolbar-clone',
-    'Show Clone button in record toolbar',
-  ),
-  'compose.ui.record-toolbar-buttons.back': t(
-    'compose.settings.editor.label.toolbar-back',
-    'Show Back button in record toolbar',
-  ),
-  'compose.namespace-switch-enabled': t(
-    'compose.settings.editor.label.namespace-switch',
-    'Namespace switcher enabled',
-  ),
-  'compose.page-layout-enabled': t(
-    'compose.settings.editor.label.page-layout',
-    'Page layout enabled',
-  ),
-  'compose.record-revisions-enabled': t(
-    'compose.settings.editor.label.record-revisions',
-    'Record revisions enabled',
-  ),
-  'compose.default-namespace': t(
-    'compose.settings.editor.label.default-namespace',
-    'Default namespace slug',
-  ),
-}))
-
-// Sub-prefix → panel header label mapping
-const groupLabels = computed(() => ({
-  'compose.ui.record-toolbar-buttons': t(
-    'compose.settings.editor.group.record-toolbar',
-    'Record Toolbar',
-  ),
-  'compose.ui': t('compose.settings.editor.group.ui', 'UI'),
-  compose: t('compose.settings.editor.group.general', 'General'),
-}))
-
-const settingGroups = computed(() => {
-  const groups = new Map()
-
-  for (const setting of rawSettings.value) {
-    const prefix = getGroupPrefix(setting.name)
-    if (!groups.has(prefix)) {
-      groups.set(prefix, {
-        key: prefix,
-        label: groupLabels.value[prefix] || capitalize(prefix.replace('compose.', '')),
-        settings: [],
-      })
-    }
-    groups.get(prefix).settings.push(setting)
-  }
-
-  return Array.from(groups.values())
+// UI sub-objects
+const sidebar = reactive({
+  hideNamespaceList: false,
+  hideNamespaceListLink: false,
 })
 
-function getGroupPrefix(name) {
-  const sorted = Object.keys(groupLabels.value).sort((a, b) => b.length - a.length)
-  for (const prefix of sorted) {
-    if (name.startsWith(prefix + '.') || name === prefix) {
-      return prefix
-    }
-  }
-  return 'compose'
-}
+const recordToolbar = reactive({
+  hideSubmit: false,
+  hideDelete: false,
+  hideEdit: false,
+  hideNew: false,
+  hideClone: false,
+  hideBack: false,
+})
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
+// Computed whitelist getters/setters (comma-separated string ↔ array)
+const pageAttachmentWhitelist = computed({
+  get: () => (settings['compose.page.attachments.mimetypes'] || []).join(','),
+  set: val => {
+    settings['compose.page.attachments.mimetypes'] = parseMimeTypes(val)
+  },
+})
 
-function markDirty(setting) {
-  dirtySettings.value = new Set([...dirtySettings.value, setting.name])
-}
+const recordAttachmentWhitelist = computed({
+  get: () => (settings['compose.record.attachments.mimetypes'] || []).join(','),
+  set: val => {
+    settings['compose.record.attachments.mimetypes'] = parseMimeTypes(val)
+  },
+})
 
-async function loadSettings() {
-  loading.value = true
-  try {
-    const result = await $SystemAPI.settingsList({ prefix: 'compose.' })
-    rawSettings.value = (result || []).map(s => ({
-      name: s.name,
-      label: settingLabels.value[s.name] || s.name.replace('compose.', '').split('.').pop(),
-      value: parseValue(s.value),
-    }))
-  } catch (e) {
-    $toast.toastErrorHandler(t('notification.settings.fetch.error', 'Failed to load settings'))(e)
-  } finally {
-    loading.value = false
-  }
+const iconAttachmentWhitelist = computed({
+  get: () => (settings['compose.icon.attachments.mimetypes'] || []).join(','),
+  set: val => {
+    settings['compose.icon.attachments.mimetypes'] = parseMimeTypes(val)
+  },
+})
+
+function parseMimeTypes(value) {
+  return (value || '')
+    .split(',')
+    .map(v => v.replace(/ /g, ''))
+    .filter(v => v.match(/^[-\w.]+\/[-\w/+.]+$/g) !== null)
 }
 
 function parseValue(raw) {
@@ -198,23 +220,50 @@ function parseValue(raw) {
   if (typeof raw === 'number') return raw
   if (typeof raw === 'object') {
     if ('@value' in raw) return raw['@value']
-    return JSON.stringify(raw)
+    return raw
   }
   return raw
+}
+
+async function loadSettings() {
+  loading.value = true
+  try {
+    const result = await $SystemAPI.settingsList({ prefix: 'compose.' })
+    for (const s of result || []) {
+      settings[s.name] = parseValue(s.value)
+    }
+
+    // Hydrate UI sub-objects
+    const sidebarData = settings['compose.ui.sidebar'] || {}
+    Object.assign(sidebar, sidebarData)
+
+    const toolbarData = settings['compose.ui.record-toolbar'] || {}
+    Object.assign(recordToolbar, toolbarData)
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.settings.fetch.error'))(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function handleSave() {
   saving.value = true
   try {
-    const values = rawSettings.value
-      .filter(s => dirtySettings.value.has(s.name))
-      .map(s => ({ name: s.name, value: s.value }))
+    const values = Object.entries(settings).map(([name, value]) => ({
+      name,
+      value,
+    }))
+
+    // Merge UI sub-objects back
+    values.push(
+      { name: 'compose.ui.sidebar', value: { ...sidebar } },
+      { name: 'compose.ui.record-toolbar', value: { ...recordToolbar } },
+    )
 
     await $SystemAPI.settingsUpdate({ values })
-    dirtySettings.value = new Set()
-    $toast.toastSuccess(t('notification.settings.update.success', 'Settings saved'))
+    $toast.toastSuccess(t('notification.settings.update.success'))
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.settings.update.error', 'Failed to save settings'))(e)
+    $toast.toastErrorHandler(t('notification.settings.update.error'))(e)
   } finally {
     saving.value = false
   }

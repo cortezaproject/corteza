@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.roles.list.title', 'Roles') }}</span>
+    <span>{{ $t('system.roles.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -14,14 +14,14 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t('system.roles.list.filterForm.query.placeholder', 'Filter roles'),
+        searchPlaceholder: $t('system.roles.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.roles.list.new', 'New Role'),
-        resourcePlural: $t('system.roles.list.title', 'Roles'),
+        resourceSingle: $t('system.roles.list.new'),
+        resourcePlural: $t('system.roles.list.title'),
       }"
       clickable
       @sort="handleSort"
@@ -32,7 +32,7 @@
         <div class="flex gap-2">
           <CRouterLinkButton
             :to="{ name: 'system.roles.create' }"
-            :label="$t('system.roles.list.new', 'New Role')"
+            :label="$t('system.roles.list.new')"
             icon="pi pi-plus"
             size="small"
           />
@@ -174,17 +174,17 @@ const roleListFields = [
   {
     key: 'name',
     sortable: true,
-    header: t('system.roles.list.columns.name', 'Name'),
+    header: t('system.roles.list.columns.name'),
   },
   {
     key: 'handle',
     sortable: true,
-    header: t('system.roles.list.columns.handle', 'Handle'),
+    header: t('system.roles.list.columns.handle'),
   },
   {
     key: 'updatedAt',
     sortable: true,
-    header: t('system.roles.editor.info.updatedAt', 'Updated at'),
+    header: t('system.roles.editor.info.updatedAt'),
     class: 'text-right',
     pt: {
       columnHeaderContent: 'justify-end',
@@ -254,7 +254,7 @@ function getActionsMenuItems(role) {
 function onConfirmDelete(role) {
   confirmDelete({
     message: t('general.confirm.delete'),
-    header: role.name || role.handle || t('system.roles.list.new', 'New Role'),
+    header: role.name || role.handle || t('system.roles.list.new'),
     onConfirm: () => handleDelete(role),
   })
 }
@@ -264,11 +264,11 @@ async function handleDelete(role) {
     await $SystemAPI.roleDelete({
       roleID: role.roleID,
     })
-    $toast.toastSuccess(t('notification.role.delete.success', 'Role deleted.'))
+    $toast.toastSuccess(t('notification.role.delete.success'))
     filterList() // Refresh the list
   } catch (e) {
     console.error('Failed to delete role:', e)
-    $toast.toastErrorHandler(t('notification.role.delete.error', 'Failed to delete Role'))(e)
+    $toast.toastErrorHandler(t('notification.role.delete.error'))(e)
   }
 }
 </script>

@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.data-sources.list.filterForm.query.placeholder',
-          'Filter data sources',
-        ),
+        searchPlaceholder: $t('system.data-sources.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -150,22 +147,22 @@ const fields = [
   {
     key: 'name',
     sortable: false,
-    header: t('system.data-sources.list.columns.name', 'Name'),
+    header: t('system.data-sources.list.columns.name'),
   },
   {
     key: 'handle',
     sortable: true,
-    header: t('system.data-sources.list.columns.handle', 'Handle'),
+    header: t('system.data-sources.list.columns.handle'),
   },
   {
     key: 'type',
     sortable: false,
-    header: t('system.data-sources.list.columns.type', 'Type'),
+    header: t('system.data-sources.list.columns.type'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.data-sources.list.columns.createdAt', 'Created'),
+    header: t('system.data-sources.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -220,12 +217,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.dalConnectionDelete({ connectionID: item.connectionID })
-    $toast.toastSuccess(t('notification.data-source.delete.success', 'Data source deleted'))
+    $toast.toastSuccess(t('notification.data-source.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.data-source.delete.error', 'Failed to delete data source'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.data-source.delete.error'))(e)
   }
 }
 </script>

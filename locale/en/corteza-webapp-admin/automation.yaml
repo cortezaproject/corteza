@@ -5,10 +5,10 @@ scripts:
       updatedAt: Last update
     filter:
       absoluteTime: Show absolute time
-      incScriptsWithErrors: Errors ({{ count }})
-      incScriptsWithIterator: Iterator ({{ count }})
-      incScriptsWithSecurity: Security ({{ count }})
-      incScriptsWithTriggers: Triggers ({{ count }})
+      incScriptsWithErrors: Errors ({count})
+      incScriptsWithIterator: Iterator ({count})
+      incScriptsWithSecurity: Security ({count})
+      incScriptsWithTriggers: Triggers ({count})
       searchQuery: Search query
     flags:
       iterator: Iterator
@@ -71,6 +71,9 @@ sessions:
         label: Suspended
       canceled:
         label: Canceled
+      query:
+        placeholder: Filter sessions
+    single: session
     loading: Loading sessions
     title: Sessions
 
@@ -86,6 +89,9 @@ workflows:
       invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       id: ID
       name: Name *
+      description: Description
+      trace: Trace
+      traceHint: Enable trace logging for debugging
       openBuilder: Open builder
       title: Basic information
       undelete: Undelete

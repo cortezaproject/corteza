@@ -10,7 +10,7 @@
       <div class="flex items-center gap-2">
         <CInputRole
           class="flex-1"
-          :placeholder="$t('system.users.editor.roles.placeholder', 'Select a role to add')"
+          :placeholder="$t('system.users.editor.roles.placeholder')"
           clear-on-select
           filter-context-roles
           @select="onRoleSelect"
@@ -22,7 +22,7 @@
         v-if="currentRoles.length === 0"
         class="text-surface-500 p-4 border rounded-lg bg-surface-50 dark:bg-surface-900/50 text-center"
       >
-        {{ $t('system.users.editor.roles.empty', 'No roles assigned to this user yet.') }}
+        {{ $t('system.users.editor.roles.empty') }}
       </div>
 
       <div v-else class="flex flex-col border rounded-lg divide-y bg-surface-0 dark:bg-surface-900">
@@ -42,8 +42,8 @@
             severity="danger"
             text
             rounded
-            :aria-label="$t('system.users.editor.roles.remove', 'Remove')"
-            :title="$t('system.users.editor.roles.remove', 'Remove')"
+            :aria-label="$t('system.users.editor.roles.remove')"
+            :title="$t('system.users.editor.roles.remove')"
             @click="removeRole(role)"
           />
         </div>
@@ -97,7 +97,7 @@ async function loadData() {
     }
   } catch (e) {
     console.error('Failed to load roles:', e)
-    $toast.toastErrorHandler(t('notification.user.roles.error', 'Failed to load roles.'))(e)
+    $toast.toastErrorHandler(t('notification.user.roles.error'))(e)
   } finally {
     loading.value = false
   }

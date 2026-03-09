@@ -9,7 +9,7 @@
       <div class="flex items-center gap-2">
         <CInputUser
           class="flex-1"
-          :placeholder="$t('system.roles.editor.members.placeholder', 'Search for a user to add')"
+          :placeholder="$t('system.roles.editor.members.placeholder')"
           clear-on-select
           @select="onUserSelect"
         />
@@ -20,7 +20,7 @@
         v-if="currentMembers.length === 0"
         class="text-surface-500 p-4 border rounded-lg bg-surface-50 dark:bg-surface-900/50 text-center"
       >
-        {{ $t('system.roles.editor.members.empty', 'No members in this role yet.') }}
+        {{ $t('system.roles.editor.members.empty') }}
       </div>
 
       <div v-else class="flex flex-col border rounded-lg divide-y bg-surface-0 dark:bg-surface-900">
@@ -30,8 +30,13 @@
           class="flex items-center justify-between p-3"
         >
           <div class="flex flex-col">
-            <span class="font-medium">{{ member.name || member.email || member.handle || member.userID }}</span>
-            <span v-if="(member.name || member.handle) && member.email" class="text-xs text-surface-500">
+            <span class="font-medium">
+              {{ member.name || member.email || member.handle || member.userID }}
+            </span>
+            <span
+              v-if="(member.name || member.handle) && member.email"
+              class="text-xs text-surface-500"
+            >
               {{ member.email }}
             </span>
           </div>
@@ -40,8 +45,8 @@
             severity="danger"
             text
             rounded
-            :aria-label="$t('system.roles.editor.members.remove', 'Remove')"
-            :title="$t('system.roles.editor.members.remove', 'Remove')"
+            :aria-label="$t('system.roles.editor.members.remove')"
+            :title="$t('system.roles.editor.members.remove')"
             @click="removeMember(member)"
           />
         </div>
@@ -93,7 +98,7 @@ async function loadData() {
       currentMembers.value = users.filter(Boolean).map(u => new system.User(u))
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.role.members.error', 'Failed to load members.'))(e)
+    $toast.toastErrorHandler(t('notification.role.members.error'))(e)
   } finally {
     loading.value = false
   }

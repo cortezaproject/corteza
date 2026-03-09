@@ -26,8 +26,8 @@
         <template #content>
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
             <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.authclients.editor.tabs.basic', 'Basic') }}</Tab>
-              <Tab value="security">{{ $t('system.authclients.editor.tabs.security', 'Security') }}</Tab>
+              <Tab value="basic">{{ $t('system.authclients.editor.tabs.basic') }}</Tab>
+              <Tab value="security">{{ $t('system.authclients.editor.tabs.security') }}</Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -35,27 +35,37 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.name', 'Name') }} *
+                      {{ $t('system.authclients.editor.info.name') }} *
                     </label>
                     <InputText id="name" name="name" v-model="authClient.meta.name" />
-                    <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.name?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.name.error?.message }}
                     </Message>
                   </FormField>
 
                   <FormField name="handle" class="flex flex-col gap-2">
                     <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.handle', 'Handle') }}
+                      {{ $t('system.authclients.editor.info.handle') }}
                     </label>
                     <InputText id="handle" name="handle" v-model="authClient.handle" />
-                    <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.handle?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.handle.error?.message }}
                     </Message>
                   </FormField>
 
                   <div class="flex flex-col gap-2">
                     <label for="validGrant" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.validGrant', 'Grant Type') }}
+                      {{ $t('system.authclients.editor.info.validGrant') }}
                     </label>
                     <Select
                       id="validGrant"
@@ -68,14 +78,14 @@
 
                   <div class="flex flex-col gap-2">
                     <label for="scope" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.scope', 'Scope') }}
+                      {{ $t('system.authclients.editor.info.scope') }}
                     </label>
                     <InputText id="scope" v-model="authClient.scope" />
                   </div>
 
                   <div class="flex flex-col gap-2 md:col-span-2">
                     <label for="redirectURI" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.redirectURI', 'Redirect URI') }}
+                      {{ $t('system.authclients.editor.info.redirectURI') }}
                     </label>
                     <InputText id="redirectURI" v-model="authClient.redirectURI" />
                   </div>
@@ -83,14 +93,14 @@
                   <div class="flex items-center gap-3">
                     <ToggleSwitch id="enabled" v-model="authClient.enabled" />
                     <label for="enabled" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.authclients.editor.info.enabled.label', 'Enabled') }}
+                      {{ $t('system.authclients.editor.info.enabled.label') }}
                     </label>
                   </div>
 
                   <div class="flex items-center gap-3">
                     <ToggleSwitch id="trusted" v-model="authClient.trusted" />
                     <label for="trusted" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.authclients.editor.info.trusted.label', 'Trusted') }}
+                      {{ $t('system.authclients.editor.info.trusted.label') }}
                     </label>
                   </div>
                 </div>
@@ -101,12 +111,12 @@
                   <!-- Permitted Roles -->
                   <div class="flex flex-col gap-3">
                     <h3 class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.security.permittedRoles.label', 'Permitted Roles') }}
+                      {{ $t('system.authclients.editor.info.security.permittedRoles.label') }}
                     </h3>
                     <div class="flex items-center gap-2">
                       <CInputRole
                         class="flex-1"
-                        :placeholder="$t('system.authclients.editor.info.add', 'Add')"
+                        :placeholder="$t('system.authclients.editor.info.add')"
                         clear-on-select
                         filter-context-roles
                         @select="role => addRoleToList('permittedRoles', role)"
@@ -121,12 +131,12 @@
                   <!-- Prohibited Roles -->
                   <div class="flex flex-col gap-3">
                     <h3 class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.security.prohibitedRoles.label', 'Prohibited Roles') }}
+                      {{ $t('system.authclients.editor.info.security.prohibitedRoles.label') }}
                     </h3>
                     <div class="flex items-center gap-2">
                       <CInputRole
                         class="flex-1"
-                        :placeholder="$t('system.authclients.editor.info.add', 'Add')"
+                        :placeholder="$t('system.authclients.editor.info.add')"
                         clear-on-select
                         filter-context-roles
                         @select="role => addRoleToList('prohibitedRoles', role)"
@@ -141,12 +151,12 @@
                   <!-- Forced Roles -->
                   <div class="flex flex-col gap-3">
                     <h3 class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.security.forcedRoles.label', 'Forced Roles') }}
+                      {{ $t('system.authclients.editor.info.security.forcedRoles.label') }}
                     </h3>
                     <div class="flex items-center gap-2">
                       <CInputRole
                         class="flex-1"
-                        :placeholder="$t('system.authclients.editor.info.add', 'Add')"
+                        :placeholder="$t('system.authclients.editor.info.add')"
                         clear-on-select
                         filter-context-roles
                         @select="role => addRoleToList('forcedRoles', role)"
@@ -176,7 +186,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && authClient.canDeleteAuthClient"
-            :label="$t('system.authclients.editor.info.delete', 'Delete')"
+            :label="$t('system.authclients.editor.info.delete')"
             :message="$t('general.confirm.delete')"
             :header="authClient.meta?.name || authClient.handle"
             :disabled="deleting"
@@ -225,14 +235,20 @@ const isEdit = computed(() => !!route.params.authClientID)
 
 const pageTitle = computed(() =>
   isEdit.value
-    ? t('system.authclients.editor.title.edit', 'Edit Auth Client')
-    : t('system.authclients.editor.title.create', 'New Auth Client'),
+    ? t('system.authclients.editor.title.edit')
+    : t('system.authclients.editor.title.create'),
 )
 
 const grantOptions = computed(() => [
-  { label: t('system.authclients.editor.info.validGrant.authorization_code', 'Authorization Code'), value: 'authorization_code' },
-  { label: t('system.authclients.editor.info.validGrant.client_credentials', 'Client Credentials'), value: 'client_credentials' },
-  { label: t('system.authclients.editor.info.validGrant.password', 'Password'), value: 'password' },
+  {
+    label: t('system.authclients.editor.info.validGrant.authorization_code'),
+    value: 'authorization_code',
+  },
+  {
+    label: t('system.authclients.editor.info.validGrant.client_credentials'),
+    value: 'client_credentials',
+  },
+  { label: t('system.authclients.editor.info.validGrant.password'), value: 'password' },
 ])
 
 const initialValues = computed(() => ({
@@ -248,7 +264,9 @@ const resolver = ref(({ values }) => {
   }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
-    errors.handle = [{ message: t('system.authclients.editor.info.handle.invalid-handle-characters') }]
+    errors.handle = [
+      { message: t('system.authclients.editor.info.handle.invalid-handle-characters') },
+    ]
   }
 
   return { errors }
@@ -262,7 +280,7 @@ const RoleList = {
   emits: ['remove'],
   template: `
     <div v-if="roles.length === 0" class="text-surface-500 p-3 border rounded-lg bg-surface-50 dark:bg-surface-900/50 text-center text-sm">
-      {{ $t('system.authclients.editor.info.security.noRoles', 'No roles added.') }}
+      {{ $t('system.authclients.editor.info.security.noRoles') }}
     </div>
     <div v-else class="flex flex-col border rounded-lg divide-y bg-surface-0 dark:bg-surface-900">
       <div v-for="role in roles" :key="role.roleID" class="flex items-center justify-between p-2 px-3">
@@ -318,7 +336,7 @@ async function loadAuthClient() {
       loadRolesForList(authClient.value.security.forcedRoles, forcedRoles),
     ])
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.authclient.fetch.error', 'Failed to load auth client'))(e)
+    $toast.toastErrorHandler(t('notification.authclient.fetch.error'))(e)
     router.push({ name: 'system.authClients' })
   } finally {
     loading.value = false
@@ -345,15 +363,21 @@ async function handleSubmit({ valid }) {
       payload.authClientID = authClient.value.authClientID
       const raw = await $SystemAPI.authClientUpdate(payload)
       authClient.value = new system.AuthClient(raw)
-      $toast.toastSuccess(t('notification.authclient.update.success', 'Auth client updated'))
+      $toast.toastSuccess(t('notification.authclient.update.success'))
     } else {
       const created = await $SystemAPI.authClientCreate(payload)
-      $toast.toastSuccess(t('notification.authclient.create.success', 'Auth client created'))
-      router.push({ name: 'system.authClients.edit', params: { authClientID: created.authClientID } })
+      $toast.toastSuccess(t('notification.authclient.create.success'))
+      router.push({
+        name: 'system.authClients.edit',
+        params: { authClientID: created.authClientID },
+      })
     }
   } catch (e) {
     $toast.toastErrorHandler(
-      t(`notification.authclient.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save auth client'),
+      t(
+        `notification.authclient.${isEdit.value ? 'update' : 'create'}.error`,
+        'Failed to save auth client',
+      ),
     )(e)
   } finally {
     saving.value = false
@@ -364,15 +388,18 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.authClientDelete({ authClientID: authClient.value.authClientID })
-    $toast.toastSuccess(t('notification.authclient.delete.success', 'Auth client deleted'))
+    $toast.toastSuccess(t('notification.authclient.delete.success'))
     router.push({ name: 'system.authClients' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.authclient.delete.error', 'Failed to delete auth client'))(e)
+    $toast.toastErrorHandler(t('notification.authclient.delete.error'))(e)
   } finally {
     deleting.value = false
   }
 }
 
 onMounted(() => loadAuthClient())
-watch(() => route.params.authClientID, () => loadAuthClient())
+watch(
+  () => route.params.authClientID,
+  () => loadAuthClient(),
+)
 </script>

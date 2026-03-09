@@ -16,15 +16,11 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <Panel
-        :header="$t('system.queues.editor.info.title', 'Queue configuration')"
-        toggleable
-        :collapsed="false"
-      >
+      <Panel :header="$t('system.queues.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="queue" class="flex flex-col gap-2">
             <label for="queue" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.name', 'Queue name') }} *
+              {{ $t('system.queues.editor.info.name') }} *
             </label>
             <InputText id="queue" name="queue" v-model="queue.queue" />
             <Message v-if="$form.queue?.invalid" severity="error" size="small" variant="simple">
@@ -34,7 +30,7 @@
 
           <FormField name="consumer" class="flex flex-col gap-2">
             <label for="consumer" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.consumer', 'Consumer') }} *
+              {{ $t('system.queues.editor.info.consumer') }} *
             </label>
             <Select
               id="consumer"
@@ -50,14 +46,14 @@
 
           <div class="flex flex-col gap-2">
             <label for="handler" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.handler', 'Handler') }}
+              {{ $t('system.queues.editor.info.handler') }}
             </label>
             <InputText id="handler" v-model="queue.meta.handler" />
           </div>
 
           <div class="flex flex-col gap-2">
             <label for="dispatchTimeout" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.dispatchTimeout', 'Dispatch timeout (ms)') }}
+              {{ $t('system.queues.editor.info.dispatchTimeout') }}
             </label>
             <InputNumber id="dispatchTimeout" v-model="queue.meta.dispatch.timeout" :min="0" />
           </div>
@@ -76,7 +72,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && queue.canDeleteQueue"
-            :label="$t('system.queues.editor.delete', 'Delete')"
+            :label="$t('system.queues.editor.delete')"
             :message="$t('general.confirm.delete')"
             :header="queue.queue || queue.queueID"
             :disabled="deleting"
@@ -115,9 +111,9 @@ const deleting = ref(false)
 const queue = ref(null)
 
 const consumerOptions = computed(() => [
-  { label: t('system.queues.editor.info.consumerOptions.store', 'Store'), value: 'store' },
+  { label: t('system.queues.editor.info.consumerOptions.store'), value: 'store' },
   {
-    label: t('system.queues.editor.info.consumerOptions.eventbus', 'Event Bus'),
+    label: t('system.queues.editor.info.consumerOptions.eventbus'),
     value: 'eventbus',
   },
 ])
@@ -125,9 +121,7 @@ const consumerOptions = computed(() => [
 const isEdit = computed(() => !!route.params.queueID)
 
 const pageTitle = computed(() =>
-  isEdit.value
-    ? t('system.queues.editor.title.edit', 'Edit Queue')
-    : t('system.queues.editor.title.create', 'New Queue'),
+  isEdit.value ? t('system.queues.editor.title.edit') : t('system.queues.editor.title.create'),
 )
 
 const initialValues = computed(() => ({
@@ -178,7 +172,7 @@ async function loadQueue() {
       },
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.queue.fetch.error', 'Failed to load queue'))(e)
+    $toast.toastErrorHandler(t('notification.queue.fetch.error'))(e)
     router.push({ name: 'system.queues' })
   } finally {
     loading.value = false
@@ -199,10 +193,10 @@ async function handleSubmit({ valid }) {
     if (isEdit.value) {
       payload.queueID = queue.value.queueID
       queue.value = await $SystemAPI.queuesUpdate(payload)
-      $toast.toastSuccess(t('notification.queue.update.success', 'Queue updated'))
+      $toast.toastSuccess(t('notification.queue.update.success'))
     } else {
       const created = await $SystemAPI.queuesCreate(payload)
-      $toast.toastSuccess(t('notification.queue.create.success', 'Queue created'))
+      $toast.toastSuccess(t('notification.queue.create.success'))
       router.push({ name: 'system.queues.edit', params: { queueID: created.queueID } })
     }
   } catch (e) {
@@ -218,10 +212,10 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.queuesDelete({ queueID: queue.value.queueID })
-    $toast.toastSuccess(t('notification.queue.delete.success', 'Queue deleted'))
+    $toast.toastSuccess(t('notification.queue.delete.success'))
     router.push({ name: 'system.queues' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.queue.delete.error', 'Failed to delete queue'))(e)
+    $toast.toastErrorHandler(t('notification.queue.delete.error'))(e)
   } finally {
     deleting.value = false
   }

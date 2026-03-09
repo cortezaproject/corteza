@@ -18,15 +18,11 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <Panel
-        :header="$t('system.roles.editor.info.title', 'Basic information')"
-        toggleable
-        :collapsed="false"
-      >
+      <Panel :header="$t('system.roles.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
             <label for="name" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.name', 'Role name') }} *
+              {{ $t('system.roles.editor.info.name') }} *
             </label>
             <InputText id="name" name="name" v-model="role.name" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -36,7 +32,7 @@
 
           <FormField name="handle" class="flex flex-col gap-2">
             <label for="handle" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.handle', 'Handle') }}
+              {{ $t('system.roles.editor.info.handle') }}
             </label>
             <InputText id="handle" name="handle" v-model="role.handle" />
             <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
@@ -46,7 +42,7 @@
 
           <FormField name="description" class="flex flex-col gap-2 md:col-span-2">
             <label for="description" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.description', 'Description') }}
+              {{ $t('system.roles.editor.info.description') }}
             </label>
             <Textarea
               id="description"
@@ -60,7 +56,7 @@
 
       <Panel
         v-if="isEdit"
-        :header="$t('system.roles.editor.members.title', 'Members')"
+        :header="$t('system.roles.editor.members.title')"
         toggleable
         :collapsed="false"
       >
@@ -84,7 +80,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && role.canDeleteRole && !role.deletedAt && !role.isSystem"
-            :label="$t('system.roles.editor.info.delete', 'Delete')"
+            :label="$t('system.roles.editor.info.delete')"
             :message="$t('general.confirm.delete')"
             :header="role.name || role.handle || role.roleID"
             :disabled="deleting"
@@ -92,7 +88,7 @@
           />
           <Button
             v-if="isEdit && role.deletedAt && !role.isSystem"
-            :label="$t('system.roles.editor.info.undelete', 'Undelete')"
+            :label="$t('system.roles.editor.info.undelete')"
             icon="pi pi-refresh"
             severity="success"
             :disabled="saving"
@@ -140,9 +136,7 @@ const initialMemberIDs = ref(new Set())
 const isEdit = computed(() => !!route.params.roleID)
 
 const pageTitle = computed(() => {
-  return isEdit.value
-    ? t('system.roles.editor.title.edit', 'Edit role')
-    : t('system.roles.editor.title.create', 'Create role')
+  return isEdit.value ? t('system.roles.editor.title.edit') : t('system.roles.editor.title.create')
 })
 
 const initialValues = computed(() => {
@@ -187,7 +181,7 @@ async function loadRole() {
     initialMemberIDs.value = new Set(ids)
   } catch (e) {
     console.error('Failed to load role:', e)
-    $toast.toastErrorHandler(t('notification.role.fetch.error', 'Failed to load Role'))(e)
+    $toast.toastErrorHandler(t('notification.role.fetch.error'))(e)
     router.push({ name: 'system.roles' })
   } finally {
     loading.value = false
@@ -223,10 +217,10 @@ async function handleSubmit({ valid }) {
       ])
       initialMemberIDs.value = new Set(memberIDs.value)
 
-      $toast.toastSuccess(t('notification.role.update.success', 'Role updated'))
+      $toast.toastSuccess(t('notification.role.update.success'))
     } else {
       const created = await $SystemAPI.roleCreate(payload)
-      $toast.toastSuccess(t('notification.role.create.success', 'Role created'))
+      $toast.toastSuccess(t('notification.role.create.success'))
       router.push({
         name: 'system.roles.edit',
         params: { roleID: created.roleID },
@@ -235,9 +229,7 @@ async function handleSubmit({ valid }) {
   } catch (e) {
     console.error('Failed to save role:', e)
     $toast.toastErrorHandler(
-      isEdit.value
-        ? t('notification.role.update.error', 'Failed to update Role')
-        : t('notification.role.create.error', 'Failed to create Role'),
+      isEdit.value ? t('notification.role.update.error') : t('notification.role.create.error'),
     )(e)
   } finally {
     saving.value = false
@@ -248,11 +240,11 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.roleDelete({ roleID: role.value.roleID })
-    $toast.toastSuccess(t('notification.role.delete.success', 'Role deleted'))
+    $toast.toastSuccess(t('notification.role.delete.success'))
     router.push({ name: 'system.roles' })
   } catch (e) {
     console.error('Failed to delete role:', e)
-    $toast.toastErrorHandler(t('notification.role.delete.error', 'Failed to delete Role'))(e)
+    $toast.toastErrorHandler(t('notification.role.delete.error'))(e)
   } finally {
     deleting.value = false
   }
@@ -264,10 +256,10 @@ async function handleUndelete() {
     await $SystemAPI.roleUndelete({ roleID: role.value.roleID })
     const raw = await $SystemAPI.roleRead({ roleID: role.value.roleID })
     role.value = new system.Role(raw)
-    $toast.toastSuccess(t('notification.role.undelete.success', 'Role undeleted'))
+    $toast.toastSuccess(t('notification.role.undelete.success'))
   } catch (e) {
     console.error('Failed to undelete role:', e)
-    $toast.toastErrorHandler(t('notification.role.undelete.error', 'Failed to undelete Role'))(e)
+    $toast.toastErrorHandler(t('notification.role.undelete.error'))(e)
   } finally {
     saving.value = false
   }

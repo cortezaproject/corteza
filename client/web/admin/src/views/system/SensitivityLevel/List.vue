@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.sensitivityLevel.list.title', 'Sensitivity Levels') }}</span>
+    <span>{{ $t('system.sensitivityLevel.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.sensitivityLevel.list.filterForm.query.placeholder',
-          'Filter sensitivity levels',
-        ),
+        searchPlaceholder: $t('system.sensitivityLevel.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -142,22 +139,22 @@ const fields = [
   {
     key: 'name',
     sortable: true,
-    header: t('system.sensitivityLevel.list.columns.name', 'Name'),
+    header: t('system.sensitivityLevel.list.columns.name'),
   },
   {
     key: 'handle',
     sortable: true,
-    header: t('system.sensitivityLevel.list.columns.handle', 'Handle'),
+    header: t('system.sensitivityLevel.list.columns.handle'),
   },
   {
     key: 'level',
     sortable: true,
-    header: t('system.sensitivityLevel.list.columns.level', 'Level'),
+    header: t('system.sensitivityLevel.list.columns.level'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.sensitivityLevel.list.columns.createdAt', 'Created'),
+    header: t('system.sensitivityLevel.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -212,14 +209,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.dalSensitivityLevelDelete({ sensitivityLevelID: item.sensitivityLevelID })
-    $toast.toastSuccess(
-      t('notification.sensitivityLevel.delete.success', 'Sensitivity level deleted'),
-    )
+    $toast.toastSuccess(t('notification.sensitivityLevel.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.sensitivityLevel.delete.error', 'Failed to delete sensitivity level'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.sensitivityLevel.delete.error'))(e)
   }
 }
 </script>

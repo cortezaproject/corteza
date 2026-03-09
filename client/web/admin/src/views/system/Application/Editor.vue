@@ -16,15 +16,11 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <Panel
-        :header="$t('system.applications.editor.info.title', 'Basic information')"
-        toggleable
-        :collapsed="false"
-      >
+      <Panel :header="$t('system.applications.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2 md:col-span-2">
             <label for="name" class="font-medium text-primary">
-              {{ $t('system.applications.editor.info.name', 'Name') }} *
+              {{ $t('system.applications.editor.info.name') }} *
             </label>
             <InputText id="name" name="name" v-model="application.name" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -34,7 +30,7 @@
 
           <div class="flex flex-col gap-2">
             <label for="weight" class="font-medium text-primary">
-              {{ $t('system.applications.editor.info.weight', 'Weight') }}
+              {{ $t('system.applications.editor.info.weight') }}
             </label>
             <InputNumber id="weight" v-model="application.weight" :min="0" />
           </div>
@@ -42,28 +38,24 @@
           <div class="flex items-center gap-3">
             <ToggleSwitch id="enabled" v-model="application.enabled" />
             <label for="enabled" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.applications.editor.info.enabled', 'Enabled') }}
+              {{ $t('system.applications.editor.info.enabled') }}
             </label>
           </div>
         </div>
       </Panel>
 
-      <Panel
-        :header="$t('system.applications.editor.unify.title', 'Unify integration')"
-        toggleable
-        :collapsed="false"
-      >
+      <Panel :header="$t('system.applications.editor.unify.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
             <label for="unifyName" class="font-medium text-primary">
-              {{ $t('system.applications.editor.unify.name.label', 'Name') }}
+              {{ $t('system.applications.editor.unify.name.label') }}
             </label>
             <InputText id="unifyName" v-model="application.unify.name" />
           </div>
 
           <div class="flex flex-col gap-2">
             <label for="unifyUrl" class="font-medium text-primary">
-              {{ $t('system.applications.editor.unify.url.label', 'URL') }}
+              {{ $t('system.applications.editor.unify.url.label') }}
             </label>
             <InputText id="unifyUrl" v-model="application.unify.url" />
           </div>
@@ -71,7 +63,7 @@
           <div class="flex items-center gap-3">
             <ToggleSwitch id="unifyListed" v-model="application.unify.listed" />
             <label for="unifyListed" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.applications.editor.unify.listed', 'Show in app list') }}
+              {{ $t('system.applications.editor.unify.listed') }}
             </label>
           </div>
         </div>
@@ -89,7 +81,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && application.canDeleteApplication"
-            :label="$t('system.applications.editor.info.delete', 'Delete')"
+            :label="$t('system.applications.editor.info.delete')"
             :message="$t('general.confirm.delete')"
             :header="application.name"
             :disabled="deleting"
@@ -132,8 +124,8 @@ const isEdit = computed(() => !!route.params.applicationID)
 
 const pageTitle = computed(() =>
   isEdit.value
-    ? t('system.applications.editor.title.edit', 'Edit Application')
-    : t('system.applications.editor.title.create', 'New Application'),
+    ? t('system.applications.editor.title.edit')
+    : t('system.applications.editor.title.create'),
 )
 
 const initialValues = computed(() => ({
@@ -162,9 +154,7 @@ async function loadApplication() {
     const raw = await $SystemAPI.applicationRead({ applicationID })
     application.value = new system.Application(raw)
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.application.fetch.error', 'Failed to load application'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.application.fetch.error'))(e)
     router.push({ name: 'system.applications' })
   } finally {
     loading.value = false
@@ -187,10 +177,10 @@ async function handleSubmit({ valid }) {
       payload.applicationID = application.value.applicationID
       const raw = await $SystemAPI.applicationUpdate(payload)
       application.value = new system.Application(raw)
-      $toast.toastSuccess(t('notification.application.update.success', 'Application updated'))
+      $toast.toastSuccess(t('notification.application.update.success'))
     } else {
       const created = await $SystemAPI.applicationCreate(payload)
-      $toast.toastSuccess(t('notification.application.create.success', 'Application created'))
+      $toast.toastSuccess(t('notification.application.create.success'))
       router.push({
         name: 'system.applications.edit',
         params: { applicationID: created.applicationID },
@@ -212,12 +202,10 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.applicationDelete({ applicationID: application.value.applicationID })
-    $toast.toastSuccess(t('notification.application.delete.success', 'Application deleted'))
+    $toast.toastSuccess(t('notification.application.delete.success'))
     router.push({ name: 'system.applications' })
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.application.delete.error', 'Failed to delete application'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.application.delete.error'))(e)
   } finally {
     deleting.value = false
   }

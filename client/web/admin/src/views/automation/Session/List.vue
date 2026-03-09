@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('automation.sessions.list.title', 'Sessions') }}</span>
+    <span>{{ $t('automation.sessions.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,16 +13,13 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'automation.sessions.list.filterForm.query.placeholder',
-          'Search sessions...',
-        ),
+        searchPlaceholder: $t('automation.sessions.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('automation.sessions.list.single', 'session'),
+        resourceSingle: $t('automation.sessions.list.single'),
         resourcePlural: $t('automation.sessions.list.title'),
       }"
       clickable
@@ -78,22 +75,22 @@ const fields = [
   {
     key: 'sessionID',
     sortable: false,
-    header: t('automation.sessions.list.columns.sessionID', 'Session ID'),
+    header: t('automation.sessions.list.columns.sessionID'),
   },
   {
     key: 'workflowID',
     sortable: false,
-    header: t('automation.sessions.list.columns.workflowID', 'Workflow ID'),
+    header: t('automation.sessions.list.columns.workflowID'),
   },
   {
     key: 'status',
     sortable: false,
-    header: t('automation.sessions.list.columns.status', 'Status'),
+    header: t('automation.sessions.list.columns.status'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('automation.sessions.list.columns.createdAt', 'Started'),
+    header: t('automation.sessions.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },

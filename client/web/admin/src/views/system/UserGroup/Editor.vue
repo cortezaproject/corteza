@@ -22,7 +22,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
             <label for="name" class="font-medium text-primary">
-              {{ $t('system.user-groups.editor.info.meta.short', 'Name') }}
+              {{ $t('system.user-groups.editor.info.meta.short') }}
             </label>
             <InputText id="name" name="name" v-model="userGroup.meta.short" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -42,7 +42,7 @@
 
           <FormField name="description" class="flex flex-col gap-2 md:col-span-2">
             <label for="description" class="font-medium text-primary">
-              {{ $t('system.user-groups.editor.info.meta.description', 'Description') }}
+              {{ $t('system.user-groups.editor.info.meta.description') }}
             </label>
             <Textarea
               id="description"
@@ -160,9 +160,7 @@ async function loadUserGroup() {
     userGroup.value = new system.UserGroup(raw)
   } catch (e) {
     console.error('Failed to load user group:', e)
-    $toast.toastErrorHandler(t('notification.userGroup.fetch.error', 'Failed to load User Group'))(
-      e,
-    )
+    $toast.toastErrorHandler(t('notification.userGroup.fetch.error'))(e)
     router.push({ name: 'system.userGroups' })
   } finally {
     loading.value = false
@@ -185,10 +183,10 @@ async function handleSubmit({ valid }) {
       payload.userGroupID = userGroup.value.userGroupID
       const raw = await $SystemAPI.userGroupUpdate(payload)
       userGroup.value = new system.UserGroup(raw)
-      $toast.toastSuccess(t('notification.userGroup.update.success', 'User Group updated'))
+      $toast.toastSuccess(t('notification.userGroup.update.success'))
     } else {
       const created = await $SystemAPI.userGroupCreate(payload)
-      $toast.toastSuccess(t('notification.userGroup.create.success', 'User Group created'))
+      $toast.toastSuccess(t('notification.userGroup.create.success'))
       router.push({
         name: 'system.userGroups.edit',
         params: { userGroupID: created.userGroupID },
@@ -198,8 +196,8 @@ async function handleSubmit({ valid }) {
     console.error('Failed to save user group:', e)
     $toast.toastErrorHandler(
       isEdit.value
-        ? t('notification.userGroup.update.error', 'Failed to update User Group')
-        : t('notification.userGroup.create.error', 'Failed to create User Group'),
+        ? t('notification.userGroup.update.error')
+        : t('notification.userGroup.create.error'),
     )(e)
   } finally {
     saving.value = false
@@ -210,13 +208,11 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.userGroupDelete({ userGroupID: userGroup.value.userGroupID })
-    $toast.toastSuccess(t('notification.userGroup.delete.success', 'User Group deleted'))
+    $toast.toastSuccess(t('notification.userGroup.delete.success'))
     router.push({ name: 'system.userGroups' })
   } catch (e) {
     console.error('Failed to delete user group:', e)
-    $toast.toastErrorHandler(
-      t('notification.userGroup.delete.error', 'Failed to delete User Group'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.userGroup.delete.error'))(e)
   } finally {
     deleting.value = false
   }
@@ -228,12 +224,10 @@ async function handleUndelete() {
     await $SystemAPI.userGroupUndelete({ userGroupID: userGroup.value.userGroupID })
     const raw = await $SystemAPI.userGroupRead({ userGroupID: userGroup.value.userGroupID })
     userGroup.value = new system.UserGroup(raw)
-    $toast.toastSuccess(t('notification.userGroup.undelete.success', 'User Group undeleted'))
+    $toast.toastSuccess(t('notification.userGroup.undelete.success'))
   } catch (e) {
     console.error('Failed to undelete user group:', e)
-    $toast.toastErrorHandler(
-      t('notification.userGroup.undelete.error', 'Failed to undelete User Group'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.userGroup.undelete.error'))(e)
   } finally {
     saving.value = false
   }

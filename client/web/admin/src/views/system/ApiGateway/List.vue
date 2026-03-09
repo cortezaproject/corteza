@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.apigw.list.title', 'API Gateway') }}</span>
+    <span>{{ $t('system.apigw.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.apigw.list.filterForm.query.placeholder',
-          'Filter routes by name',
-        ),
+        searchPlaceholder: $t('system.apigw.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -59,11 +56,7 @@
 
       <template #body-enabled="{ data }">
         <Tag
-          :value="
-            data.enabled
-              ? $t('general.label.enabled', 'Enabled')
-              : $t('general.label.disabled', 'Disabled')
-          "
+          :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
           :severity="data.enabled ? 'success' : 'secondary'"
         />
       </template>
@@ -154,27 +147,27 @@ const fields = [
   {
     key: 'endpoint',
     sortable: true,
-    header: t('system.apigw.list.columns.endpoint', 'Endpoint'),
+    header: t('system.apigw.list.columns.endpoint'),
   },
   {
     key: 'method',
     sortable: true,
-    header: t('system.apigw.list.columns.method', 'Method'),
+    header: t('system.apigw.list.columns.method'),
   },
   {
     key: 'enabled',
     sortable: false,
-    header: t('system.apigw.list.columns.enabled', 'Status'),
+    header: t('system.apigw.list.columns.enabled'),
   },
   {
     key: 'group',
     sortable: true,
-    header: t('system.apigw.list.columns.group', 'Group'),
+    header: t('system.apigw.list.columns.group'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.apigw.list.columns.createdAt', 'Created'),
+    header: t('system.apigw.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -229,10 +222,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.apigwRouteDelete({ routeID: item.routeID })
-    $toast.toastSuccess(t('notification.gateway.delete.success', 'Route deleted'))
+    $toast.toastSuccess(t('notification.gateway.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.delete.error', 'Failed to delete route'))(e)
+    $toast.toastErrorHandler(t('notification.gateway.delete.error'))(e)
   }
 }
 </script>

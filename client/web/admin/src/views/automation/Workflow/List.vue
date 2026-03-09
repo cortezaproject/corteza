@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('automation.workflows.list.title', 'Workflows') }}</span>
+    <span>{{ $t('automation.workflows.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'automation.workflows.list.filterForm.query.placeholder',
-          'Filter workflows by name',
-        ),
+        searchPlaceholder: $t('automation.workflows.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -62,11 +59,7 @@
 
       <template #body-enabled="{ data }">
         <Tag
-          :value="
-            data.enabled
-              ? $t('general.label.enabled', 'Enabled')
-              : $t('general.label.disabled', 'Disabled')
-          "
+          :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
           :severity="data.enabled ? 'success' : 'secondary'"
         />
       </template>
@@ -157,22 +150,22 @@ const fields = [
   {
     key: 'name',
     sortable: false,
-    header: t('automation.workflows.list.columns.name', 'Name'),
+    header: t('automation.workflows.list.columns.name'),
   },
   {
     key: 'handle',
     sortable: true,
-    header: t('automation.workflows.list.columns.handle', 'Handle'),
+    header: t('automation.workflows.list.columns.handle'),
   },
   {
     key: 'enabled',
     sortable: false,
-    header: t('automation.workflows.list.columns.enabled', 'Status'),
+    header: t('automation.workflows.list.columns.enabled'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('automation.workflows.list.columns.createdAt', 'Created'),
+    header: t('automation.workflows.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -227,12 +220,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $AutomationAPI.workflowDelete({ workflowID: item.workflowID })
-    $toast.toastSuccess(t('notification.workflow.delete.success', 'Workflow deleted'))
+    $toast.toastSuccess(t('notification.workflow.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.workflow.delete.error', 'Failed to delete workflow'))(
-      e,
-    )
+    $toast.toastErrorHandler(t('notification.workflow.delete.error'))(e)
   }
 }
 </script>

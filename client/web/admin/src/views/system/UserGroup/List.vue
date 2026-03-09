@@ -113,7 +113,7 @@
 
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">
-            {{ $t('system.user-groups.list.filterForm.archived.label', 'Archived user groups') }}
+            {{ $t('system.user-groups.list.filterForm.archived.label') }}
           </span>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.archived" inputId="arch0" value="0" />
@@ -179,12 +179,12 @@ const userGroupListFields = [
   {
     key: 'name',
     sortable: true,
-    header: t('system.user-groups.list.columns.meta.short', 'Name'),
+    header: t('system.user-groups.list.columns.meta.short'),
   },
   {
     key: 'updatedAt',
     sortable: true,
-    header: t('system.user-groups.editor.info.updatedAt', 'Updated at'),
+    header: t('system.user-groups.editor.info.updatedAt'),
     class: 'text-right',
     pt: {
       columnHeaderContent: 'justify-end',
@@ -264,13 +264,11 @@ async function handleDelete(userGroup) {
     await $SystemAPI.userGroupDelete({
       userGroupID: userGroup.userGroupID,
     })
-    $toast.toastSuccess(t('notification.userGroup.delete.success', 'User Group deleted.'))
+    $toast.toastSuccess(t('notification.userGroup.delete.success'))
     filterList() // Refresh the list
   } catch (e) {
     console.error('Failed to delete user group:', e)
-    $toast.toastErrorHandler(
-      t('notification.userGroup.delete.error', 'Failed to delete User Group'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.userGroup.delete.error'))(e)
   }
 }
 </script>

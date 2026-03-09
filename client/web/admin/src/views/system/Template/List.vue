@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.templates.list.title', 'Templates') }}</span>
+    <span>{{ $t('system.templates.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.templates.list.filterForm.handle.placeholder',
-          'Filter templates by handle',
-        ),
+        searchPlaceholder: $t('system.templates.list.filterForm.handle.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -143,27 +140,27 @@ const fields = [
   {
     key: 'name',
     sortable: false,
-    header: t('system.templates.list.columns.meta.short', 'Name'),
+    header: t('system.templates.list.columns.meta.short'),
   },
   {
     key: 'handle',
     sortable: true,
-    header: t('system.templates.list.columns.handle', 'Handle'),
+    header: t('system.templates.list.columns.handle'),
   },
   {
     key: 'type',
     sortable: false,
-    header: t('system.templates.list.columns.type', 'Type'),
+    header: t('system.templates.list.columns.type'),
   },
   {
     key: 'language',
     sortable: false,
-    header: t('system.templates.list.columns.language', 'Language'),
+    header: t('system.templates.list.columns.language'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.templates.list.columns.createdAt', 'Created'),
+    header: t('system.templates.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -218,12 +215,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.templateDelete({ templateID: item.templateID })
-    $toast.toastSuccess(t('notification.template.delete.success', 'Template deleted'))
+    $toast.toastSuccess(t('notification.template.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.template.delete.error', 'Failed to delete template'))(
-      e,
-    )
+    $toast.toastErrorHandler(t('notification.template.delete.error'))(e)
   }
 }
 </script>

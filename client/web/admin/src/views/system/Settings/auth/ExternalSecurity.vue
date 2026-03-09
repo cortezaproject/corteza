@@ -2,22 +2,15 @@
   <div class="flex flex-col gap-4">
     <Divider />
     <h5 class="text-sm font-semibold">
-      {{ $t('system.settings.editor.external.security.title', 'Security') }}
+      {{ $t('system.settings.editor.external.security.title') }}
     </h5>
 
     <div class="flex flex-col gap-1">
       <label class="font-medium text-sm">
-        {{
-          $t('system.settings.editor.external.security.permitted-roles.label', 'Permitted roles')
-        }}
+        {{ $t('system.settings.editor.external.security.permitted-roles.label') }}
       </label>
       <span class="text-xs text-surface-500">
-        {{
-          $t(
-            'system.settings.editor.external.security.permitted-roles.description',
-            'Only roles in this list will be added into security context when authenticates with this provider',
-          )
-        }}
+        {{ $t('system.settings.editor.external.security.permitted-roles.description') }}
       </span>
       <CInputRole
         v-for="(roleID, index) in modelValue.permittedRoles"
@@ -27,7 +20,7 @@
         @update:model-value="updateRole('permittedRoles', index, $event)"
       />
       <Button
-        :label="$t('general.label.plus-add', '+ Add')"
+        :label="$t('general.label.plus-add')"
         severity="secondary"
         text
         size="small"
@@ -38,17 +31,10 @@
 
     <div class="flex flex-col gap-1">
       <label class="font-medium text-sm">
-        {{
-          $t('system.settings.editor.external.security.prohibited-roles.label', 'Prohibited roles')
-        }}
+        {{ $t('system.settings.editor.external.security.prohibited-roles.label') }}
       </label>
       <span class="text-xs text-surface-500">
-        {{
-          $t(
-            'system.settings.editor.external.security.prohibited-roles.description',
-            'Roles from this list will be removed from security context when authenticates with this provider',
-          )
-        }}
+        {{ $t('system.settings.editor.external.security.prohibited-roles.description') }}
       </span>
       <CInputRole
         v-for="(roleID, index) in modelValue.prohibitedRoles"
@@ -58,7 +44,7 @@
         @update:model-value="updateRole('prohibitedRoles', index, $event)"
       />
       <Button
-        :label="$t('general.label.plus-add', '+ Add')"
+        :label="$t('general.label.plus-add')"
         severity="secondary"
         text
         size="small"
@@ -69,15 +55,10 @@
 
     <div class="flex flex-col gap-1">
       <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.security.forced-roles.label', 'Forced roles') }}
+        {{ $t('system.settings.editor.external.security.forced-roles.label') }}
       </label>
       <span class="text-xs text-surface-500">
-        {{
-          $t(
-            'system.settings.editor.external.security.forced-roles.description',
-            'Roles from this list will be always added to security context when authenticates with this provider',
-          )
-        }}
+        {{ $t('system.settings.editor.external.security.forced-roles.description') }}
       </span>
       <CInputRole
         v-for="(roleID, index) in modelValue.forcedRoles"
@@ -87,7 +68,7 @@
         @update:model-value="updateRole('forcedRoles', index, $event)"
       />
       <Button
-        :label="$t('general.label.plus-add', '+ Add')"
+        :label="$t('general.label.plus-add')"
         severity="secondary"
         text
         size="small"
@@ -99,8 +80,6 @@
 </template>
 
 <script setup>
-import { CInputRole } from '@cortezaproject/corteza-vue-next'
-
 const props = defineProps({
   modelValue: {
     type: Object,

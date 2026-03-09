@@ -26,9 +26,9 @@
         <template #content>
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
             <TabList class="rounded-t-lg shrink-0">
-              <Tab value="route">{{ $t('system.apigw.editor.tabs.route', 'Route') }}</Tab>
+              <Tab value="route">{{ $t('system.apigw.editor.tabs.route') }}</Tab>
               <Tab v-if="isEdit" value="filters">
-                {{ $t('system.apigw.editor.tabs.filters', 'Filters') }}
+                {{ $t('system.apigw.editor.tabs.filters') }}
               </Tab>
             </TabList>
 
@@ -37,7 +37,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="endpoint" class="flex flex-col gap-2 md:col-span-2">
                     <label for="endpoint" class="font-medium text-primary">
-                      {{ $t('system.apigw.editor.info.endpoint', 'Endpoint') }} *
+                      {{ $t('system.apigw.editor.info.endpoint') }} *
                     </label>
                     <InputText
                       id="endpoint"
@@ -57,7 +57,7 @@
 
                   <div class="flex flex-col gap-2">
                     <label for="method" class="font-medium text-primary">
-                      {{ $t('system.apigw.editor.info.method', 'Method') }}
+                      {{ $t('system.apigw.editor.info.method') }}
                     </label>
                     <Select
                       id="method"
@@ -70,14 +70,14 @@
 
                   <div class="flex flex-col gap-2">
                     <label for="group" class="font-medium text-primary">
-                      {{ $t('system.apigw.editor.info.group', 'Group') }}
+                      {{ $t('system.apigw.editor.info.group') }}
                     </label>
                     <InputText id="group" v-model="route_.group" />
                   </div>
 
                   <div class="flex flex-col gap-2 md:col-span-2">
                     <label for="description" class="font-medium text-primary">
-                      {{ $t('system.apigw.editor.info.description', 'Description') }}
+                      {{ $t('system.apigw.editor.info.description') }}
                     </label>
                     <Textarea id="description" v-model="route_.meta.description" rows="2" />
                   </div>
@@ -85,14 +85,14 @@
                   <div class="flex items-center gap-3">
                     <ToggleSwitch id="enabled" v-model="route_.enabled" />
                     <label for="enabled" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.apigw.editor.info.enabled', 'Enabled') }}
+                      {{ $t('system.apigw.editor.info.enabled') }}
                     </label>
                   </div>
 
                   <div class="flex items-center gap-3">
                     <ToggleSwitch id="async" v-model="route_.meta.async" />
                     <label for="async" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.apigw.editor.info.async', 'Async') }}
+                      {{ $t('system.apigw.editor.info.async') }}
                     </label>
                   </div>
                 </div>
@@ -108,17 +108,14 @@
                   :pagination="filterPagination"
                   :loading="filtersLoading"
                   :translations="{
-                    searchPlaceholder: $t(
-                      'system.apigw.editor.filters.searchPlaceholder',
-                      'Search filters...',
-                    ),
+                    searchPlaceholder: $t('system.apigw.editor.filters.searchPlaceholder'),
                     showingPagination: 'general.resourceList.pagination.showing',
                     singlePluralPagination: 'general.resourceList.pagination.single',
                     prevPagination: $t('general.resourceList.pagination.prev'),
                     nextPagination: $t('general.resourceList.pagination.next'),
                     recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-                    resourceSingle: $t('system.apigw.editor.filters.resourceSingle', 'filter'),
-                    resourcePlural: $t('system.apigw.editor.filters.resourcePlural', 'filters'),
+                    resourceSingle: $t('system.apigw.editor.filters.resourceSingle'),
+                    resourcePlural: $t('system.apigw.editor.filters.resourcePlural'),
                   }"
                   clickable
                   @update:filter="Object.assign(filterFilter, $event)"
@@ -128,7 +125,7 @@
                 >
                   <template #header>
                     <Button
-                      :label="$t('system.apigw.editor.filters.add', 'Add Filter')"
+                      :label="$t('system.apigw.editor.filters.add')"
                       icon="pi pi-plus"
                       size="small"
                       @click="openFilterDialog(null)"
@@ -138,9 +135,7 @@
                   <template #body-enabled="{ data }">
                     <Tag
                       :value="
-                        data.enabled
-                          ? $t('general.label.enabled', 'Enabled')
-                          : $t('general.label.disabled', 'Disabled')
+                        data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')
                       "
                       :severity="data.enabled ? 'success' : 'secondary'"
                     />
@@ -179,8 +174,8 @@
       modal
       :header="
         activeFilter?.filterID
-          ? $t('system.apigw.editor.filters.edit', 'Edit Filter')
-          : $t('system.apigw.editor.filters.create', 'New Filter')
+          ? $t('system.apigw.editor.filters.edit')
+          : $t('system.apigw.editor.filters.create')
       "
       :style="{ width: '50vw' }"
       :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
@@ -196,7 +191,7 @@
       >
         <FormField name="kind" class="flex flex-col gap-2">
           <label for="filterKind" class="font-medium text-primary">
-            {{ $t('system.apigw.editor.filters.kind', 'Kind') }} *
+            {{ $t('system.apigw.editor.filters.kind') }} *
           </label>
           <InputText id="filterKind" name="kind" v-model="activeFilter.kind" />
           <Message v-if="$filterForm.kind?.invalid" severity="error" size="small" variant="simple">
@@ -207,7 +202,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
             <label for="filterWeight" class="font-medium text-primary">
-              {{ $t('system.apigw.editor.filters.weight', 'Weight') }}
+              {{ $t('system.apigw.editor.filters.weight') }}
             </label>
             <InputNumber id="filterWeight" v-model="activeFilter.weight" :min="0" />
           </div>
@@ -215,14 +210,14 @@
           <div class="flex items-center gap-3 mt-6">
             <ToggleSwitch id="filterEnabled" v-model="activeFilter.enabled" />
             <label for="filterEnabled" class="font-medium text-primary cursor-pointer">
-              {{ $t('general.label.enabled', 'Enabled') }}
+              {{ $t('general.label.enabled') }}
             </label>
           </div>
         </div>
 
         <div class="flex flex-col gap-2">
           <label for="filterParams" class="font-medium text-primary">
-            {{ $t('system.apigw.editor.filters.params', 'Params (JSON)') }}
+            {{ $t('system.apigw.editor.filters.params') }}
           </label>
           <Textarea
             id="filterParams"
@@ -272,7 +267,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && route_.canDeleteApigwRoute"
-            :label="$t('system.apigw.editor.delete', 'Delete')"
+            :label="$t('system.apigw.editor.delete')"
             :message="$t('general.confirm.delete')"
             :header="route_.endpoint || route_.routeID"
             :disabled="deleting"
@@ -329,9 +324,9 @@ const methodOptions = [
 ]
 
 const filterFields = [
-  { key: 'kind', sortable: true, header: t('system.apigw.editor.filters.kind', 'Kind') },
-  { key: 'weight', sortable: true, header: t('system.apigw.editor.filters.weight', 'Weight') },
-  { key: 'enabled', sortable: false, header: t('system.apigw.editor.filters.enabled', 'Status') },
+  { key: 'kind', sortable: true, header: t('system.apigw.editor.filters.kind') },
+  { key: 'weight', sortable: true, header: t('system.apigw.editor.filters.weight') },
+  { key: 'enabled', sortable: false, header: t('system.apigw.editor.filters.enabled') },
   {
     key: 'actions',
     class: 'text-right w-12',
@@ -348,9 +343,7 @@ const filterFields = [
 const isEdit = computed(() => !!vueRoute.params.routeID)
 
 const pageTitle = computed(() =>
-  isEdit.value
-    ? t('system.apigw.editor.title.edit', 'Edit Route')
-    : t('system.apigw.editor.title.create', 'New Route'),
+  isEdit.value ? t('system.apigw.editor.title.edit') : t('system.apigw.editor.title.create'),
 )
 
 const initialValues = computed(() => ({
@@ -382,9 +375,7 @@ const filterResolver = ref(({ values }) => {
   try {
     if (values.params) JSON.parse(values.params)
   } catch {
-    errors.params = [
-      { message: t('system.connections.editor.configurations.invalidJSON', 'Invalid JSON') },
-    ]
+    errors.params = [{ message: t('system.connections.editor.configurations.invalidJSON') }]
   }
 
   return { errors }
@@ -470,12 +461,10 @@ async function handleFilterDelete(filter) {
       routeID: vueRoute.params.routeID,
       filterID: filter.filterID,
     })
-    $toast.toastSuccess(t('notification.gateway.filter.delete.success', 'Filter deleted'))
+    $toast.toastSuccess(t('notification.gateway.filter.delete.success'))
     reloadFilters()
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.gateway.filter.delete.error', 'Failed to delete filter'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.gateway.filter.delete.error'))(e)
   }
 }
 
@@ -497,18 +486,16 @@ async function handleFilterSubmit({ valid }) {
     if (activeFilter.value.filterID) {
       payload.filterID = activeFilter.value.filterID
       await $SystemAPI.apigwFilterUpdate(payload)
-      $toast.toastSuccess(t('notification.gateway.filter.update.success', 'Filter updated'))
+      $toast.toastSuccess(t('notification.gateway.filter.update.success'))
     } else {
       await $SystemAPI.apigwFilterCreate(payload)
-      $toast.toastSuccess(t('notification.gateway.filter.create.success', 'Filter created'))
+      $toast.toastSuccess(t('notification.gateway.filter.create.success'))
     }
 
     filterDialogVisible.value = false
     reloadFilters()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.filter.save.error', 'Failed to save filter'))(
-      e,
-    )
+    $toast.toastErrorHandler(t('notification.gateway.filter.save.error'))(e)
   } finally {
     savingFilter.value = false
   }
@@ -529,7 +516,7 @@ async function loadRoute() {
       meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.fetch.error', 'Failed to load route'))(e)
+    $toast.toastErrorHandler(t('notification.gateway.fetch.error'))(e)
     router.push({ name: 'system.apiGateway' })
   } finally {
     loading.value = false
@@ -556,10 +543,10 @@ async function handleSubmit({ valid }) {
         ...raw,
         meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
       }
-      $toast.toastSuccess(t('notification.gateway.update.success', 'Route updated'))
+      $toast.toastSuccess(t('notification.gateway.update.success'))
     } else {
       const created = await $SystemAPI.apigwRouteCreate(payload)
-      $toast.toastSuccess(t('notification.gateway.create.success', 'Route created'))
+      $toast.toastSuccess(t('notification.gateway.create.success'))
       router.push({ name: 'system.apiGateway.edit', params: { routeID: created.routeID } })
     }
   } catch (e) {
@@ -575,10 +562,10 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.apigwRouteDelete({ routeID: route_.value.routeID })
-    $toast.toastSuccess(t('notification.gateway.delete.success', 'Route deleted'))
+    $toast.toastSuccess(t('notification.gateway.delete.success'))
     router.push({ name: 'system.apiGateway' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.delete.error', 'Failed to delete route'))(e)
+    $toast.toastErrorHandler(t('notification.gateway.delete.error'))(e)
   } finally {
     deleting.value = false
   }

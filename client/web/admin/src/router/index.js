@@ -215,6 +215,20 @@ const router = createRouter({
       component: () => import('../views/system/Settings/Index.vue'),
     },
 
+    // Email
+    {
+      path: '/system/email',
+      name: 'system.email',
+      component: () => import('../views/system/Email/Index.vue'),
+    },
+
+    // Code Snippets
+    {
+      path: '/system/code-snippets',
+      name: 'system.codeSnippets',
+      component: () => import('../views/system/CodeSnippets/Index.vue'),
+    },
+
     // ── Compose ──────────────────────────────────────────────
     {
       path: '/compose/settings',
@@ -250,6 +264,20 @@ const router = createRouter({
       path: '/automation/sessions/:sessionID',
       name: 'automation.sessions.view',
       component: () => import('../views/automation/Session/View.vue'),
+    },
+
+    // Scripts
+    {
+      path: '/automation/scripts',
+      name: 'automation.scripts',
+      component: () => import('../views/automation/Script/Index.vue'),
+    },
+
+    // ── UI ─────────────────────────────────────────────────────
+    {
+      path: '/ui/settings',
+      name: 'ui.settings',
+      component: () => import('../views/ui/Settings/Index.vue'),
     },
 
     // Redirect all other routes to root

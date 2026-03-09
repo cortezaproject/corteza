@@ -76,6 +76,8 @@ role:
   membershipUpdate:
     success: Membership updated
     error: Membership update failed
+  members:
+    error: Role members fetch failed
 userGroup:
   fetch:
     error: User group fetch failed
@@ -176,6 +178,13 @@ gateway:
   filter:
     fetch:
       error: Filter fetch failed
+    create:
+      success: Filter created
+    delete:
+      error: Filter delete failed
+      success: Filter deleted
+    save:
+      error: Filters save failed
     update:
       success: Filters updated
       error: Filters update failed
@@ -258,7 +267,27 @@ sensitivityLevel:
   update:
     success: Sensitivity level updated
     error: Sensitivity level update failed
+data-source:
+  fetch:
+    error: Data source fetch failed
+  create:
+    success: Data source created
+    error: Data source create failed
+  update:
+    success: Data source updated
+    error: Data source update failed
+  delete:
+    success: Data source deleted
+    error: Data source delete failed
+  undelete:
+    success: Data source restored
+    error: Data source restore failed
 settings:
+  fetch:
+    error: Settings fetch failed
+  update:
+    success: Settings updated
+    error: Settings update failed
   system:
     fetch:
       error: System settings fetch failed

@@ -28,9 +28,11 @@
         <template #content>
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
             <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.data-sources.editor.tabs.basic', 'Basic') }}</Tab>
-              <Tab v-if="showDalConfig" value="dal-config">{{ $t('system.data-sources.editor.tabs.dal-config', 'DAL Config') }}</Tab>
-              <Tab value="privacy">{{ $t('system.data-sources.editor.tabs.privacy', 'Privacy') }}</Tab>
+              <Tab value="basic">{{ $t('system.data-sources.editor.tabs.basic') }}</Tab>
+              <Tab v-if="showDalConfig" value="dal-config">
+                {{ $t('system.data-sources.editor.tabs.dal-config') }}
+              </Tab>
+              <Tab value="privacy">{{ $t('system.data-sources.editor.tabs.privacy') }}</Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -38,27 +40,37 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.name.label', 'Name') }} *
+                      {{ $t('system.data-sources.editor.basic.form.name.label') }} *
                     </label>
                     <InputText id="name" name="name" v-model="dataSource.meta.name" />
-                    <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.name?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.name.error?.message }}
                     </Message>
                   </FormField>
 
                   <FormField name="handle" class="flex flex-col gap-2">
                     <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.handle.label', 'Handle') }}
+                      {{ $t('system.data-sources.editor.basic.form.handle.label') }}
                     </label>
                     <InputText id="handle" name="handle" v-model="dataSource.handle" />
-                    <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.handle?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.handle.error?.message }}
                     </Message>
                   </FormField>
 
                   <div class="flex flex-col gap-2">
                     <label for="ownership" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.ownership.label', 'Ownership') }}
+                      {{ $t('system.data-sources.editor.basic.form.ownership.label') }}
                     </label>
                     <InputText id="ownership" v-model="dataSource.meta.ownership" />
                   </div>
@@ -69,7 +81,7 @@
                 <div class="flex flex-col gap-4">
                   <FormField name="dalConfig" class="flex flex-col gap-2">
                     <label for="dalConfig" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.dal.form.params.label', 'DAL Configuration (JSON)') }}
+                      {{ $t('system.data-sources.editor.dal.form.params.label') }}
                     </label>
                     <Textarea
                       id="dalConfig"
@@ -80,7 +92,12 @@
                       class="font-mono text-sm"
                       @change="parseDalConfig"
                     />
-                    <Message v-if="$form.dalConfig?.invalid" severity="error" size="small" variant="simple">
+                    <Message
+                      v-if="$form.dalConfig?.invalid"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
                       {{ $form.dalConfig.error?.message }}
                     </Message>
                   </FormField>
@@ -91,11 +108,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="flex flex-col gap-2">
                     <label for="sensitivityLevelID" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.sensitivity-level.label', 'Sensitivity Level') }}
+                      {{ $t('system.data-sources.editor.basic.form.sensitivity-level.label') }}
                     </label>
-                    <InputText id="sensitivityLevelID" v-model="dataSource.config.privacy.sensitivityLevelID" />
+                    <InputText
+                      id="sensitivityLevelID"
+                      v-model="dataSource.config.privacy.sensitivityLevelID"
+                    />
                     <small class="text-surface-500">
-                      {{ $t('system.data-sources.editor.privacy.sensitivityLevelID.hint', 'Enter the ID of a configured sensitivity level') }}
+                      {{ $t('system.data-sources.editor.privacy.sensitivityLevelID.hint') }}
                     </small>
                   </div>
                 </div>
@@ -118,7 +138,7 @@
         <div class="flex gap-2">
           <CInputDelete
             v-if="isEdit && dataSource.canDeleteConnection"
-            :label="$t('system.data-sources.editor.delete', 'Delete')"
+            :label="$t('system.data-sources.editor.delete')"
             :message="$t('general.confirm.delete')"
             :header="dataSource.meta?.name || dataSource.handle"
             :disabled="deleting"
@@ -169,8 +189,8 @@ const showDalConfig = computed(() => {
 
 const pageTitle = computed(() =>
   isEdit.value
-    ? t('system.data-sources.editor.title.edit', 'Edit Data Source')
-    : t('system.data-sources.editor.title.create', 'New Data Source'),
+    ? t('system.data-sources.editor.title.edit')
+    : t('system.data-sources.editor.title.create'),
 )
 
 const initialValues = computed(() => ({
@@ -187,13 +207,15 @@ const resolver = ref(({ values }) => {
   }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
-    errors.handle = [{ message: t('system.data-sources.editor.basic.form.handle.invalid-characters') }]
+    errors.handle = [
+      { message: t('system.data-sources.editor.basic.form.handle.invalid-characters') },
+    ]
   }
 
   try {
     if (values.dalConfig) JSON.parse(values.dalConfig)
   } catch {
-    errors.dalConfig = [{ message: t('system.data-sources.editor.dal.form.params.description', 'Invalid JSON') }]
+    errors.dalConfig = [{ message: t('system.data-sources.editor.dal.form.params.description') }]
   }
 
   return { errors }
@@ -229,7 +251,7 @@ async function loadDataSource() {
     dataSource.value = new system.DalConnection(raw)
     initRawFields()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.data-source.fetch.error', 'Failed to load data source'))(e)
+    $toast.toastErrorHandler(t('notification.data-source.fetch.error'))(e)
     router.push({ name: 'system.dataSources' })
   } finally {
     loading.value = false
@@ -254,15 +276,21 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.dalConnectionUpdate(payload)
       dataSource.value = new system.DalConnection(raw)
       initRawFields()
-      $toast.toastSuccess(t('notification.data-source.update.success', 'Data source updated'))
+      $toast.toastSuccess(t('notification.data-source.update.success'))
     } else {
       const created = await $SystemAPI.dalConnectionCreate(payload)
-      $toast.toastSuccess(t('notification.data-source.create.success', 'Data source created'))
-      router.push({ name: 'system.dataSources.edit', params: { connectionID: created.connectionID } })
+      $toast.toastSuccess(t('notification.data-source.create.success'))
+      router.push({
+        name: 'system.dataSources.edit',
+        params: { connectionID: created.connectionID },
+      })
     }
   } catch (e) {
     $toast.toastErrorHandler(
-      t(`notification.data-source.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save data source'),
+      t(
+        `notification.data-source.${isEdit.value ? 'update' : 'create'}.error`,
+        'Failed to save data source',
+      ),
     )(e)
   } finally {
     saving.value = false
@@ -273,10 +301,10 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.dalConnectionDelete({ connectionID: dataSource.value.connectionID })
-    $toast.toastSuccess(t('notification.data-source.delete.success', 'Data source deleted'))
+    $toast.toastSuccess(t('notification.data-source.delete.success'))
     router.push({ name: 'system.dataSources' })
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.data-source.delete.error', 'Failed to delete data source'))(e)
+    $toast.toastErrorHandler(t('notification.data-source.delete.error'))(e)
   } finally {
     deleting.value = false
   }
@@ -284,5 +312,8 @@ async function handleDelete() {
 
 onMounted(() => loadDataSource())
 
-watch(() => route.params.connectionID, () => loadDataSource())
+watch(
+  () => route.params.connectionID,
+  () => loadDataSource(),
+)
 </script>

@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('system.applications.list.title', 'Applications') }}</span>
+    <span>{{ $t('system.applications.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -13,10 +13,7 @@
       :pagination="pagination"
       :loading="loading"
       :translations="{
-        searchPlaceholder: $t(
-          'system.applications.list.filterForm.query.placeholder',
-          'Filter applications by name',
-        ),
+        searchPlaceholder: $t('system.applications.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
@@ -58,11 +55,7 @@
 
       <template #body-enabled="{ data }">
         <Tag
-          :value="
-            data.enabled
-              ? $t('general.label.enabled', 'Enabled')
-              : $t('general.label.disabled', 'Disabled')
-          "
+          :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
           :severity="data.enabled ? 'success' : 'secondary'"
         />
       </template>
@@ -153,17 +146,17 @@ const fields = [
   {
     key: 'name',
     sortable: true,
-    header: t('system.applications.list.columns.name', 'Name'),
+    header: t('system.applications.list.columns.name'),
   },
   {
     key: 'enabled',
     sortable: false,
-    header: t('system.applications.list.columns.enabled', 'Status'),
+    header: t('system.applications.list.columns.enabled'),
   },
   {
     key: 'createdAt',
     sortable: true,
-    header: t('system.applications.list.columns.createdAt', 'Created'),
+    header: t('system.applications.list.columns.createdAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
@@ -218,12 +211,10 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   try {
     await $SystemAPI.applicationDelete({ applicationID: item.applicationID })
-    $toast.toastSuccess(t('notification.application.delete.success', 'Application deleted'))
+    $toast.toastSuccess(t('notification.application.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(
-      t('notification.application.delete.error', 'Failed to delete application'),
-    )(e)
+    $toast.toastErrorHandler(t('notification.application.delete.error'))(e)
   }
 }
 </script>

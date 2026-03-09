@@ -1,5 +1,6 @@
 import type { App, Plugin } from 'vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
+import CInputRole from '../components/input/CInputRole.vue'
 
 import Accordion from 'primevue/accordion'
 import AccordionContent from 'primevue/accordioncontent'
@@ -111,5 +112,6 @@ export const PrimeVueComponentsPlugin: Plugin = {
 
     // Corteza shared components
     app.component('CInputSwitch', CInputSwitch)
+    app.component('CInputRole', CInputRole)
   },
 }
