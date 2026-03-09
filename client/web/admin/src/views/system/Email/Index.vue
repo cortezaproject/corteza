@@ -8,7 +8,19 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('system.email.editor.server.testSmtpConfigs.button')"
+          icon="pi pi-bolt"
+          severity="secondary"
+          size="small"
+          outlined
+          :loading="testing"
+          @click="handleTestSmtp"
+        />
+      </div>
+
       <Panel
         :header="$t('system.email.editor.server.title')"
         toggleable
@@ -92,14 +104,7 @@
     </div>
 
     <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('system.email.editor.server.testSmtpConfigs.button')"
-          icon="pi pi-bolt"
-          severity="secondary"
-          :loading="testing"
-          @click="handleTestSmtp"
-        />
+      <div class="p-3 flex items-center justify-end">
         <Button
           :label="$t('general.label.save')"
           icon="pi pi-save"

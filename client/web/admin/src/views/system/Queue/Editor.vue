@@ -192,7 +192,14 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.queueID = queue.value.queueID
-      queue.value = await $SystemAPI.queuesUpdate(payload)
+      const raw = await $SystemAPI.queuesUpdate(payload)
+      queue.value = {
+        ...raw,
+        meta: {
+          handler: raw.meta?.handler || '',
+          dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
+        },
+      }
       $toast.toastSuccess(t('notification.queue.update.success'))
     } else {
       const created = await $SystemAPI.queuesCreate(payload)
@@ -200,9 +207,7 @@ async function handleSubmit({ valid }) {
       router.push({ name: 'system.queues.edit', params: { queueID: created.queueID } })
     }
   } catch (e) {
-    $toast.toastErrorHandler(
-      t(`notification.queue.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save queue'),
-    )(e)
+    $toast.toastErrorHandler(t(`notification.queue.${isEdit.value ? 'update' : 'create'}.error`))(e)
   } finally {
     saving.value = false
   }

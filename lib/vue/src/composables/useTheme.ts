@@ -17,7 +17,6 @@ interface SurfacePalette {
   900: string
   950: string
 }
-
 interface CortezaThemeVariables {
   primary: string
   success: string
@@ -184,7 +183,28 @@ export function useTheme(theme: Theme) {
 }
 
 export function getThemeVariables(theme: Theme) {
+  const saved = getSavedThemeVariables(theme)
   return {
     ...defaultVariables[theme],
+    ...saved,
+  }
+}
+
+function getSavedThemeVariables(theme: Theme): Partial<CortezaThemeVariables> {
+  if (!Array.isArray(themes)) return {}
+  const entry = themes.find((t: any) => t.id === theme)
+  if (!entry?.values) return {}
+  try {
+    const parsed = JSON.parse(entry.values)
+    // Ensure hex values have # prefix
+    const result: Record<string, string> = {}
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === 'string') {
+        result[k] = v.startsWith('#') ? v : `#${v}`
+      }
+    }
+    return result
+  } catch {
+    return {}
   }
 }

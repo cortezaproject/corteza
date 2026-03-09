@@ -142,6 +142,13 @@ const navItems = computed(() => [
     _icon: 'pi pi-code',
     _route: { name: 'system.codeSnippets' },
   },
+  {
+    _id: 'llm-providers',
+    _parentId: 'system',
+    _label: t('navigation.system.items.llm-providers'),
+    _icon: 'pi pi-microchip-ai',
+    _route: { name: 'system.llmProviders' },
+  },
 
   // ── Compose ─────────────────────────────────────────────
   {
@@ -195,11 +202,25 @@ const navItems = computed(() => [
     _icon: 'pi pi-palette',
   },
   {
-    _id: 'ui-settings',
+    _id: 'ui-theming',
     _parentId: 'ui',
     _label: t('navigation.ui.items.theming'),
-    _icon: 'pi pi-sliders-v',
-    _route: { name: 'ui.settings' },
+    _icon: 'pi pi-palette',
+    _route: { name: 'ui.theming' },
+  },
+  {
+    _id: 'ui-navigation',
+    _parentId: 'ui',
+    _label: t('navigation.ui.items.navigation'),
+    _icon: 'pi pi-bars',
+    _route: { name: 'ui.navigation' },
+  },
+  {
+    _id: 'ui-location',
+    _parentId: 'ui',
+    _label: t('navigation.ui.items.location'),
+    _icon: 'pi pi-map-marker',
+    _route: { name: 'ui.location' },
   },
 ])
 </script>

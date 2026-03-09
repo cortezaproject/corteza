@@ -164,7 +164,8 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.sensitivityLevelID = sensitivityLevel.value.sensitivityLevelID
-      sensitivityLevel.value = await $SystemAPI.dalSensitivityLevelUpdate(payload)
+      const raw = await $SystemAPI.dalSensitivityLevelUpdate(payload)
+      sensitivityLevel.value = { ...sensitivityLevel.value, ...raw }
       $toast.toastSuccess(t('notification.sensitivityLevel.update.success'))
     } else {
       const created = await $SystemAPI.dalSensitivityLevelCreate(payload)
@@ -176,10 +177,7 @@ async function handleSubmit({ valid }) {
     }
   } catch (e) {
     $toast.toastErrorHandler(
-      t(
-        `notification.sensitivityLevel.${isEdit.value ? 'update' : 'create'}.error`,
-        'Failed to save sensitivity level',
-      ),
+      t(`notification.sensitivityLevel.${isEdit.value ? 'update' : 'create'}.error`),
     )(e)
   } finally {
     saving.value = false

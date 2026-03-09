@@ -550,9 +550,9 @@ async function handleSubmit({ valid }) {
       router.push({ name: 'system.apiGateway.edit', params: { routeID: created.routeID } })
     }
   } catch (e) {
-    $toast.toastErrorHandler(
-      t(`notification.gateway.${isEdit.value ? 'update' : 'create'}.error`, 'Failed to save route'),
-    )(e)
+    $toast.toastErrorHandler(t(`notification.gateway.${isEdit.value ? 'update' : 'create'}.error`))(
+      e,
+    )
   } finally {
     saving.value = false
   }

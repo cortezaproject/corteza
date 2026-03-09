@@ -13,7 +13,7 @@
             v-model="passwords.password"
             toggleMask
             :feedback="false"
-            :inputProps="{ autocomplete: true }"
+            :inputProps="{ autocomplete: 'new-password' }"
             inputClass="w-full"
             class="w-full relative"
           />
@@ -29,7 +29,7 @@
             v-model="passwords.confirmPassword"
             toggleMask
             :feedback="false"
-            :inputProps="{ autocomplete: true }"
+            :inputProps="{ autocomplete: 'new-password' }"
             inputClass="w-full"
             class="w-full"
           />

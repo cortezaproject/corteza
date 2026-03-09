@@ -18,7 +18,10 @@
       </template>
     </div>
 
-    <div id="topbar-title" class="flex text-truncate items-center text-2xl font-medium mb-0 ml-2" />
+    <div
+      id="topbar-title"
+      class="flex text-truncate items-center text-2xl font-medium text-color mb-0 ml-2"
+    />
 
     <div id="topbar-tools" class="tools-wrapper ml-auto flex items-center gap-2">
       <slot name="tools" />

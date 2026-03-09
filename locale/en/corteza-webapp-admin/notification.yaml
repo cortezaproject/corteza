@@ -373,3 +373,15 @@ connection:
   undelete:
     success: Connection restored
     error: Connection restore failed
+llmProvider:
+  fetch:
+    error: LLM Provider fetch failed
+  create:
+    success: LLM Provider created
+    error: LLM Provider create failed
+  update:
+    success: LLM Provider updated
+    error: LLM Provider update failed
+  delete:
+    success: LLM Provider deleted
+    error: LLM Provider delete failed

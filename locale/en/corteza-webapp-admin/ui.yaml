@@ -29,18 +29,9 @@ settings:
         dark: Dark
       theme:
         variables:
-          white:
-            label: White
-            description: Element background color
-          black:
-            label: Black
-            description: Element text color
           primary:
             label: Primary
             description: Primary action buttons, links
-          secondary:
-            label: Secondary
-            description: Disabled and placeholder text color
           success:
             label: Success
             description: Success notification color
@@ -50,12 +41,6 @@ settings:
           danger:
             label: Danger
             description: Error notification color
-          light:
-            label: Light
-            description: Secondary action buttons, table headers
-          extra-light:
-            label: Extra light
-            description: Icon buttons, borders
           body-bg:
             label: Body background
             description: Background color of the application

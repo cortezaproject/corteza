@@ -32,6 +32,7 @@ system:
     email: Email settings
     stats: Stats
     templates: Templates
+    llm-providers: LLM Providers
 
 compose:
   group: Compose

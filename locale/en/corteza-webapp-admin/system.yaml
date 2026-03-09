@@ -448,6 +448,55 @@ code-snippets:
           label: Code
           description: Add external script or code snippet. The script must include a valid <script> tag to function.
 
+llmProviders:
+  list:
+    title: LLM Providers
+    new: New LLM Provider
+    columns:
+      meta:
+        short: Name
+      handle: Handle
+      provider: Provider
+      status: Status
+      createdAt: Created
+      actions: ''
+    filterForm:
+      query:
+        placeholder: Filter LLM providers
+      deleted:
+        label: Deleted providers
+      excluded:
+        label: Without
+      inclusive:
+        label: Including
+      exclusive:
+        label: Only
+  editor:
+    title:
+      create: New LLM Provider
+      edit: Edit LLM Provider
+    tabs:
+      basic: Basic Information
+      config: Configuration
+    info:
+      handle: Handle
+      handle.invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      provider: Provider
+      status: Status
+      statusOptions:
+        active: Active
+        inactive: Inactive
+      short: Name
+      description: Description
+      apiKey: API Key
+      delete: Delete
+    config:
+      promptURL: Prompt URL
+      model: Model
+      temperature: Temperature
+      maxTokens: Max Tokens
+      timeout: Timeout
+
 connections:
   list:
     title: Connections

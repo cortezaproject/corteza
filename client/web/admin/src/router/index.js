@@ -150,6 +150,23 @@ const router = createRouter({
       component: () => import('../views/system/AuthClient/Editor.vue'),
     },
 
+    // LLM Providers
+    {
+      path: '/system/llm-providers',
+      name: 'system.llmProviders',
+      component: () => import('../views/system/LLMProvider/List.vue'),
+    },
+    {
+      path: '/system/llm-providers/new',
+      name: 'system.llmProviders.create',
+      component: () => import('../views/system/LLMProvider/Editor.vue'),
+    },
+    {
+      path: '/system/llm-providers/:llmProviderID',
+      name: 'system.llmProviders.edit',
+      component: () => import('../views/system/LLMProvider/Editor.vue'),
+    },
+
     // Templates
     {
       path: '/system/templates',
@@ -275,9 +292,19 @@ const router = createRouter({
 
     // ── UI ─────────────────────────────────────────────────────
     {
-      path: '/ui/settings',
-      name: 'ui.settings',
-      component: () => import('../views/ui/Settings/Index.vue'),
+      path: '/ui/theming',
+      name: 'ui.theming',
+      component: () => import('../views/ui/Theming/Index.vue'),
+    },
+    {
+      path: '/ui/navigation',
+      name: 'ui.navigation',
+      component: () => import('../views/ui/Navigation/Index.vue'),
+    },
+    {
+      path: '/ui/location',
+      name: 'ui.location',
+      component: () => import('../views/ui/Location/Index.vue'),
     },
 
     // Redirect all other routes to root
