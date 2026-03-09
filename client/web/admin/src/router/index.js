@@ -246,11 +246,23 @@ const router = createRouter({
       component: () => import('../views/system/CodeSnippets/Index.vue'),
     },
 
+    // Permissions
+    {
+      path: '/system/permissions',
+      name: 'system.permissions',
+      component: () => import('../views/system/Permissions/Index.vue'),
+    },
+
     // ── Compose ──────────────────────────────────────────────
     {
       path: '/compose/settings',
       name: 'compose.settings',
       component: () => import('../views/compose/Settings/Index.vue'),
+    },
+    {
+      path: '/compose/permissions',
+      name: 'compose.permissions',
+      component: () => import('../views/compose/Permissions/Index.vue'),
     },
 
     // ── Automation ───────────────────────────────────────────
@@ -288,6 +300,11 @@ const router = createRouter({
       path: '/automation/scripts',
       name: 'automation.scripts',
       component: () => import('../views/automation/Script/Index.vue'),
+    },
+    {
+      path: '/automation/permissions',
+      name: 'automation.permissions',
+      component: () => import('../views/automation/Permissions/Index.vue'),
     },
 
     // ── UI ─────────────────────────────────────────────────────

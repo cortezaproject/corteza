@@ -19,7 +19,6 @@
 </template>
 
 <script setup>
-import AutoComplete from 'primevue/autocomplete'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({

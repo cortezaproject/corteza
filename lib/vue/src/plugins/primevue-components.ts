@@ -1,7 +1,7 @@
 import type { App, Plugin } from 'vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
-
+import AutoComplete from 'primevue/autocomplete'
 import Accordion from 'primevue/accordion'
 import AccordionContent from 'primevue/accordioncontent'
 import AccordionHeader from 'primevue/accordionheader'
@@ -13,6 +13,7 @@ import Breadcrumb from 'primevue/breadcrumb'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
+import Chip from 'primevue/chip'
 import ColorPicker from 'primevue/colorpicker'
 import Column from 'primevue/column'
 import ConfirmDialog from 'primevue/confirmdialog'
@@ -59,6 +60,7 @@ import Tree from 'primevue/tree'
  */
 export const PrimeVueComponentsPlugin: Plugin = {
   install(app: App) {
+    app.component('AutoComplete', AutoComplete)
     app.component('Accordion', Accordion)
     app.component('AccordionContent', AccordionContent)
     app.component('AccordionHeader', AccordionHeader)
@@ -69,6 +71,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Button', Button)
     app.component('Card', Card)
     app.component('Checkbox', Checkbox)
+    app.component('Chip', Chip)
     app.component('ColorPicker', ColorPicker)
     app.component('Column', Column)
     app.component('ConfirmDialog', ConfirmDialog)

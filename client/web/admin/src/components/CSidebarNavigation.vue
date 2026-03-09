@@ -149,6 +149,13 @@ const navItems = computed(() => [
     _icon: 'pi pi-microchip-ai',
     _route: { name: 'system.llmProviders' },
   },
+  {
+    _id: 'system-permissions',
+    _parentId: 'system',
+    _label: t('navigation.system.items.permissions'),
+    _icon: 'pi pi-lock',
+    _route: { name: 'system.permissions' },
+  },
 
   // ── Compose ─────────────────────────────────────────────
   {
@@ -163,6 +170,13 @@ const navItems = computed(() => [
     _label: t('navigation.compose.items.settings'),
     _icon: 'pi pi-wrench',
     _route: { name: 'compose.settings' },
+  },
+  {
+    _id: 'compose-permissions',
+    _parentId: 'compose',
+    _label: t('navigation.compose.items.permissions'),
+    _icon: 'pi pi-lock',
+    _route: { name: 'compose.permissions' },
   },
 
   // ── Automation ───────────────────────────────────────────
@@ -192,6 +206,13 @@ const navItems = computed(() => [
     _label: t('navigation.automation.items.scripts'),
     _icon: 'pi pi-file-edit',
     _route: { name: 'automation.scripts' },
+  },
+  {
+    _id: 'automation-permissions',
+    _parentId: 'automation',
+    _label: t('navigation.automation.items.permissions'),
+    _icon: 'pi pi-lock',
+    _route: { name: 'automation.permissions' },
   },
 
   // ── UI ───────────────────────────────────────────────────

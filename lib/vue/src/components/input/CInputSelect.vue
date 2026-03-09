@@ -22,7 +22,6 @@
 </template>
 
 <script setup>
-import AutoComplete from 'primevue/autocomplete'
 import { ref, watch } from 'vue'
 
 const props = defineProps({
@@ -66,9 +65,13 @@ const emit = defineEmits(['update:modelValue', 'search'])
 const filteredOptions = ref([])
 
 // Sync with parent options
-watch(() => props.options, (newOptions) => {
-  filteredOptions.value = [...newOptions]
-}, { immediate: true })
+watch(
+  () => props.options,
+  newOptions => {
+    filteredOptions.value = [...newOptions]
+  },
+  { immediate: true },
+)
 
 function getLabel(option) {
   if (!option) return ''
@@ -91,4 +94,3 @@ function onComplete(event) {
   emit('search', query)
 }
 </script>
-

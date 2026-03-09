@@ -5,6 +5,7 @@
 ui:
   save: Save changes
   cancel: Cancel
+  not-allowed: You do not have permission to manage permissions
   set-for: Set permissions for {{target}}
   loading: Loading permissions
 
@@ -19,6 +20,7 @@ ui:
     description: Select role to set permissions
 
   evaluate:
+    title: Evaluate permissions
     description: Evaluate applied permissions
 
   add:
@@ -446,6 +448,47 @@ resources:
           description: 'Default: deny'
           specific: Approve {{target}}
           title: Approve any request
+
+    connection:
+      label: Connections (legacy)
+      operations:
+        read:
+          title: Read any connection
+        update:
+          title: Update any connection
+        delete:
+          title: Delete any connection
+
+    configured-connection:
+      label: Configured connections
+      operations:
+        read:
+          title: Read any configured connection
+        update:
+          title: Update any configured connection
+        delete:
+          title: Delete any configured connection
+
+    agent:
+      label: Agents
+      operations:
+        read:
+          title: Read any agent
+        update:
+          title: Update any agent
+        delete:
+          title: Delete any agent
+
+    ai-conversation:
+      label: AI Conversations
+      operations:
+        read:
+          title: Read any conversation
+        update:
+          title: Update any conversation
+        delete:
+          title: Delete any conversation
+
   federation:
     component:
       label: Federation component
