@@ -99,7 +99,7 @@ const getAppLogoUrl = app => {
   }
 
   const apiSystem = '/api/system'
-  const apiBaseUrl = new URL($SystemAPI.baseURL).toString()
+  const apiBaseUrl = new URL($SystemAPI.baseURL, window.location.origin).toString()
 
   if (app.unify.logo.startsWith(apiSystem)) {
     return apiBaseUrl.substring(0, apiBaseUrl.length - apiSystem.length) + app.unify.logo
