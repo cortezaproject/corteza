@@ -32,6 +32,7 @@
         v-if="!hideAppSelector && !settings?.hideAppSelector"
         data-test-id="app-selector"
         :href="appSelectorURL"
+        as="a"
         severity="secondary"
         variant="text"
         size="small"
@@ -109,7 +110,7 @@ const props = defineProps({
   },
   appSelectorURL: {
     type: String,
-    default: '../',
+    default: '/',
   },
   labels: {
     type: Object,

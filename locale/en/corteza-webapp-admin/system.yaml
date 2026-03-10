@@ -1178,9 +1178,10 @@ user-groups:
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       handle: Handle
       invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
-      meta.short: Name
-      meta.description: Description
       title: Basic information
+      meta:
+        short: Name
+        description: Description
       undelete: Undelete
       updatedAt: Updated at
       parents:

@@ -6,7 +6,7 @@
     :pt="{
       root: 'border-r border-surface',
       header: { class: 'pl-4 pt-4 pb-2 pr-1 h-15 gap-3' },
-      content: 'p-2',
+      content: 'p-1',
       pcCloseButton: {
         root: {
           tabindex: -1,

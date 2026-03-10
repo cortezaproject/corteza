@@ -51,6 +51,8 @@ ui:
   #############################################################################
   # Inline permission table UI:
   click-on-cell-to-allow: Click on permission/role cell to allow a specific operation
+  empty: Add a role to start managing permissions
+  remove: Remove
   edit-or-eval: Edit or evaluate permissions
 
   title:

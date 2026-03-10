@@ -10,66 +10,72 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="p-4 flex-1 flex flex-col min-h-0 overflow-y-auto">
-      <Card class="shadow flex-1 flex flex-col min-h-0" :pt="{ body: { style: 'padding: 0' } }">
-        <template #header>
-          <!-- Header with roles -->
-          <div class="flex border-b">
-            <div class="w-1/3 p-3 text-sm text-muted-color">
-              {{ $t('permissions.ui.click-on-cell-to-allow') }}
-            </div>
-            <div class="flex flex-1">
-              <div
-                v-for="role in roles"
-                :key="role.ID"
-                class="flex-1 flex flex-col items-center justify-center p-3 border-l cursor-pointer hover:bg-emphasis relative group"
-                @click="hideRole(role)"
-              >
-                <span
-                  v-for="(n, index) in role.name"
-                  :key="index"
-                  :title="n"
-                  class="text-center text-primary text-sm font-medium truncate max-w-full"
-                >
-                  {{ n }}
-                </span>
-                <span
-                  class="text-xs mt-1"
-                  :class="role.mode === 'edit' ? 'text-primary' : 'text-muted-color'"
-                >
-                  {{ $t(`permissions.ui.${role.mode === 'edit' ? 'edit' : 'evaluate'}.title`) }}
-                </span>
-                <i
-                  class="pi pi-times text-muted-color group-hover:text-primary absolute top-1 right-1 text-xs"
-                />
-              </div>
-
-              <div
-                v-if="roles.length < 8"
-                class="w-24 flex flex-col items-center justify-center p-3 border-l cursor-pointer hover:bg-emphasis"
-                @click="addDialogVisible = true"
-              >
-                <span class="text-primary text-sm font-medium">
-                  {{ $t('permissions.ui.add.label') }}
-                </span>
-                <i class="pi pi-plus text-primary mt-1" />
-              </div>
-            </div>
-          </div>
-        </template>
-
+    <div class="p-4 flex-1 flex flex-col min-h-0">
+      <Card
+        class="shadow flex-1 flex flex-col min-h-0"
+        :pt="{
+          root: { class: 'flex-1 flex flex-col min-h-0 overflow-hidden' },
+          body: { class: 'flex-1 flex flex-col min-h-0', style: 'padding: 0' },
+          content: { class: 'flex-1 flex flex-col min-h-0', style: 'padding: 0' },
+        }"
+      >
         <template #content>
           <!-- Permission grid -->
-          <div class="overflow-y-auto" style="max-height: calc(100vh - 16rem)">
+          <div class="flex-1 overflow-y-auto min-h-0">
+            <!-- Header with roles (sticky inside scroll container) -->
+            <div class="flex border-b bg-surface sticky top-0 z-20">
+              <div class="w-1/3 p-3 text-sm text-muted-color">
+                {{ $t('permissions.ui.click-on-cell-to-allow') }}
+              </div>
+              <div class="flex">
+                <div
+                  v-for="role in roles"
+                  :key="role.ID"
+                  class="w-48 flex flex-col items-center justify-center p-3 border-l cursor-pointer group"
+                  @click="hideRole(role)"
+                >
+                  <span
+                    v-for="(n, index) in role.name"
+                    :key="index"
+                    :title="n"
+                    class="text-center text-primary text-sm font-medium truncate max-w-full"
+                  >
+                    {{ n }}
+                  </span>
+                  <span
+                    class="text-xs mt-1"
+                    :class="role.mode === 'edit' ? 'text-primary' : 'text-muted-color'"
+                  >
+                    {{ $t(`permissions.ui.${role.mode === 'edit' ? 'edit' : 'evaluate'}.title`) }}
+                  </span>
+
+                  <i
+                    class="pi pi-times text-muted-color text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                </div>
+
+                <div
+                  v-if="roles.length < 8"
+                  class="w-32 flex items-center justify-center gap-2 p-3 border-l cursor-pointer hover:bg-emphasis"
+                  @click="addDialogVisible = true"
+                >
+                  <i class="pi pi-plus text-primary" />
+                  <span class="text-primary text-sm font-medium">
+                    {{ $t('permissions.ui.add.label') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div v-for="type in sortedTypes" :key="type">
               <!-- Resource type header -->
               <div class="flex border-b bg-emphasis sticky top-0 z-10">
                 <div class="w-1/3 p-3 text-sm font-semibold text-primary">
                   {{ getTranslation(type) }}
                 </div>
-                <div class="flex flex-1">
-                  <div v-for="role in roles" :key="role.ID" class="flex-1 border-l p-3" />
-                  <div v-if="roles.length < 8" class="w-24 border-l p-3" />
+                <div class="flex">
+                  <div v-for="role in roles" :key="role.ID" class="w-48 border-l p-3" />
+                  <div v-if="roles.length < 8" class="w-32 border-l p-3" />
                 </div>
               </div>
 
@@ -82,11 +88,11 @@
                 <div class="w-1/3 p-3 text-sm text-color" :title="getTranslation(type, operation)">
                   {{ getTranslation(type, operation) }}
                 </div>
-                <div class="flex flex-1">
+                <div class="flex">
                   <div
                     v-for="role in roles"
                     :key="role.ID"
-                    class="flex-1 flex items-center justify-center border-l p-3 text-lg"
+                    class="w-48 flex items-center justify-center border-l p-3 text-lg"
                     :class="{
                       'cursor-pointer hover:bg-emphasis': role.mode === 'edit',
                       'cursor-not-allowed bg-emphasis': role.mode === 'eval',
@@ -115,7 +121,7 @@
                     <i v-else class="pi pi-times text-muted-color" />
                   </div>
 
-                  <div v-if="roles.length < 8" class="w-24 border-l p-3 bg-emphasis" />
+                  <div v-if="roles.length < 8" class="w-32 border-l p-3" />
                 </div>
               </div>
             </div>
@@ -140,7 +146,8 @@
       v-model:visible="addDialogVisible"
       :header="$t('permissions.ui.edit-or-eval')"
       modal
-      class="w-full max-w-lg"
+      :style="{ width: '50rem' }"
+      :breakpoints="{ '50rem': '94vw' }"
     >
       <div class="flex flex-col gap-4">
         <SelectButton
@@ -148,7 +155,7 @@
           :options="modeOptions"
           option-label="label"
           option-value="value"
-          class="w-full"
+          fluid
         />
 
         <p class="text-sm text-muted-color">

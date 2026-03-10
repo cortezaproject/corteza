@@ -213,11 +213,8 @@ export function useResourceList<T = any>(
       pagination.nextPage = result.filter?.nextPage || ''
       pagination.prevPage = result.filter?.prevPage || ''
 
-      // Small delay to prevent rapid loading states
-      await new Promise(resolve => setTimeout(resolve, 300))
-
-      items.value = result.set || []
       loading.value = false
+      items.value = result.set || []
     } catch (err) {
       if (!axios.isCancel(err)) {
         error.value = err as Error

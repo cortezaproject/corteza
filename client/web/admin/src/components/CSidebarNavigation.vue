@@ -37,6 +37,7 @@ const navItems = computed(() => [
     _label: t('navigation.system.group'),
     _icon: 'pi pi-cog',
   },
+  // Identity & Access
   {
     _id: 'users',
     _parentId: 'system',
@@ -59,6 +60,15 @@ const navItems = computed(() => [
     _route: { name: 'system.userGroups' },
   },
   {
+    _id: 'auth-clients',
+    _parentId: 'system',
+    _label: t('navigation.system.items.authclients'),
+    _icon: 'pi pi-key',
+    _route: { name: 'system.authClients' },
+  },
+
+  // Resources
+  {
     _id: 'applications',
     _parentId: 'system',
     _label: t('navigation.system.items.applications'),
@@ -69,29 +79,38 @@ const navItems = computed(() => [
     _id: 'templates',
     _parentId: 'system',
     _label: t('navigation.system.items.templates'),
-    _icon: 'pi pi-file-edit',
+    _icon: 'pi pi-file',
     _route: { name: 'system.templates' },
   },
   {
-    _id: 'settings',
+    _id: 'code-snippets',
     _parentId: 'system',
-    _label: t('navigation.system.items.settings'),
-    _icon: 'pi pi-wrench',
-    _route: { name: 'system.settings' },
+    _label: t('navigation.system.items.code-snippets'),
+    _icon: 'pi pi-code',
+    _route: { name: 'system.codeSnippets' },
   },
   {
-    _id: 'auth-clients',
+    _id: 'llm-providers',
     _parentId: 'system',
-    _label: t('navigation.system.items.authclients'),
-    _icon: 'pi pi-key',
-    _route: { name: 'system.authClients' },
+    _label: t('navigation.system.items.llm-providers'),
+    _icon: 'pi pi-microchip-ai',
+    _route: { name: 'system.llmProviders' },
+  },
+
+  // Infrastructure
+  {
+    _id: 'connections',
+    _parentId: 'system',
+    _label: t('navigation.system.items.connections'),
+    _icon: 'pi pi-link',
+    _route: { name: 'system.connections' },
   },
   {
-    _id: 'action-log',
+    _id: 'data-sources',
     _parentId: 'system',
-    _label: t('navigation.system.items.actionlog'),
-    _icon: 'pi pi-list',
-    _route: { name: 'system.actionLog' },
+    _label: t('navigation.system.items.data-sources'),
+    _icon: 'pi pi-database',
+    _route: { name: 'system.dataSources' },
   },
   {
     _id: 'queues',
@@ -108,19 +127,14 @@ const navItems = computed(() => [
     _route: { name: 'system.apiGateway' },
   },
   {
-    _id: 'connections',
+    _id: 'email',
     _parentId: 'system',
-    _label: t('navigation.system.items.connections'),
-    _icon: 'pi pi-link',
-    _route: { name: 'system.connections' },
+    _label: t('navigation.system.items.email'),
+    _icon: 'pi pi-envelope',
+    _route: { name: 'system.email' },
   },
-  {
-    _id: 'data-sources',
-    _parentId: 'system',
-    _label: t('navigation.system.items.data-sources'),
-    _icon: 'pi pi-database',
-    _route: { name: 'system.dataSources' },
-  },
+
+  // Policy & Monitoring
   {
     _id: 'sensitivity-levels',
     _parentId: 'system',
@@ -129,25 +143,20 @@ const navItems = computed(() => [
     _route: { name: 'system.sensitivityLevels' },
   },
   {
-    _id: 'email',
+    _id: 'action-log',
     _parentId: 'system',
-    _label: t('navigation.system.items.email'),
-    _icon: 'pi pi-envelope',
-    _route: { name: 'system.email' },
+    _label: t('navigation.system.items.actionlog'),
+    _icon: 'pi pi-list',
+    _route: { name: 'system.actionLog' },
   },
+
+  // Configuration
   {
-    _id: 'code-snippets',
+    _id: 'settings',
     _parentId: 'system',
-    _label: t('navigation.system.items.code-snippets'),
-    _icon: 'pi pi-code',
-    _route: { name: 'system.codeSnippets' },
-  },
-  {
-    _id: 'llm-providers',
-    _parentId: 'system',
-    _label: t('navigation.system.items.llm-providers'),
-    _icon: 'pi pi-microchip-ai',
-    _route: { name: 'system.llmProviders' },
+    _label: t('navigation.system.items.settings'),
+    _icon: 'pi pi-wrench',
+    _route: { name: 'system.settings' },
   },
   {
     _id: 'system-permissions',
@@ -190,7 +199,7 @@ const navItems = computed(() => [
     _id: 'automation-workflows',
     _parentId: 'automation',
     _label: t('navigation.automation.items.workflows'),
-    _icon: 'pi pi-sitemap',
+    _icon: 'pi pi-share-alt',
     _route: { name: 'automation.workflows' },
   },
   {
@@ -220,7 +229,7 @@ const navItems = computed(() => [
     _id: 'ui',
     _parentId: '0',
     _label: t('navigation.ui.group'),
-    _icon: 'pi pi-palette',
+    _icon: 'pi pi-desktop',
   },
   {
     _id: 'ui-theming',
