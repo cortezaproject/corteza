@@ -11,6 +11,7 @@ import (
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -220,6 +221,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 		}
 
 		svc.registerOperations([]types.ConfiguredConnection{*res})
+		svc.registerWebhookTriggers(*res)
 		return nil
 	}()
 
@@ -416,9 +418,12 @@ func (svc *configuredConnection) dispatch(ctx context.Context, resolved *types.C
 		return rsp, err
 	}
 
+	if err = svc.provisionWebhooks(ctx, resolved, conn); err != nil {
+		return rsp, err
+	}
+
 	// modules, err := svc.provisionModules(ctx, resolved.Resources, conn.Config.NamespaceID, dalConn.ID)
 	// err = svc.provisionAutomation(ctx, resolved.Operations, modules, dalConn.ID)
-	// err = svc.provisionWebhooks(ctx, resolved.Resources, modules)
 
 	return
 }
@@ -467,8 +472,8 @@ func (svc *configuredConnection) provisionDAL(ctx context.Context, resolved *typ
 			},
 		},
 		Labels: map[string]string{
-			"corteza/connector-id":          strconv.FormatUint(resolved.ID, 10),
-			"corteza/connector-revision":    strconv.Itoa(resolved.Revision),
+			"corteza/connection-id":         strconv.FormatUint(resolved.ID, 10),
+			"corteza/connection-revision":   strconv.Itoa(resolved.Revision),
 			"corteza/configured-connection": strconv.FormatUint(conn.ID, 10),
 		},
 	}
@@ -500,6 +505,9 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 
 	for _, ccs := range byConn {
 		svc.registerOperations(ccs)
+		for _, cc := range ccs {
+			svc.registerWebhookTriggers(cc)
+		}
 	}
 }
 
@@ -820,4 +828,127 @@ func generateSegmentInput(parameters atypes.ParamSet) (elements []atypes.Section
 	}
 
 	return
+}
+
+func connectionWebhookResourceType(connectionID uint64) string {
+	return fmt.Sprintf("corteza::system:connection-webhook/%d", connectionID)
+}
+
+// provisionWebhooks creates an routes and processors for webhook defs
+func (svc *configuredConnection) provisionWebhooks(ctx context.Context, resolved *types.Connection, cc *types.ConfiguredConnection) error {
+	var (
+		routes  []*types.ApigwRoute
+		filters []*types.ApigwFilter
+		invoker = a.GetIdentityFromContext(ctx).Identity()
+	)
+
+	for _, res := range resolved.Resources {
+		for _, wh := range res.Webhooks {
+			route := &types.ApigwRoute{
+				ID:       nextID(),
+				Endpoint: fmt.Sprintf("/%s/%d/%d/%s", resolved.Handle, resolved.Revision, cc.ID, wh.Event),
+				Method:   "POST",
+				Enabled:  true,
+				Meta: types.ApigwRouteMeta{
+					Desc: fmt.Sprintf("Webhook: %s / %s", res.Handle, wh.Event),
+					Labels: map[string]labelTypes.LabelValue{
+						"corteza.connectionID": {Val: strconv.FormatUint(cc.ID, 10)},
+						"corteza.webhookEvent": {Val: wh.Event},
+						"corteza.resource":     {Val: res.Handle},
+						"corteza.connection":   {Val: resolved.Handle},
+					},
+				},
+				CreatedAt: *now(),
+				CreatedBy: invoker,
+			}
+			routes = append(routes, route)
+
+			paramsMap := map[string]any{
+				"connectionID":           strconv.FormatUint(cc.ConnectionID, 10),
+				"configuredConnectionID": strconv.FormatUint(cc.ID, 10),
+				"eventType":              wh.Event,
+				"mapping":                wh.Mapping,
+			}
+			paramsJSON, _ := json.Marshal(paramsMap)
+
+			f := &types.ApigwFilter{
+				ID:        nextID(),
+				Route:     route.ID,
+				Ref:       "eventDispatch",
+				Kind:      "processer",
+				Enabled:   true,
+				Weight:    100, // processer weight
+				Params:    types.ApigwFilterParams{},
+				CreatedAt: *now(),
+				CreatedBy: invoker,
+			}
+			if err := json.Unmarshal(paramsJSON, &f.Params); err != nil {
+				return fmt.Errorf("provisionWebhooks: could not build filter params: %w", err)
+			}
+			filters = append(filters, f)
+		}
+	}
+
+	if len(routes) == 0 {
+		return nil
+	}
+
+	if err := store.CreateApigwRoute(ctx, svc.store, routes...); err != nil {
+		return fmt.Errorf("provisionWebhooks: could not create apigw routes: %w", err)
+	}
+
+	if err := store.CreateApigwFilter(ctx, svc.store, filters...); err != nil {
+		return fmt.Errorf("provisionWebhooks: could not create apigw filters: %w", err)
+	}
+
+	for _, route := range routes {
+		if err := apigw.Service().ReloadEndpoint(ctx, route.Method, route.Endpoint); err != nil {
+			return fmt.Errorf("provisionWebhooks: could not reload apigw endpoint %s: %w", route.Endpoint, err)
+		}
+	}
+
+	return nil
+}
+
+// registerWebhookTriggers registers Webhook-based triggers to the registry
+func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConnection) {
+	existing := automationService.ConstructLibrary().Triggers()
+	seen := make(map[string]bool, len(existing))
+	for _, t := range existing {
+		seen[t.ResourceType+"|"+t.EventType] = true
+	}
+
+	var tt []atypes.ConstructTrigger
+
+	for _, res := range cc.Connection.Resources {
+		for _, wh := range res.Webhooks {
+			rt := connectionWebhookResourceType(cc.ConnectionID)
+			key := rt + "|" + wh.Event
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			props := make([]atypes.ConstructTriggerProperty, 0, len(wh.Payload))
+			for _, f := range wh.Payload {
+				props = append(props, atypes.ConstructTriggerProperty{
+					Name: f.Name,
+					Type: f.Type,
+				})
+			}
+
+			tt = append(tt, atypes.ConstructTrigger{
+				ResourceType: rt,
+				EventType:    wh.Event,
+				Properties:   props,
+				Meta: &atypes.ConstructTriggerMeta{
+					Short: fmt.Sprintf("%s: %s", res.Handle, wh.Event),
+				},
+			})
+		}
+	}
+
+	if len(tt) > 0 {
+		automationService.ConstructLibrary().AddTriggers(tt...)
+	}
 }
