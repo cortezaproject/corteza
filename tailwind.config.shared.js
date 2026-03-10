@@ -1,4 +1,13 @@
+/** @type {import('tailwindcss').Config} */
+import PrimeUI from 'tailwindcss-primeui'
+
 export default {
+  content: [
+    './index.html',
+    './src/**/*.{vue,js,ts,jsx,tsx}',
+    '../../../lib/vue/src/**/*.{vue,js,ts}',
+  ],
+  darkMode: ['selector', '[class~="dark"]'],
   theme: {
     container: {
       center: true,
@@ -10,5 +19,11 @@ export default {
         '2xl': '1400px',
       },
     },
+    extend: {
+      borderColor: {
+        DEFAULT: 'var(--p-content-border-color)',
+      },
+    },
   },
+  plugins: [PrimeUI],
 }
