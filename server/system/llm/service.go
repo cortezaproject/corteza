@@ -128,7 +128,7 @@ func (svc *Service) ListModels(ctx context.Context, providerID uint64) ([]string
 
 // Prompt resolves the provider and its credential, then forwards the conversation to the LLM.
 // If model is non-empty it overrides the provider's configured model without changing the DB record.
-func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string, messages []Message, tools []Tool) (*Response, error) {
+func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string, maxTokens int, messages []Message, tools []Tool) (*Response, error) {
 	provider, err := store.LookupLlmProviderByID(ctx, svc.store, providerID)
 	if err != nil {
 		return nil, fmt.Errorf("could not resolve LLM provider: %w", err)
@@ -143,15 +143,15 @@ func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string,
 		return nil, fmt.Errorf("could not resolve credential for LLM provider: %w", err)
 	}
 
-	return svc.callProvider(ctx, provider, cred, model, messages, tools)
+	return svc.callProvider(ctx, provider, cred, model, maxTokens, messages, tools)
 }
 
-func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, messages []Message, tools []Tool) (*Response, error) {
+func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, maxTokens int, messages []Message, tools []Tool) (*Response, error) {
 	switch provider.Provider {
 	case "openai", "azure", "mistral":
-		return promptOpenAI(ctx, provider, cred, model, messages, tools)
+		return promptOpenAI(ctx, provider, cred, model, maxTokens, messages, tools)
 	case "anthropic":
-		return promptAnthropic(ctx, provider, cred, model, messages, tools, svc.anthropicAPIVersion)
+		return promptAnthropic(ctx, provider, cred, model, maxTokens, messages, tools, svc.anthropicAPIVersion)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider type: %s", provider.Provider)
 	}
@@ -175,7 +175,7 @@ func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.
 		}
 	}
 
-	resp, err := svc.Prompt(ctx, config.ProviderID, config.Model, messages, llmTools)
+	resp, err := svc.Prompt(ctx, config.ProviderID, config.Model, config.MaxTokens, messages, llmTools)
 	if err != nil {
 		return nil, err
 	}

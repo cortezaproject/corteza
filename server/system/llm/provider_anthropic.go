@@ -56,17 +56,22 @@ type (
 	}
 )
 
-func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, messages []Message, tools []Tool, anthropicAPIVersion string) (*Response, error) {
+func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, maxTokens int, messages []Message, tools []Tool, anthropicAPIVersion string) (*Response, error) {
 	if model == "" {
 		model = provider.Config.Model
 	}
-	req := anthropicRequest{
-		Model:     model,
-		MaxTokens: provider.Config.MaxTokens,
+
+	switch {
+	case maxTokens > 0:
+	case provider.Config.MaxTokens > 0:
+		maxTokens = provider.Config.MaxTokens
+	default:
+		maxTokens = 4096
 	}
 
-	if req.MaxTokens == 0 {
-		req.MaxTokens = 4096
+	req := anthropicRequest{
+		Model:     model,
+		MaxTokens: maxTokens,
 	}
 
 	if provider.Config.Temperature > 0 {
