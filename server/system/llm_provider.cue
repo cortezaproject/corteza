@@ -62,6 +62,14 @@ llm_provider: {
 		byNilState: ["deleted"]
 	}
 
+	rbac: {
+		operations: {
+			read: description:   "Read LLM provider"
+			update: description: "Update LLM provider"
+			delete: description: "Delete LLM provider"
+		}
+	}
+
 	features: {
 		labels: false
 	}

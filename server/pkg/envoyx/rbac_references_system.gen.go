@@ -179,6 +179,19 @@ func SystemConfiguredConnectionRbacReferences(configuredConnection string) (res 
 	return
 }
 
+// SystemLlmProviderRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemLlmProviderRbacReferences(llmProvider string) (res *Ref, pp []*Ref, err error) {
+	if llmProvider != "*" {
+		res = &Ref{ResourceType: types.LlmProviderResourceType, Identifiers: MakeIdentifiers(llmProvider)}
+	}
+
+	return
+}
+
 // SystemAgentRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped

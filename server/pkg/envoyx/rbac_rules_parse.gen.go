@@ -170,6 +170,15 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case systemTypes.LlmProviderResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemLlmProviderRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case systemTypes.AgentResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))

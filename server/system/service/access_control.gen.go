@@ -149,6 +149,7 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.DalConnectionRbacResource(0)),
 		rbac.NewResource(types.ConnectionRbacResource(0)),
 		rbac.NewResource(types.ConfiguredConnectionRbacResource(0)),
+		rbac.NewResource(types.LlmProviderRbacResource(0)),
 		rbac.NewResource(types.AgentRbacResource(0)),
 		rbac.NewResource(types.AiConversationRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
@@ -426,6 +427,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "update",
 		},
 		{
+			"type": types.LlmProviderResourceType,
+			"any":  types.LlmProviderRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.LlmProviderResourceType,
+			"any":  types.LlmProviderRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.LlmProviderResourceType,
+			"any":  types.LlmProviderRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.AgentResourceType,
 			"any":  types.AgentRbacResource(0),
 			"op":   "read",
@@ -639,6 +655,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "notification.assign",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "llm-provider.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "llm-providers.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -1123,6 +1149,27 @@ func (svc accessControl) CanUpdateConfiguredConnection(ctx context.Context, r *t
 	return svc.can(ctx, "update", r)
 }
 
+// CanReadLlmProvider checks if current user can read llm provider
+//
+// This function is auto-generated
+func (svc accessControl) CanReadLlmProvider(ctx context.Context, r *types.LlmProvider) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateLlmProvider checks if current user can update llm provider
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateLlmProvider(ctx context.Context, r *types.LlmProvider) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteLlmProvider checks if current user can delete llm provider
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteLlmProvider(ctx context.Context, r *types.LlmProvider) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanReadAgent checks if current user can read agent
 //
 // This function is auto-generated
@@ -1461,6 +1508,22 @@ func (svc accessControl) CanAssignNotification(ctx context.Context) bool {
 	return svc.can(ctx, "notification.assign", r)
 }
 
+// CanCreateLlmProvider checks if current user can create llm providers
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateLlmProvider(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "llm-provider.create", r)
+}
+
+// CanSearchLlmProviders checks if current user can list, search or filter llm providers
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchLlmProviders(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "llm-providers.search", r)
+}
+
 // CanCreateAgent checks if current user can create agents
 //
 // This function is auto-generated
@@ -1524,6 +1587,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacConnectionResourceValidator(r, oo...)
 	case types.ConfiguredConnectionResourceType:
 		return rbacConfiguredConnectionResourceValidator(r, oo...)
+	case types.LlmProviderResourceType:
+		return rbacLlmProviderResourceValidator(r, oo...)
 	case types.AgentResourceType:
 		return rbacAgentResourceValidator(r, oo...)
 	case types.AiConversationResourceType:
@@ -1633,6 +1698,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadConfiguredConnection(ctx, svc.store, ids[0])
+	case types.LlmProviderResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.LlmProviderRbacResource(ids[0])), nil
+		}
+
+		return loadLlmProvider(ctx, svc.store, ids[0])
 	case types.AgentResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.AgentRbacResource(ids[0])), nil
@@ -1750,6 +1821,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete": true,
 			"update": true,
 		}
+	case types.LlmProviderResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.AgentResourceType:
 		return map[string]bool{
 			"read":   true,
@@ -1801,6 +1878,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"data-privacy-request.create":   true,
 			"data-privacy-requests.search":  true,
 			"notification.assign":           true,
+			"llm-provider.create":           true,
+			"llm-providers.search":          true,
 			"agent.create":                  true,
 			"agents.search":                 true,
 			"ai-conversation.create":        true,
@@ -2386,6 +2465,51 @@ func rbacConfiguredConnectionResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for configuredConnection resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacLlmProviderResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacLlmProviderResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.LlmProviderResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for llmProvider resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.LlmProviderResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for llmProvider resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

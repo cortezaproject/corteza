@@ -96,6 +96,9 @@ component: schema.#component & {
 
 		"notification.assign": description: "Assign notifications to other users"
 
+		"llm-provider.create": description:  "Create LLM providers"
+		"llm-providers.search": description: "List, search or filter LLM providers"
+
 		"agent.create": description:  "Create agents"
 		"agents.search": description: "List, search or filter agents"
 

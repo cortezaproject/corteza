@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
@@ -12,6 +13,7 @@ import (
 type (
 	LlmProvider struct {
 		svc llmProviderService
+		ac  llmProviderAccessController
 	}
 
 	llmProviderService interface {
@@ -22,10 +24,14 @@ type (
 		Search(ctx context.Context, f types.LlmProviderFilter) (types.LlmProviderSet, error)
 		ListModels(ctx context.Context, providerID uint64) ([]string, error)
 	}
+
+	llmProviderAccessController interface {
+		CanReadLlmProvider(ctx context.Context, p *types.LlmProvider) bool
+	}
 )
 
 func (LlmProvider) New() LlmProvider {
-	return LlmProvider{svc: service.DefaultLlmService}
+	return LlmProvider{svc: service.DefaultLlmService, ac: service.DefaultAccessControl}
 }
 
 func (ctrl LlmProvider) List(ctx context.Context, r *request.LlmProviderList) (interface{}, error) {
@@ -47,7 +53,14 @@ func (ctrl LlmProvider) Create(ctx context.Context, r *request.LlmProviderCreate
 }
 
 func (ctrl LlmProvider) Read(ctx context.Context, r *request.LlmProviderRead) (interface{}, error) {
-	return ctrl.svc.LookupByID(ctx, r.LlmProviderID)
+	p, err := ctrl.svc.LookupByID(ctx, r.LlmProviderID)
+	if err != nil {
+		return nil, err
+	}
+	if !ctrl.ac.CanReadLlmProvider(ctx, p) {
+		return nil, fmt.Errorf("not allowed to read LLM provider")
+	}
+	return p, nil
 }
 
 func (ctrl LlmProvider) Update(ctx context.Context, r *request.LlmProviderUpdate) (interface{}, error) {

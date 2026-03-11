@@ -413,6 +413,36 @@ func ConfiguredConnectionRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for LlmProvider by calling LlmProviderRbacResource fn
+//
+// RBAC resource is in the corteza::system:llm-provider/... format
+//
+// This function is auto-generated
+func (r LlmProvider) RbacResource() string {
+	return LlmProviderRbacResource(r.ID)
+}
+
+// LlmProviderRbacResource returns string representation of RBAC resource for LlmProvider
+//
+// RBAC resource is in the corteza::system:llm-provider/... format
+//
+// This function is auto-generated
+func LlmProviderRbacResource(id uint64) string {
+	cpts := []interface{}{LlmProviderResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(LlmProviderRbacResourceTpl(), cpts...)
+
+}
+
+func LlmProviderRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Agent by calling AgentRbacResource fn
 //
 // RBAC resource is in the corteza::system:agent/... format

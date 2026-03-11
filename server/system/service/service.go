@@ -255,7 +255,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAgent = Agent()
 	DefaultAiConversation = AiConversation()
 
-	DefaultLlmService, err = llm.New(s, c.Agentic.AnthropicApiVersion)
+	DefaultLlmService, err = llm.New(s, DefaultAccessControl, c.Agentic.AnthropicApiVersion)
 	if err != nil {
 		return fmt.Errorf("could not initialize LLM service: %w", err)
 	}

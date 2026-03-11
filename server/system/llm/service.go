@@ -12,16 +12,31 @@ import (
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
-type Service struct {
-	store               store.Storer
-	anthropicAPIVersion string
-}
+type (
+	Service struct {
+		store               store.Storer
+		ac                  llmProviderAccessController
+		anthropicAPIVersion string
+	}
 
-func New(s store.Storer, anthropicAPIVersion string) (*Service, error) {
-	return &Service{store: s, anthropicAPIVersion: anthropicAPIVersion}, nil
+	llmProviderAccessController interface {
+		CanCreateLlmProvider(ctx context.Context) bool
+		CanSearchLlmProviders(ctx context.Context) bool
+		CanReadLlmProvider(ctx context.Context, p *sysTypes.LlmProvider) bool
+		CanUpdateLlmProvider(ctx context.Context, p *sysTypes.LlmProvider) bool
+		CanDeleteLlmProvider(ctx context.Context, p *sysTypes.LlmProvider) bool
+	}
+)
+
+func New(s store.Storer, ac llmProviderAccessController, anthropicAPIVersion string) (*Service, error) {
+	return &Service{store: s, ac: ac, anthropicAPIVersion: anthropicAPIVersion}, nil
 }
 
 func (svc *Service) Create(ctx context.Context, p *sysTypes.LlmProvider, apiKey string) (*sysTypes.LlmProvider, error) {
+	if !svc.ac.CanCreateLlmProvider(ctx) {
+		return nil, fmt.Errorf("not allowed to create LLM providers")
+	}
+
 	p.ID = id.Next()
 	p.CreatedAt = time.Now().Round(time.Second)
 
@@ -74,6 +89,10 @@ func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider) (*sys
 		return nil, err
 	}
 
+	if !svc.ac.CanUpdateLlmProvider(ctx, existing) {
+		return nil, fmt.Errorf("not allowed to update LLM provider")
+	}
+
 	existing.Handle = upd.Handle
 	existing.Status = upd.Status
 	existing.Provider = upd.Provider
@@ -97,10 +116,23 @@ func (svc *Service) Delete(ctx context.Context, providerID uint64, deletedBy uin
 		return fmt.Errorf("invalid LLM provider ID")
 	}
 
+	existing, err := store.LookupLlmProviderByID(ctx, svc.store, providerID)
+	if err != nil {
+		return err
+	}
+
+	if !svc.ac.CanDeleteLlmProvider(ctx, existing) {
+		return fmt.Errorf("not allowed to delete LLM provider")
+	}
+
 	return store.DeleteLlmProviderByID(ctx, svc.store, providerID)
 }
 
 func (svc *Service) Search(ctx context.Context, f sysTypes.LlmProviderFilter) (sysTypes.LlmProviderSet, error) {
+	if !svc.ac.CanSearchLlmProviders(ctx) {
+		return nil, fmt.Errorf("not allowed to search LLM providers")
+	}
+
 	set, _, err := store.SearchLlmProviders(ctx, svc.store, f)
 	return set, err
 }
