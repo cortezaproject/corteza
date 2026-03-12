@@ -1,4 +1,5 @@
-// No CSS imports - client's Tailwind handles all styling
+// Global rich text content styles — apply .rt-content class to any container showing Tiptap HTML
+import './assets/css/rt-content.css'
 
 // Export Vue plugins
 export { default as AuthPlugin } from './plugins/auth'

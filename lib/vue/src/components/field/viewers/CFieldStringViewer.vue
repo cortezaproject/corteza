@@ -2,7 +2,6 @@
   <div>
     <p
       v-if="formatted"
-      :style="{ 'white-space': field.options.useRichTextEditor && 'pre-line' }"
       :class="viewerClasses"
       v-html="formatted"
     />
@@ -63,6 +62,10 @@ const viewerClasses = computed(() => {
   const classes = []
   const { fieldID } = props.field
   const { textStyles = {} } = props.extraOptions
+
+  if (props.field.options?.useRichTextEditor) {
+    classes.push('rt-content')
+  }
 
   if (props.field.isMulti || props.field.options?.multiLine) {
     classes.push('multiline')

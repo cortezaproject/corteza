@@ -149,6 +149,12 @@ defineExpose({ rebuildLayout })
 .vgl-item__resizer {
   right: 0.25rem;
   bottom: 0.25rem;
+
+  &::before {
+    border: 0 solid var(--p-primary-color);
+    border-right-width: var(--vgl-resizer-border-width);
+    border-bottom-width: var(--vgl-resizer-border-width);
+  }
 }
 
 .vgl-item--transform {

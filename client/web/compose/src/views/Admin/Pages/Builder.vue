@@ -38,7 +38,7 @@
       <Grid ref="gridRef" :blocks="blocks" :namespace="namespace" :page="page" editable>
         <template #item-overlay="{ item }">
           <div class="block-toolbox bg-emphasis">
-            <div class="flex gap-1">
+            <ButtonGroup>
               <Button
                 :title="$t('page.tooltip.edit.block')"
                 icon="pi pi-pencil"
@@ -63,7 +63,7 @@
                 severity="danger"
                 @click="deleteBlock(item.i)"
               />
-            </div>
+            </ButtonGroup>
           </div>
         </template>
       </Grid>
@@ -217,6 +217,8 @@ import RecordConfigurator from '@/components/PageBlocks/Configurators/RecordConf
 import MetricConfigurator from '@/components/PageBlocks/Configurators/MetricConfigurator.vue'
 import IFrameConfigurator from '@/components/PageBlocks/Configurators/IFrameConfigurator.vue'
 import FileConfigurator from '@/components/PageBlocks/Configurators/FileConfigurator.vue'
+import CalendarConfigurator from '@/components/PageBlocks/Configurators/CalendarConfigurator.vue'
+import CommentConfigurator from '@/components/PageBlocks/Configurators/CommentConfigurator.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -280,6 +282,8 @@ const configurators = {
   Metric: markRaw(MetricConfigurator),
   IFrame: markRaw(IFrameConfigurator),
   File: markRaw(FileConfigurator),
+  Calendar: markRaw(CalendarConfigurator),
+  Comment: markRaw(CommentConfigurator),
 }
 
 const blockConfigurator = computed(() => {

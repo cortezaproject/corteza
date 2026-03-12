@@ -35,8 +35,12 @@
                     {{ $t(`ui.settings.editor.corteza-studio.theme.variables.${key}.description`) }}
                   </span>
                   <div class="flex items-center gap-2">
-                    <ColorPicker v-model="theme.variables[key]" format="hex" />
-                    <InputText v-model="theme.variables[key]" class="w-32 font-mono text-sm" />
+                    <CInputColorPicker
+                      :model-value="'#' + (theme.variables[key] || '')"
+                      :default-value="'#' + (theme.defaultVariables[key] || '')"
+                      show-text
+                      @update:model-value="theme.variables[key] = $event.replace(/^#/, '').substring(0, 6)"
+                    />
                     <Button
                       icon="pi pi-undo"
                       severity="secondary"
@@ -79,7 +83,9 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setThemes, useTheme } from '@cortezaproject/corteza-vue-next'
+import { setThemes, useTheme, components } from '@cortezaproject/corteza-vue-next'
+
+const { CInputColorPicker } = components
 
 const { t } = useI18n()
 

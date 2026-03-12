@@ -63,6 +63,10 @@ calendar:
     prefilterPlaceholder: field1 = 1 AND field2 = 232
     titleLabel: Event title
     titlePlaceholder: Field used as event title
+    systemField:
+      createdAt: Created at
+      updatedAt: Updated at
+      deletedAt: Deleted at
   reminderFeed:
     optionLabel: Reminders
   today: Today
@@ -81,7 +85,6 @@ calendar:
   viewLabel: Calendar
 chart:
   add: New Chart
-  noChart: No chart selected
   addFunnel: Funnel chart
   addGauge: Gauge chart
   addRadar: Radar chart
@@ -140,29 +143,11 @@ chart:
 content:
   ok: Ok
   label: Content
-  placeholder: Enter HTML or rich text content...
   urlPlaceholder: https://example.tld
-  interpolationFootnote: 'Variables like'
 file:
   label: File
   preview:
     label: File block
-  view:
-    modeLabel: View mode
-    modeFootnote: Choose how uploaded files are displayed
-    list: List
-    gallery: Gallery
-    showName: Show file name
-    clickToView: Click to view
-    enableDownload: Enable download
-    previewStyle: Preview styling
-    description: Customize the appearance of the gallery preview
-    height: Height
-    width: Width
-    maxHeight: Max height
-    maxWidth: Max width
-    borderRadius: Border radius
-    margin: Margin
 general:
   descriptionLabel: Description
   descriptionPlaceholder: Block description
@@ -225,7 +210,6 @@ general:
     magnify: Magnify block
     and: And
   module: Module
-  fields: Fields
   style:
     danger: Danger variant
     default: Dark variant
@@ -241,7 +225,6 @@ general:
     translations: Field translations
 iframe:
   label: IFrame
-  noInput: No URL configured for this iframe
   pickURLField: Pick an URL field
   srcDesc: Used as a fallback when set in combination with record field.
   srcFieldDesc: Only available on record pages and on modules with existing "url" field kind
@@ -296,16 +279,6 @@ metric:
     labelLabel: Label style
     valueLabel: Value style
   label: Metric
-  labelLabel: Label
-  fieldLabel: Field
-  fieldPlaceholder: Select a field
-  aggregateLabel: Aggregation
-  numberFormat: Number format
-  prefixLabel: Prefix
-  suffixLabel: Suffix
-  filterLabel: Filter
-  filterPlaceholder: field1 = 1 AND field2 > 0
-  add: + Add metric
 record:
   noModule: No module configured for this block
   noRecord: No record available
@@ -350,7 +323,6 @@ record:
     selectPlaceholder: Select field
     field: Field
     condition: Condition
-    description: 'You can use record.values.fieldName and user properties in conditions'
     clearOnHide: Clear On Hide
     clearOnHideTooltip: Automatically clear this field's value when it becomes hidden
     clearAllOnHide: Clear all conditional fields when hidden
@@ -603,7 +575,6 @@ recordList:
     fullPageNavigation: Full page navigation
     hideAddButton: Users will be able to add new records
     hideImportButton: Users will be able to import records
-    hideExportButton: Users will be able to export records
     pagingLabel: Paging
     pagingOptions: Paging Options
     moreOptions: More Options
@@ -816,6 +787,7 @@ comment:
   content:
     placeholder: Write your message here...
   submit: Submit
+  replyingTo: Replying to
   noComments: No comments yet
   load:
     older: Load older comments

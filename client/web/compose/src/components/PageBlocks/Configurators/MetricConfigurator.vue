@@ -131,37 +131,21 @@
             <!-- Text color -->
             <div class="flex flex-col gap-1">
               <label class="text-primary font-medium text-sm">{{ $t('block.metric.editStyle.color') }}</label>
-              <div class="flex items-center gap-2">
-                <input
-                  type="color"
-                  :value="metric.valueStyle?.color || '#000000'"
-                  class="w-8 h-8 border rounded cursor-pointer"
-                  @input="onStyleChange(metric, 'color', $event.target.value)"
-                >
-                <InputText
-                  :model-value="metric.valueStyle?.color || '#000000'"
-                  class="w-full"
-                  @update:model-value="onStyleChange(metric, 'color', $event)"
-                />
-              </div>
+              <CInputColorPicker
+                :model-value="metric.valueStyle?.color || '#000000'"
+                show-text
+                @update:model-value="onStyleChange(metric, 'color', $event)"
+              />
             </div>
 
             <!-- Background color -->
             <div class="flex flex-col gap-1">
               <label class="text-primary font-medium text-sm">{{ $t('block.metric.editStyle.backgroundColor') }}</label>
-              <div class="flex items-center gap-2">
-                <input
-                  type="color"
-                  :value="metric.valueStyle?.backgroundColor || '#FFFFFF'"
-                  class="w-8 h-8 border rounded cursor-pointer"
-                  @input="onStyleChange(metric, 'backgroundColor', $event.target.value)"
-                >
-                <InputText
-                  :model-value="metric.valueStyle?.backgroundColor || '#FFFFFF00'"
-                  class="w-full"
-                  @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
-                />
-              </div>
+              <CInputColorPicker
+                :model-value="metric.valueStyle?.backgroundColor || '#FFFFFF00'"
+                show-text
+                @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
+              />
             </div>
 
             <!-- Font size -->
@@ -195,8 +179,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { components } from '@cortezaproject/corteza-vue-next'
 import { useModuleStore } from '@/stores/module'
 import { useI18n } from 'vue-i18n'
+
+const { CInputColorPicker } = components
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()

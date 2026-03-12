@@ -1,5 +1,5 @@
 <template>
-  <FloatLabel variant="on" class="m-2">
+  <FloatLabel variant="on" class="my-1">
     <Select
       id="namespace-selector"
       :model-value="currentNamespaceObject"
