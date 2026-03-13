@@ -4,10 +4,12 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 )
 
 type (
 	connectionWebhookEvent struct {
+		resourceType           string
 		connectionID           uint64
 		configuredConnectionID uint64
 		eventType              string
@@ -20,6 +22,7 @@ type (
 // configuredConnectionID identifies which instance fired and is passed as a var.
 func ConnectionWebhookEvent(connectionID, configuredConnectionID uint64, eventType string, vars map[string]any) *connectionWebhookEvent {
 	return &connectionWebhookEvent{
+		resourceType:           fmt.Sprintf("corteza::system:connection-webhook/%d", connectionID),
 		connectionID:           connectionID,
 		configuredConnectionID: configuredConnectionID,
 		eventType:              eventType,
@@ -30,7 +33,7 @@ func ConnectionWebhookEvent(connectionID, configuredConnectionID uint64, eventTy
 // ResourceType is scoped to the parent Connection, not the ConfiguredConnection.
 // This means one trigger registration covers all configured instances.
 func (e *connectionWebhookEvent) ResourceType() string {
-	return fmt.Sprintf("corteza::system:connection-webhook/%d", e.connectionID)
+	return e.resourceType
 }
 
 func (e *connectionWebhookEvent) EventType() string {
@@ -58,4 +61,16 @@ func (e *connectionWebhookEvent) Match(c eventbus.ConstraintMatcher) bool {
 // Vars returns the payload variables carried by this event.
 func (e *connectionWebhookEvent) Vars() map[string]any {
 	return e.vars
+}
+
+// EncodeVars encodes the event payload into expr.Vars so ng-automation
+// can access webhook variables in the execution scope.
+func (e *connectionWebhookEvent) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	for k, v := range e.vars {
+		if err = out.Set(k, v); err != nil {
+			return
+		}
+	}
+	return
 }

@@ -863,11 +863,16 @@ func (svc *configuredConnection) provisionWebhooks(ctx context.Context, resolved
 			}
 			routes = append(routes, route)
 
+			mapping := make(map[string][]string, len(wh.Payload))
+			for _, f := range wh.Payload {
+				mapping[f.Name] = f.Selector
+			}
+
 			paramsMap := map[string]any{
 				"connectionID":           strconv.FormatUint(cc.ConnectionID, 10),
 				"configuredConnectionID": strconv.FormatUint(cc.ID, 10),
 				"eventType":              wh.Event,
-				"mapping":                wh.Mapping,
+				"mapping":                mapping,
 			}
 			paramsJSON, _ := json.Marshal(paramsMap)
 

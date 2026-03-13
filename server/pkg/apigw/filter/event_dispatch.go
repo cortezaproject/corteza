@@ -22,10 +22,10 @@ type (
 		cfg types.Config
 
 		params struct {
-			ConnectionID           uint64            `json:"connectionID,string"`
-			ConfiguredConnectionID uint64            `json:"configuredConnectionID,string"`
-			EventType              string            `json:"eventType"`
-			Mapping                map[string]string `json:"mapping,omitempty"`
+			ConnectionID           uint64              `json:"connectionID,string"`
+			ConfiguredConnectionID uint64              `json:"configuredConnectionID,string"`
+			EventType              string              `json:"eventType"`
+			Mapping                map[string][]string `json:"mapping,omitempty"`
 		}
 	}
 )
@@ -101,7 +101,7 @@ func (h eventDispatch) Handler() types.HandlerFunc {
 }
 
 // mapBody maps the HTTP response into our internal requested structure
-func mapBody(r *http.Request, mapping map[string]string) (map[string]any, error) {
+func mapBody(r *http.Request, mapping map[string][]string) (map[string]any, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, fmt.Errorf("eventDispatch: could not read request body: %w", err)
@@ -118,8 +118,8 @@ func mapBody(r *http.Request, mapping map[string]string) (map[string]any, error)
 	}
 
 	vars := make(map[string]any, len(mapping))
-	for target, source := range mapping {
-		vars[target], _, _ = j7s.GetByPath(raw, source)
+	for target, selector := range mapping {
+		vars[target], _, _ = j7s.GetBySlicePath(raw, selector)
 	}
 
 	return vars, nil
