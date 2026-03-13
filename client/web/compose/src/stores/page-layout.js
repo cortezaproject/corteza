@@ -101,6 +101,40 @@ export const usePageLayoutStore = defineStore('pageLayout', () => {
     }
   }
 
+  async function findByPageID({ namespaceID, pageID, force = false } = {}) {
+    if (!force) {
+      const cached = getByPageID.value(pageID)
+      if (cached && cached.length > 0) {
+        return cached
+      }
+    }
+
+    if (!$ComposeAPI) {
+      const error = new Error('ComposeAPI not available via inject')
+      console.error('Failed to find page layouts:', error)
+      return Promise.reject(error)
+    }
+
+    state.pending = true
+
+    try {
+      const { set: layoutSet } = await $ComposeAPI.pageLayoutList({
+        namespaceID,
+        pageID,
+        sort: 'weight ASC',
+      })
+
+      const layouts = (layoutSet || []).map(l => new compose.PageLayout(l))
+      updateSet(layouts)
+      return layouts
+    } catch (error) {
+      console.error('Failed to find page layouts by page ID:', error)
+      throw error
+    } finally {
+      state.pending = false
+    }
+  }
+
   async function create(item) {
     if (!$ComposeAPI) {
       const error = new Error('ComposeAPI not available via inject')
@@ -218,6 +252,7 @@ export const usePageLayoutStore = defineStore('pageLayout', () => {
     // actions
     load,
     findByID,
+    findByPageID,
     create,
     update,
     delete: deleteLayout,

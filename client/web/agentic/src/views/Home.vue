@@ -39,7 +39,20 @@
       </template>
 
       <template #body-name="{ data }">
-        <span class="font-medium">{{ data.meta?.short || '-' }}</span>
+        <div class="flex flex-col">
+          <span class="font-medium">{{ data.meta?.short || '-' }}</span>
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-xs">
+            {{ data.meta.description }}
+          </span>
+        </div>
+      </template>
+
+      <template #body-status="{ data }">
+        <Tag
+          :value="$t(`agent.list.status.${data.status || 'inactive'}`)"
+          :severity="data.status === 'active' ? 'success' : 'secondary'"
+          rounded
+        />
       </template>
 
       <template #body-updatedAt="{ data }">
@@ -85,6 +98,7 @@ import {
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import Tag from 'primevue/tag'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters
@@ -185,7 +199,23 @@ function getActionsMenuItems(agent) {
     })
   }
 
-  if (agent.canDeleteAgent !== false) {
+  // Duplicate action
+  if (agent.canUpdateAgent !== false) {
+    items.push({
+      label: t('agent.list.actions.duplicate'),
+      icon: 'pi pi-copy',
+      command: () => handleDuplicate(agent),
+    })
+  }
+
+  // Show either delete or undelete depending on state
+  if (agent.deletedAt) {
+    items.push({
+      label: t('agent.list.actions.undelete'),
+      icon: 'pi pi-undo',
+      command: () => handleUndelete(agent),
+    })
+  } else if (agent.canDeleteAgent !== false) {
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
@@ -199,7 +229,7 @@ function getActionsMenuItems(agent) {
 function onConfirmDelete(agent) {
   confirmDelete({
     message: t('agent.list.delete'),
-    header: agent.meta?.short || agent.handle,
+    header: agent.meta?.short || agent.handle || t('general.label.delete'),
     onConfirm: () => handleDelete(agent),
   })
 }
@@ -210,10 +240,56 @@ async function handleDelete(agent) {
       agentID: agent.agentID,
     })
     $toast.toastSuccess(t('notification.agent.deleted'))
-    filterList() // Refresh the list
+    filterList()
   } catch (e) {
     console.error('Failed to delete agent:', e)
     $toast.toastDanger(t('notification.agent.deleteFailed'))
+  }
+}
+
+async function handleDuplicate(agent) {
+  try {
+    // Read the full agent to get all config
+    const source = await $SystemAPI.agentRead({ agentID: agent.agentID })
+
+    // Create a copy with modified name
+    const copy = {
+      handle: source.handle ? `${source.handle}_copy` : '',
+      status: 'inactive',
+      meta: {
+        ...(source.meta || {}),
+        short: `${source.meta?.short || ''} (Copy)`,
+      },
+      behavior: source.behavior || {},
+      execution: source.execution || {},
+      access: source.access || {},
+      invocation: source.invocation || {},
+    }
+
+    const created = await $SystemAPI.agentCreate(copy)
+    $toast.toastSuccess(t('notification.agent.duplicated'))
+
+    // Navigate to the new agent
+    router.push({
+      name: 'agent.edit',
+      params: { agentID: created.agentID },
+    })
+  } catch (e) {
+    console.error('Failed to duplicate agent:', e)
+    $toast.toastDanger(t('notification.agent.duplicateFailed'))
+  }
+}
+
+async function handleUndelete(agent) {
+  try {
+    await $SystemAPI.agentUndelete({
+      agentID: agent.agentID,
+    })
+    $toast.toastSuccess(t('notification.agent.restored'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore agent:', e)
+    $toast.toastDanger(t('notification.agent.restoreFailed'))
   }
 }
 </script>

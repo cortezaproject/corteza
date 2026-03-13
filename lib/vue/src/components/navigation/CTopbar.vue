@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation flex flex-wrap items-center p-2 !pr-3 border-b border-surface">
+  <div class="header-navigation flex flex-wrap items-center p-2 !pr-3">
     <!-- Sidebar toggle + small logo -->
     <div v-if="!hideLogo && !sidebarExpanded">
       <!-- When sidebar is disabled on this route, show only icon logo -->

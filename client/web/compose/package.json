@@ -39,7 +39,6 @@
     "@tiptap/starter-kit": "^2.11.0",
     "@tiptap/vue-3": "^2.11.0",
     "echarts": "^6.0.0",
-    "grid-layout-plus": "^1.1.1",
     "vue-echarts": "^8.0.1"
   }
 }

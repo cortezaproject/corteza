@@ -40,11 +40,11 @@ type (
 
 	// AgentResponse represents the output of an agent execution.
 	AgentResponse struct {
-		Output         string         `json:"output"`
-		ConversationID uint64         `json:"conversationID,string"`
-		ToolCalls      []ToolCallInfo `json:"toolCalls"`
-		Decisions      []DecisionInfo `json:"decisions"`
-		Usage          Usage          `json:"usage"`
+		Output              string         `json:"output"`
+		ConversationID      uint64         `json:"conversationID,string"`
+		ToolCalls           []ToolCallInfo `json:"toolCalls"`
+		Decisions           []DecisionInfo `json:"decisions"`
+		Usage               Usage          `json:"usage"`
 	}
 
 	DecisionInfo struct {
@@ -52,6 +52,7 @@ type (
 		Decision  string   `json:"decision"`
 		Tools     []string `json:"tools,omitempty"`
 		Reasoning string   `json:"reasoning,omitempty"`
+		Usage     Usage    `json:"usage"`
 	}
 
 	// ToolCallInfo describes a tool call that was executed.

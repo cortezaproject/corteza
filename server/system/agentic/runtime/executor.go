@@ -10,10 +10,10 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/cortezaproject/corteza/server/system/agentic/observability"
-	"github.com/cortezaproject/corteza/server/system/agentic/policy"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
+	"github.com/cortezaproject/corteza/server/system/agentic/policy"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -164,6 +164,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 				Decision:  "tool_call",
 				Tools:     toolNames,
 				Reasoning: llmResp.Text,
+				Usage:     llmResp.Usage,
 			}
 			decisions = append(decisions, d)
 			r.emitEvent(observability.AgentEvent{
@@ -193,6 +194,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			d := DecisionInfo{
 				Iteration: i + 1,
 				Decision:  "respond",
+				Usage:     llmResp.Usage,
 			}
 			decisions = append(decisions, d)
 			r.emitEvent(observability.AgentEvent{
@@ -275,11 +277,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 
 	return &AgentResponse{
-		Output:         finalResponse,
-		ConversationID: conversation.ID,
-		ToolCalls:      executedTools,
-		Decisions:      decisions,
-		Usage:          usage,
+		Output:             finalResponse,
+		ConversationID:     conversation.ID,
+		ToolCalls:          executedTools,
+		Decisions:          decisions,
+		Usage:              usage,
 	}, nil
 }
 

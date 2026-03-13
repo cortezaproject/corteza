@@ -3,11 +3,19 @@ list:
   searchPlaceholder: Search agents
   create: Create agent
   delete: Are you sure you want to delete this agent?
+  untitled: Untitled
   columns:
     name: Name
     handle: Handle
     status: Status
+    description: Description
     updatedAt: Updated
+  status:
+    active: Active
+    inactive: Inactive
+  actions:
+    duplicate: Duplicate
+    undelete: Restore
 
 editor:
   create: Create agent
@@ -23,30 +31,99 @@ editor:
     execution: Execution
     access: Access
     invocation: Invocation
-  fields:
-    name: Name (Short)
-    description: Description
-    handle: Handle
-    status: Status
-    systemPrompt: System Prompt
-    guardrails: Guardrails
-    provider: LLM Provider ID
-    model: Model
-    temperature: Temperature
-    maxTokens: Max Tokens
-    limits: Limits
-    contextNamespace: Context Namespace
-    contextModule: Context Module
-    userEnabled: Enable User Chat Invocation
-    systemEnabled: Enable System Invocation
-    serviceAccount: Service Account
-    inputSchema: Input Schema (JSON)
-    outputFormat: 'Output Format'
-    tools: 'Allowed Tools'
-    toolName: 'Tool Name'
-    toolHints: 'Hints'
-    noTools: 'No tools configured'
+  name:
+    label: Name
+    help: A short, human-readable name for this agent
+  handle:
+    label: Handle
+    help: Unique identifier used for programmatic access
+  description:
+    label: Description
+    help: Explain what this agent does — visible to users who interact with it
+  status:
+    label: Status
+    help: Only active agents can be invoked
+  systemPrompt:
+    label: System Prompt
+    help: Instructions that define the agent's personality, capabilities, and constraints. This is sent to the LLM at the start of every conversation
+  guardrails:
+    label: Guardrails
+    help: Rules the agent must follow (e.g. "No PII disclosure", "Stay on topic").
+  injectSystemContext:
+    label: Inject Corteza system context
+    help: Prepend the Corteza platform context to the system prompt, giving the agent knowledge about the system's data model and capabilities
+  provider:
+    label: LLM Provider
+    help: The LLM provider to use for this agent
+  model:
+    label: Model
+    help: The specific model to use from the selected provider
+  temperature:
+    label: Temperature
+    help: Controls randomness. Lower values (0.0) are more deterministic, higher values (1.0) are more creative
+  maxTokens:
+    label: Max Tokens (per call)
+    help: Maximum tokens the LLM can generate per call
+  limits:
+    label: Limits
+  maxIterations:
+    label: Max Iterations
+    help: Maximum number of think-act cycles before the agent stops. Each iteration may include an LLM call and tool executions
+  totalMaxTokens:
+    label: Max Context Tokens
+    help: Maximum number of tokens allowed in the conversation context. When the context exceeds this limit, the agent will stop executing
+  timeout:
+    label: Timeout
+    help: Maximum duration for the entire agent execution (e.g. "30s", "2m")
+  contextNamespace:
+    label: Context Namespace
+    help: The Corteza namespace this agent operates within
+  contextModule:
+    label: Context Module
+    help: The Corteza module this agent has context about
+  tools:
+    label: Allowed Tools
+    help: Select which MCP tools this agent is allowed to use
+    noTools: No tools configured
+    toolName: Tool Name
+    toolDescription: Description
+    toolHints: Hints
+  userEnabled:
+    label: Enable User Chat Invocation
+    help: Allow users to invoke this agent directly through chat
+  systemEnabled:
+    label: Enable System Invocation
+    help: Allow this agent to be invoked programmatically by the system (e.g. workflows, automation)
+  serviceAccount:
+    label: Service Account
+    help: The user account this agent impersonates when running system invocations
+  inputSchema:
+    label: Input Schema (JSON)
+  outputFormat:
+    label: Output Format
+    help: Expected output format for system invocations (e.g. JSON schema)
   playground:
     placeholder: Send a message...
     traceTitle: Execution Trace
     emptyTrace: No execution trace yet...
+    newConversation: New Conversation
+    traceIteration: 'Iteration'
+    traceExecution: 'Execution'
+    tracePrompt: 'Prompt'
+    traceAgentResponse: 'Agent Response'
+    traceTokens: 'tokens'
+    traceContextTokens: 'context tokens'
+    traceToolCall: 'Tool Call'
+    traceResponse: 'Response'
+    traceIn: 'in'
+    traceOut: 'out'
+    traceSteps: '{count} step | {count} steps'
+    traceArgs: 'Arguments'
+    traceResult: 'Result'
+    traceCopy: 'Copy'
+    traceTotalTokens: 'total tokens'
+    traceExecutions: 'executions'
+    traceContext: 'context'
+    toggleRawJson: 'Toggle raw JSON'
+    tokenUsage: '{input} in / {output} out / {total} total tokens'
+    thinking: Thinking...

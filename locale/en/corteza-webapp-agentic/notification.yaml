@@ -3,5 +3,14 @@ general:
   success: Success
   warning: Warning
 agent:
+  created: Agent created
+  saved: Agent saved
+  saveFailed: Failed to save agent
   deleted: Agent deleted
   deleteFailed: Failed to delete agent
+  duplicated: Agent duplicated
+  duplicateFailed: Failed to duplicate agent
+  restored: Agent restored
+  restoreFailed: Failed to restore agent
+  execFailed: Agent execution failed
+  loadFailed: Failed to load agent
