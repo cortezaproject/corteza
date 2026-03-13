@@ -2,6 +2,7 @@ package corredor
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -349,7 +350,8 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 				//
 				// this function is called on every iteration, for
 				// every resource found by iterator
-				return svc.exec(ctx, scriptName, runAs, ev.(ScriptArgs))
+				_, err := svc.exec(ctx, scriptName, runAs, ev.(ScriptArgs))
+				return err
 			},
 			script.Iterator.Action,
 		)
@@ -362,6 +364,13 @@ func (svc *service) RegisterIteratorProvider(resourceType string, irf IteratorRe
 
 // Exec verifies permissions, event and script and sends exec request to corredor
 func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs) (err error) {
+	_, err = svc.ExecWithResult(ctx, scriptName, args)
+	return
+}
+
+// ExecWithResult verifies permissions, event and script and sends exec request to corredor.
+// Unlike Exec, it also returns arbitrary results from the script.
+func (svc service) ExecWithResult(ctx context.Context, scriptName string, args ScriptArgs) (result map[string]json.RawMessage, err error) {
 	if !svc.opt.Enabled {
 		return
 	}
@@ -375,23 +384,23 @@ func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs)
 	)
 
 	if len(scriptName) == 0 {
-		return fmt.Errorf("script name not provided (%q)", scriptName)
+		return nil, fmt.Errorf("script name not provided (%q)", scriptName)
 	}
 
 	if _, ok = svc.explicit[scriptName]; !ok {
-		return fmt.Errorf("unregistered explicit script %q", scriptName)
+		return nil, fmt.Errorf("unregistered explicit script %q", scriptName)
 	}
 
 	if _, ok = svc.explicit[scriptName][res]; !ok {
-		return fmt.Errorf("unregistered explicit script %q for resource %q", scriptName, res)
+		return nil, fmt.Errorf("unregistered explicit script %q for resource %q", scriptName, res)
 	}
 
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
-		return fmt.Errorf("nonexistent script (%q)", scriptName)
+		return nil, fmt.Errorf("nonexistent script (%q)", scriptName)
 	}
 
 	if !svc.canExec(ctx, scriptName) {
-		return fmt.Errorf("permission to execute %s denied", scriptName)
+		return nil, fmt.Errorf("permission to execute %s denied", scriptName)
 	}
 
 	if script.Security != nil {
@@ -636,7 +645,8 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 			// Is this compatible event?
 			if ce, ok := ev.(ScriptArgs); ok {
 				// Can only work with corteza compatible events
-				return svc.exec(ctx, script.Name, runAs, ce)
+				_, err := svc.exec(ctx, script.Name, runAs, ce)
+				return err
 			}
 
 			return nil
@@ -652,7 +662,7 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 //
 // It does not do any constraints checking - this is the responsibility of the
 // individual event implemntation
-func (svc service) exec(ctx context.Context, script string, runAs string, args ScriptArgs) (err error) {
+func (svc service) exec(ctx context.Context, script string, runAs string, args ScriptArgs) (result map[string]json.RawMessage, err error) {
 	var (
 		requestId = middleware.GetReqID(ctx)
 
@@ -703,12 +713,12 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 	// Resolve/expand invoker user details from the context (if present
 	if i := auth.GetIdentityFromContext(ctx); i.Valid() {
 		if svc.users == nil {
-			return fmt.Errorf("could not run automation script without configured user service")
+			return nil, fmt.Errorf("could not run automation script without configured user service")
 		}
 
 		invoker, err = svc.users.FindByAny(sysUserCtx(), i)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		log = log.With(zap.Stringer("invoker", invoker))
@@ -720,7 +730,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 	if len(runAs) > 0 {
 		if !svc.opt.RunAsEnabled {
-			return fmt.Errorf("could not make runner context, run-as disabled")
+			return nil, fmt.Errorf("could not make runner context, run-as disabled")
 		}
 
 		var definer auth.Identifiable
@@ -732,7 +742,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		// authentication token for it
 		definer, err = svc.users.FindByAny(sysUserCtx(), runAs)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		log = log.With(zap.Stringer("run-as", definer))
@@ -825,7 +835,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 			case codes.NotFound:
 				// When requested script is not found on automation server
-				return errors.NotFound("%s", msg)
+				return nil, errors.NotFound("%s", msg)
 
 			case codes.Aborted:
 				// Scripts can be (softly) aborted by terminating with:
@@ -835,14 +845,14 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 				// Both this terminations have the same result. In case when
 				// iterator script is aborted that will finalize the iterator
 				// without an error
-				return ScriptExecAborted.Apply(
+				return nil, ScriptExecAborted.Apply(
 					errors.Meta("script", script),
 				)
 
 			case codes.Unknown:
 				// When script was aborted or an unknown (to gRPC proto) error occurred.
 				// This is always a hard error
-				return errors.Automation("%s", msg).Apply(
+				return nil, errors.Automation("%s", msg).Apply(
 					errors.Meta("script", script),
 					errors.AddNodeStack(trailer.Get("stack")),
 				)
@@ -851,7 +861,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 				// Automation server might yield INVALID_ARGUMENT status.
 				// This can be caused by JSON encoding and it is highly unlikely
 				// when arguments are prepared by the server
-				return errors.InvalidData("%s", msg)
+				return nil, errors.InvalidData("%s", msg)
 
 			default:
 				// When script execution fails and it is not handled otherwise,
@@ -859,12 +869,12 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 				//
 				// This error and any other one that do not fit the above rules
 				// are wrapped with an opaque error
-				return errors.Automation("automation server internal fault").Wrap(err)
+				return nil, errors.Automation("automation server internal fault").Wrap(err)
 
 			}
 		}
 
-		return fmt.Errorf("internal automation server error: %w", err)
+		return nil, fmt.Errorf("internal automation server error: %w", err)
 
 	}
 
@@ -875,20 +885,22 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		return
 	}
 
-	// Cast map[string]json.RawMessage to map[string]string
+	// Build the raw result map from gRPC response
+	// Values are JSON-encoded strings from Corredor's encodeExecResult
+	result = make(map[string]json.RawMessage, len(rsp.Result))
 	for key := range rsp.Result {
+		result[key] = json.RawMessage(rsp.Result[key])
 		encodedResults[key] = []byte(rsp.Result[key])
 	}
 
 	// Send results back to the args for decoding
-	err = args.Decode(encodedResults)
-	if err != nil {
-		log.Debug(
-			"could not decode results",
-			zap.Error(err),
-			zap.Any("results", encodedResults),
+	// Decode errors are non-fatal: script may return arbitrary keys
+	// that don't match the event's struct fields
+	if decErr := args.Decode(encodedResults); decErr != nil {
+		log.Warn(
+			"could not decode results into event args",
+			zap.Error(decErr),
 		)
-		return
 	}
 
 	// Everything ok

@@ -121,8 +121,10 @@ func (s *scriptArgs) Decode(dec map[string][]byte) (err error) {
 
 	for k := range s.extra {
 		// @todo how do we omit one decoded by event?
-		if err = json.Unmarshal(dec[k], s.extra[k]); err != nil {
-			return
+		if r, ok := dec[k]; ok {
+			if err = json.Unmarshal(r, s.extra[k]); err != nil {
+				return
+			}
 		}
 	}
 
