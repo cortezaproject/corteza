@@ -10,3 +10,4 @@
 .run
 node_modules
 ignore
+.kilo*
