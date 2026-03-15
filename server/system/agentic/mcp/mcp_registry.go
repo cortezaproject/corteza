@@ -56,9 +56,26 @@ func (r *Registry) RegisterResource(resource mcp.Resource, handler server.Resour
 	r.resources[resource.URI] = registeredResource{Resource: resource, Handler: handler}
 }
 
-func (r *Registry) GetTools(ctx context.Context, agentID uint64) ([]rt.Tool, error) {
-	out := make([]rt.Tool, 0, len(r.tools))
-	for _, t := range r.tools {
+func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.Tool, error) {
+	// nil means no filter — return all registered tools
+	if allowedTools == nil {
+		out := make([]rt.Tool, 0, len(r.tools))
+		for _, t := range r.tools {
+			out = append(out, rt.Tool{
+				Name:        t.Tool.Name,
+				Description: t.Tool.Description,
+				InputSchema: t.InputSchema,
+			})
+		}
+		return out, nil
+	}
+
+	out := make([]rt.Tool, 0, len(allowedTools))
+	for _, name := range allowedTools {
+		t, ok := r.tools[name]
+		if !ok {
+			continue
+		}
 		out = append(out, rt.Tool{
 			Name:        t.Tool.Name,
 			Description: t.Tool.Description,

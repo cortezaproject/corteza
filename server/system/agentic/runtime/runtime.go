@@ -99,8 +99,8 @@ type (
 
 	// MCPClient abstracts the Model Context Protocol tools.
 	MCPClient interface {
-		// GetTools returns available tools for the given agent context.
-		GetTools(ctx context.Context, agentID uint64) ([]Tool, error)
+		// GetTools returns tools filtered to the agent's allowed tool list.
+		GetTools(ctx context.Context, allowedTools []string) ([]Tool, error)
 		// ExecuteTool executes a specific tool.
 		ExecuteTool(ctx context.Context, toolName string, args map[string]any) (any, error)
 	}

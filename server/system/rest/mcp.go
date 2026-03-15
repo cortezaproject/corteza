@@ -14,7 +14,7 @@ type (
 	}
 
 	mcpRegistry interface {
-		GetTools(ctx context.Context, agentID uint64) ([]runtime.Tool, error)
+		GetTools(ctx context.Context, allowedTools []string) ([]runtime.Tool, error)
 	}
 )
 
@@ -23,5 +23,5 @@ func (Mcp) New() Mcp {
 }
 
 func (ctrl Mcp) ListTools(ctx context.Context, _ *request.McpListTools) (interface{}, error) {
-	return ctrl.registry.GetTools(ctx, 0)
+	return ctrl.registry.GetTools(ctx, nil)
 }

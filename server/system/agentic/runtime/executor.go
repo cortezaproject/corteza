@@ -36,7 +36,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 
 	// 2. Get available tools
-	tools, err := r.mcp.GetTools(ctx, agent.ID)
+	allowedToolNames := make([]string, len(agent.Access.Tools))
+	for i, t := range agent.Access.Tools {
+		allowedToolNames[i] = t.Name
+	}
+	tools, err := r.mcp.GetTools(ctx, allowedToolNames)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tools: %w", err)
 	}
