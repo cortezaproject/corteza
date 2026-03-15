@@ -89,3 +89,19 @@ functions:
         types: [ { wf: ID }, { wf: Attachment } ]
     results:
       content: { wf: Reader }
+
+  getBase64:
+    meta:
+      short: Get attachment as base64 string
+    labels:
+      <<: *labels
+      base64-attachment: "step"
+    params:
+      attachment:
+        required: true
+        types: [ { wf: ID }, { wf: Attachment } ]
+    results:
+      content: { wf: String }
+      name: { wf: String }
+      extension: { wf: String }
+      mimeType: { wf: String }
