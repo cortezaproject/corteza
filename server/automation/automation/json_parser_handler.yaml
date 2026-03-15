@@ -1,0 +1,17 @@
+parse:
+  meta:
+    short: Parse JSON text and extract fields
+    description: Parses JSON text (supports partial JSON) and extracts specified fields. If fields are not specified, returns entire JSON object.
+  labels:
+    json: "step"
+    parser: "step"
+  params:
+    jsonText:
+      required: true
+      types: [{wf: String}]
+    fields:
+      required: false
+      types: [{wf: Slice}]
+  results:
+    data: {wf: Object}
+    error: {wf: String}
