@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -84,6 +85,35 @@ func (h attachmentHandler) openPreview(ctx context.Context, args *attachmentOpen
 
 	// @todo we need to call Close() when file is read (or at the end of the workflow)
 	//       some kind of workflow-cleanup facility is needed
+
+	return r, nil
+}
+
+func (h attachmentHandler) getBase64(ctx context.Context, args *attachmentGetBase64Args) (*attachmentGetBase64Results, error) {
+	att, err := lookupAttachment(ctx, h.svc, args)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &attachmentGetBase64Results{}
+
+	var content []byte
+	var fh io.ReadSeekCloser
+	fh, err = h.svc.OpenOriginal(att)
+	if err != nil {
+		return nil, err
+	}
+	defer fh.Close()
+
+	content, err = io.ReadAll(fh)
+	if err != nil {
+		return nil, err
+	}
+
+	r.Content = string(base64.StdEncoding.EncodeToString(content))
+	r.Name = att.Name
+	r.Extension = att.Meta.Original.Extension
+	r.MimeType = att.Meta.Original.Mimetype
 
 	return r, nil
 }
