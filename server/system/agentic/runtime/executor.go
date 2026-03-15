@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -82,6 +83,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	systemPrompt := agent.Behavior.SystemPrompt
 	if agent.Behavior.InjectSystemContext {
 		systemPrompt = cortezaSystemContext + "\n\n" + systemPrompt
+	}
+	if len(agent.Behavior.Guardrails) > 0 {
+		systemPrompt += "\n\n" + strings.Join(agent.Behavior.Guardrails, "\n")
 	}
 	for _, t := range agent.Access.Tools {
 		if t.Hints != "" {
