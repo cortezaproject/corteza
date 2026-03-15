@@ -19,7 +19,7 @@ type (
 	llmProviderService interface {
 		Create(ctx context.Context, p *types.LlmProvider, apiKey string) (*types.LlmProvider, error)
 		LookupByID(ctx context.Context, id uint64) (*types.LlmProvider, error)
-		Update(ctx context.Context, p *types.LlmProvider) (*types.LlmProvider, error)
+		Update(ctx context.Context, p *types.LlmProvider, apiKey string) (*types.LlmProvider, error)
 		Delete(ctx context.Context, id uint64, deletedBy uint64) error
 		Search(ctx context.Context, f types.LlmProviderFilter) (types.LlmProviderSet, error)
 		ListModels(ctx context.Context, providerID uint64) ([]string, error)
@@ -72,7 +72,7 @@ func (ctrl LlmProvider) Update(ctx context.Context, r *request.LlmProviderUpdate
 		Meta:     r.Meta,
 		Config:   r.Config,
 	}
-	return ctrl.svc.Update(ctx, p)
+	return ctrl.svc.Update(ctx, p, r.ApiKey)
 }
 
 func (ctrl LlmProvider) Delete(ctx context.Context, r *request.LlmProviderDelete) (interface{}, error) {

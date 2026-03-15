@@ -106,6 +106,11 @@ type (
 		// Status
 		Status string
 
+		// ApiKey POST parameter
+		//
+		// API key
+		ApiKey string
+
 		// Meta POST parameter
 		//
 		// Meta
@@ -411,6 +416,7 @@ func (r LlmProviderUpdate) Auditable() map[string]interface{} {
 		"handle":        r.Handle,
 		"provider":      r.Provider,
 		"status":        r.Status,
+		"apiKey":        r.ApiKey,
 		"meta":          r.Meta,
 		"config":        r.Config,
 	}
@@ -434,6 +440,11 @@ func (r LlmProviderUpdate) GetProvider() string {
 // Auditable returns all auditable/loggable parameters
 func (r LlmProviderUpdate) GetStatus() string {
 	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LlmProviderUpdate) GetApiKey() string {
+	return r.ApiKey
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -488,6 +499,13 @@ func (r *LlmProviderUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["apiKey"]; ok && len(val) > 0 {
+				r.ApiKey, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
 				r.Meta, err = types.ParseLLMProviderMeta(val)
 				if err != nil {
@@ -537,6 +555,13 @@ func (r *LlmProviderUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["status"]; ok && len(val) > 0 {
 			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["apiKey"]; ok && len(val) > 0 {
+			r.ApiKey, err = val[0], nil
 			if err != nil {
 				return err
 			}

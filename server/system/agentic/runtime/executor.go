@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/system/agentic/observability"
@@ -277,7 +275,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// Save conversation
 	conversation.TokenCount = usage.TotalTokens
 	if _, err := r.conversationStore.Update(ctx, conversation); err != nil {
-		spew.Dump(err)
+		return nil, fmt.Errorf("failed to save conversation: %w", err)
 	}
 
 	return &AgentResponse{

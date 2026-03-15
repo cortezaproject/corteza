@@ -69,6 +69,10 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 		new.CreatedAt = *now()
 		new.Revision = 1
 
+		if new.Status == "" {
+			new.Status = "active"
+		}
+
 		if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 			return
 		}

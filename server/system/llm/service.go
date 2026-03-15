@@ -83,7 +83,7 @@ func (svc *Service) LookupByHandle(ctx context.Context, handle string) (*sysType
 	return store.LookupLlmProviderByHandle(ctx, svc.store, handle)
 }
 
-func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider) (*sysTypes.LlmProvider, error) {
+func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider, apiKey string) (*sysTypes.LlmProvider, error) {
 	existing, err := store.LookupLlmProviderByID(ctx, svc.store, upd.ID)
 	if err != nil {
 		return nil, err
@@ -96,9 +96,22 @@ func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider) (*sys
 	existing.Handle = upd.Handle
 	existing.Status = upd.Status
 	existing.Provider = upd.Provider
-	existing.CredentialID = upd.CredentialID
 	existing.Meta = upd.Meta
 	existing.Config = upd.Config
+
+	if apiKey != "" {
+		if existing.CredentialID == 0 {
+			return nil, fmt.Errorf("no credential found for this provider")
+		}
+		cred, err := store.LookupCredentialByID(ctx, svc.store, existing.CredentialID)
+		if err != nil {
+			return nil, fmt.Errorf("could not load credential: %w", err)
+		}
+		cred.Credentials = apiKey
+		if err := store.UpdateCredential(ctx, svc.store, cred); err != nil {
+			return nil, fmt.Errorf("could not update credential: %w", err)
+		}
+	}
 
 	now := time.Now().Round(time.Second)
 	existing.UpdatedAt = &now
