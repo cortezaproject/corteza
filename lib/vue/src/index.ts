@@ -28,3 +28,7 @@ export * as filters from './filters'
 
 // Export components
 export * as components from './components'
+
+// Direct named exports for specific components
+export { CEmojiPicker } from './components'
+export { emojiData } from './components'

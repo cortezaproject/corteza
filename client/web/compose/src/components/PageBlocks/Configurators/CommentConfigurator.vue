@@ -129,6 +129,23 @@
           />
           <small class="text-muted-color">{{ $t('block.comment.sortDirection.footnote') }}</small>
         </div>
+
+        <!-- Reactions field -->
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-primary text-sm">
+            {{ $t('block.comment.reactionsField.label') }}
+          </label>
+          <Select
+            v-model="options.reactionsField"
+            :options="stringFields"
+            :option-label="fieldLabel"
+            option-value="name"
+            :placeholder="$t('general.label.none')"
+            show-clear
+            class="w-full"
+          />
+          <small class="text-muted-color">{{ $t('block.comment.reactionsField.footnote') }}</small>
+        </div>
       </div>
     </template>
   </div>

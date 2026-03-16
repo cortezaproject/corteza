@@ -280,6 +280,28 @@
 
       <div class="rt-toolbar-separator" />
 
+      <!-- Emoji picker -->
+      <Button
+        v-tooltip.top="'Emoji'"
+        text
+        size="small"
+        severity="secondary"
+        icon="pi pi-face-smile"
+        class="rt-toolbar-btn"
+        @click="toggleEmojiPicker"
+      />
+      <Popover ref="emojiPopoverRef" @show="onEmojiPopoverShow">
+        <CEmojiPicker
+          ref="emojiPicker"
+          :emojis="allEmojis"
+          :labels="emojiLabels"
+          :show-quick-reactions="false"
+          @select="onEmojiSelect"
+        />
+      </Popover>
+
+      <div class="rt-toolbar-separator" />
+
       <!-- Horizontal rule -->
       <Button
         v-tooltip.top="'Horizontal rule'"
@@ -337,6 +359,9 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import Emoji, { emojis as emojiData } from '@tiptap/extension-emoji'
+import emojiSuggestion from './CRichTextInput/emoji/suggestion.js'
+import CEmojiPicker from '../CEmojiPicker.vue'
 import CInputColorPicker from './CInputColorPicker.vue'
 
 // Font Awesome — on-demand imports (tree-shaken)
@@ -386,12 +411,18 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  emojiLabels: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'upload'])
 
 // Refs
 const linkUrlInput = ref(null)
+const emojiPicker = ref(null)
+const emojiPopoverRef = ref(null)
 
 // State
 const textColor = ref('#000000FF')
@@ -400,6 +431,9 @@ const showAlignMenu = ref(false)
 const showTableMenu = ref(false)
 const showLinkInput = ref(false)
 const linkUrl = ref('')
+
+// Emoji data for the picker
+const allEmojis = computed(() => emojiData || [])
 
 // Display colors for toolbar A labels
 const displayTextColor = computed(() => {
@@ -462,6 +496,10 @@ const editor = useEditor({
     TaskList,
     TaskItem.configure({ nested: true }),
     Placeholder.configure({ placeholder: props.placeholder }),
+    Emoji.configure({
+      enableEmoticons: true,
+      suggestion: emojiSuggestion,
+    }),
   ],
   content: props.modelValue || '',
   parseOptions: {
@@ -567,6 +605,32 @@ function applyLink() {
   linkUrl.value = ''
 }
 
+// Emoji picker methods
+function toggleEmojiPicker(event) {
+  emojiPopoverRef.value?.toggle(event)
+  showAlignMenu.value = false
+  showTableMenu.value = false
+  showLinkInput.value = false
+}
+
+function onEmojiPopoverShow() {
+  nextTick(() => {
+    if (emojiPicker.value) {
+      emojiPicker.value.reset()
+    }
+  })
+}
+
+function onEmojiSelect(emoji) {
+  if (emoji && emoji.name) {
+    editor.value?.chain().focus().insertContent({
+      type: 'emoji',
+      attrs: { name: emoji.name },
+    }).run()
+  }
+  emojiPopoverRef.value?.hide()
+}
+
 // Utility
 function focus() {
   if (editor.value) {
@@ -588,7 +652,7 @@ function onPaste(event) {
   }
 }
 
-defineExpose({ focus, editor })
+defineExpose({ focus, editor, allEmojis })
 </script>
 
 <style>

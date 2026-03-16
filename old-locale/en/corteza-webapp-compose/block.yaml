@@ -796,12 +796,19 @@ comment:
   attachmentField:
     label: Attachment field
     footnote: Field used to store comment attachments
+  reactionsField:
+    label: Reactions field
+    footnote: Field used to store comment reactions
+  attachment:
+    file: File
+  replyModalTitle: Original comment
   today: Today
   yesterday: Yesterday
   tooltip:
     reply: Reply
     edit: Edit
     attach: Attach file
+    react: React
 navigation:
   chart: Charts
   colorPicker: Choose a color

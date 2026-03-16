@@ -54,14 +54,19 @@
                 :comment="comment"
                 :title-field="titleField"
                 :content-field="contentField"
+                :attachment-field="attachmentField"
+                :reactions-field="reactionsField"
                 :namespace="namespace"
                 :show-header="ci === 0"
-                :show-title="!!titleField"
-                :show-content="!!contentField"
+                :show-title="showTitle(comment)"
+                :show-content="showContent(comment)"
                 :highlighted="highlightedCommentId === comment.recordID"
+                :current-user-i-d="currentUserID"
+                :find-user-by-i-d="findUserByID"
                 class="mb-1"
                 @reply="replyToComment(comment)"
                 @edit="onEditComment(comment, $event)"
+                @react="onReact(comment, $event)"
                 @reply-click="handleReplyClick"
                 @mouseleave="resetHighlightedComment(comment.recordID)"
               />
@@ -132,10 +137,49 @@
             min-body-height="4rem"
             max-body-height="10rem"
             body-class="overflow-auto"
+            @upload="handleFileUpload"
           />
 
-          <!-- Submit -->
+          <!-- Attachment previews -->
+          <div v-if="attachmentField && newComment.attachmentIDs.length" class="flex flex-wrap gap-2 px-2 py-1">
+            <div
+              v-for="(attID, idx) in newComment.attachmentIDs"
+              :key="attID"
+              class="flex items-center gap-1 bg-surface-100 rounded-lg px-2 py-1 text-sm"
+            >
+              <i class="pi pi-file text-muted-color" />
+              <span class="text-muted-color">{{ $t('block.comment.attachment.file') }} {{ idx + 1 }}</span>
+              <Button
+                icon="pi pi-times"
+                text
+                size="small"
+                severity="secondary"
+                class="p-0 w-5 h-5"
+                @click="removeAttachment(idx)"
+              />
+            </div>
+          </div>
+
+          <!-- Submit row -->
           <div class="flex items-center justify-end m-2 gap-1">
+            <Button
+              v-if="attachmentField"
+              v-tooltip.top="{ value: $t('block.comment.tooltip.attach'), showDelay: 300 }"
+              icon="pi pi-paperclip"
+              text
+              severity="secondary"
+              @click="openFileUpload"
+            />
+
+            <input
+              v-if="attachmentField"
+              ref="fileInput"
+              type="file"
+              :multiple="attachmentField.isMulti"
+              class="hidden"
+              @change="onFileSelected"
+            />
+
             <Button
               :label="$t('block.comment.submit')"
               :disabled="!isValid || submitting"
@@ -145,6 +189,36 @@
             />
           </div>
         </section>
+
+        <!-- Reply modal for off-screen comments -->
+        <Dialog
+          v-model:visible="replyModal.show"
+          modal
+          :header="$t('block.comment.replyModalTitle')"
+          :style="{ width: '50rem' }"
+          :breakpoints="{ '960px': '75vw', '641px': '90vw' }"
+        >
+          <div v-if="!replyModal.comment" class="flex items-center justify-center p-6">
+            <ProgressSpinner style="width: 24px; height: 24px" />
+          </div>
+
+          <div v-else>
+            <CommentItem
+              :comment="replyModal.comment"
+              :title-field="titleField"
+              :content-field="contentField"
+              :attachment-field="attachmentField"
+              :namespace="namespace"
+              :show-time-always="true"
+              :show-title="showTitle(replyModal.comment)"
+              :show-content="showContent(replyModal.comment)"
+              :highlighted="false"
+              :disable-hover="true"
+              @reply="replyToComment(replyModal.comment)"
+              @reply-click="openReplyInModal"
+            />
+          </div>
+        </Dialog>
       </div>
     </template>
   </PageBlock>
@@ -155,10 +229,13 @@ import { ref, computed, watch, inject, onMounted, onBeforeUnmount, nextTick } fr
 import { compose } from '@cortezaproject/corteza-js-next'
 import { useModuleStore } from '@/stores/module'
 import { useUserStore } from '@/stores/user'
+import { useRecordStore } from '@/stores/record'
 import PageBlock from './PageBlock.vue'
 import CommentItem from './Comment/CommentItem.vue'
 import CommentReply from './Comment/CommentReply.vue'
 import { components } from '@cortezaproject/corteza-vue-next'
+import { useI18n } from 'vue-i18n'
+import { evaluatePrefilter, getFieldFilter, isFieldInFilter } from '../../../lib/record-filter'
 
 const { CRichTextInput } = components
 
@@ -171,16 +248,20 @@ const props = defineProps({
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $Auth = inject('$Auth')
+const { t } = useI18n()
 const moduleStore = useModuleStore()
 const userStore = useUserStore()
+const recordStore = useRecordStore()
 
 const chatContainer = ref(null)
 const contentInput = ref(null)
+const fileInput = ref(null)
 const processing = ref(false)
 const submitting = ref(false)
 const loadingMore = ref(false)
 const comments = ref([])
 const highlightedCommentId = ref(null)
+const abortableRequests = ref([])
 
 const filter = ref({
   limit: 50,
@@ -191,13 +272,22 @@ const newComment = ref({
   title: '',
   content: '',
   replyTo: null,
+  attachmentIDs: [],
+})
+
+const replyModal = ref({
+  show: false,
+  comment: null,
 })
 
 let refreshInterval = null
+let autoFetching = false
 
 const options = computed(() => props.block.options || {})
 const showNewestFirst = computed(() => options.value.sortDirection === 'asc')
 const hasNextPage = computed(() => !!filter.value.nextPage)
+
+const currentUserID = computed(() => ($Auth?.user || {}).userID || '')
 
 const roModule = computed(() => {
   if (!options.value.moduleID) return null
@@ -224,9 +314,21 @@ const replyField = computed(() => {
   return roModule.value.fields.find(f => f.name === options.value.replyField)
 })
 
+const attachmentField = computed(() => {
+  if (!options.value.attachmentField || !roModule.value) return undefined
+  return roModule.value.fields.find(f => f.name === options.value.attachmentField)
+})
+
+const reactionsField = computed(() => {
+  if (!options.value.reactionsField || !roModule.value) return undefined
+  return roModule.value.fields.find(f => f.name === options.value.reactionsField)
+})
+
 const canAddRecord = computed(() => roModule.value?.canCreateRecord)
 
-const isValid = computed(() => !!newComment.value.title || !!newComment.value.content)
+const isValid = computed(() =>
+  (!!newComment.value.title || !!newComment.value.content || newComment.value.attachmentIDs.length > 0),
+)
 
 const isConfigured = computed(() => !!contentField.value)
 
@@ -281,6 +383,10 @@ function getAuthor(userID) {
   }
 }
 
+function findUserByID(userID) {
+  return userStore.findByID(userID)
+}
+
 // ---- Fetch comments ----
 
 async function fetchCommentRecords(query, useNextPage = true) {
@@ -294,19 +400,26 @@ async function fetchCommentRecords(query, useNextPage = true) {
     query = query ? `${query} AND ${refFilter}` : refFilter
   }
 
-  const sort = showNewestFirst.value ? 'createdAt DESC' : 'createdAt ASC'
+  let sort = showNewestFirst.value ? 'createdAt DESC' : 'createdAt ASC'
+
+  if (useNextPage && filter.value.nextPage) {
+    sort = ''
+  }
 
   const params = {
     namespaceID: props.namespace.namespaceID,
     moduleID: mod.moduleID,
     query,
-    sort: useNextPage && filter.value.nextPage ? '' : sort,
+    sort,
     limit: useNextPage ? filter.value.limit : 500,
     pageCursor: useNextPage ? filter.value.nextPage : '',
   }
 
   try {
-    const { set = [], filter: paging = {} } = await $ComposeAPI.recordList(params)
+    const { response, cancel } = $ComposeAPI.recordListCancellable(params)
+    abortableRequests.value.push(cancel)
+
+    const { set = [], filter: paging = {} } = await response()
 
     if (useNextPage) {
       filter.value.nextPage = paging.nextPage || ''
@@ -320,6 +433,12 @@ async function fetchCommentRecords(query, useNextPage = true) {
       await userStore.resolveUsers(userIDs).catch(() => {})
     }
 
+    // Resolve reply records
+    await fetchReplyRecords(records)
+
+    // Resolve reaction user IDs
+    records.forEach(c => resolveReactionUsers(c))
+
     // Group by date then by author
     if (showNewestFirst.value) {
       records.reverse()
@@ -330,9 +449,7 @@ async function fetchCommentRecords(query, useNextPage = true) {
       const date = getFormattedDate(comment.createdAt)
       const authorId = comment.createdBy
       comment.author = getAuthor(authorId)
-
-      // Resolve reply if replyField is set
-      // (simplified: no deep reply resolution)
+      comment.reply = getReplyComment(comment)
 
       if (!groups[date]) {
         groups[date] = { date, messages: [] }
@@ -352,9 +469,63 @@ async function fetchCommentRecords(query, useNextPage = true) {
 
     return Object.values(groups)
   } catch (e) {
-    console.error('Failed to fetch comments:', e)
+    // Don't log cancelled requests
+    if (e?.message !== 'canceled' && e?.code !== 'ERR_CANCELED') {
+      console.error('Failed to fetch comments:', e)
+    }
     return []
   }
+}
+
+// ---- Reply resolution ----
+
+async function fetchReplyRecords(records) {
+  if (!replyField.value || records.length === 0) return
+
+  // Collect all reply record IDs
+  const replyIDs = records
+    .map(r => r.values[replyField.value.name])
+    .filter(Boolean)
+    .filter(id => id !== '0')
+
+  if (replyIDs.length === 0) return
+
+  const uniqueIDs = [...new Set(replyIDs)]
+
+  // Fetch each reply record into the record store
+  const mod = roModule.value
+  await Promise.all(
+    uniqueIDs.map(recordID =>
+      recordStore.findByID({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: mod.moduleID,
+        recordID,
+      }).catch(() => null),
+    ),
+  )
+}
+
+function getReplyComment(comment) {
+  if (!replyField.value) return null
+
+  const replyID = comment.values[replyField.value.name]
+  if (!replyID || replyID === '0') return null
+
+  let replyRecord = recordStore.getByID(replyID)
+  if (!replyRecord) return null
+
+  replyRecord = new compose.Record(roModule.value, replyRecord)
+  replyRecord.author = getAuthor(replyRecord.createdBy)
+
+  return replyRecord
+}
+
+function showTitle(comment) {
+  return Boolean(titleField.value && titleField.value.canReadRecordValue && comment.values[titleField.value.name])
+}
+
+function showContent(comment) {
+  return Boolean(contentField.value && contentField.value.canReadRecordValue && comment.values[contentField.value.name])
 }
 
 // ---- Merge message groups for auto-refresh ----
@@ -395,21 +566,19 @@ const lastCommentTimestamp = computed(() => {
   if (!lastGroup?.messages?.length) return null
   const lastMsgGroup = lastGroup.messages[lastGroup.messages.length - 1]
   if (!lastMsgGroup?.comments?.length) return null
-  return lastMsgGroup.comments[lastMsgGroup.comments.length - 1]?.createdAt
+  return lastMsgGroup.comments[lastMsgGroup.comments.length - 1]?.createdAt || null
 })
 
 // ---- Load new comments (auto-refresh) ----
 
 async function loadNewComments() {
-  let query = expandFilter()
-
-  if (lastCommentTimestamp.value) {
-    const tsFilter = `createdAt > '${lastCommentTimestamp.value}'`
-    query = query ? `${query} AND ${tsFilter}` : tsFilter
-  }
+  const filter = [
+    expandFilter(),
+    lastCommentTimestamp.value ? `${getFieldFilter('createdAt', 'DateTime', lastCommentTimestamp.value, '>')}` : '',
+  ].filter(Boolean).join(' AND ')
 
   const wasAtBottom = isScrollAtBottom()
-  const newGroups = await fetchCommentRecords(query, false)
+  const newGroups = await fetchCommentRecords(filter, false)
   comments.value = mergeMessageGroups(comments.value, newGroups)
 
   if (wasAtBottom) {
@@ -487,12 +656,18 @@ async function submitComment() {
     if (replyField.value && newComment.value.replyTo) {
       record.values[replyField.value.name] = newComment.value.replyTo.recordID
     }
+    if (attachmentField.value && newComment.value.attachmentIDs.length) {
+      record.values[attachmentField.value.name] = attachmentField.value.isMulti
+        ? newComment.value.attachmentIDs
+        : newComment.value.attachmentIDs[0]
+    }
 
     await $ComposeAPI.recordCreate(record)
 
     newComment.value.title = ''
     newComment.value.content = ''
     newComment.value.replyTo = null
+    newComment.value.attachmentIDs = []
 
     if (showNewestFirst.value) {
       await loadNewComments()
@@ -526,6 +701,7 @@ async function onEditComment(comment, { title, content }) {
     const updatedRaw = await $ComposeAPI.recordUpdate(record)
     const updatedRecord = new compose.Record(mod, updatedRaw)
     updatedRecord.author = comment.author
+    updatedRecord.reply = comment.reply
 
     // Update in-place
     comments.value.forEach(dateGroup => {
@@ -541,10 +717,144 @@ async function onEditComment(comment, { title, content }) {
   }
 }
 
+// ---- Reactions ----
+
+async function onReact(comment, emoji) {
+  if (!reactionsField.value) return
+
+  const mod = roModule.value
+  if (!mod) return
+
+  try {
+    const record = new compose.Record(mod, { ...comment })
+    const fieldName = reactionsField.value.name
+    let reactions = {}
+
+    try {
+      reactions = JSON.parse(record.values[fieldName] || '{}') || {}
+    } catch {
+      reactions = {}
+    }
+
+    const userID = currentUserID.value
+    if (!userID) return
+
+    // Toggle: add or remove current user
+    if (!reactions[emoji]) {
+      reactions[emoji] = []
+    }
+
+    const idx = reactions[emoji].indexOf(userID)
+    if (idx > -1) {
+      reactions[emoji].splice(idx, 1)
+      if (reactions[emoji].length === 0) {
+        delete reactions[emoji]
+      }
+    } else {
+      reactions[emoji].push(userID)
+    }
+
+    record.values[fieldName] = JSON.stringify(reactions)
+
+    const updatedRaw = await $ComposeAPI.recordUpdate(record)
+    const updatedRecord = new compose.Record(mod, updatedRaw)
+    updatedRecord.author = comment.author
+    updatedRecord.reply = comment.reply
+
+    resolveReactionUsers(updatedRecord)
+
+    comments.value.forEach(dateGroup => {
+      dateGroup.messages.forEach(messageGroup => {
+        const idx = messageGroup.comments.findIndex(c => c.recordID === updatedRecord.recordID)
+        if (idx > -1) {
+          messageGroup.comments.splice(idx, 1, updatedRecord)
+        }
+      })
+    })
+  } catch (e) {
+    console.error('Failed to update reaction:', e)
+  }
+}
+
+function resolveReactionUsers(record) {
+  if (!reactionsField.value) return
+
+  try {
+    const reactions = JSON.parse(record.values[reactionsField.value.name] || '{}') || {}
+    const userIDs = [...new Set(Object.values(reactions).flat())].filter(Boolean)
+    if (userIDs.length) {
+      userStore.resolveUsers(userIDs).catch(() => {})
+    }
+  } catch {
+    // ignore
+  }
+}
+
+// ---- File attachments ----
+
+function openFileUpload() {
+  fileInput.value?.click()
+}
+
+async function onFileSelected(event) {
+  const files = event.target.files
+  if (!files || files.length === 0) return
+
+  for (const file of files) {
+    await uploadFile(file)
+  }
+
+  // Reset file input
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+function handleFileUpload(files) {
+  if (!attachmentField.value || !files) return
+  Array.from(files).forEach(file => uploadFile(file))
+}
+
+async function uploadFile(file) {
+  if (!attachmentField.value || !$ComposeAPI) return
+
+  try {
+    const url = $ComposeAPI.recordUploadEndpoint({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: roModule.value.moduleID,
+    })
+
+    const formData = new FormData()
+    formData.append('fieldName', attachmentField.value.name)
+    formData.append('upload', file, file.name)
+
+    const { data } = await $ComposeAPI
+      .api()
+      .post(url, formData, { headers: { 'Content-Type': undefined } })
+
+    if (data?.error) throw new Error(data.error)
+    const attachment = data?.response ?? data
+    if (!attachment?.attachmentID) throw new Error('Upload failed: no attachmentID')
+
+    if (attachmentField.value.isMulti) {
+      newComment.value.attachmentIDs = [...newComment.value.attachmentIDs, attachment.attachmentID]
+    } else {
+      newComment.value.attachmentIDs = [attachment.attachmentID]
+    }
+  } catch (e) {
+    console.error('Failed to upload file:', e)
+  }
+}
+
+function removeAttachment(index) {
+  newComment.value.attachmentIDs.splice(index, 1)
+}
+
 // ---- Reply ----
 
 function replyToComment(comment) {
   newComment.value.replyTo = comment
+  replyModal.value.show = false
   nextTick(() => {
     contentInput.value?.$el?.focus?.()
   })
@@ -555,6 +865,42 @@ function handleReplyClick(recordID) {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     highlightedCommentId.value = recordID
+  } else {
+    openReplyInModal(recordID)
+  }
+}
+
+async function openReplyInModal(recordID) {
+  if (!roModule.value) return
+
+  replyModal.value.show = true
+  replyModal.value.comment = null
+
+  try {
+    let comment = recordStore.getByID(recordID)
+
+    if (!comment) {
+      comment = await recordStore.findByID({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: roModule.value.moduleID,
+        recordID,
+      })
+    }
+
+    if (!comment) {
+      replyModal.value.show = false
+      return
+    }
+
+    comment = new compose.Record(roModule.value, comment)
+    await fetchReplyRecords([comment])
+    comment.reply = getReplyComment(comment)
+    comment.author = getAuthor(comment.createdBy)
+
+    replyModal.value.comment = comment
+  } catch (e) {
+    console.error('Failed to load reply record:', e)
+    replyModal.value.show = false
   }
 }
 
@@ -592,12 +938,35 @@ function isScrollAtBottom() {
 // ---- Prefilter ----
 
 function expandFilter() {
-  return options.value.filter || ''
-}
+  /* eslint-disable no-template-curly-in-string */
+  if (!props.record) {
+    // If there is no current record and we are using recordID/ownerID variable in (pre)filter
+    // we should disable the block
+    if ((options.value.filter || '').includes('${record')) {
+      throw Error(t('block.comment.invalidRecordVar'))
+    }
 
-// ---- i18n ----
-import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+    if ((options.value.filter || '').includes('${ownerID}')) {
+      throw Error(t('block.comment.invalidOwnerVar'))
+    }
+  }
+
+  if (options.value.filter) {
+    try {
+      return evaluatePrefilter(options.value.filter, {
+        record: props.record,
+        user: $Auth?.user || {},
+        recordID: (props.record || {}).recordID || '0',
+        ownerID: (props.record || {}).ownedBy || '0',
+        userID: ($Auth?.user || {}).userID || '0',
+      })
+    } catch (e) {
+      return e
+    }
+  }
+
+  return ''
+}
 
 // ---- Watchers ----
 
@@ -617,13 +986,25 @@ watch(
 
 onMounted(() => {
   refreshInterval = setInterval(() => {
-    if (submitting.value || loadingMore.value) return
+    if (autoFetching || submitting.value || loadingMore.value) return
     if (!showNewestFirst.value && filter.value.nextPage) return
-    loadNewComments().catch(() => {})
+
+    autoFetching = true
+    loadNewComments()
+      .catch(() => {})
+      .finally(() => {
+        autoFetching = false
+      })
   }, 5000)
 })
 
 onBeforeUnmount(() => {
+  // Cancel pending requests
+  abortableRequests.value.forEach(cancel => {
+    if (typeof cancel === 'function') cancel()
+  })
+  abortableRequests.value = []
+
   if (refreshInterval) {
     clearInterval(refreshInterval)
     refreshInterval = null

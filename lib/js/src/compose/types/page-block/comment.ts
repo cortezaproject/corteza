@@ -7,12 +7,14 @@ interface Options {
   filter: string
   titleField: string
   contentField: string
+  replyField: string
   referenceField: string
   sortDirection: string
   refreshRate: number
   showRefresh: boolean
   magnifyOption: string
   attachmentField: string
+  reactionsField: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -20,12 +22,14 @@ const defaults: Readonly<Options> = Object.freeze({
   filter: '',
   titleField: '',
   contentField: '',
-  sortDirection: '',
+  replyField: '',
+  sortDirection: 'asc',
   referenceField: '',
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
   attachmentField: '',
+  reactionsField: '',
 })
 
 export class PageBlockComment extends PageBlock {
@@ -50,6 +54,7 @@ export class PageBlockComment extends PageBlock {
       'replyField',
       'referenceField',
       'attachmentField',
+      'reactionsField',
       'filter',
       'sortDirection',
       'magnifyOption',

@@ -98,7 +98,7 @@ onMounted(() => {
     usersStore.load({ limit: 500 }),
     rbacStore.load([$ComposeAPI, $SystemAPI]),
   ]
-  const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
+  const delayPromise = new Promise(resolve => setTimeout(resolve, 1000))
 
   Promise.all([...fetchPromises, delayPromise]).finally(() => {
     loading.value = false

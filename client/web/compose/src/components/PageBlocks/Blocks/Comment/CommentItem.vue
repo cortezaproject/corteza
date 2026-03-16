@@ -5,7 +5,7 @@
     @mouseleave="$emit('mouseleave')"
   >
     <!-- Author header (shown only for first message in a group) -->
-    <div v-if="showHeader" class="flex items-center gap-4 px-2">
+    <div v-if="showHeader" class="flex items-center gap-5 px-2">
       <div :title="authorName" class="avatar flex items-center justify-center font-semibold">
         {{ authorInitials }}
       </div>
@@ -24,13 +24,8 @@
         <!-- Timestamp -->
         <div
           :title="commentFullDateTime"
-          :class="[
-            'comment-time',
-            'text-muted-color',
-            'whitespace-nowrap',
-            'overflow-hidden',
-            { 'always-visible': showTimeAlways },
-          ]"
+          :class="{ 'always-visible': showTimeAlways }"
+          class="comment-time text-muted-color whitespace-nowrap overflow-hidden mr-1"
         >
           <small>{{ commentTime }}</small>
         </div>
@@ -78,18 +73,68 @@
           </div>
 
           <template v-else>
-            <div v-if="showTitle && titleField" class="font-semibold text-muted-color text-lg">
+            <!-- Title with RBAC check -->
+            <div v-if="shouldShowTitle" class="font-semibold text-muted-color text-lg">
               <CFieldViewer :field="titleField" :record="comment" :namespace="namespace" />
             </div>
+            <small
+              v-else-if="showTitle && titleField && !titleField.canReadRecordValue"
+              class="text-muted-color"
+            >
+              {{ $t('block.field.noPermission') }}
+            </small>
 
-            <div v-if="showContent && contentField" class="comment-content">
+            <!-- Content with RBAC check -->
+            <div v-if="shouldShowContent" class="comment-content">
               <CFieldViewer :field="contentField" :record="comment" :namespace="namespace" />
+            </div>
+            <small
+              v-else-if="showContent && contentField && !contentField.canReadRecordValue"
+              class="text-muted-color"
+            >
+              {{ $t('block.field.noPermission') }}
+            </small>
+
+            <!-- Attachment display -->
+            <CFieldViewer
+              v-if="showAttachments"
+              :field="attachmentField"
+              :record="comment"
+              :namespace="namespace"
+            />
+
+            <!-- Reaction badges -->
+            <div
+              v-if="hasReactions"
+              class="comment-reactions flex flex-wrap items-center gap-1 mt-1"
+            >
+              <button
+                v-for="(userIDs, emoji) in reactions"
+                :key="emoji"
+                v-tooltip.top="{ value: reactionTooltip(emoji, userIDs), showDelay: 200 }"
+                type="button"
+                class="reaction-badge"
+                :class="{ 'reaction-mine': userIDs.includes(currentUserID) }"
+                @click.stop="$emit('react', emoji)"
+              >
+                <span class="reaction-emoji">{{ emoji }}</span>
+                <span class="reaction-count">{{ userIDs.length }}</span>
+              </button>
             </div>
           </template>
         </div>
 
         <!-- Hover toolbox -->
         <div v-if="!isEditing" class="comment-toolbox flex items-center justify-end gap-1">
+          <Button
+            v-if="reactionsField"
+            v-tooltip.top="{ value: $t('block.comment.tooltip.react'), showDelay: 300 }"
+            icon="pi pi-face-smile"
+            text
+            size="small"
+            severity="secondary"
+            @click.stop="toggleEmojiPicker"
+          />
           <Button
             v-tooltip.top="{ value: $t('block.comment.tooltip.reply'), showDelay: 300 }"
             icon="pi pi-reply"
@@ -109,14 +154,24 @@
           />
         </div>
       </div>
+
+      <!-- Emoji picker popover -->
+      <Popover ref="emojiPopoverRef" @show="onEmojiPopoverShow">
+        <CEmojiPicker
+          ref="emojiPickerComp"
+          :emojis="allEmojis"
+          :show-quick-reactions="true"
+          @select="selectEmoji"
+        />
+      </Popover>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import CommentReply from './CommentReply.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, CEmojiPicker, emojiData } from '@cortezaproject/corteza-vue-next'
 
 const { CRichTextInput, CFieldViewer } = components
 
@@ -124,6 +179,8 @@ const props = defineProps({
   comment: { type: Object, required: true },
   titleField: { type: Object, default: undefined },
   contentField: { type: Object, default: undefined },
+  attachmentField: { type: Object, default: undefined },
+  reactionsField: { type: Object, default: undefined },
   namespace: { type: Object, required: true },
   showHeader: { type: Boolean, default: true },
   showTimeAlways: { type: Boolean, default: false },
@@ -131,29 +188,25 @@ const props = defineProps({
   showContent: { type: Boolean, default: true },
   highlighted: { type: Boolean, default: false },
   disableHover: { type: Boolean, default: false },
+  currentUserID: { type: String, default: '' },
+  findUserByID: { type: Function, default: () => () => undefined },
 })
 
-const emit = defineEmits(['reply', 'edit', 'reply-click', 'mouseleave'])
+const emit = defineEmits(['reply', 'edit', 'react', 'reply-click', 'mouseleave'])
 
 const isEditing = ref(false)
 const editTitle = ref('')
 const editContent = ref('')
+const emojiPopoverRef = ref(null)
+const emojiPickerComp = ref(null)
+
+const allEmojis = computed(() => emojiData || [])
 
 const authorName = computed(() => props.comment?.author?.name || '')
 const authorInitials = computed(() => props.comment?.author?.initials || '?')
 const authorIsCurrentUser = computed(() => Boolean(props.comment?.author?.isCurrentUser))
 
 const canEdit = computed(() => authorIsCurrentUser.value && !props.comment?.deletedAt)
-
-const titleValue = computed(() => {
-  if (!props.titleField) return ''
-  return props.comment?.values?.[props.titleField.name] || ''
-})
-
-const contentValue = computed(() => {
-  if (!props.contentField) return ''
-  return props.comment?.values?.[props.contentField.name] || ''
-})
 
 const commentTime = computed(() => {
   const dt = props.comment?.updatedAt || props.comment?.createdAt
@@ -177,10 +230,76 @@ const commentFullDateTime = computed(() => {
 
 const isValid = computed(() => !!editTitle.value || !!editContent.value)
 
+// RBAC-aware display checks
+const shouldShowTitle = computed(() => {
+  if (!props.showTitle || !props.titleField || !props.titleField.canReadRecordValue) return false
+  const v = props.comment?.values?.[props.titleField.name]
+  return !!v && v.toString().trim().length > 0
+})
+
+const shouldShowContent = computed(() => {
+  if (!props.showContent || !props.contentField || !props.contentField.canReadRecordValue)
+    return false
+  const v = props.comment?.values?.[props.contentField.name]
+  return !!v && v.toString().trim().length > 0
+})
+
+const showAttachments = computed(() => {
+  if (!props.attachmentField || !props.attachmentField.canReadRecordValue) return false
+  const v = props.comment?.values?.[props.attachmentField.name]
+  if (props.attachmentField.isMulti) {
+    return Array.isArray(v) && v.length > 0
+  }
+  return !!v
+})
+
+// Reactions
+const reactions = computed(() => {
+  if (!props.reactionsField) return {}
+  try {
+    const val = props.comment?.values?.[props.reactionsField.name]
+    return JSON.parse(val || '{}') || {}
+  } catch {
+    return {}
+  }
+})
+
+const hasReactions = computed(() => Object.keys(reactions.value).length > 0)
+
+function reactionTooltip(emoji, userIDs) {
+  const names = userIDs.map(id => {
+    if (id === props.currentUserID) return 'You'
+    const user = props.findUserByID(id)
+    return user?.name || user?.handle || user?.email || 'Unknown'
+  })
+  return names.join(', ')
+}
+
+function toggleEmojiPicker(event) {
+  emojiPopoverRef.value?.toggle(event)
+}
+
+function onEmojiPopoverShow() {
+  nextTick(() => {
+    if (emojiPickerComp.value) {
+      emojiPickerComp.value.reset()
+    }
+  })
+}
+
+function selectEmoji(emojiObj) {
+  if (emojiObj && emojiObj.emoji) {
+    emit('react', emojiObj.emoji)
+  }
+  emojiPopoverRef.value?.hide()
+}
+
 function onEdit() {
   isEditing.value = true
-  editTitle.value = titleValue.value
-  editContent.value = contentValue.value
+  editTitle.value = props.titleField ? props.comment?.values?.[props.titleField.name] || '' : ''
+  editContent.value = props.contentField
+    ? props.comment?.values?.[props.contentField.name] || ''
+    : ''
 }
 
 function onCancel() {
@@ -228,15 +347,12 @@ function onSave() {
 }
 
 .comment-item .comment-toolbox {
-  position: sticky;
+  position: absolute;
   top: 0;
-  align-self: flex-start;
-  margin-left: auto;
+  right: 0;
   opacity: 0;
   transition: opacity 0.2s ease;
   z-index: 1;
-  flex-shrink: 0;
-  order: 3;
   background: var(--p-content-hover-background);
   border-radius: 0.5rem;
 }
@@ -272,5 +388,53 @@ function onSave() {
 
 .comment-content :deep(p) {
   margin: 0;
+}
+
+.comment-content {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Reaction badges */
+.comment-reactions .reaction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--p-content-border-color, #e0e0e0);
+  border-radius: 1rem;
+  background: var(--p-surface-0, #fff);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.comment-reactions .reaction-badge:hover {
+  background-color: var(--p-content-hover-background, #f5f5f5);
+  border-color: var(--p-text-muted-color, #ccc);
+}
+
+.comment-reactions .reaction-badge.reaction-mine {
+  background-color: color-mix(in srgb, var(--p-primary-color) 8%, transparent);
+  border-color: var(--p-primary-color);
+}
+
+.comment-reactions .reaction-emoji {
+  font-size: 0.9rem;
+}
+
+.comment-reactions .reaction-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color, #888);
+}
+
+.comment-reactions .reaction-badge.reaction-mine .reaction-count {
+  color: var(--p-primary-color);
 }
 </style>
