@@ -3,7 +3,7 @@
     <label v-if="label" class="font-medium text-sm">
       {{ label }}
     </label>
-    <span v-if="description" class="text-xs text-surface-500">
+    <span v-if="description" class="text-xs text-muted-color">
       {{ description }}
     </span>
     <div class="flex items-center gap-2">

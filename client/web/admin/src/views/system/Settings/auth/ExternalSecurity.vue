@@ -9,7 +9,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.security.permitted-roles.label') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.security.permitted-roles.description') }}
       </span>
       <CInputRole
@@ -33,7 +33,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.security.prohibited-roles.label') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.security.prohibited-roles.description') }}
       </span>
       <CInputRole
@@ -57,7 +57,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.security.forced-roles.label') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.security.forced-roles.description') }}
       </span>
       <CInputRole

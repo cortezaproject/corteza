@@ -18,12 +18,12 @@
       <!-- Current Members -->
       <div
         v-if="currentMembers.length === 0"
-        class="text-surface-500 p-4 border rounded-lg bg-surface-50 dark:bg-surface-900/50 text-center"
+        class="text-muted-color p-4 border rounded-lg bg-highlight text-center"
       >
         {{ $t('system.roles.editor.members.empty') }}
       </div>
 
-      <div v-else class="flex flex-col border rounded-lg divide-y bg-surface-0 dark:bg-surface-900">
+      <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
         <div
           v-for="member in currentMembers"
           :key="member.userID"
@@ -35,7 +35,7 @@
             </span>
             <span
               v-if="(member.name || member.handle) && member.email"
-              class="text-xs text-surface-500"
+              class="text-xs text-muted-color"
             >
               {{ member.email }}
             </span>

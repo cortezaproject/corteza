@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4">
     <!-- Display type -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-surface-500 text-sm">
+      <label class="font-medium text-muted-color text-sm">
         {{ $t('field.kind.number.displayType.label') }}
       </label>
       <div class="flex flex-col gap-2">
@@ -21,7 +21,7 @@
     <template v-if="!isProgress">
       <!-- Format Group -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">
+        <label class="font-medium text-muted-color text-sm">
           {{ $t('field.kind.number.formatLabel') }}
         </label>
         <InputText
@@ -35,13 +35,13 @@
       <!-- Prefix / Suffix Display Group -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col gap-2">
-          <label class="font-medium text-surface-500 text-sm">
+          <label class="font-medium text-muted-color text-sm">
             {{ $t('field.kind.number.prefixLabel') }}
           </label>
           <InputText v-model="field.options.prefix" placeholder="$" class="w-full" />
         </div>
         <div class="flex flex-col gap-2">
-          <label class="font-medium text-surface-500 text-sm">
+          <label class="font-medium text-muted-color text-sm">
             {{ $t('field.kind.number.suffixLabel') }}
           </label>
           <InputText v-model="field.options.suffix" placeholder="USD" class="w-full" />
@@ -50,7 +50,7 @@
 
       <!-- Precision -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">
+        <label class="font-medium text-muted-color text-sm">
           {{ $t('field.kind.number.precisionLabel') }}
         </label>
         <InputNumber
@@ -67,13 +67,13 @@
     <template v-else>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col gap-2">
-          <label class="font-medium text-surface-500 text-sm">
+          <label class="font-medium text-muted-color text-sm">
             {{ $t('field.kind.number.progress.minimumValue') }}
           </label>
           <InputNumber v-model="field.options.min" show-buttons class="w-full" />
         </div>
         <div class="flex flex-col gap-2">
-          <label class="font-medium text-surface-500 text-sm">
+          <label class="font-medium text-muted-color text-sm">
             {{ $t('field.kind.number.progress.maximumValue') }}
           </label>
           <InputNumber v-model="field.options.max" show-buttons class="w-full" />

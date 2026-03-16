@@ -31,7 +31,7 @@
             <label class="font-medium text-sm">
               {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('compose.settings.editor.basic.attachments.type.description') }}
             </span>
             <InputText v-model="pageAttachmentWhitelist" class="w-full" />
@@ -55,7 +55,7 @@
             <label class="font-medium text-sm">
               {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('compose.settings.editor.basic.attachments.type.description') }}
             </span>
             <InputText v-model="recordAttachmentWhitelist" class="w-full" />
@@ -79,7 +79,7 @@
             <label class="font-medium text-sm">
               {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('compose.settings.editor.basic.attachments.type.description') }}
             </span>
             <InputText v-model="iconAttachmentWhitelist" class="w-full" />

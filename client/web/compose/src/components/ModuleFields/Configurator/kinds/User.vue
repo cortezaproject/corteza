@@ -8,7 +8,7 @@
 
     <!-- Role filter -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.user.roles.label') }}</label>
+      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.user.roles.label') }}</label>
       <MultiSelect
         v-model="selectedRoles"
         :options="roleOptions"
@@ -25,7 +25,7 @@
     <!-- Multi-value select type -->
     <template v-if="field.isMulti">
       <div>
-        <label class="font-medium text-surface-500 text-sm block mb-3">
+        <label class="font-medium text-muted-color text-sm block mb-3">
           {{ $t('field.kind.select.optionType.label') }}
         </label>
         <div class="flex flex-col gap-2">

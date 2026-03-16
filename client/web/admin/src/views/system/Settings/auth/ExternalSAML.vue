@@ -9,7 +9,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.name') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.name') }}
       </span>
       <InputText v-model="modelValue.name" class="w-full" />
@@ -21,7 +21,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.cert.public') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.cert.public') }}
       </span>
       <Textarea v-model="modelValue.cert" rows="4" class="w-full" />
@@ -31,7 +31,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.cert.private') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.cert.private') }}
       </span>
       <Textarea v-model="modelValue.key" rows="4" class="w-full" />
@@ -49,7 +49,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.requests.sign-method') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.requests.sign-method') }}
       </span>
       <Select
@@ -66,7 +66,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.requests.binding') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.requests.binding') }}
       </span>
       <Select
@@ -85,7 +85,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.idp.url') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.url') }}
       </span>
       <InputText v-model="modelValue.idp.url" class="w-full" />
@@ -95,7 +95,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.idp.ident-name') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.ident-name') }}
       </span>
       <InputText v-model="modelValue.idp['ident-name']" class="w-full" />
@@ -105,7 +105,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.idp.ident-handle') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.ident-handle') }}
       </span>
       <InputText v-model="modelValue.idp['ident-handle']" class="w-full" />
@@ -115,7 +115,7 @@
       <label class="font-medium text-sm">
         {{ $t('system.settings.editor.external.saml.idp.ident-identifier') }}
       </label>
-      <span class="text-xs text-surface-500">
+      <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.ident-identifier') }}
       </span>
       <InputText v-model="modelValue.idp['ident-identifier']" class="w-full" />

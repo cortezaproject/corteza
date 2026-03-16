@@ -68,7 +68,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.settings.editor.auth.internal.password-constraints.min-length') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-length-description',
@@ -87,7 +87,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.settings.editor.auth.internal.password-constraints.min-num-count') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-num-count-description',
@@ -110,7 +110,7 @@
                 )
               }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-upper-case-description',
@@ -133,7 +133,7 @@
                 )
               }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-lower-case-description',
@@ -154,7 +154,7 @@
                 $t('system.settings.editor.auth.internal.password-constraints.min-special-count')
               }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{
                 $t(
                   'system.settings.editor.auth.internal.password-constraints.min-special-count-description',
@@ -193,7 +193,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.description') }}
             </span>
             <InputGroup>
@@ -229,7 +229,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.description') }}
             </span>
             <InputText
@@ -291,7 +291,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.settings.editor.auth.internal.send-user-invite-email.expires.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{
                 $t(
                   'system.settings.editor.auth.internal.send-user-invite-email.expires.description',
@@ -324,7 +324,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.settings.editor.auth.auto-logout.timeout.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('system.settings.editor.auth.auto-logout.timeout.description') }}
             </span>
             <InputGroup>

@@ -46,7 +46,7 @@
         >
           <div class="flex flex-col gap-1">
             <span class="font-medium">{{ $t('system.users.editor.mfa.emailOTP.label') }}</span>
-            <span class="text-sm text-surface-500" style="white-space: pre-line">
+            <span class="text-sm text-muted-color" style="white-space: pre-line">
               {{ $t('system.users.editor.mfa.emailOTP.description') }}
             </span>
           </div>
@@ -64,7 +64,7 @@
         >
           <div class="flex flex-col gap-1">
             <span class="font-medium">{{ $t('system.users.editor.mfa.TOTP.label') }}</span>
-            <span class="text-sm text-surface-500">
+            <span class="text-sm text-muted-color">
               {{ $t('system.users.editor.mfa.TOTP.description') }}
             </span>
           </div>

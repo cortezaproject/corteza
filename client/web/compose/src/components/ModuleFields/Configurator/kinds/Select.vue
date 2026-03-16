@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-6">
     <!-- Select type -->
     <div>
-      <label class="font-medium text-surface-500 text-sm block mb-3">
+      <label class="font-medium text-muted-color text-sm block mb-3">
         {{ $t('field.kind.select.optionType.label') }}
       </label>
       <div class="flex flex-col gap-2">
@@ -34,7 +34,7 @@
 
     <!-- Display type -->
     <div>
-      <label class="font-medium text-surface-500 text-sm block mb-3">
+      <label class="font-medium text-muted-color text-sm block mb-3">
         {{ $t('field.kind.select.displayType.label') }}
       </label>
       <div class="flex flex-col gap-2">

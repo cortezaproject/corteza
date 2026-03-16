@@ -20,12 +20,12 @@
       <!-- Current Roles -->
       <div
         v-if="currentRoles.length === 0"
-        class="text-surface-500 p-4 border rounded-lg bg-surface-50 dark:bg-surface-900/50 text-center"
+        class="text-muted-color p-4 border rounded-lg bg-highlight text-center"
       >
         {{ $t('system.users.editor.roles.empty') }}
       </div>
 
-      <div v-else class="flex flex-col border rounded-lg divide-y bg-surface-0 dark:bg-surface-900">
+      <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
         <div
           v-for="role in currentRoles"
           :key="role.roleID"
@@ -33,7 +33,7 @@
         >
           <div class="flex flex-col">
             <span class="font-medium">{{ role.name || role.handle || role.roleID }}</span>
-            <span v-if="role.name && role.handle" class="text-xs text-surface-500">
+            <span v-if="role.name && role.handle" class="text-xs text-muted-color">
               {{ role.handle }}
             </span>
           </div>

@@ -279,10 +279,10 @@ const RoleList = {
   },
   emits: ['remove'],
   template: `
-    <div v-if="roles.length === 0" class="text-surface-500 p-3 border rounded-lg bg-surface-50 dark:bg-surface-900/50 text-center text-sm">
+    <div v-if="roles.length === 0" class="text-muted-color p-3 border rounded-lg bg-highlight text-center text-sm">
       {{ $t('system.authclients.editor.info.security.noRoles') }}
     </div>
-    <div v-else class="flex flex-col border rounded-lg divide-y bg-surface-0 dark:bg-surface-900">
+    <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
       <div v-for="role in roles" :key="role.roleID" class="flex items-center justify-between p-2 px-3">
         <span class="font-medium">{{ role.name || role.handle || role.roleID }}</span>
         <Button icon="pi pi-trash" severity="danger" text rounded size="small" @click="$emit('remove', role)" />

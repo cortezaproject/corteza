@@ -9,7 +9,7 @@
     <button
       v-else
       type="button"
-      class="w-6 h-6 rounded border-2 border-dashed border-surface-300 bg-transparent cursor-pointer"
+      class="w-6 h-6 rounded border-2 border-dashed border-surface bg-transparent cursor-pointer"
       :title="$t('general.label.none')"
       @click="$emit('update:modelValue', 'cccccc')"
     />

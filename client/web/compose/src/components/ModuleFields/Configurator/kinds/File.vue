@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-6">
     <!-- View mode -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.file.view.modeLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.file.view.modeLabel') }}</label>
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <RadioButton inputId="modeList" v-model="field.options.mode" value="list" />
@@ -18,7 +18,7 @@
 
     <!-- Max size -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.file.view.maxSizeLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.file.view.maxSizeLabel') }}</label>
       <InputNumber
         v-model="field.options.maxSize"
         :min="0"
@@ -29,7 +29,7 @@
 
     <!-- MIME types -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.file.view.mimetypesLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.file.view.mimetypesLabel') }}</label>
       <InputText v-model="field.options.mimetypes" class="w-full" />
       <small class="text-muted-color">{{ $t('field.kind.file.view.mimetypesFootnote') }}</small>
     </div>
@@ -61,33 +61,33 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.height') }}</label>
+          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.height') }}</label>
           <InputText v-model="field.options.height" placeholder="200px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.width') }}</label>
+          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.width') }}</label>
           <InputText v-model="field.options.width" placeholder="200px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.maxHeight') }}</label>
+          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.maxHeight') }}</label>
           <InputText v-model="field.options.maxHeight" placeholder="300px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.maxWidth') }}</label>
+          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.maxWidth') }}</label>
           <InputText v-model="field.options.maxWidth" placeholder="300px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.borderRadius') }}</label>
+          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.borderRadius') }}</label>
           <InputText v-model="field.options.borderRadius" placeholder="4px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.margin') }}</label>
+          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.margin') }}</label>
           <InputText v-model="field.options.margin" placeholder="auto" class="w-full" />
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <label class="text-sm text-surface-500">{{ $t('field.kind.file.view.background') }}</label>
+        <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.background') }}</label>
         <ColorPicker v-model="field.options.backgroundColor" format="hex" />
       </div>
     </div>

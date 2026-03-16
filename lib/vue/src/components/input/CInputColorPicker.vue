@@ -19,7 +19,7 @@
           </defs>
           <circle cx="16" cy="16" r="15" :fill="`url(#${patternId})`" />
           <circle cx="16" cy="16" r="15" :fill="displayColor" />
-          <circle cx="16" cy="16" r="15" fill="none" stroke="var(--p-surface-300, #cbd5e1)" stroke-width="1" />
+          <circle cx="16" cy="16" r="15" fill="none" stroke="var(--p-content-border-color)" stroke-width="1" />
         </svg>
         <svg v-else viewBox="0 0 32 32" :style="{ width, height }">
           <defs>
@@ -32,7 +32,7 @@
           </defs>
           <rect x="0.5" y="0.5" width="31" height="31" rx="4" :fill="`url(#${patternId})`" />
           <rect x="0.5" y="0.5" width="31" height="31" rx="4" :fill="displayColor" />
-          <rect x="0.5" y="0.5" width="31" height="31" rx="4" fill="none" stroke="var(--p-surface-300, #cbd5e1)" stroke-width="1" />
+          <rect x="0.5" y="0.5" width="31" height="31" rx="4" fill="none" stroke="var(--p-content-border-color)" stroke-width="1" />
         </svg>
       </button>
     </slot>
@@ -288,7 +288,7 @@ defineExpose({ toggle })
   height: 14px;
   border-radius: 50%;
   background: white;
-  border: 2px solid var(--p-surface-400, #94a3b8);
+  border: 2px solid var(--p-content-border-color);
   cursor: pointer;
 }
 
@@ -297,7 +297,7 @@ defineExpose({ toggle })
   height: 14px;
   border-radius: 50%;
   background: white;
-  border: 2px solid var(--p-surface-400, #94a3b8);
+  border: 2px solid var(--p-content-border-color);
   cursor: pointer;
 }
 </style>

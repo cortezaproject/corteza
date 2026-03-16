@@ -29,7 +29,7 @@
     >
       <template #header>
         <div class="flex items-center gap-2">
-          <label class="text-sm font-medium text-surface-500">
+          <label class="text-sm font-medium text-muted-color">
             {{ $t('system.actionlog.list.filter.from') }}
           </label>
           <DatePicker
@@ -40,7 +40,7 @@
             size="small"
             @update:modelValue="filterList"
           />
-          <label class="text-sm font-medium text-surface-500">
+          <label class="text-sm font-medium text-muted-color">
             {{ $t('system.actionlog.list.filter.to') }}
           </label>
           <DatePicker

@@ -17,7 +17,7 @@
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.oidc.issuer') }}
         </label>
-        <span class="text-xs text-surface-500">
+        <span class="text-xs text-muted-color">
           {{ $t('system.settings.editor.external.oidc.issuerHint') }}
         </span>
         <InputText v-model="modelValue.issuer" placeholder="https://issuer.tld" class="w-full" />
@@ -41,7 +41,7 @@
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.oidc.scope') }}
         </label>
-        <span class="text-xs text-surface-500">
+        <span class="text-xs text-muted-color">
           {{ $t('system.settings.editor.external.oidc.scopeHint') }}
         </span>
         <InputText

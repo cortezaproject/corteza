@@ -12,21 +12,21 @@
       <Panel :header="$t('automation.sessions.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.sessions.editor.info.id') }}
             </span>
             <span class="font-mono text-sm">{{ session.sessionID }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.sessions.editor.info.workflowID') }}
             </span>
             <span class="font-mono text-sm">{{ session.workflowID }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.sessions.editor.info.status') }}
             </span>
             <Tag
@@ -37,21 +37,21 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.sessions.editor.info.createdAt') }}
             </span>
             <span>{{ locFullDateTime(session.createdAt) }}</span>
           </div>
 
           <div v-if="session.completedAt" class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.sessions.editor.info.completedAt') }}
             </span>
             <span>{{ locFullDateTime(session.completedAt) }}</span>
           </div>
 
           <div v-if="session.createdBy" class="flex flex-col gap-1">
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.sessions.editor.info.createdBy') }}
             </span>
             <span class="font-mono text-sm">{{ session.createdBy }}</span>
@@ -66,7 +66,7 @@
         :collapsed="false"
       >
         <pre
-          class="text-sm text-red-500 whitespace-pre-wrap break-all font-mono bg-surface-100 rounded p-3"
+          class="text-sm text-red-500 whitespace-pre-wrap break-all font-mono bg-highlight rounded p-3"
           >{{ session.error }}</pre
         >
       </Panel>

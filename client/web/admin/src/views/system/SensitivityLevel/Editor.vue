@@ -47,7 +47,7 @@
               {{ $t('system.sensitivityLevel.editor.info.level') }}
             </label>
             <InputNumber id="level" v-model="sensitivityLevel.level" :min="0" />
-            <small class="text-surface-500">
+            <small class="text-muted-color">
               {{ $t('system.sensitivityLevel.editor.info.level.hint') }}
             </small>
           </div>

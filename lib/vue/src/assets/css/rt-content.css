@@ -121,7 +121,7 @@
 /* ---- Blockquote ---- */
 
 .rt-content blockquote {
-  border-left: 3px solid var(--p-surface-200, #e2e8f0);
+  border-left: 3px solid var(--p-content-border-color);
   margin: 1.5rem 0;
   padding-left: 1rem;
   font-style: italic;
@@ -130,7 +130,7 @@
 /* ---- Code & Pre ---- */
 
 .rt-content code {
-  background-color: var(--p-surface-100, #f1f5f9);
+  background-color: var(--p-content-hover-background);
   border-radius: 0.4rem;
   color: var(--p-text-color, #1e293b);
   font-size: 0.85rem;
@@ -138,9 +138,9 @@
 }
 
 .rt-content pre {
-  background: var(--p-surface-800, #1e293b);
+  background: var(--p-highlight-text-color, #1e293b);
   border-radius: 0.5rem;
-  color: var(--p-surface-100, #f1f5f9);
+  color: var(--p-content-background, #f1f5f9);
   font-family: "JetBrainsMono", monospace;
   margin: 1.5rem 0;
   padding: 0.75rem 1rem;
@@ -170,7 +170,7 @@
 
 .rt-content hr {
   border: none;
-  border-top: 1px solid var(--p-surface-200, #e2e8f0);
+  border-top: 1px solid var(--p-content-border-color);
   margin: 2rem 0;
 }
 
@@ -235,7 +235,7 @@
 
 .rt-content table td,
 .rt-content table th {
-  border: 1px solid var(--p-surface-200, #e2e8f0);
+  border: 1px solid var(--p-content-border-color);
   box-sizing: border-box;
   min-width: 1em;
   padding: 6px 8px;
@@ -249,13 +249,13 @@
 }
 
 .rt-content table th {
-  background-color: var(--p-surface-100, #f1f5f9);
+  background-color: var(--p-content-hover-background);
   font-weight: 700;
   text-align: left;
 }
 
 .rt-content table .selectedCell:after {
-  background: var(--p-surface-100, #f1f5f9);
+  background: var(--p-content-hover-background);
   content: "";
   left: 0;
   right: 0;
@@ -284,12 +284,12 @@
 /* ---- Mention ---- */
 
 .rt-content .mention {
-  background-color: var(--p-surface-100, #f1f5f9);
+  background-color: var(--p-content-hover-background);
   border-radius: 0.5rem;
   padding: 0rem 0.2rem;
   box-decoration-break: clone;
   color: var(--p-primary-color, #3b82f6);
-  border: 1px solid var(--p-surface-200, #e2e8f0);
+  border: 1px solid var(--p-content-border-color);
 }
 
 /* ---- Resize cursor (table column) ---- */

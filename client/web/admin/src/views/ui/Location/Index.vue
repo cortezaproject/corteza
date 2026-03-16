@@ -20,7 +20,7 @@
             <label class="font-medium text-sm">
               {{ $t('ui.settings.editor.location.geosearch.provider.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('ui.settings.editor.location.geosearch.provider.description') }}
             </span>
             <Select

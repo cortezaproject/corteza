@@ -41,7 +41,7 @@
             <template #body="{ data }">
               <i
                 :class="
-                  data.enabled ? 'pi pi-check text-green-500' : 'pi pi-times text-surface-400'
+                  data.enabled ? 'pi pi-check text-green-500' : 'pi pi-times text-muted-color'
                 "
               />
             </template>
@@ -68,7 +68,7 @@
           </Column>
 
           <template #empty>
-            <div class="text-center py-6 text-surface-500">
+            <div class="text-center py-6 text-muted-color">
               {{ $t('system.code-snippets.editor.code-snippets.empty') }}
             </div>
           </template>
@@ -95,7 +95,7 @@
           <label class="font-medium text-sm">
             {{ $t('system.code-snippets.editor.code-snippets.form.code.label') }}
           </label>
-          <span class="text-xs text-surface-500">
+          <span class="text-xs text-muted-color">
             {{ $t('system.code-snippets.editor.code-snippets.form.code.description') }}
           </span>
           <Textarea v-model="modal.data.script" rows="12" class="w-full font-mono text-sm" />

@@ -37,14 +37,14 @@
 
     <!-- Staged (pending) files -->
     <div v-if="stagedFiles.length" class="flex flex-col gap-1">
-      <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Pending upload</span>
+      <span class="text-xs font-semibold text-muted-color uppercase tracking-wide">Pending upload</span>
       <div class="flex flex-wrap gap-2">
         <div
           v-for="staged in stagedFiles"
           :key="staged.id"
-          class="flex items-center gap-1 bg-surface-100 border border-surface-200 rounded px-2 py-1 text-sm"
+          class="flex items-center gap-1 bg-highlight border-surface rounded px-2 py-1 text-sm"
         >
-          <i class="pi pi-file text-xs text-surface-400" />
+          <i class="pi pi-file text-xs text-muted-color" />
           <span class="max-w-[160px] truncate">{{ staged.name }}</span>
           <span class="text-muted-color text-xs">({{ formatSize(staged.size) }})</span>
           <button
@@ -61,7 +61,7 @@
 
     <!-- Already-uploaded attachment IDs -->
     <div v-if="modelValue && modelValue.length" class="flex flex-col gap-1">
-      <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Uploaded</span>
+      <span class="text-xs font-semibold text-muted-color uppercase tracking-wide">Uploaded</span>
       <div class="flex flex-wrap gap-2">
         <div
           v-for="(attID, index) in modelValue"

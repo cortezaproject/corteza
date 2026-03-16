@@ -33,7 +33,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.email.editor.server.host.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('system.email.editor.server.host.description') }}
             </span>
             <InputGroup>
@@ -51,7 +51,7 @@
               <label class="font-medium text-sm">
                 {{ $t('system.email.editor.server.user.label') }}
               </label>
-              <span class="text-xs text-surface-500">
+              <span class="text-xs text-muted-color">
                 {{ $t('system.email.editor.server.user.description') }}
               </span>
               <InputText v-model="server.user" autocomplete="off" class="w-full" />
@@ -60,7 +60,7 @@
               <label class="font-medium text-sm">
                 {{ $t('system.email.editor.server.password.label') }}
               </label>
-              <span class="text-xs text-surface-500">
+              <span class="text-xs text-muted-color">
                 {{ $t('system.email.editor.server.password.description') }}
               </span>
               <InputText v-model="server.pass" type="password" autocomplete="off" class="w-full" />
@@ -74,7 +74,7 @@
             <label class="font-medium text-sm">
               {{ $t('system.email.editor.server.from.label') }}
             </label>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('system.email.editor.server.from.description') }}
             </span>
             <InputText v-model="server.from" type="email" class="w-full" />
@@ -88,7 +88,7 @@
               <label class="font-medium text-sm">
                 {{ $t('system.email.editor.server.tlsServerName.label') }}
               </label>
-              <span class="text-xs text-surface-500">
+              <span class="text-xs text-muted-color">
                 {{ $t('system.email.editor.server.tlsServerName.description') }}
               </span>
               <InputText v-model="server.tlsServerName" class="w-full" />

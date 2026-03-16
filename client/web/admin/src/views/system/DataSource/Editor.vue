@@ -114,7 +114,7 @@
                       id="sensitivityLevelID"
                       v-model="dataSource.config.privacy.sensitivityLevelID"
                     />
-                    <small class="text-surface-500">
+                    <small class="text-muted-color">
                       {{ $t('system.data-sources.editor.privacy.sensitivityLevelID.hint') }}
                     </small>
                   </div>

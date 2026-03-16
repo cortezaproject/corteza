@@ -68,7 +68,7 @@
               <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span v-if="data.label" class="font-medium">{{ data.label }}</span>
-                  <span v-else class="text-surface-400 italic">
+                  <span v-else class="text-muted-color italic">
                     {{ $t('automation.scripts.list.labelMissing') }}
                   </span>
 
@@ -92,11 +92,11 @@
                   />
                 </div>
 
-                <span v-if="data.description" class="text-xs text-surface-500">
+                <span v-if="data.description" class="text-xs text-muted-color">
                   {{ data.description }}
                 </span>
 
-                <code class="text-xs text-surface-400">{{ data.name }}</code>
+                <code class="text-xs text-muted-color">{{ data.name }}</code>
 
                 <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
                   <Message
@@ -115,14 +115,14 @@
 
           <Column :header="$t('automation.scripts.list.columns.updatedAt')" class="w-48 text-right">
             <template #body="{ data }">
-              <span v-if="data.updatedAt" class="text-sm text-surface-500">
+              <span v-if="data.updatedAt" class="text-sm text-muted-color">
                 {{ formatDate(data.updatedAt) }}
               </span>
             </template>
           </Column>
 
           <template #empty>
-            <div class="text-center py-6 text-surface-500">
+            <div class="text-center py-6 text-muted-color">
               {{ $t('general.resourceList.noItems') }}
             </div>
           </template>

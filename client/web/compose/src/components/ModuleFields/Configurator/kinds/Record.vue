@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-6">
     <!-- Module selector -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.record.moduleLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.moduleLabel') }}</label>
       <Select
         v-model="field.options.moduleID"
         :options="moduleOptions"
@@ -18,7 +18,7 @@
     <template v-if="selectedModule">
       <!-- Label field -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.record.moduleField') }}</label>
+        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.moduleField') }}</label>
         <Select
           v-model="field.options.labelField"
           :options="fieldOptions"
@@ -33,7 +33,7 @@
 
       <!-- Query fields -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.record.queryFieldsLabel') }}</label>
+        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.queryFieldsLabel') }}</label>
         <MultiSelect
           v-model="field.options.queryFields"
           :options="queryFieldOptions"
@@ -47,7 +47,7 @@
 
       <!-- Prefilter -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">{{ $t('field.kind.record.prefilterLabel') }}</label>
+        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.prefilterLabel') }}</label>
         <Textarea
           v-model="field.options.prefilter"
           :placeholder="$t('field.kind.record.prefilterPlaceholder')"
@@ -63,7 +63,7 @@
     <!-- Multi-value select type -->
     <template v-if="field.isMulti">
       <div>
-        <label class="font-medium text-surface-500 text-sm block mb-3">
+        <label class="font-medium text-muted-color text-sm block mb-3">
           {{ $t('field.kind.select.optionType.label') }}
         </label>
         <div class="flex flex-col gap-2">

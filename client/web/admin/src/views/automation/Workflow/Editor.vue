@@ -64,7 +64,7 @@
               {{ $t('automation.workflows.editor.info.trace') }}
             </label>
             <ToggleSwitch v-model="workflow.trace" />
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted-color">
               {{ $t('automation.workflows.editor.info.traceHint') }}
             </span>
           </div>

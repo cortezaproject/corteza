@@ -137,16 +137,16 @@ function getThemeVariables() {
   }
 
   return {
-    white: getCssVariable('--p-surface-0') || '#ffffff',
+    white: getCssVariable('--p-content-background') || '#ffffff',
     black: getCssVariable('--p-text-color') || '#333333',
     primary: getCssVariable('--p-primary-color') || '#3B82F6',
     secondary: getCssVariable('--p-text-muted-color') || '#6B7280',
     success: getCssVariable('--p-green-500') || '#22C55E',
     warning: getCssVariable('--p-yellow-500') || '#F59E0B',
     danger: getCssVariable('--p-red-500') || '#EF4444',
-    light: getCssVariable('--p-surface-200') || '#E5E7EB',
-    'extra-light': getCssVariable('--p-surface-100') || '#F3F4F6',
-    dark: getCssVariable('--p-surface-700') || '#374151',
+    light: getCssVariable('--p-content-border-color') || '#E5E7EB',
+    'extra-light': getCssVariable('--p-content-hover-background') || '#F3F4F6',
+    dark: getCssVariable('--p-text-color') || '#374151',
     'font-regular': getCssVariable('--p-font-family') || 'inherit',
   }
 }

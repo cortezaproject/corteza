@@ -46,7 +46,7 @@
       :key="attID"
       class="flex items-center gap-2 text-sm"
     >
-      <i class="pi pi-paperclip text-xs text-surface-400" />
+      <i class="pi pi-paperclip text-xs text-muted-color" />
       <a
         v-if="opts.clickToView"
         :href="originalUrl(attID)"

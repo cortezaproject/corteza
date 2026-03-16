@@ -31,7 +31,7 @@
                   <label class="font-medium text-sm text-primary">
                     {{ $t(`ui.settings.editor.corteza-studio.theme.variables.${key}.label`) }}
                   </label>
-                  <span class="text-xs text-surface-500">
+                  <span class="text-xs text-muted-color">
                     {{ $t(`ui.settings.editor.corteza-studio.theme.variables.${key}.description`) }}
                   </span>
                   <div class="flex items-center gap-2">

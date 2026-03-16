@@ -396,7 +396,7 @@
                         :class="
                           activeConvIndex === idx
                             ? 'border-primary text-primary font-medium'
-                            : 'border-transparent text-muted-color hover:text-color hover:border-surface-400'
+                            : 'border-transparent text-muted-color hover:text-color hover:border-surface'
                         "
                         @click="activeConvIndex = idx"
                       >
@@ -535,7 +535,7 @@
                             <!-- Error state -->
                             <div
                               v-if="traceEntry.error"
-                              class="flex items-start gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-md px-2.5 py-2"
+                              class="flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-md px-2.5 py-2"
                             >
                               <i class="pi pi-exclamation-triangle shrink-0 mt-0.5 text-xs" />
                               <span class="break-all">{{ traceEntry.error }}</span>
@@ -554,8 +554,8 @@
                                   class="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                                   :class="
                                     decision.decision === 'tool_call'
-                                      ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300'
-                                      : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300'
+                                      ? 'bg-blue-100 text-blue-600'
+                                      : 'bg-green-100 text-green-600'
                                   "
                                 >
                                   <i

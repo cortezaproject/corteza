@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- True value label -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">
+        <label class="font-medium text-muted-color text-sm">
           {{ $t('field.kind.bool.checkedValueLabel') }}
         </label>
         <InputText
@@ -15,7 +15,7 @@
 
       <!-- False value label -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-surface-500 text-sm">
+        <label class="font-medium text-muted-color text-sm">
           {{ $t('field.kind.bool.uncheckedValueLabel') }}
         </label>
         <InputText
@@ -28,7 +28,7 @@
 
     <!-- Switch / Checkbox type -->
     <div>
-      <label class="font-medium text-surface-500 text-sm block mb-3">
+      <label class="font-medium text-muted-color text-sm block mb-3">
         {{ $t('field.kind.bool.toggleTypeLabel') }}
       </label>
       <div class="flex items-center gap-2">

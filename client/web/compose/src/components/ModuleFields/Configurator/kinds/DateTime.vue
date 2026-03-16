@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-6">
     <!-- Input type (date+time / date only / time only) -->
     <div>
-      <label class="font-medium text-surface-500 text-sm block mb-3">
+      <label class="font-medium text-muted-color text-sm block mb-3">
         {{ $t('field.kind.dateTime.type.label') }}
       </label>
       <SelectButton
@@ -16,7 +16,7 @@
 
     <!-- Constraints (not shown when time-only) -->
     <div v-if="!field.options.onlyTime">
-      <label class="font-medium text-surface-500 text-sm block mb-3">
+      <label class="font-medium text-muted-color text-sm block mb-3">
         {{ $t('field.kind.dateTime.constraints.label') }}
       </label>
       <div class="flex flex-col gap-2">
@@ -38,7 +38,7 @@
 
     <!-- Output format -->
     <div>
-      <label class="font-medium text-surface-500 text-sm block mb-3">
+      <label class="font-medium text-muted-color text-sm block mb-3">
         {{ $t('field.kind.dateTime.outputFormat') }}
       </label>
       <div class="flex items-center gap-2 mb-3">

@@ -1,6 +1,6 @@
 <template>
   <div v-if="field.isMulti" class="flex flex-col gap-2">
-    <label class="font-medium text-surface-500 text-sm">
+    <label class="font-medium text-muted-color text-sm">
       {{ $t('field.options.multiDelimiter.label') }}
     </label>
     <div class="flex flex-col gap-2">
