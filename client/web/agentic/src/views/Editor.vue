@@ -828,12 +828,12 @@
           @click="router.back()"
         />
         <div class="flex gap-2">
-          <Button
+          <CInputDelete
             v-if="!isCreate && agent.canDeleteAgent !== false"
             :label="$t('general.label.delete')"
-            icon="pi pi-trash"
-            severity="danger"
-            @click="onConfirmDelete"
+            :message="$t('agent.list.delete')"
+            :header="agent?.meta?.short || agent?.handle || $t('general.label.delete')"
+            @confirm="handleDelete"
           />
           <Button
             :label="$t('general.label.save')"
@@ -850,7 +850,7 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+
 import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -876,12 +876,12 @@ import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { components } from '@cortezaproject/corteza-vue-next'
-const { CInputLLM, CInputModel, CInputNamespace, CInputModule } = components
+const { CInputLLM, CInputModel, CInputNamespace, CInputModule, CInputDelete } = components
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const { confirmDelete } = useConfirmDelete()
+
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const agentStore = useAgentStore()
@@ -1043,13 +1043,7 @@ async function handleSubmit() {
   }
 }
 
-function onConfirmDelete() {
-  confirmDelete({
-    message: t('agent.list.delete'),
-    header: agent.value?.meta?.short || agent.value?.handle || t('general.label.delete'),
-    onConfirm: () => handleDelete(),
-  })
-}
+
 
 async function handleDelete() {
   try {
