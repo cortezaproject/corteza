@@ -829,7 +829,7 @@
         />
         <div class="flex gap-2">
           <Button
-            v-if="!isCreate"
+            v-if="!isCreate && agent.canDeleteAgent !== false"
             :label="$t('general.label.delete')"
             icon="pi pi-trash"
             severity="danger"

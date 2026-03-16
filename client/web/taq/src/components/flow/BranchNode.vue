@@ -75,6 +75,7 @@ const menuItems = [
   {
     label: t('builder.nodes.menu.delete'),
     icon: 'pi pi-trash',
+    class: 'text-red-500',
     command: () => emit('delete', props.id),
   },
 ]
