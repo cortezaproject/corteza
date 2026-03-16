@@ -403,9 +403,9 @@ function onSave() {
   align-items: center;
   gap: 0.2rem;
   padding: 0.1rem 0.4rem;
-  border: 1px solid var(--p-content-border-color, #e0e0e0);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 1rem;
-  background: var(--p-surface-0, #fff);
+  background: var(--p-content-background);
   cursor: pointer;
   font-size: 0.8rem;
   line-height: 1.4;
@@ -415,8 +415,8 @@ function onSave() {
 }
 
 .comment-reactions .reaction-badge:hover {
-  background-color: var(--p-content-hover-background, #f5f5f5);
-  border-color: var(--p-text-muted-color, #ccc);
+  background-color: var(--p-content-hover-background);
+  border-color: var(--p-text-muted-color);
 }
 
 .comment-reactions .reaction-badge.reaction-mine {
@@ -431,7 +431,7 @@ function onSave() {
 .comment-reactions .reaction-count {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--p-text-muted-color, #888);
+  color: var(--p-text-muted-color);
 }
 
 .comment-reactions .reaction-badge.reaction-mine .reaction-count {

@@ -97,8 +97,8 @@ export default {
 
 <style scoped>
 .emoji-dropdown {
-  background: var(--p-surface-0, #fff);
-  border: 1px solid var(--p-surface-200, #e0e0e0);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 0.25rem;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   max-height: 200px;
@@ -111,8 +111,8 @@ export default {
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  background: var(--p-surface-0, #fff);
-  color: var(--p-text-color, #333);
+  background: var(--p-content-background);
+  color: var(--p-text-color);
   padding: 0.35rem 0.75rem;
   border: none;
   text-align: left;
@@ -124,14 +124,14 @@ export default {
 
 .emoji-option:hover,
 .emoji-option.emoji-option--highlighted {
-  background: var(--p-content-hover-background, #f0f0f0);
-  color: var(--p-text-color, #333);
+  background: var(--p-content-hover-background);
+  color: var(--p-text-color);
 }
 
 .emoji-option:active,
 .emoji-option:focus {
-  color: var(--p-primary-contrast-color, #fff);
-  background-color: var(--p-primary-color, #3b82f6);
+  color: var(--p-primary-contrast-color);
+  background-color: var(--p-primary-color);
   outline: none;
 }
 
@@ -141,7 +141,7 @@ export default {
 }
 
 .emoji-option-name {
-  color: var(--p-text-muted-color, #888);
+  color: var(--p-text-muted-color);
   font-size: 0.85em;
 }
 </style>

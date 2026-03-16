@@ -94,7 +94,7 @@
         </div>
 
         <!-- Input section -->
-        <section v-if="canAddRecord" class="flex flex-col bg-surface-0 border-t">
+        <section v-if="canAddRecord" class="flex flex-col bg-surface border-t">
           <!-- Reply preview -->
           <div v-if="newComment.replyTo" class="reply-to-container p-3">
             <p class="text-muted-color">
@@ -145,7 +145,7 @@
             <div
               v-for="(attID, idx) in newComment.attachmentIDs"
               :key="attID"
-              class="flex items-center gap-1 bg-surface-100 rounded-lg px-2 py-1 text-sm"
+              class="flex items-center gap-1 bg-highlight rounded-lg px-2 py-1 text-sm"
             >
               <i class="pi pi-file text-muted-color" />
               <span class="text-muted-color">{{ $t('block.comment.attachment.file') }} {{ idx + 1 }}</span>

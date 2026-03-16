@@ -662,7 +662,7 @@ defineExpose({ focus, editor, allEmojis })
 }
 
 .c-rich-text-input .rt-toolbar {
-  border-bottom: 1px solid var(--p-surface-200, #e2e8f0);
+  border-bottom: 1px solid var(--p-content-border-color);
 }
 
 .c-rich-text-input .rt-editor-content {
@@ -675,7 +675,7 @@ defineExpose({ focus, editor, allEmojis })
 }
 
 .c-rich-text-input .rt-editor-content .tiptap p.is-editor-empty:first-child::before {
-  color: var(--p-text-muted-color, #adb5bd);
+  color: var(--p-text-muted-color);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -695,13 +695,13 @@ defineExpose({ focus, editor, allEmojis })
 }
 
 .rt-toolbar-btn:hover {
-  background-color: var(--p-surface-100, #f1f5f9) !important;
+  background-color: var(--p-content-hover-background) !important;
 }
 
 .rt-toolbar-separator {
   width: 1px;
   height: 1.5rem;
-  background: var(--p-surface-200, #e2e8f0);
+  background: var(--p-content-border-color);
   margin: 0 0.25rem;
 }
 
@@ -725,8 +725,8 @@ defineExpose({ focus, editor, allEmojis })
   top: 100%;
   left: 0;
   z-index: 100;
-  background: var(--p-surface-0, #fff);
-  border: 1px solid var(--p-surface-200, #e2e8f0);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 0.375rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 0.25rem;
@@ -750,15 +750,15 @@ defineExpose({ focus, editor, allEmojis })
   background: none;
   border-radius: 0.25rem;
   cursor: pointer;
-  color: var(--p-text-color, #1e293b);
+  color: var(--p-text-color);
 }
 
 .rt-dropdown-item:hover {
-  background: var(--p-surface-100, #f1f5f9);
+  background: var(--p-content-hover-background);
 }
 
 .rt-dropdown-item.rt-active {
-  color: var(--p-primary-color, #3b82f6);
+  color: var(--p-primary-color);
 }
 
 .rt-dropdown-item-text {
@@ -779,7 +779,7 @@ defineExpose({ focus, editor, allEmojis })
 
 .rt-link-input {
   flex: 1;
-  border: 1px solid var(--p-surface-300, #cbd5e1);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 0.25rem;
   padding: 0.3rem 0.5rem;
   font-size: 0.85rem;
@@ -787,7 +787,7 @@ defineExpose({ focus, editor, allEmojis })
 }
 
 .rt-link-input:focus {
-  border-color: var(--p-primary-color, #3b82f6);
+  border-color: var(--p-primary-color);
 }
 
 .rt-link-btn {

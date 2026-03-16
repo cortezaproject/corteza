@@ -1,6 +1,6 @@
 <template>
   <div
-    class="comment-reply flex flex-col gap-1 overflow-hidden bg-surface-0 border rounded-lg p-2 cursor-pointer"
+    class="comment-reply flex flex-col gap-1 overflow-hidden bg-surface border rounded-lg p-2 cursor-pointer"
     @click="$emit('click')"
   >
     <div class="flex items-center gap-1">

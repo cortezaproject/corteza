@@ -403,21 +403,21 @@ export default {
 .c-emoji-picker-search-input {
   width: 100%;
   padding: 0.3rem 0.5rem 0.3rem 1.75rem;
-  border: 1px solid var(--p-surface-200, #ddd);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 0.35rem;
   font-size: 0.8rem;
   outline: none;
-  background: var(--p-surface-0, #fff);
-  color: var(--p-text-color, #333);
+  background: var(--p-content-background);
+  color: var(--p-text-color);
 }
 
 .c-emoji-picker-search-input:focus {
-  border-color: var(--p-primary-color, #4080ff);
-  box-shadow: 0 0 0 2px rgba(64, 128, 255, 0.15);
+  border-color: var(--p-primary-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-primary-color) 15%, transparent);
 }
 
 .c-emoji-picker-search-input::placeholder {
-  color: var(--p-text-muted-color, #999);
+  color: var(--p-text-muted-color);
 }
 
 .c-emoji-picker-search-icon {
@@ -427,7 +427,7 @@ export default {
   transform: translateY(-50%);
   width: 0.8rem;
   height: 0.8rem;
-  color: var(--p-text-muted-color, #999);
+  color: var(--p-text-muted-color);
   pointer-events: none;
 }
 
@@ -447,11 +447,11 @@ export default {
 .c-emoji-picker-section-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--p-text-muted-color, #888);
+  color: var(--p-text-muted-color);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 0.3rem 0.15rem 0.15rem;
-  background: var(--p-surface-0, #fff);
+  background: var(--p-content-background);
   line-height: 1;
   height: 26px;
   display: flex;
@@ -477,7 +477,7 @@ export default {
 }
 
 .epi:hover {
-  background-color: var(--p-content-hover-background, #f0f0f0);
+  background-color: var(--p-content-hover-background);
   transform: scale(1.15);
 }
 
@@ -487,13 +487,13 @@ export default {
 
 .c-emoji-picker-empty {
   text-align: center;
-  color: var(--p-text-muted-color, #999);
+  color: var(--p-text-muted-color);
   padding: 1.5rem 0;
   font-size: 0.8rem;
 }
 
 .c-emoji-picker-quick {
-  border-top: 1px solid var(--p-surface-200, #e0e0e0);
+  border-top: 1px solid var(--p-content-border-color);
   padding: 0.25rem 0.4rem 0.3rem;
   flex-shrink: 0;
 }
@@ -501,7 +501,7 @@ export default {
 .c-emoji-picker-quick-label {
   font-size: 0.65rem;
   font-weight: 700;
-  color: var(--p-text-muted-color, #888);
+  color: var(--p-text-muted-color);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 0.1rem 0.15rem;
