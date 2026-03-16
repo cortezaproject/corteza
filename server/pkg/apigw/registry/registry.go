@@ -71,6 +71,7 @@ func (r *Registry) Preload() {
 	r.Add("workflow", filter.NewWorkflow(r.cfg, NewWorkflow()))
 	r.Add("proxy", proxy.New(r.cfg, service.DefaultLogger, http.DefaultClient, secureStorageTodo{}))
 	r.Add("payload", filter.NewPayload(r.cfg, service.DefaultLogger))
+	r.Add("eventDispatch", filter.NewEventDispatch(r.cfg))
 
 	// postfilters
 	r.Add("redirection", filter.NewRedirection(r.cfg))

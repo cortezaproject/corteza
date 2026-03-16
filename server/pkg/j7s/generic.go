@@ -136,17 +136,31 @@ func GetByPath(root mapNode, path string) (any, bool, error) {
 	if path == "" {
 		return nil, false, fmt.Errorf("empty path")
 	}
+	return GetBySlicePath(root, strings.Split(path, "."))
+}
 
-	parts := strings.Split(path, ".")
+// GetBySlicePath retrieves a value from a nested map using a path as a slice of keys.
+// Example: []string{"a", "b", "c"}
+func GetBySlicePath(root mapNode, parts []string) (any, bool, error) {
+	if len(parts) == 0 {
+		return nil, false, fmt.Errorf("empty path")
+	}
+
 	var current any = root
 
 	for _, part := range parts {
 		if part == "" {
-			return nil, false, fmt.Errorf("invalid path %q", path)
+			return nil, false, fmt.Errorf("invalid path segment %q", part)
 		}
 
-		m, ok := current.(map[string]any)
-		if !ok {
+		// mapNode is a named type distinct from map[string]any; handle both.
+		var m map[string]any
+		switch v := current.(type) {
+		case mapNode:
+			m = map[string]any(v)
+		case map[string]any:
+			m = v
+		default:
 			return nil, false, nil
 		}
 

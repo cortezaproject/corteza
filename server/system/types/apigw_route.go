@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -28,9 +29,10 @@ type (
 	}
 
 	ApigwRouteMeta struct {
-		Debug bool   `json:"debug"`
-		Async bool   `json:"async"`
-		Desc  string `json:"description"`
+		Debug  bool                             `json:"debug"`
+		Async  bool                             `json:"async"`
+		Desc   string                           `json:"description"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
 
 	ApigwRouteFilter struct {

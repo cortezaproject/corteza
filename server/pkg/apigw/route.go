@@ -2,6 +2,7 @@ package apigw
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -48,6 +49,15 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		r.log.Error("could not get initial request", zap.Error(err))
+	}
+
+	// NewRequest drains req.Body into a BufferedReader; restore it so downstream
+	// pipeline handlers (e.g. eventDispatch) can still read the body.
+	if ar != nil && ar.Body != nil {
+		if br, ok := ar.Body.(io.ReadSeeker); ok {
+			br.Seek(0, io.SeekStart)
+			req.Body = io.NopCloser(ar.Body)
+		}
 	}
 
 	scope.Set("opts", r.cfg)
