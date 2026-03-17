@@ -191,6 +191,16 @@ type (
 	ConnectionOperations []ConnectionOperation
 )
 
+func (ct *ConnectionTemplate) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		ct.Value = s
+		return nil
+	}
+	type Alias ConnectionTemplate
+	return json.Unmarshal(data, (*Alias)(ct))
+}
+
 func ParseConnectionMeta(ss []string) (m ConnectionMeta, err error) {
 	if len(ss) == 0 {
 		return

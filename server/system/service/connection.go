@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -103,6 +104,8 @@ func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *
 			return ConnectionErrNotAllowedToCreate()
 		}
 
+		svc.preprocess(new)
+
 		if err = svc.validateConnection(new); err != nil {
 			return err
 		}
@@ -128,6 +131,8 @@ func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *
 			return err
 		}
 
+		svc.deriveParams(new)
+
 		return nil
 	}()
 
@@ -149,6 +154,8 @@ func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *
 		if !svc.ac.CanUpdateConnection(ctx, res) {
 			return ConnectionErrNotAllowedToUpdate()
 		}
+
+		svc.preprocess(upd)
 
 		if err = svc.validateConnection(upd); err != nil {
 			return err
@@ -181,6 +188,8 @@ func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *
 			}
 			res.Labels = upd.Labels
 		}
+
+		svc.deriveParams(res)
 
 		return nil
 	}()
@@ -300,6 +309,28 @@ func (svc *connection) UpdateConfiguration(ctx context.Context, upd *types.Confi
 	}
 
 	return
+}
+
+// -- preprocessing -----------------------------------------------------------
+
+func (svc *connection) preprocess(c *types.Connection) {
+	svc.normaliseOperationTypes(c)
+}
+
+func (svc *connection) normaliseOperationTypes(c *types.Connection) {
+	for i := range c.Operations {
+		for j := range c.Operations[i].Input {
+			if strings.EqualFold(c.Operations[i].Input[j].Type, "Object") {
+				c.Operations[i].Input[j].Type = "Vars"
+			}
+		}
+
+		for j := range c.Operations[i].Output {
+			if strings.EqualFold(c.Operations[i].Output[j].Type, "Object") {
+				c.Operations[i].Output[j].Type = "Vars"
+			}
+		}
+	}
 }
 
 // -- validation ---------------------------------------------------------------

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-	"strings"
 
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
@@ -610,15 +609,13 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
 			}
 
-			resolveTemplate := makeTemplateResolver(in.Dict())
-
 			var respBody []byte
 			for _, step := range op.Steps {
 				if step.Type != "http" || step.HTTP == nil {
 					continue
 				}
 
-				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, resolveTemplate)
+				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, in.Dict())
 				if err != nil {
 					return nil, err
 				}
@@ -662,8 +659,10 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 
 // buildHTTPRequest resolves templates in path, query params, headers, and body
 // for a single HTTP operation, returning the final path, headers, and payload.
-func buildHTTPRequest(http types.ConnectionHTTPAction, in *expr.Vars, resolve func(string) string) (path string, headers map[string][]string, payload []byte, err error) {
-	path = resolve(http.Path.Value)
+func buildHTTPRequest(http types.ConnectionHTTPAction, in *expr.Vars, vars map[string]any) (path string, headers map[string][]string, payload []byte, err error) {
+	if path, err = resolveTemplate(http.Path, vars); err != nil {
+		return "", nil, nil, fmt.Errorf("path: %w", err)
+	}
 
 	u, err := url.Parse(path)
 	if err != nil {
@@ -671,18 +670,30 @@ func buildHTTPRequest(http types.ConnectionHTTPAction, in *expr.Vars, resolve fu
 	}
 	q := u.Query()
 	for k, tpl := range http.QueryParams {
-		q.Set(k, resolve(tpl.Value))
+		v, e := resolveTemplate(tpl, vars)
+		if e != nil {
+			return "", nil, nil, fmt.Errorf("queryParam %q: %w", k, e)
+		}
+		q.Set(k, v)
 	}
 	u.RawQuery = q.Encode()
 	path = u.String()
 
 	headers = make(map[string][]string, len(http.Headers))
 	for k, tpl := range http.Headers {
-		headers[k] = []string{resolve(tpl.Value)}
+		v, e := resolveTemplate(tpl, vars)
+		if e != nil {
+			return "", nil, nil, fmt.Errorf("header %q: %w", k, e)
+		}
+		headers[k] = []string{v}
 	}
 
 	if http.BodyTemplate.Value != "" {
-		payload = []byte(resolve(http.BodyTemplate.Value))
+		body, e := resolveTemplate(http.BodyTemplate, vars)
+		if e != nil {
+			return "", nil, nil, fmt.Errorf("bodyTemplate: %w", e)
+		}
+		payload = []byte(body)
 	} else if in.Len() > 0 && (http.Method == "POST" || http.Method == "PUT" || http.Method == "PATCH") {
 		payload, _ = json.Marshal(in.Dict())
 	}
@@ -717,15 +728,44 @@ func checkHTTPResponse(statusCode int, headers map[string][]string, body []byte)
 	}
 }
 
-// makeTemplateResolver builds a single-pass replacer from a map of variables.
-// Keys are wrapped in {{...}} delimiters.
-func makeTemplateResolver(vars map[string]any) func(string) string {
-	pairs := make([]string, 0, len(vars)*2)
-	for k, v := range vars {
-		pairs = append(pairs, "{{"+k+"}}", fmt.Sprintf("%v", v))
+// resolveTemplate interpolates values and omits missing optional placeholders
+func resolveTemplate(tpl types.ConnectionTemplate, vars map[string]any) (string, error) {
+	if tpl.Value == "" {
+		return "", nil
 	}
-	r := strings.NewReplacer(pairs...)
-	return r.Replace
+
+	// Build metadata lookup
+	meta := make(map[string]types.ConnectionPlaceholder, len(tpl.Placeholders))
+	for _, p := range tpl.Placeholders {
+		meta[p.Name] = p
+	}
+
+	var resolveErr error
+	result := placeholderRe.ReplaceAllStringFunc(tpl.Value, func(match string) string {
+		if resolveErr != nil {
+			return match
+		}
+		sub := placeholderRe.FindStringSubmatch(match)
+		if len(sub) < 2 {
+			return match
+		}
+		name := sub[1]
+
+		if v, ok := vars[name]; ok {
+			return fmt.Sprintf("%v", v)
+		}
+
+		// Not provided — consult placeholder metadata
+		if p, ok := meta[name]; ok {
+			if !p.Required {
+				return p.Default
+			}
+		}
+
+		resolveErr = fmt.Errorf("missing required placeholder %q", name)
+		return match
+	})
+	return result, resolveErr
 }
 
 // extractByPath walks a parsed JSON tree (`any`) using a slice of string keys.
