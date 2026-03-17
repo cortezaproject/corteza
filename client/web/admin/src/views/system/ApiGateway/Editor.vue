@@ -290,6 +290,7 @@ import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components, useConfirmDelete, useResourceList } from '@cortezaproject/corteza-vue-next'
+import { NoID } from '@cortezaproject/corteza-js-next'
 
 const { CInputDelete, CResourceList } = components
 
@@ -393,7 +394,7 @@ const {
   filterList: reloadFilters,
 } = useResourceList(
   params => {
-    if (!isEdit.value || !vueRoute.params.routeID) return Promise.resolve({ set: [] })
+    if (!isEdit.value || !vueRoute.params.routeID) return { response: () => Promise.resolve({ set: [] }), cancel: () => {} }
     return $SystemAPI.apigwFilterListCancellable({ ...params, routeID: vueRoute.params.routeID })
   },
   {
@@ -532,7 +533,7 @@ async function handleSubmit({ valid }) {
       endpoint: route_.value.endpoint,
       method: route_.value.method,
       enabled: route_.value.enabled,
-      group: route_.value.group,
+      group: route_.value.group || NoID,
       meta: route_.value.meta,
     }
 

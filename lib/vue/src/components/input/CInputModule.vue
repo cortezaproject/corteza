@@ -1,5 +1,5 @@
 <template>
-  <CInputSelect
+  <Select
     :model-value="selectedModule"
     @update:model-value="onSelect"
     :options="options"
@@ -7,19 +7,23 @@
     :placeholder="placeholder"
     :disabled="disabled || !namespaceID"
     :loading="loading"
-    @search="onSearch"
+    class="w-full"
+    filter
+    fluid
+    showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       <span>{{ option.name }}</span>
     </template>
-  </CInputSelect>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import CInputSelect from './CInputSelect.vue'
+import { onBeforeUnmount, onMounted, ref, watch, defineOptions } from 'vue'
 import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
+
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
@@ -56,7 +60,7 @@ function getOptionLabel(module) {
   return module.name || module.handle || module.moduleID
 }
 
-async function fetchModules(query = '') {
+async function fetchModules() {
   if (!props.namespaceID) {
     options.value = []
     return
@@ -71,7 +75,7 @@ async function fetchModules(query = '') {
   loading.value = true
   try {
     const { response, cancel } = store.searchModules(props.namespaceID, {
-      query,
+      query: '',
       limit: 100,
     })
     cancelCurrentRequest = cancel
@@ -89,15 +93,9 @@ async function fetchModules(query = '') {
   }
 }
 
-const debouncedFetch = debounce(query => {
-  fetchModules(query)
-}, 200)
-
-function onSearch(query) {
-  if (!query) {
+function onShow() {
+  if (options.value.length === 0 && props.namespaceID) {
     fetchModules()
-  } else {
-    debouncedFetch(query)
   }
 }
 
@@ -122,7 +120,6 @@ async function loadModuleById(moduleID) {
     const module = await store.resolveModule(props.namespaceID, moduleID)
     if (module) {
       selectedModule.value = module
-      // Add to options if not present
       if (!options.value.find(m => m.moduleID === moduleID)) {
         options.value = [...options.value, module]
       }
@@ -134,7 +131,7 @@ async function loadModuleById(moduleID) {
   }
 }
 
-// Watch for namespace changes - clear selection and options
+// Watch for namespace changes - clear selection and reload
 watch(
   () => props.namespaceID,
   (newVal, oldVal) => {
@@ -142,6 +139,9 @@ watch(
       selectedModule.value = null
       options.value = []
       emit('update:modelValue', null)
+    }
+    if (newVal) {
+      fetchModules()
     }
   },
 )
@@ -159,16 +159,17 @@ watch(
 )
 
 onMounted(() => {
+  if (props.namespaceID) {
+    fetchModules()
+  }
   if (props.modelValue && props.namespaceID) {
     loadModuleById(props.modelValue)
   }
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  debouncedFetch.cancel()
 })
 </script>

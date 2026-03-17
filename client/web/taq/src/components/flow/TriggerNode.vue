@@ -1,10 +1,12 @@
 <template>
-  <div class="flow-node group">
+  <div ref="nodeRef" class="flow-node group">
     <Card
       class="rounded-border overflow-hidden border border-surface hover:scale-[1.02] hover:shadow transition-all cursor-pointer"
       :class="{ '!border-primary scale-[1.02] shadow': selected }"
       :style="{ width: `${NODE_DIMENSIONS.WIDTH}px` }"
       :pt="{ body: { class: 'p-2' } }"
+      @mouseenter="onMouseEnter"
+      @mouseleave="onMouseLeave"
     >
       <template #content>
         <div class="flex items-center gap-3">
@@ -46,28 +48,48 @@
       @hide="menuOpen = false"
     />
 
+    <StepPreviewPopover
+      :visible="showPreview || alwaysShowPreview"
+      :node="freshNode"
+      :triggers="triggers"
+      :nodes="nodes"
+      :always-show="alwaysShowPreview"
+      :node-el="nodeRef"
+    />
+
     <Handle type="source" :position="Position.Bottom" />
   </div>
 </template>
 
 <script setup>
 import TaqIcon from '@/components/common/TaqIcon.vue'
+import StepPreviewPopover from '@/components/flow/StepPreviewPopover.vue'
 import { NODE_DIMENSIONS } from '@/utils/flow-constants'
 import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { Handle, Position } from '@vue-flow/core'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   id: { type: String, required: true },
   data: { type: Object, required: true },
   selected: { type: Boolean, default: false },
+  triggers: { type: Array, default: () => [] },
+  nodes: { type: Array, default: () => [] },
+  alwaysShowPreview: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['delete'])
 const { t } = useI18n()
+const nodeRef = ref(null)
 const menuRef = ref()
 const menuOpen = ref(false)
+const showPreview = ref(false)
+let hoverTimer = null
+
+const freshNode = computed(() => {
+  return props.nodes.find(n => n.id === props.id) || { type: 'trigger', data: props.data }
+})
 
 const menuItems = [
   {
@@ -80,5 +102,16 @@ const menuItems = [
 
 function toggle(event) {
   menuRef.value.toggle(event)
+}
+
+function onMouseEnter() {
+  hoverTimer = setTimeout(() => {
+    showPreview.value = true
+  }, 150)
+}
+
+function onMouseLeave() {
+  clearTimeout(hoverTimer)
+  showPreview.value = false
 }
 </script>

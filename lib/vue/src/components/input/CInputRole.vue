@@ -1,28 +1,27 @@
 <template>
-  <AutoComplete
+  <Select
     :model-value="selectedRole"
-    @update:model-value="onUpdateModelValue"
-    @item-select="onItemSelect"
-    :suggestions="suggestions"
+    @update:model-value="onSelect"
+    :options="options"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
-    @complete="search"
     class="w-full"
-    dropdown
+    filter
+    fluid
     showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       <div class="flex items-center gap-2">
         <span>{{ getOptionLabel(option) }}</span>
       </div>
     </template>
-  </AutoComplete>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -52,11 +51,10 @@ const emit = defineEmits(['update:modelValue', 'select'])
 
 const $SystemAPI = inject('$SystemAPI')
 
-const suggestions = ref([])
+const options = ref([])
 const selectedRole = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
 let cancelCurrentRequest = null
 
 function getOptionLabel(role) {
@@ -64,8 +62,7 @@ function getOptionLabel(role) {
   return role.name || role.handle || role.roleID
 }
 
-const search = debounce(async event => {
-  // Cancel previous request if pending
+async function fetchRoles() {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
     cancelCurrentRequest = null
@@ -74,16 +71,15 @@ const search = debounce(async event => {
   loading.value = true
   try {
     const { response, cancel } = $SystemAPI.roleListCancellable({
-      query: event.query,
-      limit: 20,
+      query: '',
+      limit: 100,
     })
     cancelCurrentRequest = cancel
 
     const result = await response()
 
     if (props.filterContextRoles) {
-      suggestions.value = (result.set || []).filter(r => {
-        // Filter out context-based roles (Authenticated, Anonymous, etc.)
+      options.value = (result.set || []).filter(r => {
         const isContext = r.meta?.context?.expr || r.meta?.context?.resourceTypes?.length > 0
         const isSpecialHandle = ['authenticated', 'anonymous', 'everyone'].includes(
           (r.handle || '').toLowerCase(),
@@ -91,27 +87,33 @@ const search = debounce(async event => {
         return !(isContext || isSpecialHandle)
       })
     } else {
-      suggestions.value = result.set || []
+      options.value = result.set || []
     }
   } catch (e) {
-    // Ignore cancelled requests
     if (e?.message !== 'canceled') {
-      suggestions.value = []
+      options.value = []
     }
   } finally {
     loading.value = false
     cancelCurrentRequest = null
   }
-}, 300)
-
-function onUpdateModelValue(value) {
-  selectedRole.value = value
-  emit('update:modelValue', value?.roleID || null)
 }
 
-function onItemSelect(event) {
-  emit('select', event.value)
-  if (props.clearOnSelect) {
+function onShow() {
+  if (options.value.length === 0) {
+    fetchRoles()
+  }
+}
+
+function onSelect(value) {
+  selectedRole.value = value
+  emit('update:modelValue', value?.roleID || null)
+
+  if (value) {
+    emit('select', value)
+  }
+
+  if (props.clearOnSelect && value) {
     setTimeout(() => {
       selectedRole.value = null
       emit('update:modelValue', null)
@@ -125,8 +127,11 @@ async function loadRoleById(roleID) {
   try {
     const role = await $SystemAPI.roleRead({ roleID })
     selectedRole.value = role
+    if (!options.value.find(r => r.roleID === roleID)) {
+      options.value = [...options.value, role]
+    }
   } catch {
-    // Role not found or API error - leave selectedRole as null
+    // Role not found or API error
   } finally {
     loading.value = false
   }
@@ -145,16 +150,15 @@ watch(
 )
 
 onMounted(() => {
+  fetchRoles()
   if (props.modelValue && (!selectedRole.value || selectedRole.value.roleID !== props.modelValue)) {
     loadRoleById(props.modelValue)
   }
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  search.cancel()
 })
 </script>

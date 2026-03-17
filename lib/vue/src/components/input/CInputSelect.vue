@@ -87,9 +87,24 @@ function onSelect(value) {
 
 function onComplete(event) {
   const query = event.query || ''
-  // Always reassign for empty queries so AutoComplete sees a new reference and opens the panel
-  if (!query) {
-    filteredOptions.value = [...props.options]
+  // PrimeVue AutoComplete has a `searching` flag that is set to true in search(),
+  // then consumed (set to false) by the suggestions watcher on the FIRST suggestions change.
+  // The watcher gates this.show() behind `searching === true`.
+  //
+  // For sync options (e.g. Select with static data): props.options already has data,
+  // so assign filteredOptions immediately to trigger the watcher and open the panel.
+  //
+  // For async options (e.g. Namespace/Module selectors): props.options is empty here.
+  // Don't assign — it would consume the searching flag. Instead, let the parent fetch
+  // and update options; the watch on props.options will set filteredOptions, which triggers
+  // the AutoComplete watcher while searching is still true.
+  if (props.options.length > 0) {
+    filteredOptions.value = query
+      ? props.options.filter(o => {
+          const label = typeof props.optionLabel === 'function' ? props.optionLabel(o) : (o[props.optionLabel] || '')
+          return String(label).toLowerCase().includes(query.toLowerCase())
+        })
+      : [...props.options]
   }
   emit('search', query)
 }

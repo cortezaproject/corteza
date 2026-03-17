@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-[600px]">
     <!-- Search Bar -->
-    <div class="px-4 pb-4 border-b border-surface shrink-0">
+    <div class="p-4 border-b border-surface shrink-0">
       <IconField>
         <InputIcon class="pi pi-search" />
         <InputText

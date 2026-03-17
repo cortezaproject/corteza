@@ -40,9 +40,14 @@
       </template>
 
       <template #body-name="{ data }">
-        <div class="flex items-center gap-2">
-          <span class="font-medium">{{ data.name }}</span>
-          <Tag v-if="isFederated(data)" severity="info" :value="$t('module.federated')" />
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-medium">{{ data.name }}</span>
+            <Tag v-if="isFederated(data)" severity="info" :value="$t('module.federated')" />
+          </div>
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+            {{ data.meta.description }}
+          </span>
         </div>
       </template>
 

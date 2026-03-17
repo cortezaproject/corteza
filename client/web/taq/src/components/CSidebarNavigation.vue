@@ -27,23 +27,16 @@ const automationStore = useAutomationStore()
 
 const navItems = computed(() => [
   {
-    _id: 'dashboard',
-    _parentId: '0',
-    _label: t('navigation.dashboard', 'Dashboard'),
-    _icon: 'pi pi-home',
-    _route: { name: 'dashboard' },
-  },
-  {
     _id: 'automations',
     _parentId: '0',
     _label: t('navigation.automations', 'Automations'),
     _icon: 'pi pi-bolt',
-    _divider: true,
+    _route: { name: 'list' },
   },
   ...automationStore.list.map(a => ({
     _id: a.automationID,
     _parentId: 'automations',
-    _label: a.meta?.short || t('dashboard.untitled', 'Untitled'),
+    _label: a.meta?.short || t('list.untitled', 'Untitled'),
     _route: { name: 'builder-edit', params: { id: a.automationID } },
   })),
 ])

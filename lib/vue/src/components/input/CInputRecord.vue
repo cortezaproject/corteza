@@ -1,38 +1,41 @@
 <template>
-  <CInputSelect
+  <Select
     :model-value="selectedRecord"
     @update:model-value="onSelect"
     :options="options"
     :option-label="getOptionLabel"
     :placeholder="effectivePlaceholder"
-    :disabled="disabled || !namespaceId || !moduleId"
+    :disabled="disabled || !namespaceID || !moduleID"
     :loading="loading"
-    :complete-on-focus="true"
-    @search="onSearch"
+    class="w-full"
+    filter
+    fluid
+    showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       <div class="flex items-center gap-2">
         <span>{{ getOptionLabel(option) }}</span>
       </div>
     </template>
-  </CInputSelect>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import CInputSelect from './CInputSelect.vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch, defineOptions } from 'vue'
+
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
     type: [String, Number],
     default: null,
   },
-  namespaceId: {
+  namespaceID: {
     type: [String, Number],
     default: null,
   },
-  moduleId: {
+  moduleID: {
     type: [String, Number],
     default: null,
   },
@@ -63,10 +66,10 @@ const loading = ref(false)
 let cancelCurrentRequest = null
 
 const effectivePlaceholder = computed(() => {
-  if (!props.namespaceId) {
+  if (!props.namespaceID) {
     return 'Select a namespace first'
   }
-  if (!props.moduleId) {
+  if (!props.moduleID) {
     return 'Select a module first'
   }
   return props.placeholder
@@ -90,8 +93,8 @@ function getOptionLabel(record) {
   return `Record ${record.recordID}`
 }
 
-async function fetchRecords(query = '') {
-  if (!props.namespaceId || !props.moduleId || !$ComposeAPI) {
+async function fetchRecords() {
+  if (!props.namespaceID || !props.moduleID || !$ComposeAPI) {
     options.value = []
     return
   }
@@ -105,9 +108,8 @@ async function fetchRecords(query = '') {
   loading.value = true
   try {
     const { response, cancel } = $ComposeAPI.recordListCancellable({
-      namespaceID: props.namespaceId,
-      moduleID: props.moduleId,
-      query,
+      namespaceID: props.namespaceID,
+      moduleID: props.moduleID,
       limit: 50,
     })
     cancelCurrentRequest = cancel
@@ -125,12 +127,10 @@ async function fetchRecords(query = '') {
   }
 }
 
-const debouncedFetch = debounce(query => {
-  fetchRecords(query)
-}, 200)
-
-function onSearch(query) {
-  debouncedFetch(query)
+function onShow() {
+  if (options.value.length === 0 && props.namespaceID && props.moduleID) {
+    fetchRecords()
+  }
 }
 
 function onSelect(value) {
@@ -139,7 +139,7 @@ function onSelect(value) {
 }
 
 async function loadRecordById(recordID) {
-  if (!recordID || !props.namespaceId || !props.moduleId || !$ComposeAPI) return
+  if (!recordID || !props.namespaceID || !props.moduleID || !$ComposeAPI) return
 
   // First check if already in options
   const existing = options.value.find(r => r.recordID === recordID)
@@ -152,12 +152,11 @@ async function loadRecordById(recordID) {
   loading.value = true
   try {
     const record = await $ComposeAPI.recordRead({
-      namespaceID: props.namespaceId,
-      moduleID: props.moduleId,
+      namespaceID: props.namespaceID,
+      moduleID: props.moduleID,
       recordID,
     })
     selectedRecord.value = record
-    // Add to options if not present
     if (!options.value.find(r => r.recordID === recordID)) {
       options.value = [...options.value, record]
     }
@@ -170,7 +169,7 @@ async function loadRecordById(recordID) {
 
 // Watch for namespace/module changes - clear selection and reload records
 watch(
-  () => [props.namespaceId, props.moduleId],
+  () => [props.namespaceID, props.moduleID],
   ([newNs, newMod], [oldNs, oldMod]) => {
     if ((oldNs && newNs !== oldNs) || (oldMod && newMod !== oldMod)) {
       selectedRecord.value = null
@@ -197,19 +196,17 @@ watch(
 )
 
 onMounted(() => {
-  if (props.namespaceId && props.moduleId) {
+  if (props.namespaceID && props.moduleID) {
     fetchRecords()
   }
-  if (props.modelValue && props.namespaceId && props.moduleId) {
+  if (props.modelValue && props.namespaceID && props.moduleID) {
     loadRecordById(props.modelValue)
   }
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  debouncedFetch.cancel()
 })
 </script>

@@ -48,7 +48,9 @@ editor:
     help: Instructions that define the agent's personality, capabilities, and constraints. This is sent to the LLM at the start of every conversation
   guardrails:
     label: Guardrails
-    help: Rules the agent must follow (e.g. "No PII disclosure", "Stay on topic").
+    help: Rules the agent must follow (e.g. "Stay on topic").
+    add: Add guardrail
+    placeholder: e.g. Stay on topic
   injectSystemContext:
     label: Inject Corteza system context
     help: Prepend the Corteza platform context to the system prompt, giving the agent knowledge about the system's data model and capabilities

@@ -86,14 +86,14 @@ interface AutomationAPI {
  * Pinia store for shared TAQ state.
  *
  * This store manages:
- * - Automation list (for Dashboard)
+ * - Automation list (for List view)
  * - Function/event type catalogs (shared across app)
  * - Loading/error states for list operations
  *
  * Note: Individual automation editing is handled by useFlowEditor composable.
  */
 export const useAutomationStore = defineStore('automation', () => {
-  // List of all automations (for Dashboard)
+  // List of all automations (for List view)
   const list = ref<NgAutomationInstance[]>([])
 
   // Loading and error states
@@ -126,7 +126,7 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   /**
-   * Create a new automation (used by Dashboard)
+   * Create a new automation (used by List view)
    */
   async function create(api: AutomationAPI, data: Partial<NgAutomationInstance>) {
     loading.value = true

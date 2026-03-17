@@ -13,20 +13,33 @@
       @clear="$emit('clearReference', argument)"
     />
 
-    <!-- Normal input mode — click opens reference panel (skip for aggregate types) -->
-    <div v-else class="w-full" @click="!isAggregate && onInputClick()">
-      <component
-        :is="inputComponent"
-        class="w-full"
-        :model-value="displayValue"
-        @update:model-value="onValueUpdate"
-        @toggle-row-reference="onRowReferenceToggle"
-        :placeholder="effectivePlaceholder"
-        :disabled="disabled"
-        :options="options"
-        :complete-on-focus="hasOptions"
-        v-bind="$attrs"
-      />
+    <!-- Normal input mode -->
+    <div v-else class="w-full">
+      <div :class="{ 'flex gap-1 items-center': showReferenceToggle && !isAggregate }">
+        <component
+          :is="inputComponent"
+          class="w-full"
+          :model-value="displayValue"
+          @update:model-value="onValueUpdate"
+          @toggle-row-reference="onRowReferenceToggle"
+          :placeholder="effectivePlaceholder"
+          :disabled="disabled"
+          :options="options"
+          :complete-on-focus="hasOptions"
+          v-bind="$attrs"
+        />
+        <!-- Reference toggle button -->
+        <Button
+          v-if="showReferenceToggle && !isAggregate"
+          icon="pi pi-link"
+          text
+          rounded
+          size="small"
+          :severity="isReferenceActive ? 'primary' : 'secondary'"
+          :title="$t('builder.form.referenceToggle')"
+          @click.stop="onInputClick()"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -34,7 +47,7 @@
 <script setup>
 import { resolveInputComponent } from './inputs/registry'
 import CReferenceChip from './CReferenceChip.vue'
-import { computed } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -93,6 +106,13 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference'])
 
 const inputComponent = computed(() => resolveInputComponent(props.type))
+
+// Injected from Builder.vue — tracks which argument has the reference panel open
+const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
+const isReferenceActive = computed(() => {
+  if (!activeReferenceArgument.value) return false
+  return activeReferenceArgument.value.name === props.argument
+})
 
 // Aggregate types handle their own per-row references (no whole-argument reference)
 const AGGREGATE_TYPES = ['FieldValueMap']

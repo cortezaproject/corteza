@@ -210,10 +210,13 @@ export function useFlowEditor() {
           if (seenEdges.has(edgeKey)) return null
           seenEdges.add(edgeKey)
 
+          // Include expression data for gateway paths
+          const exprStr = edge.data?.expr || ''
           return {
             parentID: sourceId,
             childID: targetId,
             handle: `path_${sourceId}_${targetId}`,
+            ...(exprStr ? { expr: { expr: exprStr, target: '', type: 'Boolean' } } : {}),
             meta: {},
           }
         })
@@ -282,6 +285,7 @@ export function useFlowEditor() {
   ): Node<FlowNodeData> | null {
     const isBranch =
       nodeType.id === 'branch' || nodeType.type === 'condition' || nodeType.ref === 'gateway'
+    const defaultGatewayRef = 'excl'
     const isEnd = nodeType.type === 'end'
     const isTrigger = nodeType.type === 'trigger'
 
@@ -323,7 +327,7 @@ export function useFlowEditor() {
         stepID: newId,
         handle: newHandle,
         kind: isBranch ? 'gateway' : 'function',
-        ref: nodeType.ref || '',
+        ref: isBranch ? defaultGatewayRef : nodeType.ref || '',
         meta: {
           short: nodeType.label,
           description: nodeType.description || '',
@@ -871,6 +875,41 @@ export function useFlowEditor() {
     return upstream
   }
 
+  // Update the expression on an edge (for branch conditions)
+  function updateEdgeExpr(edgeId: string, expr: string) {
+    const edgeIndex = edges.value.findIndex(e => e.id === edgeId)
+    if (edgeIndex === -1) return
+
+    edges.value[edgeIndex] = {
+      ...edges.value[edgeIndex],
+      data: { ...edges.value[edgeIndex].data, expr },
+    }
+
+    saveToHistory()
+  }
+
+  // Update the gateway type (excl/incl) for a branch node
+  function updateGatewayType(nodeId: string, gatewayRef: string) {
+    const nodeIndex = nodes.value.findIndex(n => n.id === nodeId)
+    if (nodeIndex === -1) return
+
+    const node = nodes.value[nodeIndex]
+    nodes.value[nodeIndex] = {
+      ...node,
+      data: { ...node.data, nodeType: gatewayRef },
+    }
+
+    // Also update the automation model
+    if (node.data?.stepID) {
+      const step = automation.value.steps?.find((s: any) => s.stepID === node.data.stepID)
+      if (step) {
+        step.ref = gatewayRef
+      }
+    }
+
+    saveToHistory()
+  }
+
   return {
     // State
     automation,
@@ -900,6 +939,8 @@ export function useFlowEditor() {
     reorderBranchEdges,
     deleteNode,
     updateNodeData,
+    updateEdgeExpr,
+    updateGatewayType,
     saveToHistory,
     getUpstreamResults,
   }

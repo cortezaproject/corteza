@@ -143,6 +143,9 @@ export function automationToVueFlow(
       source: sourceId,
       target: targetId,
       type: 'addable',
+      data: {
+        expr: path.expr?.expr || '',
+      },
     })
   })
 
@@ -287,13 +290,13 @@ export function vueFlowToAutomation(
     if (!sourceId || !targetId) return
 
     pathIndex++
+    const exprStr = edge.data?.expr || ''
     paths.push({
       parentID: sourceId,
       childID: targetId,
       handle: `path_${pathIndex}`,
-      meta: {
-        expr: edge.sourceHandle || undefined,
-      },
+      ...(exprStr ? { expr: { expr: exprStr, target: '', type: 'Boolean' } } : {}),
+      meta: {},
     })
   })
 

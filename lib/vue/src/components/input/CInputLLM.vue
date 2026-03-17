@@ -1,25 +1,25 @@
 <template>
-  <AutoComplete
+  <Select
     :model-value="selectedProvider"
     @update:model-value="onSelect"
-    :suggestions="suggestions"
+    :options="options"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
-    @complete="search"
     class="w-full"
-    dropdown
+    filter
+    fluid
     showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
     </template>
-  </AutoComplete>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -41,11 +41,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const $SystemAPI = inject('$SystemAPI')
 
-const suggestions = ref([])
+const options = ref([])
 const selectedProvider = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
 let cancelCurrentRequest = null
 
 function getOptionLabel(provider) {
@@ -53,8 +52,7 @@ function getOptionLabel(provider) {
   return provider.handle || provider.meta?.short || provider.provider || provider.llmProviderID
 }
 
-const search = debounce(async event => {
-  // Cancel previous request if pending
+async function fetchProviders() {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
     cancelCurrentRequest = null
@@ -63,23 +61,27 @@ const search = debounce(async event => {
   loading.value = true
   try {
     const { response, cancel } = $SystemAPI.llmProviderListCancellable({
-      provider: event.query || undefined,
       status: 'active',
     })
     cancelCurrentRequest = cancel
 
     const result = await response()
-    suggestions.value = Array.isArray(result) ? result : result.set || []
+    options.value = Array.isArray(result) ? result : result.set || []
   } catch (e) {
-    // Ignore cancelled requests
     if (e?.message !== 'canceled') {
-      suggestions.value = []
+      options.value = []
     }
   } finally {
     loading.value = false
     cancelCurrentRequest = null
   }
-}, 300)
+}
+
+function onShow() {
+  if (options.value.length === 0) {
+    fetchProviders()
+  }
+}
 
 function onSelect(value) {
   selectedProvider.value = value
@@ -92,6 +94,9 @@ async function loadProviderById(llmProviderID) {
   try {
     const provider = await $SystemAPI.llmProviderRead({ llmProviderID })
     selectedProvider.value = provider
+    if (!options.value.find(p => p.llmProviderID === llmProviderID)) {
+      options.value = [...options.value, provider]
+    }
   } catch {
     // Provider not found or API error
   } finally {
@@ -116,16 +121,15 @@ watch(
 )
 
 onMounted(() => {
+  fetchProviders()
   if (props.modelValue && props.modelValue !== '0') {
     loadProviderById(props.modelValue)
   }
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  search.cancel()
 })
 </script>

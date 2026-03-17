@@ -51,7 +51,12 @@
       </template>
 
       <template #body-name="{ data }">
-        {{ data.meta?.short || '—' }}
+        <div class="flex flex-col">
+          <span class="font-medium">{{ data.meta?.short || '—' }}</span>
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+            {{ data.meta.description }}
+          </span>
+        </div>
       </template>
 
       <template #body-createdAt="{ data }">

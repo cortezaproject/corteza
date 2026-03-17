@@ -1,28 +1,27 @@
 <template>
-  <AutoComplete
+  <Select
     :model-value="selectedUserGroup"
-    @update:model-value="onUpdateModelValue"
-    @item-select="onItemSelect"
-    :suggestions="suggestions"
+    @update:model-value="onSelect"
+    :options="options"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
-    @complete="search"
     class="w-full"
-    dropdown
+    filter
+    fluid
     showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       <div class="flex items-center gap-2">
         <span>{{ getOptionLabel(option) }}</span>
       </div>
     </template>
-  </AutoComplete>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -48,11 +47,10 @@ const emit = defineEmits(['update:modelValue', 'select'])
 
 const $SystemAPI = inject('$SystemAPI')
 
-const suggestions = ref([])
+const options = ref([])
 const selectedUserGroup = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
 let cancelCurrentRequest = null
 
 function getOptionLabel(userGroup) {
@@ -60,8 +58,7 @@ function getOptionLabel(userGroup) {
   return userGroup.name || userGroup.meta?.short || userGroup.handle || userGroup.userGroupID
 }
 
-const search = debounce(async event => {
-  // Cancel previous request if pending
+async function fetchUserGroups() {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
     cancelCurrentRequest = null
@@ -70,32 +67,38 @@ const search = debounce(async event => {
   loading.value = true
   try {
     const { response, cancel } = $SystemAPI.userGroupListCancellable({
-      query: event.query,
-      limit: 20,
+      query: '',
+      limit: 100,
     })
     cancelCurrentRequest = cancel
 
     const result = await response()
-    suggestions.value = result.set || []
+    options.value = result.set || []
   } catch (e) {
-    // Ignore cancelled requests
     if (e?.message !== 'canceled') {
-      suggestions.value = []
+      options.value = []
     }
   } finally {
     loading.value = false
     cancelCurrentRequest = null
   }
-}, 300)
-
-function onUpdateModelValue(value) {
-  selectedUserGroup.value = value
-  emit('update:modelValue', value?.userGroupID || null)
 }
 
-function onItemSelect(event) {
-  emit('select', event.value)
-  if (props.clearOnSelect) {
+function onShow() {
+  if (options.value.length === 0) {
+    fetchUserGroups()
+  }
+}
+
+function onSelect(value) {
+  selectedUserGroup.value = value
+  emit('update:modelValue', value?.userGroupID || null)
+
+  if (value) {
+    emit('select', value)
+  }
+
+  if (props.clearOnSelect && value) {
     setTimeout(() => {
       selectedUserGroup.value = null
       emit('update:modelValue', null)
@@ -109,8 +112,11 @@ async function loadUserGroupById(userGroupID) {
   try {
     const userGroup = await $SystemAPI.userGroupRead({ userGroupID })
     selectedUserGroup.value = userGroup
+    if (!options.value.find(g => g.userGroupID === userGroupID)) {
+      options.value = [...options.value, userGroup]
+    }
   } catch {
-    // UserGroup not found or API error - leave selectedUserGroup as null
+    // UserGroup not found or API error
   } finally {
     loading.value = false
   }
@@ -129,6 +135,7 @@ watch(
 )
 
 onMounted(() => {
+  fetchUserGroups()
   if (
     props.modelValue &&
     (!selectedUserGroup.value || selectedUserGroup.value.userGroupID !== props.modelValue)
@@ -138,10 +145,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  search.cancel()
 })
 </script>

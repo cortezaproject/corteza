@@ -116,6 +116,7 @@ referencePanel:
 form:
   selectPlaceholder: Select {field}
   selectFirst: Select {field} first
+  referenceToggle: Use value from a previous step
 
 fieldValueMap:
   deleteConfirm: Are you sure you want to remove this field value?
@@ -136,6 +137,14 @@ branch:
   if: If
   elseIf: Else If
   else: Else
+  gatewayType: Branching Mode
+  exclusive: First match
+  inclusive: All matches
+  exclusiveHint: Takes the first path whose condition is true
+  inclusiveHint: Takes every path whose condition is true
+  exprPlaceholder: "Condition expression (e.g. status == \"approved\")"
+  defaultPath: Default — no condition needed
+  condition: Condition
 
 confirmDelete:
   header: Delete Node
@@ -152,3 +161,12 @@ nodes:
   splitFlow: Split flow
   menu:
     delete: Delete
+
+preview:
+  noConfig: No configuration
+  notSet: "-"
+  field: Field
+  value: Value
+  toggleAll: Show all previews
+  showConfigurations: Show step configurations
+  hideConfigurations: Hide step configurations

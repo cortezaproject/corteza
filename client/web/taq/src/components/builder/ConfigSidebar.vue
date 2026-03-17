@@ -35,8 +35,34 @@
       class="mb-4"
     />
 
-    <!-- Branch outputs list (only for branch nodes) -->
+    <!-- Branch configuration (only for branch nodes) -->
     <div v-if="node.type === 'branch'" class="mb-4">
+      <!-- Gateway type -->
+      <div class="mb-4">
+        <label class="text-sm font-medium text-color block mb-2">
+          {{ $t('builder.branch.gatewayType') }}
+        </label>
+        <Select
+          :model-value="gatewayType"
+          :options="gatewayOptions"
+          option-label="label"
+          option-value="value"
+          class="w-full"
+          @update:model-value="onGatewayTypeChange"
+        >
+          <template #value="{ value }">
+            <span>{{ gatewayOptions.find(o => o.value === value)?.label }}</span>
+          </template>
+          <template #option="{ option }">
+            <div class="flex flex-col gap-1">
+              <span class="font-medium">{{ option.label }}</span>
+              <span class="text-xs text-muted-color">{{ option.description }}</span>
+            </div>
+          </template>
+        </Select>
+      </div>
+
+      <!-- Branch outputs -->
       <div class="text-sm font-medium text-color mb-2">
         {{ $t('builder.configSidebar.branches') }}
       </div>
@@ -51,26 +77,47 @@
       >
         <Column
           rowReorder
-          headerStyle="width: 2rem"
+          headerStyle="width: 1.5rem; padding: 0"
+          bodyStyle="width: 1.5rem; padding: 0.25rem"
           :pt="{ rowreordericon: { class: 'pi pi-bars text-muted-color cursor-grab' } }"
         />
         <Column field="label" header="">
           <template #body="{ data, index }">
-            <div class="flex items-center gap-2 py-2">
-              <span class="text-sm text-color">{{ data.label }}</span>
-              <Tag
-                v-if="index === 0"
-                :value="$t('builder.branch.if')"
-                severity="info"
-                class="text-xs"
+            <div class="flex flex-col gap-1 py-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-color truncate flex-1">{{ data.label }}</span>
+                <Tag
+                  v-if="index === 0"
+                  :value="$t('builder.branch.if')"
+                  severity="info"
+                  class="shrink-0"
+                />
+                <Tag
+                  v-else-if="index === branchOutputs.length - 1"
+                  :value="$t('builder.branch.else')"
+                  severity="secondary"
+                  class="shrink-0"
+                />
+                <Tag
+                  v-else
+                  :value="$t('builder.branch.elseIf')"
+                  severity="warn"
+                  class="shrink-0"
+                />
+              </div>
+              <!-- Expression input (not for the last/Else branch) -->
+              <InputText
+                v-if="index < branchOutputs.length - 1"
+                :model-value="data.expr || ''"
+                :placeholder="$t('builder.branch.exprPlaceholder')"
+                size="small"
+                class="w-full"
+                style="font-family: monospace; font-size: 0.8rem"
+                @update:model-value="onBranchExprChange(data.edgeId, $event)"
               />
-              <Tag
-                v-else-if="index === branchOutputs.length - 1"
-                :value="$t('builder.branch.else')"
-                severity="secondary"
-                class="text-xs"
-              />
-              <Tag v-else :value="$t('builder.branch.elseIf')" severity="warn" class="text-xs" />
+              <span v-else class="text-sm text-muted-color italic">
+                {{ $t('builder.branch.defaultPath') }}
+              </span>
             </div>
           </template>
         </Column>
@@ -126,6 +173,9 @@ const props = defineProps({
   upstreamResults: { type: Array, default: () => [] },
 })
 
+import { provide, toRef } from 'vue'
+provide('taq-nodes', toRef(props, 'nodes'))
+
 const emit = defineEmits([
   'close',
   'delete',
@@ -134,6 +184,8 @@ const emit = defineEmits([
   'updateArguments',
   'updateConstraints',
   'toggleReference',
+  'updateGatewayType',
+  'updateBranchExpr',
 ])
 
 const functionFormRef = ref(null)
@@ -201,6 +253,7 @@ watch(
           edgeId: edge.id,
           targetId: edge.target,
           label: targetNode?.data?.label || t('builder.configSidebar.end'),
+          expr: edge.data?.expr || '',
         }
       })
 
@@ -216,6 +269,26 @@ function onRowReorder(event) {
     'reorderBranches',
     branchOutputs.value.map(b => b.edgeId),
   )
+}
+
+// Gateway type options and state
+const gatewayOptions = [
+  { label: t('builder.branch.exclusive'), value: 'excl', description: t('builder.branch.exclusiveHint') },
+  { label: t('builder.branch.inclusive'), value: 'incl', description: t('builder.branch.inclusiveHint') },
+]
+
+const gatewayType = computed(() => {
+  const raw = props.node.data?.nodeType
+  // Normalize: existing branches may have empty ref or non-gateway ref
+  return raw === 'excl' || raw === 'incl' ? raw : 'excl'
+})
+
+function onGatewayTypeChange(value) {
+  emit('updateGatewayType', value)
+}
+
+function onBranchExprChange(edgeId, expr) {
+  emit('updateBranchExpr', { edgeId, expr })
 }
 </script>
 

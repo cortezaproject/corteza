@@ -83,7 +83,8 @@ export interface NgAutomationPath {
   parentID: string // Source step ID
   childID: string // Target step ID
   handle?: string // Human-readable identifier (e.g., path_1_2)
-  meta?: { short?: string; description?: string; expr?: string }
+  expr?: Expr // Condition expression for gateway paths (matches BE *Expr)
+  meta?: { short?: string; description?: string }
 }
 
 /**

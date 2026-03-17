@@ -1,0 +1,4 @@
+automation:
+  delete:
+    success: Automation deleted successfully
+    error: Failed to delete automation

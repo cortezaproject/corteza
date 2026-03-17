@@ -1,27 +1,25 @@
 <template>
-  <AutoComplete
+  <Select
     :model-value="selectedUser"
-    @update:model-value="onUpdateModelValue"
-    @item-select="onItemSelect"
-    :suggestions="suggestions"
+    @update:model-value="onSelect"
+    :options="options"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
-    @complete="search"
     class="w-full"
-    dropdown
+    filter
+    fluid
     showClear
-    :complete-on-focus="true"
+    @show="onShow"
   >
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
     </template>
-  </AutoComplete>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useUserResolver } from '../../composables/useUserResolver'
 
@@ -49,19 +47,17 @@ const emit = defineEmits(['update:modelValue', 'select'])
 const $SystemAPI = inject('$SystemAPI')
 const { formatUser, resolveUser, cacheUsers } = useUserResolver()
 
-const suggestions = ref([])
+const options = ref([])
 const selectedUser = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
 let cancelCurrentRequest = null
 
 function getOptionLabel(user) {
   return formatUser(user)
 }
 
-const search = debounce(async event => {
-  // Cancel previous request if pending
+async function fetchUsers() {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
     cancelCurrentRequest = null
@@ -70,35 +66,39 @@ const search = debounce(async event => {
   loading.value = true
   try {
     const { response, cancel } = $SystemAPI.userListCancellable({
-      query: event.query,
-      limit: 20,
+      query: '',
+      limit: 100,
     })
     cancelCurrentRequest = cancel
 
     const result = await response()
-    suggestions.value = result.set || []
-    cacheUsers(suggestions.value)
+    options.value = result.set || []
+    cacheUsers(options.value)
   } catch (e) {
-    // Ignore cancelled requests
     if (e?.message !== 'canceled') {
-      suggestions.value = []
+      options.value = []
     }
   } finally {
     loading.value = false
     cancelCurrentRequest = null
   }
-}, 300)
-
-function onUpdateModelValue(value) {
-  // AutoComplete emits string when typing, and object when selected
-  selectedUser.value = value
-  emit('update:modelValue', value?.userID || null)
 }
 
-function onItemSelect(event) {
-  emit('select', event.value)
-  if (props.clearOnSelect) {
-    // defer clearing to allow event to propagate and component to finish updates
+function onShow() {
+  if (options.value.length === 0) {
+    fetchUsers()
+  }
+}
+
+function onSelect(value) {
+  selectedUser.value = value
+  emit('update:modelValue', value?.userID || null)
+
+  if (value) {
+    emit('select', value)
+  }
+
+  if (props.clearOnSelect && value) {
     setTimeout(() => {
       selectedUser.value = null
       emit('update:modelValue', null)
@@ -112,9 +112,14 @@ async function loadUserById(userID) {
   loading.value = true
   try {
     const user = await resolveUser(userID)
-    if (user) selectedUser.value = user
+    if (user) {
+      selectedUser.value = user
+      if (!options.value.find(u => u.userID === userID)) {
+        options.value = [...options.value, user]
+      }
+    }
   } catch {
-    // User not found or API error - leave selectedUser as null
+    // User not found or API error
   } finally {
     loading.value = false
   }
@@ -133,16 +138,15 @@ watch(
 )
 
 onMounted(() => {
+  fetchUsers()
   if (props.modelValue) {
     loadUserById(props.modelValue)
   }
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  search.cancel()
 })
 </script>

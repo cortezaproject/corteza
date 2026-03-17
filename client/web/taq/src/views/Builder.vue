@@ -34,6 +34,15 @@
           @click="editor.exec"
         />
       </template>
+      <Divider layout="vertical" class="!m-0" />
+      <Button
+        v-tooltip.bottom="showAllPreviews ? $t('builder.preview.hideConfigurations') : $t('builder.preview.showConfigurations')"
+        :icon="showAllPreviews ? 'pi pi-eye' : 'pi pi-eye-slash'"
+        :severity="showAllPreviews ? 'primary' : 'secondary'"
+        :outlined="!showAllPreviews"
+        size="small"
+        @click="showAllPreviews = !showAllPreviews"
+      />
     </div>
 
     <!-- VueFlow Canvas -->
@@ -60,13 +69,13 @@
 
         <!-- Custom node types -->
         <template #node-trigger="props">
-          <TriggerNode v-bind="props" @delete="confirmDeleteNode" />
+          <TriggerNode v-bind="props" :triggers="store.triggers" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" />
         </template>
         <template #node-step="props">
-          <StepNode v-bind="props" @delete="confirmDeleteNode" />
+          <StepNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" />
         </template>
         <template #node-branch="props">
-          <BranchNode v-bind="props" @delete="confirmDeleteNode" />
+          <BranchNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :edges="editor.edges.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" />
         </template>
         <template #node-end="props">
           <EndNode v-bind="props" />
@@ -197,6 +206,8 @@
             @update-arguments="handleUpdateArguments"
             @update-constraints="handleUpdateConstraints"
             @toggle-reference="handleToggleReference"
+            @update-gateway-type="handleUpdateGatewayType"
+            @update-branch-expr="handleUpdateBranchExpr"
           />
         </div>
       </div>
@@ -229,7 +240,7 @@ import { components } from '@cortezaproject/corteza-vue-next'
 const { CToolbar, CRouterLinkButton } = components
 
 import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -275,6 +286,7 @@ const drawerWidth = ref(360)
 const isResizingDrawer = ref(false)
 
 // Node picker state
+const showAllPreviews = ref(false)
 const showNodePicker = ref(false)
 const nodePickerCategory = ref(null)
 const insertionPoint = ref(null)
@@ -283,6 +295,9 @@ const insertionPoint = ref(null)
 const showReferencePanel = ref(false)
 const activeReferenceArgument = ref(null)
 const configSidebarRef = ref(null)
+
+// Provide active reference argument to descendant components (DynamicInput, CInputFieldValueMap)
+provide('activeReferenceArgument', activeReferenceArgument)
 
 // Get selected node - look up from nodes array to get latest version after updates
 const selectedNode = computed(() => {
@@ -527,6 +542,18 @@ function handleUpdateConstraints(constraints) {
   }
 }
 
+// Handle gateway type change (exclusive/inclusive) from ConfigSidebar
+function handleUpdateGatewayType(gatewayRef) {
+  const selected = getSelectedNodes.value?.[0]
+  if (!selected) return
+  editor.updateGatewayType(selected.id, gatewayRef)
+}
+
+// Handle branch expression change from ConfigSidebar
+function handleUpdateBranchExpr({ edgeId, expr }) {
+  editor.updateEdgeExpr(edgeId, expr)
+}
+
 // Compute current reference (scope + source) for the active argument
 const currentReference = computed(() => {
   if (!activeReferenceArgument.value || !selectedNode.value) return null
@@ -629,4 +656,5 @@ watch(
   opacity: 0;
   pointer-events: none;
 }
+
 </style>

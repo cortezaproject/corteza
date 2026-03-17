@@ -5,8 +5,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'dashboard',
-      component: () => import('../views/Dashboard.vue'),
+      name: 'list',
+      component: () => import('../views/List.vue'),
     },
     {
       path: '/builder',
@@ -18,7 +18,7 @@ const router = createRouter({
       name: 'builder-edit',
       component: () => import('../views/Builder.vue'),
     },
-    // Catch-all redirect to dashboard
+    // Catch-all redirect to list
     {
       path: '/:pathMatch(.*)*',
       redirect: '/',

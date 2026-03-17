@@ -78,7 +78,12 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
 
   try {
-    await withMinDuration(store.loadCatalog($AutomationAPI))
+    await withMinDuration(
+      Promise.all([
+        store.loadCatalog($AutomationAPI),
+        store.fetchList($AutomationAPI),
+      ]),
+    )
   } catch (e) {
     console.error('Failed to load catalog:', e)
   } finally {
@@ -95,7 +100,7 @@ const isMobile = ref(window.innerWidth < 1024)
 
 // Route-based sidebar control
 const route = useRoute()
-const disabledRoutes = ['dashboard'] // "disable it on taq list"
+const disabledRoutes = ['list'] // "disable it on taq list"
 
 const sidebarDisabled = computed(() => {
   return disabledRoutes.includes(route.name?.toString() || '')

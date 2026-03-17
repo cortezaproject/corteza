@@ -33,8 +33,8 @@
         @clear="clearRowRef(index)"
       />
 
-      <!-- Literal value mode — click opens reference panel for this row -->
-      <div v-else @click="row.field && emit('toggleRowReference', row.field)">
+      <!-- Literal value mode -->
+      <div v-else class="flex gap-1 items-center">
         <CFieldEditor
           :field="getFieldDef(row.field)"
           :model-value="row.value"
@@ -47,6 +47,16 @@
               onRowChange()
             }
           "
+        />
+        <Button
+          v-if="row.field"
+          icon="pi pi-link"
+          text
+          rounded
+          size="small"
+          :severity="isRowReferenceActive(row.field) ? 'primary' : 'secondary'"
+          :title="t('builder.form.referenceToggle')"
+          @click.stop="emit('toggleRowReference', row.field)"
         />
       </div>
     </div>
@@ -64,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../CReferenceChip.vue'
 import { CFieldEditor } from '@cortezaproject/corteza-vue-next/src/components/field'
@@ -94,10 +104,18 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'toggleRowReference'])
 const { t } = useI18n()
 const store = useComposeResourceStore()
+const injectedNodes = inject('taq-nodes', ref([]))
 
 const fields = ref([])
 const rows = ref([])
 const loading = ref(false)
+
+// Injected from Builder.vue — tracks which argument has the reference panel open
+const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
+function isRowReferenceActive(fieldName) {
+  if (!activeReferenceArgument.value || !fieldName) return false
+  return activeReferenceArgument.value.target === fieldName
+}
 
 // Convert modelValue { [field]: { value, scope?, source? } } to rows
 function modelValueToRows(val) {
@@ -128,10 +146,12 @@ function rowsToModelValue() {
 
 function formatRefLabel(ref) {
   if (!ref?.source) return 'Reference'
-  // Extract the last part of the dot-path for a readable label
   const parts = ref.source.split('.')
   const fieldPart = parts[parts.length - 1]
-  return `${ref.scope} → ${fieldPart}`
+  const nodes = injectedNodes.value || []
+  const step = nodes.find(n => n.data?.ref === ref.scope)
+  const stepLabel = step?.data?.label || ref.scope
+  return `${stepLabel} → ${fieldPart}`
 }
 
 function clearRowRef(index) {

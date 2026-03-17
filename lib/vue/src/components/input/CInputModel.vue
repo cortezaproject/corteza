@@ -1,21 +1,22 @@
 <template>
-  <AutoComplete
+  <Select
     :model-value="selectedModel"
     @update:model-value="onSelect"
-    :suggestions="filteredModels"
+    :options="options"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled || !llmProviderID || llmProviderID === '0'"
     :loading="loading"
-    @complete="onComplete"
     class="w-full"
-    dropdown
+    filter
+    fluid
     showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
     </template>
-  </AutoComplete>
+  </Select>
 </template>
 
 <script setup>
@@ -44,12 +45,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const $SystemAPI = inject('$SystemAPI')
 
-const allModels = ref([])
-const filteredModels = ref([])
+const options = ref([])
 const selectedModel = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
 let cancelCurrentRequest = null
 
 function getOptionLabel(model) {
@@ -60,12 +59,10 @@ function getOptionLabel(model) {
 
 async function fetchModels() {
   if (!props.llmProviderID || props.llmProviderID === '0' || !$SystemAPI) {
-    allModels.value = []
-    filteredModels.value = []
+    options.value = []
     return
   }
 
-  // Cancel previous request if pending
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
     cancelCurrentRequest = null
@@ -79,14 +76,10 @@ async function fetchModels() {
     cancelCurrentRequest = cancel
 
     const result = await response()
-    const models = Array.isArray(result) ? result : result.models || result.set || []
-    allModels.value = models
-    filteredModels.value = [...models]
+    options.value = Array.isArray(result) ? result : result.models || result.set || []
   } catch (e) {
-    // Ignore cancelled requests
     if (e?.message !== 'canceled') {
-      allModels.value = []
-      filteredModels.value = []
+      options.value = []
     }
   } finally {
     loading.value = false
@@ -94,15 +87,9 @@ async function fetchModels() {
   }
 }
 
-function onComplete(event) {
-  const query = (event.query || '').toLowerCase()
-  if (!query) {
-    filteredModels.value = [...allModels.value]
-  } else {
-    filteredModels.value = allModels.value.filter(m => {
-      const label = getOptionLabel(m).toLowerCase()
-      return label.includes(query)
-    })
+function onShow() {
+  if (options.value.length === 0 && props.llmProviderID && props.llmProviderID !== '0') {
+    fetchModels()
   }
 }
 
@@ -125,13 +112,12 @@ function restoreSelection() {
     return
   }
 
-  // Find matching model object in allModels
-  const match = allModels.value.find(m => {
+  const match = options.value.find(m => {
     if (typeof m === 'string') return m === props.modelValue
     return (m.model || m.name || m.id) === props.modelValue
   })
 
-  selectedModel.value = match || props.modelValue
+  selectedModel.value = match || null
 }
 
 // When provider changes, re-fetch models and clear selection
@@ -153,7 +139,7 @@ watch(
   },
 )
 
-watch(allModels, () => {
+watch(options, () => {
   restoreSelection()
 })
 
@@ -164,7 +150,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }

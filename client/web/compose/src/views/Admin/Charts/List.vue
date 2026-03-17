@@ -40,7 +40,12 @@
       </template>
 
       <template #body-name="{ data }">
-        <span class="font-medium">{{ data.name }}</span>
+        <div class="flex flex-col">
+          <span class="font-medium">{{ data.name }}</span>
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+            {{ data.meta.description }}
+          </span>
+        </div>
       </template>
 
       <template #body-handle="{ data }">

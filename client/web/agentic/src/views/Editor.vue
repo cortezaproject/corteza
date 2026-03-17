@@ -88,39 +88,41 @@
                       </small>
                     </div>
 
-                    <!-- Guardrails chip input -->
+                    <!-- Guardrails -->
                     <div class="flex flex-col gap-1">
-                      <label for="guardrails" class="font-medium text-primary">
+                      <label class="font-medium text-primary">
                         {{ $t('agent.editor.guardrails.label') }}
                       </label>
-                      <div
-                        class="flex flex-wrap gap-2 p-3 border border-surface rounded-lg bg-surface-ground min-h-12"
-                      >
-                        <Tag
+                      <div class="flex flex-col gap-2">
+                        <div
                           v-for="(rule, idx) in agent.behavior.guardrails"
                           :key="idx"
-                          :value="rule"
-                          severity="info"
-                          rounded
-                          class="flex items-center gap-1"
+                          class="flex items-center gap-2"
                         >
-                          <span>{{ rule }}</span>
-                          <button
-                            class="ml-1 cursor-pointer text-xs opacity-70 hover:opacity-100"
+                          <InputText
+                            v-model="agent.behavior.guardrails[idx]"
+                            class="flex-1"
+                            :placeholder="$t('agent.editor.guardrails.placeholder')"
+                          />
+                          <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            rounded
+                            size="small"
                             @click="removeGuardrail(idx)"
-                          >
-                            <i class="pi pi-times text-xs" />
-                          </button>
-                        </Tag>
-                        <InputText
-                          v-model="guardrailInput"
-                          :placeholder="
-                            agent.behavior.guardrails.length === 0 ? 'e.g. No PII disclosure' : ''
-                          "
-                          class="border-0 shadow-none flex-1 min-w-32 bg-transparent p-0"
-                          size="small"
-                          @keydown.enter.prevent="addGuardrail"
-                        />
+                          />
+                        </div>
+                        <div>
+                          <Button
+                            :label="$t('agent.editor.guardrails.add')"
+                            icon="pi pi-plus"
+                            severity="secondary"
+                            text
+                            size="small"
+                            @click="addGuardrail"
+                          />
+                        </div>
                       </div>
                       <small class="text-muted-color">
                         {{ $t('agent.editor.guardrails.help') }}
@@ -259,31 +261,6 @@
                 </Panel>
                 <Panel :header="$t('agent.editor.panels.access')" toggleable>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                      <label for="contextNamespace" class="font-medium text-primary">
-                        {{ $t('agent.editor.contextNamespace.label') }}
-                      </label>
-                      <CInputNamespace
-                        id="contextNamespace"
-                        v-model="agent.access.context.namespace"
-                      />
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.contextNamespace.help') }}
-                      </small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="contextModule" class="font-medium text-primary">
-                        {{ $t('agent.editor.contextModule.label') }}
-                      </label>
-                      <CInputModule
-                        id="contextModule"
-                        v-model="agent.access.context.module"
-                        :namespaceSlug="agent.access.context.namespace"
-                      />
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.contextModule.help') }}
-                      </small>
-                    </div>
                     <div class="md:col-span-2 pt-2">
                       <div class="flex flex-col gap-1 mb-2">
                         <label class="font-medium text-primary">
@@ -324,7 +301,7 @@
                   </div>
                 </Panel>
 
-                <Panel :header="$t('agent.editor.panels.invocation')" toggleable :collapsed="true">
+                <Panel :header="$t('agent.editor.panels.invocation')" toggleable>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1 justify-center">
                       <div class="flex items-center gap-2">
@@ -360,7 +337,7 @@
                       <label for="serviceAccount" class="font-medium text-primary">
                         {{ $t('agent.editor.serviceAccount.label') }}
                       </label>
-                      <InputText
+                      <CInputUser
                         id="serviceAccount"
                         v-model="agent.invocation.system.serviceAccount"
                       />
@@ -368,15 +345,7 @@
                         {{ $t('agent.editor.serviceAccount.help') }}
                       </small>
                     </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="outputFormat" class="font-medium text-primary">
-                        {{ $t('agent.editor.outputFormat.label') }}
-                      </label>
-                      <InputText id="outputFormat" v-model="agent.invocation.system.outputFormat" />
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.outputFormat.help') }}
-                      </small>
-                    </div>
+
                   </div>
                 </Panel>
               </TabPanel>
@@ -443,13 +412,17 @@
                             : 'bg-emphasis text-color shadow-sm',
                           msg.role === 'user' ? 'cursor-pointer' : '',
                           msg.role === 'agent' ? 'cursor-pointer hover:shadow-md' : '',
-                          selectedTraceIndex === msg.traceIndex && selectedTraceType === (msg.role === 'user' ? 'prompt' : 'response')
+                          selectedTraceIndex === msg.traceIndex &&
+                          selectedTraceType === (msg.role === 'user' ? 'prompt' : 'response')
                             ? 'ring-2 ring-primary ring-offset-1'
                             : '',
                         ]"
                         @click="
                           msg.traceIndex !== undefined
-                            ? selectMessage(msg.traceIndex, msg.role === 'user' ? 'prompt' : 'response')
+                            ? selectMessage(
+                                msg.traceIndex,
+                                msg.role === 'user' ? 'prompt' : 'response',
+                              )
                             : null
                         "
                       >
@@ -512,11 +485,15 @@
                         "
                         class="transition-all duration-200 cursor-pointer hover:shadow-md"
                         @click="selectMessage(tIdx)"
-
+                      >
                         <!-- Agent Response Panel -->
                         <Panel
                           toggleable
-                          :class="selectedTraceIndex === tIdx && selectedTraceType === 'response' ? 'border-primary shadow-md' : ''"
+                          :class="
+                            selectedTraceIndex === tIdx && selectedTraceType === 'response'
+                              ? 'border-primary shadow-md'
+                              : ''
+                          "
                           @click.stop="selectMessage(tIdx, 'response')"
                         >
                           <template #header>
@@ -524,7 +501,9 @@
                               <i
                                 class="pi pi-sparkles"
                                 :class="
-                                  selectedTraceIndex === tIdx && selectedTraceType === 'response' ? 'text-primary' : 'text-muted-color'
+                                  selectedTraceIndex === tIdx && selectedTraceType === 'response'
+                                    ? 'text-primary'
+                                    : 'text-muted-color'
                                 "
                               />
                               {{ $t('agent.editor.playground.traceAgentResponse') }}
@@ -744,13 +723,28 @@
                               v-if="traceEntry.usage"
                               class="flex items-center justify-between text-xs text-muted-color mt-1"
                             >
-                              <div v-if="(traceEntry.decisions || []).length" class="flex items-center gap-1">
+                              <div
+                                v-if="(traceEntry.decisions || []).length"
+                                class="flex items-center gap-1"
+                              >
                                 <i class="pi pi-history text-xs" />
                                 <span>
-                                  {{ ((arr) => arr[arr.length - 1]?.usage?.inputTokens || 0)(traceEntry.decisions) }}
+                                  {{
+                                    (arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
+                                      traceEntry.decisions,
+                                    )
+                                  }}
                                   {{ $t('agent.editor.playground.traceContextTokens') }}
                                   <template v-if="agent.execution.limits.maxTokens > 0">
-                                    ({{ Math.round((((arr) => arr[arr.length - 1]?.usage?.inputTokens || 0)(traceEntry.decisions) / agent.execution.limits.maxTokens) * 100) }}%)
+                                    ({{
+                                      Math.round(
+                                        ((arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
+                                          traceEntry.decisions,
+                                        ) /
+                                          agent.execution.limits.maxTokens) *
+                                          100,
+                                      )
+                                    }}%)
                                   </template>
                                 </span>
                               </div>
@@ -774,20 +768,33 @@
                     class="px-3 py-2 flex items-center justify-end text-xs text-muted-color border-t border-surface shrink-0"
                   >
                     <div class="flex items-center gap-2">
-                      <div v-if="(activeConversation.traceHistory[activeConversation.traceHistory.length - 1]?.decisions || []).length" class="flex items-center gap-1">
+                      <div
+                        v-if="
+                          (
+                            activeConversation.traceHistory[
+                              activeConversation.traceHistory.length - 1
+                            ]?.decisions || []
+                          ).length
+                        "
+                        class="flex items-center gap-1"
+                      >
                         <i class="pi pi-history text-xs" />
                         <span>
                           {{
-                            ((arr) => arr[arr.length - 1]?.usage?.inputTokens || 0)(
-                              activeConversation.traceHistory[activeConversation.traceHistory.length - 1]?.decisions || [],
+                            (arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
+                              activeConversation.traceHistory[
+                                activeConversation.traceHistory.length - 1
+                              ]?.decisions || [],
                             )
                           }}
                           {{ $t('agent.editor.playground.traceContextTokens') }}
                           <template v-if="agent.execution.limits.maxTokens > 0">
                             ({{
                               Math.round(
-                                (((arr) => arr[arr.length - 1]?.usage?.inputTokens || 0)(
-                                  activeConversation.traceHistory[activeConversation.traceHistory.length - 1]?.decisions || [],
+                                ((arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
+                                  activeConversation.traceHistory[
+                                    activeConversation.traceHistory.length - 1
+                                  ]?.decisions || [],
                                 ) /
                                   agent.execution.limits.maxTokens) *
                                   100,
@@ -872,11 +879,10 @@ import TabList from 'primevue/tablist'
 import TabPanel from 'primevue/tabpanel'
 import TabPanels from 'primevue/tabpanels'
 import Tabs from 'primevue/tabs'
-import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { components } from '@cortezaproject/corteza-vue-next'
-const { CInputLLM, CInputModel, CInputNamespace, CInputModule, CInputDelete } = components
+const { CInputLLM, CInputModel, CInputDelete, CInputUser } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -909,9 +915,6 @@ const chatPromptRefs = ref({})
 const traceCardRefs = ref({})
 const traceScrollContainer = ref(null)
 const isCreate = computed(() => !route.params.agentID)
-
-// Guardrails
-const guardrailInput = ref('')
 
 const statusOptions = computed(() => [
   { label: t('agent.list.status.active'), value: 'active' },
@@ -960,7 +963,7 @@ const emptyAgent = () => ({
     user: { enabled: true },
     system: {
       enabled: false,
-      serviceAccount: '',
+      serviceAccount: '0',
       inputSchema: null,
       outputFormat: '',
     },
@@ -1042,8 +1045,6 @@ async function handleSubmit() {
     saving.value = false
   }
 }
-
-
 
 async function handleDelete() {
   try {
@@ -1269,11 +1270,7 @@ function renderMarkdown(text) {
 
 // Guardrails helpers
 function addGuardrail() {
-  const val = guardrailInput.value.trim()
-  if (val && !agent.value.behavior.guardrails.includes(val)) {
-    agent.value.behavior.guardrails.push(val)
-    guardrailInput.value = ''
-  }
+  agent.value.behavior.guardrails.push('')
 }
 
 function removeGuardrail(index) {

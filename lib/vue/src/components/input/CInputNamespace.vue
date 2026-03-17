@@ -1,5 +1,5 @@
 <template>
-  <CInputSelect
+  <Select
     :model-value="selectedNamespace"
     @update:model-value="onSelect"
     :options="options"
@@ -7,19 +7,23 @@
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
-    @search="onSearch"
+    class="w-full"
+    filter
+    fluid
+    showClear
+    @show="onShow"
   >
     <template #option="{ option }">
       {{ option.name }}
     </template>
-  </CInputSelect>
+  </Select>
 </template>
 
 <script setup>
-import { debounce } from 'lodash-es'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import CInputSelect from './CInputSelect.vue'
+import { onBeforeUnmount, onMounted, ref, watch, defineOptions } from 'vue'
 import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
+
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
@@ -52,7 +56,7 @@ function getOptionLabel(namespace) {
   return namespace.name || namespace.slug || namespace.namespaceID
 }
 
-async function fetchNamespaces(query = '') {
+async function fetchNamespaces() {
   // Cancel previous request if pending
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
@@ -62,7 +66,7 @@ async function fetchNamespaces(query = '') {
   loading.value = true
   try {
     const { response, cancel } = store.searchNamespaces({
-      query,
+      query: '',
       limit: 100,
     })
     cancelCurrentRequest = cancel
@@ -80,15 +84,10 @@ async function fetchNamespaces(query = '') {
   }
 }
 
-const debouncedFetch = debounce((query) => {
-  fetchNamespaces(query)
-}, 200)
-
-function onSearch(query) {
-  if (!query) {
+function onShow() {
+  // Refresh options when dropdown opens if empty
+  if (options.value.length === 0) {
     fetchNamespaces()
-  } else {
-    debouncedFetch(query)
   }
 }
 
@@ -134,16 +133,16 @@ watch(() => props.modelValue, (newVal) => {
 }, { immediate: true })
 
 onMounted(() => {
+  fetchNamespaces()
+
   if (props.modelValue) {
     loadNamespaceById(props.modelValue)
   }
 })
 
 onBeforeUnmount(() => {
-  // Cancel any pending request
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
-  debouncedFetch.cancel()
 })
 </script>
