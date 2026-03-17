@@ -38,6 +38,7 @@ func loadTemplates(rTpl *template.Template, rootDir string) (*template.Template,
 		}
 
 		name := path[pfx:]
+		name = strings.ReplaceAll(name, "\\", "/")
 		rTpl, err = rTpl.New(name).Parse(string(b))
 
 		return err

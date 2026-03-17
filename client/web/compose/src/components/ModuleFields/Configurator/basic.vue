@@ -30,6 +30,62 @@
       {{ $t('defaultValue') }}
     </b-form-checkbox>
 
+    <b-form-checkbox
+      :checked="isGlobalFieldMaster"
+      @change="handleGlobalMasterToggle"
+    >
+      {{ $t('globalField.makeGlobal') }}
+    </b-form-checkbox>
+
+    <b-form-group
+      v-if="hasGlobalFields && !isGlobalFieldMaster"
+      label-class="text-primary"
+      class="mt-2"
+    >
+      <template #label>
+        {{ $t('globalField.selector.label') }}
+        <span
+          v-if="isLinkedToGlobal"
+          class="small text-info ml-1"
+        >
+          <font-awesome-icon
+            :icon="['far', 'copy']"
+          />
+          {{ $t('globalField.linked') }}
+        </span>
+      </template>
+      <b-input-group>
+        <b-form-select
+          v-model="selectedGlobalField"
+          :options="globalFieldOptions"
+        >
+          <template #first>
+            <b-form-select-option :value="null">
+              {{ $t('globalField.selector.placeholder') }}
+            </b-form-select-option>
+          </template>
+        </b-form-select>
+        <b-input-group-append>
+          <b-button
+            id="button-link-global"
+            variant="outline-primary"
+            :disabled="!selectedGlobalField"
+            @click="handleGlobalFieldSelect"
+          >
+            <font-awesome-icon
+              :icon="['far', 'copy']"
+            />
+          </b-button>
+          <b-tooltip
+            target="button-link-global"
+            :triggers="['hover', 'focus']"
+          >
+            {{ $t('globalField.selector.load') }}
+          </b-tooltip>
+        </b-input-group-append>
+      </b-input-group>
+    </b-form-group>
+
     <hr>
 
     <b-form-group
@@ -225,6 +281,7 @@ export default {
   data () {
     return {
       showValueExpr: false,
+      selectedGlobalField: null,
 
       mock: {
         show: true,
@@ -240,6 +297,7 @@ export default {
   computed: {
     ...mapGetters({
       getModuleByID: 'module/getByID',
+      getGlobalFieldsByKind: 'namespace/getGlobalFieldsByKind',
     }),
 
     noDescriptionEdit () {
@@ -270,6 +328,31 @@ export default {
 
     isNew () {
       return this.field.fieldID === NoID
+    },
+
+    isGlobalFieldMaster () {
+      const gf = this.field.config && this.field.config.globalField
+      return !!(gf && gf.namespaceID && gf.fieldID && gf.fieldID === this.field.fieldID)
+    },
+
+    isLinkedToGlobal () {
+      const gf = this.field.config && this.field.config.globalField
+      return !!(gf && gf.namespaceID && gf.fieldID && gf.fieldID !== this.field.fieldID)
+    },
+
+    globalFields () {
+      return this.getGlobalFieldsByKind(this.namespace.namespaceID, this.field.kind) || []
+    },
+
+    hasGlobalFields () {
+      return this.globalFields.length > 0
+    },
+
+    globalFieldOptions () {
+      return this.globalFields.map(gf => ({
+        value: gf.config.globalField.fieldID,
+        text: gf.name || gf.config.globalField.fieldID,
+      }))
     },
   },
 
@@ -390,6 +473,84 @@ export default {
       } else {
         this.initMocks()
       }
+    },
+
+    handleGlobalMasterToggle (value) {
+      if (!this.field.config) {
+        this.$set(this.field, 'config', {})
+      }
+
+      if (value) {
+        this.$set(this.field.config, 'globalField', {
+          namespaceID: this.namespace.namespaceID,
+          fieldID: this.field.fieldID,
+        })
+      } else {
+        this.$delete(this.field.config, 'globalField')
+      }
+    },
+
+    handleGlobalFieldSelect () {
+      const fieldID = this.selectedGlobalField
+      if (!fieldID) {
+        if (this.field.config && this.field.config.globalField) {
+          this.$delete(this.field.config, 'globalField')
+        }
+        return
+      }
+
+      const ns = this.$store.getters['namespace/getByID'](this.namespace.namespaceID)
+      if (!ns) return
+
+      const globalFields = ns.fields || []
+      const selectedField = globalFields.find(gf => gf.config.globalField.fieldID === fieldID)
+
+      if (!selectedField) {
+        return
+      }
+
+      const localHint = this.field.options.hint
+      const localDescription = this.field.options.description
+
+      this.field.isRequired = selectedField.isRequired !== undefined ? selectedField.isRequired : this.field.isRequired
+      this.field.isMulti = selectedField.isMulti !== undefined ? selectedField.isMulti : this.field.isMulti
+      this.field.defaultValue = (selectedField.defaultValue && selectedField.defaultValue.length)
+        ? [...selectedField.defaultValue]
+        : this.field.defaultValue
+      this.field.expressions = selectedField.expressions
+        ? { ...selectedField.expressions }
+        : this.field.expressions
+
+      const globalOptions = selectedField.options || {}
+      this.field.options = {
+        ...globalOptions,
+        hint: localHint,
+        description: localDescription,
+      }
+
+      if (selectedField.config) {
+        this.$set(this.field, 'config', {
+          ...selectedField.config,
+          globalField: {
+            namespaceID: this.namespace.namespaceID,
+            fieldID: selectedField.config.globalField.fieldID,
+          },
+        })
+      } else {
+        if (!this.field.config) {
+          this.$set(this.field, 'config', {})
+        }
+        this.$set(this.field.config, 'globalField', {
+          namespaceID: this.namespace.namespaceID,
+          fieldID: selectedField.fieldID,
+        })
+      }
+
+      if (this.field.defaultValue.length) {
+        this.initMocks(this.field.defaultValue)
+      }
+
+      this.showValueExpr = !!(this.field.expressions && this.field.expressions.value)
     },
   },
 }

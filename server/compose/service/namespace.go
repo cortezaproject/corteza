@@ -653,6 +653,112 @@ func (svc namespace) handleUpdate(ctx context.Context, upd *types.Namespace) nam
 			res.Meta = upd.Meta
 		}
 
+		fieldID := uint64(0)
+		for _, f := range res.Fields {
+			if f.FieldID > fieldID {
+				fieldID = f.FieldID
+			}
+		}
+
+		for i := range upd.Fields {
+			if upd.Fields[i].FieldID == 0 {
+				fieldID++
+				upd.Fields[i].FieldID = fieldID
+				changes |= namespaceChanged
+			}
+		}
+
+		if !reflect.DeepEqual(res.Fields, upd.Fields) {
+			updatedGlobalByID := make(map[uint64]*types.GlobalField, len(upd.Fields))
+			for i := range upd.Fields {
+				if upd.Fields[i].Config.GlobalField != nil {
+					if upd.Fields[i].Config.GlobalField.FieldID == 0 {
+						return namespaceUnchanged, NamespaceErrInvalidID()
+					}
+				}
+
+				if upd.Fields[i].FieldID != 0 {
+					updatedGlobalByID[upd.Fields[i].FieldID] = &upd.Fields[i]
+				}
+			}
+
+			if len(updatedGlobalByID) > 0 {
+				mm, _, merr := store.SearchComposeModules(ctx, svc.store, types.ModuleFilter{NamespaceID: res.ID})
+				if merr != nil {
+					return namespaceUnchanged, merr
+				}
+
+				moduleIDs := make([]uint64, len(mm))
+				for i, m := range mm {
+					moduleIDs[i] = m.ID
+				}
+
+				fieldSet, _, ferr := store.SearchComposeModuleFields(ctx, svc.store, types.ModuleFieldFilter{ModuleID: moduleIDs})
+				if ferr != nil {
+					return namespaceUnchanged, ferr
+				}
+
+				fieldsByModule := make(map[uint64]types.ModuleFieldSet)
+				for _, f := range fieldSet {
+					fieldsByModule[f.ModuleID] = append(fieldsByModule[f.ModuleID], f)
+				}
+
+				for _, m := range mm {
+					moduleFields := fieldsByModule[m.ID]
+					moduleChanged := false
+					for _, f := range moduleFields {
+						gf := f.Config.GlobalField
+						if gf == nil || gf.FieldID == 0 {
+							continue
+						}
+
+						updatedGF, linked := updatedGlobalByID[gf.FieldID]
+						if !linked {
+							continue
+						}
+
+						localHint, hasHint := f.Options["hint"]
+						localDesc, hasDesc := f.Options["description"]
+						localGlobalField := f.Config.GlobalField
+						f.Required = updatedGF.Required
+						f.Multi = updatedGF.Multi
+						f.DefaultValue = updatedGF.DefaultValue
+						f.Expressions = updatedGF.Expressions
+
+						newOptions := make(types.ModuleFieldOptions)
+						for k, v := range updatedGF.Options {
+							newOptions[k] = v
+						}
+						if hasHint {
+							newOptions["hint"] = localHint
+						}
+						if hasDesc {
+							newOptions["description"] = localDesc
+						}
+						f.Options = newOptions
+
+						f.Config = updatedGF.Config
+						f.Config.GlobalField = localGlobalField
+
+						if uferr := store.UpdateComposeModuleField(ctx, svc.store, f); uferr != nil {
+							return namespaceUnchanged, uferr
+						}
+
+						moduleChanged = true
+					}
+
+					if moduleChanged {
+						if serr := store.UpdateComposeModule(ctx, svc.store, m); serr != nil {
+							return namespaceUnchanged, serr
+						}
+					}
+				}
+			}
+
+			res.Fields = upd.Fields
+			changes |= namespaceChanged
+		}
+
 		if upd.Labels != nil {
 			if label.Changed(res.Labels, upd.Labels) {
 				changes |= namespaceLabelsChanged

@@ -11,9 +11,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/spf13/cast"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -57,6 +57,18 @@ type (
 		Privacy ModuleFieldConfigDataPrivacy `json:"privacy"`
 
 		RecordRevisions ModuleFieldConfigRecordRevisions `json:"recordRevisions"`
+
+		// GlobalField links this field to a namespace-level global field template.
+		// When FieldID is 0 (NoID), this field IS the global master and will be
+		// persisted to the namespace fields array on module save.
+		// When FieldID is non-zero, this field references (mirrors) that global field.
+		GlobalField *ModuleFieldConfigGlobalField `json:"globalField,omitempty"`
+	}
+
+	// ModuleFieldConfigGlobalField links a module field to a namespace-level global field.
+	ModuleFieldConfigGlobalField struct {
+		NamespaceID uint64 `json:"namespaceID,string,omitempty"`
+		FieldID     uint64 `json:"fieldID,string,omitempty"`
 	}
 
 	// ModuleFieldConfigDAL holds DAL configuration for a specific field

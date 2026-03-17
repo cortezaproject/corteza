@@ -30,3 +30,22 @@ func TestModuleFieldOptions_Int64Def(t *testing.T) {
 		})
 	}
 }
+
+func TestModuleFieldOptions_GlobalField(t *testing.T) {
+	tests := []struct {
+		name string
+		opt  ModuleFieldOptions
+		want interface{}
+	}{
+		{"existing", ModuleFieldOptions{"globalField": map[string]string{"handle": "test_field", "name": "Test Field"}}, map[string]string{"handle": "test_field", "name": "Test Field"}},
+		{"nil", ModuleFieldOptions{"globalField": nil}, nil},
+		{"unexisting", ModuleFieldOptions{}, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.opt.GlobalField(); got != tt.want {
+				t.Errorf("GlobalField() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

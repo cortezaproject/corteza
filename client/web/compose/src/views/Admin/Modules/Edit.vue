@@ -619,6 +619,7 @@ export default {
     ...mapGetters({
       pages: 'page/set',
       previousPage: 'ui/previousPage',
+      namespaces: 'namespace/set',
     }),
 
     title () {
@@ -763,6 +764,7 @@ export default {
       createModule: 'module/create',
       deleteModule: 'module/delete',
       deletePage: 'page/delete',
+      updateNamespace: 'namespace/update',
     }),
 
     handleNewField () {
@@ -783,6 +785,60 @@ export default {
       if (i > -1) {
         this.module.fields.splice(i, 1, field)
       }
+    },
+
+    async updateNamespaceGlobalFields (savedModule, namespaceSource) {
+      const { fields = [] } = savedModule
+      const ns = namespaceSource || this.namespace
+
+      const globalFields = fields.filter(f => {
+        return f.config && f.config.globalField
+      })
+
+      for (const field of globalFields) {
+        const globalFieldConfig = field.config.globalField
+        if (!globalFieldConfig.fieldID) {
+          console.error('Global field missing fieldID:', field.name)
+          throw new Error(this.$t('notification:module.globalField.invalid'))
+        }
+      }
+
+      const existingGlobalFields = ns.fields || []
+
+      const fieldsMap = new Map()
+      existingGlobalFields.forEach(field => {
+        if (field.fieldID !== NoID) {
+          fieldsMap.set(field.fieldID, field)
+        }
+      })
+
+      globalFields.forEach(field => {
+        const globalFieldConfig = field.config.globalField
+        const fieldID = globalFieldConfig.fieldID
+
+        const newGlobalField = {
+          fieldID,
+          name: field.label || field.name,
+          kind: field.kind,
+          options: field.options,
+          isRequired: field.isRequired,
+          isMulti: field.isMulti,
+          defaultValue: field.defaultValue ? [...field.defaultValue] : [],
+          expressions: field.expressions ? { ...field.expressions } : {},
+          config: field.config ? { ...field.config } : {},
+        }
+        fieldsMap.set(fieldID, newGlobalField)
+      })
+
+      const combinedFields = Array.from(fieldsMap.values())
+
+      return this.updateNamespace({
+        ...ns,
+        fields: combinedFields,
+      }).then((updatedNs) => {
+        this.$store.dispatch('namespace/load', { force: true })
+        return updatedNs.fields
+      })
     },
 
     onDiscoverySettingsSave (changes) {
@@ -840,6 +896,22 @@ export default {
             module = await this.updateModule({ ...module, fields })
           }
 
+          await Promise.all([
+            this.$store.dispatch('namespace/load', {
+              namespaceID: this.namespace.namespaceID,
+              force: true,
+            }),
+            this.findModuleByID({
+              ...module,
+              namespace: this.namespace,
+              force: true,
+            }),
+          ])
+
+          const currentNamespace = this.namespaces.find(n => n.namespaceID === this.namespace.namespaceID)
+
+          await this.updateNamespaceGlobalFields(module, currentNamespace || this.namespace)
+
           this.loading = true
 
           this.module = new compose.Module({ ...module }, this.namespace)
@@ -862,7 +934,23 @@ export default {
           toggleProcessing(false)
         })
       } else {
-        this.updateModule({ ...module, resourceTranslationLanguage }).then(module => {
+        this.updateModule({ ...module, resourceTranslationLanguage }).then(async module => {
+          await Promise.all([
+            this.$store.dispatch('namespace/load', {
+              namespaceID: this.namespace.namespaceID,
+              force: true,
+            }),
+            this.findModuleByID({
+              ...module,
+              namespace: this.namespace,
+              force: true,
+            }),
+          ])
+
+          const currentNamespace = this.namespaces.find(n => n.namespaceID === this.namespace.namespaceID)
+
+          await this.updateNamespaceGlobalFields(module, currentNamespace || this.namespace)
+
           this.module = new compose.Module({ ...module }, this.namespace)
           this.initialModuleState = this.module.clone()
 

@@ -368,6 +368,10 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
 
+				if f.Config.GlobalField != nil && f.Config.GlobalField.FieldID == 0 {
+					f.Config.GlobalField.FieldID = f.ID
+				}
+
 				// Assure validatorID
 				for i, v := range f.Expressions.Validators {
 					v.ValidatorID = uint64(i) + 1
@@ -771,6 +775,12 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 		if (len(upd.Fields) > 0 || len(res.Fields) > 0) && !reflect.DeepEqual(res.Fields, upd.Fields) {
 			changes |= moduleFieldsChanged
 			res.Fields = upd.Fields
+
+			for _, f := range res.Fields {
+				if f.Config.GlobalField != nil && f.Config.GlobalField.FieldID == 0 {
+					f.Config.GlobalField.FieldID = f.ID
+				}
+			}
 		}
 
 		// Assure validatorIDs
