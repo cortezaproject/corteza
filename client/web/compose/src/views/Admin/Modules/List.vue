@@ -1,4 +1,4 @@
-"<template>
+<template>
   <b-container
     fluid="xl"
     class="d-flex flex-column py-3"

@@ -1306,6 +1306,25 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 
 		switch strings.ToLower(k.Value) {
 
+		case "fields":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalNamespaceFieldsNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
 		case "id":
 			// Handle identifiers
 			err = y7s.DecodeScalar(n, "id", &auxNodeValue)
@@ -2405,14 +2424,13 @@ func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err e
 // Example:
 //
 // modules:
-//
-//	module1:
-//	  name: "module 1"
-//	  fields: ...
-//	  allow:
-//	    role1:
-//	      - read
-//	      - delete
+//   module1:
+//     name: "module 1"
+//     fields: ...
+//     allow:
+//       role1:
+//         - read
+//         - delete
 func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	return out, y7s.EachMap(n, func(role, op *yaml.Node) error {
 		out = append(out, &envoyx.Node{
@@ -2438,11 +2456,10 @@ func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet,
 // Example:
 //
 // allow:
-//
-//	role1:
-//	  corteza::system/:
-//	    - users.search
-//	    - users.create
+//   role1:
+//     corteza::system/:
+//       - users.search
+//       - users.create
 func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	// Handles role
 	return out, y7s.EachMap(n, func(role, perm *yaml.Node) error {

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 )
 
 type (
@@ -16,6 +16,7 @@ type (
 		Slug    string        `json:"slug"`
 		Enabled bool          `json:"enabled"`
 		Meta    NamespaceMeta `json:"meta"`
+		Fields  GlobalFields  `json:"fields"`
 
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
@@ -29,6 +30,29 @@ type (
 		Name string `json:"name"`
 	}
 
+	GlobalFields []GlobalField
+
+	GlobalField struct {
+		FieldID uint64 `json:"fieldID,string,omitempty"`
+
+		// Kind is the field type (e.g., "String", "Number", "Select", etc.)
+		Kind string `json:"kind"`
+
+		// Name is the display name for the global field
+		Name string `json:"name"`
+
+		// Options contains the field-type-specific configuration
+		// (excludes hint and description which are local per-field)
+		Options map[string]interface{} `json:"options,omitempty"`
+
+		// Complete field config
+		Required     bool              `json:"isRequired"`
+		Multi        bool              `json:"isMulti"`
+		DefaultValue RecordValueSet    `json:"defaultValue"`
+		Expressions  ModuleFieldExpr   `json:"expressions"`
+		Config       ModuleFieldConfig `json:"config"`
+	}
+
 	NamespaceFilter struct {
 		NamespaceID []string `json:"namespaceID"`
 
@@ -36,7 +60,7 @@ type (
 		Slug  string `json:"slug"`
 		Name  string `json:"name"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -92,3 +116,11 @@ func (set NamespaceSet) FindByHandle(handle string) *Namespace {
 
 func (nm *NamespaceMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
 func (nm NamespaceMeta) Value() (driver.Value, error) { return json.Marshal(nm) }
+
+func (gf *GlobalFields) Scan(src any) error { return sql.ParseJSON(src, gf) }
+func (gf GlobalFields) Value() (driver.Value, error) {
+	if gf == nil {
+		return "[]", nil
+	}
+	return json.Marshal(gf)
+}
