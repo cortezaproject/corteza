@@ -362,6 +362,51 @@ func (d *auxYamlDoc) unmarshalModuleFieldExpressionsNode(r *types.ModuleField, n
 	return
 }
 
+func (d *auxYamlDoc) unmarshalNamespaceFieldsNode(r *types.Namespace, n *yaml.Node) (refs map[string]envoyx.Ref, idents envoyx.Identifiers, err error) {
+	refs = map[string]envoyx.Ref{}
+	r.Fields = types.GlobalFields{}
+
+	err = y7s.EachSeq(n, func(fieldNode *yaml.Node) error {
+		var gf types.GlobalField
+		err = y7s.EachMap(fieldNode, func(k, v *yaml.Node) error {
+			switch strings.ToLower(k.Value) {
+			case "name":
+				gf.Name = v.Value
+			case "kind":
+				gf.Kind = v.Value
+			case "isrequired", "is_required":
+				var b bool
+				if err = v.Decode(&b); err != nil {
+					b = v.Value == "true"
+					err = nil
+				}
+				gf.Required = b
+			case "ismulti", "is_multi":
+				var b bool
+				if err = v.Decode(&b); err != nil {
+					b = v.Value == "true"
+					err = nil
+				}
+				gf.Multi = b
+			case "options":
+				return v.Decode(&gf.Options)
+			case "expressions":
+				return v.Decode(&gf.Expressions)
+			case "config":
+				return v.Decode(&gf.Config)
+			case "defaultvalue", "default_value":
+				return v.Decode(&gf.DefaultValue)
+			}
+			return nil
+		})
+		if gf.Kind != "" {
+			r.Fields = append(r.Fields, gf)
+		}
+		return err
+	})
+	return
+}
+
 func (d *auxYamlDoc) postProcessNestedModuleNodes(nn envoyx.NodeSet) (out envoyx.NodeSet, err error) {
 	// Get all references from all module fields
 	refs := make(map[string]envoyx.Ref)

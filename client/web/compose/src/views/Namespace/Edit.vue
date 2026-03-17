@@ -571,7 +571,7 @@ export default {
        * instructs store layer to add content-language header to the API request
        */
       const resourceTranslationLanguage = this.currentLanguage
-      let { namespaceID, name, slug, enabled, meta } = this.namespace
+      let { namespaceID, name, slug, enabled, meta, fields, labels } = this.namespace
       let assets
 
       // Firstly handle any new namespace assets
@@ -592,6 +592,8 @@ export default {
         slug,
         enabled,
         meta,
+        fields,
+        labels,
         resourceTranslationLanguage,
       }
 

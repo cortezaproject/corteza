@@ -407,6 +407,11 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 		return
 	}
 
+	auxFields, err := e.encodeNamespaceFieldsC(ctx, p, tt, node, res, res.Fields)
+	if err != nil {
+		return
+	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -416,6 +421,7 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 		"createdAt", auxCreatedAt,
 		"deletedAt", auxDeletedAt,
 		"enabled", res.Enabled,
+		"fields", auxFields,
 		"id", res.ID,
 		"meta", res.Meta,
 		"name", res.Name,
