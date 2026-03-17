@@ -343,6 +343,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultUser,
 	)
 
+	automation.NgAgentHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultAgenticRuntime,
+		DefaultAiConversation,
+	)
+
 	// ValuestoreHandler isn't (yet) a system thing but this initialization resides
 	// here just so we can easily register it
 
