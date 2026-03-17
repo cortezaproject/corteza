@@ -88,6 +88,34 @@ func (e YamlEncoder) encodeModuleFieldOptionsC(ctx context.Context, p envoyx.Enc
 	return nopt, nil
 }
 
+func (e YamlEncoder) encodeNamespaceFieldsC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, ns *types.Namespace, gf types.GlobalFields) (_ any, err error) {
+	out, _ := y7s.MakeSeq()
+
+	for _, gF := range ns.Fields {
+		var node *yaml.Node
+		node, err = y7s.MakeMap(
+			"name", gF.Name,
+			"kind", gF.Kind,
+			"options", gF.Options,
+			"isRequired", gF.Required,
+			"isMulti", gF.Multi,
+			"defaultValue", gF.DefaultValue,
+			"expressions", gF.Expressions,
+			"config", gF.Config,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		out, err = y7s.AddSeq(out, node)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return out, nil
+}
+
 func (e YamlEncoder) encodePageBlocksC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, pg *types.Page, bb types.PageBlocks) (_ any, err error) {
 	out, _ := y7s.MakeSeq()
 

@@ -181,3 +181,16 @@ func (opt ModuleFieldOptions) Index() *ModuleFieldOptionIndex {
 
 	return nil
 }
+
+// GlobalField returns global field configuration from options
+func (opt ModuleFieldOptions) GlobalField() interface{} {
+	if val, has := opt["globalField"]; has {
+		return val
+	}
+	return nil
+}
+
+// SetGlobalField sets global field configuration in options
+func (opt ModuleFieldOptions) SetGlobalField(value interface{}) {
+	opt["globalField"] = value
+}

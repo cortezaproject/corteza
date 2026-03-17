@@ -31,6 +31,7 @@ export interface Options {
     view: string;
     edit: string | undefined;
   };
+  [key: string]: unknown;
 }
 
 export const defaultOptions = (): Readonly<Options> => Object.freeze({
@@ -43,6 +44,11 @@ export const defaultOptions = (): Readonly<Options> => Object.freeze({
     edit: undefined,
   },
 })
+
+export interface GlobalFieldLink {
+  namespaceID: string;
+  fieldID: string;
+}
 
 interface Config {
   dal: {
@@ -57,6 +63,8 @@ interface Config {
   recordRevisions: {
     enabled: boolean;
   };
+
+  globalField?: GlobalFieldLink;
 }
 
 export interface Expressions {
