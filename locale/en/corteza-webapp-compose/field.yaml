@@ -175,6 +175,35 @@ kind:
     trimHash: Trim '#' from the Url
     trimQuestionMark: Trim '?' from the Url
     trimToDomain: Trim Url down to domain only
+  link:
+    example: 'Example: user@example.com, https://example.com, +1234567890'
+    dynamicMode: Dynamic detection
+    dynamicModeTooltip: Dynamic mode detects Email, URL, or Phone number
+    protocol: Protocol
+    protocolOptions:
+      none: None
+      mailto: 'Email'
+      tel: 'Phone'
+      url: 'URL'
+      skype: Skype
+      msteams: Microsoft Teams
+      slack: Slack
+      sms: SMS
+      facetime: Facetime
+      zoommtg: Zoom
+      whatsapp: WhatsApp
+      signal: Signal
+      fb: Facebook
+      fbmessenger: Facebook Messenger
+      instagram: Instagram
+      twitter: Twitter/X
+      youtube: YouTube
+      spotify: Spotify
+      tiktok: TikTok
+      discord: Discord
+      custom: Custom
+    customProtocol: Custom protocol (e.g., skype:)
+    preventToLink: Don't turn field into a link
   user:
     label: User
     na: N/A
