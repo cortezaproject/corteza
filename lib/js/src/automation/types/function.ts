@@ -7,6 +7,7 @@ export interface FunctionMeta {
   visual: { [_: string]: any }
   // List of webapps where function can be used, if omitted it can be used everywhere
   webapps: Array<string>
+  weight?: number
 }
 
 interface FunctionCtr extends Partial<Omit<Function, 'parameters' | 'results'>> {

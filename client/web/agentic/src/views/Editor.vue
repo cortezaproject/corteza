@@ -93,7 +93,10 @@
                       <label class="font-medium text-primary">
                         {{ $t('agent.editor.guardrails.label') }}
                       </label>
-                      <div class="flex flex-col gap-2">
+                      <small class="text-muted-color">
+                        {{ $t('agent.editor.guardrails.help') }}
+                      </small>
+                      <div class="flex flex-col gap-2 mt-2">
                         <div
                           v-for="(rule, idx) in agent.behavior.guardrails"
                           :key="idx"
@@ -118,18 +121,18 @@
                             :label="$t('agent.editor.guardrails.add')"
                             icon="pi pi-plus"
                             severity="secondary"
-                            text
+                            outlined
                             size="small"
                             @click="addGuardrail"
                           />
                         </div>
                       </div>
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.guardrails.help') }}
-                      </small>
                     </div>
+                  </div>
+                </Panel>
 
-                    <!-- Inject system context toggle -->
+                <Panel :header="$t('agent.editor.panels.knowledgeBase')" toggleable>
+                  <div class="grid grid-cols-1 gap-4">
                     <div
                       class="w-full md:w-1/2 flex items-start gap-3 p-3 border border-surface rounded-lg"
                     >
@@ -259,7 +262,7 @@
                     </div>
                   </div>
                 </Panel>
-                <Panel :header="$t('agent.editor.panels.access')" toggleable>
+                <Panel :header="$t('agent.editor.panels.tools')" toggleable>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2 pt-2">
                       <div class="flex flex-col gap-1 mb-2">
@@ -345,7 +348,6 @@
                         {{ $t('agent.editor.serviceAccount.help') }}
                       </small>
                     </div>
-
                   </div>
                 </Panel>
               </TabPanel>

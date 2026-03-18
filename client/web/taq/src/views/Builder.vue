@@ -92,7 +92,7 @@
     <div class="shrink-0 z-10 body-bg">
       <CToolbar>
         <template #start>
-          <CRouterLinkButton to="/" icon="pi pi-arrow-left" severity="secondary" />
+          <Button :label="$t('general.label.back')" icon="pi pi-arrow-left" severity="secondary" @click="$router.push('/')" />
         </template>
         <template #center>
           <!-- Zoom -->
@@ -237,7 +237,7 @@ import { useFlowEditor } from '@/composables/useFlowEditor'
 import { useAutomationStore } from '@/stores/automation'
 import { components } from '@cortezaproject/corteza-vue-next'
 
-const { CToolbar, CRouterLinkButton } = components
+const { CToolbar } = components
 
 import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'

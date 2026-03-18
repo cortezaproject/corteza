@@ -477,25 +477,33 @@ llmProviders:
       edit: Edit LLM Provider
     tabs:
       basic: Basic Information
-      config: Configuration
+      config: Default Configuration
     info:
       handle: Handle
       handle.invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       provider: Provider
+      providerOther: Other (Custom URL)
       status: Status
       statusOptions:
         active: Active
         inactive: Inactive
+        unauthorized: Unauthorized
       short: Name
       description: Description
       apiKey: API Key
+      updateKey: Update API Key
       delete: Delete
     config:
       promptURL: Prompt URL
-      model: Model
+      promptURLHelp: Base URL for the provider's API endpoint
+      model: Default Model
+      modelHelp: Default model to use when not specified by the agent
       temperature: Temperature
+      temperatureHelp: Controls randomness. Lower values produce more focused outputs
       maxTokens: Max Tokens
+      maxTokensHelp: Maximum number of tokens to generate per request
       timeout: Timeout
+      timeoutHelp: Maximum time to wait for a response (e.g. 30s, 1m)
 
 connections:
   list:

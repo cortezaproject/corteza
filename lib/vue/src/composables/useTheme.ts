@@ -190,45 +190,6 @@ export function getTheme(theme: Theme) {
         border-radius: var(--p-card-border-radius);
         box-shadow: var(--p-overlay-popover-shadow);
       }
-
-      /* Stacked toast card-deck effect */
-      .p-toast {
-        gap: 0 !important;
-      }
-
-      .p-toast .p-toast-message {
-        position: relative;
-        transition: all 0.3s ease;
-        transform-origin: bottom center;
-      }
-
-      /* 1st toast (oldest): fully visible, on top */
-      .p-toast .p-toast-message:first-child {
-        z-index: 3;
-      }
-
-      /* 2nd toast: tucks under the 1st, small peek below */
-      .p-toast .p-toast-message:nth-child(2) {
-        margin-top: -2.75rem;
-        transform: scale(0.96);
-        opacity: 0.7;
-        z-index: 2;
-        pointer-events: none;
-      }
-
-      /* 3rd toast: tucks under the 2nd, smaller peek */
-      .p-toast .p-toast-message:nth-child(3) {
-        margin-top: -2.75rem;
-        transform: scale(0.92);
-        opacity: 0.4;
-        z-index: 1;
-        pointer-events: none;
-      }
-
-      /* Hide all toasts beyond the 3rd */
-      .p-toast .p-toast-message:nth-child(n+4) {
-        display: none;
-      }
     `,
   })
 }

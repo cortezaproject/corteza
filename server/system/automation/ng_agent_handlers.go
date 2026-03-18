@@ -81,8 +81,9 @@ func (h ngAgentHandler) Prompt() atypes.ConstructFunction {
 		Groups: []string{"Agents"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Prompt agent",
-			Description: "Sends a prompt to an agent and returns the response with a conversation ID",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "bot"},
+			Description: "Send a prompt to an agent",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "microchip-ai"},
+			Weight:      1,
 		},
 
 		Labels: map[string]string{"agent": "step,workflow"},
@@ -118,7 +119,7 @@ func (h ngAgentHandler) Prompt() atypes.ConstructFunction {
 				Elements: []atypes.SectionElement{
 					{
 						Input: atypes.SectionElementInput{
-							Type:     "ID",
+							Type:     "AgentSelector",
 							Label:    "Agent",
 							Argument: "agentID",
 						},
@@ -181,8 +182,9 @@ func (h ngAgentHandler) Continue() atypes.ConstructFunction {
 		Groups: []string{"Agents"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Continue agent conversation",
-			Description: "Continues an existing agent conversation using a previously returned conversation ID",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "bot"},
+			Description: "Continue an existing agent conversation",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "microchip-ai"},
+			Weight:      2,
 		},
 
 		Labels: map[string]string{"agent": "step,workflow"},

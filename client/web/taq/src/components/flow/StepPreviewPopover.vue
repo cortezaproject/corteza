@@ -1,82 +1,81 @@
 <template>
   <Teleport to=".vue-flow__nodes">
-  <Transition name="popover-fade">
-  <div
-    v-if="visible && hasContent"
-    ref="popoverEl"
-    class="absolute z-[9999] bg-surface border-[0.5px] border-surface rounded-xl shadow-lg p-3 w-[260px] max-h-[280px] overflow-auto transition-opacity duration-150"
-    :class="[
-      !alwaysShow ? 'pointer-events-none' : '',
-      hiddenByHover ? 'opacity-0 pointer-events-none' : '',
-    ]"
-    :style="positionStyle"
-    @mouseenter="onPreviewEnter"
-  >
-
-    <!-- Branch configuration preview -->
-    <div v-if="node?.type === 'branch'" class="flex flex-col gap-1.5">
-      <!-- Gateway type -->
-      <div class="flex items-baseline gap-2 text-xs">
-        <span class="text-primary shrink-0">{{ $t('builder.branch.gatewayType') }}:</span>
-        <span class="text-color-emphasis">
-          {{ gatewayLabel }}
-        </span>
-      </div>
-      <!-- Branch paths -->
-      <div v-if="branchPaths.length" class="w-full rounded-lg border border-surface overflow-hidden">
-        <div class="flex text-xs font-medium text-muted-color bg-emphasis">
-          <span class="px-2 py-1 flex-1">{{ $t('builder.configSidebar.branches') }}</span>
-          <span class="px-2 py-1 flex-1">{{ $t('builder.branch.condition') }}</span>
-        </div>
-        <div
-          v-for="path in branchPaths"
-          :key="path.edgeId"
-          class="flex text-xs border-t border-surface"
-        >
-          <span class="px-2 py-1 text-muted-color truncate flex-1" :title="path.label">
-            {{ path.label }}
-          </span>
-          <span
-            class="px-2 py-1 truncate flex-1"
-            :class="path.expr ? 'font-mono text-color-emphasis' : 'italic text-muted-color'"
-            :title="path.expr || ''"
-          >
-            {{ path.expr || path.defaultLabel }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Configuration preview list (steps / triggers) -->
-    <div v-else-if="previewItems.length" class="flex flex-col gap-2">
+    <Transition name="popover-fade">
       <div
-        v-for="item in previewItems"
-        :key="item.key"
-        class="flex flex-col gap-0.5 text-xs"
+        v-if="visible && hasContent"
+        ref="popoverEl"
+        class="absolute z-[9999] bg-surface border-[0.5px] border-surface rounded-xl shadow-lg p-3 max-h-[280px] overflow-auto transition-opacity duration-150"
+        :class="[
+          !alwaysShow ? 'pointer-events-none' : '',
+          hiddenByHover ? 'opacity-0 pointer-events-none' : '',
+        ]"
+        :style="positionStyle"
+        @mouseenter="onPreviewEnter"
       >
-        <span class="text-primary">{{ item.label }}</span>
+        <!-- Branch configuration preview -->
+        <div v-if="node?.type === 'branch'" class="flex flex-col gap-2">
+          <!-- Gateway type -->
+          <div class="flex items-baseline gap-2 text-xs">
+            <span class="text-primary shrink-0">{{ $t('builder.branch.gatewayType') }}:</span>
+            <span class="text-color-emphasis">
+              {{ gatewayLabel }}
+            </span>
+          </div>
+          <!-- Branch paths -->
+          <div
+            v-if="branchPaths.length"
+            class="w-full rounded-lg border border-surface overflow-hidden"
+          >
+            <div class="flex text-xs font-medium text-muted-color bg-emphasis">
+              <span class="px-2 py-1 flex-1">{{ $t('builder.configSidebar.branches') }}</span>
+              <span class="px-2 py-1 flex-1">{{ $t('builder.branch.condition') }}</span>
+            </div>
+            <div
+              v-for="path in branchPaths"
+              :key="path.edgeId"
+              class="flex text-xs border-t border-surface"
+            >
+              <span class="px-2 py-1 text-muted-color truncate flex-1" :title="path.label">
+                {{ path.label }}
+              </span>
+              <span
+                class="px-2 py-1 truncate flex-1"
+                :class="path.expr ? 'font-mono text-color-emphasis' : 'italic text-muted-color'"
+                :title="path.expr || ''"
+              >
+                {{ path.expr || path.defaultLabel }}
+              </span>
+            </div>
+          </div>
+        </div>
 
-        <!-- Reference value -->
-        <CViewReference
-          v-if="item.isReference"
-          :scope="item.refScope"
-          :source="item.refSource"
-          :nodes="nodes"
-        />
+        <!-- Configuration preview list (steps / triggers) -->
+        <div v-else-if="previewItems.length" class="flex flex-col gap-3">
+          <div v-for="item in previewItems" :key="item.key" class="flex flex-col gap-0.5 text-xs">
+            <span class="text-primary">{{ item.label }}</span>
 
-        <!-- Type-resolved value -->
-        <component
-          v-else
-          :is="item.viewerComponent"
-          :model-value="item.value"
-          v-bind="item.viewerProps"
-        />
+            <!-- Reference value -->
+            <CViewReference
+              v-if="item.isReference"
+              :scope="item.refScope"
+              :source="item.refSource"
+              :nodes="nodes"
+              class="text-xs"
+            />
+
+            <!-- Type-resolved value -->
+            <component
+              v-else
+              :is="item.viewerComponent"
+              :model-value="item.value"
+              v-bind="item.viewerProps"
+            />
+          </div>
+        </div>
+
+        <!-- No config: hide preview entirely instead of showing a message -->
       </div>
-    </div>
-
-    <!-- No config: hide preview entirely instead of showing a message -->
-  </div>
-  </Transition>
+    </Transition>
   </Teleport>
 </template>
 
@@ -135,66 +134,80 @@ function onPreviewEnter() {
 const positionStyle = ref({})
 
 // Calculate position using VueFlow coordinates (node.position)
-watch(() => props.visible, async (isVisible) => {
-  if (!isVisible) return
+watch(
+  () => props.visible,
+  async isVisible => {
+    if (!isVisible) return
 
-  isFlippedUp.value = false
-  hiddenByHover.value = false
+    isFlippedUp.value = false
+    hiddenByHover.value = false
 
-  if (!props.node?.position) return
+    if (!props.node?.position) return
 
-  const nodeEl = props.nodeEl?.$el || props.nodeEl
-  const nodeW = NODE_DIMENSIONS.WIDTH
-  const nodeH = nodeEl ? nodeEl.offsetHeight : NODE_DIMENSIONS.HEIGHT
-  const popoverW = 260
-  const gap = 6
-
-  // Center below node in VueFlow coordinate space
-  const x = props.node.position.x + (nodeW / 2) - (popoverW / 2)
-  const y = props.node.position.y + nodeH + gap
-
-  positionStyle.value = {
-    top: `${y}px`,
-    left: `${x}px`,
-  }
-
-  // After render, check viewport clipping and flip if needed
-  await nextTick()
-  await nextTick()
-  const el = popoverEl.value
-  if (!el) return
-
-  const rect = el.getBoundingClientRect()
-  const vh = window.innerHeight
-  const vw = window.innerWidth
-
-  // If clipped on bottom, flip above
-  if (rect.bottom > vh - 8) {
-    const popoverH = el.offsetHeight
-    const yAbove = props.node.position.y - popoverH - gap
-    positionStyle.value = {
-      top: `${yAbove}px`,
-      left: `${x}px`,
-    }
-    isFlippedUp.value = true
-  }
-
-  // If clipped on left/right, re-check and adjust
-  const rect2 = el.getBoundingClientRect()
-  if (rect2.left < 8 || rect2.right > vw - 8) {
-    // Re-center on the node using screen coords
     const nodeEl = props.nodeEl?.$el || props.nodeEl
-    if (nodeEl) {
-      const nodeRect = nodeEl.getBoundingClientRect()
-      const shift = (nodeRect.left + nodeRect.width / 2 - rect2.width / 2) - rect2.left
+    const nodeW = NODE_DIMENSIONS.WIDTH
+    const popoverMaxW = nodeW * 2
+    const nodeH = nodeEl ? nodeEl.offsetHeight : NODE_DIMENSIONS.HEIGHT
+    const gap = 6
+
+    const y = props.node.position.y + nodeH + gap
+
+    // 1. Initial Guess (just set position to node's position to let it render)
+    positionStyle.value = {
+      top: `${y}px`,
+      left: `${props.node.position.x}px`,
+      width: `max-content`,
+      minWidth: `${nodeW}px`,
+      maxWidth: `${popoverMaxW}px`,
+    }
+
+    // After render, measure actual width for true centering, and check clipping
+    await nextTick()
+    await nextTick()
+    const el = popoverEl.value
+    if (!el) return
+
+    const actualPopoverW = el.offsetWidth
+    const cx = props.node.position.x + nodeW / 2 - actualPopoverW / 2
+
+    // Apply exact centering
+    positionStyle.value = {
+      ...positionStyle.value,
+      left: `${cx}px`,
+    }
+
+    const rect = el.getBoundingClientRect()
+    const vh = window.innerHeight
+    const vw = window.innerWidth
+
+    // If clipped on bottom, flip above
+    if (rect.bottom > vh - 8) {
+      const popoverH = el.offsetHeight
+      const yAbove = props.node.position.y - popoverH - gap
       positionStyle.value = {
         ...positionStyle.value,
-        left: `${parseFloat(positionStyle.value.left) + shift}px`,
+        top: `${yAbove}px`,
+        left: `${x}px`,
+      }
+      isFlippedUp.value = true
+    }
+
+    // If clipped on left/right, re-check and adjust
+    const rect2 = el.getBoundingClientRect()
+    if (rect2.left < 8 || rect2.right > vw - 8) {
+      // Re-center on the node using screen coords
+      const nodeEl = props.nodeEl?.$el || props.nodeEl
+      if (nodeEl) {
+        const nodeRect = nodeEl.getBoundingClientRect()
+        const shift = nodeRect.left + nodeRect.width / 2 - rect2.width / 2 - rect2.left
+        positionStyle.value = {
+          ...positionStyle.value,
+          left: `${parseFloat(positionStyle.value.left) + shift}px`,
+        }
       }
     }
-  }
-})
-
+  },
+)
 
 /**
  * Whether the preview has any content worth displaying
@@ -429,10 +442,14 @@ const previewItems = computed(() => {
 
 <style scoped>
 .popover-fade-enter-active {
-  transition: opacity 150ms ease-out, transform 150ms ease-out;
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
 }
 .popover-fade-leave-active {
-  transition: opacity 100ms ease-in, transform 100ms ease-in;
+  transition:
+    opacity 100ms ease-in,
+    transform 100ms ease-in;
 }
 .popover-fade-enter-from {
   opacity: 0;

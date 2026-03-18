@@ -40,14 +40,20 @@
       </template>
 
       <template #body-provider="{ data }">
-        <Tag :value="data.provider || '—'" />
+        <span v-if="data.provider">
+          {{ data.provider === 'openai' ? 'OpenAI' : (data.provider === 'anthropic' ? 'Anthropic' : (data.provider === 'mistral' ? 'Mistral' : 'Other')) }}
+        </span>
+        <span v-else>—</span>
       </template>
 
       <template #body-status="{ data }">
         <Tag
-          :value="data.status || '—'"
-          :severity="data.status === 'active' ? 'success' : 'secondary'"
+          v-if="data.status"
+          :value="$t(`system.llmProviders.editor.info.statusOptions.${data.status}`)"
+          :severity="data.status === 'active' ? 'success' : (data.status === 'unauthorized' ? 'danger' : 'warn')"
+          :icon="data.status === 'active' ? 'pi pi-check-circle' : (data.status === 'unauthorized' ? 'pi pi-times-circle' : 'pi pi-pause-circle')"
         />
+        <span v-else>—</span>
       </template>
 
       <template #body-createdAt="{ data }">

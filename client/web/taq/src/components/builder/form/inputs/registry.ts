@@ -7,6 +7,7 @@ import {
   CInputModule,
   CInputRecord,
   CInputDateTime,
+  CInputAgent,
 } from '@cortezaproject/corteza-vue-next/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
 
@@ -15,6 +16,10 @@ import CInputFieldValueMap from './CInputFieldValueMap.vue'
  * Used by DynamicInput to resolve automation step config inputs.
  */
 export const INPUT_REGISTRY: Record<string, Component> = {
+  // Agent selectors
+  AgentSelector: CInputAgent,
+  Agent: CInputAgent,
+
   // User selectors
   UserSelector: CInputUser,
   User: CInputUser,

@@ -385,3 +385,9 @@ llmProvider:
   delete:
     success: LLM Provider deleted
     error: LLM Provider delete failed
+  validate:
+    success: LLM Provider connection is valid
+    error: LLM Provider validation failed
+  apiKeyUpdate:
+    success: API key updated successfully
+    error: API key update failed

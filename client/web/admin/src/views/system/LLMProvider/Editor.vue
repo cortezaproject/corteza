@@ -15,143 +15,100 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
-      <Card
-        :pt="{
-          body: { class: 'p-0 flex flex-col h-full min-h-0' },
-          content: { class: 'p-0 flex flex-col h-full min-h-0' },
-        }"
-        class="overflow-hidden flex-1 min-h-0 flex flex-col"
-      >
-        <template #content>
-          <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
-            <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.llmProviders.editor.tabs.basic') }}</Tab>
-              <Tab value="config">{{ $t('system.llmProviders.editor.tabs.config') }}</Tab>
-            </TabList>
+    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end items-center">
+        <Tag
+          :value="$t(`system.llmProviders.editor.info.statusOptions.${llmProvider.status}`)"
+          :severity="
+            llmProvider.status === 'active'
+              ? 'success'
+              : llmProvider.status === 'unauthorized'
+                ? 'danger'
+                : 'warn'
+          "
+          :icon="
+            llmProvider.status === 'active'
+              ? 'pi pi-check-circle'
+              : llmProvider.status === 'unauthorized'
+                ? 'pi pi-times-circle'
+                : 'pi pi-pause-circle'
+          "
+        />
+        <Divider layout="vertical" />
+        <Button
+          :label="$t('system.llmProviders.editor.info.updateKey')"
+          icon="pi pi-key"
+          severity="secondary"
+          size="small"
+          outlined
+          @click="openApiKeyDialog"
+        />
+      </div>
 
-            <TabPanels class="flex-1 overflow-y-auto min-h-0">
-              <TabPanel value="basic">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField name="short" class="flex flex-col gap-2">
-                    <label for="short" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.info.short') }}
-                    </label>
-                    <InputText id="short" name="short" v-model="llmProvider.meta.short" />
-                  </FormField>
+      <Panel :header="$t('system.llmProviders.editor.tabs.basic')" toggleable :collapsed="false">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField name="short" class="flex flex-col gap-2">
+            <label for="short" class="font-medium text-primary">
+              {{ $t('system.llmProviders.editor.info.short') }}
+            </label>
+            <InputText id="short" name="short" v-model="llmProvider.meta.short" />
+          </FormField>
 
-                  <FormField name="handle" class="flex flex-col gap-2">
-                    <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.info.handle') }} *
-                    </label>
-                    <InputText id="handle" name="handle" v-model="llmProvider.handle" />
-                    <Message
-                      v-if="$form.handle?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.handle.error?.message }}
-                    </Message>
-                  </FormField>
+          <FormField name="handle" class="flex flex-col gap-2">
+            <label for="handle" class="font-medium text-primary">
+              {{ $t('system.llmProviders.editor.info.handle') }}
+            </label>
+            <InputText id="handle" name="handle" v-model="llmProvider.handle" />
+            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
+              {{ $form.handle.error?.message }}
+            </Message>
+          </FormField>
 
-                  <div class="flex flex-col gap-2">
-                    <label for="provider" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.info.provider') }} *
-                    </label>
-                    <Select
-                      id="provider"
-                      v-model="llmProvider.provider"
-                      :options="providerOptions"
-                      option-label="label"
-                      option-value="value"
-                    />
-                  </div>
+          <div class="flex flex-col gap-2 md:col-span-2">
+            <label for="description" class="font-medium text-primary">
+              {{ $t('system.llmProviders.editor.info.description') }}
+            </label>
+            <Textarea
+              id="description"
+              v-model="llmProvider.meta.description"
+              rows="3"
+              auto-resize
+            />
+          </div>
 
-                  <div class="flex flex-col gap-2">
-                    <label for="status" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.info.status') }}
-                    </label>
-                    <Select
-                      id="status"
-                      v-model="llmProvider.status"
-                      :options="statusOptions"
-                      option-label="label"
-                      option-value="value"
-                    />
-                  </div>
+          <Divider class="md:col-span-2" />
 
-                  <div class="flex flex-col gap-2 md:col-span-2">
-                    <label for="description" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.info.description') }}
-                    </label>
-                    <Textarea
-                      id="description"
-                      v-model="llmProvider.meta.description"
-                      rows="3"
-                      auto-resize
-                    />
-                  </div>
+          <div class="flex flex-col gap-2">
+            <label for="provider" class="font-medium text-primary">
+              {{ $t('system.llmProviders.editor.info.provider') }} *
+            </label>
+            <Select
+              id="provider"
+              v-model="llmProvider.provider"
+              :options="providerOptions"
+              option-label="label"
+              option-value="value"
+            />
+          </div>
 
-                  <div v-if="!isEdit" class="flex flex-col gap-2 md:col-span-2">
-                    <label for="apiKey" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.info.apiKey') }} *
-                    </label>
-                    <InputText id="apiKey" v-model="apiKey" />
-                  </div>
-                </div>
-              </TabPanel>
+          <div class="flex flex-col gap-1">
+            <label for="promptURL" class="font-medium text-primary">
+              {{ $t('system.llmProviders.editor.config.promptURL') }}
+            </label>
+            <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
+            <small class="text-muted-color">
+              {{ $t('system.llmProviders.editor.config.promptURLHelp') }}
+            </small>
+          </div>
 
-              <TabPanel value="config">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="flex flex-col gap-2 md:col-span-2">
-                    <label for="promptURL" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.config.promptURL') }}
-                    </label>
-                    <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="model" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.config.model') }}
-                    </label>
-                    <InputText id="model" v-model="llmProvider.config.model" />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="temperature" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.config.temperature') }}
-                    </label>
-                    <InputNumber
-                      id="temperature"
-                      v-model="llmProvider.config.temperature"
-                      :min="0"
-                      :max="2"
-                      :step="0.1"
-                      :minFractionDigits="1"
-                      :maxFractionDigits="2"
-                    />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="maxTokens" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.config.maxTokens') }}
-                    </label>
-                    <InputNumber id="maxTokens" v-model="llmProvider.config.maxTokens" :min="0" />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="timeout" class="font-medium text-primary">
-                      {{ $t('system.llmProviders.editor.config.timeout') }}
-                    </label>
-                    <InputText id="timeout" v-model="llmProvider.config.timeout" />
-                  </div>
-                </div>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </template>
-      </Card>
+          <div v-if="!isEdit" class="flex flex-col gap-2">
+            <label for="apiKey" class="font-medium text-primary">
+              {{ $t('system.llmProviders.editor.info.apiKey') }} *
+            </label>
+            <InputText id="apiKey" v-model="apiKey" />
+          </div>
+        </div>
+      </Panel>
     </div>
 
     <div class="shrink-0 border-t border-surface bg-surface">
@@ -181,6 +138,31 @@
       </div>
     </div>
   </Form>
+
+  <Dialog
+    v-model:visible="apiKeyDialog"
+    :header="$t('system.llmProviders.editor.info.updateKey')"
+    modal
+    class="w-full max-w-lg"
+  >
+    <div class="flex flex-col gap-2">
+      <label for="dialogApiKey" class="font-medium text-primary">
+        {{ $t('system.llmProviders.editor.info.apiKey') }}
+      </label>
+      <InputText id="dialogApiKey" v-model="apiKey" autocomplete="off" />
+    </div>
+
+    <template #footer>
+      <Button :label="$t('general.label.cancel')" severity="secondary" @click="closeApiKeyDialog" />
+      <Button
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="savingApiKey"
+        :disabled="!apiKey"
+        @click="handleUpdateApiKey"
+      />
+    </template>
+  </Dialog>
 </template>
 
 <script setup>
@@ -190,7 +172,7 @@ import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputModel } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -202,9 +184,10 @@ const $SystemAPI = inject('$SystemAPI')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const savingApiKey = ref(false)
+const apiKeyDialog = ref(false)
 const llmProvider = ref(null)
 const apiKey = ref('')
-const activeTab = ref('basic')
 
 const isEdit = computed(() => !!route.params.llmProviderID)
 
@@ -214,15 +197,21 @@ const pageTitle = computed(() =>
     : t('system.llmProviders.editor.title.create'),
 )
 
+const providerDefaultURLs = {
+  mistral: 'https://api.mistral.ai/v1',
+  anthropic: 'https://api.anthropic.com',
+}
+
 const providerOptions = computed(() => [
-  { label: 'OpenAI', value: 'openai' },
-  { label: 'Anthropic', value: 'anthropic' },
   { label: 'Mistral', value: 'mistral' },
+  { label: 'Anthropic', value: 'anthropic' },
+  { label: t('system.llmProviders.editor.info.providerOther'), value: 'other' },
 ])
 
 const statusOptions = computed(() => [
   { label: t('system.llmProviders.editor.info.statusOptions.active'), value: 'active' },
   { label: t('system.llmProviders.editor.info.statusOptions.inactive'), value: 'inactive' },
+  { label: t('system.llmProviders.editor.info.statusOptions.unauthorized'), value: 'unauthorized' },
 ])
 
 const initialValues = computed(() => ({
@@ -231,10 +220,6 @@ const initialValues = computed(() => ({
 
 const resolver = ref(({ values }) => {
   const errors = {}
-
-  if (!values.handle || values.handle.trim().length === 0) {
-    errors.handle = [{ message: t('general.label.required') }]
-  }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
     errors.handle = [
@@ -248,7 +233,12 @@ const resolver = ref(({ values }) => {
 async function loadLlmProvider() {
   const llmProviderID = route.params.llmProviderID
   if (!llmProviderID) {
-    llmProvider.value = new system.LlmProvider({ status: 'active' })
+    const defaultProvider = providerOptions.value[0]?.value || ''
+    llmProvider.value = new system.LlmProvider({
+      status: 'active',
+      provider: defaultProvider,
+      config: { temperature: 0.7, promptURL: providerDefaultURLs[defaultProvider] || '' },
+    })
     return
   }
 
@@ -312,6 +302,70 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+function openApiKeyDialog() {
+  apiKey.value = ''
+  apiKeyDialog.value = true
+}
+
+function closeApiKeyDialog() {
+  apiKey.value = ''
+  apiKeyDialog.value = false
+}
+
+async function handleUpdateApiKey() {
+  savingApiKey.value = true
+  try {
+    const payload = {
+      llmProviderID: llmProvider.value.llmProviderID,
+      handle: llmProvider.value.handle,
+      provider: llmProvider.value.provider,
+      status: llmProvider.value.status,
+      meta: llmProvider.value.meta,
+      config: llmProvider.value.config,
+      apiKey: apiKey.value,
+    }
+    const raw = await $SystemAPI.llmProviderUpdate(payload)
+    llmProvider.value = new system.LlmProvider(raw)
+    apiKey.value = ''
+    apiKeyDialog.value = false
+    $toast.toastSuccess(t('notification.llmProvider.apiKeyUpdate.success'))
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.llmProvider.apiKeyUpdate.error'))(e)
+  } finally {
+    savingApiKey.value = false
+  }
+}
+
+// Prefill prompt URL when provider changes
+watch(
+  () => llmProvider.value?.provider,
+  newProvider => {
+    if (!llmProvider.value || !newProvider) return
+    const currentURL = llmProvider.value.config?.promptURL || ''
+    const defaultURLs = Object.values(providerDefaultURLs)
+    // Only prefill if empty or is another provider's default
+    if (!currentURL || defaultURLs.includes(currentURL)) {
+      if (!llmProvider.value.config) llmProvider.value.config = {}
+      llmProvider.value.config.promptURL = providerDefaultURLs[newProvider] || ''
+    }
+  },
+)
+
+// Switch provider when URL is manually changed
+watch(
+  () => llmProvider.value?.config?.promptURL,
+  newURL => {
+    if (!llmProvider.value || !newURL) return
+    // Find if URL matches a known provider
+    const matchedProvider = Object.entries(providerDefaultURLs).find(([, url]) => url === newURL)
+    if (matchedProvider) {
+      llmProvider.value.provider = matchedProvider[0]
+    } else if (llmProvider.value.provider !== 'other') {
+      llmProvider.value.provider = 'other'
+    }
+  },
+)
 
 onMounted(() => loadLlmProvider())
 watch(

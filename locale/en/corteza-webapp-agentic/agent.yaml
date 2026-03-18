@@ -28,7 +28,9 @@ editor:
   panels:
     general: General
     behavior: Behavior
+    knowledgeBase: Knowledge Base
     execution: Execution
+    tools: Tools
     access: Access
     invocation: Invocation
   name:

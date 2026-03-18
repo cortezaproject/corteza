@@ -115,6 +115,7 @@ const GROUP_ICONS = {
   logic: 'pi pi-sitemap',
   general: 'pi pi-bolt',
   system: 'pi pi-cog',
+  agents: 'pi pi-microchip-ai',
 }
 
 function getGroupIcon(groupName) {
@@ -136,6 +137,7 @@ function mapTriggerNode(trigger) {
     eventType: trigger.eventType,
     resourceType: trigger.resourceType,
     group: trigger.groups?.[0] || 'General',
+    weight: trigger.meta?.weight || 0,
   }
 }
 
@@ -180,6 +182,7 @@ const availableCategories = computed(() => {
           description: t('builder.nodePicker.nodes.logic.branch.description'),
           ref: 'gateway',
           group: 'Logic',
+          weight: 0,
         },
       ],
     }
@@ -198,6 +201,7 @@ const availableCategories = computed(() => {
           ref: fn.ref,
           kind: fn.kind,
           group: fn.groups?.[0] || 'System',
+          weight: fn.meta?.weight || 0,
         })
       })
   }
@@ -260,8 +264,13 @@ const activeCategory = computed(() => {
 // Filtered nodes of the active category
 const filteredNodes = computed(() => {
   if (!activeCategory.value) return []
-  // Sort nodes alphabetically
-  return [...activeCategory.value.nodes].sort((a, b) => a.label.localeCompare(b.label))
+  // Sort nodes by weight, then alphabetically
+  return [...activeCategory.value.nodes].sort((a, b) => {
+    if (a.weight !== b.weight) {
+      return a.weight - b.weight
+    }
+    return a.label.localeCompare(b.label)
+  })
 })
 
 function selectNode(node) {

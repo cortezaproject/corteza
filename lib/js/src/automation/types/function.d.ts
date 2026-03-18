@@ -6,6 +6,7 @@ export interface FunctionMeta {
     [_: string]: any
   }
   webapps: Array<string>
+  weight?: number
 }
 interface FunctionCtr extends Partial<Omit<Function, 'parameters' | 'results'>> {
   parameters?: Array<Partial<Param>>

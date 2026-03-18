@@ -3,7 +3,7 @@
     :value="displayLabel"
     severity="primary"
     icon="pi pi-link"
-    class="text-xs"
+    class="text-sm"
     :title="displayLabel"
   />
 </template>

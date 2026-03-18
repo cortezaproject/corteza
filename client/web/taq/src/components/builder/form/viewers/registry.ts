@@ -3,6 +3,7 @@ import CViewText from './CViewText.vue'
 import CViewNamespace from './CViewNamespace.vue'
 import CViewModule from './CViewModule.vue'
 import CViewUser from './CViewUser.vue'
+import CViewAgent from './CViewAgent.vue'
 import CViewSelect from './CViewSelect.vue'
 import CViewFieldValueMap from './CViewFieldValueMap.vue'
 
@@ -11,6 +12,10 @@ import CViewFieldValueMap from './CViewFieldValueMap.vue'
  * Mirrors inputs/registry.ts but for preview display instead of editing.
  */
 export const VIEWER_REGISTRY: Record<string, Component> = {
+  // Agent viewers
+  AgentSelector: CViewAgent,
+  Agent: CViewAgent,
+
   // User viewers
   UserSelector: CViewUser,
   User: CViewUser,

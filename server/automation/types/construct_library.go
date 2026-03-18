@@ -65,6 +65,7 @@ type (
 		Short       string            `json:"short,omitempty"`
 		Description string            `json:"description,omitempty"`
 		Icon        *NgAutomationIcon `json:"icon,omitempty"`
+		Weight      int               `json:"weight,omitempty"`
 	}
 
 	// UI structure

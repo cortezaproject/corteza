@@ -339,16 +339,31 @@ function buildStackedChart(resourceKey, items) {
     cumulative.push(sum)
   }
 
+  // For each month, find which status is the topmost non-zero series
+  // so we can round only that segment's top corners
+  const topmostPerMonth = monthKeys.map(mk => {
+    const monthData = data[mk] || {}
+    // Walk from last (topmost) to first, find first non-zero
+    for (let i = config.length - 1; i >= 0; i--) {
+      if ((monthData[config[i].key] || 0) > 0) return i
+    }
+    return -1
+  })
+
   // Build stacked bar series for each status
   const barSeries = config.map((st, idx) => ({
     name: st.label(),
     type: 'bar',
     stack: 'statuses',
-    data: monthKeys.map(mk => (data[mk] || {})[st.key] || 0),
+    data: monthKeys.map((mk, mIdx) => ({
+      value: (data[mk] || {})[st.key] || 0,
+      itemStyle: {
+        borderRadius: topmostPerMonth[mIdx] === idx ? [6, 6, 0, 0] : 0,
+      },
+    })),
     barMaxWidth: 40,
     itemStyle: {
       color: colorMap[st.color],
-      borderRadius: idx === config.length - 1 ? [6, 6, 0, 0] : 0,
     },
     emphasis: {
       itemStyle: { opacity: 0.85 },
@@ -479,38 +494,44 @@ async function fetchAllData() {
       workflowsDeleted,
       namespacesTotal,
     ] = await Promise.all([
+      // Users: default = active only (excludes suspended/deleted)
       fetchCount($SystemAPI.userListCancellable({ limit: 1, incTotal: true })),
       fetchCount($SystemAPI.userListCancellable({ limit: 1, incTotal: true, suspended: 2 })),
       fetchCount($SystemAPI.userListCancellable({ limit: 1, incTotal: true, deleted: 2 })),
+      // Roles: default = active only (excludes archived/deleted)
       fetchCount($SystemAPI.roleListCancellable({ limit: 1, incTotal: true })),
       fetchCount($SystemAPI.roleListCancellable({ limit: 1, incTotal: true, archived: 2 })),
       fetchCount($SystemAPI.roleListCancellable({ limit: 1, incTotal: true, deleted: 2 })),
+      // Applications: default = active only (excludes deleted)
       fetchCount($SystemAPI.applicationListCancellable({ limit: 1, incTotal: true })),
       fetchCount($SystemAPI.applicationListCancellable({ limit: 1, incTotal: true, deleted: 2 })),
+      // Workflows: default = active only (excludes disabled/deleted)
       fetchCount($AutomationAPI.workflowListCancellable({ limit: 1, incTotal: true })),
       fetchCount($AutomationAPI.workflowListCancellable({ limit: 1, incTotal: true, disabled: 2 })),
       fetchCount($AutomationAPI.workflowListCancellable({ limit: 1, incTotal: true, deleted: 2 })),
+      // Namespaces
       fetchCount($ComposeAPI.namespaceListCancellable({ limit: 1, incTotal: true })),
     ])
 
-    totalUsers.value = usersTotal
+    // Default API returns active-only, so sum up for true total
+    activeUsers.value = usersTotal
     suspendedUsers.value = usersSuspended
     deletedUsers.value = usersDeleted
-    activeUsers.value = Math.max(0, usersTotal - usersSuspended - usersDeleted)
+    totalUsers.value = usersTotal + usersSuspended + usersDeleted
 
-    totalRoles.value = rolesTotal
+    activeRoles.value = rolesTotal
     archivedRoles.value = rolesArchived
     deletedRoles.value = rolesDeleted
-    activeRoles.value = Math.max(0, rolesTotal - rolesArchived - rolesDeleted)
+    totalRoles.value = rolesTotal + rolesArchived + rolesDeleted
 
-    totalApps.value = appsTotal
+    activeApps.value = appsTotal
     deletedApps.value = appsDeleted
-    activeApps.value = Math.max(0, appsTotal - appsDeleted)
+    totalApps.value = appsTotal + appsDeleted
 
-    totalWorkflows.value = workflowsTotal
+    enabledWorkflows.value = workflowsTotal
     disabledWorkflows.value = workflowsDisabled
     deletedWorkflows.value = workflowsDeleted
-    enabledWorkflows.value = Math.max(0, workflowsTotal - workflowsDisabled - workflowsDeleted)
+    totalWorkflows.value = workflowsTotal + workflowsDisabled + workflowsDeleted
 
     totalNamespaces.value = namespacesTotal
   } catch (e) {

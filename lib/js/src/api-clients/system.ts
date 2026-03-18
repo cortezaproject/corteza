@@ -8629,9 +8629,6 @@ export default class System {
   // Create LLM provider
   async llmProviderCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { handle, provider, status, apiKey, meta, config } = (a as KV) || {}
-    if (!handle) {
-      throw Error('field handle is empty')
-    }
     if (!provider) {
       throw Error('field provider is empty')
     }
@@ -8713,7 +8710,7 @@ export default class System {
 
   // Update LLM provider
   async llmProviderUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { llmProviderID, handle, provider, status, meta, config } = (a as KV) || {}
+    const { llmProviderID, handle, provider, status, apiKey, meta, config } = (a as KV) || {}
     if (!llmProviderID) {
       throw Error('field llmProviderID is empty')
     }
@@ -8728,6 +8725,7 @@ export default class System {
       handle,
       provider,
       status,
+      apiKey,
       meta,
       config,
     }
@@ -8832,6 +8830,45 @@ export default class System {
   llmProviderModelsEndpoint(a: KV): string {
     const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}/models`
+  }
+
+  // Validate LLM provider connection
+  async llmProviderValidate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { llmProviderID } = (a as KV) || {}
+    if (!llmProviderID) {
+      throw Error('field llmProviderID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.llmProviderValidateEndpoint({
+        llmProviderID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  llmProviderValidateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.llmProviderValidate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  llmProviderValidateEndpoint(a: KV): string {
+    const { llmProviderID } = a || {}
+    return `/llm-providers/${llmProviderID}/validate`
   }
 
   // List AI conversations
