@@ -40,12 +40,9 @@ func (svc *Service) Create(ctx context.Context, p *sysTypes.LlmProvider, apiKey 
 	p.ID = id.Next()
 	p.CreatedAt = time.Now().Round(time.Second)
 
-	if p.Status == "" {
-		p.Status = "active"
-	}
-
+	var cred *sysTypes.Credential
 	if apiKey != "" {
-		cred := &sysTypes.Credential{
+		cred = &sysTypes.Credential{
 			ID:          id.Next(),
 			Kind:        "api-key",
 			Label:       p.Handle + " API Key",
@@ -58,6 +55,16 @@ func (svc *Service) Create(ctx context.Context, p *sysTypes.LlmProvider, apiKey 
 		}
 
 		p.CredentialID = cred.ID
+	}
+
+	if cred != nil {
+		if _, err := fetchModels(ctx, p, cred, svc.anthropicAPIVersion); err != nil {
+			p.Status = "unauthorized"
+		} else {
+			p.Status = "active"
+		}
+	} else {
+		p.Status = "unauthorized"
 	}
 
 	if err := store.CreateLlmProvider(ctx, svc.store, p); err != nil {
@@ -94,14 +101,14 @@ func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider, apiKe
 	}
 
 	existing.Handle = upd.Handle
-	existing.Status = upd.Status
 	existing.Provider = upd.Provider
 	existing.Meta = upd.Meta
 	existing.Config = upd.Config
 
+	var cred *sysTypes.Credential
 	if apiKey != "" {
 		if existing.CredentialID == 0 {
-			cred := &sysTypes.Credential{
+			cred = &sysTypes.Credential{
 				ID:          id.Next(),
 				Kind:        "api-key",
 				Label:       existing.Handle + " API Key",
@@ -113,7 +120,8 @@ func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider, apiKe
 			}
 			existing.CredentialID = cred.ID
 		} else {
-			cred, err := store.LookupCredentialByID(ctx, svc.store, existing.CredentialID)
+			var err error
+			cred, err = store.LookupCredentialByID(ctx, svc.store, existing.CredentialID)
 			if err != nil {
 				return nil, fmt.Errorf("could not load credential: %w", err)
 			}
@@ -122,6 +130,22 @@ func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider, apiKe
 				return nil, fmt.Errorf("could not update credential: %w", err)
 			}
 		}
+	} else if existing.CredentialID != 0 {
+		var err error
+		cred, err = store.LookupCredentialByID(ctx, svc.store, existing.CredentialID)
+		if err != nil {
+			return nil, fmt.Errorf("could not load credential: %w", err)
+		}
+	}
+
+	if cred != nil {
+		if _, err := fetchModels(ctx, existing, cred, svc.anthropicAPIVersion); err != nil {
+			existing.Status = "unauthorized"
+		} else {
+			existing.Status = "active"
+		}
+	} else {
+		existing.Status = "unauthorized"
 	}
 
 	now := time.Now().Round(time.Second)
@@ -162,8 +186,39 @@ func (svc *Service) Search(ctx context.Context, f sysTypes.LlmProviderFilter) (s
 }
 
 func (svc *Service) Validate(ctx context.Context, providerID uint64) error {
-	_, err := svc.ListModels(ctx, providerID)
-	return err
+	provider, err := store.LookupLlmProviderByID(ctx, svc.store, providerID)
+	if err != nil {
+		return fmt.Errorf("could not resolve LLM provider: %w", err)
+	}
+
+	if provider.CredentialID == 0 {
+		provider.Status = "unauthorized"
+		now := time.Now().Round(time.Second)
+		provider.UpdatedAt = &now
+		_ = store.UpdateLlmProvider(ctx, svc.store, provider)
+		return fmt.Errorf("no credential configured for this provider")
+	}
+
+	cred, err := store.LookupCredentialByID(ctx, svc.store, provider.CredentialID)
+	if err != nil {
+		return fmt.Errorf("could not resolve credential: %w", err)
+	}
+
+	_, checkErr := fetchModels(ctx, provider, cred, svc.anthropicAPIVersion)
+
+	if checkErr != nil {
+		provider.Status = "unauthorized"
+	} else {
+		provider.Status = "active"
+	}
+
+	now := time.Now().Round(time.Second)
+	provider.UpdatedAt = &now
+	if storeErr := store.UpdateLlmProvider(ctx, svc.store, provider); storeErr != nil {
+		return fmt.Errorf("could not update provider status: %w", storeErr)
+	}
+
+	return checkErr
 }
 
 func (svc *Service) ListModels(ctx context.Context, providerID uint64) ([]string, error) {
@@ -172,18 +227,24 @@ func (svc *Service) ListModels(ctx context.Context, providerID uint64) ([]string
 		return nil, fmt.Errorf("could not resolve LLM provider: %w", err)
 	}
 
+	if provider.CredentialID == 0 {
+		return nil, fmt.Errorf("no credential configured for this provider")
+	}
+
 	cred, err := store.LookupCredentialByID(ctx, svc.store, provider.CredentialID)
 	if err != nil {
 		return nil, fmt.Errorf("could not resolve credential for LLM provider: %w", err)
 	}
 
+	return fetchModels(ctx, provider, cred, svc.anthropicAPIVersion)
+}
+
+func fetchModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, anthropicAPIVersion string) ([]string, error) {
 	switch provider.Provider {
-	case "openai", "azure", "mistral":
-		return fetchOpenAIModels(ctx, provider, cred)
 	case "anthropic":
-		return fetchAnthropicModels(ctx, provider, cred, svc.anthropicAPIVersion)
+		return fetchAnthropicModels(ctx, provider, cred, anthropicAPIVersion)
 	default:
-		return nil, fmt.Errorf("unsupported LLM provider type: %s", provider.Provider)
+		return fetchOpenAIModels(ctx, provider, cred)
 	}
 }
 
@@ -209,12 +270,10 @@ func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string,
 
 func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, maxTokens int, messages []Message, tools []Tool) (*Response, error) {
 	switch provider.Provider {
-	case "openai", "azure", "mistral":
-		return promptOpenAI(ctx, provider, cred, model, maxTokens, messages, tools)
 	case "anthropic":
 		return promptAnthropic(ctx, provider, cred, model, maxTokens, messages, tools, svc.anthropicAPIVersion)
 	default:
-		return nil, fmt.Errorf("unsupported LLM provider type: %s", provider.Provider)
+		return promptOpenAI(ctx, provider, cred, model, maxTokens, messages, tools)
 	}
 }
 
