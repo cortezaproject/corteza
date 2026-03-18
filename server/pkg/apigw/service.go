@@ -245,6 +245,32 @@ func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
 			flog.Debug("registered filter")
 		}
 
+		// In case of webhooks, check if webhookAuth prefilter is defined
+		// If not, deny all requests, else use what is defined.
+		//
+		// If no auth should be used, explicitly opt out.
+		if _, isWebhook := r.meta.labels["corteza.webhookEvent"]; isWebhook {
+			hasAuth := false
+			for _, rf := range regFilters {
+				if rf.Ref == "webhookAuth" {
+					hasAuth = true
+					break
+				}
+			}
+			if !hasAuth {
+				log.Warn("webhook route has no webhookAuth filter — blocking all requests")
+				pipe.Add(&pipeline.Worker{
+					Handler: func(rw http.ResponseWriter, r *http.Request) error {
+						http.Error(rw, "", http.StatusUnauthorized)
+						return nil
+					},
+					Name:   "webhookAuthDeny",
+					Type:   types.PreFilter,
+					Weight: filter.FilterWeight(0, types.PreFilter),
+				})
+			}
+		}
+
 		// add default postfilter on async
 		// routes if not present
 		if r.meta.async {
@@ -388,13 +414,19 @@ func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 	}
 
 	for _, r := range routes {
+		labels := make(map[string]string, len(r.Meta.Labels))
+		for k, v := range r.Meta.Labels {
+			labels[k] = v.Val
+		}
+
 		route := &route{
 			ID:       r.ID,
 			endpoint: r.Endpoint,
 			method:   r.Method,
 			meta: routeMeta{
-				debug: r.Meta.Debug,
-				async: r.Meta.Async,
+				debug:  r.Meta.Debug,
+				async:  r.Meta.Async,
+				labels: labels,
 			},
 		}
 
@@ -421,13 +453,19 @@ func (s *apigw) loadRoute(ctx context.Context, method, endpoint string) (rr []*r
 	}
 
 	for _, r := range routes {
+		labels := make(map[string]string, len(r.Meta.Labels))
+		for k, v := range r.Meta.Labels {
+			labels[k] = v.Val
+		}
+
 		rr = append(rr, &route{
 			ID:       r.ID,
 			endpoint: r.Endpoint,
 			method:   r.Method,
 			meta: routeMeta{
-				debug: r.Meta.Debug,
-				async: r.Meta.Async,
+				debug:  r.Meta.Debug,
+				async:  r.Meta.Async,
+				labels: labels,
 			},
 		})
 	}

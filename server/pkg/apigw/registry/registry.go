@@ -66,6 +66,7 @@ func (r *Registry) Preload() {
 	r.Add("queryParam", filter.NewQueryParam(r.cfg))
 	r.Add("header", filter.NewHeader(r.cfg))
 	r.Add("profiler", filter.NewProfiler(r.cfg))
+	r.Add("webhookAuth", filter.NewWebhookAuth(r.cfg))
 
 	// processers
 	r.Add("workflow", filter.NewWorkflow(r.cfg, NewWorkflow()))

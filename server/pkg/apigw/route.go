@@ -30,8 +30,9 @@ type (
 	}
 
 	routeMeta struct {
-		debug bool
-		async bool
+		debug  bool
+		async  bool
+		labels map[string]string
 	}
 )
 
