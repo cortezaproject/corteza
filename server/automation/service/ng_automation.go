@@ -274,7 +274,7 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (a
 // Update modifies existing ngAutomation resource in the store
 func (svc *ngAutomation) Update(ctx context.Context, upd *types.NgAutomation) (*types.NgAutomation, error) {
 	return svc.updater(ctx, upd.ID, NgAutomationActionUpdate, func(ctx context.Context, res *types.NgAutomation) (ngAutomationChanges, error) {
-		if upd.Meta.Short == "" {
+		if upd.Meta == nil || upd.Meta.Short == "" {
 			return ngAutomationUnchanged, NgAutomationErrMissingName()
 		}
 
