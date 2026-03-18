@@ -198,8 +198,10 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 		}
 
 		var parentID id.ID
+		var bid id.ID
 		if top != nil {
 			parentID = top.id
+			bid = top.branchID
 		}
 
 		ss.stack = append(ss.stack, &frame{
@@ -210,11 +212,17 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 			step:        step,
 			handle:      step.Handle,
 			iterHandler: handler,
-			branchID:    top.branchID,
+			branchID:    bid,
 		})
 
 	case "gatewayExclusive", "gatewayInclusive":
 		var parentID id.ID
+		var bid id.ID
+		if currentFrame != nil {
+			bid = currentFrame.branchID
+		} else if top != nil {
+			bid = top.branchID
+		}
 		if top != nil {
 			parentID = top.id
 		}
@@ -226,7 +234,7 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 			stepID:   stepID,
 			step:     step,
 			handle:   step.Handle,
-			branchID: top.branchID,
+			branchID: bid,
 		})
 
 	default:
