@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-admin",
-  "version": "2026.3.0-dev.1",
+  "version": "2026.3.0-dev.3",
   "private": true,
   "type": "module",
   "scripts": {

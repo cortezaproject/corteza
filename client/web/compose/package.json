@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-compose",
-  "version": "2026.3.0-dev.1",
+  "version": "2026.3.0-dev.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -39,6 +39,7 @@
     "@tiptap/starter-kit": "^2.11.0",
     "@tiptap/vue-3": "^2.11.0",
     "echarts": "^6.0.0",
+    "moment": "2.30.1",
     "numeral": "^2.0.6",
     "vue-echarts": "^8.0.1"
   }
