@@ -25,16 +25,18 @@ type (
 		Update(context.Context, *request.LlmProviderUpdate) (interface{}, error)
 		Delete(context.Context, *request.LlmProviderDelete) (interface{}, error)
 		Models(context.Context, *request.LlmProviderModels) (interface{}, error)
+		Validate(context.Context, *request.LlmProviderValidate) (interface{}, error)
 	}
 
 	// HTTP API interface
 	LlmProvider struct {
-		List   func(http.ResponseWriter, *http.Request)
-		Create func(http.ResponseWriter, *http.Request)
-		Read   func(http.ResponseWriter, *http.Request)
-		Update func(http.ResponseWriter, *http.Request)
-		Delete func(http.ResponseWriter, *http.Request)
-		Models func(http.ResponseWriter, *http.Request)
+		List     func(http.ResponseWriter, *http.Request)
+		Create   func(http.ResponseWriter, *http.Request)
+		Read     func(http.ResponseWriter, *http.Request)
+		Update   func(http.ResponseWriter, *http.Request)
+		Delete   func(http.ResponseWriter, *http.Request)
+		Models   func(http.ResponseWriter, *http.Request)
+		Validate func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -136,6 +138,22 @@ func NewLlmProvider(h LlmProviderAPI) *LlmProvider {
 
 			api.Send(w, r, value)
 		},
+		Validate: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewLlmProviderValidate()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Validate(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -148,5 +166,6 @@ func (h LlmProvider) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Put("/llm-providers/{llmProviderID}", h.Update)
 		r.Delete("/llm-providers/{llmProviderID}", h.Delete)
 		r.Get("/llm-providers/{llmProviderID}/models", h.Models)
+		r.Post("/llm-providers/{llmProviderID}/validate", h.Validate)
 	})
 }

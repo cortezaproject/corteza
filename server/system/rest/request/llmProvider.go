@@ -135,6 +135,13 @@ type (
 		// LLM Provider ID
 		LlmProviderID uint64 `json:",string"`
 	}
+
+	LlmProviderValidate struct {
+		// LlmProviderID PATH parameter
+		//
+		// LLM Provider ID
+		LlmProviderID uint64 `json:",string"`
+	}
 )
 
 // NewLlmProviderList request
@@ -661,6 +668,41 @@ func (r LlmProviderModels) GetLlmProviderID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *LlmProviderModels) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "llmProviderID")
+		r.LlmProviderID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewLlmProviderValidate request
+func NewLlmProviderValidate() *LlmProviderValidate {
+	return &LlmProviderValidate{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LlmProviderValidate) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"llmProviderID": r.LlmProviderID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LlmProviderValidate) GetLlmProviderID() uint64 {
+	return r.LlmProviderID
+}
+
+// Fill processes request and fills internal variables
+func (r *LlmProviderValidate) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

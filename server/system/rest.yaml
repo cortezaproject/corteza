@@ -3593,6 +3593,13 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
+      - name: validate
+        method: POST
+        title: Validate LLM provider connection
+        path: '/{llmProviderID}/validate'
+        parameters:
+          path:
+            - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
 
   - title: AI Conversations
     path: '/ai-conversations'

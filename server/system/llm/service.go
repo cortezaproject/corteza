@@ -101,15 +101,26 @@ func (svc *Service) Update(ctx context.Context, upd *sysTypes.LlmProvider, apiKe
 
 	if apiKey != "" {
 		if existing.CredentialID == 0 {
-			return nil, fmt.Errorf("no credential found for this provider")
-		}
-		cred, err := store.LookupCredentialByID(ctx, svc.store, existing.CredentialID)
-		if err != nil {
-			return nil, fmt.Errorf("could not load credential: %w", err)
-		}
-		cred.Credentials = apiKey
-		if err := store.UpdateCredential(ctx, svc.store, cred); err != nil {
-			return nil, fmt.Errorf("could not update credential: %w", err)
+			cred := &sysTypes.Credential{
+				ID:          id.Next(),
+				Kind:        "api-key",
+				Label:       existing.Handle + " API Key",
+				Credentials: apiKey,
+				CreatedAt:   existing.CreatedAt,
+			}
+			if err := store.CreateCredential(ctx, svc.store, cred); err != nil {
+				return nil, fmt.Errorf("could not create credential: %w", err)
+			}
+			existing.CredentialID = cred.ID
+		} else {
+			cred, err := store.LookupCredentialByID(ctx, svc.store, existing.CredentialID)
+			if err != nil {
+				return nil, fmt.Errorf("could not load credential: %w", err)
+			}
+			cred.Credentials = apiKey
+			if err := store.UpdateCredential(ctx, svc.store, cred); err != nil {
+				return nil, fmt.Errorf("could not update credential: %w", err)
+			}
 		}
 	}
 
@@ -148,6 +159,11 @@ func (svc *Service) Search(ctx context.Context, f sysTypes.LlmProviderFilter) (s
 
 	set, _, err := store.SearchLlmProviders(ctx, svc.store, f)
 	return set, err
+}
+
+func (svc *Service) Validate(ctx context.Context, providerID uint64) error {
+	_, err := svc.ListModels(ctx, providerID)
+	return err
 }
 
 func (svc *Service) ListModels(ctx context.Context, providerID uint64) ([]string, error) {

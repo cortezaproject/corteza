@@ -23,6 +23,7 @@ type (
 		Delete(ctx context.Context, id uint64, deletedBy uint64) error
 		Search(ctx context.Context, f types.LlmProviderFilter) (types.LlmProviderSet, error)
 		ListModels(ctx context.Context, providerID uint64) ([]string, error)
+		Validate(ctx context.Context, providerID uint64) error
 	}
 
 	llmProviderAccessController interface {
@@ -81,4 +82,11 @@ func (ctrl LlmProvider) Delete(ctx context.Context, r *request.LlmProviderDelete
 
 func (ctrl LlmProvider) Models(ctx context.Context, r *request.LlmProviderModels) (interface{}, error) {
 	return ctrl.svc.ListModels(ctx, r.LlmProviderID)
+}
+
+func (ctrl LlmProvider) Validate(ctx context.Context, r *request.LlmProviderValidate) (interface{}, error) {
+	if err := ctrl.svc.Validate(ctx, r.LlmProviderID); err != nil {
+		return nil, err
+	}
+	return true, nil
 }
