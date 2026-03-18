@@ -18,7 +18,7 @@ var (
 const (
 	frameTypeStep frameType = iota
 	frameTypeIterator
-	frameTypeBranch
+	frameTypeGateway
 )
 
 type (
@@ -42,8 +42,8 @@ type (
 		Next(context.Context, *expr.Vars) (*expr.Vars, error)
 	}
 
-	BranchHandler interface {
-		Evaluate(context.Context, *expr.Vars) (bool, error)
+	GatewayHandler interface {
+		Select(context.Context, map[string]*expr.Vars) ([]int, error)
 	}
 
 	frame struct {
@@ -100,8 +100,8 @@ func (ss *scheduler) Next(ctx context.Context) (*types.Step, id.ID, id.ID, bool,
 		case frameTypeIterator:
 			return ss.handleIterator(ctx, current)
 
-		case frameTypeBranch:
-			return ss.handleBranch(ctx, current)
+		case frameTypeGateway:
+			return ss.handleGateway(ctx, current)
 
 		case frameTypeStep:
 			// Don't pop yet - wait for StoreOutputs to be called first
@@ -213,14 +213,14 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 			branchID:    top.branchID,
 		})
 
-	case "branch":
+	case "gatewayExclusive", "gatewayInclusive":
 		var parentID id.ID
 		if top != nil {
 			parentID = top.id
 		}
 
 		ss.stack = append(ss.stack, &frame{
-			typ:      frameTypeBranch,
+			typ:      frameTypeGateway,
 			id:       id.MustNumID(id.Next()),
 			parentID: parentID,
 			stepID:   stepID,
@@ -327,40 +327,47 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 	return ss.Next(ctx)
 }
 
-func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, id.ID, id.ID, bool, error) {
+func (ss *scheduler) handleGateway(ctx context.Context, f *frame) (*types.Step, id.ID, id.ID, bool, error) {
 	if f.branchTaken {
 		ss.stack = ss.stack[:len(ss.stack)-1]
 		return ss.Next(ctx)
 	}
 
-	handler, ok := f.step.Handler.(BranchHandler)
+	handler, ok := f.step.Handler.(GatewayHandler)
 	if !ok {
-		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("step %v: handler is not BranchHandler", f.stepID)
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("step %v: handler is not GatewayHandler", f.stepID)
 	}
 
-	// Build vars from frame outputs
-	condVars := &expr.Vars{}
+	// Build scope map from frame outputs. Gateway conditions reference variables
+	// via Meta["scope"]; without explicit scope they use "global".
+	globalVars := &expr.Vars{}
 	if f.outputs != nil {
 		for k, v := range f.outputs {
-			condVars.Set(k, v)
+			globalVars.Set(k, v)
 		}
 	}
+	condScope := map[string]*expr.Vars{"global": globalVars}
 
-	condition, err := handler.Evaluate(ctx, condVars)
+	indices, err := handler.Select(ctx, condScope)
 	if err != nil {
-		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("branch evaluation failed: %w", err)
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("gateway selection failed: %w", err)
 	}
 
 	f.branchTaken = true
 
-	// First child is true path, second child is false path
-	childIndex := 1 // false
-	if condition {
-		childIndex = 0 // true
-	}
-
-	if len(f.step.Children) > childIndex {
-		nextStep := &f.step.Children[childIndex]
+	// Push selected children for execution
+	// Push in reverse as this is a stack
+	for i := len(indices) - 1; i >= 0; i-- {
+		idx := indices[i]
+		if idx < 0 || idx >= len(f.step.Children) {
+			continue
+		}
+		nextStep := &f.step.Children[idx]
+		bid := f.branchID
+		if len(indices) > 1 {
+			bid = id.MustNumID(id.Next())
+			ss.activeBranches[bid] = true
+		}
 		ss.stack = append(ss.stack, &frame{
 			typ:      frameTypeStep,
 			id:       id.MustNumID(id.Next()),
@@ -368,7 +375,7 @@ func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, i
 			stepID:   nextStep.ID,
 			step:     nextStep,
 			handle:   nextStep.Handle,
-			branchID: f.branchID,
+			branchID: bid,
 		})
 	}
 

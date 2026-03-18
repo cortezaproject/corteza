@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/id"
@@ -170,6 +171,57 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 	stepsWithParents := make(map[uint64]bool, len(stepIdx))
 
 	// --- Phase 3: wire paths ---
+
+	// For gateway steps, collect outbound paths before wiring so we can order them
+	// (conditions first, nil-condition last = else).
+	type gatewayPath struct {
+		path  *automationTypes.NgAutomationPath
+		index int
+	}
+
+	gatewayPaths := make(map[uint64][]gatewayPath, 0)
+	isGateway := func(kind string) bool {
+		return kind == "gatewayExclusive" || kind == "gatewayInclusive"
+	}
+
+	for i := range a.Paths {
+		p := a.Paths[i]
+		if s, ok := stepIdx[p.ParentID]; ok && isGateway(s.Kind) {
+			gatewayPaths[p.ParentID] = append(gatewayPaths[p.ParentID], gatewayPath{path: p, index: i})
+		}
+	}
+
+	// Validate gateway outbound path counts
+	for parentID, gps := range gatewayPaths {
+		if len(gps) < 2 {
+			issues = append(issues, issue(
+				fmt.Sprintf("gateway step %d must have at least 2 outbound paths, got %d", parentID, len(gps)),
+				nil,
+			))
+		}
+
+		nilCondCount := 0
+		for _, gp := range gps {
+			if gp.path.Condition == nil {
+				nilCondCount++
+			}
+		}
+
+		if nilCondCount > 1 {
+			issues = append(issues, issue(
+				fmt.Sprintf("gateway step %d has %d else paths (exactly one allowed)", parentID, nilCondCount),
+				nil,
+			))
+		}
+
+		if nilCondCount == 0 {
+			issues = append(issues, issue(
+				fmt.Sprintf("gateway step %d has no else path", parentID),
+				nil,
+			))
+		}
+	}
+
 	for i := range a.Paths {
 		p := a.Paths[i]
 
@@ -252,8 +304,64 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 		// Mark step as having a parent
 		stepsWithParents[p.ChildID] = true
 
+		// Gateway paths are wired after this loop in sorted order.
+		if isGateway(stepIdx[p.ParentID].Kind) {
+			continue
+		}
+
 		parent.Children = append(parent.Children, *child)
 		child.Parents = append(child.Parents, *parent)
+	}
+
+	// --- Phase 3 gateway wiring ---
+	// For each gateway step, sort outbound paths (conditions first, nil last),
+	// wire Children in that order, then push the conditions slice into the handler.
+	for parentID, gps := range gatewayPaths {
+		// Sort: non-nil conditions first, nil (else) last.
+		sorted := make([]gatewayPath, 0, len(gps))
+		var elseGP *gatewayPath
+		for i := range gps {
+			if gps[i].path.Condition == nil {
+				elseGP = &gps[i]
+			} else {
+				sorted = append(sorted, gps[i])
+			}
+		}
+		if elseGP != nil {
+			sorted = append(sorted, *elseGP)
+		}
+
+		parentExecID, ok := idMap[parentID]
+		if !ok {
+			continue
+		}
+
+		parent := exByID[parentExecID]
+		if parent == nil {
+			continue
+		}
+
+		nodeConds := make([]*ast.ASTNode, 0, len(sorted))
+		for _, gp := range sorted {
+			nodeConds = append(nodeConds, gp.path.Condition)
+			childExecID, ok := idMap[gp.path.ChildID]
+			if !ok {
+				continue
+			}
+
+			child := exByID[childExecID]
+			if child == nil {
+				continue
+			}
+
+			parent.Children = append(parent.Children, *child)
+			child.Parents = append(child.Parents, *parent)
+		}
+
+		// Push conditions slice into the handler.
+		if cs, ok := parent.Handler.(automationTypes.GatewayConditionsSetter); ok {
+			cs.SetConditions(nodeConds)
+		}
 	}
 
 	// --- Phase 3b: infer trigger-to-step paths if needed ---
@@ -398,6 +506,12 @@ func stepConv(svc *ngAutomation, step *automationTypes.NgAutomationStep) (out ex
 		case "termination":
 			return stepConvTermination(step)
 
+		case "gatewayExclusive":
+			return stepConvGateway(step, false)
+
+		case "gatewayInclusive":
+			return stepConvGateway(step, true)
+
 		default:
 			return nil, errors.Internal("unsupported step kind %q", step.Kind)
 		}
@@ -513,4 +627,13 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 
 func stepConvTermination(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
 	return automationTypes.TerminationStep()
+}
+
+// stepConvGateway creates a gateway handler.
+// Conditions are populated in Phase 3 via GatewayConditionsSetter.SetConditions.
+func stepConvGateway(step *automationTypes.NgAutomationStep, inclusive bool) (out execTypes.StepHandler, err error) {
+	if inclusive {
+		return automationTypes.InclusiveGatewayStep(nil), nil
+	}
+	return automationTypes.ExclusiveGatewayStep(nil), nil
 }

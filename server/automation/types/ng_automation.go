@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
@@ -151,9 +152,9 @@ type (
 	}
 
 	NgAutomationPath struct {
-		ParentID uint64 `json:"parentID,string"`
-		ChildID  uint64 `json:"childID,string"`
-		Expr     *Expr  `json:"expr"`
+		ParentID  uint64        `json:"parentID,string"`
+		ChildID   uint64        `json:"childID,string"`
+		Condition *ast.ASTNode  `json:"condition,omitempty"`
 
 		Meta NgAutomationPathMeta `json:"meta"`
 	}
