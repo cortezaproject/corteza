@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
@@ -58,7 +58,7 @@ type (
 		Analyze(ctx context.Context, m *Model) (map[string]OpAnalysis, error)
 
 		// Aggregate returns the iterator with aggregated data from the base model
-		Aggregate(ctx context.Context, m *Model, f filter.Filter, groupBy []AggregateAttr, aggrExpr []AggregateAttr, having *ql.ASTNode) (i Iterator, _ error)
+		Aggregate(ctx context.Context, m *Model, f filter.Filter, groupBy []AggregateAttr, aggrExpr []AggregateAttr, having *ast.ASTNode) (i Iterator, _ error)
 
 		// Delete deletes the given value
 		Delete(ctx context.Context, m *Model, pkv ValueGetter) error

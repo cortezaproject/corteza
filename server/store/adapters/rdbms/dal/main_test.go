@@ -3,14 +3,16 @@ package dal_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"sort"
+	"testing"
+
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms"
 	"github.com/stretchr/testify/require"
-	"os"
-	"sort"
-	"testing"
 
 	_ "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/mysql"
 	_ "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/postgres"
@@ -163,7 +165,7 @@ func (r kvv) String() string {
 	return out
 }
 
-func qlParse(req *require.Assertions, q string) *ql.ASTNode {
+func qlParse(req *require.Assertions, q string) *ast.ASTNode {
 	n, err := ql.NewParser().Parse(q)
 	req.NoError(err)
 	return n

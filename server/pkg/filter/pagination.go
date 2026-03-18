@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/modern-go/reflect2"
 )
 
@@ -331,7 +331,7 @@ func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 // when working with databases, DAL reports, ...
 //
 // @todo discuss this one
-func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castFn func(i string, val any) (expr.TypedValue, error)) (out *ql.ASTNode, err error) {
+func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castFn func(i string, val any) (expr.TypedValue, error)) (out *ast.ASTNode, err error) {
 	var (
 		cc = cur.Keys()
 		vv = cur.Values()
@@ -350,19 +350,19 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 		//
 		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
 		// cursors to make them consistent/reusable
-		isValueNull = func(i int, neg bool) *ql.ASTNode {
-			out := &ql.ASTNode{
+		isValueNull = func(i int, neg bool) *ast.ASTNode {
+			out := &ast.ASTNode{
 				Ref: "eq",
-				Args: ql.ASTNodeSet{{
-					Value: ql.MakeValueOf("Integer", 1),
+				Args: ast.ASTNodeSet{{
+					Value: ast.MakeValueOf("Integer", 1),
 				}},
 			}
 			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
 				// Makes the expr. true
-				out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 1)})
+				out.Args = append(out.Args, &ast.ASTNode{Value: ast.MakeValueOf("Integer", 1)})
 			}
 			// Makes the expr false
-			out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 0)})
+			out.Args = append(out.Args, &ast.ASTNode{Value: ast.MakeValueOf("Integer", 0)})
 
 			return out
 		}
@@ -407,22 +407,22 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 		// // Typecast the value so comparison can work properly
 
 		// Either BOTH (field and value) are NULL or field is grater-then value
-		base := &ql.ASTNode{
+		base := &ast.ASTNode{
 			Ref: "group",
-			Args: ql.ASTNodeSet{
-				&ql.ASTNode{
+			Args: ast.ASTNodeSet{
+				&ast.ASTNode{
 					Ref: "or",
-					Args: ql.ASTNodeSet{
-						&ql.ASTNode{
+					Args: ast.ASTNodeSet{
+						&ast.ASTNode{
 							Ref: "group",
-							Args: ql.ASTNodeSet{
-								&ql.ASTNode{
+							Args: ast.ASTNodeSet{
+								&ast.ASTNode{
 									Ref: "and",
-									Args: ql.ASTNodeSet{
-										&ql.ASTNode{
+									Args: ast.ASTNodeSet{
+										&ast.ASTNode{
 											Ref: "nnull",
-											Args: ql.ASTNodeSet{
-												&ql.ASTNode{
+											Args: ast.ASTNodeSet{
+												&ast.ASTNode{
 													Symbol: ident,
 												},
 											},
@@ -432,12 +432,12 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 								},
 							},
 						},
-						&ql.ASTNode{
+						&ast.ASTNode{
 							Ref: op,
-							Args: ql.ASTNodeSet{{
+							Args: ast.ASTNodeSet{{
 								Symbol: ident,
 							}, {
-								Value: ql.WrapValue(value),
+								Value: ast.WrapValue(value),
 							}},
 						},
 					},
@@ -448,32 +448,32 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 		if out == nil {
 			out = base
 		} else {
-			out = &ql.ASTNode{
+			out = &ast.ASTNode{
 				Ref: "group",
-				Args: ql.ASTNodeSet{
-					&ql.ASTNode{
+				Args: ast.ASTNodeSet{
+					&ast.ASTNode{
 						Ref: "or",
-						Args: ql.ASTNodeSet{
+						Args: ast.ASTNodeSet{
 							base,
-							&ql.ASTNode{
+							&ast.ASTNode{
 								Ref: "group",
-								Args: ql.ASTNodeSet{
-									&ql.ASTNode{
+								Args: ast.ASTNodeSet{
+									&ast.ASTNode{
 										Ref: "and",
-										Args: ql.ASTNodeSet{
-											&ql.ASTNode{
+										Args: ast.ASTNodeSet{
+											&ast.ASTNode{
 												Ref: "group",
-												Args: ql.ASTNodeSet{
-													&ql.ASTNode{
+												Args: ast.ASTNodeSet{
+													&ast.ASTNode{
 														Ref: "or",
-														Args: ql.ASTNodeSet{
-															&ql.ASTNode{
+														Args: ast.ASTNodeSet{
+															&ast.ASTNode{
 																Ref: "and",
-																Args: ql.ASTNodeSet{
-																	&ql.ASTNode{
+																Args: ast.ASTNodeSet{
+																	&ast.ASTNode{
 																		Ref: "null",
-																		Args: ql.ASTNodeSet{
-																			&ql.ASTNode{
+																		Args: ast.ASTNodeSet{
+																			&ast.ASTNode{
 																				Symbol: ident,
 																			},
 																		},
@@ -482,12 +482,12 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 																},
 															},
 
-															&ql.ASTNode{
+															&ast.ASTNode{
 																Ref: "eq",
-																Args: ql.ASTNodeSet{{
+																Args: ast.ASTNodeSet{{
 																	Symbol: ident,
 																}, {
-																	Value: ql.WrapValue(value),
+																	Value: ast.WrapValue(value),
 																}},
 															},
 														},

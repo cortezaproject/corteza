@@ -3,6 +3,8 @@ package ql
 import (
 	"fmt"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 )
 
 type (
@@ -59,7 +61,7 @@ func (p *Parser) initLexer(s string) {
 }
 
 // Parse parses the given expression and returns the generated AST
-func (p *Parser) Parse(s string) (*ASTNode, error) {
+func (p *Parser) Parse(s string) (*ast.ASTNode, error) {
 	p.initLexer(s)
 
 	if set, err := p.parse(p.nextToken()); err != nil {

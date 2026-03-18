@@ -3,15 +3,16 @@ package dal_test
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	. "github.com/cortezaproject/corteza/server/store/adapters/rdbms/dal"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestModel_Search(t *testing.T) {
@@ -542,7 +543,7 @@ func TestModel_AggregateHavingGroup(t *testing.T) {
 		filter.Generic(),
 		// group-by
 		[]dal.AggregateAttr{
-			{Identifier: "agg", Expression: &ql.ASTNode{Symbol: "grp"}, Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
+			{Identifier: "agg", Expression: &ast.ASTNode{Symbol: "grp"}, Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 		},
 		// aggregation expressions
 		[]dal.AggregateAttr{

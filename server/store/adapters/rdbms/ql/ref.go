@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -316,7 +316,7 @@ func (ee ExprHandlerMap) ExprHandlers() (out ExprHandlerMap) {
 	return
 }
 
-func (ee ExprHandlerMap) RefHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+func (ee ExprHandlerMap) RefHandler(n *ast.ASTNode, args ...exp.Expression) (exp.Expression, error) {
 	r := strings.ToLower(n.Ref)
 
 	if ee[r] == nil {

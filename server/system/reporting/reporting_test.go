@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 )
@@ -190,11 +190,11 @@ func TestRuns(t *testing.T) {
 					Source: "l1",
 					Keys: types.ReportAggregateColumnSet{{
 						Name: "k1",
-						Def:  &types.ReportFilterExpr{ASTNode: &ql.ASTNode{Raw: "f1"}},
+						Def:  &types.ReportFilterExpr{ASTNode: &ast.ASTNode{Raw: "f1"}},
 					}},
 					Columns: types.ReportAggregateColumnSet{{
 						Name: "c1",
-						Def:  &types.ReportFilterExpr{ASTNode: &ql.ASTNode{Raw: "count(f1)"}},
+						Def:  &types.ReportFilterExpr{ASTNode: &ast.ASTNode{Raw: "count(f1)"}},
 					}},
 				}},
 

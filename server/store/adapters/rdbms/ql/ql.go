@@ -1,11 +1,11 @@
 package ql
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 )
 
-// Aliasing types from the pkg/ql to simplify imports
+// Aliasing types from the pkg/ast to simplify imports
 
 type (
-	ASTNode = ql.ASTNode
+	ASTNode = ast.ASTNode
 )

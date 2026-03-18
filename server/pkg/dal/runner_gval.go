@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/gval"
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
@@ -319,7 +320,7 @@ func newRunnerGval(expr string) (out *runnerGval, err error) {
 }
 
 // newRunnerGvalParsed initializes a new gval exp. runner from the pre-parsed expression
-func newRunnerGvalParsed(n *ql.ASTNode) (out *runnerGval, err error) {
+func newRunnerGvalParsed(n *ast.ASTNode) (out *runnerGval, err error) {
 	out = &runnerGval{}
 	c := newConverterGval()
 
@@ -338,8 +339,9 @@ func newRunnerGvalParsed(n *ql.ASTNode) (out *runnerGval, err error) {
 // used in the pipeline.
 //
 // @note the subset is limited to simplify the (eventual) offloading to the DB.
-//       At some point, more functions will be supported, and the ones which can't
-//       be offloaded will be performed in some exec. step.
+//
+//	At some point, more functions will be supported, and the ones which can't
+//	be offloaded will be performed in some exec. step.
 func newGval(e string) (gval.Evaluable, error) {
 	return gval.Full(
 		// Extra functions we'll need
@@ -399,17 +401,17 @@ func (e *runnerGval) Eval(ctx context.Context, rows any) (any, error) {
 }
 
 // Parse parses the QL expression into QL ASTNodes
-func (c converterGval) Parse(expr string) (*ql.ASTNode, error) {
+func (c converterGval) Parse(expr string) (*ast.ASTNode, error) {
 	return c.parser.Parse(expr)
 }
 
 // Convert converts the given nodes into a GVal expression
 // @todo add more validation so we can potentially omit exec. error checks
-func (c converterGval) Convert(n *ql.ASTNode) (expr string, err error) {
+func (c converterGval) Convert(n *ast.ASTNode) (expr string, err error) {
 	return c.convert(n)
 }
 
-func (c converterGval) convert(n *ql.ASTNode) (_ string, err error) {
+func (c converterGval) convert(n *ast.ASTNode) (_ string, err error) {
 	switch {
 	case n.Symbol != "":
 		return n.Symbol, nil
@@ -432,7 +434,7 @@ func (c converterGval) convert(n *ql.ASTNode) (_ string, err error) {
 	return c.refHandler(n, args...)
 }
 
-func (c converterGval) refHandler(n *ql.ASTNode, args ...string) (out string, err error) {
+func (c converterGval) refHandler(n *ast.ASTNode, args ...string) (out string, err error) {
 	r := strings.ToLower(n.Ref)
 	if refToGvalExp[r] == nil {
 		return "", fmt.Errorf("unknown ref %q", n.Ref)
@@ -444,9 +446,10 @@ func (c converterGval) refHandler(n *ql.ASTNode, args ...string) (out string, er
 // the first argument
 //
 // @todo this is needed because how the ValueGetters returns multi-value fields so
-//       an edge case where a field would have [a] but here, it would be presented
-//       as a.
-//       This would become obsolete when we address the actual issue.
+//
+//	an edge case where a field would have [a] but here, it would be presented
+//	as a.
+//	This would become obsolete when we address the actual issue.
 func arrHas(arr interface{}, vv ...interface{}) (b bool, err error) {
 	arr = expr.UntypedValue(arr)
 

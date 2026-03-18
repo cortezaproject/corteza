@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/stretchr/testify/require"
 )
 
@@ -633,7 +633,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 			group: []simpleAttribute{{
 				ident: "d",
-				expr: "year(now())",
+				expr:  "year(now())",
 			}},
 			outAttributes: []simpleAttribute{{
 				ident: "users",
@@ -1405,22 +1405,22 @@ func TestStepAggregate_paging(t *testing.T) {
 func TestAggregate_groupKeyWalker(t *testing.T) {
 	tcc := []struct {
 		name string
-		defs []*ql.ASTNode
+		defs []*ast.ASTNode
 		in   ValueGetter
 		out  []groupKey
 	}{
 		{
 			name: "all constants",
-			defs: []*ql.ASTNode{
-				{Value: ql.MakeValueOf("Number", 10)},
-				{Value: ql.MakeValueOf("Number", 20)},
+			defs: []*ast.ASTNode{
+				{Value: ast.MakeValueOf("Number", 10)},
+				{Value: ast.MakeValueOf("Number", 20)},
 			},
 			in:  (&Row{}).WithValue("k1", 0, "a"),
 			out: []groupKey{{float64(10), float64(20)}},
 		},
 		{
 			name: "multiple values 1 2 1",
-			defs: []*ql.ASTNode{
+			defs: []*ast.ASTNode{
 				{Symbol: "k1"},
 				{Symbol: "k2"},
 				{Symbol: "k3"},
@@ -1436,9 +1436,9 @@ func TestAggregate_groupKeyWalker(t *testing.T) {
 		},
 		{
 			name: "single value with constant",
-			defs: []*ql.ASTNode{
+			defs: []*ast.ASTNode{
 				{Symbol: "k1"},
-				{Value: ql.MakeValueOf("Number", 10)},
+				{Value: ast.MakeValueOf("Number", 10)},
 			},
 			in: (&Row{}).WithValue("k1", 0, "k1 1"),
 			out: []groupKey{
@@ -1447,9 +1447,9 @@ func TestAggregate_groupKeyWalker(t *testing.T) {
 		},
 		{
 			name: "multi value with constant",
-			defs: []*ql.ASTNode{
+			defs: []*ast.ASTNode{
 				{Symbol: "k2"},
-				{Value: ql.MakeValueOf("Number", 10)},
+				{Value: ast.MakeValueOf("Number", 10)},
 			},
 			in: (&Row{}).WithValue("k2", 0, "k2 1").
 				WithValue("k2", 1, "k2 2"),

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
 
 type (
@@ -242,9 +242,10 @@ func (def *Datasource) clobber(s PipelineStep) (ok bool) {
 // - The QL node return parameter is applied only to the aggregated dataset
 //
 // @todo should we change the store's API to accept 2x filter.Filter? I think
-//       that would allow the underlaying driver to decide how to handle them
-//       instead of relying on what SQL does.
-func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter internalFilter, having *ql.ASTNode, err error) {
+//
+//	that would allow the underlaying driver to decide how to handle them
+//	instead of relying on what SQL does.
+func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter internalFilter, having *ast.ASTNode, err error) {
 	var typedV expr.TypedValue
 	filter = base
 
@@ -259,13 +260,13 @@ func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter i
 	// Convert the rest of the filtering parameters defined on the aggregation's filter
 	// to the QL node.
 	// ALl of that is applied after the aggregation which is correct.
-	var nConstraints *ql.ASTNode
+	var nConstraints *ast.ASTNode
 	if len(agg.constraints) > 0 {
-		nConstraints = &ql.ASTNode{
+		nConstraints = &ast.ASTNode{
 			Ref: "and",
 		}
 		for k, c := range agg.constraints {
-			arg := &ql.ASTNode{
+			arg := &ast.ASTNode{
 				Ref: "or",
 			}
 
@@ -274,22 +275,22 @@ func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter i
 				if err != nil {
 					return
 				}
-				arg.Args = append(arg.Args, &ql.ASTNode{
+				arg.Args = append(arg.Args, &ast.ASTNode{
 					Symbol: k,
-					Value:  ql.WrapValue(typedV),
+					Value:  ast.WrapValue(typedV),
 				})
 			}
 
-			nConstraints.Args = append(nConstraints.Args, &ql.ASTNode{
+			nConstraints.Args = append(nConstraints.Args, &ast.ASTNode{
 				Ref:  "group",
-				Args: ql.ASTNodeSet{arg},
+				Args: ast.ASTNodeSet{arg},
 			})
 		}
 	}
 
-	var nStateConstraints *ql.ASTNode
+	var nStateConstraints *ast.ASTNode
 	if len(agg.stateConstraints) > 0 {
-		nStateConstraints = &ql.ASTNode{
+		nStateConstraints = &ast.ASTNode{
 			Ref: "and",
 		}
 		for k, c := range agg.stateConstraints {
@@ -298,16 +299,16 @@ func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter i
 				return
 			}
 
-			nStateConstraints.Args = append(nStateConstraints.Args, &ql.ASTNode{
+			nStateConstraints.Args = append(nStateConstraints.Args, &ast.ASTNode{
 				Symbol: k,
-				Value:  ql.WrapValue(typedV),
+				Value:  ast.WrapValue(typedV),
 			})
 		}
 	}
 
-	var nMetaConstraints *ql.ASTNode
+	var nMetaConstraints *ast.ASTNode
 	if len(agg.stateConstraints) > 0 {
-		nMetaConstraints = &ql.ASTNode{
+		nMetaConstraints = &ast.ASTNode{
 			Ref: "and",
 		}
 		for k, c := range agg.stateConstraints {
@@ -316,16 +317,16 @@ func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter i
 				return
 			}
 
-			nMetaConstraints.Args = append(nMetaConstraints.Args, &ql.ASTNode{
+			nMetaConstraints.Args = append(nMetaConstraints.Args, &ast.ASTNode{
 				Symbol: k,
-				Value:  ql.WrapValue(typedV),
+				Value:  ast.WrapValue(typedV),
 			})
 		}
 	}
 
 	nExpression := agg.expParsed
 
-	var nCursor *ql.ASTNode
+	var nCursor *ast.ASTNode
 	if agg.cursor != nil {
 		nCursor, err = agg.cursor.ToAST(nil, nil)
 		if err != nil {
@@ -333,7 +334,7 @@ func (def *Datasource) getAggregationFilters(base, agg internalFilter) (filter i
 		}
 	}
 
-	having = &ql.ASTNode{
+	having = &ast.ASTNode{
 		Ref: "and",
 	}
 

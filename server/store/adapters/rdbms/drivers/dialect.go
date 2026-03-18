@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -83,10 +83,10 @@ type (
 		ColumnFits(base, assert *ddl.Column) bool
 
 		// ExprHandler returns driver specific expression handling
-		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)
+		ExprHandler(*ast.ASTNode, ...exp.Expression) (exp.Expression, error)
 
 		// ValHandler returns driver specific value expression handling
-		ValHandler(*ql.ASTNode) (exp.Expression, error)
+		ValHandler(*ast.ASTNode) (exp.Expression, error)
 
 		// OrderedExpression returns compatible expression for ordering
 		//
@@ -121,15 +121,15 @@ func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, 
 	return out, nil
 }
 
-func OpHandlerIn(d Dialect, n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+func OpHandlerIn(d Dialect, n *ast.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	return opHandlerIn(d, n, false, args...)
 }
 
-func OpHandlerNotIn(d Dialect, n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+func OpHandlerNotIn(d Dialect, n *ast.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	return opHandlerIn(d, n, true, args...)
 }
 
-func opHandlerIn(d Dialect, n *ql.ASTNode, negate bool, args ...exp.Expression) (expr exp.Expression, err error) {
+func opHandlerIn(d Dialect, n *ast.ASTNode, negate bool, args ...exp.Expression) (expr exp.Expression, err error) {
 	if len(n.Args) == 2 && n.Args[1] != nil && n.Args[1].Meta["dal.Attribute"] != nil && n.Args[1].Meta["dal.Attribute"].(*dal.Attribute).MultiValue {
 		// if right-side argument is multi-value attribute,
 		// then we need to adjust the arguments a bit:

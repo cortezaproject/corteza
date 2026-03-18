@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"github.com/spf13/cast"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
-
 )
 
 type (
@@ -138,7 +138,7 @@ type (
 
 		Deleted filter.State `json:"deleted"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
@@ -152,11 +152,11 @@ type (
 		filter.Paging
 	}
 
-	// ReportFilterExpr is a wrapper for ql.ASTNode to implement custom JSON
+	// ReportFilterExpr is a wrapper for ast.ASTNode to implement custom JSON
 	// unmarshal required by reporting.
 	// @todo consider moving this to the ql package
 	ReportFilterExpr struct {
-		*ql.ASTNode
+		*ast.ASTNode
 		Error string `json:"error,omitempty"`
 	}
 )
@@ -224,7 +224,7 @@ func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON
 func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 // Node is a helper for accessing the wrapped QL node to omit nil checks
-func (f *ReportFilterExpr) Node() *ql.ASTNode {
+func (f *ReportFilterExpr) Node() *ast.ASTNode {
 	if f == nil {
 		return nil
 	}
@@ -275,7 +275,7 @@ func (f *ReportFilterExpr) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	// A raw expression takes priority and replaces the original AST sub-tree
-	err = f.ASTNode.Traverse(func(n *ql.ASTNode) (bool, *ql.ASTNode, error) {
+	err = f.ASTNode.Traverse(func(n *ast.ASTNode) (bool, *ast.ASTNode, error) {
 		if n.Raw == "" {
 			return true, n, nil
 		}

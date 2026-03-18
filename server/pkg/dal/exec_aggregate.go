@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/tidwall/btree"
 )
 
@@ -52,7 +52,7 @@ func (xs *aggregate) init(ctx context.Context) (err error) {
 	}
 
 	// Initialize the key maker
-	kk := make([]*ql.ASTNode, 0, len(xs.groupDefs))
+	kk := make([]*ast.ASTNode, 0, len(xs.groupDefs))
 	for _, a := range xs.groupDefs {
 		kk = append(kk, a.Expression)
 	}
@@ -467,7 +467,7 @@ func (xs *aggregate) initScanRow() (out *Row) {
 //
 // When we find an indent which still has some items to process (counter doesn't exceed limit),
 // reset the ident pointer to the end of the slice and repeat the whole thing.
-func aggregateGroupKeyWalker(kk ...*ql.ASTNode) (out keyWalker, err error) {
+func aggregateGroupKeyWalker(kk ...*ast.ASTNode) (out keyWalker, err error) {
 	// @todo option to copy constants and idents
 	runners, err := makeExprRunners(kk...)
 	if err != nil {
@@ -562,7 +562,7 @@ func aggregateGroupKeyWalker(kk ...*ql.ASTNode) (out keyWalker, err error) {
 	return
 }
 
-func makeExprRunners(kk ...*ql.ASTNode) (out []*runnerGval, err error) {
+func makeExprRunners(kk ...*ast.ASTNode) (out []*runnerGval, err error) {
 	out = make([]*runnerGval, len(kk))
 
 	for i, k := range kk {
