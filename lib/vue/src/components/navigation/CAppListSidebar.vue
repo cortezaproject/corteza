@@ -33,7 +33,7 @@
             v-for="app in apps"
             :key="app.applicationID"
             v-show="isAppVisible(app)"
-            :href="app.enabled ? app.unify.url : '#'"
+            :href="app.enabled ? getAppUrl(app) : '#'"
             target="_self"
             class="flex items-center gap-3 p-3 rounded-lg border border-surface hover:bg-emphasis hover:border-primary transition-all duration-150 no-underline text-color"
             @click="!app.enabled && $event.preventDefault()"
@@ -139,6 +139,12 @@ const getAppLogoUrl = app => {
   }
 
   return app.unify.logo
+}
+
+const getAppUrl = app => {
+  const url = app.unify?.url || ''
+  if (!url || url.startsWith('/') || url.startsWith('http')) return url
+  return '/' + url
 }
 
 const close = () => {
