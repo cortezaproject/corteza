@@ -121,6 +121,8 @@ export function getTheme(theme: Theme) {
         --topbar-bg: ${variables['topbar-bg']};
         --sidebar-width: 20rem;
         --sidebar-bg: ${variables['sidebar-bg']};
+        --right-sidebar-width: 360px;
+        --right-sidebar-bottom: calc(58px + 0.75rem);
         --body-bg: ${variables['body-bg']};
         --p-drawer-border-color: #ffffff00;
         --p-overlay-modal-padding: 1rem;
@@ -173,6 +175,20 @@ export function getTheme(theme: Theme) {
 
       .p-datatable-column-resizer:hover {
         background-color: var(--p-highlight-focus-background) !important;
+      }
+
+      .right-sidebar {
+        position: fixed;
+        top: calc(var(--topbar-height) + 0.75rem);
+        right: 0.75rem;
+        bottom: var(--right-sidebar-bottom);
+        width: var(--right-sidebar-width);
+        max-width: 100%;
+        z-index: 50;
+        background-color: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: var(--p-card-border-radius);
+        box-shadow: var(--p-overlay-popover-shadow);
       }
     `,
   })

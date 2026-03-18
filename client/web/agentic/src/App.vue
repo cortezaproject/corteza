@@ -32,7 +32,7 @@
             lightTheme: $t('navigation.themes.labels.light'),
             darkTheme: $t('navigation.themes.labels.dark'),
           }"
-          :hide-app-selector="true"
+          @app-menu-click="appListVisible = true"
         />
       </header>
 
@@ -59,20 +59,33 @@
 
       <ConfirmDialog />
     </div>
+
+    <CAppListSidebar
+      v-model:visible="appListVisible"
+      :labels="{
+        title: $t('navigation.appList.title'),
+        search: $t('navigation.appList.search'),
+        noResults: $t('navigation.appList.noResults'),
+        noApps: $t('navigation.appList.noApps'),
+      }"
+    />
   </div>
 </template>
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { useAgentStore } from '@/stores/agent'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useApplicationsStore } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar } = components
 
 const $Settings = inject('$Settings')
 const $SystemAPI = inject('$SystemAPI')
 const agentStore = useAgentStore()
+const applicationsStore = useApplicationsStore()
+
+const appListVisible = ref(false)
 
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')
@@ -84,7 +97,10 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
 
   try {
-    await agentStore.fetchList($SystemAPI)
+    await Promise.all([
+      agentStore.fetchList($SystemAPI),
+      applicationsStore.fetchApplications(),
+    ])
   } catch (e) {
     console.error('Failed to load agents:', e)
   } finally {

@@ -34,6 +34,7 @@
             lightTheme: $t('general.themes.labels.light'),
             darkTheme: $t('general.themes.labels.dark'),
           }"
+          @app-menu-click="appListVisible = true"
         />
       </header>
 
@@ -59,6 +60,16 @@
 
       <ConfirmDialog />
     </div>
+
+    <CAppListSidebar
+      v-model:visible="appListVisible"
+      :labels="{
+        title: $t('navigation.appList.title'),
+        search: $t('navigation.appList.search'),
+        noResults: $t('navigation.appList.noResults'),
+        noApps: $t('navigation.appList.noApps'),
+      }"
+    />
   </div>
 </template>
 
@@ -68,10 +79,10 @@ import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { useNamespaceStore } from '@/stores/namespace'
 import { useRecordStore } from '@/stores/record'
 import { useUserStore } from '@/stores/user'
-import { components, useRBACStore } from '@cortezaproject/corteza-vue-next'
+import { components, useRBACStore, useApplicationsStore } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar } = components
 
 const $Settings = inject('$Settings')
 const $ComposeAPI = inject('$ComposeAPI')
@@ -87,6 +98,9 @@ const namespaceStore = useNamespaceStore()
 const usersStore = useUserStore()
 const recordStore = useRecordStore()
 const rbacStore = useRBACStore()
+const applicationsStore = useApplicationsStore()
+
+const appListVisible = ref(false)
 
 // Provide stores to field editor/viewer components in lib/vue
 provide('$userStore', usersStore)
@@ -97,6 +111,7 @@ onMounted(() => {
     namespaceStore.load({ force: true }),
     usersStore.load({ limit: 500 }),
     rbacStore.load([$ComposeAPI, $SystemAPI]),
+    applicationsStore.fetchApplications(),
   ]
   const delayPromise = new Promise(resolve => setTimeout(resolve, 1000))
 

@@ -1,4 +1,9 @@
 appMenu: Menu
+appList:
+  title: Menu
+  search: Search...
+  noResults: No applications found
+  noApps: No applications available
 help:
   documentation: Documentation
   feedback: Send feedback

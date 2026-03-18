@@ -30,15 +30,14 @@
     <div class="flex items-center gap-1 ml-2">
       <Button
         v-if="!hideAppSelector && !settings?.hideAppSelector"
+        v-tooltip.bottom="labels.appMenu"
         data-test-id="app-selector"
-        :href="appSelectorURL"
-        as="a"
+        icon="pi pi-th-large"
         severity="secondary"
         variant="text"
-        size="small"
-      >
-        {{ labels.appMenu }}
-      </Button>
+        rounded
+        @click="onAppMenuClick"
+      />
 
       <slot name="right-tools" />
 
@@ -117,6 +116,12 @@ const props = defineProps({
     required: true,
   },
 })
+
+const emit = defineEmits(['app-menu-click'])
+
+const onAppMenuClick = () => {
+  emit('app-menu-click')
+}
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

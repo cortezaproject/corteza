@@ -157,7 +157,7 @@
     >
       <div
         v-if="selectedNode && showReferencePanel"
-        class="absolute top-0 bottom-[58px] my-7 bg-surface border-l border-surface shadow z-30 rounded-xl"
+        class="right-sidebar"
         :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '280px' }"
       >
         <ReferencePanel
@@ -181,7 +181,7 @@
     >
       <div
         v-if="selectedNode"
-        class="config-drawer flex absolute top-0 right-0 bottom-[58px] m-3 bg-surface border-l border-surface shadow z-30 rounded-xl"
+        class="config-drawer right-sidebar flex"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->

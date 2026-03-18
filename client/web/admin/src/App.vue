@@ -30,6 +30,7 @@
             lightTheme: $t('navigation.themes.labels.light'),
             darkTheme: $t('navigation.themes.labels.dark'),
           }"
+          @app-menu-click="appListVisible = true"
         />
       </header>
 
@@ -55,17 +56,30 @@
 
       <ConfirmDialog />
     </div>
+
+    <CAppListSidebar
+      v-model:visible="appListVisible"
+      :labels="{
+        title: $t('navigation.appList.title'),
+        search: $t('navigation.appList.search'),
+        noResults: $t('navigation.appList.noResults'),
+        noApps: $t('navigation.appList.noApps'),
+      }"
+    />
   </div>
 </template>
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useApplicationsStore } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar } = components
 
 const $Settings = inject('$Settings')
+
+const applicationsStore = useApplicationsStore()
+const appListVisible = ref(false)
 
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')
@@ -76,7 +90,7 @@ const loading = ref(true)
 onMounted(() => {
   const delayPromise = new Promise(resolve => setTimeout(resolve, 1500))
 
-  delayPromise.finally(() => {
+  Promise.all([delayPromise, applicationsStore.fetchApplications()]).finally(() => {
     loading.value = false
   })
 })

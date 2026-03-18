@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch, defineOptions } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
 
 defineOptions({ inheritAttrs: false })

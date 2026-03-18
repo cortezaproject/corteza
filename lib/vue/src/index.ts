@@ -16,6 +16,7 @@ export { ToastPlugin } from './plugins/toast'
 
 // Export stores
 export { useRBACStore } from './composables/useRBAC'
+export { useApplicationsStore } from './stores/useApplicationsStore'
 export { useComposeResourceStore } from './stores/useComposeResourceStore'
 export { useConfirmDelete } from './composables/useConfirmDelete'
 export { useResourceList } from './composables/useResourceList'

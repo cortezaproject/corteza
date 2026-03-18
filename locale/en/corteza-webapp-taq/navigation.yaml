@@ -6,6 +6,11 @@ help:
   forum: Help
   version: 'Version:'
 appMenu: Menu
+appList:
+  title: Menu
+  search: Search...
+  noResults: No applications found
+  noApps: No applications available
 userSettings:
   changePassword: Change password
   logout: Logout
