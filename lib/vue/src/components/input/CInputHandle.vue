@@ -16,7 +16,6 @@
 
 <script setup>
 import { computed, watch } from 'vue'
-import InputText from 'primevue/inputtext'
 
 const props = defineProps({
   modelValue: {

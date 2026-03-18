@@ -204,8 +204,6 @@ import axios from 'axios'
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import Menu from 'primevue/menu'
-import Select from 'primevue/select'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 const { CFieldViewer, CInputSearch } = components

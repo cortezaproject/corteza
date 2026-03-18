@@ -84,9 +84,6 @@
 </template>
 
 <script setup>
-import Avatar from 'primevue/avatar'
-import Button from 'primevue/button'
-import TieredMenu from 'primevue/tieredmenu'
 import { computed, inject, ref, watch } from 'vue'
 
 const sidebarExpanded = defineModel('sidebarExpanded', {

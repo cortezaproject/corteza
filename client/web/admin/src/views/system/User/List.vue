@@ -48,7 +48,7 @@
       </template>
 
       <template #body-name="{ data }">
-        <span class="font-medium">{{ data.name || '-' }}</span>
+        {{ data.name || '-' }}
       </template>
 
       <template #body-email="{ data }">

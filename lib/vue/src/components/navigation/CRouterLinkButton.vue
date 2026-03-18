@@ -1,5 +1,4 @@
 <script setup>
-import Button from 'primevue/button'
 import { RouterLink } from 'vue-router'
 
 defineOptions({

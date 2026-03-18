@@ -21,7 +21,6 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ToggleSwitch from 'primevue/toggleswitch'
 
 const { t } = useI18n()
 

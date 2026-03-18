@@ -40,7 +40,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next/src/stores/useComposeResourceStore'
-import Tag from 'primevue/tag'
 
 const { t } = useI18n()
 const notSet = t('builder.preview.notSet')

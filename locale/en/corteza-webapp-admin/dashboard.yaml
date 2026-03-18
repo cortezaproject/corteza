@@ -1,19 +1,22 @@
-applications:
-  applications: Application(s)
-  deleted: Deleted
-  title: Active application(s)
-  total: Total
-roles:
-  archived: Archived
-  deleted: Deleted
-  roles: Role(s)
-  title: Active role(s)
-  total: Total
 title: Dashboard
-users:
-  created: Created users(s)
-  deleted: Deleted
-  suspended: Suspended
-  title: Active user(s)
+
+stats:
+  users: Users
+  roles: Roles
+  applications: Applications
+  workflows: Workflows
+  namespaces: Namespaces
+
+status:
   total: Total
-  users: User(s)
+  active: Active
+  suspended: Suspended
+  deleted: Deleted
+  archived: Archived
+  enabled: Enabled
+  disabled: Disabled
+
+charts:
+  monthly:
+    title: Monthly Overview
+    cumulative: Cumulative Total

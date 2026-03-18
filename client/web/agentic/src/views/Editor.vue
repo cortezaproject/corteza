@@ -861,26 +861,8 @@ import { useI18n } from 'vue-i18n'
 import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
 
-// Components
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import Checkbox from 'primevue/checkbox'
-import Column from 'primevue/column'
-import DataTable from 'primevue/datatable'
-import InputNumber from 'primevue/inputnumber'
-import InputText from 'primevue/inputtext'
-import Panel from 'primevue/panel'
-import ProgressSpinner from 'primevue/progressspinner'
-import Select from 'primevue/select'
+// Components (not globally registered)
 import Slider from 'primevue/slider'
-
-import Tab from 'primevue/tab'
-import TabList from 'primevue/tablist'
-import TabPanel from 'primevue/tabpanel'
-import TabPanels from 'primevue/tabpanels'
-import Tabs from 'primevue/tabs'
-import Textarea from 'primevue/textarea'
-import ToggleSwitch from 'primevue/toggleswitch'
 import { components } from '@cortezaproject/corteza-vue-next'
 const { CInputLLM, CInputModel, CInputDelete, CInputUser } = components
 

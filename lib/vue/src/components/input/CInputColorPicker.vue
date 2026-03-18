@@ -38,7 +38,7 @@
     </slot>
 
     <span v-if="showText" class="ml-2 text-sm text-muted-color">
-      {{ modelValue || 'transparent' }}
+      {{ modelValue || emptyLabel }}
     </span>
 
     <!-- Popover picker -->
@@ -112,6 +112,10 @@ const props = defineProps({
   showText: {
     type: Boolean,
     default: false,
+  },
+  emptyLabel: {
+    type: String,
+    default: 'transparent',
   },
   width: {
     type: String,
@@ -200,6 +204,26 @@ const hex8 = computed(() => {
 
 // Display color for swatch (CSS rgba)
 const displayColor = computed(() => {
+  // When modelValue is empty and a defaultValue exists, show the default color in the swatch
+  if ((!props.modelValue || props.modelValue === 'transparent') && props.defaultValue) {
+    const dv = props.defaultValue.trim()
+
+    // Handle rgb/rgba format directly
+    if (dv.startsWith('rgb')) {
+      return dv
+    }
+
+    // Handle hex format
+    const hex = dv.replace(/^#/, '')
+    if (hex.length >= 6) {
+      const r = parseInt(hex.substring(0, 2), 16)
+      const g = parseInt(hex.substring(2, 4), 16)
+      const b = parseInt(hex.substring(4, 6), 16)
+      const a = hex.length === 8 ? parseInt(hex.substring(6, 8), 16) / 255 : 1
+      return `rgba(${r}, ${g}, ${b}, ${a})`
+    }
+  }
+
   const hex = pickerHex.value
   const r = parseInt(hex.substring(0, 2), 16)
   const g = parseInt(hex.substring(2, 4), 16)

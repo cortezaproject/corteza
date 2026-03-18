@@ -278,6 +278,18 @@ metric:
     fontSize: Font size in pixels
     labelLabel: Label style
     valueLabel: Value style
+    resetToDefault: Reset to default
+    default: Default
+  comparison:
+    label: Change Indicator
+    enabled: Enable change indicator
+    period: Comparison period
+    periodDay: Day
+    periodWeek: Week
+    periodMonth: Month
+    periodQuarter: Quarter
+    periodYear: Year
+    customFilter: Custom comparison filter
   label: Metric
 record:
   noModule: No module configured for this block

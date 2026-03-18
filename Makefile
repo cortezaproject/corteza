@@ -1,4 +1,6 @@
-.PHONY: dev test lint fresh audit codegen
+.PHONY: dev dev-all test lint fresh audit codegen
+
+WEB_APPS := admin agentic compose one taq
 
 codegen:
 	@echo "---Running codegen---"
@@ -7,6 +9,13 @@ codegen:
 dev:
 	@echo "---Installing dependencies---"
 	@pnpm install || (echo "Failed to install dependencies"; exit 1)
+
+dev-all:
+	@echo "---Starting server and all web apps---"
+	@trap 'kill 0' EXIT; \
+	(cd $(CURDIR)/server && $(MAKE) watch) & \
+	$(foreach app,$(WEB_APPS),(cd $(CURDIR)/client/web/$(app) && pnpm run dev) & ) \
+	wait
 
 test:
 	@echo "---Testing libs---"

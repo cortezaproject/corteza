@@ -43,6 +43,11 @@
       <Toast
         position="top-center"
         :pt="{
+          root: {
+            style: {
+              top: 'var(--topbar-height)',
+            },
+          },
           messageIcon: {
             style: {
               display: 'none',

@@ -12,7 +12,9 @@
         class="flex flex-col gap-2 p-3 border rounded-lg"
       >
         <div class="flex items-center gap-2 justify-between">
-          <span class="text-sm font-semibold">{{ metric.label || $t('block.metric.defaultMetricLabel') }}</span>
+          <span class="text-sm font-semibold">
+            {{ metric.label || $t('block.metric.defaultMetricLabel') }}
+          </span>
           <div class="flex gap-1">
             <Button
               :icon="expandedMetric === i ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
@@ -34,13 +36,21 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <!-- Label -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.labelLabel') }}</label>
-              <InputText v-model="metric.label" :placeholder="$t('block.metric.edit.labelPlaceholder')" class="w-full" />
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.labelLabel') }}
+              </label>
+              <InputText
+                v-model="metric.label"
+                :placeholder="$t('block.metric.edit.labelPlaceholder')"
+                class="w-full"
+              />
             </div>
 
             <!-- Module (per-metric) -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.moduleLabel') }}</label>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.moduleLabel') }}
+              </label>
               <Select
                 :model-value="metric.moduleID"
                 :options="modules"
@@ -55,7 +65,9 @@
 
             <!-- Metric Field -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.metricFieldLabel') }}</label>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.metricFieldLabel') }}
+              </label>
               <Select
                 :model-value="metric.metricField"
                 :options="getMetricFields(metric.moduleID)"
@@ -70,7 +82,9 @@
 
             <!-- Aggregation operation -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.metricAggregateLabel') }}</label>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.metricAggregateLabel') }}
+              </label>
               <Select
                 v-model="metric.operation"
                 :options="aggregationOperations"
@@ -84,83 +98,175 @@
 
             <!-- Transform function -->
             <div class="flex flex-col gap-1 md:col-span-2">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.transformFunctionLabel') }}</label>
-              <InputText
-                v-model="metric.transformFx"
-                class="w-full"
-                placeholder="v"
-              />
-              <small class="text-muted-color">{{ $t('block.metric.edit.transformFunctionDescription') }}</small>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.transformFunctionLabel') }}
+              </label>
+              <InputText v-model="metric.transformFx" class="w-full" placeholder="v" />
+              <small class="text-muted-color">
+                {{ $t('block.metric.edit.transformFunctionDescription') }}
+              </small>
             </div>
 
             <!-- Number format -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.numberFormat') }}</label>
-              <InputText
-                v-model="metric.numberFormat"
-                class="w-full"
-                placeholder="0,0.00"
-              />
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.numberFormat') }}
+              </label>
+              <InputText v-model="metric.numberFormat" class="w-full" placeholder="0,0.00" />
             </div>
 
             <!-- Prefix -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.prefixLabel') }}</label>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.prefixLabel') }}
+              </label>
               <InputText v-model="metric.prefix" class="w-full" placeholder="$" />
             </div>
 
             <!-- Suffix -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.suffixLabel') }}</label>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.suffixLabel') }}
+              </label>
               <InputText v-model="metric.suffix" class="w-full" placeholder="USD/mo" />
             </div>
 
             <!-- Filter -->
             <div class="flex flex-col gap-1 md:col-span-2">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.edit.filterLabel') }}</label>
-              <InputText v-model="metric.filter" class="w-full" placeholder="field1 = 1 AND field2 > 0" />
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.edit.filterLabel') }}
+              </label>
+              <InputText
+                v-model="metric.filter"
+                class="w-full"
+                placeholder="field1 = 1 AND field2 > 0"
+              />
             </div>
           </div>
 
           <!-- Value Style -->
           <Divider />
-          <h6 class="text-base font-semibold text-primary m-0">
-            {{ $t('block.metric.editStyle.valueLabel') }}
-          </h6>
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <!-- Text color -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.editStyle.color') }}</label>
-              <CInputColorPicker
-                :model-value="metric.valueStyle?.color || '#000000'"
-                show-text
-                @update:model-value="onStyleChange(metric, 'color', $event)"
-              />
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.editStyle.color') }}
+              </label>
+              <div class="flex items-center gap-2">
+                <CInputColorPicker
+                  :model-value="metric.valueStyle?.color || ''"
+                  :default-value="defaultTextColor"
+                  show-text
+                  :empty-label="$t('block.metric.editStyle.default')"
+                  @update:model-value="onStyleChange(metric, 'color', $event)"
+                />
+                <Button
+                  icon="pi pi-undo"
+                  severity="secondary"
+                  text
+                  rounded
+                  size="small"
+                  :title="$t('block.metric.editStyle.resetToDefault')"
+                  @click="onStyleChange(metric, 'color', '')"
+                />
+              </div>
             </div>
 
             <!-- Background color -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.editStyle.backgroundColor') }}</label>
-              <CInputColorPicker
-                :model-value="metric.valueStyle?.backgroundColor || '#FFFFFF00'"
-                show-text
-                @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
-              />
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.editStyle.backgroundColor') }}
+              </label>
+              <div class="flex items-center gap-2">
+                <CInputColorPicker
+                  :model-value="metric.valueStyle?.backgroundColor || ''"
+                  show-text
+                  :empty-label="$t('block.metric.editStyle.default')"
+                  @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
+                />
+                <Button
+                  icon="pi pi-undo"
+                  severity="secondary"
+                  text
+                  rounded
+                  size="small"
+                  :title="$t('block.metric.editStyle.resetToDefault')"
+                  @click="onStyleChange(metric, 'backgroundColor', '')"
+                />
+              </div>
             </div>
 
             <!-- Font size -->
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.metric.editStyle.fontSize') }}</label>
-              <InputNumber
-                :model-value="metric.valueStyle?.fontSize ? Number(metric.valueStyle.fontSize) : undefined"
-                placeholder="16"
-                :min="1"
-                :step="1"
-                suffix=" px"
-                class="w-full"
-                @update:model-value="onStyleChange(metric, 'fontSize', $event)"
-              />
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.metric.editStyle.fontSize') }}
+              </label>
+              <div class="flex items-center gap-2">
+                <InputNumber
+                  :model-value="
+                    metric.valueStyle?.fontSize ? Number(metric.valueStyle.fontSize) : 30
+                  "
+                  :min="1"
+                  :step="1"
+                  suffix=" px"
+                  class="w-full"
+                  @update:model-value="onStyleChange(metric, 'fontSize', $event)"
+                />
+                <Button
+                  icon="pi pi-undo"
+                  severity="secondary"
+                  text
+                  rounded
+                  size="small"
+                  :title="$t('block.metric.editStyle.resetToDefault')"
+                  @click="onStyleChange(metric, 'fontSize', 30)"
+                />
+              </div>
             </div>
+          </div>
+
+          <!-- Change Indicator -->
+          <Divider />
+
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <ToggleSwitch
+                :model-value="metric.comparison?.enabled || false"
+                @update:model-value="onComparisonChange(metric, 'enabled', $event)"
+              />
+              <label class="text-sm">{{ $t('block.metric.comparison.enabled') }}</label>
+            </div>
+
+            <template v-if="metric.comparison?.enabled">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1">
+                  <label class="text-primary font-medium text-sm">
+                    {{ $t('block.metric.comparison.period') }}
+                  </label>
+                  <Select
+                    :model-value="metric.comparison?.period || 'month'"
+                    :options="comparisonPeriods"
+                    option-label="label"
+                    option-value="value"
+                    class="w-full"
+                    @update:model-value="onComparisonChange(metric, 'period', $event)"
+                  />
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <label class="text-primary font-medium text-sm">
+                    {{ $t('block.metric.comparison.customFilter') }}
+                  </label>
+                  <InputText
+                    :model-value="metric.comparison?.customFilter || ''"
+                    class="w-full"
+                    placeholder="field1 = 1 AND field2 > 0"
+                    @update:model-value="onComparisonChange(metric, 'customFilter', $event)"
+                  />
+                </div>
+              </div>
+            </template>
           </div>
         </template>
       </div>
@@ -178,7 +284,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { components } from '@cortezaproject/corteza-vue-next'
 import { useModuleStore } from '@/stores/module'
 import { useI18n } from 'vue-i18n'
@@ -200,6 +306,16 @@ const expandedMetric = ref(0)
 
 const modules = computed(() => moduleStore.set || [])
 
+// Resolve the theme's text color for the swatch preview
+const defaultTextColor = ref('')
+onMounted(() => {
+  const style = getComputedStyle(document.documentElement)
+  const textColor = style.getPropertyValue('--p-text-color').trim()
+  if (textColor) {
+    defaultTextColor.value = textColor
+  }
+})
+
 const aggregationOperations = computed(() => [
   { label: t('block.metric.edit.operationSum'), operation: 'sum' },
   { label: t('block.metric.edit.operationMax'), operation: 'max' },
@@ -207,11 +323,19 @@ const aggregationOperations = computed(() => [
   { label: t('block.metric.edit.operationAvg'), operation: 'avg' },
 ])
 
+const comparisonPeriods = computed(() => [
+  { label: t('block.metric.comparison.periodDay'), value: 'day' },
+  { label: t('block.metric.comparison.periodWeek'), value: 'week' },
+  { label: t('block.metric.comparison.periodMonth'), value: 'month' },
+  { label: t('block.metric.comparison.periodQuarter'), value: 'quarter' },
+  { label: t('block.metric.comparison.periodYear'), value: 'year' },
+])
+
 /**
  * Returns the metric fields for a given module.
  * Includes 'Count' as a special option plus all Number fields.
  */
-function getMetricFields (moduleID) {
+function getMetricFields(moduleID) {
   if (!moduleID) return []
 
   const mod = moduleStore.getByID(moduleID)
@@ -222,13 +346,10 @@ function getMetricFields (moduleID) {
     .map(f => ({ name: f.name, label: f.label || f.name }))
     .sort((a, b) => a.label.localeCompare(b.label))
 
-  return [
-    { name: 'count', label: 'Count' },
-    ...numberFields,
-  ]
+  return [{ name: 'count', label: 'Count' }, ...numberFields]
 }
 
-function updateOptions (key, value) {
+function updateOptions(key, value) {
   emit('update:block', {
     ...props.block,
     options: { ...props.block.options, [key]: value },
@@ -239,7 +360,7 @@ const metrics = computed(() => {
   return props.block.options?.metrics || []
 })
 
-function addMetric () {
+function addMetric() {
   // Use the block's makeMetric() if available, otherwise create a default
   let newMetric
   if (props.block.makeMetric) {
@@ -259,14 +380,20 @@ function addMetric () {
       suffix: '',
       transformFx: '',
       valueStyle: {
-        backgroundColor: '#FFFFFF00',
-        color: '#000000',
+        backgroundColor: undefined,
+        color: undefined,
         fontSize: undefined,
       },
       drillDown: {
         enabled: false,
         blockID: '',
         recordListOptions: { fields: [] },
+      },
+      comparison: {
+        enabled: false,
+        type: 'period',
+        period: 'month',
+        customFilter: '',
       },
     }
   }
@@ -276,7 +403,7 @@ function addMetric () {
   expandedMetric.value = m.length - 1
 }
 
-function removeMetric (index) {
+function removeMetric(index) {
   const m = [...metrics.value]
   m.splice(index, 1)
   updateOptions('metrics', m)
@@ -286,14 +413,14 @@ function removeMetric (index) {
   }
 }
 
-function onModuleChange (metric, moduleID) {
+function onModuleChange(metric, moduleID) {
   metric.moduleID = moduleID
   // Reset field and operation when module changes
   metric.metricField = ''
   metric.operation = ''
 }
 
-function onMetricFieldChange (metric, field) {
+function onMetricFieldChange(metric, field) {
   metric.metricField = field
 
   if (field === 'count') {
@@ -305,14 +432,26 @@ function onMetricFieldChange (metric, field) {
   }
 }
 
-function onStyleChange (metric, key, value) {
+function onStyleChange(metric, key, value) {
   if (!metric.valueStyle) {
     metric.valueStyle = {
-      backgroundColor: '#FFFFFF00',
-      color: '#000000',
+      backgroundColor: undefined,
+      color: undefined,
       fontSize: undefined,
     }
   }
   metric.valueStyle[key] = value
+}
+
+function onComparisonChange(metric, key, value) {
+  if (!metric.comparison) {
+    metric.comparison = {
+      enabled: false,
+      type: 'period',
+      period: 'month',
+      customFilter: '',
+    }
+  }
+  metric.comparison[key] = value
 }
 </script>

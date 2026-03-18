@@ -10,7 +10,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import Tag from 'primevue/tag'
 
 const props = defineProps({
   scope: { type: String, default: '' },

@@ -41,7 +41,7 @@
             <img
               :src="getAppLogoUrl(app)"
               :alt="app.unify?.name || app.name"
-              class="w-10 h-10 object-contain rounded-md shrink-0"
+              class="w-16 h-16 object-contain rounded-md shrink-0"
               loading="lazy"
             />
             <span class="font-medium text-sm truncate">
@@ -62,7 +62,6 @@
 </template>
 
 <script setup>
-import Button from 'primevue/button'
 import { computed, inject, ref } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'

@@ -12,9 +12,7 @@
 </template>
 
 <script setup>
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
-import InputText from 'primevue/inputtext'
+
 
 const props = defineProps({
   modelValue: {

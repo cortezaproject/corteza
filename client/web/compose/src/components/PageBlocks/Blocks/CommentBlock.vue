@@ -591,7 +591,10 @@ async function loadNewComments() {
 async function refresh() {
   if (!options.value.moduleID || !roModule.value || !contentField.value) return
 
-  processing.value = true
+  const isInitialLoad = !comments.value.length
+  if (isInitialLoad) {
+    processing.value = true
+  }
   filter.value.nextPage = ''
 
   try {
@@ -605,10 +608,12 @@ async function refresh() {
   } catch (e) {
     console.error('Comment refresh error:', e)
   } finally {
-    setTimeout(() => {
-      processing.value = false
-      nextTick(() => scrollToPosition())
-    }, 300)
+    if (isInitialLoad) {
+      setTimeout(() => {
+        processing.value = false
+        nextTick(() => scrollToPosition())
+      }, 300)
+    }
   }
 }
 

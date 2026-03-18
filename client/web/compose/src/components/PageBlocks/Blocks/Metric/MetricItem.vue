@@ -1,36 +1,35 @@
 <template>
-  <div
-    :style="genStyle(metric.valueStyle)"
-    class="h-full text-center"
-  >
-    <svg
-      :viewBox="viewBox"
-      class="h-full w-full flex"
-      width="100%"
-      height="100%"
-    >
-      <text
-        ref="metricItemRef"
-        y="50%"
-        x="50%"
-        text-anchor="middle"
-        dominant-baseline="central"
-        text-rendering="geometricPrecision"
+  <div class="metric-item flex flex-col h-full p-3" :style="containerStyle">
+    <!-- Top row: label + change badge -->
+    <div class="flex items-center gap-2 mb-1">
+      <span
+        v-if="metric.label"
+        class="text-muted-color text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis"
       >
-        <template v-if="metric.prefix">
-          {{ metric.prefix }}
-        </template>
-        {{ value.value }}
-        <template v-if="metric.suffix">
-          {{ metric.suffix }}
-        </template>
-      </text>
-    </svg>
+        {{ metric.label }}
+      </span>
+
+      <div
+        v-if="changeValue != null"
+        class="change-badge flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ml-auto"
+        :class="changeClass"
+      >
+        <i :class="changeIcon" class="text-xs" />
+        {{ formattedChange }}
+      </div>
+    </div>
+
+    <!-- Value row -->
+    <span class="metric-value font-bold text-color" :style="valueStyle">
+      <template v-if="metric.prefix">{{ metric.prefix }}</template>
+      {{ value.value }}
+      <template v-if="metric.suffix">{{ metric.suffix }}</template>
+    </span>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   metric: {
@@ -41,43 +40,75 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  changeValue: {
+    type: Number,
+    default: null,
+  },
 })
 
-const metricItemRef = ref(null)
-const vvb = ref(['0', '0', '0', '0'])
-
-const viewBox = computed(() => vvb.value.join(' '))
-
-function update () {
-  nextTick(() => {
-    if (!metricItemRef.value) return
-    try {
-      const { width, height } = metricItemRef.value.getBBox()
-      const tmp = [...vvb.value]
-      tmp[2] = String(Math.ceil(width))
-      tmp[3] = String(Math.ceil(height))
-      vvb.value = tmp
-    } catch {
-      // SVG not rendered yet
-    }
-  })
-}
-
-function genStyle (s = {}) {
+const containerStyle = computed(() => {
+  const s = props.metric.valueStyle || {}
   const d = {}
-  if (s?.color) {
-    d.color = s.color
-    d.fill = s.color
-  }
-  if (s?.backgroundColor) d.backgroundColor = s.backgroundColor
-  if (s?.fontSize) d.fontSize = s.fontSize + 'px'
+  if (s.backgroundColor && s.backgroundColor !== 'transparent')
+    d.backgroundColor = s.backgroundColor
   return d
-}
+})
 
-watch(() => props.metric, update, { immediate: true, deep: true })
-watch(() => props.value, update, { immediate: true, deep: true })
+const valueStyle = computed(() => {
+  const s = props.metric.valueStyle || {}
+  const d = {}
+  if (s.color && s.color !== 'transparent') d.color = s.color
+  if (s.fontSize) d.fontSize = s.fontSize + 'px'
+  return d
+})
 
-onBeforeUnmount(() => {
-  vvb.value = []
+// Change indicator computed properties
+const changeClass = computed(() => {
+  if (props.changeValue == null) return ''
+  if (props.changeValue > 0) return 'change-positive'
+  if (props.changeValue < 0) return 'change-negative'
+  return 'change-neutral'
+})
+
+const changeIcon = computed(() => {
+  if (props.changeValue == null) return ''
+  if (props.changeValue > 0) return 'pi pi-arrow-up-right'
+  if (props.changeValue < 0) return 'pi pi-arrow-down-right'
+  return 'pi pi-arrow-right'
+})
+
+const formattedChange = computed(() => {
+  if (props.changeValue == null) return ''
+  if (props.changeValue === 0) return '—'
+  const val = Math.abs(props.changeValue).toFixed(1)
+  if (props.changeValue > 0) return `+${val}%`
+  return `-${val}%`
 })
 </script>
+
+<style scoped>
+.metric-item {
+  min-height: 0;
+}
+
+.metric-value {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.change-badge.change-positive {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.change-badge.change-negative {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+
+.change-badge.change-neutral {
+  background-color: rgba(148, 163, 184, 0.15);
+  color: rgb(148, 163, 184);
+}
+</style>

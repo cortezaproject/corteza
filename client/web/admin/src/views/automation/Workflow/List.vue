@@ -55,7 +55,7 @@
 
       <template #body-name="{ data }">
         <div class="flex flex-col">
-          <span class="font-medium">{{ data.meta?.name || '—' }}</span>
+          <span>{{ data.meta?.name || '—' }}</span>
           <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
             {{ data.meta.description }}
           </span>

@@ -13,6 +13,13 @@ interface DrillDown {
   recordListOptions: Partial<PageBlockRecordListOptions>
 }
 
+interface Comparison {
+  enabled: boolean
+  type: string
+  period: string
+  customFilter: string
+}
+
 interface ReporterParams {
   moduleID: string
   filter?: string
@@ -21,8 +28,8 @@ interface ReporterParams {
 }
 
 interface Style {
-  color: string
-  backgroundColor: string
+  color?: string
+  backgroundColor?: string
   fontSize?: string
 }
 
@@ -43,6 +50,7 @@ interface Metric {
   // @todo allow conditional styles; eg. if value is < 10 render with bold red text
   valueStyle?: Style
   drillDown: DrillDown
+  comparison: Comparison
 }
 
 const defaultMetric: Readonly<Metric> = Object.freeze({
@@ -60,8 +68,8 @@ const defaultMetric: Readonly<Metric> = Object.freeze({
   transformFx: '',
 
   valueStyle: {
-    backgroundColor: '#FFFFFF00',
-    color: '#000000',
+    backgroundColor: undefined,
+    color: undefined,
     fontSize: undefined,
   },
 
@@ -71,6 +79,13 @@ const defaultMetric: Readonly<Metric> = Object.freeze({
     recordListOptions: {
       fields: [],
     },
+  },
+
+  comparison: {
+    enabled: false,
+    type: 'period',
+    period: 'month',
+    customFilter: '',
   },
 })
 

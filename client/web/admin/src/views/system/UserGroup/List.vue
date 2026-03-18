@@ -47,12 +47,12 @@
       </template>
 
       <template #body-handle="{ data }">
-        <span class="font-medium">{{ data.handle || '-' }}</span>
+        {{ data.handle || '-' }}
       </template>
 
       <template #body-name="{ data }">
         <div class="flex flex-col">
-          <span class="font-medium">{{ data.name || '-' }}</span>
+          <span>{{ data.name || '-' }}</span>
           <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
             {{ data.meta.description }}
           </span>
@@ -177,14 +177,14 @@ function toggleFilterMenu(event) {
 // Column definitions
 const userGroupListFields = [
   {
-    key: 'handle',
-    sortable: true,
-    header: t('system.user-groups.list.columns.handle'),
-  },
-  {
     key: 'name',
     sortable: true,
     header: t('system.user-groups.list.columns.meta.short'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('system.user-groups.list.columns.handle'),
   },
   {
     key: 'updatedAt',

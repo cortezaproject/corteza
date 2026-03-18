@@ -40,7 +40,7 @@
 
       <template #body-name="{ data }">
         <div class="flex flex-col">
-          <span class="font-medium">{{ data.meta?.short || '-' }}</span>
+          <span>{{ data.meta?.short || '-' }}</span>
           <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
             {{ data.meta.description }}
           </span>
@@ -98,7 +98,6 @@ import {
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import Tag from 'primevue/tag'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters

@@ -50,8 +50,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import Tag from 'primevue/tag'
-import MultiSelect from 'primevue/multiselect'
 
 const props = defineProps({
   field: {
