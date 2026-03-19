@@ -67,27 +67,32 @@
         {{ $t('builder.configSidebar.branches') }}
       </div>
       <div class="flex flex-col gap-2">
-        <div
+        <Panel
+          toggleable
           v-for="(data, index) in branchOutputs"
           :key="data.edgeId"
-          class="branch-item flex flex-col gap-1 p-2 rounded-border border border-surface cursor-grab transition-opacity"
-          :class="{ 'opacity-50': dragIndex === index, 'border-primary': dropTarget === index }"
-          draggable="true"
+          :header="index === 0
+            ? $t('builder.branch.if')
+            : index === branchOutputs.length - 1
+              ? $t('builder.branch.else')
+              : $t('builder.branch.elseIf')"
+          class="transition-opacity"
+          :pt="{
+            root: { style: 'overflow: hidden; min-width: 0' },
+            toggleableContent: { style: 'overflow: hidden' },
+            content: { style: 'padding: 0.5rem !important; overflow: hidden; min-width: 0' },
+          }"
+          :class="{
+            'cursor-grab': index < branchOutputs.length - 1,
+            'opacity-50': dragIndex === index,
+          }"
+          :draggable="index < branchOutputs.length - 1"
           @dragstart="onDragStart(index, $event)"
           @dragover.prevent="onDragOver(index)"
           @dragleave="onDragLeave"
           @drop.prevent="onDrop(index)"
           @dragend="onDragEnd"
         >
-          <div class="flex items-center gap-2">
-            <Tag v-if="index === 0" :value="$t('builder.branch.if')" severity="info" />
-            <Tag
-              v-else-if="index === branchOutputs.length - 1"
-              :value="$t('builder.branch.else')"
-              severity="secondary"
-            />
-            <Tag v-else :value="$t('builder.branch.elseIf')" severity="warn" />
-          </div>
           <!-- Condition builder (not for the last/Else branch) -->
           <ConditionBuilder
             v-if="index < branchOutputs.length - 1"
@@ -99,7 +104,7 @@
           <span v-else class="text-sm text-muted-color italic">
             {{ $t('builder.branch.defaultPath') }}
           </span>
-        </div>
+        </Panel>
       </div>
     </div>
 
@@ -256,7 +261,8 @@ function onDragStart(index, event) {
 }
 
 function onDragOver(index) {
-  if (dragIndex.value !== null && dragIndex.value !== index) {
+  const lastIndex = branchOutputs.value.length - 1
+  if (dragIndex.value !== null && dragIndex.value !== index && index < lastIndex) {
     dropTarget.value = index
   }
 }
@@ -266,7 +272,8 @@ function onDragLeave() {
 }
 
 function onDrop(index) {
-  if (dragIndex.value === null || dragIndex.value === index) return
+  const lastIndex = branchOutputs.value.length - 1
+  if (dragIndex.value === null || dragIndex.value === index || index >= lastIndex) return
 
   const items = [...branchOutputs.value]
   const [moved] = items.splice(dragIndex.value, 1)

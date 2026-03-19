@@ -5,6 +5,7 @@
     @update:value="handleValueUpdate"
     @toggle-reference="onToggleReference"
     @clear-reference="handleClearReference"
+    @update-reference-source="handleReferenceSourceUpdate"
   />
 </template>
 
@@ -217,6 +218,16 @@ function handleClearReference(argumentName) {
     }
   }
   emit('update:arguments', newArgs)
+}
+
+// Handle editing a reference source (user typed in the reference chip)
+function handleReferenceSourceUpdate(argumentName, newSource) {
+  let newArgs = [...props.arguments]
+  const idx = newArgs.findIndex(a => a.argumentName === argumentName)
+  if (idx !== -1 && newArgs[idx].scope) {
+    newArgs[idx] = { ...newArgs[idx], source: newSource }
+    emit('update:arguments', newArgs)
+  }
 }
 
 // Expose onReferenceSelect for parent components

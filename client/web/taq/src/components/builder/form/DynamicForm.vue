@@ -32,6 +32,7 @@
             @update:model-value="$emit('update:value', input.argument, $event)"
             @toggle-reference="$emit('toggleReference', $event)"
             @clear-reference="$emit('clearReference', $event)"
+            @update-reference-source="(arg, val) => $emit('updateReferenceSource', arg, val)"
           />
         </div>
       </div>
@@ -53,5 +54,5 @@ defineProps({
   },
 })
 
-defineEmits(['update:value', 'toggleReference', 'clearReference'])
+defineEmits(['update:value', 'toggleReference', 'clearReference', 'updateReferenceSource'])
 </script>

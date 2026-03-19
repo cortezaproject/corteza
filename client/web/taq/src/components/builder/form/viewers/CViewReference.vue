@@ -1,11 +1,12 @@
 <template>
-  <Tag
-    :value="displayLabel"
-    severity="primary"
-    icon="pi pi-link"
-    class="text-sm"
+  <div
+    class="inline-flex items-center gap-1.5 bg-surface border border-surface text-sm"
     :title="displayLabel"
-  />
+    :style="{ padding: 'var(--p-form-field-sm-padding-y) var(--p-form-field-sm-padding-x)', borderRadius: 'var(--p-form-field-border-radius)' }"
+  >
+    <i class="pi pi-link text-primary text-sm" />
+    <span class="text-color truncate">{{ displayLabel }}</span>
+  </div>
 </template>
 
 <script setup>
@@ -18,8 +19,6 @@ const props = defineProps({
 })
 
 const displayLabel = computed(() => {
-  const step = props.nodes.find(n => n.data?.ref === props.scope)
-  const stepLabel = step?.data?.label || props.scope
-  return `${stepLabel} → ${props.source}`
+  return props.source
 })
 </script>

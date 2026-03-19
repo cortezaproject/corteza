@@ -11,6 +11,7 @@
       :label="referenceLabel"
       @click="$emit('toggleReference', argument)"
       @clear="$emit('clearReference', argument)"
+      @update:label="$emit('updateReferenceSource', argument, $event)"
     />
 
     <!-- Normal input mode -->
@@ -103,7 +104,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference'])
+const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference', 'updateReferenceSource'])
 
 const inputComponent = computed(() => resolveInputComponent(props.type))
 

@@ -146,12 +146,7 @@ function rowsToModelValue() {
 
 function formatRefLabel(ref) {
   if (!ref?.source) return 'Reference'
-  const parts = ref.source.split('.')
-  const fieldPart = parts[parts.length - 1]
-  const nodes = injectedNodes.value || []
-  const step = nodes.find(n => n.data?.ref === ref.scope)
-  const stepLabel = step?.data?.label || ref.scope
-  return `${stepLabel} → ${fieldPart}`
+  return ref.source
 }
 
 function clearRowRef(index) {

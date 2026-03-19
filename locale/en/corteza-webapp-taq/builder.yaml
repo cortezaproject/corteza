@@ -152,7 +152,7 @@ condition:
   or: OR
   matchAll: All match
   matchAny: Any match
-  selectVariable: Select variable
+  selectValue: Select value
   enterValue: Enter value
   operators:
     eq: equals

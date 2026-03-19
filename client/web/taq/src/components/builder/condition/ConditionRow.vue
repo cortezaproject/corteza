@@ -7,14 +7,16 @@
         <CReferenceChip
           v-if="hasVariableRef"
           :label="variableRefLabel"
+          size="small"
           class="flex-1 min-w-0"
           @click="emit('toggleReference', { side: 'variable', edgeId, rowIndex })"
           @clear="onClearVariable"
+          @update:label="onVariableRefEdit"
         />
         <div v-else class="flex items-center gap-1 flex-1 min-w-0">
           <InputText
             :model-value="symbolStr"
-            :placeholder="$t('builder.condition.selectVariable')"
+            :placeholder="$t('builder.condition.selectValue')"
             class="flex-1 min-w-0"
             size="small"
             @focus="emit('toggleReference', { side: 'variable', edgeId, rowIndex })"
@@ -31,29 +33,29 @@
         </div>
       </div>
 
-    <!-- Row 2: operator + value -->
-    <div class="flex items-center gap-1 overflow-hidden">
-      <!-- Operator -->
+      <!-- Row 2: operator -->
       <Select
         :model-value="node.ref || 'eq'"
         :options="operatorOptions"
         option-label="label"
         option-value="value"
         size="small"
-        class="shrink-0"
+        class="w-full"
         @update:model-value="onOperatorChange"
       />
 
-      <!-- Value: reference chip when linked, else input + link button (hidden for null checks) -->
+      <!-- Row 3: value (hidden for null checks) -->
       <template v-if="!isNullCheck">
         <CReferenceChip
           v-if="hasValueRef"
           :label="valueRefLabel"
-          class="flex-1 min-w-0"
+          size="small"
+          class="min-w-0"
           @click="emit('toggleReference', { side: 'value', edgeId, rowIndex })"
           @clear="onClearValue"
+          @update:label="onValueRefEdit"
         />
-        <div v-else class="flex items-center gap-1 flex-1 min-w-0">
+        <div v-else class="flex items-center gap-1">
           <InputText
             :model-value="valueStr"
             :placeholder="$t('builder.condition.enterValue')"
@@ -72,7 +74,6 @@
           />
         </div>
       </template>
-    </div>
     </div>
 
     <!-- Delete (outside the card) -->
@@ -111,25 +112,30 @@ const activeReferenceArgument = inject('activeReferenceArgument', vueRef(null))
 
 const isVariableRefActive = computed(() => {
   const arg = activeReferenceArgument.value
-  return arg?.isCondition && arg.edgeId === props.edgeId && arg.side === 'variable' && arg.rowIndex === props.rowIndex
+  return (
+    arg?.isCondition &&
+    arg.edgeId === props.edgeId &&
+    arg.side === 'variable' &&
+    arg.rowIndex === props.rowIndex
+  )
 })
 
 const isValueRefActive = computed(() => {
   const arg = activeReferenceArgument.value
-  return arg?.isCondition && arg.edgeId === props.edgeId && arg.side === 'value' && arg.rowIndex === props.rowIndex
+  return (
+    arg?.isCondition &&
+    arg.edgeId === props.edgeId &&
+    arg.side === 'value' &&
+    arg.rowIndex === props.rowIndex
+  )
 })
 
 function resolveLabel(scope, symbol) {
-  const results = upstreamResults.value || []
-  const step = results.find(s => s.handle === scope)
-  const stepName = step?.label || scope
-  return `${stepName} → ${symbol}`
+  return symbol
 }
 
 // Operator definitions — must match server/pkg/ast/eval.go refs
-const OPERATORS = [
-  'eq', 'ne', 'lt', 'lte', 'gt', 'gte', 'isNull', 'isNotNull',
-]
+const OPERATORS = ['eq', 'ne', 'lt', 'lte', 'gt', 'gte', 'isNull', 'isNotNull']
 
 const operatorOptions = computed(() =>
   OPERATORS.map(op => ({
@@ -213,10 +219,26 @@ function onClearVariable() {
   emit('update', newNode)
 }
 
+function onVariableRefEdit(val) {
+  const newNode = cloneNode(props.node)
+  if (!newNode.args) newNode.args = [null, null]
+  const scope = newNode.args[0]?.meta?.scope || ''
+  newNode.args[0] = { symbol: val, meta: { scope } }
+  emit('update', newNode)
+}
+
 function onClearValue() {
   const newNode = cloneNode(props.node)
   if (!newNode.args) newNode.args = [{ symbol: '', meta: {} }]
   newNode.args[1] = { value: { '@type': 'String', '@value': '' } }
+  emit('update', newNode)
+}
+
+function onValueRefEdit(val) {
+  const newNode = cloneNode(props.node)
+  if (!newNode.args) newNode.args = [null, null]
+  const scope = newNode.args[1]?.meta?.scope || ''
+  newNode.args[1] = { symbol: val, meta: { scope } }
   emit('update', newNode)
 }
 

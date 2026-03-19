@@ -15,13 +15,14 @@
         {{ row.fieldLabel }}
       </span>
       <div v-if="row.isRef" class="px-2 py-1 flex-1">
-        <Tag
-          :value="row.refLabel"
-          severity="primary"
-          icon="pi pi-link"
-          class="text-xs"
+        <div
+          class="inline-flex items-center gap-1.5 bg-surface border border-surface text-xs"
           :title="row.refLabel"
-        />
+          :style="{ padding: 'var(--p-form-field-sm-padding-y) var(--p-form-field-sm-padding-x)', borderRadius: 'var(--p-form-field-border-radius)' }"
+        >
+          <i class="pi pi-link text-primary text-xs" />
+          <span class="text-color truncate">{{ row.refLabel }}</span>
+        </div>
       </div>
       <span
         v-else
@@ -87,9 +88,7 @@ const rows = computed(() => {
 
       let refLabel = ''
       if (isRef) {
-        const stepNode = props.nodes.find(n => n.data?.ref === entry.scope)
-        const stepLabel = stepNode?.data?.label || entry.scope
-        refLabel = `${stepLabel} → ${entry.source || entry.expr}`
+        refLabel = entry.source || entry.expr
       }
 
       return {

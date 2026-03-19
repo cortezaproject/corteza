@@ -108,12 +108,7 @@ export function useSegmentForm(options: {
    * Build a human-readable label for a reference like "HTTP Request → response"
    */
   function buildReferenceLabel(scope: string, source: string) {
-    const results = options.upstreamResults?.() || []
-    const step = results.find((s: any) => s.handle === scope)
-    if (step) {
-      return `${step.label} → ${source}`
-    }
-    return `${scope} → ${source}`
+    return source
   }
 
   const processedSegments = computed(() => {

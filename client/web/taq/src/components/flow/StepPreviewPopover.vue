@@ -27,7 +27,7 @@
             class="w-full rounded-lg border border-surface overflow-hidden"
           >
             <div class="flex text-xs font-medium text-muted-color bg-emphasis">
-              <span class="px-2 py-1 flex-1">{{ $t('builder.configSidebar.branches') }}</span>
+              <span class="px-2 py-1 shrink-0 w-[60px]">{{ $t('builder.configSidebar.branches') }}</span>
               <span class="px-2 py-1 flex-1">{{ $t('builder.branch.condition') }}</span>
             </div>
             <div
@@ -35,13 +35,12 @@
               :key="path.edgeId"
               class="flex text-xs border-t border-surface"
             >
-              <span class="px-2 py-1 text-muted-color truncate flex-1" :title="path.label">
+              <span class="px-2 py-1 text-muted-color shrink-0 w-[60px]">
                 {{ path.label }}
               </span>
               <span
-                class="px-2 py-1 truncate flex-1"
+                class="px-2 py-1 flex-1 break-words"
                 :class="path.expr ? 'font-mono text-color-emphasis' : 'italic text-muted-color'"
-                :title="path.expr || ''"
               >
                 {{ path.expr || path.defaultLabel }}
               </span>
@@ -85,6 +84,7 @@ import { useI18n } from 'vue-i18n'
 import CViewReference from '@/components/builder/form/viewers/CViewReference.vue'
 import { resolveViewerComponent } from '@/components/builder/form/viewers/registry'
 import { NODE_DIMENSIONS } from '@/utils/flow-constants'
+import { conditionToShort } from '@/utils/taq-parser'
 
 const { t } = useI18n()
 
@@ -223,7 +223,7 @@ const hasContent = computed(() => {
  */
 const gatewayLabel = computed(() => {
   const raw = props.node?.data?.nodeType
-  if (raw === 'incl') return t('builder.branch.inclusive')
+  if (raw === 'gatewayInclusive') return t('builder.branch.inclusive')
   return t('builder.branch.exclusive')
 })
 
@@ -244,10 +244,13 @@ const branchPaths = computed(() => {
       else if (isLast) label = t('builder.branch.else')
       else label = t('builder.branch.elseIf')
 
+      const condition = edge.data?.condition
+      const conditionSummary = condition ? conditionToShort(condition) : ''
+
       return {
         edgeId: edge.id,
         label,
-        expr: edge.data?.expr || '',
+        expr: conditionSummary,
         defaultLabel: isLast ? t('builder.branch.defaultPath') : t('builder.preview.notSet'),
       }
     })
