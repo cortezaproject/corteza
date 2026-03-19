@@ -2196,6 +2196,128 @@ var DataPrivacyRequestComment = &dal.Model{
 	},
 }
 
+var KnowledgeBase = &dal.Model{
+	Ident:        "knowledge_bases",
+	ResourceType: types.KnowledgeBaseResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title",
+			Type:  &dal.TypeText{Length: 512},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "Context",
+			Type:  &dal.TypeJSON{Nullable: true},
+			Store: &dal.CodecAlias{Ident: "context"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "knowledge_bases_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Handle",
+					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+			},
+		},
+	},
+}
+
 var LlmProvider = &dal.Model{
 	Ident:        "llm_providers",
 	ResourceType: types.LlmProviderResourceType,
@@ -3564,6 +3686,7 @@ func init() {
 		DalSensitivityLevel,
 		DataPrivacyRequest,
 		DataPrivacyRequestComment,
+		KnowledgeBase,
 		LlmProvider,
 		Notification,
 		Queue,

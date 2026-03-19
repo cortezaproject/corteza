@@ -11,9 +11,6 @@ import (
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/system/agentic/observability"
-	agenticMcp "github.com/cortezaproject/corteza/server/system/agentic/mcp"
-	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
@@ -27,6 +24,10 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	agenticKnowledge "github.com/cortezaproject/corteza/server/system/agentic/knowledge"
+	agenticMcp "github.com/cortezaproject/corteza/server/system/agentic/mcp"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
+	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/system/automation"
 	"github.com/cortezaproject/corteza/server/system/llm"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -39,18 +40,20 @@ type (
 	}
 
 	Config struct {
-		ActionLog  options.ActionLogOpt
-		Discovery  options.DiscoveryOpt
-		Storage    options.ObjectStoreOpt
-		DB         options.DBOpt
-		Template   options.TemplateOpt
-		Auth       options.AuthOpt
-		RBAC       options.RbacOpt
-		Limit      options.LimitOpt
-		Attachment options.AttachmentOpt
-		Webapps    options.WebappOpt
-		Agentic    options.AgenticOpt
-		ObsBus     *observability.Bus
+		ActionLog       options.ActionLogOpt
+		Discovery       options.DiscoveryOpt
+		Storage         options.ObjectStoreOpt
+		DB              options.DBOpt
+		Template        options.TemplateOpt
+		Auth            options.AuthOpt
+		RBAC            options.RbacOpt
+		Limit           options.LimitOpt
+		Attachment      options.AttachmentOpt
+		Webapps         options.WebappOpt
+		Agentic         options.AgenticOpt
+		ObsBus          *observability.Bus
+		NamespaceLookup agenticKnowledge.NamespaceLookup
+		ModuleLookup    agenticKnowledge.ModuleLookup
 	}
 
 	eventDispatcher interface {
@@ -61,6 +64,7 @@ type (
 	// AgenticRunner abstracts the agentic runtime execution.
 	AgenticRunner interface {
 		Run(ctx context.Context, req *agenticRuntime.AgentRequest) (*agenticRuntime.AgentResponse, error)
+		SetLookups(ns agenticKnowledge.NamespaceLookup, mod agenticKnowledge.ModuleLookup)
 	}
 )
 
@@ -109,6 +113,7 @@ var (
 	DefaultQueue               *queue
 	DefaultAgent               *agent
 	DefaultAiConversation      *aiConversation
+	DefaultKnowledgeBase       *knowledgeBase
 	DefaultAgenticRuntime      AgenticRunner
 	DefaultMCPRegistry         *agenticMcp.Registry
 	DefaultLlmService          *llm.Service
@@ -254,6 +259,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultQueue = Queue()
 	DefaultAgent = Agent()
 	DefaultAiConversation = AiConversation()
+	DefaultKnowledgeBase = KnowledgeBase()
 
 	DefaultLlmService, err = llm.New(s, DefaultAccessControl, c.Agentic.AnthropicApiVersion)
 	if err != nil {
@@ -267,6 +273,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultLlmService,
 		DefaultMCPRegistry,
 		DefaultAiConversation,
+		DefaultKnowledgeBase,
+		c.NamespaceLookup,
+		c.ModuleLookup,
 		c.ObsBus,
 	)
 

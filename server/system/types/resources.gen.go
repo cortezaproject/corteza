@@ -38,5 +38,6 @@ const (
 	LlmProviderResourceType               = "corteza::system:llm-provider"
 	AgentResourceType                     = "corteza::system:agent"
 	AiConversationResourceType            = "corteza::system:ai-conversation"
+	KnowledgeBaseResourceType             = "corteza::system:knowledge-base"
 	ComponentResourceType                 = "corteza::system"
 )

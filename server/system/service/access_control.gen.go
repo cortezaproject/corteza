@@ -152,6 +152,7 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.LlmProviderRbacResource(0)),
 		rbac.NewResource(types.AgentRbacResource(0)),
 		rbac.NewResource(types.AiConversationRbacResource(0)),
+		rbac.NewResource(types.KnowledgeBaseRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -472,6 +473,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.KnowledgeBaseResourceType,
+			"any":  types.KnowledgeBaseRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.KnowledgeBaseResourceType,
+			"any":  types.KnowledgeBaseRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.KnowledgeBaseResourceType,
+			"any":  types.KnowledgeBaseRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -685,6 +701,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "ai-conversations.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "knowledge-base.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "knowledge-bases.search",
 		},
 	}
 
@@ -1212,6 +1238,27 @@ func (svc accessControl) CanDeleteAiConversation(ctx context.Context, r *types.A
 	return svc.can(ctx, "delete", r)
 }
 
+// CanReadKnowledgeBase checks if current user can read knowledge base
+//
+// This function is auto-generated
+func (svc accessControl) CanReadKnowledgeBase(ctx context.Context, r *types.KnowledgeBase) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateKnowledgeBase checks if current user can update knowledge base
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateKnowledgeBase(ctx context.Context, r *types.KnowledgeBase) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteKnowledgeBase checks if current user can delete knowledge base
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteKnowledgeBase(ctx context.Context, r *types.KnowledgeBase) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -1556,6 +1603,22 @@ func (svc accessControl) CanSearchAiConversations(ctx context.Context) bool {
 	return svc.can(ctx, "ai-conversations.search", r)
 }
 
+// CanCreateKnowledgeBase checks if current user can create knowledge bases
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateKnowledgeBase(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "knowledge-base.create", r)
+}
+
+// CanSearchKnowledgeBases checks if current user can list, search or filter knowledge bases
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchKnowledgeBases(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "knowledge-bases.search", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -1593,6 +1656,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacAgentResourceValidator(r, oo...)
 	case types.AiConversationResourceType:
 		return rbacAiConversationResourceValidator(r, oo...)
+	case types.KnowledgeBaseResourceType:
+		return rbacKnowledgeBaseResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -1716,6 +1781,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadAiConversation(ctx, svc.store, ids[0])
+	case types.KnowledgeBaseResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.KnowledgeBaseRbacResource(ids[0])), nil
+		}
+
+		return loadKnowledgeBase(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -1839,6 +1910,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.KnowledgeBaseResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                         true,
@@ -1884,6 +1961,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"agents.search":                 true,
 			"ai-conversation.create":        true,
 			"ai-conversations.search":       true,
+			"knowledge-base.create":         true,
+			"knowledge-bases.search":        true,
 		}
 	}
 
@@ -2600,6 +2679,51 @@ func rbacAiConversationResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for aiConversation resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacKnowledgeBaseResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacKnowledgeBaseResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.KnowledgeBaseResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for knowledgeBase resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.KnowledgeBaseResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for knowledgeBase resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

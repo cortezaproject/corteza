@@ -269,6 +269,19 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
+	case "corteza::system:knowledge-base":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:knowledge-base",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
 	case "corteza::system:llm-provider":
 		scope := Scope{}
 

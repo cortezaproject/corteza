@@ -3601,6 +3601,72 @@ endpoints:
           path:
             - { type: uint64, name: llmProviderID, required: true, title: LLM Provider ID }
 
+  - title: Knowledge Bases
+    path: '/knowledge-bases'
+    entrypoint: knowledgeBase
+    authentication: []
+    imports:
+      - github.com/cortezaproject/corteza/server/system/types
+      - time
+    apis:
+      - name: list
+        method: GET
+        title: List knowledge bases
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: string, name: handle, title: Search by handle }
+            - { type: uint, name: deleted, title: 'Exclude (0, default), include (1) or return only (2) deleted knowledge bases' }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create knowledge base
+        path: ''
+        parameters:
+          post:
+            - { type: string, name: handle, title: Handle }
+            - { type: string, name: title, required: true, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: 'types.KnowledgeBaseContext', name: context, title: Compose context, parser: 'types.ParseKnowledgeBaseContext' }
+      - name: read
+        method: GET
+        title: Read knowledge base
+        path: '/{knowledgeBaseID}'
+        parameters:
+          path:
+            - { type: uint64, name: knowledgeBaseID, required: true, title: Knowledge Base ID }
+      - name: update
+        method: PUT
+        title: Update knowledge base
+        path: '/{knowledgeBaseID}'
+        parameters:
+          path:
+            - { type: uint64, name: knowledgeBaseID, required: true, title: Knowledge Base ID }
+          post:
+            - { type: string, name: handle, title: Handle }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: 'types.KnowledgeBaseContext', name: context, title: Compose context, parser: 'types.ParseKnowledgeBaseContext' }
+            - { type: '*time.Time', name: updatedAt, title: Last update (used for stale data check) }
+      - name: delete
+        method: DELETE
+        title: Delete knowledge base
+        path: '/{knowledgeBaseID}'
+        parameters:
+          path:
+            - { type: uint64, name: knowledgeBaseID, required: true, title: Knowledge Base ID }
+      - name: undelete
+        method: POST
+        title: Undelete knowledge base
+        path: '/{knowledgeBaseID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: knowledgeBaseID, required: true, title: Knowledge Base ID }
+
   - title: AI Conversations
     path: '/ai-conversations'
     entrypoint: aiConversation

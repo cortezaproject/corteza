@@ -1,0 +1,76 @@
+resource: system:knowledge-base
+service: knowledgeBase
+
+defaultActionSeverity: notice
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: knowledgeBase
+    type: "*types.KnowledgeBase"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.KnowledgeBase"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.KnowledgeBase"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.KnowledgeBaseFilter"
+    fields: [ knowledgeBaseID, handle, deleted ]
+
+actions:
+  - action: search
+    log: "searched for knowledge bases"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{knowledgeBase}}"
+    severity: info
+
+  - action: create
+    log: "created {{knowledgeBase}}"
+
+  - action: update
+    log: "updated {{knowledgeBase}}"
+
+  - action: delete
+    log: "deleted {{knowledgeBase}}"
+
+  - action: undelete
+    log: "undeleted {{knowledgeBase}}"
+
+errors:
+  - error: notFound
+    message: "knowledge base not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "knowledge base was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a knowledge base"
+    log: "failed to create a knowledge base; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list knowledge bases"
+    log: "failed to search or list knowledge bases; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this knowledge base"
+    log: "failed to read {{knowledgeBase.handle}}; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this knowledge base"
+    log: "failed to update {{knowledgeBase.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this knowledge base"
+    log: "failed to delete {{knowledgeBase.handle}}; insufficient permissions"

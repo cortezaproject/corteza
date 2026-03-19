@@ -37,9 +37,10 @@ type (
 	}
 
 	AgentBehavior struct {
-		SystemPrompt        string   `json:"systemPrompt,omitempty"`
-		Guardrails          []string `json:"guardrails,omitempty"`
-		InjectSystemContext bool     `json:"injectSystemContext,omitempty"`
+		SystemPrompt        string                 `json:"systemPrompt,omitempty"`
+		Guardrails          []string               `json:"guardrails,omitempty"`
+		InjectSystemContext bool                   `json:"injectSystemContext,omitempty"`
+		KnowledgeBases      KnowledgeBaseIDList    `json:"knowledgeBases,omitempty"`
 	}
 
 	AgentExecution struct {

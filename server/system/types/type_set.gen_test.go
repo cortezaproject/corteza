@@ -1678,6 +1678,96 @@ func TestDataPrivacyRequestCommentSetIDs(t *testing.T) {
 	}
 }
 
+func TestKnowledgeBaseSetWalk(t *testing.T) {
+	var (
+		value = make(KnowledgeBaseSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*KnowledgeBase) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*KnowledgeBase) error { return fmt.Errorf("walk error") }))
+}
+
+func TestKnowledgeBaseSetFilter(t *testing.T) {
+	var (
+		value = make(KnowledgeBaseSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*KnowledgeBase) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*KnowledgeBase) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*KnowledgeBase) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestKnowledgeBaseSetIDs(t *testing.T) {
+	var (
+		value = make(KnowledgeBaseSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(KnowledgeBase)
+	value[1] = new(KnowledgeBase)
+	value[2] = new(KnowledgeBase)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestLlmProviderSetWalk(t *testing.T) {
 	var (
 		value = make(LlmProviderSet, 3)

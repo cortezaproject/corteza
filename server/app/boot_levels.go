@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
 	autService "github.com/cortezaproject/corteza/server/automation/service"
+	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
@@ -41,16 +42,15 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/version"
 	"github.com/cortezaproject/corteza/server/pkg/websocket"
 	"github.com/cortezaproject/corteza/server/store"
+	mcpkg "github.com/cortezaproject/corteza/server/system/agentic/mcp"
+	"github.com/cortezaproject/corteza/server/system/agentic/observability"
 	"github.com/cortezaproject/corteza/server/system/service"
 	sysService "github.com/cortezaproject/corteza/server/system/service"
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/system/agentic/observability"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
-	mcpkg "github.com/cortezaproject/corteza/server/system/agentic/mcp"
 	"github.com/lestrrat-go/jwx/jwt"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
 )
@@ -397,18 +397,18 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
-		ActionLog:  app.Opt.ActionLog,
-		Discovery:  app.Opt.Discovery,
-		Storage:    app.Opt.ObjStore,
-		Template:   app.Opt.Template,
-		DB:         app.Opt.DB,
-		Auth:       app.Opt.Auth,
-		RBAC:       app.Opt.RBAC,
-		Limit:      app.Opt.Limit,
-		Attachment: app.Opt.Attachment,
-		Webapps:    app.Opt.Webapp,
-		Agentic:    app.Opt.Agentic,
-		ObsBus:     obs,
+		ActionLog:       app.Opt.ActionLog,
+		Discovery:       app.Opt.Discovery,
+		Storage:         app.Opt.ObjStore,
+		Template:        app.Opt.Template,
+		DB:              app.Opt.DB,
+		Auth:            app.Opt.Auth,
+		RBAC:            app.Opt.RBAC,
+		Limit:           app.Opt.Limit,
+		Attachment:      app.Opt.Attachment,
+		Webapps:         app.Opt.Webapp,
+		Agentic: 				 app.Opt.Agentic,
+		ObsBus:          obs,
 	})
 	if err != nil {
 		return
@@ -453,6 +453,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if err != nil {
 		return fmt.Errorf("could not initialize compose services: %w", err)
 	}
+
+	sysService.DefaultAgenticRuntime.SetLookups(cmpService.DefaultNamespace, cmpService.DefaultModule)
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)

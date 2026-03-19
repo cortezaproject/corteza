@@ -217,3 +217,16 @@ func SystemAiConversationRbacReferences(aiConversation string) (res *Ref, pp []*
 
 	return
 }
+
+// SystemKnowledgeBaseRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemKnowledgeBaseRbacReferences(knowledgeBase string) (res *Ref, pp []*Ref, err error) {
+	if knowledgeBase != "*" {
+		res = &Ref{ResourceType: types.KnowledgeBaseResourceType, Identifiers: MakeIdentifiers(knowledgeBase)}
+	}
+
+	return
+}

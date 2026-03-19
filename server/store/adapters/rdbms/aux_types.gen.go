@@ -585,6 +585,21 @@ type (
 		Active     bool   `db:"active"`
 	}
 
+	// auxKnowledgeBase is an auxiliary structure used for transporting to/from RDBMS store
+	auxKnowledgeBase struct {
+		ID          uint64                           `db:"id"`
+		Handle      string                           `db:"handle"`
+		Title       string                           `db:"title"`
+		Description string                           `db:"description"`
+		Context     *systemType.KnowledgeBaseContext `db:"context"`
+		CreatedAt   time.Time                        `db:"created_at"`
+		UpdatedAt   *time.Time                       `db:"updated_at"`
+		DeletedAt   *time.Time                       `db:"deleted_at"`
+		CreatedBy   uint64                           `db:"created_by"`
+		UpdatedBy   uint64                           `db:"updated_by"`
+		DeletedBy   uint64                           `db:"deleted_by"`
+	}
+
 	// auxLabel is an auxiliary structure used for transporting to/from RDBMS store
 	auxLabel struct {
 		Kind       string                `db:"kind"`
@@ -2869,6 +2884,62 @@ func (aux *auxFlag) scan(row scanner) error {
 		&aux.OwnedBy,
 		&aux.Name,
 		&aux.Active,
+	)
+}
+
+// encodes KnowledgeBase to auxKnowledgeBase
+//
+// This function is auto-generated
+func (aux *auxKnowledgeBase) encode(res *systemType.KnowledgeBase) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.Context = res.Context
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes KnowledgeBase from auxKnowledgeBase
+//
+// This function is auto-generated
+func (aux auxKnowledgeBase) decode() (res *systemType.KnowledgeBase, _ error) {
+	res = new(systemType.KnowledgeBase)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.Context = aux.Context
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxKnowledgeBase fields
+//
+// This function is auto-generated
+func (aux *auxKnowledgeBase) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Title,
+		&aux.Description,
+		&aux.Context,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

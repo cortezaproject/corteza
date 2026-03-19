@@ -138,6 +138,9 @@ type (
 		// optional flag filter function called after the generated function
 		Flag func(*Store, flagType.FlagFilter) ([]goqu.Expression, flagType.FlagFilter, error)
 
+		// optional knowledgeBase filter function called after the generated function
+		KnowledgeBase func(*Store, systemType.KnowledgeBaseFilter) ([]goqu.Expression, systemType.KnowledgeBaseFilter, error)
+
 		// optional label filter function called after the generated function
 		Label func(*Store, labelsType.LabelFilter) ([]goqu.Expression, labelsType.LabelFilter, error)
 
@@ -1241,6 +1244,37 @@ func FlagFilter(d drivers.Dialect, f flagType.FlagFilter) (ee []goqu.Expression,
 
 	if ss := trimStringSlice(f.Name); len(ss) > 0 {
 		ee = append(ee, goqu.C("name").In(ss))
+	}
+
+	return ee, f, err
+}
+
+// KnowledgeBaseFilter returns logical expressions
+//
+// This function is called from Store.QueryKnowledgeBases() and can be extended
+// by setting Store.Filters.KnowledgeBase. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func KnowledgeBaseFilter(d drivers.Dialect, f systemType.KnowledgeBaseFilter) (ee []goqu.Expression, _ systemType.KnowledgeBaseFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.KnowledgeBaseID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.KnowledgeBaseID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+			goqu.C("title").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err

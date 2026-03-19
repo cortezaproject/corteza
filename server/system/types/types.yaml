@@ -49,3 +49,4 @@ types:
   PrivacyDalConnection:
   Agent: {}
   AiConversation: {}
+  KnowledgeBase: {}

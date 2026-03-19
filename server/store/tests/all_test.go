@@ -122,6 +122,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("flag", func(t *testing.T) {
 		testFlags(t, s)
 	})
+	t.Run("knowledgeBase", func(t *testing.T) {
+		testKnowledgeBases(t, s)
+	})
 	t.Run("label", func(t *testing.T) {
 		testLabels(t, s)
 	})

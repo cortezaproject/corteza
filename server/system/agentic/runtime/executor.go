@@ -11,6 +11,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/system/agentic/knowledge"
 	"github.com/cortezaproject/corteza/server/system/agentic/observability"
 	"github.com/cortezaproject/corteza/server/system/agentic/policy"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -90,6 +91,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	for _, t := range agent.Access.Tools {
 		if t.Hints != "" {
 			systemPrompt += "\n\n" + t.Hints
+		}
+	}
+	if len(agent.Behavior.KnowledgeBases) > 0 {
+		if kbContext := knowledge.BuildContext(ctx, r.knowledgeBase, r.namespaceLookup, r.moduleLookup, agent.Behavior.KnowledgeBases); kbContext != "" {
+			systemPrompt += "\n\n" + kbContext
 		}
 	}
 	r.emitSpan(observability.AgentSpan{

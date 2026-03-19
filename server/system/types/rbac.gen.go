@@ -503,6 +503,36 @@ func AiConversationRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for KnowledgeBase by calling KnowledgeBaseRbacResource fn
+//
+// RBAC resource is in the corteza::system:knowledge-base/... format
+//
+// This function is auto-generated
+func (r KnowledgeBase) RbacResource() string {
+	return KnowledgeBaseRbacResource(r.ID)
+}
+
+// KnowledgeBaseRbacResource returns string representation of RBAC resource for KnowledgeBase
+//
+// RBAC resource is in the corteza::system:knowledge-base/... format
+//
+// This function is auto-generated
+func KnowledgeBaseRbacResource(id uint64) string {
+	cpts := []interface{}{KnowledgeBaseResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(KnowledgeBaseRbacResourceTpl(), cpts...)
+
+}
+
+func KnowledgeBaseRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

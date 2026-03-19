@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza/server/system/agentic/knowledge"
 	"github.com/cortezaproject/corteza/server/system/agentic/observability"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -14,6 +15,9 @@ type (
 		llm               LLMClient
 		mcp               MCPClient
 		conversationStore ConversationStore
+		knowledgeBase     KnowledgeBaseStore
+		namespaceLookup   knowledge.NamespaceLookup
+		moduleLookup      knowledge.ModuleLookup
 		obs               *observability.Bus
 	}
 
@@ -40,11 +44,11 @@ type (
 
 	// AgentResponse represents the output of an agent execution.
 	AgentResponse struct {
-		Output              string         `json:"output"`
-		ConversationID      uint64         `json:"conversationID,string"`
-		ToolCalls           []ToolCallInfo `json:"toolCalls"`
-		Decisions           []DecisionInfo `json:"decisions"`
-		Usage               Usage          `json:"usage"`
+		Output         string         `json:"output"`
+		ConversationID uint64         `json:"conversationID,string"`
+		ToolCalls      []ToolCallInfo `json:"toolCalls"`
+		Decisions      []DecisionInfo `json:"decisions"`
+		Usage          Usage          `json:"usage"`
 	}
 
 	DecisionInfo struct {
@@ -97,6 +101,10 @@ type (
 		Args map[string]any
 	}
 
+	KnowledgeBaseStore interface {
+		FindByID(ctx context.Context, ID uint64) (*types.KnowledgeBase, error)
+	}
+
 	// MCPClient abstracts the Model Context Protocol tools.
 	MCPClient interface {
 		// GetTools returns tools filtered to the agent's allowed tool list.
@@ -113,12 +121,20 @@ type (
 )
 
 // Runtime creates a new Agent Runtime.
-func Runtime(reg Registry, llm LLMClient, mcp MCPClient, store ConversationStore, obs *observability.Bus) *runtime {
+func Runtime(reg Registry, llm LLMClient, mcp MCPClient, convStore ConversationStore, kb KnowledgeBaseStore, ns knowledge.NamespaceLookup, mod knowledge.ModuleLookup, obs *observability.Bus) *runtime {
 	return &runtime{
 		registry:          reg,
 		llm:               llm,
 		mcp:               mcp,
-		conversationStore: store,
+		conversationStore: convStore,
+		knowledgeBase:     kb,
+		namespaceLookup:   ns,
+		moduleLookup:      mod,
 		obs:               obs,
 	}
+}
+
+func (r *runtime) SetLookups(ns knowledge.NamespaceLookup, mod knowledge.ModuleLookup) {
+	r.namespaceLookup = ns
+	r.moduleLookup = mod
 }

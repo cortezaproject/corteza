@@ -80,6 +80,7 @@ type (
 		FederationNodeSyncs
 		FederationSharedModules
 		Flags
+		KnowledgeBases
 		Labels
 		LlmProviders
 		Notifications
@@ -560,6 +561,19 @@ type (
 		DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) error
 		TruncateFlags(ctx context.Context) error
 		LookupFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) (*flagType.Flag, error)
+	}
+
+	KnowledgeBases interface {
+		SearchKnowledgeBases(ctx context.Context, f systemType.KnowledgeBaseFilter) (systemType.KnowledgeBaseSet, systemType.KnowledgeBaseFilter, error)
+		CreateKnowledgeBase(ctx context.Context, rr ...*systemType.KnowledgeBase) error
+		UpdateKnowledgeBase(ctx context.Context, rr ...*systemType.KnowledgeBase) error
+		UpsertKnowledgeBase(ctx context.Context, rr ...*systemType.KnowledgeBase) error
+		DeleteKnowledgeBase(ctx context.Context, rr ...*systemType.KnowledgeBase) error
+
+		DeleteKnowledgeBaseByID(ctx context.Context, id uint64) error
+		TruncateKnowledgeBases(ctx context.Context) error
+		LookupKnowledgeBaseByID(ctx context.Context, id uint64) (*systemType.KnowledgeBase, error)
+		LookupKnowledgeBaseByHandle(ctx context.Context, handle string) (*systemType.KnowledgeBase, error)
 	}
 
 	Labels interface {
@@ -3075,6 +3089,73 @@ func TruncateFlags(ctx context.Context, s Flags) error {
 // This function is auto-generated
 func LookupFlagByKindResourceIDOwnedByName(ctx context.Context, s Flags, kind string, resourceID uint64, ownedBy uint64, name string) (*flagType.Flag, error) {
 	return s.LookupFlagByKindResourceIDOwnedByName(ctx, kind, resourceID, ownedBy, name)
+}
+
+// SearchKnowledgeBases returns all matching KnowledgeBases from store
+//
+// This function is auto-generated
+func SearchKnowledgeBases(ctx context.Context, s KnowledgeBases, f systemType.KnowledgeBaseFilter) (systemType.KnowledgeBaseSet, systemType.KnowledgeBaseFilter, error) {
+	return s.SearchKnowledgeBases(ctx, f)
+}
+
+// CreateKnowledgeBase creates one or more KnowledgeBases in store
+//
+// This function is auto-generated
+func CreateKnowledgeBase(ctx context.Context, s KnowledgeBases, rr ...*systemType.KnowledgeBase) error {
+	return s.CreateKnowledgeBase(ctx, rr...)
+}
+
+// UpdateKnowledgeBase updates one or more (existing) KnowledgeBases in store
+//
+// This function is auto-generated
+func UpdateKnowledgeBase(ctx context.Context, s KnowledgeBases, rr ...*systemType.KnowledgeBase) error {
+	return s.UpdateKnowledgeBase(ctx, rr...)
+}
+
+// UpsertKnowledgeBase creates new or updates existing one or more KnowledgeBases in store
+//
+// This function is auto-generated
+func UpsertKnowledgeBase(ctx context.Context, s KnowledgeBases, rr ...*systemType.KnowledgeBase) error {
+	return s.UpsertKnowledgeBase(ctx, rr...)
+}
+
+// DeleteKnowledgeBase deletes one or more KnowledgeBases from store
+//
+// This function is auto-generated
+func DeleteKnowledgeBase(ctx context.Context, s KnowledgeBases, rr ...*systemType.KnowledgeBase) error {
+	return s.DeleteKnowledgeBase(ctx, rr...)
+}
+
+// DeleteKnowledgeBaseByID deletes one or more KnowledgeBases from store
+//
+// This function is auto-generated
+func DeleteKnowledgeBaseByID(ctx context.Context, s KnowledgeBases, id uint64) error {
+	return s.DeleteKnowledgeBaseByID(ctx, id)
+}
+
+// TruncateKnowledgeBases Deletes all KnowledgeBases from store
+//
+// This function is auto-generated
+func TruncateKnowledgeBases(ctx context.Context, s KnowledgeBases) error {
+	return s.TruncateKnowledgeBases(ctx)
+}
+
+// LookupKnowledgeBaseByID searches for knowledge base by ID
+//
+// It also returns deleted knowledge bases.
+//
+// This function is auto-generated
+func LookupKnowledgeBaseByID(ctx context.Context, s KnowledgeBases, id uint64) (*systemType.KnowledgeBase, error) {
+	return s.LookupKnowledgeBaseByID(ctx, id)
+}
+
+// LookupKnowledgeBaseByHandle searches for knowledge base by handle
+//
+// It returns only valid knowledge bases (not deleted)
+//
+// This function is auto-generated
+func LookupKnowledgeBaseByHandle(ctx context.Context, s KnowledgeBases, handle string) (*systemType.KnowledgeBase, error) {
+	return s.LookupKnowledgeBaseByHandle(ctx, handle)
 }
 
 // SearchLabels returns all matching Labels from store

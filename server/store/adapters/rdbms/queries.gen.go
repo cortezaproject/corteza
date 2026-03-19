@@ -4140,6 +4140,118 @@ var (
 		}
 	}
 
+	// knowledgeBaseTable represents knowledgeBases store table
+	//
+	// This value is auto-generated
+	knowledgeBaseTable = goqu.T("knowledge_bases")
+
+	// knowledgeBaseSelectQuery assembles select query for fetching knowledgeBases
+	//
+	// This function is auto-generated
+	knowledgeBaseSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"title",
+			"description",
+			"context",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(knowledgeBaseTable)
+	}
+
+	// knowledgeBaseInsertQuery assembles query inserting knowledgeBases
+	//
+	// This function is auto-generated
+	knowledgeBaseInsertQuery = func(d goqu.DialectWrapper, res *systemType.KnowledgeBase) *goqu.InsertDataset {
+		return d.Insert(knowledgeBaseTable).
+			Rows(goqu.Record{
+				"id":          res.ID,
+				"handle":      res.Handle,
+				"title":       res.Title,
+				"description": res.Description,
+				"context":     res.Context,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
+			})
+	}
+
+	// knowledgeBaseUpsertQuery assembles (insert+on-conflict) query for replacing knowledgeBases
+	//
+	// This function is auto-generated
+	knowledgeBaseUpsertQuery = func(d goqu.DialectWrapper, res *systemType.KnowledgeBase) *goqu.InsertDataset {
+		var target = `,id`
+
+		return knowledgeBaseInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":      res.Handle,
+						"title":       res.Title,
+						"description": res.Description,
+						"context":     res.Context,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// knowledgeBaseUpdateQuery assembles query for updating knowledgeBases
+	//
+	// This function is auto-generated
+	knowledgeBaseUpdateQuery = func(d goqu.DialectWrapper, res *systemType.KnowledgeBase) *goqu.UpdateDataset {
+		return d.Update(knowledgeBaseTable).
+			Set(goqu.Record{
+				"handle":      res.Handle,
+				"title":       res.Title,
+				"description": res.Description,
+				"context":     res.Context,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
+			}).
+			Where(knowledgeBasePrimaryKeys(res))
+	}
+
+	// knowledgeBaseDeleteQuery assembles delete query for removing knowledgeBases
+	//
+	// This function is auto-generated
+	knowledgeBaseDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(knowledgeBaseTable).Where(ee...)
+	}
+
+	// knowledgeBaseDeleteQuery assembles delete query for removing knowledgeBases
+	//
+	// This function is auto-generated
+	knowledgeBaseTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(knowledgeBaseTable)
+	}
+
+	// knowledgeBasePrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	knowledgeBasePrimaryKeys = func(res *systemType.KnowledgeBase) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// labelTable represents labels store table
 	//
 	// This value is auto-generated

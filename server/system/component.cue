@@ -39,6 +39,7 @@ component: schema.#component & {
     "llm-provider":          				llm_provider
     "agent":                 				agent
     "ai-conversation":                ai_conversation
+    "knowledge-base":                 knowledge_base
 	}
 
 	rbac: operations: {
@@ -104,5 +105,8 @@ component: schema.#component & {
 
 		"ai-conversation.create": description:  "Create AI conversations"
 		"ai-conversations.search": description: "List, search or filter AI conversations"
+
+		"knowledge-base.create": description:  "Create knowledge bases"
+		"knowledge-bases.search": description: "List, search or filter knowledge bases"
 	}
 }
