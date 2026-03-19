@@ -12,9 +12,8 @@ import (
 
 type (
 	ASTNode struct {
-		// Meta holds additional node data
-		// while processing the AST
-		Meta map[string]any `json:"-"`
+		// Meta holds additional node data such as scope references
+		Meta map[string]any `json:"meta,omitempty"`
 
 		Ref  string     `json:"ref,omitempty"`
 		Args ASTNodeSet `json:"args,omitempty"`

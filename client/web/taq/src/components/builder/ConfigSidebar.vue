@@ -66,62 +66,41 @@
       <div class="text-sm font-medium text-color mb-2">
         {{ $t('builder.configSidebar.branches') }}
       </div>
-      <DataTable
-        :value="branchOutputs"
-        :reorderableRows="true"
-        @row-reorder="onRowReorder"
-        :pt="{
-          table: { class: 'w-full' },
-          bodyrow: { class: 'border-b border-surface last:border-0' },
-        }"
-      >
-        <Column
-          rowReorder
-          headerStyle="width: 1.5rem; padding: 0"
-          bodyStyle="width: 1.5rem; padding: 0.25rem"
-          :pt="{ rowreordericon: { class: 'pi pi-bars text-muted-color cursor-grab' } }"
-        />
-        <Column field="label" header="">
-          <template #body="{ data, index }">
-            <div class="flex flex-col gap-1 py-2">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-color truncate flex-1">{{ data.label }}</span>
-                <Tag
-                  v-if="index === 0"
-                  :value="$t('builder.branch.if')"
-                  severity="info"
-                  class="shrink-0"
-                />
-                <Tag
-                  v-else-if="index === branchOutputs.length - 1"
-                  :value="$t('builder.branch.else')"
-                  severity="secondary"
-                  class="shrink-0"
-                />
-                <Tag
-                  v-else
-                  :value="$t('builder.branch.elseIf')"
-                  severity="warn"
-                  class="shrink-0"
-                />
-              </div>
-              <!-- Expression input (not for the last/Else branch) -->
-              <InputText
-                v-if="index < branchOutputs.length - 1"
-                :model-value="data.expr || ''"
-                :placeholder="$t('builder.branch.exprPlaceholder')"
-                size="small"
-                class="w-full"
-                style="font-family: monospace; font-size: 0.8rem"
-                @update:model-value="onBranchExprChange(data.edgeId, $event)"
-              />
-              <span v-else class="text-sm text-muted-color italic">
-                {{ $t('builder.branch.defaultPath') }}
-              </span>
-            </div>
-          </template>
-        </Column>
-      </DataTable>
+      <div class="flex flex-col gap-2">
+        <div
+          v-for="(data, index) in branchOutputs"
+          :key="data.edgeId"
+          class="branch-item flex flex-col gap-1 p-2 rounded-border border border-surface cursor-grab transition-opacity"
+          :class="{ 'opacity-50': dragIndex === index, 'border-primary': dropTarget === index }"
+          draggable="true"
+          @dragstart="onDragStart(index, $event)"
+          @dragover.prevent="onDragOver(index)"
+          @dragleave="onDragLeave"
+          @drop.prevent="onDrop(index)"
+          @dragend="onDragEnd"
+        >
+          <div class="flex items-center gap-2">
+            <Tag v-if="index === 0" :value="$t('builder.branch.if')" severity="info" />
+            <Tag
+              v-else-if="index === branchOutputs.length - 1"
+              :value="$t('builder.branch.else')"
+              severity="secondary"
+            />
+            <Tag v-else :value="$t('builder.branch.elseIf')" severity="warn" />
+          </div>
+          <!-- Condition builder (not for the last/Else branch) -->
+          <ConditionBuilder
+            v-if="index < branchOutputs.length - 1"
+            :model-value="data.condition"
+            :edge-id="data.edgeId"
+            @update:model-value="onBranchConditionChange(data.edgeId, $event)"
+            @toggle-reference="onConditionToggleReference"
+          />
+          <span v-else class="text-sm text-muted-color italic">
+            {{ $t('builder.branch.defaultPath') }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <!-- Spacer -->
@@ -157,6 +136,8 @@
 import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { conditionToShort } from '@/utils/taq-parser'
+import ConditionBuilder from './condition/ConditionBuilder.vue'
 import FunctionForm from './form/FunctionForm.vue'
 import TriggerForm from './form/TriggerForm.vue'
 
@@ -175,6 +156,9 @@ const props = defineProps({
 
 import { provide, toRef } from 'vue'
 provide('taq-nodes', toRef(props, 'nodes'))
+provide('taq-upstream-results', toRef(props, 'upstreamResults'))
+
+const functionFormRef = ref(null)
 
 const emit = defineEmits([
   'close',
@@ -187,8 +171,6 @@ const emit = defineEmits([
   'updateGatewayType',
   'updateBranchExpr',
 ])
-
-const functionFormRef = ref(null)
 
 // Look up function definition from store.functions by node.data.nodeType (which holds the function ref)
 const functionDefinition = computed(() => {
@@ -249,11 +231,13 @@ watch(
       .filter(e => e.source === props.node.id)
       .map(edge => {
         const targetNode = props.nodes.find(n => n.id === edge.target)
+        const condition = edge.data?.condition || null
         return {
           edgeId: edge.id,
           targetId: edge.target,
           label: targetNode?.data?.label || t('builder.configSidebar.end'),
-          expr: edge.data?.expr || '',
+          condition,
+          conditionSummary: condition ? conditionToShort(condition) : '',
         }
       })
 
@@ -262,33 +246,73 @@ watch(
   { immediate: true, deep: true },
 )
 
-// Handle row reorder
-function onRowReorder(event) {
-  branchOutputs.value = event.value
-  emit(
-    'reorderBranches',
-    branchOutputs.value.map(b => b.edgeId),
-  )
+// Drag-and-drop state for branch reordering
+const dragIndex = ref(null)
+const dropTarget = ref(null)
+
+function onDragStart(index, event) {
+  dragIndex.value = index
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+function onDragOver(index) {
+  if (dragIndex.value !== null && dragIndex.value !== index) {
+    dropTarget.value = index
+  }
+}
+
+function onDragLeave() {
+  dropTarget.value = null
+}
+
+function onDrop(index) {
+  if (dragIndex.value === null || dragIndex.value === index) return
+
+  const items = [...branchOutputs.value]
+  const [moved] = items.splice(dragIndex.value, 1)
+  items.splice(index, 0, moved)
+  branchOutputs.value = items
+
+  emit('reorderBranches', items.map(b => b.edgeId))
+  dragIndex.value = null
+  dropTarget.value = null
+}
+
+function onDragEnd() {
+  dragIndex.value = null
+  dropTarget.value = null
 }
 
 // Gateway type options and state
 const gatewayOptions = [
-  { label: t('builder.branch.exclusive'), value: 'excl', description: t('builder.branch.exclusiveHint') },
-  { label: t('builder.branch.inclusive'), value: 'incl', description: t('builder.branch.inclusiveHint') },
+  {
+    label: t('builder.branch.exclusive'),
+    value: 'gatewayExclusive',
+    description: t('builder.branch.exclusiveHint'),
+  },
+  {
+    label: t('builder.branch.inclusive'),
+    value: 'gatewayInclusive',
+    description: t('builder.branch.inclusiveHint'),
+  },
 ]
 
 const gatewayType = computed(() => {
   const raw = props.node.data?.nodeType
-  // Normalize: existing branches may have empty ref or non-gateway ref
-  return raw === 'excl' || raw === 'incl' ? raw : 'excl'
+  return raw === 'gatewayExclusive' || raw === 'gatewayInclusive' ? raw : 'gatewayExclusive'
 })
 
 function onGatewayTypeChange(value) {
   emit('updateGatewayType', value)
 }
 
-function onBranchExprChange(edgeId, expr) {
-  emit('updateBranchExpr', { edgeId, expr })
+function onBranchConditionChange(edgeId, condition) {
+  emit('updateBranchExpr', { edgeId, condition })
+}
+
+// Forward condition reference toggle to Builder.vue (opens ReferencePanel)
+function onConditionToggleReference(ctx) {
+  emit('toggleReference', `condition:${ctx.edgeId}:${ctx.side}:${ctx.rowIndex}`)
 }
 </script>
 

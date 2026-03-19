@@ -173,7 +173,7 @@ export function useFlowEditor() {
           if (node.type === 'end') {
             kind = 'termination'
           } else if (node.type === 'branch') {
-            kind = 'gateway'
+            kind = data.nodeType || 'gatewayExclusive'
           }
 
           steps.push({
@@ -210,13 +210,13 @@ export function useFlowEditor() {
           if (seenEdges.has(edgeKey)) return null
           seenEdges.add(edgeKey)
 
-          // Include expression data for gateway paths
-          const exprStr = edge.data?.expr || ''
+          // Include condition data for gateway paths
+          const condition = edge.data?.condition || null
           return {
             parentID: sourceId,
             childID: targetId,
             handle: `path_${sourceId}_${targetId}`,
-            ...(exprStr ? { expr: { expr: exprStr, target: '', type: 'Boolean' } } : {}),
+            ...(condition ? { condition } : {}),
             meta: {},
           }
         })
@@ -285,7 +285,7 @@ export function useFlowEditor() {
   ): Node<FlowNodeData> | null {
     const isBranch =
       nodeType.id === 'branch' || nodeType.type === 'condition' || nodeType.ref === 'gateway'
-    const defaultGatewayRef = 'excl'
+    const defaultGatewayRef = 'gatewayExclusive'
     const isEnd = nodeType.type === 'end'
     const isTrigger = nodeType.type === 'trigger'
 
@@ -326,7 +326,7 @@ export function useFlowEditor() {
       automation.value.steps.push({
         stepID: newId,
         handle: newHandle,
-        kind: isBranch ? 'gateway' : 'function',
+        kind: isBranch ? defaultGatewayRef : 'function',
         ref: isBranch ? defaultGatewayRef : nodeType.ref || '',
         meta: {
           short: nodeType.label,
@@ -351,9 +351,11 @@ export function useFlowEditor() {
         label: nodeType.label,
         description: nodeType.description,
         icon: nodeType.icon,
-        nodeType: isTrigger
-          ? nodeType.eventType || nodeType.ref || ''
-          : nodeType.ref || (isEnd ? 'end' : ''),
+        nodeType: isBranch
+          ? defaultGatewayRef
+          : isTrigger
+            ? nodeType.eventType || nodeType.ref || ''
+            : nodeType.ref || (isEnd ? 'end' : ''),
         config: {},
         arguments: [],
         constraints: isTrigger ? [] : undefined,
@@ -875,20 +877,20 @@ export function useFlowEditor() {
     return upstream
   }
 
-  // Update the expression on an edge (for branch conditions)
-  function updateEdgeExpr(edgeId: string, expr: string) {
+  // Update the condition on an edge (for branch conditions)
+  function updateEdgeCondition(edgeId: string, condition: Record<string, unknown> | null) {
     const edgeIndex = edges.value.findIndex(e => e.id === edgeId)
     if (edgeIndex === -1) return
 
     edges.value[edgeIndex] = {
       ...edges.value[edgeIndex],
-      data: { ...edges.value[edgeIndex].data, expr },
+      data: { ...edges.value[edgeIndex].data, condition },
     }
 
     saveToHistory()
   }
 
-  // Update the gateway type (excl/incl) for a branch node
+  // Update the gateway type (gatewayExclusive/gatewayInclusive) for a branch node
   function updateGatewayType(nodeId: string, gatewayRef: string) {
     const nodeIndex = nodes.value.findIndex(n => n.id === nodeId)
     if (nodeIndex === -1) return
@@ -904,6 +906,7 @@ export function useFlowEditor() {
       const step = automation.value.steps?.find((s: any) => s.stepID === node.data.stepID)
       if (step) {
         step.ref = gatewayRef
+        step.kind = gatewayRef
       }
     }
 
@@ -939,7 +942,7 @@ export function useFlowEditor() {
     reorderBranchEdges,
     deleteNode,
     updateNodeData,
-    updateEdgeExpr,
+    updateEdgeCondition,
     updateGatewayType,
     saveToHistory,
     getUpstreamResults,

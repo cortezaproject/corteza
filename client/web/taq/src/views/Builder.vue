@@ -549,9 +549,9 @@ function handleUpdateGatewayType(gatewayRef) {
   editor.updateGatewayType(selected.id, gatewayRef)
 }
 
-// Handle branch expression change from ConfigSidebar
-function handleUpdateBranchExpr({ edgeId, expr }) {
-  editor.updateEdgeExpr(edgeId, expr)
+// Handle branch condition change from ConfigSidebar
+function handleUpdateBranchExpr({ edgeId, condition }) {
+  editor.updateEdgeCondition(edgeId, condition)
 }
 
 // Compute current reference (scope + source) for the active argument
@@ -572,15 +572,58 @@ const currentReference = computed(() => {
 
 // Reference panel handlers
 function handleToggleReference(argumentInfo) {
-  // argumentInfo is { name: string, types: string[] } from FunctionForm
-  activeReferenceArgument.value = argumentInfo
+  // Condition references come as "condition:edgeId:side:rowIndex"
+  if (typeof argumentInfo === 'string' && argumentInfo.startsWith('condition:')) {
+    const [, edgeId, side, rowIndex] = argumentInfo.split(':')
+    activeReferenceArgument.value = {
+      isCondition: true,
+      edgeId,
+      side,
+      rowIndex: parseInt(rowIndex, 10),
+    }
+  } else {
+    // Normal function argument reference
+    activeReferenceArgument.value = argumentInfo
+  }
   showReferencePanel.value = true
 }
 
 function handleReferenceSelect({ scope, source }) {
   if (!activeReferenceArgument.value) return
-  const { name, target } = activeReferenceArgument.value
-  configSidebarRef.value?.applyReference(name, { scope, source }, target)
+
+  if (activeReferenceArgument.value.isCondition) {
+    // Apply reference to condition AST node
+    const { edgeId, side, rowIndex } = activeReferenceArgument.value
+    const edge = editor.edges.value.find(e => e.id === edgeId)
+    if (!edge?.data?.condition) return
+
+    const condition = JSON.parse(JSON.stringify(edge.data.condition))
+    const refNode = { symbol: source, meta: { scope } }
+
+    // If it's a group (and/or), update the specific child row
+    if (condition.ref === 'and' || condition.ref === 'or') {
+      const row = condition.args?.[rowIndex]
+      if (!row) return
+      if (side === 'variable') {
+        row.args[0] = refNode
+      } else {
+        row.args[1] = refNode
+      }
+    } else {
+      // Single condition (bare comparison node)
+      if (side === 'variable') {
+        condition.args[0] = refNode
+      } else {
+        condition.args[1] = refNode
+      }
+    }
+
+    editor.updateEdgeCondition(edgeId, condition)
+  } else {
+    // Normal function argument reference
+    const { name, target } = activeReferenceArgument.value
+    configSidebarRef.value?.applyReference(name, { scope, source }, target)
+  }
 }
 
 function closeReferencePanel() {

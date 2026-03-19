@@ -11,3 +11,5 @@ If you ever encounter something in the project that surprises you, please alert 
 - Do not use classes like dark: or specific surface values (surface-80). Instead use the primevue style classes to achieve this.(primary, primary-contrast, primary-emphasis, border-surface, bg-emphasis, bg-highlight, bg-highlight-emphasis, rounded-border, text-color, text-color-emphasis, text-muted-color, text-muted-color-emphasis)
 
 - A lot of components are already importer in primevue-components.ts so no need to re import them
+
+- Use pnpm for the package manager

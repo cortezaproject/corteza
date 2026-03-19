@@ -142,9 +142,27 @@ branch:
   inclusive: All matches
   exclusiveHint: Takes the first path whose condition is true
   inclusiveHint: Takes every path whose condition is true
-  exprPlaceholder: "Condition expression (e.g. status == \"approved\")"
   defaultPath: Default — no condition needed
-  condition: Condition
+  noCondition: No condition set
+
+condition:
+  addCondition: Add condition
+  addGroup: Add group
+  and: AND
+  or: OR
+  matchAll: All match
+  matchAny: Any match
+  selectVariable: Select variable
+  enterValue: Enter value
+  operators:
+    eq: equals
+    ne: not equals
+    lt: less than
+    lte: less or equal
+    gt: greater than
+    gte: greater or equal
+    isNull: is empty
+    isNotNull: is not empty
 
 confirmDelete:
   header: Delete Node
@@ -164,7 +182,7 @@ nodes:
 
 preview:
   noConfig: No configuration
-  notSet: "-"
+  notSet: '-'
   field: Field
   value: Value
   toggleAll: Show all previews

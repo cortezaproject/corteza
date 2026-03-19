@@ -109,7 +109,7 @@ export function automationToVueFlow(
     const vueFlowId = `step_${cleanId}`
     idMap.set(cleanId, vueFlowId)
 
-    const isCondition = step.kind === 'gateway'
+    const isCondition = step.kind?.startsWith('gateway')
     const isTermination = step.kind === 'termination'
     nodes.push({
       id: vueFlowId,
@@ -144,7 +144,7 @@ export function automationToVueFlow(
       target: targetId,
       type: 'addable',
       data: {
-        expr: path.expr?.expr || '',
+        condition: path.condition || null,
       },
     })
   })
@@ -290,13 +290,15 @@ export function vueFlowToAutomation(
     if (!sourceId || !targetId) return
 
     pathIndex++
-    const exprStr = edge.data?.expr || ''
+    const condition = edge.data?.condition || null
     paths.push({
       parentID: sourceId,
       childID: targetId,
       handle: `path_${pathIndex}`,
-      ...(exprStr ? { expr: { expr: exprStr, target: '', type: 'Boolean' } } : {}),
-      meta: {},
+      ...(condition ? { condition } : {}),
+      meta: {
+        short: condition ? conditionToShort(condition) : '',
+      },
     })
   })
 
@@ -470,4 +472,50 @@ function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCa
     if (catalogIcon) return catalogIcon
   }
   return DEFAULT_ICONS.ACTION
+}
+
+// Operator labels for human-readable condition summaries
+const OP_LABELS: Record<string, string> = {
+  eq: '==', ne: '!=', lt: '<', lte: '<=', gt: '>', gte: '>=',
+  isNull: 'is null', isNotNull: 'is not null',
+  and: 'AND', or: 'OR',
+}
+
+/**
+ * Convert an ASTNode condition to a human-readable short string for meta.short
+ */
+export function conditionToShort(node: Record<string, unknown>): string {
+  if (!node) return ''
+
+  // Leaf: value
+  if (node.value && typeof node.value === 'object') {
+    const v = node.value as Record<string, unknown>
+    return String(v['@value'] ?? '')
+  }
+
+  // Leaf: symbol
+  if (node.symbol) return String(node.symbol)
+
+  const ref = String(node.ref || '')
+  const args = (node.args || []) as Record<string, unknown>[]
+
+  // Unary operator (isNull/isNotNull)
+  if (ref === 'isNull' || ref === 'isNotNull') {
+    return `${conditionToShort(args[0])} ${OP_LABELS[ref] || ref}`
+  }
+
+  // Combinator (and/or)
+  if (ref === 'and' || ref === 'or') {
+    const sep = ` ${OP_LABELS[ref]} `
+    return args.map(a => conditionToShort(a)).join(sep)
+  }
+
+  // Binary operator
+  if (args.length >= 2) {
+    const left = conditionToShort(args[0])
+    const right = conditionToShort(args[1])
+    return `${left} ${OP_LABELS[ref] || ref} ${right}`
+  }
+
+  return ref
 }
