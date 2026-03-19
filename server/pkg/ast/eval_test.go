@@ -441,6 +441,82 @@ func TestEvalScope(t *testing.T) {
 			t.Fatal("expected true (both scopes have val=10)")
 		}
 	})
+
+	t.Run("DotPath/NestedMap", func(t *testing.T) {
+		// "comment.body" traverses map[string]interface{}{"body": "yes"} stored under "comment".
+		vars := makeVars("comment", expr.Must(expr.Typify(map[string]interface{}{"body": "yes"})))
+		node := &ASTNode{Symbol: "comment.body"}
+		v, err := Eval(node, globalScope(vars))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if v.Get().(string) != "yes" {
+			t.Fatalf("expected 'yes', got %v", v.Get())
+		}
+	})
+
+	t.Run("DotPath/DeepNestedMap", func(t *testing.T) {
+		// "a.b.c" traverses three levels of nested maps.
+		inner := map[string]interface{}{"c": "deep"}
+		mid := map[string]interface{}{"b": inner}
+		vars := makeVars("a", expr.Must(expr.Typify(mid)))
+		node := &ASTNode{Symbol: "a.b.c"}
+		v, err := Eval(node, globalScope(vars))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if v.Get().(string) != "deep" {
+			t.Fatalf("expected 'deep', got %v", v.Get())
+		}
+	})
+
+	t.Run("DotPath/NestedVars", func(t *testing.T) {
+		// "outer.inner" where "outer" is itself a *expr.Vars.
+		inner := makeVars("inner", expr.Must(expr.NewInteger(99)))
+		outer := makeVars("outer", inner)
+		node := &ASTNode{Symbol: "outer.inner"}
+		v, err := Eval(node, globalScope(outer))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if v.Get().(int64) != 99 {
+			t.Fatalf("expected 99, got %v", v.Get())
+		}
+	})
+
+	t.Run("DotPath/MissingKey", func(t *testing.T) {
+		// Accessing a missing nested key returns an error.
+		vars := makeVars("comment", expr.Must(expr.Typify(map[string]interface{}{"body": "x"})))
+		node := &ASTNode{Symbol: "comment.missing"}
+		_, err := Eval(node, globalScope(vars))
+		if err == nil {
+			t.Fatal("expected error for missing nested key")
+		}
+	})
+
+	t.Run("DotPath/NonTraversable", func(t *testing.T) {
+		// Trying to traverse into a scalar (string) returns an error.
+		vars := makeVars("name", expr.Must(expr.NewString("alice")))
+		node := &ASTNode{Symbol: "name.first"}
+		_, err := Eval(node, globalScope(vars))
+		if err == nil {
+			t.Fatal("expected error when traversing into scalar")
+		}
+	})
+
+	t.Run("DotPath/EqComparison", func(t *testing.T) {
+		// eq("comment.body", "yes") using a named scope.
+		vars := makeVars("comment", expr.Must(expr.Typify(map[string]interface{}{"body": "yes"})))
+		scope := map[string]*expr.Vars{"global": makeVars(), "trigger_1": vars}
+		lhs := &ASTNode{Symbol: "comment.body", Meta: map[string]any{"scope": "trigger_1"}}
+		b, err := EvalBool(ref("eq", lhs, strVal("yes")), scope)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !b {
+			t.Fatal("expected true")
+		}
+	})
 }
 
 func strVal(s string) *ASTNode {

@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/spf13/cast"
@@ -24,11 +25,15 @@ func Eval(node *ASTNode, scope map[string]*expr.Vars) (expr.TypedValue, error) {
 		if vars == nil {
 			return nil, fmt.Errorf("eval: unknown scope %q", scopeName)
 		}
-		v, err := vars.Select(node.Symbol)
+		parts := strings.SplitN(node.Symbol, ".", 2)
+		v, err := vars.Select(parts[0])
 		if err != nil {
 			return nil, fmt.Errorf("eval: unknown symbol %q in scope %q: %w", node.Symbol, scopeName, err)
 		}
-		return v, nil
+		if len(parts) == 1 {
+			return v, nil
+		}
+		return selectNested(v, parts[1])
 
 	case node.Value != nil:
 		// Leaf: typed literal
@@ -53,6 +58,41 @@ func EvalBool(node *ASTNode, scope map[string]*expr.Vars) (bool, error) {
 	}
 
 	return b.Get().(bool), nil
+}
+
+// selectNested traverses a dot-separated path into nested Vars or map[string]interface{} values.
+func selectNested(v expr.TypedValue, path string) (expr.TypedValue, error) {
+	parts := strings.SplitN(path, ".", 2)
+	key := parts[0]
+
+	switch c := v.(type) {
+	case *expr.Vars:
+		child, err := c.Select(key)
+		if err != nil {
+			return nil, fmt.Errorf("eval: no key %q: %w", key, err)
+		}
+		if len(parts) == 1 {
+			return child, nil
+		}
+		return selectNested(child, parts[1])
+	default:
+		raw := v.Get()
+		if m, ok := raw.(map[string]interface{}); ok {
+			val, exists := m[key]
+			if !exists {
+				return nil, fmt.Errorf("eval: no key %q in map", key)
+			}
+			tv, err := expr.Typify(val)
+			if err != nil {
+				return nil, err
+			}
+			if len(parts) == 1 {
+				return tv, nil
+			}
+			return selectNested(tv, parts[1])
+		}
+		return nil, fmt.Errorf("eval: cannot traverse into %T with key %q", v, key)
+	}
 }
 
 func evalRef(node *ASTNode, scope map[string]*expr.Vars) (expr.TypedValue, error) {

@@ -88,7 +88,7 @@ func newScheduler(exe types.Executable) *scheduler {
 // Returns (step, hasNext, error)
 // Note: For frameTypeStep, the frame is NOT popped here - it remains on stack
 // until PopFrame() is called after StoreOutputs
-func (ss *scheduler) Next(ctx context.Context) (*types.Step, id.ID, id.ID, bool, error) {
+func (ss *scheduler) Next(ctx context.Context, globalVars *expr.Vars, entryPoint string) (*types.Step, id.ID, id.ID, bool, error) {
 	for len(ss.stack) > 0 {
 		current := ss.stack[len(ss.stack)-1]
 
@@ -98,10 +98,10 @@ func (ss *scheduler) Next(ctx context.Context) (*types.Step, id.ID, id.ID, bool,
 
 		switch current.typ {
 		case frameTypeIterator:
-			return ss.handleIterator(ctx, current)
+			return ss.handleIterator(ctx, current, globalVars, entryPoint)
 
 		case frameTypeGateway:
-			return ss.handleGateway(ctx, current)
+			return ss.handleGateway(ctx, current, globalVars, entryPoint)
 
 		case frameTypeStep:
 			// Don't pop yet - wait for StoreOutputs to be called first
@@ -253,7 +253,7 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 	return nil
 }
 
-func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step, id.ID, id.ID, bool, error) {
+func (ss *scheduler) handleIterator(ctx context.Context, f *frame, globalVars *expr.Vars, entryPoint string) (*types.Step, id.ID, id.ID, bool, error) {
 	if !f.iterStarted {
 		// Get initial vars from frame outputs (set by runtime after step exec)
 		initialVars := &expr.Vars{}
@@ -299,7 +299,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 			})
 		}
 
-		return ss.Next(ctx)
+		return ss.Next(ctx, globalVars, entryPoint)
 	}
 
 	// Get next iteration vars
@@ -332,13 +332,13 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 		branchID: f.branchID,
 	})
 
-	return ss.Next(ctx)
+	return ss.Next(ctx, globalVars, entryPoint)
 }
 
-func (ss *scheduler) handleGateway(ctx context.Context, f *frame) (*types.Step, id.ID, id.ID, bool, error) {
+func (ss *scheduler) handleGateway(ctx context.Context, f *frame, globalVars *expr.Vars, entryPoint string) (*types.Step, id.ID, id.ID, bool, error) {
 	if f.branchTaken {
 		ss.stack = ss.stack[:len(ss.stack)-1]
-		return ss.Next(ctx)
+		return ss.Next(ctx, globalVars, entryPoint)
 	}
 
 	handler, ok := f.step.Handler.(GatewayHandler)
@@ -346,15 +346,18 @@ func (ss *scheduler) handleGateway(ctx context.Context, f *frame) (*types.Step, 
 		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("step %v: handler is not GatewayHandler", f.stepID)
 	}
 
-	// Build scope map from frame outputs. Gateway conditions reference variables
-	// via Meta["scope"]; without explicit scope they use "global".
-	globalVars := &expr.Vars{}
-	if f.outputs != nil {
-		for k, v := range f.outputs {
-			globalVars.Set(k, v)
-		}
+	// Build scope matching resolveInputs: global + entryPoint alias + all completed step outputs.
+	condScope := make(map[string]*expr.Vars, len(ss.completedOutputs)+3)
+	condScope[""] = globalVars
+	condScope["global"] = globalVars
+	if entryPoint != "" {
+		condScope[entryPoint] = globalVars
 	}
-	condScope := map[string]*expr.Vars{"global": globalVars}
+
+	for handle, outputs := range ss.completedOutputs {
+		v, _ := expr.NewVars(outputs)
+		condScope[handle] = v
+	}
 
 	indices, err := handler.Select(ctx, condScope)
 	if err != nil {
@@ -387,7 +390,7 @@ func (ss *scheduler) handleGateway(ctx context.Context, f *frame) (*types.Step, 
 		})
 	}
 
-	return ss.Next(ctx)
+	return ss.Next(ctx, globalVars, entryPoint)
 }
 
 func (ss *scheduler) pushChildren(step *types.Step, parentID, branchID id.ID) {

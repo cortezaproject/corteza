@@ -117,7 +117,7 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 			}
 		}
 
-		step, frameID, parentID, more, err := r.scheduler.Next(ctx)
+		step, frameID, parentID, more, err := r.scheduler.Next(ctx, r.globalState, r.entryPoint)
 		if err != nil {
 			return err
 		}
