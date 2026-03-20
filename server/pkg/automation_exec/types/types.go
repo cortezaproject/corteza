@@ -72,6 +72,20 @@ type (
 		Results   []StepRst
 
 		Handler StepHandler
+
+		// Recoverable enables pause-and-retry behaviour when a phase returns a RecoverableError.
+		// Both the step flag and the error type must be set for a pause to trigger.
+		Recoverable bool
+
+		// MaxRetries is the per-phase retry limit.
+		// 0 = pause indefinitely (user must call ResumeStep or TerminateExecution).
+		// >0 = auto-escalate to the catch handler after N failed retries.
+		MaxRetries int
+
+		// ErrHandlerStepID is the ID of the catch step registered for this step.
+		// Copied into frame.errHandlerStepID when the frame is first pushed.
+		// Zero means no catch handler.
+		ErrHandlerStepID id.ID
 	}
 
 	ExecRequest struct {
@@ -179,6 +193,7 @@ const (
 	EventStepStarted   EventType = "step_started"
 	EventStepCompleted EventType = "step_completed"
 	EventStepFailed    EventType = "step_failed"
+	EventStepPaused    EventType = "step_paused"
 )
 
 func (s ExecutableStatus) String() string {

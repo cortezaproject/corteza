@@ -62,6 +62,9 @@ func (m *mockLedger) StepCompleted(_ context.Context, _, _, _ id.ID, _ int, _ an
 	return nil
 }
 func (m *mockLedger) StepFailed(_ context.Context, _, _, _ id.ID, _ int, _ error) error { return nil }
+func (m *mockLedger) ExecutionPaused(_ context.Context, _, _, _ id.ID, _, _ int, _ error) error {
+	return nil
+}
 func (m *mockLedger) RecordFrame(_ context.Context, _, _ id.ID, _ int, _ types.StackFrame) error {
 	return nil
 }

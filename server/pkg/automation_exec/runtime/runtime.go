@@ -31,6 +31,7 @@ type stateLedger interface {
 
 	ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, rev int) error
 	ExecutionFailed(ctx context.Context, executableID, executionID id.ID, rev int, err error) error
+	ExecutionPaused(ctx context.Context, executableID, executionID, stepID id.ID, phaseIndex, rev int, err error) error
 
 	RecordFrame(ctx context.Context, executableID, executionID id.ID, rev int, frame types.StackFrame) error
 }
@@ -132,7 +133,27 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 		if err := r.executeStep(ctx, step, frameID, parentID); err != nil {
 			// @todo logging
 			spew.Dump("err", err)
+
+			// executeStep only propagates errors not already dispatched internally.
 			return r.fail(ctx, err)
+		}
+
+		// After executeStep returns nil:
+		// - A recoverable pause was triggered: r.blocked is true; loop to the wait select.
+		// - Mid-phase success: top frame is still this step with more phases remaining.
+		// - Catch was pushed: top frame is a different step.
+		// Only call OnStepComplete when the step is truly finished.
+		if r.blocked.Load() {
+			continue
+		}
+
+		// If the top frame is still this step and it has more phases, loop again.
+		if tf := r.scheduler.topFrame(); tf != nil && tf.stepID.Equal(step.ID) {
+			if phased, ok := step.Handler.(types.PhasedStepHandler); ok {
+				if tf.phaseIndex < len(phased.Phases()) {
+					continue
+				}
+			}
 		}
 
 		// Check if this was a termination step
@@ -146,7 +167,12 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 				return r.complete(ctx)
 			}
 
-			// Continue with next step (from remaining branches if any)
+			continue
+		}
+
+		// If catch was pushed, the top frame is a different step — skip OnStepComplete.
+		tf := r.scheduler.topFrame()
+		if tf == nil || !tf.stepID.Equal(step.ID) {
 			continue
 		}
 
@@ -181,8 +207,14 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 	r.state.InProgressSteps[step.ID] = true
 	r.state.mux.Unlock()
 
-	if err := r.ledger.StepStarted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision); err != nil {
-		return fmt.Errorf("step started: %w", err)
+	// Obtain the current frame so we can read/write phaseIndex and retryCount.
+	cf := r.scheduler.topFrame()
+
+	// Only log StepStarted on the very first phase (phaseIndex == 0).
+	if cf == nil || cf.phaseIndex == 0 {
+		if err := r.ledger.StepStarted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision); err != nil {
+			return fmt.Errorf("step started: %w", err)
+		}
 	}
 
 	// Resolve inputs from scheduler stack
@@ -196,9 +228,32 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		StartedAt: time.Now(),
 	}
 
-	output, err := step.Handler.ExecN(ctx, &types.ExecRequest{
-		Scope: inputVars,
-	})
+	// Execute: phased or single-shot.
+	var output types.ExecResponse
+	if phased, ok := step.Handler.(types.PhasedStepHandler); ok {
+		phases := phased.Phases()
+		phIdx := 0
+		if cf != nil {
+			phIdx = cf.phaseIndex
+		}
+		if phIdx >= len(phases) {
+			// All phases already completed — treat as success with no output.
+			output = nil
+			err = nil
+		} else {
+			output, err = phases[phIdx](ctx, &types.ExecRequest{Scope: inputVars})
+			if err == nil && cf != nil {
+				cf.phaseIndex++
+				cf.retryCount = 0
+				// If more phases remain, return without completing the step.
+				if cf.phaseIndex < len(phases) {
+					return nil
+				}
+			}
+		}
+	} else {
+		output, err = step.Handler.ExecN(ctx, &types.ExecRequest{Scope: inputVars})
+	}
 
 	// remove "" from inputVars as it's already outlined by "global"
 	delete(inputVars, "")
@@ -217,6 +272,10 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		_ = r.ledger.StepFailed(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, err)
 
 		// Record frame in ledger even on failure
+		phIdx := 0
+		if cf != nil {
+			phIdx = cf.phaseIndex
+		}
 		_ = r.ledger.RecordFrame(ctx, r.exec.ID, r.executionID, r.exec.Revision, types.StackFrame{
 			ID:        frameID,
 			StepID:    step.ID,
@@ -230,7 +289,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 			Error:     err,
 		})
 
-		return fmt.Errorf("%w: %s: %v", ErrStepFailed, step.ID, err)
+		return r.dispatchError(ctx, step, cf, phIdx, err)
 	}
 
 	// Extract results based on step definition
@@ -279,6 +338,52 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 	})
 
 	return nil
+}
+
+// dispatchError implements the error dispatch logic from the spec:
+//
+//	if step.Recoverable && isRecoverable(err) && (MaxRetries==0 || retryCount<MaxRetries): pause
+//	else: find catch handler; if none → fail; else push catch frame
+func (r *runtime) dispatchError(ctx context.Context, step *types.Step, cf *frame, phIdx int, err error) error {
+	if step.Recoverable && types.IsRecoverable(err) {
+		retryCount := 0
+		if cf != nil {
+			retryCount = cf.retryCount
+		}
+		if step.MaxRetries == 0 || retryCount < step.MaxRetries {
+			if cf != nil {
+				cf.retryCount++
+			}
+			_ = r.ledger.ExecutionPaused(ctx, r.exec.ID, r.executionID, step.ID, phIdx, r.exec.Revision, err)
+			r.Block()
+			return nil
+		}
+	}
+
+	// Walk stack for a catch handler.
+	stackIdx := r.scheduler.topFrameIdx()
+	catchID, _ := r.scheduler.FindCatch(stackIdx)
+	if catchID.IsZero() {
+		return r.fail(ctx, fmt.Errorf("%w: %s: %v", ErrStepFailed, step.ID, err))
+	}
+
+	// Build error vars for the catch scope.
+	errVars, _ := buildErrVars(step.ID, err)
+	if pushErr := r.scheduler.PushCatch(catchID, errVars); pushErr != nil {
+		return r.fail(ctx, fmt.Errorf("%w: push catch: %v (original: %v)", ErrStepFailed, pushErr, err))
+	}
+
+	return nil
+}
+
+// buildErrVars constructs the error context map injected into the catch scope.
+func buildErrVars(stepID id.ID, err error) (map[string]expr.TypedValue, error) {
+	msg, _ := expr.NewString(err.Error())
+	sid, _ := expr.NewString(stepID.String())
+	return map[string]expr.TypedValue{
+		"errorMessage": msg,
+		"errorStepID":  sid,
+	}, nil
 }
 
 func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error) {

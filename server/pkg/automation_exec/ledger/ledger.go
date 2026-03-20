@@ -102,6 +102,19 @@ func (l *ledger) StepFailed(ctx context.Context, executableID, executionID, step
 	})
 }
 
+func (l *ledger) ExecutionPaused(ctx context.Context, executableID, executionID, stepID id.ID, phaseIndex, revision int, err error) error {
+	if logErr := l.logStep(executableID, executionID, revision, types.StepEvent{
+		Type:    types.EventStepPaused,
+		StepID:  stepID,
+		Payload: phaseIndex,
+		Error:   err,
+	}); logErr != nil {
+		return logErr
+	}
+
+	return l.transition(executableID, executionID, revision, types.StatusPaused, nil)
+}
+
 func (l *ledger) RecordFrame(ctx context.Context, executableID, executionID id.ID, revision int, frame types.StackFrame) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()

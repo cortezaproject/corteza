@@ -141,9 +141,11 @@ func buildExecSteps(
 		idMap[uiID] = stepID
 
 		aux := execTypes.Step{
-			ID:     stepID,
-			Kind:   step.Kind,
-			Handle: step.Handle,
+			ID:          stepID,
+			Kind:        step.Kind,
+			Handle:      step.Handle,
+			Recoverable: step.Recoverable,
+			MaxRetries:  step.MaxRetries,
 		}
 
 		for _, e := range step.Arguments {
@@ -218,20 +220,35 @@ func wirePaths(
 	idMap map[uint64]id.ID,
 	exByID map[id.ID]*execTypes.Step,
 ) (issues automationTypes.NgAutomationIssueSet) {
-	stepsWithParents := make(map[uint64]bool, len(stepIdx))
+	stepsWithParents := make(map[uint64]bool)
 
+	// Collect non-gateway, non-trigger step paths grouped by parent (in original order).
+	// Index 0 = try (normal child), index 1 = catch (ErrHandlerStepID).
+	type stepPath struct {
+		path  *automationTypes.NgAutomationPath
+		pathI int
+	}
+	stepPaths := make(map[uint64][]stepPath)
 	// Collect gateway paths for deferred ordered wiring.
 	gwPaths := make(map[uint64][]gatewayPath)
 	for i := range paths {
 		p := paths[i]
+		if _, isTrigger := triggerIdx[p.ParentID]; isTrigger {
+			continue
+		}
 		if s, ok := stepIdx[p.ParentID]; ok && isGatewayKind(s.Kind) {
 			gwPaths[p.ParentID] = append(gwPaths[p.ParentID], gatewayPath{path: p, index: i})
+			continue
 		}
+		if _, ok := stepIdx[p.ParentID]; !ok {
+			continue
+		}
+		stepPaths[p.ParentID] = append(stepPaths[p.ParentID], stepPath{path: p, pathI: i})
 	}
 
 	issues = append(issues, validateGatewayPaths(gwPaths)...)
 
-	// Wire non-gateway paths.
+	// Wire non-gateway paths by position.
 	for i := range paths {
 		p := paths[i]
 
@@ -289,9 +306,26 @@ func wirePaths(
 			continue
 		}
 
-		parent.Children = append(parent.Children, *child)
-		child.Parents = append(child.Parents, *parent)
+		// Determine this path's position among all outbound paths from this parent.
+		// Position 0 = try (normal child); position 1 = catch (ErrHandlerStepID).
+		pos := -1
+		for j, sp := range stepPaths[p.ParentID] {
+			if sp.pathI == i {
+				pos = j
+				break
+			}
+		}
+
+		if pos == 1 {
+			// Second outbound path is the catch handler.
+			parent.ErrHandlerStepID = childExecID
+		} else {
+			// First (or only) outbound path is the normal child edge.
+			parent.Children = append(parent.Children, *child)
+			child.Parents = append(child.Parents, *parent)
+		}
 	}
+
 
 	// Wire gateway paths in sorted order (conditions first, else last).
 	for parentID, gps := range gwPaths {
@@ -494,6 +528,9 @@ func stepConv(svc *ngAutomation, step *automationTypes.NgAutomationStep) (out ex
 		case "gatewayInclusive":
 			return stepConvGateway(step, true)
 
+		case "error":
+			return stepConvError(step)
+
 		default:
 			return nil, errors.Internal("unsupported step kind %q", step.Kind)
 		}
@@ -618,4 +655,24 @@ func stepConvGateway(step *automationTypes.NgAutomationStep, inclusive bool) (ou
 		return automationTypes.InclusiveGatewayStep(nil), nil
 	}
 	return automationTypes.ExclusiveGatewayStep(nil), nil
+}
+
+// stepConvError creates an error step handler.
+// It reads "message" (*ast.ASTNode) and "recoverable" (bool) from step.Meta.
+func stepConvError(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
+	var message *ast.ASTNode
+	if v, ok := step.Meta.Extra["message"]; ok {
+		if node, ok := v.(*ast.ASTNode); ok {
+			message = node
+		}
+	}
+
+	recoverable := false
+	if v, ok := step.Meta.Extra["recoverable"]; ok {
+		if b, ok := v.(bool); ok {
+			recoverable = b
+		}
+	}
+
+	return automationTypes.ErrorStep(message, recoverable), nil
 }

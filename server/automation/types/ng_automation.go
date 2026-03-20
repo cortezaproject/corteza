@@ -149,12 +149,22 @@ type (
 
 		Arguments []*Expr `json:"arguments"`
 		Results   []*Expr `json:"results"`
+
+		// Recoverable enables pause-and-retry on RecoverableError.
+		Recoverable bool `json:"recoverable,omitempty"`
+
+		// MaxRetries is the per-phase retry limit (0 = unlimited pause).
+		MaxRetries int `json:"maxRetries,omitempty"`
 	}
 
 	NgAutomationPath struct {
 		ParentID  uint64        `json:"parentID,string"`
 		ChildID   uint64        `json:"childID,string"`
 		Condition *ast.ASTNode  `json:"condition,omitempty"`
+
+		// Kind distinguishes special paths.
+		// "error" marks the catch handler path; empty = normal flow.
+		Kind string `json:"kind,omitempty"`
 
 		Meta NgAutomationPathMeta `json:"meta"`
 	}
@@ -164,6 +174,9 @@ type (
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
 		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
+
+		// Extra holds step-kind-specific metadata (e.g. "message" and "recoverable" for error steps).
+		Extra map[string]any `json:"extra,omitempty"`
 	}
 
 	NgAutomationPathMeta struct {

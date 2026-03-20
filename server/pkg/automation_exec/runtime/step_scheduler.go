@@ -67,6 +67,11 @@ type (
 
 		// For branches
 		branchTaken bool
+
+		// Error handling
+		phaseIndex       int   // index of the phase currently executing (0 for non-phased)
+		retryCount       int   // retry attempts for the current phase
+		errHandlerStepID id.ID // catch step registered on this frame; zero = none
 	}
 
 	frameType uint8
@@ -399,13 +404,14 @@ func (ss *scheduler) pushChildren(step *types.Step, parentID, branchID id.ID) {
 	if len(step.Children) == 1 {
 		child := &step.Children[0]
 		ss.stack = append(ss.stack, &frame{
-			typ:      frameTypeStep,
-			id:       id.MustNumID(id.Next()),
-			parentID: parentID,
-			stepID:   child.ID,
-			step:     child,
-			handle:   child.Handle,
-			branchID: branchID,
+			typ:              frameTypeStep,
+			id:               id.MustNumID(id.Next()),
+			parentID:         parentID,
+			stepID:           child.ID,
+			step:             child,
+			handle:           child.Handle,
+			branchID:         branchID,
+			errHandlerStepID: child.ErrHandlerStepID,
 		})
 		return
 	}
@@ -419,13 +425,14 @@ func (ss *scheduler) pushChildren(step *types.Step, parentID, branchID id.ID) {
 		ss.activeBranches[bid] = true
 
 		ss.stack = append(ss.stack, &frame{
-			typ:      frameTypeStep,
-			id:       id.MustNumID(id.Next()),
-			parentID: parentID,
-			stepID:   child.ID,
-			step:     child,
-			handle:   child.Handle,
-			branchID: bid,
+			typ:              frameTypeStep,
+			id:               id.MustNumID(id.Next()),
+			parentID:         parentID,
+			stepID:           child.ID,
+			step:             child,
+			handle:           child.Handle,
+			branchID:         bid,
+			errHandlerStepID: child.ErrHandlerStepID,
 		})
 	}
 }
@@ -453,6 +460,19 @@ func (ss *scheduler) TerminateBranch(stepID id.ID) (bool, error) {
 	return len(ss.activeBranches) == 0, nil
 }
 
+// topFrame returns the top-most frame on the stack (nil if empty).
+func (ss *scheduler) topFrame() *frame {
+	if len(ss.stack) == 0 {
+		return nil
+	}
+	return ss.stack[len(ss.stack)-1]
+}
+
+// topFrameIdx returns the index of the top-most frame (-1 if empty).
+func (ss *scheduler) topFrameIdx() int {
+	return len(ss.stack) - 1
+}
+
 func (ss *scheduler) clearBranchFrames(branchID id.ID) {
 	newStack := make([]*frame, 0, len(ss.stack))
 	for _, f := range ss.stack {
@@ -461,6 +481,58 @@ func (ss *scheduler) clearBranchFrames(branchID id.ID) {
 		}
 	}
 	ss.stack = newStack
+}
+
+// FindCatch walks the stack downward from fromIdx, returning the first frame
+// with a non-zero errHandlerStepID and its frame index.
+// It clears the handler before returning to prevent re-use.
+// Returns (zero, -1) if none found.
+func (ss *scheduler) FindCatch(fromIdx int) (id.ID, int) {
+	for i := fromIdx; i >= 0; i-- {
+		f := ss.stack[i]
+		if !f.errHandlerStepID.IsZero() {
+			catchID := f.errHandlerStepID
+			f.errHandlerStepID = id.Zero()
+			return catchID, i
+		}
+	}
+	return id.Zero(), -1
+}
+
+// PushCatch pushes a frame for catchStepID onto the stack with errVars as initial outputs.
+func (ss *scheduler) PushCatch(catchStepID id.ID, errVars map[string]expr.TypedValue) error {
+	step, ok := ss.steps[catchStepID]
+	if !ok {
+		return ErrStepNotFound
+	}
+
+	bid := id.MustNumID(id.Next())
+	ss.activeBranches[bid] = true
+
+	ss.stack = append(ss.stack, &frame{
+		typ:      frameTypeStep,
+		id:       id.MustNumID(id.Next()),
+		stepID:   catchStepID,
+		step:     step,
+		handle:   step.Handle,
+		outputs:  errVars,
+		branchID: bid,
+	})
+
+	return nil
+}
+
+// RePushPhase re-pushes the frame for stepID at its current phaseIndex for retry.
+// The frame must still be on the stack (it is kept there between phase executions).
+func (ss *scheduler) RePushPhase(stepID id.ID) error {
+	for _, f := range ss.stack {
+		if f.stepID.Equal(stepID) && f.typ == frameTypeStep {
+			// Frame is already on stack; just reset blocking state so Next() returns it again.
+			// retryCount is already incremented by the runtime before calling Block().
+			return nil
+		}
+	}
+	return fmt.Errorf("frame for step %v not found on stack", stepID)
 }
 
 func (ss *scheduler) init(exe types.Executable) *scheduler {
@@ -478,12 +550,13 @@ func (ss *scheduler) init(exe types.Executable) *scheduler {
 			ss.activeBranches[bid] = true
 
 			ss.stack = append(ss.stack, &frame{
-				typ:      frameTypeStep,
-				id:       id.MustNumID(id.Next()),
-				stepID:   step.ID,
-				step:     step,
-				handle:   step.Handle,
-				branchID: bid,
+				typ:              frameTypeStep,
+				id:               id.MustNumID(id.Next()),
+				stepID:           step.ID,
+				step:             step,
+				handle:           step.Handle,
+				branchID:         bid,
+				errHandlerStepID: step.ErrHandlerStepID,
 			})
 		}
 	}

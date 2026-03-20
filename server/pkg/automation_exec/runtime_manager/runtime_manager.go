@@ -57,6 +57,7 @@ type Ledger interface {
 
 	ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, rev int) error
 	ExecutionFailed(ctx context.Context, executableID, executionID id.ID, rev int, err error) error
+	ExecutionPaused(ctx context.Context, executableID, executionID, stepID id.ID, phaseIndex, rev int, err error) error
 
 	RecordFrame(ctx context.Context, executableID, executionID id.ID, rev int, frame types.StackFrame) error
 
@@ -259,6 +260,32 @@ func (rm *runtimeManager) Stop(execID id.ID) error {
 	}
 
 	return ErrExecutionNotFound
+}
+
+// ResumeStep unblocks a paused execution so it can retry the current phase.
+// The scheduler frame is already positioned at the correct phaseIndex; calling
+// runtime.Resume() is sufficient to re-enter the execution loop.
+func (rm *runtimeManager) ResumeStep(execID id.ID) error {
+	rm.mu.RLock()
+	e, ok := rm.executions[execID]
+	rm.mu.RUnlock()
+
+	if !ok {
+		return ErrExecutionNotFound
+	}
+	if e.runtime == nil {
+		return ErrExecutionNotFound
+	}
+	if !e.runtime.IsBlocked() {
+		return nil // idempotent
+	}
+	e.runtime.Resume()
+	return nil
+}
+
+// TerminateExecution stops a running or paused execution immediately.
+func (rm *runtimeManager) TerminateExecution(execID id.ID) error {
+	return rm.Stop(execID)
 }
 
 //
