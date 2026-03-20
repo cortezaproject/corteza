@@ -97,11 +97,19 @@
         {{ if .avatarEnabled }}
         <hr/>
         <div class="mb-3">
-            <label for="profileFormHandle">{{ tr "profile.template.form.avatar.label" }}</label>
-            <div class="d-block">
-                <img style="height: 4rem; width: 4rem;" class="rounded-circle" src="{{ .form.avatarUrl }}" alt="Profile Photo">
-                <div class="mt-3">
-                    <label for="avatar" class="p-2 bg-light text-dark rounded" style="cursor: pointer;">
+            <label>{{ tr "profile.template.form.avatar.label" }}</label>
+            <div class="d-flex align-items-center" style="gap: 1rem;">
+                {{ if .isAvatar }}
+                <div class="avatar-preview">
+                    <img src="{{ .form.avatarUrl }}" alt="Profile Photo">
+                </div>
+                {{ else }}
+                <div class="avatar-preview avatar-initials" id="avatarInitials"
+                     style="background-color: {{ if .form.initialBgColor }}{{ .form.initialBgColor }}{{ else }}#e4e4e7{{ end }}; color: {{ if .form.initialTextColor }}{{ .form.initialTextColor }}{{ else }}#3f3f46{{ end }};">
+                </div>
+                {{ end }}
+                <div class="d-flex align-items-center" style="gap: 0.5rem;">
+                    <label for="avatar" class="btn btn-light btn-sm" style="margin-bottom: 0; color: var(--auth-text-color); cursor: pointer;">
                     {{ tr "profile.template.form.avatar.upload" }}
                     </label>
                     <input id="avatar" name="avatar" value="avatar" type="file" class="sr-only" accept="image/*">
@@ -110,7 +118,7 @@
                     <button
                         name="avatar-delete"
                         value="avatar-delete"
-                        class="ml-2 btn btn-danger"
+                        class="btn btn-danger btn-sm"
                     >
                         {{ tr "profile.template.form.avatar.delete" }}
                     </button>
@@ -119,17 +127,25 @@
             </div>
         </div>
 
+        {{ if not .isAvatar }}
         <div class="form-row mb-3">
             <div class="col">
                 <label for="initialColor">{{ tr "profile.template.form.avatar-initial.color" }}</label>
-                <input type="color" id="initialColor" class="form-control input-color" value="{{ .form.initialTextColor }}" name="initial-color">
+                <div class="color-picker-wrapper">
+                    <input type="color" id="initialColor" class="color-picker-input" value="{{ if .form.initialTextColor }}{{ .form.initialTextColor }}{{ else }}#3f3f46{{ end }}" name="initial-color">
+                    <span class="color-picker-value" data-color-for="initialColor">{{ .form.initialTextColor }}</span>
+                </div>
             </div>
 
             <div class="col">
                 <label for="customColor">{{ tr "profile.template.form.avatar-initial.background-color" }}</label>
-                <input type="color" id="customColor" class="form-control input-color" value="{{ .form.initialBgColor }}" name="initial-bg">
+                <div class="color-picker-wrapper">
+                    <input type="color" id="customColor" class="color-picker-input" value="{{ if .form.initialBgColor }}{{ .form.initialBgColor }}{{ else }}#e4e4e7{{ end }}" name="initial-bg">
+                    <span class="color-picker-value" data-color-for="customColor">{{ .form.initialBgColor }}</span>
+                </div>
             </div>
         </div>
+        {{ end }}
         {{ end }}
 
         <div>

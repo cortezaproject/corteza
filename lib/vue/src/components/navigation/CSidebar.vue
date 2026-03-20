@@ -5,7 +5,7 @@
     :dismissable="isMobile"
     :pt="{
       root: 'border-r border-surface',
-      header: { class: 'pl-4 pt-4 pb-2 pr-1 h-15 gap-3' },
+      header: { class: 'items-start p-2 gap-3' },
       content: 'p-2',
       pcCloseButton: {
         root: {
@@ -17,7 +17,7 @@
     :style="{ width: 'var(--sidebar-width)' }"
   >
     <template #header>
-      <div class="grow">
+      <div class="px-2 pt-2 pb-1 h-15 grow">
         <img :src="logo" class="flex-1 object-contain" />
       </div>
     </template>

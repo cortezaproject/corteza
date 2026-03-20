@@ -50,7 +50,7 @@
 
 <script setup>
 import { compose } from '@cortezaproject/corteza-js-next'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import CConfiguratorBasic from './CConfiguratorBasic.vue'
 
 const props = defineProps({
@@ -68,7 +68,7 @@ const emit = defineEmits(['update:visible', 'save'])
 
 const activeTab = ref('basic')
 const mockField = ref(null)
-const kindComponent = ref(null)
+const kindComponent = shallowRef(null)
 
 watch(
   () => props.visible,

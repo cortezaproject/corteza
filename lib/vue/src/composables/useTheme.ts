@@ -33,7 +33,7 @@ const defaultVariables: {
   dark: CortezaThemeVariables
 } = {
   light: {
-    primary: '#FF9661',
+    primary: '#09344E',
     success: '#43AA8B',
     warning: '#E27646',
     danger: '#E54122',
@@ -52,11 +52,11 @@ const defaultVariables: {
       950: '#09090b',
     },
     'body-bg': '#f4f4f5',
-    'topbar-bg': '#fafafa',
-    'sidebar-bg': '#f4f4f5',
+    'sidebar-bg': '#ffffff',
+    'topbar-bg': '#f4f4f5',
   },
   dark: {
-    primary: '#FF9661',
+    primary: '#E56B5B',
     success: '#43AA8B',
     warning: '#E27646',
     danger: '#E54122',
@@ -75,8 +75,8 @@ const defaultVariables: {
       950: '#09090b',
     },
     'body-bg': '#27272a',
-    'topbar-bg': '#18181b',
     'sidebar-bg': '#18181b',
+    'topbar-bg': '#27272a',
   },
 }
 
@@ -127,6 +127,7 @@ export function getTheme(theme: Theme) {
         --p-drawer-border-color: #ffffff00;
         --p-overlay-modal-padding: 1rem;
         --p-tabs-tabpanel-padding: 1rem;
+        --p-tabs-tab-padding: 0.75rem 1rem !important;
       }
 
       body {
@@ -153,7 +154,7 @@ export function getTheme(theme: Theme) {
         border-radius: var(--p-card-border-radius);
         .p-panel-header {
           padding: 0.5rem 0.5rem 0.5rem 1rem !important;
-  
+
           .p-panel-title {
             font-size: 1.25rem;
             font-weight: 500;
@@ -165,7 +166,7 @@ export function getTheme(theme: Theme) {
       }
 
       .p-dialog-header {
-        padding-bottom: 0.25rem !important;
+        padding-bottom: 0.5rem !important;
       }
 
       .p-datatable-column-resizer {

@@ -36,12 +36,7 @@
             icon="pi pi-plus"
             size="small"
           />
-          <CRouterLinkButton
-            :to="{ name: 'namespace.list' }"
-            :label="$t('namespace.manage.list-view')"
-            size="small"
-            severity="secondary"
-          />
+          <NamespaceImporter @imported="onImported" @failed="onFailed" />
         </div>
       </template>
 
@@ -94,6 +89,8 @@ import {
   useConfirmDelete,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
+import NamespaceImporter from '@/components/Namespaces/NamespaceImporter.vue'
+import { useNamespaceStore } from '@/stores/namespace'
 import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -105,6 +102,7 @@ const router = useRouter()
 const $ComposeAPI = inject('$ComposeAPI')
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
+const namespaceStore = useNamespaceStore()
 
 // Actions menu
 const actionsMenu = ref()
@@ -177,6 +175,14 @@ const toggleActionsMenu = (event, namespace) => {
 const getActionsMenuItems = namespace => {
   const items = []
 
+  if (namespace.canExportNamespace) {
+    items.push({
+      label: t('namespace.export'),
+      icon: 'pi pi-download',
+      command: () => exportNamespace(namespace),
+    })
+  }
+
   if (namespace.canDeleteNamespace) {
     items.push({
       label: t('general.label.delete'),
@@ -207,6 +213,35 @@ const handleDelete = namespace => {
         })
     },
   })
+}
+
+// Export namespace
+function exportNamespace(namespace) {
+  const params = {
+    namespaceID: namespace.namespaceID,
+    filename: encodeURIComponent((namespace.name || 'namespace').replace(/\./g, '-')),
+  }
+
+  const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
+  const exportUrl = `${$ComposeAPI.baseURL}${$ComposeAPI.namespaceExportEndpoint(params)}?jwt=${encodeURIComponent(token)}`
+  window.open(exportUrl)
+}
+
+// Import handlers
+function onImported() {
+  namespaceStore
+    .load({ force: true })
+    .then(() => {
+      filterList()
+      $toast.toastSuccess(t('notification.namespace.imported'))
+    })
+    .catch(() => {
+      $toast.toastDanger(t('notification.namespace.importFailed'))
+    })
+}
+
+function onFailed(err) {
+  $toast.toastDanger(err?.message || t('notification.namespace.importFailed'))
 }
 
 // Lifecycle

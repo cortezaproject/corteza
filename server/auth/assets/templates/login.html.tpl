@@ -113,7 +113,7 @@
 	<div class="px-3 pb-3">
 		{{ range .providers }}
 			<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
-				<i class="bi bi-{{ .Icon }} mr-1"></i>
+				<svg class="mr-1" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2"/></svg>
 				{{ tr "login.template.links.external.login-with" "idp" (coalesce .Label .Handle) }}
 			</a>
 		{{ end }}

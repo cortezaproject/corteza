@@ -64,6 +64,9 @@ const namespace = ref(null)
 // Provide namespace so deeply nested components (e.g. CFieldRecordEditor) can access it
 provide('$namespace', namespace)
 
+// Provide page store for record field viewer navigation
+provide('$pageStore', pageStore)
+
 // Methods
 async function loadNamespace() {
   await run(async () => {

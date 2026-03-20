@@ -16,6 +16,18 @@ type (
 		ac  llmProviderAccessController
 	}
 
+	llmProviderPayload struct {
+		*types.LlmProvider
+
+		CanGrant              bool `json:"canGrant"`
+		CanUpdateLlmProvider  bool `json:"canUpdateLlmProvider"`
+		CanDeleteLlmProvider  bool `json:"canDeleteLlmProvider"`
+	}
+
+	llmProviderSetPayload struct {
+		Set []*llmProviderPayload `json:"set"`
+	}
+
 	llmProviderService interface {
 		Create(ctx context.Context, p *types.LlmProvider, apiKey string) (*types.LlmProvider, error)
 		LookupByID(ctx context.Context, id uint64) (*types.LlmProvider, error)
@@ -27,7 +39,10 @@ type (
 	}
 
 	llmProviderAccessController interface {
+		CanGrant(ctx context.Context) bool
 		CanReadLlmProvider(ctx context.Context, p *types.LlmProvider) bool
+		CanUpdateLlmProvider(ctx context.Context, p *types.LlmProvider) bool
+		CanDeleteLlmProvider(ctx context.Context, p *types.LlmProvider) bool
 	}
 )
 
@@ -36,10 +51,11 @@ func (LlmProvider) New() LlmProvider {
 }
 
 func (ctrl LlmProvider) List(ctx context.Context, r *request.LlmProviderList) (interface{}, error) {
-	return ctrl.svc.Search(ctx, types.LlmProviderFilter{
+	set, err := ctrl.svc.Search(ctx, types.LlmProviderFilter{
 		Provider: r.Provider,
 		Status:   r.Status,
 	})
+	return ctrl.makeFilterPayload(ctx, set, err)
 }
 
 func (ctrl LlmProvider) Create(ctx context.Context, r *request.LlmProviderCreate) (interface{}, error) {
@@ -50,7 +66,8 @@ func (ctrl LlmProvider) Create(ctx context.Context, r *request.LlmProviderCreate
 		Meta:     r.Meta,
 		Config:   r.Config,
 	}
-	return ctrl.svc.Create(ctx, p, r.ApiKey)
+	res, err := ctrl.svc.Create(ctx, p, r.ApiKey)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 func (ctrl LlmProvider) Read(ctx context.Context, r *request.LlmProviderRead) (interface{}, error) {
@@ -61,7 +78,7 @@ func (ctrl LlmProvider) Read(ctx context.Context, r *request.LlmProviderRead) (i
 	if !ctrl.ac.CanReadLlmProvider(ctx, p) {
 		return nil, fmt.Errorf("not allowed to read LLM provider")
 	}
-	return p, nil
+	return ctrl.makePayload(ctx, p, nil)
 }
 
 func (ctrl LlmProvider) Update(ctx context.Context, r *request.LlmProviderUpdate) (interface{}, error) {
@@ -73,7 +90,8 @@ func (ctrl LlmProvider) Update(ctx context.Context, r *request.LlmProviderUpdate
 		Meta:     r.Meta,
 		Config:   r.Config,
 	}
-	return ctrl.svc.Update(ctx, p, r.ApiKey)
+	res, err := ctrl.svc.Update(ctx, p, r.ApiKey)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 func (ctrl LlmProvider) Delete(ctx context.Context, r *request.LlmProviderDelete) (interface{}, error) {
@@ -89,4 +107,31 @@ func (ctrl LlmProvider) Validate(ctx context.Context, r *request.LlmProviderVali
 		return nil, err
 	}
 	return true, nil
+}
+
+func (ctrl LlmProvider) makePayload(ctx context.Context, p *types.LlmProvider, err error) (*llmProviderPayload, error) {
+	if err != nil || p == nil {
+		return nil, err
+	}
+
+	return &llmProviderPayload{
+		LlmProvider: p,
+
+		CanGrant:             ctrl.ac.CanGrant(ctx),
+		CanUpdateLlmProvider: ctrl.ac.CanUpdateLlmProvider(ctx, p),
+		CanDeleteLlmProvider: ctrl.ac.CanDeleteLlmProvider(ctx, p),
+	}, nil
+}
+
+func (ctrl LlmProvider) makeFilterPayload(ctx context.Context, set types.LlmProviderSet, err error) (*llmProviderSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	pp := &llmProviderSetPayload{Set: make([]*llmProviderPayload, len(set))}
+	for i := range set {
+		pp.Set[i], _ = ctrl.makePayload(ctx, set[i], nil)
+	}
+
+	return pp, nil
 }

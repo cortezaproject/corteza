@@ -174,6 +174,8 @@ export function useFlowEditor() {
             kind = 'termination'
           } else if (node.type === 'branch') {
             kind = data.nodeType || 'gatewayExclusive'
+          } else if (node.type === 'iterator') {
+            kind = 'iterator'
           }
 
           steps.push({
@@ -221,6 +223,51 @@ export function useFlowEditor() {
           }
         })
         .filter(Boolean)
+
+      // Generate back-edges for iterator nodes
+      // For each iterator, find its body path (first outgoing edge) and
+      // trace down to the last node whose only outgoing edge would be a back-edge.
+      // The last step in the body chain gets a path back to the iterator.
+      nodes.value.filter(n => n.type === 'iterator').forEach(iterNode => {
+        const iterEdges = edges.value.filter(e => e.source === iterNode.id)
+        const bodyEdge = iterEdges[0] // First edge is body
+        if (!bodyEdge) return
+
+        // Walk body chain to find the leaf (node with no outgoing edges, or an end node)
+        let current = bodyEdge.target
+        const visited = new Set<string>()
+        while (current && !visited.has(current)) {
+          visited.add(current)
+          const currentNode = nodes.value.find(n => n.id === current)
+          // Stop at end nodes - the step BEFORE the end is the body's last real step
+          if (currentNode?.type === 'end') break
+          const nextEdge = edges.value.find(e => e.source === current)
+          if (!nextEdge) break
+          current = nextEdge.target
+        }
+
+        // Find the last non-end step in the body chain
+        let lastBodyStep: string | null = null
+        for (const nodeId of visited) {
+          const node = nodes.value.find(n => n.id === nodeId)
+          if (node && node.type !== 'end') {
+            lastBodyStep = nodeId
+          }
+        }
+
+        if (lastBodyStep) {
+          const iterBackendId = nodeIdToBackendId.get(iterNode.id)
+          const bodyBackendId = nodeIdToBackendId.get(lastBodyStep)
+          if (iterBackendId && bodyBackendId) {
+            paths.push({
+              parentID: bodyBackendId,
+              childID: iterBackendId,
+              handle: `path_${bodyBackendId}_${iterBackendId}`,
+              meta: {},
+            })
+          }
+        }
+      })
 
       const dataToSave = {
         automationID: automation.value.automationID,
@@ -284,8 +331,9 @@ export function useFlowEditor() {
     insertionPoint: InsertionPoint | null,
   ): Node<FlowNodeData> | null {
     const isBranch =
-      nodeType.id === 'branch' || nodeType.type === 'condition' || nodeType.ref === 'gateway'
-    const defaultGatewayRef = 'gatewayExclusive'
+      nodeType.id === 'branch' || nodeType.type === 'condition' || nodeType.ref === 'gateway' || nodeType.ref?.startsWith('gateway')
+    const isIterator = nodeType.kind === 'iterator'
+    const gatewayRef = nodeType.ref?.startsWith('gateway') ? nodeType.ref : 'gatewayExclusive'
     const isEnd = nodeType.type === 'end'
     const isTrigger = nodeType.type === 'trigger'
 
@@ -326,8 +374,8 @@ export function useFlowEditor() {
       automation.value.steps.push({
         stepID: newId,
         handle: newHandle,
-        kind: isBranch ? defaultGatewayRef : 'function',
-        ref: isBranch ? defaultGatewayRef : nodeType.ref || '',
+        kind: isIterator ? 'iterator' : isBranch ? gatewayRef : 'function',
+        ref: isIterator ? nodeType.ref || '' : isBranch ? gatewayRef : nodeType.ref || '',
         meta: {
           short: nodeType.label,
           description: nodeType.description || '',
@@ -341,10 +389,17 @@ export function useFlowEditor() {
     // VueFlow node ID must be unique - prefix with type
     const vueFlowNodeId = isTrigger ? `trigger_${newId}` : isEnd ? `end_${newId}` : `step_${newId}`
 
+    // Determine VueFlow node type
+    let vueFlowType: string = 'step'
+    if (isBranch) vueFlowType = 'branch'
+    else if (isIterator) vueFlowType = 'iterator'
+    else if (isTrigger) vueFlowType = 'trigger'
+    else if (isEnd) vueFlowType = 'end'
+
     // Create VueFlow node
     const newNode: Node<FlowNodeData> = {
       id: vueFlowNodeId,
-      type: isBranch ? 'branch' : isTrigger ? 'trigger' : isEnd ? 'end' : 'step',
+      type: vueFlowType,
       position: { x: 0, y: 0 },
       selectable: !isEnd,
       data: {
@@ -352,7 +407,7 @@ export function useFlowEditor() {
         description: nodeType.description,
         icon: nodeType.icon,
         nodeType: isBranch
-          ? defaultGatewayRef
+          ? gatewayRef
           : isTrigger
             ? nodeType.eventType || nodeType.ref || ''
             : nodeType.ref || (isEnd ? 'end' : ''),
@@ -406,8 +461,8 @@ export function useFlowEditor() {
         const newEdges: typeof edges.value = []
         let insertEdge: (typeof edges.value)[0] | null = null
 
-        if (isBranch) {
-          // Edge from source to branch (will be inserted at original position)
+        if (isBranch || isIterator) {
+          // Edge from source to branch/iterator (will be inserted at original position)
           insertEdge = {
             id: `${edge.source}_${vueFlowNodeId}`,
             source: edge.source,
@@ -415,20 +470,14 @@ export function useFlowEditor() {
             type: 'addable',
           }
 
-          // First branch output: connect to original target (leftmost)
-          newEdges.push({
-            id: `${vueFlowNodeId}_0_${edge.target}`,
-            source: vueFlowNodeId,
-            target: edge.target,
-            type: 'addable',
-          })
-
-          // Second branch output: new end node (rightmost)
-          const noEndId = String(parseInt(newId) + 1)
-          const noEndVueId = `end_${noEndId}`
+          // First output: body (for iterator) or first branch path
+          // For iterators: body starts with a new end node (user adds steps into it)
+          // For branches: connect to original target (leftmost)
+          const bodyEndId = String(parseInt(newId) + 1)
+          const bodyEndVueId = `end_${bodyEndId}`
 
           newNodes.push({
-            id: noEndVueId,
+            id: bodyEndVueId,
             type: 'end',
             position: { x: 0, y: 0 },
             selectable: false,
@@ -438,15 +487,39 @@ export function useFlowEditor() {
               icon: DEFAULT_ICONS.END,
               config: {},
               arguments: [],
-              ref: noEndVueId,
+              ref: bodyEndVueId,
             },
           })
-          newEdges.push({
-            id: `${vueFlowNodeId}_1_${noEndVueId}`,
-            source: vueFlowNodeId,
-            target: noEndVueId,
-            type: 'addable',
-          })
+
+          if (isIterator) {
+            // Iterator: first output (body) to new end node, second output (done) to original target
+            newEdges.push({
+              id: `${vueFlowNodeId}_0_${bodyEndVueId}`,
+              source: vueFlowNodeId,
+              target: bodyEndVueId,
+              type: 'addable',
+            })
+            newEdges.push({
+              id: `${vueFlowNodeId}_1_${edge.target}`,
+              source: vueFlowNodeId,
+              target: edge.target,
+              type: 'addable',
+            })
+          } else {
+            // Branch: first output to original target, second to new end node
+            newEdges.push({
+              id: `${vueFlowNodeId}_0_${edge.target}`,
+              source: vueFlowNodeId,
+              target: edge.target,
+              type: 'addable',
+            })
+            newEdges.push({
+              id: `${vueFlowNodeId}_1_${bodyEndVueId}`,
+              source: vueFlowNodeId,
+              target: bodyEndVueId,
+              type: 'addable',
+            })
+          }
         } else {
           // Regular node: source -> new -> target
           insertEdge = {
@@ -553,7 +626,7 @@ export function useFlowEditor() {
     // For non-end nodes: reconnect parent to ALL children (including terminations)
     // EXCEPT for branches, where we want to delete the subtrees instead
     incomingEdges.forEach(incoming => {
-      if (outgoingEdges.length > 0 && nodeToDelete.type !== 'branch') {
+      if (outgoingEdges.length > 0 && nodeToDelete.type !== 'branch' && nodeToDelete.type !== 'iterator') {
         // Reconnect parent to all children of deleted node
         outgoingEdges.forEach(outgoing => {
           if (incoming.source !== outgoing.target) {
@@ -891,22 +964,161 @@ export function useFlowEditor() {
   }
 
   // Update the gateway type (gatewayExclusive/gatewayInclusive) for a branch node
-  function updateGatewayType(nodeId: string, gatewayRef: string) {
+  /**
+   * Replace a node with a different node type, preserving its position in the flow (edges).
+   * Resets arguments and updates the automation model accordingly.
+   */
+  function replaceNode(nodeId: string, newNodeType: NodeType) {
     const nodeIndex = nodes.value.findIndex(n => n.id === nodeId)
     if (nodeIndex === -1) return
 
-    const node = nodes.value[nodeIndex]
-    nodes.value[nodeIndex] = {
-      ...node,
-      data: { ...node.data, nodeType: gatewayRef },
+    const oldNode = nodes.value[nodeIndex]
+    const isBranch =
+      newNodeType.id === 'branch' || newNodeType.type === 'condition' || newNodeType.ref === 'gateway'
+    const isIterator = newNodeType.kind === 'iterator'
+    const isTrigger = newNodeType.type === 'trigger'
+    const hasTwoOutputs = isBranch || isIterator
+
+    let newVueFlowType = 'step'
+    if (isBranch) newVueFlowType = 'branch'
+    else if (isIterator) newVueFlowType = 'iterator'
+    else if (isTrigger) newVueFlowType = 'trigger'
+
+    const gatewayRef = newNodeType.ref?.startsWith('gateway') ? newNodeType.ref : 'gatewayExclusive'
+
+    // Determine new nodeType value for data
+    const newDataNodeType = isBranch
+      ? gatewayRef
+      : isTrigger
+        ? newNodeType.eventType || newNodeType.ref || ''
+        : newNodeType.ref || ''
+
+    // Update automation model
+    if (oldNode.type === 'trigger' && oldNode.data?.triggerID) {
+      // Update existing trigger in automation model
+      const trigger = automation.value.triggers?.find(
+        (t: any) => t.triggerID === oldNode.data.triggerID,
+      )
+      if (trigger) {
+        trigger.eventType = newNodeType.eventType || newNodeType.ref || ''
+        trigger.resourceType = newNodeType.resourceType || ''
+        trigger.constraints = []
+        trigger.input = {}
+        trigger.meta = {
+          short: newNodeType.label,
+          description: newNodeType.description || '',
+        }
+      }
+    } else if (oldNode.data?.stepID) {
+      // Update existing step in automation model
+      const step = automation.value.steps?.find(
+        (s: any) => s.stepID === oldNode.data.stepID,
+      )
+      if (step) {
+        step.kind = isIterator ? 'iterator' : isBranch ? gatewayRef : 'function'
+        step.ref = isIterator ? newNodeType.ref || '' : isBranch ? gatewayRef : newNodeType.ref || ''
+        step.arguments = []
+        step.meta = {
+          short: newNodeType.label,
+          description: newNodeType.description || '',
+        }
+      }
     }
+
+    // Build updated node data
+    const newData: FlowNodeData = {
+      ...oldNode.data,
+      label: newNodeType.label,
+      description: newNodeType.description,
+      icon: newNodeType.icon,
+      nodeType: newDataNodeType,
+      arguments: [],
+      config: {},
+      constraints: isTrigger ? [] : undefined,
+      resourceType: isTrigger ? newNodeType.resourceType || '' : undefined,
+    }
+
+    // Replace the node in the array (type may change, e.g. step→branch)
+    nodes.value[nodeIndex] = {
+      ...oldNode,
+      type: newVueFlowType,
+      data: newData,
+    }
+
+    const oldHasTwoOutputs = oldNode.type === 'branch' || oldNode.type === 'iterator'
+
+    // If switching to a two-output type and the node currently has a single outgoing edge,
+    // add a second output (end node)
+    if (hasTwoOutputs && !oldHasTwoOutputs) {
+      const outgoingEdges = edges.value.filter(e => e.source === nodeId)
+      if (outgoingEdges.length === 1) {
+        const newEndId = `end_${nodeId}_${Date.now()}`
+        nodes.value.push({
+          id: newEndId,
+          type: 'end',
+          position: { x: 0, y: 0 },
+          selectable: false,
+          data: {
+            label: t('builder.nodes.end'),
+            nodeType: 'termination',
+            icon: DEFAULT_ICONS.END,
+            config: {},
+            arguments: [],
+            ref: newEndId,
+          },
+        })
+        edges.value.push({
+          id: `${nodeId}_${newEndId}`,
+          source: nodeId,
+          target: newEndId,
+          type: 'addable',
+        })
+      }
+    }
+
+    // If switching FROM a two-output type to a single-output type, collapse extra outputs:
+    // keep only the first outgoing edge and orphan-cleanup the rest
+    if (!hasTwoOutputs && oldHasTwoOutputs) {
+      const outgoingEdges = edges.value.filter(e => e.source === nodeId)
+      if (outgoingEdges.length > 1) {
+        // Keep first edge, remove the rest
+        const edgesToRemove = outgoingEdges.slice(1).map(e => e.id)
+        edges.value = edges.value.filter(e => !edgesToRemove.includes(e.id))
+        // Also remove any condition data from the kept edge
+        const keptEdge = edges.value.find(e => e.source === nodeId)
+        if (keptEdge?.data?.condition) {
+          keptEdge.data = { ...keptEdge.data, condition: null }
+        }
+        cleanupOrphanedNodes()
+      }
+    }
+
+    relayout()
+  }
+
+  function updateGatewayType(nodeId: string, newGatewayRef: string) {
+    const node = nodes.value.find(n => n.id === nodeId)
+    if (!node) return
+
+    // Resolve label and description for the new gateway type
+    const isExclusive = newGatewayRef === 'gatewayExclusive'
+    const label = isExclusive
+      ? t('builder.nodePicker.nodes.branches.exclusive.label')
+      : t('builder.nodePicker.nodes.branches.inclusive.label')
+    const description = isExclusive
+      ? t('builder.nodePicker.nodes.branches.exclusive.description')
+      : t('builder.nodePicker.nodes.branches.inclusive.description')
+
+    // Directly mutate node data properties for VueFlow reactivity
+    node.data = { ...node.data, nodeType: newGatewayRef, label, description }
 
     // Also update the automation model
     if (node.data?.stepID) {
       const step = automation.value.steps?.find((s: any) => s.stepID === node.data.stepID)
       if (step) {
-        step.ref = gatewayRef
-        step.kind = gatewayRef
+        step.ref = newGatewayRef
+        step.kind = newGatewayRef
+        step.meta = { ...step.meta, short: label, description }
       }
     }
 
@@ -941,6 +1153,7 @@ export function useFlowEditor() {
     addBranchOutput,
     reorderBranchEdges,
     deleteNode,
+    replaceNode,
     updateNodeData,
     updateEdgeCondition,
     updateGatewayType,

@@ -35,8 +35,8 @@
               </Tab>
             </TabList>
 
-            <TabPanels class="flex-1 overflow-y-auto min-h-0">
-              <TabPanel value="general">
+            <TabPanels class="flex-1 overflow-y-auto min-h-0 p-0">
+              <TabPanel value="general" class="p-4">
                 <div class="flex flex-col gap-6">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField name="name" class="flex flex-col gap-2">
@@ -109,7 +109,7 @@
                 </div>
               </TabPanel>
 
-              <TabPanel value="configuration">
+              <TabPanel value="configuration" class="p-4">
                 <div class="flex flex-col gap-4">
                   <Panel
                     :header="$t('system.connections.editor.configurations.resources')"
@@ -165,7 +165,7 @@
                 </div>
               </TabPanel>
 
-              <TabPanel v-if="isEdit" value="configured" class="flex flex-col h-full min-h-0 p-">
+              <TabPanel v-if="isEdit" value="configured" class="flex flex-col h-full min-h-0">
                 <CResourceList
                   primary-key="configurationID"
                   :fields="configuredConnectionFields"
@@ -272,7 +272,7 @@
           ? $t('system.configuredConnections.editor.title.edit')
           : $t('system.configuredConnections.editor.title.create')
       "
-      :style="{ width: '50vw' }"
+      :style="{ width: '50vw', maxHeight: '80vh' }"
       :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
       :pt="{
         content: { class: 'p-0 flex flex-col !overflow-hidden' },
@@ -284,9 +284,9 @@
         :resolver="configuredConnectionResolver"
         :initialValues="configuredConnectionInitialValues"
         @submit="handleConfiguredConnectionSubmit"
-        class="flex flex-col h-full"
+        class="flex flex-col h-full min-h-0"
       >
-        <div class="p-4 flex flex-col gap-4">
+        <div class="p-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto">
           <FormField name="name" class="flex flex-col gap-2">
             <label for="ccName" class="font-medium text-primary">
               {{ $t('system.configuredConnections.editor.info.name') }}
@@ -314,31 +314,19 @@
             </div>
           </div>
 
-          <FormField name="config" class="flex flex-col gap-2">
-            <label for="ccConfig" class="font-medium text-primary">
-              {{ $t('system.configuredConnections.editor.info.config') }}
+          <div v-for="param in uniqueDerivedParams" :key="param.name" class="flex flex-col gap-2">
+            <label :for="`param-${param.name}`" class="font-medium text-primary">
+              {{ param.label || param.name }}
+              <span v-if="param.required" class="text-red-500">*</span>
             </label>
-            <Textarea
-              id="ccConfig"
-              name="config"
-              v-model="configuredConnectionRawConfig"
-              rows="10"
-              autoResize
-              class="font-mono text-sm"
-              @change="() => parseConfiguredConnectionConfig()"
-            />
-            <Message
-              v-if="$modalForm.config?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-            >
-              {{ $modalForm.config.error?.message }}
-            </Message>
-          </FormField>
+            <InputText :id="`param-${param.name}`" v-model="paramValues[param.name]" />
+            <small v-if="param.description" class="text-muted-color">
+              {{ param.description }}
+            </small>
+          </div>
         </div>
 
-        <div class="border-t border-surface p-3 flex gap-2">
+        <div class="border-t border-surface p-3 flex gap-2 shrink-0">
           <div v-if="activeConfiguredConnection.configurationID" class="flex">
             <CInputDelete
               :label="$t('general.label.delete')"
@@ -462,8 +450,8 @@ const savingConfiguredConnection = ref(false)
 const enablingConfiguredConnection = ref(false)
 const checkingConfiguredConnection = ref(false)
 const activeConfiguredConnection = ref(null)
-const configuredConnectionRawConfig = ref('{}')
 const configuredConnectionRawLabels = ref('{}')
+const paramValues = reactive({})
 const configuredConnectionActionsMenu = ref()
 const configuredConnectionActionsMenuItems = ref([])
 
@@ -557,10 +545,19 @@ const resolver = ref(({ values }) => {
   return { errors }
 })
 
+const uniqueDerivedParams = computed(() => {
+  const params = connection.value?.derivedParams || []
+  const seen = new Set()
+  return params.filter(p => {
+    if (seen.has(p.name)) return false
+    seen.add(p.name)
+    return true
+  })
+})
+
 const configuredConnectionInitialValues = computed(() => {
   return {
     name: activeConfiguredConnection.value?.name || '',
-    config: configuredConnectionRawConfig.value,
     labels: configuredConnectionRawLabels.value,
   }
 })
@@ -570,14 +567,6 @@ const configuredConnectionResolver = ref(({ values }) => {
 
   if (!values.name || values.name.trim().length === 0) {
     errors.name = [{ message: t('general.label.required') }]
-  }
-
-  try {
-    if (values.config && values.config.trim().length > 0) {
-      JSON.parse(values.config)
-    }
-  } catch {
-    errors.config = [{ message: t('system.connections.editor.configurations.invalidJSON') }]
   }
 
   try {
@@ -641,15 +630,30 @@ function initJSONFields() {
   rawJSON.operations = JSON.stringify(connection.value.operations || [], null, 2)
 }
 
-function parseConfiguredConnectionConfig() {
-  try {
-    const parsed = JSON.parse(configuredConnectionRawConfig.value || '{}')
-    if (parsed) {
-      activeConfiguredConnection.value.config = parsed
-    }
-  } catch {
-    // Leave alone, parser failure will be caught by resolver
+function initParamValues(existingParams = []) {
+  // Clear old values
+  Object.keys(paramValues).forEach(k => delete paramValues[k])
+
+  for (const dp of uniqueDerivedParams.value) {
+    // Find existing value if editing
+    const existing = existingParams.find(p => p.name === dp.name)
+    paramValues[dp.name] = existing?.value || dp.default || ''
   }
+}
+
+function collectParamValues() {
+  const params = []
+  for (const dp of uniqueDerivedParams.value) {
+    const value = paramValues[dp.name] || ''
+    if (value) {
+      params.push({
+        scope: dp.scope,
+        name: dp.name,
+        value,
+      })
+    }
+  }
+  return params
 }
 
 function parseConfiguredConnectionLabels() {
@@ -665,8 +669,8 @@ function parseConfiguredConnectionLabels() {
 
 function handleConfiguredConnectionClick({ data }) {
   activeConfiguredConnection.value = { ...data }
-  configuredConnectionRawConfig.value = JSON.stringify(data.config || {}, null, 2)
   configuredConnectionRawLabels.value = JSON.stringify(data.labels || {}, null, 2)
+  initParamValues(data.config?.params || [])
   configuredConnectionModal.value = true
 }
 
@@ -806,11 +810,11 @@ async function handleConfiguredConnectionEnable() {
 function createConfiguredConnection() {
   activeConfiguredConnection.value = {
     name: '',
-    config: {},
+    config: { params: [] },
     labels: {},
   }
-  configuredConnectionRawConfig.value = '{\n  \n}'
   configuredConnectionRawLabels.value = '{\n  \n}'
+  initParamValues([])
   configuredConnectionModal.value = true
 }
 
@@ -820,7 +824,11 @@ async function handleConfiguredConnectionSubmit({ valid }) {
   savingConfiguredConnection.value = true
 
   try {
-    parseConfiguredConnectionConfig()
+    // Collect param values into config
+    activeConfiguredConnection.value.config = {
+      ...activeConfiguredConnection.value.config,
+      params: collectParamValues(),
+    }
     parseConfiguredConnectionLabels()
 
     if (activeConfiguredConnection.value.configurationID) {

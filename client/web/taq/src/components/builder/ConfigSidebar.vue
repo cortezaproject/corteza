@@ -13,9 +13,9 @@
       {{ node.data.description }}
     </div>
 
-    <!-- Function form for step configuration -->
+    <!-- Function form for step/iterator configuration -->
     <FunctionForm
-      v-if="node.type !== 'trigger' && functionDefinition?.segments?.length"
+      v-if="(node.type === 'iterator' || (node.type !== 'trigger' && node.type !== 'branch')) && functionDefinition?.segments?.length"
       ref="functionFormRef"
       :function-def="functionDefinition"
       :arguments="node.data?.arguments || []"

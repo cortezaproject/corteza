@@ -40,5 +40,6 @@ export const DEFAULT_ICONS = {
   TRIGGER: { type: 'name', value: 'bolt' } as IconDef,
   ACTION: { type: 'name', value: 'cog' } as IconDef,
   BRANCH: { type: 'name', value: 'sitemap' } as IconDef,
+  ITERATOR: { type: 'name', value: 'refresh' } as IconDef,
   END: { type: 'name', value: 'stop-circle' } as IconDef,
 }

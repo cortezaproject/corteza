@@ -1,31 +1,48 @@
 <template>
-  <FloatLabel variant="on" class="my-1">
-    <Select
-      id="namespace-selector"
-      :model-value="currentNamespaceObject"
-      :options="enabledNamespaces"
-      option-label="name"
-      data-key="namespaceID"
-      :placeholder="$t('sidebar.namespaceSelector.placeholder')"
-      class="w-full"
-      @update:model-value="handleNamespaceChange"
+  <div class="flex items-center gap-1 my-1">
+    <FloatLabel variant="on" class="flex-1 min-w-0">
+      <Select
+        id="namespace-selector"
+        :model-value="currentNamespaceObject"
+        :options="enabledNamespaces"
+        option-label="name"
+        data-key="namespaceID"
+        :placeholder="$t('sidebar.namespaceSelector.placeholder')"
+        size="small"
+        class="w-full"
+        @update:model-value="handleNamespaceChange"
+      >
+        <template #option="{ option }">
+          <div class="flex items-center gap-2">
+            <span>{{ option.name }}</span>
+          </div>
+        </template>
+        <template #footer>
+          <RouterLink
+            :to="{ name: 'namespace.list' }"
+            class="block p-2 text-sm text-muted-color hover:text-primary transition-colors text-center border-t"
+          >
+            {{ $t('sidebar.namespaceSelector.viewAll') }}
+          </RouterLink>
+        </template>
+      </Select>
+      <label for="namespace-selector">{{ $t('sidebar.namespaceSelector.label') }}</label>
+    </FloatLabel>
+
+    <RouterLink
+      v-if="currentNamespaceObject?.canUpdateNamespace"
+      :to="{ name: 'namespace.edit', params: { slug: currentNamespaceObject.slug || currentNamespaceObject.namespaceID } }"
+      v-tooltip.top="$t('sidebar.editNamespace')"
     >
-      <template #option="{ option }">
-        <div class="flex items-center gap-2">
-          <span>{{ option.name }}</span>
-        </div>
-      </template>
-      <template #footer>
-        <RouterLink
-          :to="{ name: 'namespace.list' }"
-          class="block p-2 text-sm text-muted-color hover:text-primary transition-colors text-center border-t"
-        >
-          {{ $t('sidebar.namespaceSelector.viewAll') }}
-        </RouterLink>
-      </template>
-    </Select>
-    <label for="namespace-selector">{{ $t('sidebar.namespaceSelector.label') }}</label>
-  </FloatLabel>
+      <Button
+        icon="pi pi-pencil"
+        size="small"
+        text
+        rounded
+        severity="secondary"
+      />
+    </RouterLink>
+  </div>
 </template>
 
 <script setup>

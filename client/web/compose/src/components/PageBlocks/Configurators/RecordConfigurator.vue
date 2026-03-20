@@ -16,6 +16,9 @@
         <!-- Inline record edit -->
         <CInputSwitch v-model="inlineEditEnabled" :label="$t('block.record.inlineEdit.enabled')" />
 
+        <!-- Allow adding fields to inline edit -->
+        <CInputSwitch v-model="inlineRecordEditAllowAddField" :label="$t('block.record.inlineEdit.allowAddField')" />
+
         <!-- Horizontal form layout -->
         <CInputSwitch v-model="horizontalLayout" :label="$t('block.record.horizontalFormLayout')" :disabled="layoutMode === 'noWrap'" />
 
@@ -30,10 +33,26 @@
             class="w-full"
           />
         </div>
+
+        <!-- Reference record field -->
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">{{ $t('block.record.referenceRecordField') }}</label>
+          <Select
+            v-model="referenceField"
+            :options="recordSelectorFields"
+            :option-label="f => f.label || f.name"
+            option-value="fieldID"
+            :placeholder="$t('block.record.referenceRecordFieldPlaceholder')"
+            class="w-full"
+            show-clear
+            :disabled="!selectedModule"
+          />
+          <small class="text-muted-color">{{ $t('block.record.referenceRecordFieldDescription') }}</small>
+        </div>
       </div>
     </div>
 
-    <template v-if="selectedModule">
+    <template v-if="fieldPickerModule">
       <Divider />
 
       <!-- Fields -->
@@ -56,13 +75,58 @@
         </PickList>
       </div>
 
+      <template v-if="isRecordFieldUsedConfigured">
+        <Divider />
+
+        <!-- Record Display Options (only shown when Record-kind fields are used) -->
+        <div class="flex flex-col gap-3">
+          <h5 class="text-lg font-semibold text-primary m-0">
+            {{ $t('block.record.recordDisplay.label') }}
+          </h5>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="text-primary font-medium text-sm">{{ $t('block.record.recordSelectorDisplayOptions') }}</label>
+              <Select
+                v-model="recordSelectorDisplayOption"
+                :options="displayOptions"
+                option-label="text"
+                option-value="value"
+                class="w-full"
+              />
+            </div>
+
+            <CInputSwitch v-model="recordSelectorShowAddRecordButton" :label="$t('block.record.recordSelectorCanAddRecord')" />
+
+            <div class="flex flex-col gap-1">
+              <label class="text-primary font-medium text-sm">{{ $t('block.record.recordSelectorAddRecordDisplayOption') }}</label>
+              <Select
+                v-model="recordSelectorAddRecordDisplayOption"
+                :options="displayOptions"
+                option-label="text"
+                option-value="value"
+                class="w-full"
+                :disabled="!recordSelectorShowAddRecordButton"
+              />
+            </div>
+          </div>
+        </div>
+      </template>
+
       <Divider />
 
       <!-- Field conditions -->
       <div class="flex flex-col gap-3">
-        <h5 class="text-lg font-semibold text-primary m-0">
-          {{ $t('block.record.fieldConditions.label') }}
-        </h5>
+        <div class="flex items-center gap-2">
+          <h5 class="text-lg font-semibold text-primary m-0">
+            {{ $t('block.record.fieldConditions.label') }}
+          </h5>
+          <i class="pi pi-exclamation-triangle text-orange-500 text-sm" v-tooltip="$t('block.record.fieldConditions.tooltip.performance')" />
+        </div>
+
+        <!-- Clear all on hide -->
+        <CInputSwitch v-model="clearConditionalFieldsOnHide" :label="$t('block.record.fieldConditions.clearAllOnHide')" />
+        <small class="text-muted-color -mt-2">{{ $t('block.record.fieldConditions.clearAllOnHideDescription') }}</small>
 
         <div class="flex flex-col gap-2">
           <div
@@ -84,6 +148,15 @@
               :placeholder="$t('block.record.fieldConditions.placeholder')"
               class="flex-1"
             />
+            <div class="flex items-center gap-1">
+              <Checkbox
+                :model-value="condition.clearOnHide || false"
+                binary
+                :input-id="`clearOnHide-${i}`"
+                @update:model-value="updateConditionClearOnHide(i, $event)"
+              />
+              <label :for="`clearOnHide-${i}`" class="text-xs text-muted-color">{{ $t('block.record.fieldConditions.clearOnHide') }}</label>
+            </div>
             <Button
               icon="pi pi-trash"
               severity="danger"
@@ -128,10 +201,22 @@ const emit = defineEmits(['update:block'])
 
 const moduleStore = useModuleStore()
 
+// The page's module (base module for this record block)
 const selectedModule = computed(() => {
-  const moduleID = props.block.options?.referenceModuleID || props.page?.moduleID
+  const moduleID = props.page?.moduleID
   if (!moduleID) return null
   return moduleStore.getByID(moduleID) || null
+})
+
+// Reference module (resolved from the reference field's target module)
+const referenceModule = ref(null)
+
+// The module used for the field picker: reference module (if set) or the page's module
+const fieldPickerModule = computed(() => {
+  if (referenceField.value && referenceModule.value) {
+    return referenceModule.value
+  }
+  return selectedModule.value
 })
 
 const moduleName = computed(() => selectedModule.value?.name || t('block.record.noModule'))
@@ -169,6 +254,60 @@ const layoutMode = computed({
   },
 })
 
+// --- Reference field ---
+
+// All single-value Record-kind fields on the page's module (for reference field selector)
+const recordSelectorFields = computed(() => {
+  if (!selectedModule.value) return []
+  return (selectedModule.value.fields || []).filter(f => f.kind === 'Record' && !f.isMulti)
+})
+
+const referenceField = computed({
+  get: () => props.block.options?.referenceField || null,
+  set: v => {
+    updateReferenceModule(v)
+  },
+})
+
+// When selecting a reference field, resolve the target module and set referenceModuleID
+function updateReferenceModule(fieldID) {
+  if (!fieldID) {
+    // Cleared — reset reference field, module, and fields
+    updateOptions('referenceField', null)
+    updateOptions('referenceModuleID', null)
+    referenceModule.value = null
+    return
+  }
+
+  const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
+  const moduleID = field?.options?.moduleID
+
+  if (moduleID) {
+    moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
+      referenceModule.value = mod
+      updateOptions('referenceField', fieldID)
+      updateOptions('referenceModuleID', mod.moduleID)
+      // Reset fields when reference module changes
+      updateOptions('fields', [])
+    })
+  } else {
+    updateOptions('referenceField', fieldID)
+  }
+}
+
+// On mount, resolve existing reference field
+watch(() => props.block.options?.referenceField, (fieldID) => {
+  if (fieldID && selectedModule.value) {
+    const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
+    const moduleID = field?.options?.moduleID
+    if (moduleID) {
+      moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
+        referenceModule.value = mod
+      })
+    }
+  }
+}, { immediate: true })
+
 // --- Field picker ---
 
 const selectedFieldNames = ref([])
@@ -176,19 +315,31 @@ const selectedFieldNames = ref([])
 watch(() => props.block.options?.fields, (fields) => {
   if (fields?.length) {
     selectedFieldNames.value = fields.map(f => f.name ?? f)
+  } else {
+    selectedFieldNames.value = []
   }
 }, { immediate: true })
 
+// All fields: regular + system with translated labels
+const allModuleFields = computed(() => {
+  if (!fieldPickerModule.value) return []
+  const regular = fieldPickerModule.value.fields || []
+  const system = (fieldPickerModule.value.systemFields?.() || []).map(f => ({
+    ...f,
+    label: t(`field.system.${f.name}`, f.label || f.name),
+    isSystem: true,
+  }))
+  return [...regular, ...system]
+})
+
 const availableFields = computed(() => {
-  if (!selectedModule.value) return []
   const selected = new Set(selectedFieldNames.value)
-  return (selectedModule.value.fields || []).filter(f => !selected.has(f.name))
+  return allModuleFields.value.filter(f => !selected.has(f.name))
 })
 
 const selectedFields = computed(() => {
-  if (!selectedModule.value) return []
   return selectedFieldNames.value
-    .map(name => (selectedModule.value.fields || []).find(f => f.name === name))
+    .map(name => allModuleFields.value.find(f => f.name === name))
     .filter(Boolean)
 })
 
@@ -201,6 +352,22 @@ const fieldPickerModel = computed({
   },
 })
 
+// --- Record display options visibility ---
+// Only show record display section when configured fields include Record-kind fields
+const isRecordFieldUsedConfigured = computed(() => {
+  if (!fieldPickerModule.value) return false
+  const configuredFields = props.block.options?.fields || []
+  if (configuredFields.length === 0) {
+    // No fields configured — check all module fields
+    return (fieldPickerModule.value.fields || []).some(f => f.kind === 'Record')
+  }
+  // Check if any configured field is of kind Record
+  const names = configuredFields.map(f => f.name ?? f)
+  return (fieldPickerModule.value.fields || [])
+    .filter(f => names.includes(f.name))
+    .some(f => f.kind === 'Record')
+})
+
 // --- Field conditions ---
 
 const fieldConditions = computed(() => {
@@ -208,8 +375,16 @@ const fieldConditions = computed(() => {
 })
 
 const conditionFieldOptions = computed(() => {
-  if (!selectedModule.value) return []
-  return (selectedModule.value.fields || []).map(f => ({
+  const fields = props.block.options?.fields || []
+  if (!fieldPickerModule.value) return []
+
+  // Use configured fields if available, otherwise all module fields
+  const moduleFields = fieldPickerModule.value.fields || []
+  const sourceFields = fields.length > 0
+    ? moduleFields.filter(f => fields.map(ff => ff.name ?? ff).includes(f.name))
+    : moduleFields
+
+  return sourceFields.map(f => ({
     value: f.fieldID || f.name,
     text: f.label || f.name,
   }))
@@ -225,4 +400,42 @@ function removeCondition(index) {
   conditions.splice(index, 1)
   updateOptions('fieldConditions', conditions)
 }
+
+function updateConditionClearOnHide(index, value) {
+  const conditions = [...fieldConditions.value]
+  conditions[index] = { ...conditions[index], clearOnHide: value }
+  updateOptions('fieldConditions', conditions)
+}
+
+// --- Display options ---
+const displayOptions = [
+  { value: 'sameTab', text: t('block.record.openInSameTab') },
+  { value: 'newTab', text: t('block.record.openInNewTab') },
+  { value: 'modal', text: t('block.record.openInModal') },
+]
+
+const inlineRecordEditAllowAddField = computed({
+  get: () => !!props.block.options?.inlineRecordEditAllowAddField,
+  set: v => updateOptions('inlineRecordEditAllowAddField', v),
+})
+
+const clearConditionalFieldsOnHide = computed({
+  get: () => !!props.block.options?.clearConditionalFieldsOnHide,
+  set: v => updateOptions('clearConditionalFieldsOnHide', v),
+})
+
+const recordSelectorDisplayOption = computed({
+  get: () => props.block.options?.recordSelectorDisplayOption || 'sameTab',
+  set: v => updateOptions('recordSelectorDisplayOption', v),
+})
+
+const recordSelectorAddRecordDisplayOption = computed({
+  get: () => props.block.options?.recordSelectorAddRecordDisplayOption || 'sameTab',
+  set: v => updateOptions('recordSelectorAddRecordDisplayOption', v),
+})
+
+const recordSelectorShowAddRecordButton = computed({
+  get: () => !!props.block.options?.recordSelectorShowAddRecordButton,
+  set: v => updateOptions('recordSelectorShowAddRecordButton', v),
+})
 </script>

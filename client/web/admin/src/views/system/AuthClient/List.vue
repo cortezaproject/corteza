@@ -229,7 +229,7 @@ function onConfirmDelete(item) {
 
 async function handleDelete(item) {
   try {
-    await $SystemAPI.authClientDelete({ authClientID: item.authClientID })
+    await $SystemAPI.authClientDelete({ clientID: item.authClientID })
     $toast.toastSuccess(t('notification.authclient.delete.success'))
     filterList()
   } catch (e) {

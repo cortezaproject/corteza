@@ -1,0 +1,8 @@
+label:
+  cancel: Cancel
+  delete: Delete
+  yes: Yes
+  no: No
+
+resourceList:
+  noItems: No items to show

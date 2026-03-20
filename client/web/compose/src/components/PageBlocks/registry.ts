@@ -12,6 +12,14 @@ const BLOCK_REGISTRY: Record<string, Component> = {
   Automation: defineAsyncComponent(() => import('./Blocks/AutomationBlock.vue')),
   Calendar: defineAsyncComponent(() => import('./Blocks/CalendarBlock.vue')),
   Comment: defineAsyncComponent(() => import('./Blocks/CommentBlock.vue')),
+  Navigation: defineAsyncComponent(() => import('./Blocks/NavigationBlock.vue')),
+  Tabs: defineAsyncComponent(() => import('./Blocks/TabsBlock.vue')),
+  Progress: defineAsyncComponent(() => import('./Blocks/ProgressBlock.vue')),
+  RecordOrganizer: defineAsyncComponent(() => import('./Blocks/RecordOrganizerBlock.vue')),
+  RecordRevisions: defineAsyncComponent(() => import('./Blocks/RecordRevisionsBlock.vue')),
+  Geometry: defineAsyncComponent(() => import('./Blocks/GeometryBlock.vue')),
+  SocialFeed: defineAsyncComponent(() => import('./Blocks/SocialFeedBlock.vue')),
+  Report: defineAsyncComponent(() => import('./Blocks/ReportBlock.vue')),
 }
 
 export function resolveBlock(kind: string): Component | null {

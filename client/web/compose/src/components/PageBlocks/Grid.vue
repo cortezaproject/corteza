@@ -1,5 +1,22 @@
 <template>
+  <!-- Single block in view mode: skip grid, use CSS flex to fill -->
+  <div v-if="isSingleBlockView" class="single-block-wrapper p-4">
+    <div class="block-content">
+      <component
+        :is="resolveBlock(blocks[0]?.kind)"
+        v-if="resolveBlock(blocks[0]?.kind)"
+        :block="blocks[0]"
+        :blocks="blocks"
+        :namespace="namespace"
+        :page="page"
+        :record="record"
+      />
+    </div>
+  </div>
+
+  <!-- Multiple blocks or builder mode: use grid layout -->
   <GridLayout
+    v-else
     v-model:layout="layoutModel"
     :col-num="48"
     :row-height="10"
@@ -34,6 +51,7 @@
           :is="resolveBlock(blockMap.get(item.i)?.kind)"
           v-if="resolveBlock(blockMap.get(item.i)?.kind)"
           :block="blockMap.get(item.i)"
+          :blocks="blocks"
           :namespace="namespace"
           :page="page"
           :record="record"
@@ -78,6 +96,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:blocks', 'layout-updated'])
+
+// Single block in view mode — bypass grid entirely, let CSS flex handle sizing
+const isSingleBlockView = computed(() => !props.editable && props.blocks.length === 1)
 
 // Unique ID for each block — blockID '0' is NoID (unsaved), so fall back to tempID
 function getBlockId(block) {
@@ -165,6 +186,20 @@ defineExpose({ rebuildLayout })
 </style>
 
 <style scoped>
+/* Single block: fill all available parent space */
+.single-block-wrapper {
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.single-block-wrapper > .block-content {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* View mode — invisible border to match builder sizing */
 .view-grid-item {
   border: 2px solid transparent;

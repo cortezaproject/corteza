@@ -67,6 +67,7 @@ label:
   no: No
   noHandle: No handle
   none: None
+  yes: Yes
   now: Now
   ok: Ok
   pageLayout: Page layout
@@ -101,7 +102,6 @@ label:
   urlPlaceholder: https://example.tld
   validation: Validation
   view: View
-  yes: Yes
   chart:
     single: Chart
     plural: Charts

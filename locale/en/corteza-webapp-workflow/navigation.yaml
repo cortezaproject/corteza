@@ -1,0 +1,20 @@
+appMenu: Menu
+help:
+  documentation: Documentation
+  feedback: Send feedback
+  forum: Help
+  version: 'Version:'
+userSettings:
+  changePassword: Change password
+  logout: Logout
+  profile: Profile
+  theme: Theme
+themes:
+  labels:
+    dark: Dark
+    light: Light
+appList:
+  noApps: No applications found
+  noResults: No results found
+  search: Search applications
+  title: Apps

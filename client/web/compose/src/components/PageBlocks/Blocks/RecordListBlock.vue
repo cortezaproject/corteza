@@ -138,14 +138,14 @@
     <template v-if="recordListModule && !options.hidePaging && totalRecords > 0" #footer>
       <div class="flex items-center flex-wrap gap-2 px-3 py-2">
         <div class="flex items-center text-sm">
-          <span class="whitespace-nowrap text-muted">
+          <span v-if="options.showTotalCount !== false" class="whitespace-nowrap text-muted">
             {{ paginationRangeText }}
           </span>
 
-          <Divider layout="vertical" />
+          <Divider v-if="options.showRecordPerPageOption && options.showTotalCount !== false" layout="vertical" />
 
           <!-- Page size selector -->
-          <div class="flex items-center gap-2 whitespace-nowrap">
+          <div v-if="options.showRecordPerPageOption" class="flex items-center gap-2 whitespace-nowrap">
             <span class="text-muted">
               {{ $t('block.recordList.pagination.recordsPerPage') }}
             </span>
@@ -235,6 +235,10 @@ const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 const pageStore = usePageStore()
 
+// Injectable route resolver — allows admin views to override routes
+// Default: public page routes using recordPageID
+const $recordRoutes = inject('$recordRoutes', null)
+
 const loading = ref(false)
 const records = ref([])
 const totalRecords = ref(0)
@@ -278,6 +282,9 @@ const recordListModule = computed(() => {
 
 // Find the record page for this module (page with matching moduleID)
 const recordPageID = computed(() => {
+  // When using custom routes, we don't need a public record page
+  if ($recordRoutes) return 'admin'
+
   const moduleID = recordListModule.value?.moduleID
   if (!moduleID) return null
 
@@ -323,26 +330,46 @@ const hasRowActions = computed(() => {
   return recordPageID.value || recordListModule.value?.canCreateRecord
 })
 
-// Row action menu items — filtered by per-record permissions
+// Row action menu items — filtered by per-record permissions and configurator hide options
 const rowMenuItems = computed(() => {
   const record = activeRowRecord.value
   const items = []
 
-  if (recordPageID.value && record?.canReadRecord) {
+  if (recordPageID.value && record?.canReadRecord && !options.value.hideRecordViewButton) {
     items.push({
       label: t('block.recordList.record.tooltip.view'),
       icon: 'pi pi-eye',
-      route: {
-        name: 'page.record',
-        params: {
-          pageID: recordPageID.value,
-          recordID: record.recordID,
-        },
-      },
+      route: $recordRoutes
+        ? $recordRoutes.view(recordListModule.value.moduleID, record.recordID)
+        : {
+            name: 'page.record',
+            params: {
+              pageID: recordPageID.value,
+              recordID: record.recordID,
+            },
+          },
     })
   }
 
-  if (recordPageID.value && recordListModule.value?.canCreateRecord) {
+  if (recordPageID.value && record?.canUpdateRecord && !options.value.hideRecordEditButton) {
+    items.push({
+      label: t('block.recordList.record.tooltip.edit'),
+      icon: 'pi pi-pencil',
+      route: $recordRoutes
+        ? $recordRoutes.edit
+          ? $recordRoutes.edit(recordListModule.value.moduleID, record.recordID)
+          : $recordRoutes.view(recordListModule.value.moduleID, record.recordID)
+        : {
+            name: 'page.record.edit',
+            params: {
+              pageID: recordPageID.value,
+              recordID: record.recordID,
+            },
+          },
+    })
+  }
+
+  if (recordPageID.value && recordListModule.value?.canCreateRecord && !options.value.hideRecordCloneButton) {
     items.push({
       label: t('block.recordList.record.tooltip.clone'),
       icon: 'pi pi-copy',
@@ -350,7 +377,7 @@ const rowMenuItems = computed(() => {
     })
   }
 
-  if (record?.canDeleteRecord) {
+  if (record?.canDeleteRecord && !options.value.hideRecordDeleteButton) {
     if (items.length > 0) {
       items.push({ separator: true })
     }
@@ -496,15 +523,19 @@ function onRowClick(event) {
 
   if (!recordPageID.value) return
 
-  const route = {
-    name: 'page.record',
-    params: {
-      pageID: recordPageID.value,
-      recordID: record.recordID,
-    },
-  }
+  const route = $recordRoutes
+    ? $recordRoutes.view(recordListModule.value.moduleID, record.recordID)
+    : {
+        name: 'page.record',
+        params: {
+          pageID: recordPageID.value,
+          recordID: record.recordID,
+        },
+      }
 
   const displayOption = options.value.recordDisplayOption || 'sameTab'
+
+  if (displayOption === 'doNothing') return
 
   if (displayOption === 'newTab') {
     const resolved = router.resolve(route)
@@ -523,26 +554,34 @@ function openRowMenu(event, record) {
 function handleAddRecord() {
   if (!recordPageID.value) return
 
-  router.push({
-    name: 'page.record',
-    params: {
-      pageID: recordPageID.value,
-      recordID: '0',
-    },
-  })
+  router.push(
+    $recordRoutes
+      ? $recordRoutes.create(recordListModule.value.moduleID)
+      : {
+          name: 'page.record',
+          params: {
+            pageID: recordPageID.value,
+            recordID: '0',
+          },
+        },
+  )
 }
 
 function handleCloneRecord(record) {
   if (!record || !recordPageID.value) return
 
-  router.push({
-    name: 'page.record',
-    params: {
-      pageID: recordPageID.value,
-      recordID: '0',
-    },
-    query: { cloneFromID: record.recordID },
-  })
+  router.push(
+    $recordRoutes
+      ? $recordRoutes.create(recordListModule.value.moduleID, record.recordID)
+      : {
+          name: 'page.record',
+          params: {
+            pageID: recordPageID.value,
+            recordID: '0',
+          },
+          query: { cloneFromID: record.recordID },
+        },
+  )
 }
 
 function confirmDeleteRecord(record) {
@@ -601,6 +640,10 @@ watch(
 <style scoped>
 .record-list-table :deep(.p-datatable-tbody > tr) {
   cursor: pointer;
+}
+
+.record-list-table :deep(.p-datatable-tbody > tr > td) {
+  vertical-align: top;
 }
 
 .record-list-table :deep(.row-action-btn) {

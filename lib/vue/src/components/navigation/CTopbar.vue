@@ -23,6 +23,24 @@
       class="flex text-truncate items-center text-2xl font-medium text-color mb-0 ml-2"
     />
 
+    <div v-if="visiblePageButtons.length" class="flex items-center gap-2 ml-3">
+      <a
+        v-for="(btn, i) in visiblePageButtons"
+        :key="i"
+        :href="btn.url"
+        :target="btn.newTab ? '_blank' : '_self'"
+        rel="noopener noreferrer"
+        class="no-underline"
+      >
+        <Button
+          :label="btn.label"
+          severity="secondary"
+          outlined
+          size="small"
+        />
+      </a>
+    </div>
+
     <div id="topbar-tools" class="tools-wrapper ml-auto flex items-center gap-2">
       <slot name="tools" />
     </div>
@@ -84,7 +102,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const sidebarExpanded = defineModel('sidebarExpanded', {
   type: Boolean,
@@ -125,6 +143,41 @@ const $Settings = inject('$Settings')
 
 const settings = computed(() => {
   return $Settings.get('ui.topbar', {})
+})
+
+// Page buttons: filter by URL substring match, kept reactive for SPA navigation
+const currentHref = ref(window.location.href)
+
+const updateHref = () => {
+  currentHref.value = window.location.href
+}
+
+// Listen for browser back/forward
+onMounted(() => {
+  window.addEventListener('popstate', updateHref)
+
+  // Patch pushState/replaceState to detect SPA route changes
+  const origPush = history.pushState.bind(history)
+  const origReplace = history.replaceState.bind(history)
+  history.pushState = (...args) => { origPush(...args); updateHref() }
+  history.replaceState = (...args) => { origReplace(...args); updateHref() }
+
+  // Store originals so we can restore later
+  window.__pageButtonsOrigPush = origPush
+  window.__pageButtonsOrigReplace = origReplace
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('popstate', updateHref)
+  // Restore original history methods
+  if (window.__pageButtonsOrigPush) history.pushState = window.__pageButtonsOrigPush
+  if (window.__pageButtonsOrigReplace) history.replaceState = window.__pageButtonsOrigReplace
+})
+
+const visiblePageButtons = computed(() => {
+  const buttons = settings.value?.pageButtons || []
+  const href = currentHref.value
+  return buttons.filter(btn => btn.label && btn.url && btn.urlMatch && href.includes(btn.urlMatch))
 })
 
 const iconLogo = computed(() => {

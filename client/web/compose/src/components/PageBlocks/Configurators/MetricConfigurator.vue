@@ -268,6 +268,32 @@
               </div>
             </template>
           </div>
+
+          <!-- Drill-down -->
+          <Divider />
+
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <ToggleSwitch
+                :model-value="metric.drillDown?.enabled || false"
+                @update:model-value="onDrillDownChange(metric, 'enabled', $event)"
+              />
+              <label class="text-sm">{{ $t('block.metric.drillDown.enabled') }}</label>
+            </div>
+
+            <template v-if="metric.drillDown?.enabled">
+              <div class="flex flex-col gap-1">
+                <label class="text-primary font-medium text-sm">{{ $t('block.metric.drillDown.blockID') }}</label>
+                <InputText
+                  :model-value="metric.drillDown?.blockID || ''"
+                  :placeholder="$t('block.metric.drillDown.blockIDPlaceholder')"
+                  class="w-full"
+                  @update:model-value="onDrillDownChange(metric, 'blockID', $event)"
+                />
+                <small class="text-muted-color">{{ $t('block.metric.drillDown.blockIDFootnote') }}</small>
+              </div>
+            </template>
+          </div>
         </template>
       </div>
 
@@ -453,5 +479,15 @@ function onComparisonChange(metric, key, value) {
     }
   }
   metric.comparison[key] = value
+}
+
+function onDrillDownChange(metric, key, value) {
+  if (!metric.drillDown) {
+    metric.drillDown = {
+      enabled: false,
+      blockID: '',
+    }
+  }
+  metric.drillDown[key] = value
 }
 </script>

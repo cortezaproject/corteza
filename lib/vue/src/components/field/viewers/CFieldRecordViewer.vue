@@ -3,7 +3,11 @@
     <span
       v-for="(rec, index) in resolvedRecords"
       :key="getRecordID(rec) || index"
-      :class="{ block: isNewlineDelimiter, 'mt-1': isNewlineDelimiter && index !== 0 }"
+      :class="[
+        { block: isNewlineDelimiter, 'mt-1': isNewlineDelimiter && index !== 0 },
+        canNavigate(rec) ? 'record-link' : '',
+      ]"
+      @click="navigateToRecord(rec)"
     >
       {{ getRecordLabel(rec) }}{{ index !== resolvedRecords.length - 1 && !isNewlineDelimiter ? delimiter : '' }}
     </span>
@@ -12,6 +16,7 @@
 
 <script setup>
 import { computed, inject, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   field: {
@@ -40,7 +45,10 @@ const props = defineProps({
   },
 })
 
+const router = useRouter()
 const $recordStore = inject('$recordStore', null)
+const $recordRoutes = inject('$recordRoutes', null)
+const $pageStore = inject('$pageStore', null)
 
 const recordIDs = computed(() => {
   const v = props.field.isSystem
@@ -94,6 +102,37 @@ const resolvedRecords = computed(() => {
   })
 })
 
+function canNavigate(rec) {
+  if (props.disableClick) return false
+  return !!getRecordID(rec)
+}
+
+function navigateToRecord(rec) {
+  if (!canNavigate(rec)) return
+
+  const recordID = getRecordID(rec)
+  const moduleID = props.field.options?.moduleID
+
+  // Use injected routes if available (admin context)
+  if ($recordRoutes && moduleID) {
+    router.push($recordRoutes.view(moduleID, recordID))
+    return
+  }
+
+  // Find the record page for this module via injected page store
+  if ($pageStore && moduleID) {
+    const pages = $pageStore.set || []
+    const page = pages.find(p => p.moduleID === moduleID)
+    if (page) {
+      router.push({
+        name: 'page.record',
+        params: { pageID: page.pageID, recordID },
+      })
+      return
+    }
+  }
+}
+
 // Resolve records not yet in the store
 watch(
   () => [recordIDs.value, props.field.options?.moduleID, props.namespace?.namespaceID],
@@ -109,3 +148,15 @@ watch(
   { immediate: true },
 )
 </script>
+
+<style scoped>
+.record-link {
+  color: var(--p-primary-color);
+  cursor: pointer;
+}
+
+.record-link:hover {
+  text-decoration: underline;
+}
+</style>
+

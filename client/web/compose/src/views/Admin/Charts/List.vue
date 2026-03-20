@@ -30,13 +30,23 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <Button
-          v-if="namespace?.canCreateChart"
-          :label="$t('chart.createLabel')"
-          icon="pi pi-plus"
-          size="small"
-          @click="showTypeSelector = true"
-        />
+        <div class="flex items-center gap-2">
+          <Button
+            v-if="namespace?.canCreateChart"
+            :label="$t('chart.createLabel')"
+            icon="pi pi-plus"
+            size="small"
+            @click="showTypeSelector = true"
+          />
+          <Button
+            v-if="namespace?.canExportCharts && chartList.length"
+            :label="$t('general.label.export')"
+            icon="pi pi-download"
+            size="small"
+            severity="secondary"
+            @click="exportAllCharts"
+          />
+        </div>
       </template>
 
       <template #body-name="{ data }">
@@ -229,6 +239,14 @@ function toggleActionsMenu(event, chart) {
 function getActionsMenuItems(chart) {
   const items = []
 
+  if (props.namespace?.canExportCharts) {
+    items.push({
+      label: t('general.label.export'),
+      icon: 'pi pi-download',
+      command: () => exportChart(chart),
+    })
+  }
+
   if (chart.canDeleteChart) {
     items.push({
       label: t('general.label.delete'),
@@ -261,5 +279,31 @@ async function handleDelete(chart) {
     console.error('Failed to delete chart:', e)
     $toast.toastDanger(t('notification.chart.deleteFailed'))
   }
+}
+
+function exportChart(chart) {
+  const blob = new Blob(
+    [JSON.stringify({ type: 'chart', list: [chart] }, null, 2)],
+    { type: 'application/json' },
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${chart.handle || chart.name || 'chart'}-export.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function exportAllCharts() {
+  const blob = new Blob(
+    [JSON.stringify({ type: 'chart', list: chartList.value }, null, 2)],
+    { type: 'application/json' },
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'charts-export.json'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 </script>

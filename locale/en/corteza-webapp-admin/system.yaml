@@ -336,6 +336,7 @@ authclients:
       grant:
         authorization_code: Will be used to authenticate users (grant type = authorization_code)
         client_credentials: Will be used to authenticate machines (grant type = client_credentials)
+        password: Will be used to authenticate users (grant type = password)
       handle:
         disabledFootnote: Unable to change the handle of the default auth client
         label: Handle
@@ -841,6 +842,9 @@ roles:
 
     members:
       title: Role members
+      empty: No members in this role
+      placeholder: Search and add users...
+      remove: Remove member
     new: New Role
     permissions: Permissions
     title:

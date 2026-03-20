@@ -11,10 +11,29 @@
     filter
     fluid
     showClear
+    @filter="onFilter"
     @show="onShow"
   >
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
+    </template>
+    <template v-if="hasNextPage || hasPrevPage" #footer>
+      <div class="flex justify-between items-center px-3 py-2 border-t border-surface">
+        <Button
+          icon="pi pi-angle-left"
+          text
+          size="small"
+          :disabled="!hasPrevPage"
+          @click="goToPage(false)"
+        />
+        <Button
+          icon="pi pi-angle-right"
+          text
+          size="small"
+          :disabled="!hasNextPage"
+          @click="goToPage(true)"
+        />
+      </div>
     </template>
   </Select>
 </template>
@@ -40,6 +59,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  roleId: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'select'])
@@ -52,12 +75,20 @@ const selectedUser = ref(null)
 const loading = ref(false)
 
 let cancelCurrentRequest = null
+let searchTimeout = null
+
+// Pagination state
+const nextPage = ref('')
+const prevPage = ref('')
+const hasNextPage = ref(false)
+const hasPrevPage = ref(false)
+const currentQuery = ref('')
 
 function getOptionLabel(user) {
   return formatUser(user)
 }
 
-async function fetchUsers() {
+async function fetchUsers(query = '', pageCursor = '') {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
     cancelCurrentRequest = null
@@ -65,14 +96,41 @@ async function fetchUsers() {
 
   loading.value = true
   try {
-    const { response, cancel } = $SystemAPI.userListCancellable({
-      query: '',
-      limit: 100,
-    })
+    const params = {
+      query,
+      limit: 15,
+    }
+
+    if (pageCursor) {
+      params.pageCursor = pageCursor
+    }
+
+    if (props.roleId && props.roleId.length > 0) {
+      params.roleID = props.roleId
+    }
+
+    const { response, cancel } = $SystemAPI.userListCancellable(params)
     cancelCurrentRequest = cancel
 
     const result = await response()
     options.value = result.set || []
+
+    // Re-sync selectedUser reference with the matching option from the new set
+    // so PrimeVue Select can match it by reference
+    if (selectedUser.value) {
+      const match = options.value.find(u => u.userID === selectedUser.value.userID)
+      if (match) {
+        selectedUser.value = match
+      } else {
+        // Selected user not in current page — keep them in options
+        options.value = [...options.value, selectedUser.value]
+      }
+    }
+
+    nextPage.value = result.filter?.nextPage || ''
+    prevPage.value = result.filter?.prevPage || ''
+    hasNextPage.value = !!nextPage.value
+    hasPrevPage.value = !!prevPage.value
     cacheUsers(options.value)
   } catch (e) {
     if (e?.message !== 'canceled') {
@@ -84,9 +142,24 @@ async function fetchUsers() {
   }
 }
 
+function onFilter(event) {
+  currentQuery.value = event.value || ''
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    fetchUsers(currentQuery.value)
+  }, 300)
+}
+
 function onShow() {
   if (options.value.length === 0) {
     fetchUsers()
+  }
+}
+
+function goToPage(next) {
+  const cursor = next ? nextPage.value : prevPage.value
+  if (cursor) {
+    fetchUsers(currentQuery.value, cursor)
   }
 }
 
@@ -148,5 +221,9 @@ onBeforeUnmount(() => {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
 })
 </script>
+

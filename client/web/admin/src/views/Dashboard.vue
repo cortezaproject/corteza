@@ -3,20 +3,20 @@
     <span>{{ $t('dashboard.title') }}</span>
   </Teleport>
 
-  <div class="flex flex-col h-full p-3 sm:p-6 gap-4 sm:gap-6 overflow-y-auto min-w-0">
+  <div class="flex flex-col h-full p-3 sm:p-6 gap-4 sm:gap-10 overflow-y-auto min-w-0">
     <!-- Stat cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
       <div
         v-for="card in statCards"
         :key="card.key"
-        class="stat-card flex flex-col gap-2 p-4 sm:p-5 rounded-border border border-surface bg-emphasis cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 min-w-0"
+        class="stat-card flex flex-col gap-2 p-4 sm:p-5 rounded-border border border-surface bg-surface cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 min-w-0"
         :class="{ 'ring-2 ring-primary': activeCard === card.key }"
         @click="switchCard(card.key)"
       >
         <div class="flex items-center justify-between">
           <span class="text-muted-color text-sm font-medium truncate">{{ card.label }}</span>
-          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-highlight shrink-0">
-            <i :class="card.icon" class="text-primary text-lg" />
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-highlight shrink-0">
+            <i :class="card.icon" class="text-primary" />
           </div>
         </div>
 
@@ -40,11 +40,8 @@
     </div>
 
     <!-- Monthly stacked chart -->
-    <div class="rounded-border border border-surface bg-emphasis p-3 sm:p-5 min-w-0">
-      <h3 class="text-color font-semibold text-sm sm:text-base mb-4">
-        {{ activeCardLabel }} — {{ $t('dashboard.charts.monthly.title') }}
-      </h3>
-      <div class="h-60 sm:h-80">
+    <div class="rounded-border p-3 sm:p-5 min-w-0">
+      <div class="h-80 sm:h-100">
         <CChart v-if="monthlyChartOptions" :chart="monthlyChartOptions" :key="activeCard" />
         <div v-else class="flex items-center justify-center h-full">
           <ProgressSpinner style="width: 40px; height: 40px" />
@@ -119,9 +116,18 @@ function themeColors() {
 }
 
 // ── Status style helpers ────────────────────────────────────
-const greenPill = { class: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300', dotClass: 'bg-green-500' }
-const yellowPill = { class: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300', dotClass: 'bg-yellow-500' }
-const redPill = { class: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300', dotClass: 'bg-red-500' }
+const greenPill = {
+  class: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
+  dotClass: 'bg-green-500',
+}
+const yellowPill = {
+  class: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300',
+  dotClass: 'bg-yellow-500',
+}
+const redPill = {
+  class: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300',
+  dotClass: 'bg-red-500',
+}
 const totalPill = { class: 'bg-highlight text-color', dotClass: 'bg-primary' }
 
 // ── Stat cards ──────────────────────────────────────────────
@@ -227,21 +233,21 @@ async function fetchAllItems(listFn, params = {}) {
 
 // ── Status classifiers per resource type ────────────────────
 const statusClassifiers = {
-  users: (item) => {
+  users: item => {
     if (item.deletedAt) return 'deleted'
     if (item.suspendedAt) return 'suspended'
     return 'active'
   },
-  roles: (item) => {
+  roles: item => {
     if (item.deletedAt) return 'deleted'
     if (item.archivedAt) return 'archived'
     return 'active'
   },
-  apps: (item) => {
+  apps: item => {
     if (item.deletedAt) return 'deleted'
     return 'active'
   },
-  workflows: (item) => {
+  workflows: item => {
     if (item.deletedAt) return 'deleted'
     if (!item.enabled) return 'disabled'
     return 'enabled'
@@ -270,9 +276,7 @@ const statusConfig = {
     { key: 'disabled', label: () => t('dashboard.status.disabled'), color: 'yellow' },
     { key: 'deleted', label: () => t('dashboard.status.deleted'), color: 'red' },
   ],
-  namespaces: [
-    { key: 'active', label: () => t('dashboard.status.active'), color: 'green' },
-  ],
+  namespaces: [{ key: 'active', label: () => t('dashboard.status.active'), color: 'green' }],
 }
 
 // ── Group items by month + status ───────────────────────────
@@ -422,7 +426,10 @@ function buildStackedChart(resourceKey, items) {
         areaStyle: {
           color: {
             type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
             colorStops: [
               { offset: 0, color: c.primary + '20' },
               { offset: 1, color: c.primary + '05' },

@@ -9,7 +9,9 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <!-- Enabled views -->
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.calendar.view.enabled') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.calendar.view.enabled') }}
+          </label>
           <div class="flex flex-wrap gap-2">
             <div v-for="view in availableViews" :key="view" class="flex items-center gap-1">
               <Checkbox
@@ -19,14 +21,18 @@
                 :disabled="isHeaderHidden"
                 @update:model-value="toggleView(view, $event)"
               />
-              <label :for="`view-${view}`" class="text-sm">{{ $t(`block.calendar.view.${view}`) }}</label>
+              <label :for="`view-${view}`" class="text-sm">
+                {{ $t(`block.calendar.view.${view}`) }}
+              </label>
             </div>
           </div>
         </div>
 
         <!-- Default view -->
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.calendar.view.default') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.calendar.view.default') }}
+          </label>
           <Select
             :model-value="localOptions.defaultView"
             :options="viewOptions"
@@ -40,7 +46,9 @@
 
         <!-- Event click behavior -->
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.calendar.view.onEventClick') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.calendar.view.onEventClick') }}
+          </label>
           <Select
             :model-value="localOptions.eventDisplayOption || 'sameTab'"
             :options="eventDisplayOptions"
@@ -53,14 +61,12 @@
 
         <!-- Header toggles -->
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.calendar.calendarHeader') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.calendar.calendarHeader') }}
+          </label>
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
-              <Checkbox
-                v-model="headerHide"
-                input-id="hide-header"
-                binary
-              />
+              <Checkbox v-model="headerHide" input-id="hide-header" binary />
               <label for="hide-header" class="text-sm">{{ $t('block.calendar.hideHeader') }}</label>
             </div>
             <div class="flex items-center gap-2">
@@ -70,7 +76,9 @@
                 binary
                 :disabled="isHeaderHidden"
               />
-              <label for="hide-nav" class="text-sm">{{ $t('block.calendar.hideNavigation') }}</label>
+              <label for="hide-nav" class="text-sm">
+                {{ $t('block.calendar.hideNavigation') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
               <Checkbox
@@ -103,28 +111,35 @@
         {{ $t('block.calendar.feedLabel') }}
       </h5>
 
-      <div
-        v-for="(feed, i) in feeds"
-        :key="i"
-        class="flex flex-col gap-2 p-3 border rounded-lg"
-      >
+      <div v-for="(feed, i) in feeds" :key="i" class="flex flex-col gap-2 p-3 border rounded-lg">
         <div class="flex items-center justify-between">
           <span class="font-semibold text-sm">
             {{ $t('block.calendar.source.label') }} {{ i + 1 }}
           </span>
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
-            @click="removeFeed(i)"
-          />
+          <Button icon="pi pi-trash" severity="danger" text size="small" @click="removeFeed(i)" />
         </div>
 
         <!-- Module -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- Resource type -->
+          <div class="flex flex-col gap-1 md:col-span-2">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.recordFeed.resourceType') }}
+            </label>
+            <Select
+              :model-value="feed.resourceType || 'record'"
+              :options="resourceTypeOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              @update:model-value="updateFeedResourceType(feed, $event)"
+            />
+          </div>
+
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.calendar.recordFeed.moduleLabel') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.recordFeed.moduleLabel') }}
+            </label>
             <Select
               :model-value="feed.options?.moduleID"
               :options="modules"
@@ -139,7 +154,9 @@
 
           <!-- Title field -->
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.calendar.recordFeed.titleLabel') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.recordFeed.titleLabel') }}
+            </label>
             <Select
               v-model="feed.titleField"
               :options="getTitleFields(feed.options?.moduleID)"
@@ -153,7 +170,9 @@
 
           <!-- Start field -->
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.calendar.recordFeed.eventStartFieldLabel') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.recordFeed.eventStartFieldLabel') }}
+            </label>
             <Select
               v-model="feed.startField"
               :options="getDateFields(feed.options?.moduleID)"
@@ -167,7 +186,9 @@
 
           <!-- End field -->
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.calendar.recordFeed.eventEndFieldLabel') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.recordFeed.eventEndFieldLabel') }}
+            </label>
             <Select
               v-model="feed.endField"
               :options="getDateFields(feed.options?.moduleID)"
@@ -178,18 +199,18 @@
               :disabled="!feed.options?.moduleID || feed.allDay"
             />
             <div class="flex items-center gap-2 mt-1">
-              <Checkbox
-                v-model="feed.allDay"
-                :input-id="`all-day-${i}`"
-                binary
-              />
-              <label :for="`all-day-${i}`" class="text-sm">{{ $t('block.calendar.recordFeed.eventAllDay') }}</label>
+              <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
+              <label :for="`all-day-${i}`" class="text-sm">
+                {{ $t('block.calendar.recordFeed.eventAllDay') }}
+              </label>
             </div>
           </div>
 
           <!-- Prefilter -->
           <div class="flex flex-col gap-1 md:col-span-2">
-            <label class="text-primary font-medium text-sm">{{ $t('block.calendar.recordFeed.prefilterLabel') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.recordFeed.prefilterLabel') }}
+            </label>
             <InputText
               v-model="feed.options.prefilter"
               :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
@@ -199,9 +220,11 @@
 
           <!-- Event color -->
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.calendar.colorLabel') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.calendar.colorLabel') }}
+            </label>
             <CInputColorPicker
-              :model-value="feed.options?.color || '#FF9661'"
+              :model-value="feed.options?.color || '#09344E'"
               show-text
               @update:model-value="feed.options.color = $event"
             />
@@ -257,6 +280,7 @@ const viewOptions = computed(() =>
 const eventDisplayOptions = computed(() => [
   { value: 'sameTab', label: t('block.calendar.view.openInSameTab') },
   { value: 'newTab', label: t('block.calendar.view.openInNewTab') },
+  { value: 'modal', label: t('block.calendar.view.openInModal') },
 ])
 
 const feeds = computed(() => localOptions.value.feeds || [])
@@ -266,26 +290,26 @@ const isHeaderHidden = computed(() => localOptions.value.header?.hide || false)
 // Header toggle v-model helpers
 const headerHide = computed({
   get: () => localOptions.value.header?.hide || false,
-  set: (v) => updateHeader('hide', v),
+  set: v => updateHeader('hide', v),
 })
 const headerHidePrevNext = computed({
   get: () => localOptions.value.header?.hidePrevNext || false,
-  set: (v) => updateHeader('hidePrevNext', v),
+  set: v => updateHeader('hidePrevNext', v),
 })
 const headerHideToday = computed({
   get: () => localOptions.value.header?.hideToday || false,
-  set: (v) => updateHeader('hideToday', v),
+  set: v => updateHeader('hideToday', v),
 })
 const headerHideTitle = computed({
   get: () => localOptions.value.header?.hideTitle || false,
-  set: (v) => updateHeader('hideTitle', v),
+  set: v => updateHeader('hideTitle', v),
 })
 
-function isViewEnabled (view) {
+function isViewEnabled(view) {
   return (localOptions.value.header?.views || []).includes(view)
 }
 
-function toggleView (view, enabled) {
+function toggleView(view, enabled) {
   const current = [...(localOptions.value.header?.views || [])]
   if (enabled && !current.includes(view)) {
     current.push(view)
@@ -296,13 +320,13 @@ function toggleView (view, enabled) {
   updateHeader('views', current)
 }
 
-function updateHeader (key, value) {
+function updateHeader(key, value) {
   const currentHeader = { ...(localOptions.value.header || {}) }
   currentHeader[key] = value
   updateOption('header', currentHeader)
 }
 
-function updateOption (key, value) {
+function updateOption(key, value) {
   emit('update:block', {
     ...props.block,
     options: { ...localOptions.value, [key]: value },
@@ -312,7 +336,7 @@ function updateOption (key, value) {
 /**
  * Returns String/Email/Url fields for event title.
  */
-function getTitleFields (moduleID) {
+function getTitleFields(moduleID) {
   if (!moduleID) return []
   const mod = moduleStore.getByID(moduleID)
   if (!mod) return []
@@ -327,7 +351,7 @@ function getTitleFields (moduleID) {
  * Returns DateTime fields (non-multi) for start/end date.
  * Also includes system date fields (createdAt, updatedAt).
  */
-function getDateFields (moduleID) {
+function getDateFields(moduleID) {
   if (!moduleID) return []
   const mod = moduleStore.getByID(moduleID)
   if (!mod) return []
@@ -346,22 +370,31 @@ function getDateFields (moduleID) {
   return [...moduleFields, ...systemFields]
 }
 
-function addFeed () {
+function addFeed() {
   const newFeed = compose.PageBlockCalendar.makeFeed()
   const currentFeeds = [...feeds.value, newFeed]
   updateOption('feeds', currentFeeds)
 }
 
-function removeFeed (index) {
+function removeFeed(index) {
   const currentFeeds = [...feeds.value]
   currentFeeds.splice(index, 1)
   updateOption('feeds', currentFeeds)
 }
 
-function onModuleChange (feed, moduleID) {
+function onModuleChange(feed, moduleID) {
   feed.options = { ...feed.options, moduleID }
   feed.titleField = ''
   feed.startField = ''
   feed.endField = ''
+}
+
+const resourceTypeOptions = [
+  { value: 'record', label: t('block.calendar.recordFeed.resourceTypeRecord') },
+  { value: 'reminder', label: t('block.calendar.recordFeed.resourceTypeReminder') },
+]
+
+function updateFeedResourceType(feed, resourceType) {
+  feed.resourceType = resourceType
 }
 </script>

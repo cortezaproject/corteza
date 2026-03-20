@@ -31,11 +31,11 @@ export const FIELD_REGISTRY: Record<string, FieldEntry> = {
     viewer: defineAsyncComponent(() => import('./viewers/CFieldSelectViewer.vue')),
   },
   Email: {
-    editor: CFieldStringEditor,
+    editor: defineAsyncComponent(() => import('./editors/CFieldEmailEditor.vue')),
     viewer: defineAsyncComponent(() => import('./viewers/CFieldEmailViewer.vue')),
   },
   Url: {
-    editor: CFieldStringEditor,
+    editor: defineAsyncComponent(() => import('./editors/CFieldUrlEditor.vue')),
     viewer: defineAsyncComponent(() => import('./viewers/CFieldUrlViewer.vue')),
   },
   User: {
@@ -49,6 +49,10 @@ export const FIELD_REGISTRY: Record<string, FieldEntry> = {
   File: {
     editor: defineAsyncComponent(() => import('./editors/CFieldFileEditor.vue')),
     viewer: defineAsyncComponent(() => import('./viewers/CFieldFileViewer.vue')),
+  },
+  Geometry: {
+    editor: defineAsyncComponent(() => import('./editors/CFieldGeometryEditor.vue')),
+    viewer: defineAsyncComponent(() => import('./viewers/CFieldGeometryViewer.vue')),
   },
 }
 

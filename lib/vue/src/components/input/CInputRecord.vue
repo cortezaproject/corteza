@@ -5,17 +5,36 @@
     :options="options"
     :option-label="getOptionLabel"
     :placeholder="effectivePlaceholder"
-    :disabled="disabled || !namespaceID || !moduleID"
+    :disabled="disabled || !resolvedNamespaceID || !moduleID"
     :loading="loading"
     class="w-full"
     filter
     fluid
     showClear
+    @filter="onFilter"
     @show="onShow"
   >
     <template #option="{ option }">
       <div class="flex items-center gap-2">
         <span>{{ getOptionLabel(option) }}</span>
+      </div>
+    </template>
+    <template v-if="hasNextPage || hasPrevPage" #footer>
+      <div class="flex justify-between items-center px-3 py-2 border-t border-surface">
+        <Button
+          icon="pi pi-angle-left"
+          text
+          size="small"
+          :disabled="!hasPrevPage"
+          @click="goToPage(false)"
+        />
+        <Button
+          icon="pi pi-angle-right"
+          text
+          size="small"
+          :disabled="!hasNextPage"
+          @click="goToPage(true)"
+        />
       </div>
     </template>
   </Select>
@@ -52,21 +71,45 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // CQL prefilter to apply to record listing
+  prefilter: {
+    type: String,
+    default: '',
+  },
+  // Fields to search in when user types a query
+  queryFields: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $namespace = inject('$namespace', null)
+
+// Resolve namespaceID from prop, falling back to injected $namespace
+const resolvedNamespaceID = computed(
+  () => props.namespaceID || $namespace?.value?.namespaceID || '',
+)
 
 const options = ref([])
 const selectedRecord = ref(null)
 const loading = ref(false)
 
+// Pagination state
+const nextPageCursor = ref('')
+const prevPageCursor = ref('')
+const hasNextPage = ref(false)
+const hasPrevPage = ref(false)
+const currentSearchQuery = ref('')
+
 // Store cancel function for current request
 let cancelCurrentRequest = null
+let searchTimeout = null
 
 const effectivePlaceholder = computed(() => {
-  if (!props.namespaceID) {
+  if (!resolvedNamespaceID.value) {
     return 'Select a namespace first'
   }
   if (!props.moduleID) {
@@ -93,8 +136,30 @@ function getOptionLabel(record) {
   return `Record ${record.recordID}`
 }
 
-async function fetchRecords() {
-  if (!props.namespaceID || !props.moduleID || !$ComposeAPI) {
+/**
+ * Build a CQL filter string from search query and queryFields
+ */
+function buildQueryFilter(searchQuery) {
+  const parts = []
+
+  // Add prefilter if provided
+  if (props.prefilter) {
+    parts.push(`(${props.prefilter})`)
+  }
+
+  // Add search across queryFields
+  if (searchQuery && props.queryFields.length > 0) {
+    const searchParts = props.queryFields.map(
+      field => `${field} LIKE '%${searchQuery.replace(/'/g, "\\'")}%'`,
+    )
+    parts.push(`(${searchParts.join(' OR ')})`)
+  }
+
+  return parts.join(' AND ')
+}
+
+async function fetchRecords(searchQuery = '', pageCursor = '') {
+  if (!resolvedNamespaceID.value || !props.moduleID || !$ComposeAPI) {
     options.value = []
     return
   }
@@ -107,15 +172,30 @@ async function fetchRecords() {
 
   loading.value = true
   try {
-    const { response, cancel } = $ComposeAPI.recordListCancellable({
-      namespaceID: props.namespaceID,
+    const params = {
+      namespaceID: resolvedNamespaceID.value,
       moduleID: props.moduleID,
-      limit: 50,
-    })
+      limit: 15,
+    }
+
+    const filter = buildQueryFilter(searchQuery)
+    if (filter) {
+      params.filter = filter
+    }
+
+    if (pageCursor) {
+      params.pageCursor = pageCursor
+    }
+
+    const { response, cancel } = $ComposeAPI.recordListCancellable(params)
     cancelCurrentRequest = cancel
 
     const result = await response()
     options.value = result.set || []
+    nextPageCursor.value = result.filter?.nextPage || ''
+    prevPageCursor.value = result.filter?.prevPage || ''
+    hasNextPage.value = !!nextPageCursor.value
+    hasPrevPage.value = !!prevPageCursor.value
   } catch (e) {
     // Ignore cancelled requests
     if (e?.message !== 'canceled') {
@@ -127,9 +207,24 @@ async function fetchRecords() {
   }
 }
 
+function onFilter(event) {
+  currentSearchQuery.value = event.value || ''
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    fetchRecords(currentSearchQuery.value)
+  }, 300)
+}
+
 function onShow() {
-  if (options.value.length === 0 && props.namespaceID && props.moduleID) {
+  if (options.value.length === 0 && resolvedNamespaceID.value && props.moduleID) {
     fetchRecords()
+  }
+}
+
+function goToPage(next) {
+  const cursor = next ? nextPageCursor.value : prevPageCursor.value
+  if (cursor) {
+    fetchRecords(currentSearchQuery.value, cursor)
   }
 }
 
@@ -139,7 +234,7 @@ function onSelect(value) {
 }
 
 async function loadRecordById(recordID) {
-  if (!recordID || !props.namespaceID || !props.moduleID || !$ComposeAPI) return
+  if (!recordID || !resolvedNamespaceID.value || !props.moduleID || !$ComposeAPI) return
 
   // First check if already in options
   const existing = options.value.find(r => r.recordID === recordID)
@@ -152,7 +247,7 @@ async function loadRecordById(recordID) {
   loading.value = true
   try {
     const record = await $ComposeAPI.recordRead({
-      namespaceID: props.namespaceID,
+      namespaceID: resolvedNamespaceID.value,
       moduleID: props.moduleID,
       recordID,
     })
@@ -169,7 +264,7 @@ async function loadRecordById(recordID) {
 
 // Watch for namespace/module changes - clear selection and reload records
 watch(
-  () => [props.namespaceID, props.moduleID],
+  () => [resolvedNamespaceID.value, props.moduleID],
   ([newNs, newMod], [oldNs, oldMod]) => {
     if ((oldNs && newNs !== oldNs) || (oldMod && newMod !== oldMod)) {
       selectedRecord.value = null
@@ -196,10 +291,10 @@ watch(
 )
 
 onMounted(() => {
-  if (props.namespaceID && props.moduleID) {
+  if (resolvedNamespaceID.value && props.moduleID) {
     fetchRecords()
   }
-  if (props.modelValue && props.namespaceID && props.moduleID) {
+  if (props.modelValue && resolvedNamespaceID.value && props.moduleID) {
     loadRecordById(props.modelValue)
   }
 })
@@ -208,5 +303,9 @@ onBeforeUnmount(() => {
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
   }
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
 })
 </script>
+

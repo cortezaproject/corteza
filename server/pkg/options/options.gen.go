@@ -273,7 +273,6 @@ type (
 	}
 
 	WebappOpt struct {
-		ScssDirPath string `env:"WEBAPP_SCSS_DIR_PATH"`
 	}
 
 	ObservabilityOpt struct {

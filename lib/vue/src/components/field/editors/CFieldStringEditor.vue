@@ -1,6 +1,13 @@
 <template>
+  <CRichTextInput
+    v-if="field.options?.useRichTextEditor"
+    :model-value="modelValue"
+    :hide-toolbar="disabled"
+    class="w-full border rounded-border"
+    @update:model-value="$emit('update:modelValue', $event)"
+  />
   <Textarea
-    v-if="field.options?.multiLine"
+    v-else-if="field.options?.multiLine"
     :model-value="modelValue"
     :disabled="disabled"
     :maxlength="field.options?.maxLength ?? undefined"
@@ -19,6 +26,8 @@
 </template>
 
 <script setup>
+import { CRichTextInput } from '../../input'
+
 defineProps({
   field: {
     type: Object,

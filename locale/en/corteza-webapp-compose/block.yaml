@@ -27,6 +27,13 @@ automation:
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
   stepID: 'Starting step ID: {stepID}'
+  executionSuccess: Workflow executed successfully
+  executionFailed: Workflow execution failed
+  buttonWorkflow: Workflow
+  buttonStep: Step
+  buttonResourceType: Resource type
+  pickWorkflow: Pick a workflow
+  pickStep: Pick a step
   variants:
     primary: Primary
     secondary: Secondary
@@ -84,6 +91,7 @@ calendar:
     openInModal: Open record in a modal
   viewLabel: Calendar
 chart:
+  noChart: No chart selected
   add: New Chart
   addFunnel: Funnel chart
   addGauge: Gauge chart
@@ -143,12 +151,36 @@ chart:
 content:
   ok: Ok
   label: Content
+  placeholder: Write your content here...
+  interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)
   urlPlaceholder: https://example.tld
 file:
   label: File
+  view:
+    modeLabel: View mode
+    modeFootnote: Choose how files are displayed
+    showName: Show file name
+    clickToView: Click to view file
+    enableDownload: Enable file download
+    previewStyle: Preview style
+    description: Configure how file previews are displayed
+    height: Height
+    width: Width
+    maxHeight: Max height
+    maxWidth: Max width
+    borderRadius: Border radius
+    margin: Margin
+    backgroundColor: Background color
+    list: List
+    gallery: Gallery
   preview:
     label: File block
 general:
+  fields: Fields
+  noConfiguration: Block not configured correctly
+  refreshRate: Refresh rate
+  refreshRateFootnote: Set the refresh interval in seconds
+  showRefresh: Show refresh button
   descriptionLabel: Description
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
@@ -193,6 +225,7 @@ general:
   border:
     show: Show border
   label:
+    noHandle: (no handle)
     add: Add
     back: Back
     edit: Edit
@@ -225,18 +258,24 @@ general:
     translations: Field translations
 iframe:
   label: IFrame
+  noInput: No URL provided for iframe
   pickURLField: Pick an URL field
   srcDesc: Used as a fallback when set in combination with record field.
   srcFieldDesc: Only available on record pages and on modules with existing "url" field kind
   srcFieldLabel: Field (URL) from record to use for the iframe
   srcLabel: URL to show in the iframe
 metric:
+  add: + Add
   metricDrillDown: Metric drill down
   defaultMetricLabel: Unnamed metric
   drillDown:
     label: Drill down
     description: If a record list is selected, it will be used to display the drill down data. If no record list is selected, the drill down data will be shown in a modal.
     openInModal: Open in modal
+    blockID: Record list block
+    blockIDFootnote: Select a record list block to display the drill down data
+    blockIDPlaceholder: Select a record list block
+    enabled: Enable drill down
   edit:
     bucketLabel: Bucket size
     bucketPlaceholder: Select a bucket size
@@ -300,8 +339,8 @@ record:
   confirmDelete: Are you sure you want to delete this record?
   deleteFailed: Could not delete record
   deleteRecord: Delete record
-  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
-  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  invalidOwnerVar: "Can not use ${ownerID} variable in non-record pages"
+  invalidRecordVar: "Can not use ${record...} variable in non-record pages"
   label: Record
   listLoadFailed: Could not load record list
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
@@ -329,6 +368,7 @@ record:
   openInNewTab: Open record in a new tab
   openInModal: Open record in a modal
   fieldConditions:
+    description: Configure conditions to show or hide fields based on values
     label: Conditional fields
     action: + Add
     placeholder: When should this field be displayed?
@@ -343,6 +383,15 @@ record:
       performance: Using conditional fields will impact performance
   recordSelectorCanAddRecord: Can add records via record selector
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
+  addRecordDisplayOption: Add record display option
+  clearConditionalFieldsOnHide: Clear all conditional fields when hidden
+  inlineRecordEditAllowAddField: Allow adding fields to inline edit
+  recordDisplay:
+    label: Record display
+  recordSelectorDisplayOption: When clicking on record field value
+  referenceField: Reference record field
+  referenceFieldPlaceholder: Select reference record field
+  showAddRecordButton: Show add record button
 recordList:
   noModule: No module selected
   addRecord: New Record
@@ -582,6 +631,7 @@ recordList:
     usersSee: Users see {0}
     withPresortedRecords: with presorted ({0}) record
   record:
+    hideExportButton: Users will be able to export records
     draggable: Can drag & drop records to order them
     editMode: Open records in edit mode by default
     fullPageNavigation: Full page navigation
@@ -636,8 +686,37 @@ recordList:
     recordDisplayOptions: On record click
     recordSelectorDisplayOptions: On record value click
     addRecordOptions: On add record click
+    addRecordDisplayOption: On add record click
     textStyles: Text Styles
     configureWrappedFields: Select fields that will be wrapped
+    advancedDisplay: Advanced display
+    bulkRecordEditEnabled: Enable bulk record edit
+    enableFilterPresets: Enable filter presets
+    enableRecordPageNavigation: Enable record page navigation
+    enableSummaries: Enable summaries
+    filterPresets: Filter presets
+    hideCloneButton: Hide clone button
+    hideDeleteButton: Hide delete button
+    hideEditButton: Hide edit button
+    hidePermissionsButton: Hide permissions button
+    hideReminderButton: Hide reminder button
+    hideViewButton: Hide view button
+    inlineEditLabel: Inline editing
+    inlineRecordEditAllowAddField: Allow adding fields to inline edit
+    inlineRecordEditEnabled: Inline record editing
+    inlineValueFiltering: Enable inline value filtering
+    openRecordInEditMode: Open record in edit mode by default
+    preset: Preset
+    presetFilter: Preset filter
+    presetName: Preset name
+    presetRoles: Roles
+    rowActionButtons: Row action buttons
+    summaries: Summaries
+    summary: Summary
+    summaryField: Field
+    summaryLabel: Label
+    summaryMetric: Metric
+    summaryRoles: Roles
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record
@@ -698,6 +777,8 @@ recordOrganizer:
   descriptionField:
     footnote: Field value will be used as record description
     label: Description field
+  displayOption:
+    label: Record display mode
   group:
     footnote: Value that will be set to the key field. The records will be filtered based on this value, if it's defined.
     label: Key value
@@ -714,6 +795,10 @@ recordOrganizer:
     footnote: Records will be sorted based on this field. That field value will be updated based on the position of the record.
     placeholder: Field that will hold the record position
     label: Record sort field
+  prefilter:
+    label: Prefilter
+    placeholder: field1 = 1 AND field2 = 232
+    footnote: Simplified SQL condition (WHERE ...) syntax is supported
   preview:
     label: 'Record Organizer block for module {0}. Label field {1}, Description field {2}. Value setting field: {3}, Sorted by position field: {4}.'
     moduleNotSelected: Record Organizer module not selected
@@ -767,6 +852,7 @@ recordRevisions:
       invalid-module-id: Field does not contain a valid module ID.
     fields:
       label: Fields to display in record revisions changes
+    displayedFields: Fields to display in record revisions changes
 
 socialFeed:
   label: Twitter feed
@@ -783,6 +869,8 @@ field:
     systemField: (system field)
 comment:
   label: Comments
+  invalidOwnerVar: "Can not use ${ownerID} variable in non-record pages"
+  invalidRecordVar: "Can not use ${record...} variable in non-record pages"
   module:
     placeholder: Select a module
   titleField:
@@ -879,6 +967,9 @@ navigation:
   none: None
   displaySubPages: Display sub-pages
   selectBackground: Select background
+  textColor: Text color
+  backgroundColor: Background color
+  textSection: Text
   preview:
     preview: Preview
     label: Label
@@ -887,10 +978,14 @@ navigation:
     about: about
 report:
   label: Report
+  reportIDPlaceholder: Select a report
+  reportIDFootnote: Select a report to display
   scenario:
     label: Scenario
+  scenarioIDPlaceholder: Select a scenario
   element:
     label: Display element
+  elementIDPlaceholder: Select display element
 
 progress:
   add: + Add
@@ -909,21 +1004,41 @@ progress:
   module:
     select: Select module
     label: Module
+  operation:
+    sum: Sum
+    max: Max
+    min: Min
+    avg: Avg
+    count: Count
   preview: Live example
   show:
     value: Show value
     relative: Show relative
     progress: Show progress
+  striped: Striped
   tab:
     label: Progress
-  thresholds: Thresholds
+  thresholds:
+    label: Thresholds
+    empty: No thresholds configured
   threshold:
     label: Threshold
     variant: Set which variant to show if value is equal or larger than the threshold
+  minValue:
+    label: Minimum value
+    fixed: Fixed minimum value
+  maxValue:
+    label: Maximum value
+    fixed: Fixed maximum value
   value:
     label: Value
     min: Minimum value
     max: Maximum value
+    fixed: Fixed value
+    useModule: Use module data
+    fieldPlaceholder: Select field
+    filterPlaceholder: field1 = 1 AND field2 = 232
+    operationPlaceholder: Select operation
     default:
       label: Default value
       description: This value will be used if metric is not configured
@@ -947,11 +1062,28 @@ geometry:
   addSource: Add source
   lock: Lock
   mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
+  mapSettings: Map settings
   onMarkerClick: On marker click
   openInSameTab: Open in the same tab
   openInNewTab: Open in a new tab
   openInModal: Open in a modal
   hideGeoSearch: Hide location search
+  displayOption:
+    label: On marker click
+    sameTab: Open in the same tab
+    newTab: Open in a new tab
+    modal: Open in a modal
+  displayMarker: Display marker
+  displayPolygon: Display polygon
+  feed: Feed
+  feeds: Feeds
+  feedModule: Module
+  feedModulePlaceholder: (No module)
+  feedGeometryField: Location field
+  feedTitleField: Title field
+  feedColor: Marker color
+  feedPrefilter: Prefilter sources
+  feedPrefilterPlaceholder: field1 = 1 AND field2 = 232
   recordFeed:
     colorPicker: Choose a color
     moduleLabel: Module*
@@ -965,8 +1097,20 @@ geometry:
     geometryFieldPlaceholder: Location field
     displayMarker: Display marker
     displayPolygon: Display polygon
+  center: Center
+  centerLat: Latitude
+  centerLng: Longitude
   centerLabel: Center
-  zoom:
+  zoom: Zoom
+  zoomStarting: Zoom starting
+  zoomMin: Zoom min
+  zoomMax: Zoom max
+  lockBounds: Lock bounds
+  boundsMinLat: Min latitude
+  boundsMaxLat: Max latitude
+  boundsMinLng: Min longitude
+  boundsMaxLng: Max longitude
+  zoom-config:
     zoomLabel: Zoom
     zoomMinLabel: Zoom min
     zoomMaxLabel: Zoom max
@@ -985,6 +1129,7 @@ tabs:
   title: Tabs
   tab: Tab
   selectBlock: Choose a block
+  blockAssociation: Block association
   noTabs: No tabs configured
   noBlock: No block configured
   displayTitle: Display Options
@@ -993,25 +1138,43 @@ tabs:
   placeholder:
     block: Select a block to tab
   style:
-    appearance:
+    label: Style
+    appearance: Appearance
+    appearanceTabs: Tabs
+    appearancePills: Pills
+    appearanceSmall: Small
+    alignment: Alignment
+    alignmentLeft: Left
+    alignmentCenter: Center
+    alignmentRight: Right
+    justify: Justify
+    justifyJustify: Justify
+    justifyNone: None
+    orientation: Orientation
+    orientationVertical: Vertical
+    orientationHorizontal: Horizontal
+    position: Position
+    positionStart: Start
+    positionEnd: End
+    appearance-nested:
       label: Appearance
       tabs: Tabs
       pills: Pills
       small: Small
-    alignment:
+    alignment-nested:
       label: Alignment
       left: Left
       center: Center
       right: Right
-    justify:
+    justify-nested:
       label: Justify
       justify: Justify
       none: None
-    orientation:
+    orientation-nested:
       label: Orientation
       vertical: Vertical
       horizontal: Horizontal
-    position:
+    position-nested:
       label: Position
       start: Start
       end: End

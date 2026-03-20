@@ -256,8 +256,6 @@ type (
 			} `kv:"sidebar,final" json:"sidebar"`
 
 			Studio struct {
-				SassInstalled bool `kv:"sass-installed" json:"sass-installed"`
-
 				Themes    []struct{ Theme } `kv:"themes" json:"themes"`
 				CustomCSS []struct{ Theme } `kv:"custom-css" json:"customCSS"`
 			} `kv:"studio" json:"studio"`
@@ -286,6 +284,13 @@ type (
 					URL    string `json:"url"`
 					NewTab bool   `json:"newTab"`
 				} `json:"profileLinks"`
+
+				PageButtons []struct {
+					Label    string `json:"label"`
+					URL      string `json:"url"`
+					URLMatch string `json:"urlMatch"`
+					NewTab   bool   `json:"newTab"`
+				} `json:"pageButtons"`
 			} `kv:"topbar,final" json:"topbar"`
 
 			Charts struct {
@@ -484,10 +489,10 @@ type (
 // to avoid any unintended corruption or leaks
 func (cs AppSettings) WithDefaults() *AppSettings {
 	if len(strings.TrimSpace(cs.UI.IconLogo)) == 0 {
-		cs.UI.IconLogo = "/assets/icon.png"
+		cs.UI.IconLogo = "/assets/icon.svg"
 	}
 	if len(strings.TrimSpace(cs.UI.MainLogo)) == 0 {
-		cs.UI.MainLogo = "/assets/logo.png"
+		cs.UI.MainLogo = "/assets/logo.svg"
 	}
 
 	return &cs

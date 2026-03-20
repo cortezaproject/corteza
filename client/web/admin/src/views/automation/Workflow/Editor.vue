@@ -18,7 +18,7 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <Panel :header="$t('automation.workflows.editor.info.title')" toggleable :collapsed="false">
+      <Panel :header="$t('automation.workflows.editor.info.title')" toggleable :collapsed="false" class="shadow">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
             <label for="name" class="font-medium text-primary">
@@ -70,6 +70,15 @@
           </div>
         </div>
       </Panel>
+
+      <Panel
+        v-if="isEdit"
+        :header="$t('automation.workflows.editor.triggers.title')"
+        toggleable
+        class="shadow"
+      >
+        <WorkflowTriggers :triggers="triggers" />
+      </Panel>
     </div>
 
     <!-- Bottom Actions Toolbar -->
@@ -105,6 +114,7 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
+import WorkflowTriggers from '@/components/Workflow/WorkflowTriggers.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@cortezaproject/corteza-js-next'
@@ -123,6 +133,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const workflow = ref(null)
+const triggers = ref([])
 
 const isEdit = computed(() => !!route.params.workflowID)
 
@@ -162,6 +173,10 @@ async function loadWorkflow() {
   try {
     const raw = await $AutomationAPI.workflowRead({ workflowID })
     workflow.value = new automation.Workflow(raw)
+
+    // Load triggers for the workflow
+    const triggersResult = await $AutomationAPI.triggerList({ workflowID })
+    triggers.value = triggersResult?.set || []
   } catch (e) {
     $toast.toastErrorHandler(t('notification.workflow.fetch.error'))(e)
     router.push({ name: 'automation.workflows' })

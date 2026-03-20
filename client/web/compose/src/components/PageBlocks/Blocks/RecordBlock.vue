@@ -8,62 +8,152 @@
       {{ $t('block.record.noModule') }}
     </div>
 
-    <div v-else-if="!activeRecord" class="p-5 text-muted-color italic">
-      {{ $t('block.record.noRecord') }}
-    </div>
-
-    <div v-else class="p-4 overflow-y-auto" :class="layoutClass">
+    <div
+      v-else
+      ref="fieldContainer"
+      class="p-4 overflow-y-auto"
+      :class="layoutClass"
+    >
       <div
-        v-for="field in visibleFields"
+        v-for="field in displayedFields"
         :key="field.fieldID || field.name"
         class="field-item"
         :class="fieldContainerClass"
       >
-        <label
-          v-if="field.kind !== 'Bool' || field.options?.switch || !isEditing"
-          class="text-sm font-semibold text-primary mb-1.5 block"
-        >
-          {{ field.label || field.name }}
-          <span v-if="field.isRequired" class="text-red-500">*</span>
-        </label>
+        <!-- Horizontal layout: label and value side-by-side -->
+        <template v-if="options.horizontalFieldLayoutEnabled && options.recordFieldLayoutOption !== 'noWrap'">
+          <div class="grid grid-cols-[auto_1fr] gap-x-4 items-start">
+            <div class="flex flex-col min-w-[8rem]">
+              <div class="flex items-center gap-1.5">
+                <label class="text-sm font-semibold text-primary">
+                  {{ fieldLabel(field) }}
+                </label>
+                <span v-if="field.isRequired && isEditing" class="text-red-500">*</span>
+                <!-- Inline edit button -->
+                <button
+                  v-if="showInlineEditButton(field)"
+                  class="text-muted-color hover:text-primary transition-colors p-0.5"
+                  :title="$t('block.record.inlineEdit.button.title')"
+                  @click="editInlineField(field)"
+                >
+                  <i class="pi pi-pencil text-xs" />
+                </button>
+              </div>
+              <!-- Field hint -->
+              <small
+                v-if="fieldHint(field)"
+                class="text-muted-color"
+                v-tooltip.top="fieldHint(field)"
+              >
+                <i class="pi pi-info-circle text-xs" />
+              </small>
+              <!-- Field description -->
+              <small v-if="fieldDescription(field)" class="text-muted-color mt-0.5">
+                {{ fieldDescription(field) }}
+              </small>
+            </div>
+            <div class="field-value text-color min-h-[2rem]">
+              <template v-if="isFieldEditable(field)">
+                <FormField :name="field.name" v-slot="{ invalid, error }">
+                  <CFieldEditor
+                    :field="field"
+                    :namespace="namespace"
+                    :model-value="getFieldValue(field)"
+                    @update:model-value="setFieldValue(field, $event)"
+                  />
+                  <Message v-if="invalid" severity="error" size="small" variant="simple">
+                    {{ error?.message }}
+                  </Message>
+                </FormField>
+              </template>
 
-        <div class="field-value text-color">
-          <!-- Editor (edit/create mode) -->
-          <template v-if="isEditing && field.canReadRecordValue !== false">
-            <FormField :name="field.name" v-slot="{ invalid, error }">
-              <CFieldEditor
+              <CFieldViewer
+                v-else-if="field.canReadRecordValue !== false"
                 :field="field"
+                :record="activeRecord"
                 :namespace="namespace"
-                :model-value="getFieldValue(field)"
-                @update:model-value="setFieldValue(field, $event)"
               />
-              <Message v-if="invalid" severity="error" size="small" variant="simple">
-                {{ error?.message }}
-              </Message>
-            </FormField>
-          </template>
 
-          <!-- Viewer (view mode) -->
-          <CFieldViewer
-            v-else-if="field.canReadRecordValue !== false"
-            :field="field"
-            :record="activeRecord"
-            :namespace="namespace"
-          />
+              <span v-else class="text-muted-color italic text-sm">
+                {{ $t('block.field.noPermission') }}
+              </span>
+            </div>
+          </div>
+        </template>
 
-          <span v-else class="text-muted-color italic text-sm">
-            {{ $t('block.field.noPermission') }}
-          </span>
-        </div>
+        <!-- Default vertical layout -->
+        <template v-else>
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <label
+              v-if="field.kind !== 'Bool' || field.options?.switch || !isEditing"
+              class="text-sm font-semibold text-primary block"
+            >
+              {{ fieldLabel(field) }}
+            </label>
+            <span v-if="field.isRequired && isEditing" class="text-red-500">*</span>
+            <!-- Inline edit button -->
+            <button
+              v-if="showInlineEditButton(field)"
+              class="text-muted-color hover:text-primary transition-colors p-0.5"
+              :title="$t('block.record.inlineEdit.button.title')"
+              @click="editInlineField(field)"
+            >
+              <i class="pi pi-pencil text-xs" />
+            </button>
+            <!-- Field hint -->
+            <span
+              v-if="fieldHint(field)"
+              v-tooltip.top="fieldHint(field)"
+              class="text-muted-color cursor-help"
+            >
+              <i class="pi pi-info-circle text-xs" />
+            </span>
+          </div>
+          <!-- Field description -->
+          <small v-if="fieldDescription(field)" class="text-muted-color block mb-1">
+            {{ fieldDescription(field) }}
+          </small>
+
+          <div class="field-value text-color min-h-[2rem]">
+            <!-- Editor (edit/create mode) -->
+            <template v-if="isFieldEditable(field)">
+              <FormField :name="field.name" v-slot="{ invalid, error }">
+                <CFieldEditor
+                  :field="field"
+                  :namespace="namespace"
+                  :model-value="getFieldValue(field)"
+                  @update:model-value="setFieldValue(field, $event)"
+                />
+                <Message v-if="invalid" severity="error" size="small" variant="simple">
+                  {{ error?.message }}
+                </Message>
+              </FormField>
+            </template>
+
+            <!-- Viewer (view mode) -->
+            <CFieldViewer
+              v-else-if="field.canReadRecordValue !== false"
+              :field="field"
+              :record="activeRecord"
+              :namespace="namespace"
+            />
+
+            <span v-else class="text-muted-color italic text-sm">
+              {{ $t('block.field.noPermission') }}
+            </span>
+          </div>
+        </template>
       </div>
     </div>
   </PageBlock>
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { components } from '@cortezaproject/corteza-vue-next'
+import { compose } from '@cortezaproject/corteza-js-next'
 const { CFieldViewer, CFieldEditor } = components
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
@@ -84,39 +174,74 @@ const props = defineProps({
   },
 })
 
+const { t } = useI18n()
 const route = useRoute()
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
+const $SystemAPI = inject('$SystemAPI', null)
+const $auth = inject('$auth', {})
 
 // Inject edit context from RecordView (may be null on non-record pages)
 const ctx = inject('recordViewContext', null)
 
 const loading = ref(false)
 const localRecord = ref(null)
+const referenceRecord = ref(null)
+const referenceModule = ref(null)
+const fieldContainer = ref(null)
+
+// Field condition tracking
+const hiddenConditions = ref([]) // array of fieldIDs/names that should be hidden
+const evaluating = ref(false)
+
+// ResizeObserver state
+const resizeObserver = ref(null)
+const columnWrapClass = ref('')
 
 const options = computed(() => props.block.options || {})
 
+// Builder mode detection
+const isBuilder = computed(() => route.name === 'admin.pages.builder')
+
+// Dummy record for builder preview
+const builderRecord = ref(null)
+
 // Whether we're in edit or create mode
 const isEditing = computed(() => {
+  if (isBuilder.value) return true
   return !!ctx && ctx.mode.value !== 'view'
 })
 
-// Resolve the module: use block's referenceModuleID if set, otherwise fall back to the page's moduleID
-const fieldModule = computed(() => {
-  const moduleID = options.value.referenceModuleID || props.page?.moduleID
+// The page's module
+const pageModule = computed(() => {
+  const moduleID = props.page?.moduleID
   if (!moduleID) return null
   return moduleStore.getByID(moduleID) || null
 })
 
-// The active record: use context record in edit/create mode, otherwise local
+// Resolve the module: use referenceModule if reference field is set, otherwise page's module
+const fieldModule = computed(() => {
+  if (options.value.referenceField && referenceModule.value) {
+    return referenceModule.value
+  }
+  return pageModule.value
+})
+
+// The active record: use reference record (if reference field), context record (if editing), builder record, or local record
 const activeRecord = computed(() => {
+  if (options.value.referenceField && referenceRecord.value) {
+    return referenceRecord.value
+  }
+  if (isBuilder.value) {
+    return builderRecord.value
+  }
   if (isEditing.value) {
     return ctx.record.value
   }
   return localRecord.value
 })
 
-// Determine which fields to display
+// Determine which fields to display (before condition filtering)
 const visibleFields = computed(() => {
   if (!fieldModule.value) return []
 
@@ -136,26 +261,91 @@ const visibleFields = computed(() => {
   return (fieldModule.value.fields || []).filter(f => names.includes(f.name))
 })
 
+// Apply field conditions filtering
+const displayedFields = computed(() => {
+  return visibleFields.value.filter(field => canDisplay(field))
+})
+
 // Layout class based on block options
 const layoutClass = computed(() => {
   const layout = options.value.recordFieldLayoutOption || 'default'
   const classes = {
     default: 'flex flex-col gap-5',
     noWrap: 'flex gap-6',
-    wrap: 'grid grid-cols-2 gap-5',
+    wrap: 'flex flex-wrap',
   }
   return classes[layout] || classes.default
 })
 
 const fieldContainerClass = computed(() => {
   const layout = options.value.recordFieldLayoutOption || 'default'
-  if (layout === 'noWrap') return 'min-w-[20rem]'
+  if (layout === 'noWrap') return 'min-w-[13rem]'
+  if (layout === 'wrap') return columnWrapClass.value
   return ''
 })
 
-// Field value helpers for edit mode
+// --- Field label ---
+function fieldLabel(field) {
+  if (field.isSystem) {
+    return t(`field.system.${field.name}`, field.label || field.name)
+  }
+  return field.label || field.name
+}
+
+// --- Field hint ---
+function fieldHint(field) {
+  return field.options?.hint?.view || ''
+}
+
+// --- Field description ---
+function fieldDescription(field) {
+  return field.options?.description?.view || ''
+}
+
+// --- Field editability (matching Corteza's isFieldEditable) ---
+function isFieldEditable(field) {
+  if (!field) return false
+  if (!isEditing.value) return false
+  if (field.canReadRecordValue === false) return false
+
+  // Check RBAC canUpdateRecordValue
+  if (field.canUpdateRecordValue === false) return false
+
+  if (field.isSystem) {
+    // Only ownedBy is editable among system fields
+    if (field.name === 'ownedBy') {
+      const record = activeRecord.value
+      const mod = fieldModule.value
+      // If not yet created, check module-level permission; otherwise check record-level
+      return record?.createdAt
+        ? record.canManageOwnerOnRecord !== false
+        : mod?.canCreateOwnedRecord !== false
+    }
+    return false
+  }
+
+  // Non-system: editable if no value expression
+  return !(field.expressions?.value)
+}
+
+// --- Inline edit ---
+function showInlineEditButton(field) {
+  if (!options.value.inlineRecordEditEnabled) return false
+  if (isEditing.value) return false
+  if (activeRecord.value?.deletedAt) return false
+  return isFieldEditable({ ...field, canUpdateRecordValue: true })
+}
+
+function editInlineField(field) {
+  // For now, inline edit triggers edit mode via the record view context
+  // A full inline edit modal implementation would go here
+  // This matches the button being visible but the full modal requires the BulkEdit component
+  console.warn('Inline edit for field:', field.name, '- full modal implementation pending')
+}
+
+// --- Field value helpers for edit mode ---
 function getFieldValue(field) {
-  const r = ctx?.record?.value
+  const r = ctx?.record?.value || builderRecord.value
   if (!r) return field.isMulti ? [] : ''
   const val = r.values[field.name]
   if (val === undefined || val === null) return field.isMulti ? [] : ''
@@ -163,16 +353,156 @@ function getFieldValue(field) {
 }
 
 function setFieldValue(field, value) {
-  const r = ctx?.record?.value
+  const r = ctx?.record?.value || builderRecord.value
   if (!r) return
   r.setValue(field.name, value)
 }
 
-// Load the record when in view mode and module or route changes
+// --- Field conditions ---
+function canDisplay({ fieldID, name }) {
+  if (hiddenConditions.value.length === 0) return true
+  const id = fieldID && fieldID !== '0' ? fieldID : name
+  return !hiddenConditions.value.includes(id)
+}
+
+async function evaluateExpressions() {
+  const fieldConditions = options.value.fieldConditions || []
+  if (!fieldConditions.length) return
+  // Don't evaluate in builder mode
+  if (route.name === 'admin.pages.builder') return
+  if (!$SystemAPI) return
+
+  // Small delay to batch rapid changes
+  await new Promise(resolve => setTimeout(resolve, 300))
+
+  const expressions = {}
+  const record = activeRecord.value
+  const serialized = record?.serialize ? record.serialize() : {}
+  const variables = {
+    user: $auth?.user || {},
+    record: serialized,
+  }
+
+  fieldConditions.forEach(({ field, condition }) => {
+    if (field && condition) {
+      expressions[field] = condition
+    }
+  })
+
+  if (Object.keys(expressions).length === 0) return
+
+  try {
+    const res = await $SystemAPI.expressionEvaluate({ variables, expressions })
+
+    const previousConditions = [...hiddenConditions.value]
+    const newHidden = []
+
+    Object.keys(res).forEach(v => {
+      if (!res[v]) newHidden.push(v)
+    })
+
+    hiddenConditions.value = newHidden
+
+    // Clear values for newly hidden fields
+    clearValuesForHiddenFields(previousConditions)
+  } catch (e) {
+    console.error('Failed to evaluate field conditions:', e)
+  }
+}
+
+function clearValuesForHiddenFields(previousConditions) {
+  const newlyHidden = hiddenConditions.value.filter(id => !previousConditions.includes(id))
+  if (newlyHidden.length === 0) return
+
+  const clearAllOnHide = options.value.clearConditionalFieldsOnHide || false
+  const fieldConditions = options.value.fieldConditions || []
+  const mod = fieldModule.value
+  const rec = activeRecord.value
+
+  fieldConditions.forEach(({ field, clearOnHide }) => {
+    const shouldClear = clearAllOnHide || clearOnHide
+    if (!shouldClear) return
+    if (!newlyHidden.includes(field)) return
+
+    const moduleField = mod?.fields?.find(f => f.fieldID === field || f.name === field)
+    if (!moduleField || !rec?.values) return
+
+    const fieldName = moduleField.name
+    if (moduleField.isMulti) {
+      rec.values[fieldName] = []
+    } else {
+      rec.values[fieldName] = undefined
+    }
+  })
+}
+
+// --- Reference field support ---
+async function fetchReferenceModule(moduleID) {
+  if (!moduleID) {
+    referenceModule.value = null
+    return
+  }
+
+  try {
+    const mod = await moduleStore.findByID({
+      namespaceID: props.namespace.namespaceID,
+      moduleID,
+    })
+    referenceModule.value = mod
+
+    if (options.value.referenceField) {
+      await loadReferenceRecord()
+    }
+  } catch (e) {
+    console.error('Failed to fetch reference module:', e)
+    referenceModule.value = null
+  }
+}
+
+async function loadReferenceRecord() {
+  const mod = referenceModule.value
+  if (!mod) return
+
+  const { referenceField } = options.value
+  const currentRecord = isEditing.value ? ctx.record.value : localRecord.value
+  if (!currentRecord || !pageModule.value) return
+
+  const field = pageModule.value.fields.find(f => f.fieldID === referenceField)
+  if (!field) {
+    referenceRecord.value = null
+    return
+  }
+
+  // Multi-value record selectors are not supported for reference
+  if (field.isMulti) {
+    referenceRecord.value = null
+    return
+  }
+
+  const recordID = currentRecord.values[field.name]
+  if (!recordID) {
+    referenceRecord.value = null
+    return
+  }
+
+  try {
+    const rec = await recordStore.findByID({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: mod.moduleID,
+      recordID,
+    })
+    referenceRecord.value = rec
+  } catch (e) {
+    console.error('Failed to load reference record:', e)
+    referenceRecord.value = null
+  }
+}
+
+// --- Record loading (view mode) ---
 async function loadRecord() {
   // In edit/create mode, record comes from context — no need to load
   if (isEditing.value) return
-  if (!fieldModule.value) return
+  if (!pageModule.value) return
 
   const recordID = route.params?.recordID
   if (!recordID || recordID === '0') return
@@ -182,7 +512,7 @@ async function loadRecord() {
   try {
     localRecord.value = await recordStore.findByID({
       namespaceID: props.namespace.namespaceID,
-      moduleID: fieldModule.value.moduleID,
+      moduleID: pageModule.value.moduleID,
       recordID,
     })
   } catch (e) {
@@ -193,9 +523,144 @@ async function loadRecord() {
   }
 }
 
+// --- Responsive wrap layout (ResizeObserver) ---
+function initializeResizeObserver(el) {
+  if (!el) return
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect()
+  }
+
+  resizeObserver.value = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      applyColumnClasses(entry.contentRect.width)
+    }
+  })
+
+  resizeObserver.value.observe(el)
+}
+
+function applyColumnClasses(width) {
+  const breakpoints = {
+    xs: 576,
+    md: 768,
+    lg: 992,
+    xl: 1200,
+  }
+
+  // Tailwind equivalents for Bootstrap column classes
+  const columnClasses = {
+    xs: 'w-full px-3 mb-4', // col-12
+    md: 'w-1/2 px-3 mb-4',  // col-6
+    lg: 'w-1/3 px-3 mb-4',  // col-4
+    xl: 'w-1/4 px-3 mb-4',  // col-3
+  }
+
+  let columnClass
+  if (width <= breakpoints.xs) {
+    columnClass = columnClasses.xs
+  } else if (width <= breakpoints.md) {
+    columnClass = columnClasses.md
+  } else if (width <= breakpoints.lg) {
+    columnClass = columnClasses.lg
+  } else {
+    columnClass = columnClasses.xl
+  }
+
+  columnWrapClass.value = columnClass
+}
+
+// --- Watchers ---
+
+// Create dummy record for builder preview
 watch(
-  () => [fieldModule.value?.moduleID, route.params?.recordID, isEditing.value],
+  () => [isBuilder.value, fieldModule.value],
+  ([builder, mod]) => {
+    if (builder && mod) {
+      builderRecord.value = new compose.Record(mod)
+    }
+  },
+  { immediate: true },
+)
+
+// Load record in view mode
+watch(
+  () => [pageModule.value?.moduleID, route.params?.recordID, isEditing.value],
   () => loadRecord(),
   { immediate: true },
 )
+
+// Load reference module when referenceModuleID option changes
+watch(
+  () => options.value.referenceModuleID,
+  (moduleID) => {
+    if (moduleID) {
+      fetchReferenceModule(moduleID)
+    } else {
+      referenceModule.value = null
+      referenceRecord.value = null
+    }
+  },
+  { immediate: true },
+)
+
+// Reload reference record when parent record's reference field value changes
+watch(
+  () => {
+    if (!options.value.referenceField || !pageModule.value) return null
+    const rec = isEditing.value ? ctx?.record?.value : localRecord.value
+    if (!rec) return null
+    const field = pageModule.value.fields.find(f => f.fieldID === options.value.referenceField)
+    return field ? rec.values[field.name] : null
+  },
+  (newVal, oldVal) => {
+    if (newVal !== oldVal && referenceModule.value) {
+      loadReferenceRecord()
+    }
+  },
+)
+
+// Evaluate field conditions when record loaded or changes
+watch(
+  () => activeRecord.value,
+  (rec) => {
+    if (rec) {
+      evaluateExpressions()
+    }
+  },
+  { immediate: true },
+)
+
+// Re-evaluate when record values change (edit mode)
+watch(
+  () => activeRecord.value?.values,
+  () => {
+    if (activeRecord.value) {
+      evaluateExpressions()
+    }
+  },
+  { deep: true },
+)
+
+// Setup ResizeObserver for wrap layout
+watch(
+  () => [loading.value, fieldModule.value, options.value.recordFieldLayoutOption],
+  () => {
+    if (options.value.recordFieldLayoutOption === 'wrap' && !loading.value && fieldModule.value) {
+      nextTick(() => {
+        initializeResizeObserver(fieldContainer.value)
+      })
+    } else if (resizeObserver.value) {
+      resizeObserver.value.disconnect()
+      resizeObserver.value = null
+      columnWrapClass.value = ''
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect()
+  }
+})
 </script>

@@ -1,10 +1,14 @@
 <template>
   <PageBlock :block="block">
-    <div v-if="attachments.length" class="p-3">
+    <div v-if="loading" class="flex items-center justify-center h-full p-3">
+      <ProgressSpinner style="width: 2rem; height: 2rem" />
+    </div>
+
+    <div v-else-if="resolvedAttachments.length" class="p-3">
       <!-- List mode -->
       <div v-if="viewMode === 'list'" class="flex flex-col gap-2">
         <div
-          v-for="att in attachments"
+          v-for="att in resolvedAttachments"
           :key="att.attachmentID"
           class="flex items-center gap-3 p-2 border border-surface rounded"
         >
@@ -14,7 +18,7 @@
             <div class="text-sm text-muted-color">{{ formatSize(att.meta?.original?.size) }}</div>
           </div>
           <Button
-            v-if="enableDownload"
+            v-if="enableDownload && att.downloadUrl"
             icon="pi pi-download"
             text
             size="small"
@@ -27,7 +31,7 @@
       <!-- Grid / Gallery mode -->
       <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
         <div
-          v-for="att in attachments"
+          v-for="att in resolvedAttachments"
           :key="att.attachmentID"
           class="flex flex-col items-center gap-1 p-3 border border-surface rounded"
         >
@@ -51,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import PageBlock from './PageBlock.vue'
 
 const props = defineProps({
@@ -60,13 +64,61 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
+const $ComposeAPI = inject('$ComposeAPI')
+
 const viewMode = computed(() => props.block.options?.mode || 'list')
 const showName = computed(() => props.block.options?.showName ?? true)
 const enableDownload = computed(() => props.block.options?.enableDownload ?? true)
 
-const attachments = computed(() => {
-  return props.block.options?.attachments || []
-})
+const loading = ref(false)
+const resolvedAttachments = ref([])
+
+const rawAttachments = computed(() => props.block.options?.attachments || [])
+
+// Resolve attachment IDs into full attachment objects
+async function resolveAttachments(ids) {
+  if (!ids.length || !$ComposeAPI || !props.namespace?.namespaceID) {
+    resolvedAttachments.value = []
+    return
+  }
+
+  loading.value = true
+  const results = []
+  const baseURL = $ComposeAPI.baseURL || ''
+
+  for (const entry of ids) {
+    // Already a full object
+    if (typeof entry === 'object' && entry.attachmentID) {
+      results.push(entry)
+      continue
+    }
+
+    // It's an ID string — resolve it
+    const attachmentID = typeof entry === 'string' ? entry : String(entry)
+    try {
+      const att = await $ComposeAPI.attachmentRead({
+        kind: 'page',
+        namespaceID: props.namespace.namespaceID,
+        attachmentID,
+      })
+
+      results.push({
+        attachmentID: att.attachmentID,
+        name: att.name,
+        meta: att.meta,
+        previewUrl: att.url ? baseURL + att.url : '',
+        downloadUrl: att.url ? baseURL + att.url : '',
+      })
+    } catch (e) {
+      // Skip unresolvable attachments
+    }
+  }
+
+  resolvedAttachments.value = results
+  loading.value = false
+}
+
+watch(rawAttachments, ids => resolveAttachments(ids), { immediate: true, deep: true })
 
 function isImage(att) {
   const mime = att.meta?.original?.mimetype || ''

@@ -10,10 +10,13 @@ Manages list views with pagination, sorting, filtering, and URL query sync.
 import { useResourceList } from '@cortezaproject/corteza-vue-next'
 
 const { items, loading, filter, sorting, pagination, fetchItems, filterList, handleSort } =
-  useResourceList({ /* options */ })
+  useResourceList({
+    /* options */
+  })
 ```
 
 **Returns:**
+
 - `items`, `loading`, `error` — reactive state
 - `filter`, `sorting`, `pagination` — reactive config objects
 - `fetchItems(updateQuery?)` — fetch with pagination
@@ -35,6 +38,7 @@ rbac.can('compose:namespace', 'read') // boolean
 ```
 
 **API:**
+
 - `can(resource, operation)` — check permission
 - `load(apis[])` — load rules from API clients
 - `clear()` — clear cached rules
@@ -48,12 +52,12 @@ Theme switching with PrimeVue integration.
 ```js
 import { useTheme, getTheme, setThemes } from '@cortezaproject/corteza-vue-next'
 
-useTheme('dark')           // Apply dark theme
-const config = getTheme()  // Get current theme config
-setThemes(customVars)      // Override theme variables
+useTheme('dark') // Apply dark theme
+const config = getTheme() // Get current theme config
+setThemes(customVars) // Override theme variables
 ```
 
-Default colors: primary `#FF9661`, success `#43AA8B`, warning `#E27646`, danger `#E54122`.
+Default colors: primary `#09344E`, success `#43AA8B`, warning `#E27646`, danger `#E54122`.
 
 Generates CSS custom properties: `--topbar-height`, `--sidebar-width`, `--sidebar-bg`, `--body-bg`.
 
@@ -66,6 +70,7 @@ Generates CSS custom properties: `--topbar-height`, `--sidebar-width`, `--sideba
 OAuth 2.0 PKCE authentication. See [architecture.md](architecture.md) for flow details.
 
 Provides `$Auth` globally with:
+
 - `user` — current user info
 - `accessTokenFn()` — returns current access token
 - `logout()` — end session
@@ -87,8 +92,8 @@ Loads and provides system/app settings as `$Settings`.
 
 ```js
 const settings = inject('$Settings')
-settings.get('ui.topbar.hideProfile')        // dot-notation access
-settings.attachment('ui.mainLogo')           // attachment URL
+settings.get('ui.topbar.hideProfile') // dot-notation access
+settings.attachment('ui.mainLogo') // attachment URL
 ```
 
 ### ToastPlugin
@@ -99,7 +104,7 @@ Toast notification wrapper provided as `$toast`.
 const toast = inject('$toast')
 toast.toastSuccess('Saved successfully')
 toast.toastDanger('Something went wrong')
-toast.toastErrorHandler('prefix')  // returns error handler function
+toast.toastErrorHandler('prefix') // returns error handler function
 ```
 
 ### I18nPlugin

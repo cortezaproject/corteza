@@ -89,7 +89,8 @@ const multiAbsorbing = computed(() => {
   // File always manages an array of attachment IDs regardless of isMulti
   if (props.field.kind === 'File') return true
   if (!props.field.isMulti) return false
-  if (props.field.kind === 'Select' && props.field.options?.selectType === 'multiple') return true
+  const selectType = props.field.options?.selectType
+  if ((props.field.kind === 'Select' || props.field.kind === 'User' || props.field.kind === 'Record') && selectType === 'multiple') return true
   return false
 })
 

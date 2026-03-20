@@ -26,6 +26,26 @@
     <template v-if="selectedChart">
       <!-- Live filter -->
       <CInputSwitch v-model="liveFilterEnabled" :label="$t('block.chart.enableLiveFilter')" />
+
+      <Divider />
+
+      <div class="flex flex-col gap-3">
+        <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.chart.drillDown.label') }}</h5>
+
+        <CInputSwitch v-model="drillDownEnabled" :label="$t('block.chart.drillDown.enabled')" />
+
+        <template v-if="drillDownEnabled">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('block.chart.drillDown.blockID') }}</label>
+            <InputText
+              v-model="drillDownBlockID"
+              :placeholder="$t('block.chart.drillDown.blockIDPlaceholder')"
+              class="w-full"
+            />
+            <small class="text-muted-color">{{ $t('block.chart.drillDown.blockIDFootnote') }}</small>
+          </div>
+        </template>
+      </div>
     </template>
   </div>
 </template>
@@ -68,6 +88,16 @@ const chartID = computed({
 const liveFilterEnabled = computed({
   get: () => !!props.block.options?.liveFilterEnabled,
   set: v => updateOptions('liveFilterEnabled', v),
+})
+
+const drillDownEnabled = computed({
+  get: () => !!props.block.options?.drillDown?.enabled,
+  set: v => updateOptions('drillDown', { ...props.block.options?.drillDown, enabled: v }),
+})
+
+const drillDownBlockID = computed({
+  get: () => props.block.options?.drillDown?.blockID || '',
+  set: v => updateOptions('drillDown', { ...props.block.options?.drillDown, blockID: v }),
 })
 
 function goToChart() {

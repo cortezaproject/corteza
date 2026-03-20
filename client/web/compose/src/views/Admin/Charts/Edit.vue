@@ -9,6 +9,18 @@
 
   <div v-else-if="chart" class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 overflow-auto min-w-0">
+      <!-- Export button above cards -->
+      <div v-if="isEdit && namespace?.canExportCharts" class="flex justify-end mb-4">
+        <Button
+          :label="$t('general.label.export')"
+          icon="pi pi-download"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="exportChart"
+        />
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <!-- Left column: Settings -->
         <div class="lg:col-span-7">
@@ -450,5 +462,19 @@ async function handleDelete() {
     processing.value = false
     processingDelete.value = false
   }
+}
+
+function exportChart() {
+  if (!chart.value) return
+  const blob = new Blob(
+    [JSON.stringify({ type: 'chart', list: [chart.value] }, null, 2)],
+    { type: 'application/json' },
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${chart.value.handle || chart.value.name || 'chart'}-export.json`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 </script>

@@ -122,11 +122,17 @@ const props = defineProps({
   },
 })
 
-const selectTypeOptions = computed(() => [
-  { value: 'default', label: t('field.kind.select.optionType.default') },
-  { value: 'multiple', label: t('field.kind.select.optionType.multiple') },
-  { value: 'each', label: t('field.kind.select.optionType.each') },
-])
+const selectTypeOptions = computed(() => {
+  const allOptions = [
+    { value: 'default', label: t('field.kind.select.optionType.default'), allowDuplicates: true },
+    { value: 'multiple', label: t('field.kind.select.optionType.multiple'), onlyMulti: true },
+    { value: 'each', label: t('field.kind.select.optionType.each'), allowDuplicates: true, onlyMulti: true },
+    { value: 'list', label: t(`field.kind.select.optionType.${props.field.isMulti ? 'checkbox' : 'radio'}`) },
+  ]
+
+  if (props.field.isMulti) return allOptions
+  return allOptions.filter(o => !o.onlyMulti)
+})
 
 // Types where duplicates can be allowed
 const duplicatesAllowedTypes = ['default', 'each']

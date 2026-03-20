@@ -101,18 +101,13 @@ func processBrandingTheme(oldBranding *types.SettingValue) (themes []types.Theme
 	var brandingMap map[string]string
 
 	lightModeMap := map[string]string{
-		"black":       "#0B344E",
-		"white":       "#FFFFFF",
-		"primary":     "#FF9661",
-		"secondary":   "#758D9B",
+		"primary":     "#09344E",
 		"success":     "#43AA8B",
 		"warning":     "#E27646",
 		"danger":      "#E54122",
-		"light":       "#F3F5F7",
-		"extra-light": "#E4E9EF",
-		"body-bg":     "#F3F5F7",
-		"sidebar-bg":  "#FFFFFF",
-		"topbar-bg":   "#F3F5F7",
+		"body-bg":     "#f4f4f5",
+		"sidebar-bg":  "#ffffff",
+		"topbar-bg":   "#f4f4f5",
 	}
 
 	// process old branding sass settings and match them with the new branding themes setting
@@ -139,18 +134,13 @@ func processBrandingTheme(oldBranding *types.SettingValue) (themes []types.Theme
 
 	darkModeValues := `
     {
-        "black":"#FBF7F4",
-        "white":"#0B344E",
-        "primary":"#FF9661",
-        "secondary":"#758D9B",
+        "primary":"#E56B5B",
         "success":"#43AA8B",
         "warning":"#E27646",
         "danger":"#E54122",
-        "light":"#23495F",
-        "extra-light":"#3E5A6F",
-        "body-bg":"#092B40",
-        "sidebar-bg": "#0B344E",
-        "topbar-bg": "#092B40"
+        "body-bg":"#27272a",
+        "sidebar-bg": "#18181b",
+        "topbar-bg": "#27272a"
     }`
 
 	lightModeValues, _ := json.Marshal(lightModeMap)

@@ -599,9 +599,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	app.AuthService.Watch(ctx)
 
-	updateSassInstallSettings(ctx, sysService.DefaultStylesheet.SassInstalled(), app.Log)
 	//Generate CSS for webapps
-	if err = sysService.DefaultStylesheet.GenerateCSS(sysService.CurrentSettings, app.Opt.Webapp.ScssDirPath, app.Log); err != nil {
+	if err = sysService.DefaultStylesheet.GenerateCSS(sysService.CurrentSettings, app.Log); err != nil {
 		return fmt.Errorf("could not generate css for webapps: %w", err)
 	}
 
@@ -1033,13 +1032,8 @@ func updateSmtpSettings(log *zap.Logger, current *types.AppSettings) {
 	setupSmtpDialer(log, current.SMTP.Servers...)
 }
 
-func updateSassInstallSettings(ctx context.Context, sassInstalled bool, log *zap.Logger) {
-	// update dart-sass installed setting
-	err := updateSetting(ctx, "ui.studio.sass-installed", sassInstalled)
-	if err != nil {
-		log.Warn("failed to set ui.studio.sass-installed setting", zap.Error(err))
-	}
-}
+
+
 
 func setupSmtpDialer(log *zap.Logger, servers ...types.SmtpServers) {
 	if len(servers) == 0 {

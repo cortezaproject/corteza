@@ -40,9 +40,11 @@ import Popover from 'primevue/popover'
 import Paginator from 'primevue/paginator'
 import RadioButton from 'primevue/radiobutton'
 import PickList from 'primevue/picklist'
+import ProgressBar from 'primevue/progressbar'
 import ProgressSpinner from 'primevue/progressspinner'
 import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
+import Slider from 'primevue/slider'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'
 import TabPanel from 'primevue/tabpanel'
@@ -101,10 +103,12 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Password', Password)
     app.component('PickList', PickList)
     app.component('Popover', Popover)
+    app.component('ProgressBar', ProgressBar)
     app.component('ProgressSpinner', ProgressSpinner)
     app.component('RadioButton', RadioButton)
     app.component('Select', Select)
     app.component('SelectButton', SelectButton)
+    app.component('Slider', Slider)
     app.component('Tab', Tab)
     app.component('TabList', TabList)
     app.component('TabPanel', TabPanel)

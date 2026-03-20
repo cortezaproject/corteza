@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path"
 
 	"go.uber.org/zap"
 )
@@ -45,7 +44,7 @@ func Files(log *zap.Logger, aPath string) (files fs.FS) {
 func fromPath(path string) (assets fs.FS, err error) {
 	// at least icon file should exist in the custom asset path
 	// otherwise we default to embedded files
-	const check = "icon.png"
+	const check = "icon.svg"
 
 	var (
 		fi os.FileInfo
@@ -68,26 +67,3 @@ func fromPath(path string) (assets fs.FS, err error) {
 	return
 }
 
-func DirEntries(dir string) (fileNames, subDirs []string, err error) {
-	dirEntries, err := fs.ReadDir(ff, path.Join("src", dir))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	for _, dirEntry := range dirEntries {
-		fileInfo, err := dirEntry.Info()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// if the entry is a directory skip it
-		if fileInfo.IsDir() {
-			subDirs = append(subDirs, dirEntry.Name())
-			continue
-		}
-
-		fileNames = append(fileNames, dirEntry.Name())
-	}
-
-	return fileNames, subDirs, err
-}

@@ -102,7 +102,7 @@ func (svc smtpConfigurationChecker) smtpSend(ctx context.Context, recipients []s
 	// if we cannot find an email template
 	if err != nil {
 		ntf.SetHeader("Subject", "SMTP Configuration check")
-		ntf.SetBody("text/html", "<h2 style=\"color: #FF9661;text-align: center;\">SMTP configurations check passed</h2>")
+		ntf.SetBody("text/html", "<h2 style=\"color: #09344E;text-align: center;\">SMTP configurations check passed</h2>")
 
 		err = mail.Send(ntf)
 

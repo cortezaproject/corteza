@@ -1,5 +1,32 @@
 <template>
+  <!-- Multi-select mode -->
+  <MultiSelect
+    v-if="multiple"
+    :model-value="selectedRoles"
+    @update:model-value="onMultiSelect"
+    :options="options"
+    :option-label="getOptionLabel"
+    option-value="roleID"
+    :placeholder="placeholder"
+    :disabled="disabled"
+    :loading="loading"
+    class="w-full"
+    filter
+    fluid
+    display="chip"
+    :pt="{ label: { class: 'flex-wrap' } }"
+    @show="onShow"
+  >
+    <template #option="{ option }">
+      <div class="flex items-center gap-2">
+        <span>{{ getOptionLabel(option) }}</span>
+      </div>
+    </template>
+  </MultiSelect>
+
+  <!-- Single-select mode -->
   <Select
+    v-else
     :model-value="selectedRole"
     @update:model-value="onSelect"
     :options="options"
@@ -26,7 +53,7 @@ import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
-    type: [String, Number],
+    type: [String, Number, Array],
     default: null,
   },
   placeholder: {
@@ -34,6 +61,10 @@ const props = defineProps({
     default: '',
   },
   disabled: {
+    type: Boolean,
+    default: false,
+  },
+  multiple: {
     type: Boolean,
     default: false,
   },
@@ -53,6 +84,7 @@ const $SystemAPI = inject('$SystemAPI')
 
 const options = ref([])
 const selectedRole = ref(null)
+const selectedRoles = ref([])
 const loading = ref(false)
 
 let cancelCurrentRequest = null
@@ -105,6 +137,7 @@ function onShow() {
   }
 }
 
+// --- Single-select handlers ---
 function onSelect(value) {
   selectedRole.value = value
   emit('update:modelValue', value?.roleID || null)
@@ -121,6 +154,13 @@ function onSelect(value) {
   }
 }
 
+// --- Multi-select handlers ---
+function onMultiSelect(roleIDs) {
+  selectedRoles.value = roleIDs || []
+  emit('update:modelValue', selectedRoles.value)
+}
+
+// --- Load role(s) by ID ---
 async function loadRoleById(roleID) {
   if (!roleID || !$SystemAPI) return
   loading.value = true
@@ -137,13 +177,44 @@ async function loadRoleById(roleID) {
   }
 }
 
+async function loadRolesByIds(roleIDs) {
+  if (!roleIDs?.length || !$SystemAPI) return
+  loading.value = true
+  try {
+    // Ensure all roleIDs are in options
+    const missing = roleIDs.filter(id => !options.value.find(r => r.roleID === id))
+    if (missing.length) {
+      const results = await Promise.all(
+        missing.map(roleID => $SystemAPI.roleRead({ roleID }).catch(() => null)),
+      )
+      const loaded = results.filter(Boolean)
+      if (loaded.length) {
+        options.value = [...options.value, ...loaded]
+      }
+    }
+    selectedRoles.value = roleIDs
+  } catch {
+    // ignore
+  } finally {
+    loading.value = false
+  }
+}
+
+// --- Watchers ---
 watch(
   () => props.modelValue,
   newVal => {
-    if (newVal && (!selectedRole.value || selectedRole.value.roleID !== newVal)) {
-      loadRoleById(newVal)
-    } else if (!newVal) {
-      selectedRole.value = null
+    if (props.multiple) {
+      const arr = Array.isArray(newVal) ? newVal : newVal ? [newVal] : []
+      if (JSON.stringify(arr) !== JSON.stringify(selectedRoles.value)) {
+        loadRolesByIds(arr)
+      }
+    } else {
+      if (newVal && (!selectedRole.value || selectedRole.value.roleID !== newVal)) {
+        loadRoleById(newVal)
+      } else if (!newVal) {
+        selectedRole.value = null
+      }
     }
   },
   { immediate: true },
@@ -151,7 +222,12 @@ watch(
 
 onMounted(() => {
   fetchRoles()
-  if (props.modelValue && (!selectedRole.value || selectedRole.value.roleID !== props.modelValue)) {
+  if (props.multiple) {
+    const arr = Array.isArray(props.modelValue) ? props.modelValue : []
+    if (arr.length) {
+      loadRolesByIds(arr)
+    }
+  } else if (props.modelValue && (!selectedRole.value || selectedRole.value.roleID !== props.modelValue)) {
     loadRoleById(props.modelValue)
   }
 })

@@ -1,0 +1,83 @@
+clear: Clear
+description: Description
+enabled: Enabled
+enable: Enable
+disable: Disable
+error: Error
+error-expression: Error message (expression)
+export: Export
+general: General
+handle: Handle
+import:
+  json: Import JSON
+  label: Import
+  reassign-run-as: "NOTE: the Run as workflow property won't be imported and should be reassigned"
+  upload-files: Browse or drop files to upload...
+label:
+  all: All
+  any: Any
+  label: Label
+  or: Or
+loading: Loading
+name: Name
+new-workflow: New Workflow
+none: None
+now: Now
+offset: Offset
+offset-expression: Offset (expression)
+permissions: Permissions
+reset: Reset
+searchPlaceholder: Search workflows
+subworkflow: Subworkflow
+subworkflows: Subworkflows
+deleted: Deleted
+disabled: Disabled
+without: Without
+only: Only
+including: Including
+filter:
+  label: Filter
+  title: Filter Workflows
+  apply: Apply Filter
+  namespace:
+    label: Namespace
+    placeholder: Select namespace(s)
+  module:
+    label: Module
+    placeholder: Select module(s)
+    template: "{{namespace}} - Modules"
+workflow-list: List of Workflows
+workflow:
+  single: Workflow
+  plural: Workflows
+save: Save
+today: Today
+cancel: Cancel
+resourceList:
+  notFound: Not found
+  noItems: No items to show
+  pagination:
+    next: Next
+    prev: Previous
+    showing: '{{from}} - {{to}} of {{count}} {{data}}'
+    single_one: 'One {{data}}'
+    single_other: '{{count}} {{data}}'
+    recordsPerPage: Per Page
+
+tooltip:
+  permissions: Workflow permissions
+columns:
+  name: Name
+  enabled: Enabled
+  steps: Steps
+  changedAt: Last change
+
+themes:
+  labels:
+    light: Light
+    dark: Dark
+
+extendSession:
+  labels:
+    extend: Extend Session
+    warning: You will be logged out in {{ countdownTime }} seconds

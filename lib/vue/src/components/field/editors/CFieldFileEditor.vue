@@ -5,13 +5,14 @@
     :multiple="field.isMulti"
     :accept="field.options?.mimetypes || ''"
     :max-file-size="field.options?.maxSize || 0"
+    :attachment-info="attachmentInfo"
     @update:model-value="$emit('update:modelValue', $event)"
     @stage-files="onStageFiles"
   />
 </template>
 
 <script setup>
-import { computed, inject, onUnmounted } from 'vue'
+import { computed, inject, onUnmounted, reactive, watch } from 'vue'
 import CInputFile from '../../input/CInputFile.vue'
 
 const props = defineProps({
@@ -41,7 +42,35 @@ const normalizedValue = computed(() => {
   return []
 })
 
+const $ComposeAPI = inject('$ComposeAPI', null)
 const $fileUploadContext = inject('$fileUploadContext', null)
+const attachmentInfo = reactive({})
+
+// Resolve attachment details for display
+async function resolveAttachments(ids) {
+  if (!$ComposeAPI || !props.namespace?.namespaceID) return
+
+  for (const id of ids) {
+    if (attachmentInfo[id]) continue
+    try {
+      const att = await $ComposeAPI.attachmentRead({
+        kind: 'record',
+        namespaceID: props.namespace.namespaceID,
+        attachmentID: id,
+      })
+      const baseURL = $ComposeAPI.baseURL || ''
+      attachmentInfo[id] = {
+        name: att.name,
+        size: att.meta?.original?.size || 0,
+        downloadUrl: att.url ? baseURL + att.url : '',
+      }
+    } catch (e) {
+      // If we can't resolve, leave it as ID
+    }
+  }
+}
+
+watch(normalizedValue, (ids) => resolveAttachments(ids), { immediate: true })
 
 function onStageFiles(files) {
   if ($fileUploadContext) {
@@ -59,3 +88,4 @@ onUnmounted(() => {
   }
 })
 </script>
+

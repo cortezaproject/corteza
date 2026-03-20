@@ -38,7 +38,7 @@ templates:
                             </tr>
                             <tr>
                               <td style="padding:30px;border-top: 1px solid #E4E9EF">
-                                <p>If you have any questions, please contact <a href="mailto:{{ .SignatureEmail }}" style="color:#FF9661;">{{ .SignatureEmail }}</a>.</p>
+                                <p>If you have any questions, please contact <a href="mailto:{{ .SignatureEmail }}" style="color:#09344E;">{{ .SignatureEmail }}</a>.</p>
                                 <p>Kind regards, <br>
                                 {{ .SignatureName }}</p>
                               </td>
@@ -59,5 +59,5 @@ templates:
     partial: true
     template: "<table width=\"800\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin: 0 auto;\">\n  <thead>\n    <tr>\n      <th>Field</th>\n      <th>Value</th>\n    </tr>\n  </thead>\n  <tbody>\n{{range $key, $value := .values}}\n    <tr>\n      <td>{{ $key }}</td>\n{{if $value }}\n  {{if typeIs \"[]interface {}\" $value}}\n      <td>{{ $value | join \", \"  }}</td>\n  {{else}}\n      <td>{{ $value }}</td>\n  {{end}}\n{{else}}\n      <td>&nbsp;</td>\n{{end}}\n    </tr>\n{{end}}\n    \n  </tbody>\n</table>\n"
     meta:
-        short: Tablefy Record
-        description: Displays the provided record as a table.
+      short: Tablefy Record
+      description: Displays the provided record as a table.

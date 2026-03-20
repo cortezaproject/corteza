@@ -1,38 +1,33 @@
 package service
 
 import (
-    "fmt"
-    "github.com/bep/godartsass/v2"
-    "github.com/cespare/xxhash/v2"
-    "github.com/cortezaproject/corteza/server/pkg/sass"
-    "github.com/cortezaproject/corteza/server/system/types"
-    "go.uber.org/zap"
-    "strings"
+	"github.com/bep/godartsass/v2"
+	"github.com/cespare/xxhash/v2"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
+	"github.com/cortezaproject/corteza/server/system/types"
+	"go.uber.org/zap"
+	"strings"
 )
 
 type (
-    stylesheet struct {
-        transpiler *godartsass.Transpiler
-        logger     *zap.Logger
-    }
+	stylesheet struct {
+		transpiler *godartsass.Transpiler
+		logger     *zap.Logger
+	}
 )
 
 func Stylesheet(transpiler *godartsass.Transpiler, logger *zap.Logger) *stylesheet {
-    return &stylesheet{
-        transpiler: transpiler,
-        logger:     logger,
-    }
+	return &stylesheet{
+		transpiler: transpiler,
+		logger:     logger,
+	}
 }
 
-// GenerateCSS takes care of creating CSS for webapps by reading SASS content from embedded assets,
-// combining it with different themeSASS and customCSS themes, and then transpiling it using the dart-sass compiler.
+// GenerateCSS takes care of creating CSS for webapps by reading theme variables
+// and custom CSS from settings, then transpiling with dart-sass.
 //
-// If dart sass isn't installed on the host machine, it will default to css content from the minified-custom.css which is
-// generated from [Boostrap, bootstrap-vue and custom variables sass content].
-// If dart isn't installed on the host machine, customCustom css will continue to function, but without sass support.
-//
-// In case of an error, it will return default css and log out the error
-func (svc *stylesheet) GenerateCSS(settings *types.AppSettings, sassDirPath string, log *zap.Logger) (err error) {
+// If dart sass isn't installed, custom CSS is stored as-is without SCSS support.
+func (svc *stylesheet) GenerateCSS(settings *types.AppSettings, log *zap.Logger) (err error) {
 	var (
 		studio       = settings.UI.Studio
 		customCSSMap = make(map[string]string)
@@ -42,29 +37,23 @@ func (svc *stylesheet) GenerateCSS(settings *types.AppSettings, sassDirPath stri
 		customCSSMap[customCSS.ID] = customCSS.Values
 	}
 
-	sass.DefaultCSS(log, customCSSMap[sass.GeneralTheme])
-
 	if studio.Themes == nil && studio.CustomCSS == nil {
 		return
 	}
 
-	// if dart sass is not installed, or when the sass transpiler creation and startup process fails.
-	if !studio.SassInstalled {
+	// if dart sass is not installed, store custom CSS as-is
+	if svc.transpiler == nil {
+		generalCSS := customCSSMap[sass.GeneralTheme]
+		if generalCSS != "" {
+			sass.StylesheetCache.Set("custom", generalCSS)
+		}
 		return
 	}
 
 	// transpile sass to css for each theme
 	for _, theme := range studio.Themes {
-		if studio.CustomCSS == nil {
-            err := sass.Transpile(svc.transpiler, log, theme.ID, theme.Values, "", sassDirPath)
-			if err != nil {
-				continue
-			}
-		}
-
 		customCSS := processCustomCSS(theme.ID, customCSSMap)
-		// transpile sass to css
-        err := sass.Transpile(svc.transpiler, log, theme.ID, theme.Values, customCSS, sassDirPath)
+		err := sass.Transpile(svc.transpiler, log, theme.ID, theme.Values, customCSS)
 		if err != nil {
 			continue
 		}
@@ -73,38 +62,42 @@ func (svc *stylesheet) GenerateCSS(settings *types.AppSettings, sassDirPath stri
 	return
 }
 
-func (svc *stylesheet) SassInstalled() bool {
-    return svc.transpiler != nil
-}
-// processCustomCSS, processes CustomCSS input and gives priority to theme specific customCSS
+
+
+
+// processCustomCSS processes CustomCSS input and gives priority to theme specific customCSS
+// Light theme: general CSS + light-specific CSS (no wrapper)
+// Dark theme: only dark-specific CSS wrapped in .dark { }
 func processCustomCSS(themeID string, customCSSMap map[string]string) (customCSS string) {
 	var stringsBuilder strings.Builder
 
-	// add theme mode on customCSS
 	if themeID == sass.DarkTheme {
-		stringsBuilder.WriteString(fmt.Sprintf("\n[data-color-mode=\"%s\"] {\n", themeID))
-	}
-
-	stringsBuilder.WriteString(customCSSMap[sass.GeneralTheme])
-	stringsBuilder.WriteString("\n")
-	stringsBuilder.WriteString(customCSSMap[themeID])
-
-	if themeID == sass.DarkTheme {
-		stringsBuilder.WriteString("}\n")
+		// Dark: only dark-specific CSS, nested in .dark { }
+		darkCSS := customCSSMap[themeID]
+		if darkCSS != "" {
+			stringsBuilder.WriteString(".dark {\n")
+			stringsBuilder.WriteString(darkCSS)
+			stringsBuilder.WriteString("\n}\n")
+		}
+	} else {
+		// Light: general CSS first, then light-specific CSS
+		stringsBuilder.WriteString(customCSSMap[sass.GeneralTheme])
+		stringsBuilder.WriteString("\n")
+		stringsBuilder.WriteString(customCSSMap[themeID])
 	}
 
 	return stringsBuilder.String()
 }
 
-// updateCSS, updates theme css when ui.studio.themes or ui.studio.custom-css settings are updated
-func (svc *stylesheet) updateCSS(current, old, compStyles *types.SettingValue, name, sassDirPath string, log *zap.Logger) {
+// updateCSS updates theme css when ui.studio.themes or ui.studio.custom-css settings are updated
+func (svc *stylesheet) updateCSS(current, old, compStyles *types.SettingValue, name string, log *zap.Logger) {
 	complimentaryStylesMap := themeMap(compStyles)
 	oldThemesMap := themeMap(old)
 	currentThemesMap := themeMap(current)
 
 	transpileSASS := func(themeID, themeSASS string, themeCustomCSS map[string]string) {
 		customCSS := processCustomCSS(themeID, themeCustomCSS)
-        err := sass.Transpile(svc.transpiler, log, themeID, themeSASS, customCSS, sassDirPath)
+		err := sass.Transpile(svc.transpiler, log, themeID, themeSASS, customCSS)
 		if err != nil {
 			log.Error("failed to transpile sass to css", zap.Error(err))
 		}
@@ -153,29 +146,28 @@ func themeMap(settingsValue *types.SettingValue) (themeMap map[string]string) {
 	return themeMap
 }
 
+// FetchCSS returns the compiled CSS for all themes
 func FetchCSS() string {
-	var (
-		stringsBuilder strings.Builder
-		rootLight      = sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionRoot, sass.LightTheme))
-	)
+	var stringsBuilder strings.Builder
 
-	if rootLight == "" {
-		return sass.StylesheetCache.Get("default-theme")
+	// Check if we have transpiled theme CSS
+	lightCSS := sass.StylesheetCache.Get(sass.LightTheme)
+	darkCSS := sass.StylesheetCache.Get(sass.DarkTheme)
+
+	if lightCSS == "" && darkCSS == "" {
+		// No transpiled CSS, return raw custom CSS if available
+		return sass.StylesheetCache.Get("custom")
 	}
 
-	// root css section
-	stringsBuilder.WriteString(rootLight)
-	stringsBuilder.WriteString("\n")
-	stringsBuilder.WriteString(sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionRoot, sass.DarkTheme)))
-	stringsBuilder.WriteString("\n")
+	if lightCSS != "" {
+		stringsBuilder.WriteString(lightCSS)
+		stringsBuilder.WriteString("\n")
+	}
 
-	//theme css section
-	stringsBuilder.WriteString(sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionTheme, sass.DarkTheme)))
-	stringsBuilder.WriteString("\n")
-
-	// body css section
-	stringsBuilder.WriteString(sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionMain, sass.LightTheme)))
-	stringsBuilder.WriteString("\n")
+	if darkCSS != "" {
+		stringsBuilder.WriteString(darkCSS)
+		stringsBuilder.WriteString("\n")
+	}
 
 	return stringsBuilder.String()
 }

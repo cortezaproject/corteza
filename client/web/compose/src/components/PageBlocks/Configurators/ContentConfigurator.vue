@@ -1,21 +1,19 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.content.label') }}</label>
-      <Textarea
-        v-model="body"
-        rows="12"
-        class="w-full font-mono text-sm"
-        :placeholder="$t('block.content.placeholder')"
-      />
+    <div class="flex flex-col gap-1 border border-surface rounded-border">
+      <CRichTextInput v-model="body" class="w-full" />
     </div>
 
     <small class="text-muted-color">
       {{ $t('block.content.interpolationFootnote') }}
-      <code>${record.values.fieldName}</code>,
-      <code>${recordID}</code>,
-      <code>${ownerID}</code>,
-      <code>${userID}</code>,
+      <code>${record.values.fieldName}</code>
+      ,
+      <code>${recordID}</code>
+      ,
+      <code>${ownerID}</code>
+      ,
+      <code>${userID}</code>
+      ,
       <code>${user.name}</code>
     </small>
   </div>
@@ -23,6 +21,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { components } from '@cortezaproject/corteza-vue-next'
+
+const { CRichTextInput } = components
 
 const props = defineProps({
   block: { type: Object, required: true },

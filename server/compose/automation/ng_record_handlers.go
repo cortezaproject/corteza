@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 )
 
 type (
@@ -345,6 +346,7 @@ func (h ngRecordsHandler) register() {
 	h.reg.AddFunctions(
 		h.Lookup(),
 		h.Create(),
+		h.Each(),
 	)
 }
 
@@ -790,6 +792,278 @@ func (h ngRecordsHandler) lookupRecord(ctx context.Context, args recordLookup) (
 	record, _, err = h.rec.FindByID(ctx, namespace.ID, module.ID, recordID)
 	return
 }
+
+func (h ngRecordsHandler) Each() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsEach",
+		Kind:   "iterator",
+		Groups: []string{"Loops"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short:       "Each Record",
+			Description: "Iterate over records matching a query",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "refresh"},
+		},
+
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+
+		Parameters: []*atypes.Param{
+			{
+				ArgumentName: "namespace",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				ArgumentName: "module",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to iterate records from",
+					Description: "Records are fetched from the specified module.",
+				},
+			},
+			{
+				ArgumentName: "query",
+				Types:        []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Filter query",
+					Description: "Optional filter string to match records.",
+				},
+			},
+			{
+				ArgumentName: "sort",
+				Types:        []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Sort",
+					Description: "Sort expression (e.g. \"createdAt DESC\").",
+				},
+			},
+			{
+				ArgumentName: "limit",
+				Types:        []string{"Integer"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Limit",
+					Description: "Maximum number of records to iterate.",
+				},
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				ArgumentName: "record",
+				Types:        []string{"ComposeRecord"},
+			},
+			{
+				ArgumentName: "index",
+				Types:        []string{"Integer"},
+			},
+			{
+				ArgumentName: "total",
+				Types:        []string{"Integer"},
+			},
+		},
+
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:        "String",
+						Label:       "Query",
+						Argument:    "query",
+						Placeholder: "Filter expression",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:        "String",
+						Label:       "Sort",
+						Argument:    "sort",
+						Placeholder: "createdAt DESC",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:        "Number",
+						Label:       "Limit",
+						Argument:    "limit",
+						Placeholder: "0 (no limit)",
+					},
+				}},
+			}},
+		}},
+
+		Iterator: func(ctx context.Context, in *expr.Vars) (wfexec.IteratorHandler, error) {
+			var (
+				i = &recordSetIterator{}
+				f = types.RecordFilter{}
+			)
+
+			// Resolve namespace + module
+			type nsModArgs struct {
+				hasNamespace    bool
+				namespaceID     uint64
+				namespaceHandle string
+				namespaceRes    *types.Namespace
+
+				hasModule    bool
+				moduleID     uint64
+				moduleHandle string
+				moduleRes    *types.Module
+			}
+			args := &nsModArgs{
+				hasNamespace: in.Has("namespace"),
+				hasModule:    in.Has("module"),
+			}
+
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Resolve namespace
+			var namespace *types.Namespace
+			if args.namespaceRes != nil {
+				namespace = args.namespaceRes
+			} else if args.namespaceID > 0 {
+				ns, err := h.ns.FindByID(ctx, args.namespaceID)
+				if err != nil {
+					return nil, fmt.Errorf("could not load namespace: %w", err)
+				}
+				namespace = ns
+			} else if args.namespaceHandle != "" {
+				ns, err := h.ns.FindByHandle(ctx, args.namespaceHandle)
+				if err != nil {
+					return nil, fmt.Errorf("could not load namespace: %w", err)
+				}
+				namespace = ns
+			} else {
+				return nil, fmt.Errorf("namespace is required")
+			}
+
+			// Resolve module
+			var module *types.Module
+			if args.moduleRes != nil {
+				module = args.moduleRes
+			} else if args.moduleID > 0 {
+				mod, err := h.mod.FindByID(ctx, namespace.ID, args.moduleID)
+				if err != nil {
+					return nil, fmt.Errorf("could not load module: %w", err)
+				}
+				module = mod
+			} else if args.moduleHandle != "" {
+				mod, err := h.mod.FindByHandle(ctx, namespace.ID, args.moduleHandle)
+				if err != nil {
+					return nil, fmt.Errorf("could not load module: %w", err)
+				}
+				module = mod
+			} else {
+				return nil, fmt.Errorf("module is required")
+			}
+
+			f.ModuleID = module.ID
+			f.NamespaceID = namespace.ID
+			f.IncTotal = true
+
+			// Optional: query
+			if in.Has("query") {
+				v := expr.Must(expr.Select(in, "query"))
+				s, err := expr.CastToString(v.Get())
+				if err != nil {
+					return nil, fmt.Errorf("each: invalid query: %w", err)
+				}
+				f.Query = s
+			}
+
+			// Optional: sort
+			if in.Has("sort") {
+				v := expr.Must(expr.Select(in, "sort"))
+				s, err := expr.CastToString(v.Get())
+				if err != nil {
+					return nil, fmt.Errorf("each: invalid sort: %w", err)
+				}
+				if err = f.Sort.Set(s); err != nil {
+					return nil, fmt.Errorf("each: invalid sort expression: %w", err)
+				}
+			}
+
+			// Optional: limit
+			if in.Has("limit") {
+				v := expr.Must(expr.Select(in, "limit"))
+				lim, err := expr.CastToInteger(v.Get())
+				if err != nil {
+					return nil, fmt.Errorf("each: invalid limit: %w", err)
+				}
+				if lim > 0 {
+					i.useIterLimit = true
+					i.iterLimit = uint(lim)
+					f.Limit = uint(lim)
+					if lim > int64(wfexec.MaxIteratorBufferSize) {
+						f.Limit = wfexec.MaxIteratorBufferSize
+					}
+				}
+			}
+
+			if f.Limit == 0 {
+				f.Limit = wfexec.MaxIteratorBufferSize
+			}
+
+			i.filter = f
+			i.loader = func() (err error) {
+				if i.filter.PageCursor != nil && i.filter.NextPage == nil {
+					return
+				}
+
+				i.total += i.ptr
+				i.ptr = 0
+
+				i.filter.PageCursor = i.filter.NextPage
+				i.filter.NextPage = nil
+				i.buffer, i.filter, err = h.rec.Find(ctx, i.filter)
+
+				return
+			}
+
+			// Initial load
+			return i, i.loader()
+		},
+	}
+}
+
+// ngRecordSetIterator wraps recordSetIterator to use the Ng type registry
+// (reuses the existing recordSetIterator from the old workflow system)
 
 func (h ngRecordsHandler) loadCombo(ctx context.Context, args interface{}) (namespace *types.Namespace, module *types.Module, err error) {
 	if lkp, is := args.(namespaceLookup); is {

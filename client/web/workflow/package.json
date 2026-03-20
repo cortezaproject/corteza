@@ -1,0 +1,21 @@
+{
+  "name": "corteza-webapp-workflow",
+  "version": "2026.3.0-dev.4",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "@cortezaproject/corteza-js-next": "workspace:*",
+    "@cortezaproject/corteza-vue-next": "workspace:*",
+    "file-saver": "^2.0.5",
+    "mitt": "^3.0.1",
+    "mxgraph": "^4.2.0"
+  }
+}

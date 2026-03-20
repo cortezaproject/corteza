@@ -29,7 +29,18 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1">
+    <div class="container mx-auto p-4 flex-1 overflow-auto">
+      <div v-if="isEdit && namespace?.canExportNamespace" class="flex justify-end gap-2 mb-4">
+        <Button
+          :label="$t('namespace.export')"
+          icon="pi pi-download"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="exportNamespace"
+        />
+      </div>
+
       <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
         <template #content>
           <div class="flex flex-col gap-5 p-5">
@@ -165,6 +176,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
+const $ComposeAPI = inject('$ComposeAPI')
 const namespaceStore = useNamespaceStore()
 
 // State
@@ -301,6 +313,17 @@ function visitNamespace() {
     name: 'namespace.view',
     params: { slug: namespace.value.slug || namespace.value.namespaceID },
   })
+}
+
+function exportNamespace() {
+  const params = {
+    namespaceID: namespace.value.namespaceID,
+    filename: encodeURIComponent((namespace.value.name || 'namespace').replace(/\./g, '-')),
+  }
+
+  const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
+  const exportUrl = `${$ComposeAPI.baseURL}${$ComposeAPI.namespaceExportEndpoint(params)}?jwt=${encodeURIComponent(token)}`
+  window.open(exportUrl)
 }
 
 // Lifecycle

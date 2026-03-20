@@ -147,7 +147,7 @@ async function fetchList() {
   loading.value = true
   try {
     const result = await $SystemAPI.llmProviderList({})
-    items.value = result || []
+    items.value = result?.set || result || []
   } catch (e) {
     $toast.toastErrorHandler(t('notification.llmProvider.fetch.error'))(e)
     items.value = []

@@ -23,8 +23,8 @@
               <Tab value="exec">{{ $t('agent.editor.tabs.exec') }}</Tab>
             </TabList>
 
-            <TabPanels class="flex-1 overflow-auto min-h-0 p-0">
-              <TabPanel value="config" class="h-full p-4 flex flex-col gap-4">
+            <TabPanels class="flex-1 min-h-0 p-0">
+              <TabPanel value="config" class="h-full p-4 flex flex-col gap-4 overflow-auto">
                 <Panel :header="$t('agent.editor.panels.general')" toggleable>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1">
@@ -67,6 +67,110 @@
                         optionValue="value"
                       />
                       <small class="text-muted-color">{{ $t('agent.editor.status.help') }}</small>
+                    </div>
+                  </div>
+                </Panel>
+
+                <Panel :header="$t('agent.editor.panels.execution')" toggleable>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                      <label for="provider" class="font-medium text-primary">
+                        {{ $t('agent.editor.provider.label') }}
+                      </label>
+                      <CInputLLM id="provider" v-model="agent.execution.model.llmProviderID" />
+                      <small class="text-muted-color">{{ $t('agent.editor.provider.help') }}</small>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <label for="model" class="font-medium text-primary">
+                        {{ $t('agent.editor.model.label') }}
+                      </label>
+                      <CInputModel
+                        id="model"
+                        v-model="agent.execution.model.model"
+                        :llmProviderID="agent.execution.model.llmProviderID"
+                      />
+                      <small class="text-muted-color">{{ $t('agent.editor.model.help') }}</small>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <label for="temperature" class="font-medium text-primary">
+                        {{ $t('agent.editor.temperature.label') }} ({{
+                          agent.execution.model.temperature
+                        }})
+                      </label>
+                      <small class="text-muted-color">
+                        {{ $t('agent.editor.temperature.help') }}
+                      </small>
+                      <Slider
+                        id="temperature"
+                        v-model="agent.execution.model.temperature"
+                        :min="0"
+                        :max="1"
+                        :step="0.1"
+                        class="w-full mt-2"
+                      />
+                    </div>
+
+                    <!-- Execution limits -->
+                    <div class="md:col-span-2">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex flex-col gap-1">
+                          <label for="maxIterations" class="font-medium text-primary">
+                            {{ $t('agent.editor.maxIterations.label') }}
+                          </label>
+                          <InputNumber
+                            id="maxIterations"
+                            v-model="agent.execution.limits.maxIterations"
+                            mode="decimal"
+                            :useGrouping="false"
+                            :min="1"
+                            :max="50"
+                          />
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.maxIterations.help') }}
+                          </small>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="contextWindow" class="font-medium text-primary">
+                            {{ $t('agent.editor.contextWindow.label') }}
+                          </label>
+                          <InputNumber
+                            id="contextWindow"
+                            v-model="agent.execution.limits.contextWindow"
+                            mode="decimal"
+                            :useGrouping="false"
+                          />
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.contextWindow.help') }}
+                          </small>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="outputTokens" class="font-medium text-primary">
+                            {{ $t('agent.editor.outputTokens.label') }}
+                          </label>
+                          <InputNumber
+                            id="outputTokens"
+                            v-model="agent.execution.limits.outputTokens"
+                            mode="decimal"
+                            :useGrouping="false"
+                          />
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.outputTokens.help') }}
+                          </small>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="timeout" class="font-medium text-primary">
+                            {{ $t('agent.editor.timeout.label') }}
+                          </label>
+                          <InputText
+                            id="timeout"
+                            v-model="agent.execution.limits.timeout"
+                            placeholder="30s"
+                          />
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.timeout.help') }}
+                          </small>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Panel>
@@ -131,175 +235,181 @@
                   </div>
                 </Panel>
 
-                <Panel :header="$t('agent.editor.panels.knowledgeBase')" toggleable>
-                  <div class="grid grid-cols-1 gap-4">
-                    <div
-                      class="w-full md:w-1/2 flex items-start gap-3 p-3 border border-surface rounded-lg"
-                    >
-                      <div class="flex flex-col gap-0.5 flex-1">
-                        <label
-                          for="injectSystemContext"
-                          class="font-medium text-primary cursor-pointer"
-                        >
-                          {{ $t('agent.editor.injectSystemContext.label') }}
-                        </label>
+                <Panel :header="$t('agent.editor.panels.tcl')" toggleable>
+                  <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors">
+                      <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+                        <span class="font-medium text-primary">
+                          {{ $t('agent.editor.tcl.enabledLabel') }}
+                        </span>
                         <small class="text-muted-color">
-                          {{ $t('agent.editor.injectSystemContext.help') }}
+                          {{ $t('agent.editor.tcl.enabledHelp') }}
                         </small>
                       </div>
-                      <ToggleSwitch
-                        v-model="agent.behavior.injectSystemContext"
-                        inputId="injectSystemContext"
-                        class="shrink-0"
-                      />
+                      <ToggleSwitch v-model="agent.behavior.treatyCLEnabled" class="shrink-0" />
                     </div>
+
+                    <template v-if="agent.behavior.treatyCLEnabled">
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.tcl.temperature.label') }} ({{
+                            agent.behavior.tclTemperature
+                          }})
+                        </label>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.tcl.temperature.help') }}
+                        </small>
+                        <Slider
+                          v-model="agent.behavior.tclTemperature"
+                          :min="1"
+                          :max="10"
+                          :step="1"
+                          class="w-full mt-2"
+                        />
+                      </div>
+
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.tcl.articles.label') }}
+                        </label>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.tcl.articles.help') }}
+                        </small>
+                      </div>
+
+                      <div
+                        v-for="group in tclSortedArticleGroups"
+                        :key="group.treatyLabel"
+                        class="flex flex-col gap-2 mt-2"
+                      >
+                        <span class="text-sm font-semibold text-muted-color uppercase tracking-wide">
+                          {{ group.treatyLabel }}
+                        </span>
+                        <div
+                          v-for="article in group.items"
+                          :key="article.id"
+                          class="flex items-center gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
+                        >
+                          <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <span class="font-medium text-color text-sm">
+                              {{ article.label }}
+                            </span>
+                            <small v-if="article.interpretation" class="text-xs text-muted-color">
+                              {{ article.interpretation }}
+                            </small>
+                          </div>
+                          <ToggleSwitch
+                            v-if="!article.hardwired"
+                            :modelValue="agent.behavior.tclArticles.includes(article.id)"
+                            class="shrink-0"
+                            @update:modelValue="toggleTclArticle(article.id, $event)"
+                          />
+                        </div>
+                      </div>
+                    </template>
                   </div>
                 </Panel>
 
-                <Panel :header="$t('agent.editor.panels.execution')" toggleable>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Panel :header="$t('agent.editor.panels.knowledgeBase')" toggleable>
+                  <div class="flex flex-col gap-3">
                     <div class="flex flex-col gap-1">
-                      <label for="provider" class="font-medium text-primary">
-                        {{ $t('agent.editor.provider.label') }}
+                      <label class="font-medium text-primary">
+                        {{ $t('agent.editor.knowledgeBases.label') }}
                       </label>
-                      <CInputLLM id="provider" v-model="agent.execution.model.llmProviderID" />
-                      <small class="text-muted-color">{{ $t('agent.editor.provider.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="model" class="font-medium text-primary">
-                        {{ $t('agent.editor.model.label') }}
-                      </label>
-                      <CInputModel
-                        id="model"
-                        v-model="agent.execution.model.model"
-                        :llmProviderID="agent.execution.model.llmProviderID"
-                      />
-                      <small class="text-muted-color">{{ $t('agent.editor.model.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="temperature" class="font-medium text-primary">
-                        {{ $t('agent.editor.temperature.label') }} ({{
-                          agent.execution.model.temperature
-                        }})
-                      </label>
-                      <Slider
-                        id="temperature"
-                        v-model="agent.execution.model.temperature"
-                        :min="0"
-                        :max="1"
-                        :step="0.1"
-                        class="w-full mt-2"
-                      />
                       <small class="text-muted-color">
-                        {{ $t('agent.editor.temperature.help') }}
+                        {{ $t('agent.editor.knowledgeBases.help') }}
                       </small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="maxTokens" class="font-medium text-primary">
-                        {{ $t('agent.editor.maxTokens.label') }}
-                      </label>
-                      <InputNumber
-                        id="maxTokens"
-                        v-model="agent.execution.model.maxTokens"
-                        mode="decimal"
-                        :useGrouping="false"
+                      <CInputKnowledgeBase
+                        v-model="agent.behavior.knowledgeBases"
+                        :placeholder="$t('agent.editor.knowledgeBases.placeholder')"
+                        :create-label="$t('agent.editor.knowledgeBases.createNew')"
+                        :create-dialog-label="$t('agent.editor.knowledgeBases.dialogCreate')"
+                        :edit-label="$t('agent.editor.knowledgeBases.dialogEdit')"
+                        :title-label="$t('agent.editor.knowledgeBases.title')"
+                        :description-label="$t('agent.editor.knowledgeBases.description')"
+                        :description-help="$t('agent.editor.knowledgeBases.descriptionHelp')"
+                        :compose-context-label="$t('agent.editor.knowledgeBases.composeContext')"
+                        :namespace-placeholder="
+                          $t('agent.editor.knowledgeBases.namespacePlaceholder')
+                        "
+                        :modules-placeholder="$t('agent.editor.knowledgeBases.modulesPlaceholder')"
+                        :add-namespace-label="$t('agent.editor.knowledgeBases.addNamespace')"
+                        :save-label="$t('general.label.save')"
+                        :cancel-label="$t('general.label.cancel')"
                       />
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.maxTokens.help') }}
-                      </small>
                     </div>
 
-                    <!-- Execution limits -->
-                    <div class="md:col-span-2 border-t border-surface pt-4 mt-2">
-                      <p class="font-medium text-primary mb-3">
-                        {{ $t('agent.editor.limits.label') }}
-                      </p>
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="flex flex-col gap-1">
-                          <label for="maxIterations" class="text-sm text-muted-color">
-                            {{ $t('agent.editor.maxIterations.label') }}
-                          </label>
-                          <InputNumber
-                            id="maxIterations"
-                            v-model="agent.execution.limits.maxIterations"
-                            mode="decimal"
-                            :useGrouping="false"
-                            :min="1"
-                            :max="50"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.maxIterations.help') }}
-                          </small>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="totalMaxTokens" class="text-sm text-muted-color">
-                            {{ $t('agent.editor.totalMaxTokens.label') }}
-                          </label>
-                          <InputNumber
-                            id="totalMaxTokens"
-                            v-model="agent.execution.limits.maxTokens"
-                            mode="decimal"
-                            :useGrouping="false"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.totalMaxTokens.help') }}
-                          </small>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="timeout" class="text-sm text-muted-color">
-                            {{ $t('agent.editor.timeout.label') }}
-                          </label>
-                          <InputText
-                            id="timeout"
-                            v-model="agent.execution.limits.timeout"
-                            placeholder="30s"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.timeout.help') }}
-                          </small>
-                        </div>
+                    <!-- System Context as a KB-style entry in the list -->
+                    <div
+                      class="flex items-center gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
+                      :class="{ 'opacity-50': !agent.behavior.injectSystemContext }"
+                    >
+                      <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+                        <span class="font-medium text-color text-sm">
+                          {{ $t('agent.editor.injectSystemContext.label') }}
+                        </span>
+                        <small class="text-muted-color text-xs">
+                          {{ $t('agent.editor.injectSystemContext.help') }}
+                        </small>
                       </div>
+                      <ToggleSwitch v-model="agent.behavior.injectSystemContext" class="shrink-0" />
                     </div>
                   </div>
                 </Panel>
                 <Panel :header="$t('agent.editor.panels.tools')" toggleable>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2 pt-2">
-                      <div class="flex flex-col gap-1 mb-2">
-                        <label class="font-medium text-primary">
-                          {{ $t('agent.editor.tools.label') }}
-                        </label>
-                        <small class="text-muted-color">{{ $t('agent.editor.tools.help') }}</small>
-                      </div>
-                      <DataTable
-                        v-model:selection="selectedTools"
-                        :value="availableTools"
-                        :loading="loadingTools"
-                        dataKey="name"
-                        class="border border-surface rounded overflow-hidden"
+                  <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1">
+                      <label class="font-medium text-primary">
+                        {{ $t('agent.editor.tools.label') }}
+                      </label>
+                      <small class="text-muted-color">{{ $t('agent.editor.tools.help') }}</small>
+                    </div>
+
+                    <Select
+                      v-model="toolPickerSelection"
+                      :options="unselectedTools"
+                      option-label="description"
+                      :placeholder="$t('agent.editor.tools.selectPlaceholder')"
+                      :loading="loadingTools"
+                      class="w-full"
+                      filter
+                      fluid
+                      showClear
+                      @update:model-value="onToolPickerSelect"
+                    >
+                      <template #option="{ option }">
+                        <span>{{ option.description || option.name }}</span>
+                      </template>
+                    </Select>
+
+                    <div v-if="selectedTools.length" class="flex flex-col gap-2">
+                      <div
+                        v-for="tool in selectedTools"
+                        :key="tool.name"
+                        class="flex items-start gap-3 p-3 border border-surface rounded-lg"
                       >
-                        <template #empty>
-                          <div class="text-center text-muted-color py-4">
-                            {{ $t('agent.editor.tools.noTools') }}
-                          </div>
-                        </template>
-                        <Column selectionMode="multiple" headerStyle="width: 3rem" />
-                        <Column
-                          field="description"
-                          :header="$t('agent.editor.tools.toolDescription')"
+                        <div class="flex flex-col gap-1 flex-1 min-w-0">
+                          <span class="font-medium text-color text-sm truncate">
+                            {{ tool.description || tool.name }}
+                          </span>
+                          <InputText
+                            :modelValue="getToolHints(tool.name)"
+                            @update:modelValue="setToolHints(tool.name, $event)"
+                            class="w-full mt-1"
+                            size="small"
+                            :placeholder="$t('agent.editor.tools.hintPlaceholder')"
+                          />
+                        </div>
+                        <Button
+                          icon="pi pi-trash"
+                          severity="danger"
+                          text
+                          rounded
+                          size="small"
+                          class="shrink-0"
+                          @click="removeTool(tool)"
                         />
-                        <Column :header="$t('agent.editor.tools.toolHints')">
-                          <template #body="{ data }">
-                            <InputText
-                              :modelValue="getToolHints(data.name)"
-                              @update:modelValue="setToolHints(data.name, $event)"
-                              class="w-full"
-                              size="small"
-                              :disabled="!selectedTools.some(t => t.name === data.name)"
-                            />
-                          </template>
-                        </Column>
-                      </DataTable>
+                      </div>
                     </div>
                   </div>
                 </Panel>
@@ -475,8 +585,31 @@
                       {{ $t('agent.editor.playground.emptyTrace') }}
                     </div>
 
+                    <!-- Context section -->
+                    <div v-if="activeConversation.context" class="p-3 pb-0">
+                      <Panel
+                        toggleable
+                        :collapsed="!contextExpanded"
+                        @toggle="contextExpanded = !contextExpanded"
+                      >
+                        <template #header>
+                          <div class="flex items-center gap-2">
+                            <i class="pi pi-book text-muted-color" />
+                            {{ $t('agent.editor.playground.traceContext') }}
+                          </div>
+                        </template>
+                        <pre
+                          class="text-xs font-mono bg-surface-ground rounded px-2.5 py-2 overflow-x-auto max-h-60 whitespace-pre-wrap break-all text-color"
+                          >{{ activeConversation.context }}</pre
+                        >
+                      </Panel>
+                    </div>
+
                     <!-- Card-based trace view -->
-                    <div v-else class="p-3 flex flex-col gap-4">
+                    <div
+                      v-if="activeConversation.traceHistory.length"
+                      class="p-3 flex flex-col gap-4"
+                    >
                       <div
                         v-for="(traceEntry, tIdx) in activeConversation.traceHistory"
                         :key="'t' + tIdx"
@@ -558,10 +691,10 @@
                                 </span>
 
                                 <span
-                                  v-if="decision.usage?.totalTokens"
+                                  v-if="decision.usage?.contextWindow"
                                   class="ml-auto text-xs text-muted-color"
                                 >
-                                  {{ decision.usage.totalTokens }}
+                                  {{ decision.usage.contextWindow }}
                                   {{ $t('agent.editor.playground.traceTokens') }}
                                 </span>
                               </div>
@@ -720,42 +853,28 @@
                               </div>
                             </div>
 
-                            <!-- Token breakdown footer -->
+                            <!-- Token footer -->
                             <div
-                              v-if="traceEntry.usage"
-                              class="flex items-center justify-between text-xs text-muted-color mt-1"
+                              v-if="traceEntry.usage?.contextWindow"
+                              class="flex items-center justify-end text-xs text-muted-color mt-1"
                             >
-                              <div
-                                v-if="(traceEntry.decisions || []).length"
-                                class="flex items-center gap-1"
-                              >
-                                <i class="pi pi-history text-xs" />
-                                <span>
-                                  {{
-                                    (arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
-                                      traceEntry.decisions,
-                                    )
-                                  }}
-                                  {{ $t('agent.editor.playground.traceContextTokens') }}
-                                  <template v-if="agent.execution.limits.maxTokens > 0">
-                                    ({{
-                                      Math.round(
-                                        ((arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
-                                          traceEntry.decisions,
-                                        ) /
-                                          agent.execution.limits.maxTokens) *
-                                          100,
-                                      )
-                                    }}%)
-                                  </template>
-                                </span>
-                              </div>
                               <div class="flex items-center gap-1">
                                 <i class="pi pi-chart-bar text-xs" />
                                 <span class="font-medium text-color">
-                                  {{ traceEntry.usage.totalTokens }}
-                                  {{ $t('agent.editor.playground.traceTokens') }}
+                                  {{ traceEntry.usage.contextWindow }}
+                                  {{ $t('agent.editor.playground.traceContextTokens') }}
                                 </span>
+                                <template v-if="agent.execution.limits.contextWindow > 0">
+                                  <span class="text-muted-color">
+                                    ({{
+                                      Math.round(
+                                        (traceEntry.usage.contextWindow /
+                                          agent.execution.limits.contextWindow) *
+                                          100,
+                                      )
+                                    }}%)
+                                  </span>
+                                </template>
                               </div>
                             </div>
                           </div>
@@ -769,55 +888,29 @@
                     v-if="activeConversation.traceHistory.length"
                     class="px-3 py-2 flex items-center justify-end text-xs text-muted-color border-t border-surface shrink-0"
                   >
-                    <div class="flex items-center gap-2">
-                      <div
-                        v-if="
-                          (
-                            activeConversation.traceHistory[
-                              activeConversation.traceHistory.length - 1
-                            ]?.decisions || []
-                          ).length
-                        "
-                        class="flex items-center gap-1"
-                      >
-                        <i class="pi pi-history text-xs" />
-                        <span>
-                          {{
-                            (arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
-                              activeConversation.traceHistory[
+                    <div class="flex items-center gap-1">
+                      <i class="pi pi-chart-bar text-xs" />
+                      <span class="font-medium text-color">
+                        {{
+                          activeConversation.traceHistory[
+                            activeConversation.traceHistory.length - 1
+                          ]?.usage?.contextWindow || 0
+                        }}
+                        {{ $t('agent.editor.playground.traceContextTokens') }}
+                      </span>
+                      <template v-if="agent.execution.limits.contextWindow > 0">
+                        <span class="text-muted-color">
+                          ({{
+                            Math.round(
+                              ((activeConversation.traceHistory[
                                 activeConversation.traceHistory.length - 1
-                              ]?.decisions || [],
+                              ]?.usage?.contextWindow || 0) /
+                                agent.execution.limits.contextWindow) *
+                                100,
                             )
-                          }}
-                          {{ $t('agent.editor.playground.traceContextTokens') }}
-                          <template v-if="agent.execution.limits.maxTokens > 0">
-                            ({{
-                              Math.round(
-                                ((arr => arr[arr.length - 1]?.usage?.inputTokens || 0)(
-                                  activeConversation.traceHistory[
-                                    activeConversation.traceHistory.length - 1
-                                  ]?.decisions || [],
-                                ) /
-                                  agent.execution.limits.maxTokens) *
-                                  100,
-                              )
-                            }}%)
-                          </template>
+                          }}%)
                         </span>
-                      </div>
-                      <span class="text-muted-color">·</span>
-                      <div class="flex items-center gap-1">
-                        <i class="pi pi-calculator text-xs" />
-                        <span class="font-medium text-color">
-                          {{
-                            activeConversation.traceHistory.reduce(
-                              (sum, t) => sum + (t.usage?.totalTokens || 0),
-                              0,
-                            )
-                          }}
-                          {{ $t('agent.editor.playground.traceTotalTokens') }}
-                        </span>
-                      </div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -864,9 +957,8 @@ import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
 
 // Components (not globally registered)
-import Slider from 'primevue/slider'
 import { components } from '@cortezaproject/corteza-vue-next'
-const { CInputLLM, CInputModel, CInputDelete, CInputUser } = components
+const { CInputLLM, CInputModel, CInputDelete, CInputUser, CInputKnowledgeBase } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -883,8 +975,9 @@ const activeTab = ref('config')
 
 // Conversation tabs
 let convCounter = 1
+const contextExpanded = ref(false)
 const conversations = ref([
-  { label: `Chat 1`, messages: [], conversationID: null, traceHistory: [] },
+  { label: `Chat 1`, messages: [], conversationID: null, traceHistory: [], context: '' },
 ])
 const activeConvIndex = ref(0)
 const activeConversation = computed(() => conversations.value[activeConvIndex.value])
@@ -907,8 +1000,55 @@ const statusOptions = computed(() => [
 
 const availableTools = ref([])
 const loadingTools = ref(false)
-
+const toolPickerSelection = ref(null)
 const selectedTools = ref([])
+
+// TCL
+const tclMasterList = ref(null)
+const loadingTcl = ref(false)
+
+const tclArticleOptions = computed(() => {
+  if (!tclMasterList.value) return []
+  const treaties = tclMasterList.value.treaties || []
+  const groups = tclMasterList.value.articles || []
+  return groups.map(g => {
+    const treaty = treaties.find(t => t.id === g.treatyId)
+    return {
+      treatyLabel: treaty?.label || g.treatyId,
+      items: g.items.map(a => ({
+        id: a.id,
+        label: a.label,
+        hardwired: a.hardwired,
+        defaultSelected: a.defaultSelected,
+        interpretation: a.interpretation || '',
+      })),
+    }
+  })
+})
+
+const tclSortedArticleGroups = computed(() => tclArticleOptions.value)
+
+function toggleTclArticle(articleId, enabled) {
+  if (enabled) {
+    if (!agent.value.behavior.tclArticles.includes(articleId)) {
+      agent.value.behavior.tclArticles.push(articleId)
+    }
+  } else {
+    agent.value.behavior.tclArticles = agent.value.behavior.tclArticles.filter(id => id !== articleId)
+  }
+}
+
+async function fetchTclMasterList() {
+  loadingTcl.value = true
+  try {
+    tclMasterList.value = await $SystemAPI.agentTclMasterList()
+  } catch (e) {
+    console.error('Failed to fetch TCL master list:', e)
+    tclMasterList.value = null
+  } finally {
+    loadingTcl.value = false
+  }
+}
 const emptyAgent = () => ({
   handle: '',
   status: 'active',
@@ -919,18 +1059,22 @@ const emptyAgent = () => ({
   behavior: {
     systemPrompt: '',
     guardrails: [],
-    injectSystemContext: false,
+    treatyCLEnabled: true,
+    tclTemperature: 5,
+    tclArticles: [],
+    injectSystemContext: true,
+    knowledgeBases: [],
   },
   execution: {
     model: {
       llmProviderID: '0',
       model: '',
       temperature: 0.7,
-      maxTokens: 1000,
     },
     limits: {
       maxIterations: 10,
-      maxTokens: 4000,
+      contextWindow: 10000,
+      outputTokens: 500,
       timeout: '30s',
       softLimitRatio: 0.8,
     },
@@ -1062,6 +1206,10 @@ async function sendChatMessage() {
       conv.conversationID = res.conversationID
     }
 
+    if (res?.context) {
+      conv.context = res.context
+    }
+
     conv.messages.push({
       role: 'agent',
       content:
@@ -1098,6 +1246,7 @@ function addConversation() {
     messages: [],
     conversationID: null,
     traceHistory: [],
+    context: '',
   })
   activeConvIndex.value = conversations.value.length - 1
 }
@@ -1264,6 +1413,7 @@ function removeGuardrail(index) {
 onMounted(() => {
   loadAgent()
   fetchAvailableTools()
+  fetchTclMasterList()
 })
 
 async function fetchAvailableTools() {
@@ -1284,11 +1434,11 @@ function initToolSelection() {
   // Wait for both agent and tools to be loaded
   if (!availableTools.value.length || loading.value) return
 
-  if (!agent.value?.access?.tools?.length) {
-    // New agent: enable all tools by default
+  if (isCreate.value) {
+    // New agent: enable all tools by default (hints empty)
     agent.value.access.tools = availableTools.value.map(t => ({
       name: t.name,
-      hints: t.description || '',
+      hints: '',
     }))
     selectedTools.value = [...availableTools.value]
   } else {
@@ -1298,20 +1448,27 @@ function initToolSelection() {
   }
 }
 
-watch(
-  selectedTools,
-  selected => {
-    const selectedNames = new Set(selected.map(t => t.name))
-    // Keep existing tool entries for selected tools, add new ones
-    const existing = new Map(agent.value.access.tools.map(t => [t.name, t]))
-    agent.value.access.tools = selected.map(t => {
-      return existing.get(t.name) || { name: t.name, hints: t.description || '' }
-    })
-    // Clean up deselected
-    agent.value.access.tools = agent.value.access.tools.filter(t => selectedNames.has(t.name))
-  },
-  { deep: true },
-)
+const unselectedTools = computed(() => {
+  const selectedNames = new Set(selectedTools.value.map(t => t.name))
+  return availableTools.value.filter(t => !selectedNames.has(t.name))
+})
+
+function onToolPickerSelect(tool) {
+  if (!tool) return
+  selectedTools.value = [...selectedTools.value, tool]
+  // Add to agent.access.tools with empty hints
+  agent.value.access.tools.push({ name: tool.name, hints: '' })
+  // Clear in nextTick so the Select component sees the v-model change
+  // after the current update cycle completes
+  nextTick(() => {
+    toolPickerSelection.value = null
+  })
+}
+
+function removeTool(tool) {
+  selectedTools.value = selectedTools.value.filter(t => t.name !== tool.name)
+  agent.value.access.tools = agent.value.access.tools.filter(t => t.name !== tool.name)
+}
 
 function getToolHints(name) {
   const tool = agent.value.access.tools.find(t => t.name === name)

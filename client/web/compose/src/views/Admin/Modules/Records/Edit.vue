@@ -19,99 +19,64 @@
     </Message>
   </div>
 
-  <!-- Record form -->
-  <Form v-else :resolver="resolver" @submit="handleSubmit" class="flex flex-col h-full">
+  <!-- Record view/edit — same layout as public RecordView -->
+  <Form
+    ref="formRef"
+    v-else-if="record"
+    :resolver="resolver"
+    @submit="handleSave"
+    class="flex flex-col h-full"
+  >
     <div class="flex-1 overflow-auto">
-      <div class="container mx-auto p-4 max-w-3xl">
-        <div class="flex flex-col gap-5">
-          <div
-            v-for="field in recordModule.fields"
-            :key="field.fieldID || field.name"
-          >
-            <label v-if="field.kind !== 'Bool' || field.options?.switch || !isEditMode" class="text-sm font-semibold text-primary mb-1.5 block">
-              {{ field.label || field.name }}
-              <span v-if="field.isRequired" class="text-red-500 ml-0.5">*</span>
-            </label>
-
-            <!-- Editor -->
-            <FormField v-if="isEditMode" :name="field.name" v-slot="{ invalid, error }">
-              <CFieldEditor
-                :field="field"
-                :namespace="namespace"
-                :model-value="getFieldValue(field)"
-                @update:model-value="setFieldValue(field, $event)"
-              />
-              <Message v-if="invalid" severity="error" size="small" variant="simple">
-                {{ error?.message }}
-              </Message>
-            </FormField>
-
-            <!-- Viewer -->
-            <div v-else class="text-color">
-              <CFieldViewer
-                v-if="field.canReadRecordValue !== false"
-                :field="field"
-                :record="record"
-                :namespace="namespace"
-              />
-              <span v-else class="text-muted-color italic text-sm">
-                {{ $t('block.field.noPermission') }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Grid :blocks="blocks" :namespace="namespace" :page="syntheticPage" :record="record" />
     </div>
 
-    <!-- Footer toolbar -->
+    <!-- Record toolbar — same as public RecordView -->
     <div class="shrink-0 border-t border-surface bg-surface">
       <div class="flex items-center justify-between p-3">
-        <!-- Left: Cancel/Back -->
+        <!-- Left: Back / Cancel -->
         <div class="flex gap-2">
           <Button
-            v-if="isEditMode"
-            :label="$t('general.label.cancel')"
-            icon="pi pi-times"
-            severity="secondary"
-            :disabled="saving"
-            @click="handleCancel"
-          />
-          <Button
-            v-else
+            v-if="!isEditMode"
             :label="$t('general.label.back')"
             icon="pi pi-arrow-left"
             severity="secondary"
             @click="$router.back()"
           />
+          <Button
+            v-else
+            :label="$t('general.label.cancel')"
+            icon="pi pi-times"
+            severity="secondary"
+            :disabled="isSaving"
+            @click="handleCancel"
+          />
         </div>
 
-        <!-- Right: actions -->
+        <!-- Right: Delete / Edit / Save -->
         <div class="flex gap-2">
-          <!-- Delete -->
           <CInputDelete
-            v-if="record?.canDeleteRecord"
+            v-if="record.canDeleteRecord"
             :label="$t('general.label.delete')"
             :message="$t('page.public.record.toolbar.deleteConfirm')"
             :header="recordModule.name"
-            :disabled="saving || deleting"
+            :disabled="isSaving || deleting"
             @confirm="handleDelete"
           />
 
-          <!-- Edit button (view mode only) -->
           <Button
-            v-if="!isEditMode && record?.canUpdateRecord"
+            v-if="!isEditMode && record.canUpdateRecord"
             :label="$t('general.label.edit')"
             icon="pi pi-pencil"
             @click="goToEdit"
           />
 
-          <!-- Save button (edit mode only) -->
           <Button
             v-if="isEditMode"
             type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-check"
-            :loading="saving"
+            :loading="isSaving"
           />
         </div>
       </div>
@@ -120,14 +85,16 @@
 </template>
 
 <script setup>
-import { computed, inject, provide, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { validator } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
-const { CFieldViewer, CFieldEditor, CInputDelete } = components
+import Grid from '@/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
+import { compose, validator } from '@cortezaproject/corteza-js-next'
+import { components } from '@cortezaproject/corteza-vue-next'
+import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
+
+const { CInputDelete } = components
 
 const props = defineProps({
   namespace: {
@@ -144,6 +111,15 @@ const $ComposeAPI = inject('$ComposeAPI')
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 
+const formRef = ref(null)
+const serverErrors = ref({})
+const loading = ref(false)
+const isSaving = ref(false)
+const deleting = ref(false)
+const record = ref(null)
+const pristineRecord = ref(null)
+const navigatingAfterSave = ref(false)
+
 const pendingByField = reactive(new Map())
 provide('$fileUploadContext', {
   registerPending(fieldName, files) {
@@ -152,34 +128,50 @@ provide('$fileUploadContext', {
   },
 })
 
-const loading = ref(false)
-const saving = ref(false)
-const deleting = ref(false)
-const record = ref(null)
-
 const moduleID = computed(() => route.params.moduleID)
 const recordID = computed(() => route.params.recordID)
-const isEditMode = computed(() => route.name === 'admin.modules.record.edit')
-
 const recordModule = computed(() => (moduleID.value ? moduleStore.getByID(moduleID.value) : null))
+const isEditMode = computed(() => route.name === 'admin.modules.record.edit')
+const mode = computed(() => (isEditMode.value ? 'edit' : 'view'))
+const isNew = computed(() => false)
 
-function getFieldValue(field) {
-  if (!record.value) return field.isMulti ? [] : ''
-  const val = record.value.values[field.name]
-  if (val === undefined || val === null) return field.isMulti ? [] : ''
-  return val
-}
+// Provide recordViewContext so RecordBlock can inject it
+provide('recordViewContext', {
+  mode,
+  record,
+  isNew,
+  isSaving,
+})
 
-function setFieldValue(field, value) {
-  if (!record.value) return
-  record.value.setValue(field.name, value)
-}
+// Synthetic blocks: a single Record block showing all fields
+const blocks = computed(() => [
+  {
+    blockID: '_admin_record_view',
+    kind: 'Record',
+    title: '',
+    description: '',
+    style: { wrap: { kind: 'card' } },
+    options: {
+      fields: [],
+    },
+    xywh: [0, 0, 48, 18],
+    meta: { tempID: '_admin_record_view' },
+  },
+])
+
+const syntheticPage = computed(() => ({
+  pageID: '0',
+  title: recordModule.value?.name || '',
+  moduleID: moduleID.value,
+  blocks: [],
+}))
 
 async function loadRecord() {
   if (!recordModule.value || !recordID.value) return
 
   loading.value = true
   record.value = null
+  pristineRecord.value = null
 
   try {
     const loaded = await recordStore.findByID({
@@ -188,7 +180,8 @@ async function loadRecord() {
       recordID: recordID.value,
       force: true,
     })
-    record.value = loaded.clone()
+    pristineRecord.value = loaded
+    record.value = isEditMode.value ? loaded.clone() : loaded
   } catch (e) {
     console.error('Failed to load record:', e)
     $toast.toastDanger(t('notification.record.loadFailed'))
@@ -199,6 +192,9 @@ async function loadRecord() {
 
 function resolver() {
   const errors = {}
+  for (const [fieldName, message] of Object.entries(serverErrors.value)) {
+    errors[fieldName] = [{ message }]
+  }
   if (!record.value || !recordModule.value) return { errors }
   for (const field of recordModule.value.fields) {
     if (field.isRequired) {
@@ -217,46 +213,72 @@ async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) 
   formData.append('recordID', recordID || '')
   formData.append('fieldName', fieldName)
   formData.append('upload', file, file.name)
-  const { data } = await $ComposeAPI.api().post(url, formData, { headers: { 'Content-Type': undefined } })
+  const { data } = await $ComposeAPI
+    .api()
+    .post(url, formData, { headers: { 'Content-Type': undefined } })
   if (data?.error) throw new Error(data.error)
   const attachment = data?.response ?? data
-  if (!attachment?.attachmentID) throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
+  if (!attachment?.attachmentID)
+    throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
   return attachment.attachmentID
 }
 
-async function handleSubmit({ valid }) {
+async function handleSave({ valid }) {
   if (!valid) return
   if (!record.value) return
 
-  saving.value = true
+  isSaving.value = true
 
   try {
     for (const [fieldName, files] of pendingByField) {
       const ids = await Promise.all(
-        files.map(file => uploadFile({
-          namespaceID: props.namespace.namespaceID,
-          moduleID: moduleID.value,
-          recordID: recordID.value,
-          fieldName,
-          file,
-        }))
+        files.map(file =>
+          uploadFile({
+            namespaceID: props.namespace.namespaceID,
+            moduleID: moduleID.value,
+            recordID: record.value.recordID,
+            fieldName,
+            file,
+          }),
+        ),
       )
       const existing = record.value.values[fieldName]
-      const existingIDs = Array.isArray(existing) ? existing.filter(Boolean) : (existing ? [existing] : [])
+      const existingIDs = Array.isArray(existing)
+        ? existing.filter(Boolean)
+        : existing
+          ? [existing]
+          : []
       record.value.setValue(fieldName, [...existingIDs, ...ids])
     }
 
     const saved = await recordStore.update(record.value)
+
     $toast.toastSuccess(t('notification.record.updateSuccess'))
+
+    pristineRecord.value = saved
+    navigatingAfterSave.value = true
     router.replace({
       name: 'admin.modules.record.view',
       params: { moduleID: moduleID.value, recordID: saved.recordID },
     })
   } catch (e) {
     console.error('Failed to save record:', e)
-    $toast.toastDanger(t('notification.record.updateFailed'))
+    const details = e?.details ?? []
+    const fieldErrors = {}
+    for (const detail of details) {
+      if (detail.meta?.field) {
+        fieldErrors[detail.meta.field] = detail.message
+      }
+    }
+    if (Object.keys(fieldErrors).length > 0) {
+      serverErrors.value = fieldErrors
+      await nextTick()
+      formRef.value?.validate()
+    } else {
+      $toast.toastDanger(t('notification.record.updateFailed'))
+    }
   } finally {
-    saving.value = false
+    isSaving.value = false
   }
 }
 
@@ -284,26 +306,56 @@ async function handleDelete() {
 }
 
 function handleCancel() {
+  navigatingAfterSave.value = true
   router.replace({
     name: 'admin.modules.record.view',
     params: { moduleID: moduleID.value, recordID: recordID.value },
   })
-  // Reload to restore pristine record for view mode (route.name no longer in watch)
-  loadRecord()
 }
 
 function goToEdit() {
-  // Re-clone so in-flight edits don't bleed back into view mode on cancel
-  if (record.value) {
-    record.value = record.value.clone()
-  }
   router.push({
     name: 'admin.modules.record.edit',
     params: { moduleID: moduleID.value, recordID: recordID.value },
   })
 }
 
-// Only reload when the actual record/module changes, not on view↔edit route-name toggle
+// Guard against navigating away with unsaved changes
+onBeforeRouteLeave(() => {
+  if (navigatingAfterSave.value) {
+    navigatingAfterSave.value = false
+    return true
+  }
+  if (isEditMode.value && !isSaving.value) {
+    return window.confirm(t('general.record.unsavedChanges'))
+  }
+})
+
+// Handle view↔edit in-place without reloading
+watch(
+  () => mode.value,
+  (newMode, oldMode) => {
+    if (newMode === 'edit' && oldMode === 'view' && pristineRecord.value) {
+      record.value = pristineRecord.value.clone()
+    } else if (newMode === 'view' && oldMode === 'edit') {
+      record.value = pristineRecord.value
+    }
+  },
+)
+
+// Clear server errors on edit
+watch(
+  () => record.value?.values,
+  () => {
+    if (Object.keys(serverErrors.value).length > 0) {
+      serverErrors.value = {}
+      nextTick(() => formRef.value?.validate())
+    }
+  },
+  { deep: true },
+)
+
+// Only reload when the actual record/module changes
 watch(
   () => [recordModule.value?.moduleID, recordID.value],
   () => {

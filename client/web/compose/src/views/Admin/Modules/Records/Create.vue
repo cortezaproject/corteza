@@ -13,51 +13,33 @@
     </Message>
   </div>
 
-  <!-- Create form -->
-  <Form ref="formRef" v-else-if="recordModule" :resolver="resolver" @submit="handleSubmit" class="flex flex-col h-full">
+  <!-- Record create — same layout as public RecordView in create mode -->
+  <Form
+    ref="formRef"
+    v-else-if="record"
+    :resolver="resolver"
+    @submit="handleSave"
+    class="flex flex-col h-full"
+  >
     <div class="flex-1 overflow-auto">
-      <div class="container mx-auto p-4 max-w-3xl">
-        <div class="flex flex-col gap-5">
-          <div
-            v-for="field in recordModule.fields"
-            :key="field.fieldID || field.name"
-          >
-            <label v-if="field.kind !== 'Bool' || field.options?.switch" class="text-sm font-semibold text-primary mb-1.5 block">
-              {{ field.label || field.name }}
-              <span v-if="field.isRequired" class="text-red-500 ml-0.5">*</span>
-            </label>
-
-            <FormField :name="field.name" v-slot="{ invalid, error }">
-              <CFieldEditor
-                :field="field"
-                :namespace="namespace"
-                :model-value="getFieldValue(field)"
-                @update:model-value="setFieldValue(field, $event)"
-              />
-              <Message v-if="invalid" severity="error" size="small" variant="simple">
-                {{ error?.message }}
-              </Message>
-            </FormField>
-          </div>
-        </div>
-      </div>
+      <Grid :blocks="blocks" :namespace="namespace" :page="syntheticPage" :record="record" />
     </div>
 
-    <!-- Footer toolbar -->
+    <!-- Record toolbar -->
     <div class="shrink-0 border-t border-surface bg-surface">
       <div class="flex items-center justify-between p-3">
         <Button
           :label="$t('general.label.cancel')"
           icon="pi pi-times"
           severity="secondary"
-          :disabled="saving"
+          :disabled="isSaving"
           @click="handleCancel"
         />
         <Button
           type="submit"
           :label="$t('general.label.save')"
           icon="pi pi-check"
-          :loading="saving"
+          :loading="isSaving"
         />
       </div>
     </div>
@@ -65,14 +47,13 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { compose, validator } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
-const { CFieldEditor } = components
+import Grid from '@/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
+import { compose, validator } from '@cortezaproject/corteza-js-next'
+import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps({
   namespace: {
@@ -86,8 +67,14 @@ const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const $auth = inject('$auth', {})
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
+
+const formRef = ref(null)
+const serverErrors = ref({})
+const isSaving = ref(false)
+const record = ref(null)
 
 const pendingByField = reactive(new Map())
 provide('$fileUploadContext', {
@@ -97,39 +84,76 @@ provide('$fileUploadContext', {
   },
 })
 
-const formRef = ref(null)
-const serverErrors = ref({})
-
-const saving = ref(false)
-const record = ref(null)
-
 const moduleID = computed(() => route.params.moduleID)
 const recordModule = computed(() => (moduleID.value ? moduleStore.getByID(moduleID.value) : null))
 
-function getFieldValue(field) {
-  if (!record.value) return field.isMulti ? [] : ''
-  const val = record.value.values[field.name]
-  if (val === undefined || val === null) return field.isMulti ? [] : ''
-  return val
-}
+const mode = ref('create')
+const isNew = ref(true)
 
-function setFieldValue(field, value) {
-  if (!record.value) return
-  record.value.setValue(field.name, value)
-}
+// Provide recordViewContext so RecordBlock can inject it
+provide('recordViewContext', {
+  mode,
+  record,
+  isNew,
+  isSaving,
+})
+
+const blocks = computed(() => [
+  {
+    blockID: '_admin_record_create',
+    kind: 'Record',
+    title: '',
+    description: '',
+    style: { wrap: { kind: 'card' } },
+    options: {
+      fields: [],
+    },
+    xywh: [0, 0, 48, 18],
+    meta: { tempID: '_admin_record_create' },
+  },
+])
+
+const syntheticPage = computed(() => ({
+  pageID: '0',
+  title: recordModule.value?.name || '',
+  moduleID: moduleID.value,
+  blocks: [],
+}))
 
 function initRecord() {
   if (!recordModule.value) return
-  record.value = new compose.Record(recordModule.value)
+
+  // Handle clone
+  if (route.query.cloneFromID) {
+    recordStore
+      .findByID({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: moduleID.value,
+        recordID: route.query.cloneFromID,
+      })
+      .then(source => {
+        const newRec = new compose.Record(recordModule.value)
+        for (const field of recordModule.value.fields) {
+          newRec.setValue(field.name, source.values[field.name])
+        }
+        // Prefill ownedBy with current user
+        newRec.ownedBy = $auth?.user?.userID || undefined
+        record.value = newRec
+      })
+      .catch(e => {
+        console.error('Failed to load source record for clone:', e)
+        record.value = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+      })
+  } else {
+    record.value = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+  }
 }
 
 function resolver() {
   const errors = {}
-
   for (const [fieldName, message] of Object.entries(serverErrors.value)) {
     errors[fieldName] = [{ message }]
   }
-
   if (!record.value || !recordModule.value) return { errors }
   for (const field of recordModule.value.fields) {
     if (field.isRequired) {
@@ -148,32 +172,41 @@ async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) 
   formData.append('recordID', recordID || '')
   formData.append('fieldName', fieldName)
   formData.append('upload', file, file.name)
-  const { data } = await $ComposeAPI.api().post(url, formData, { headers: { 'Content-Type': undefined } })
+  const { data } = await $ComposeAPI
+    .api()
+    .post(url, formData, { headers: { 'Content-Type': undefined } })
   if (data?.error) throw new Error(data.error)
   const attachment = data?.response ?? data
-  if (!attachment?.attachmentID) throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
+  if (!attachment?.attachmentID)
+    throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
   return attachment.attachmentID
 }
 
-async function handleSubmit({ valid }) {
+async function handleSave({ valid }) {
   if (!valid) return
   if (!record.value) return
 
-  saving.value = true
+  isSaving.value = true
 
   try {
     for (const [fieldName, files] of pendingByField) {
       const ids = await Promise.all(
-        files.map(file => uploadFile({
-          namespaceID: props.namespace.namespaceID,
-          moduleID: moduleID.value,
-          recordID: '',
-          fieldName,
-          file,
-        }))
+        files.map(file =>
+          uploadFile({
+            namespaceID: props.namespace.namespaceID,
+            moduleID: moduleID.value,
+            recordID: '',
+            fieldName,
+            file,
+          }),
+        ),
       )
       const existing = record.value.values[fieldName]
-      const existingIDs = Array.isArray(existing) ? existing.filter(Boolean) : (existing ? [existing] : [])
+      const existingIDs = Array.isArray(existing)
+        ? existing.filter(Boolean)
+        : existing
+          ? [existing]
+          : []
       record.value.setValue(fieldName, [...existingIDs, ...ids])
     }
 
@@ -199,7 +232,8 @@ async function handleSubmit({ valid }) {
     } else {
       $toast.toastDanger(t('notification.record.createFailed'))
     }
-    saving.value = false
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -211,14 +245,14 @@ function handleCancel() {
 }
 
 watch(
-  () => recordModule.value?.moduleID,
+  () => [recordModule.value?.moduleID, route.query.cloneFromID],
   () => {
     if (recordModule.value) initRecord()
   },
   { immediate: true },
 )
 
-// Clear server errors as soon as the user edits anything
+// Clear server errors on edit
 watch(
   () => record.value?.values,
   () => {

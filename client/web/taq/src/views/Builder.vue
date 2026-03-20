@@ -69,13 +69,16 @@
 
         <!-- Custom node types -->
         <template #node-trigger="props">
-          <TriggerNode v-bind="props" :triggers="store.triggers" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" />
+          <TriggerNode v-bind="props" :triggers="store.triggers" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
         </template>
         <template #node-step="props">
-          <StepNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" />
+          <StepNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
         </template>
         <template #node-branch="props">
-          <BranchNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :edges="editor.edges.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" />
+          <BranchNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :edges="editor.edges.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
+        </template>
+        <template #node-iterator="props">
+          <IteratorNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :edges="editor.edges.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
         </template>
         <template #node-end="props">
           <EndNode v-bind="props" />
@@ -137,7 +140,9 @@
       v-model:visible="showNodePicker"
       modal
       :header="
-        nodePickerCategory === 'trigger' ? $t('builder.selectTrigger') : $t('builder.addStep')
+        replaceNodeId
+          ? (nodePickerCategory === 'trigger' ? $t('builder.replaceTrigger') : $t('builder.replaceStep'))
+          : (nodePickerCategory === 'trigger' ? $t('builder.selectTrigger') : $t('builder.addStep'))
       "
       :pt="{ content: { class: 'p-0' } }"
       :style="{ width: '50rem' }"
@@ -145,7 +150,7 @@
       <NodePicker
         :filter-category="nodePickerCategory"
         @select="handleNodeSelect"
-        @close="showNodePicker = false"
+        @close="showNodePicker = false; replaceNodeId = null"
       />
     </Dialog>
 
@@ -250,6 +255,7 @@ import ReferencePanel from '@/components/builder/ReferencePanel.vue'
 import AddableEdge from '@/components/flow/AddableEdge.vue'
 import BranchNode from '@/components/flow/BranchNode.vue'
 import EndNode from '@/components/flow/EndNode.vue'
+import IteratorNode from '@/components/flow/IteratorNode.vue'
 import StepNode from '@/components/flow/StepNode.vue'
 import TriggerNode from '@/components/flow/TriggerNode.vue'
 
@@ -290,6 +296,7 @@ const showAllPreviews = ref(false)
 const showNodePicker = ref(false)
 const nodePickerCategory = ref(null)
 const insertionPoint = ref(null)
+const replaceNodeId = ref(null)
 
 // Reference panel state
 const showReferencePanel = ref(false)
@@ -460,6 +467,14 @@ function openNodePicker(payload) {
 
 // Handle node selection from picker
 function handleNodeSelect(nodeType) {
+  if (replaceNodeId.value) {
+    // Replace mode
+    editor.replaceNode(replaceNodeId.value, nodeType)
+    replaceNodeId.value = null
+    showNodePicker.value = false
+    return
+  }
+
   const newNode = editor.addNode(nodeType, insertionPoint.value)
 
   // Center and select the new node
@@ -471,6 +486,16 @@ function handleNodeSelect(nodeType) {
   })
 
   showNodePicker.value = false
+}
+
+// Handle replace from node context menu
+function startReplace(nodeId) {
+  const node = editor.nodes.value.find(n => n.id === nodeId)
+  if (!node) return
+
+  replaceNodeId.value = nodeId
+  nodePickerCategory.value = node.type === 'trigger' ? 'trigger' : null
+  showNodePicker.value = true
 }
 
 // Handle delete from node context menu (with confirmation)

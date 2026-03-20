@@ -45,7 +45,7 @@ export interface FlowNodeData {
 /**
  * VueFlow node types used in the builder
  */
-export type FlowNodeType = 'trigger' | 'step' | 'branch' | 'end'
+export type FlowNodeType = 'trigger' | 'step' | 'branch' | 'iterator' | 'end'
 
 /**
  * VueFlow state structure
@@ -110,10 +110,17 @@ export function automationToVueFlow(
     idMap.set(cleanId, vueFlowId)
 
     const isCondition = step.kind?.startsWith('gateway')
+    const isIterator = step.kind === 'iterator'
     const isTermination = step.kind === 'termination'
+
+    let nodeType: FlowNodeType = 'step'
+    if (isTermination) nodeType = 'end'
+    else if (isCondition) nodeType = 'branch'
+    else if (isIterator) nodeType = 'iterator'
+
     nodes.push({
       id: vueFlowId,
-      type: isTermination ? 'end' : isCondition ? 'branch' : 'step',
+      type: nodeType,
       position: { x: 0, y: 0 }, // Will be set by layout
       selectable: !isTermination,
       data: {
@@ -122,7 +129,7 @@ export function automationToVueFlow(
         description: step.meta?.description || '',
         icon: isTermination
           ? DEFAULT_ICONS.END
-          : normalizeIcon(step.meta?.icon) || getStepIcon(step.ref, isCondition, catalog),
+          : normalizeIcon(step.meta?.icon) || getStepIcon(step.ref, isCondition, catalog, isIterator),
         nodeType: isTermination ? 'termination' : step.ref,
         config: {},
         arguments: step.arguments || [],
@@ -137,6 +144,26 @@ export function automationToVueFlow(
   automation.paths?.forEach(path => {
     const sourceId = idMap.get(path.parentID) || path.parentID
     const targetId = idMap.get(path.childID) || path.childID
+
+    // Detect back-edges (body chain leaf → iterator) and skip them.
+    // A back-edge creates a cycle: the source is a descendant of the iterator
+    // (reachable via the iterator's outgoing edges). Only these cyclic paths
+    // are skipped; legitimate incoming edges (e.g., step → iterator) are kept.
+    const targetNode = nodes.find(n => n.id === targetId)
+    if (targetNode?.type === 'iterator') {
+      // Check if source is reachable from the iterator (i.e., source is in the body chain)
+      const isDescendant = (startId: string, searchId: string, visited = new Set<string>()): boolean => {
+        if (startId === searchId) return true
+        if (visited.has(startId)) return false
+        visited.add(startId)
+        // Follow already-added edges from startId
+        return edges.some(e => e.source === startId && isDescendant(e.target, searchId, visited))
+      }
+      if (isDescendant(targetId, sourceId)) {
+        // This is a genuine back-edge (cycle) — skip it for dagre
+        return
+      }
+    }
 
     edges.push({
       id: path.handle || `${sourceId}_${targetId}`,
@@ -159,6 +186,33 @@ export function automationToVueFlow(
   nodes.forEach(node => {
     if (node.type === 'branch') {
       // Branches need at least 2 outputs - add end nodes as needed
+      const currentCount = outgoingEdgeCount.get(node.id) || 0
+      const endsNeeded = Math.max(0, 2 - currentCount)
+      for (let i = 0; i < endsNeeded; i++) {
+        const endId = `end_${node.id}_${i}`
+        nodes.push({
+          id: endId,
+          type: 'end',
+          position: { x: 0, y: 0 },
+          selectable: false,
+          data: {
+            label: 'End',
+            nodeType: 'termination',
+            icon: DEFAULT_ICONS.END,
+            config: {},
+            arguments: [],
+            ref: endId,
+          },
+        })
+        edges.push({
+          id: `${node.id}_${endId}`,
+          source: node.id,
+          target: endId,
+          type: 'addable',
+        })
+      }
+    } else if (node.type === 'iterator') {
+      // Iterators need at least 2 outputs: body (first) + exit (second)
       const currentCount = outgoingEdgeCount.get(node.id) || 0
       const endsNeeded = Math.max(0, 2 - currentCount)
       for (let i = 0; i < endsNeeded; i++) {
@@ -265,6 +319,8 @@ export function vueFlowToAutomation(
         kind = 'termination'
       } else if (node.type === 'branch') {
         kind = 'gateway'
+      } else if (node.type === 'iterator') {
+        kind = 'iterator'
       }
 
       steps.push({
@@ -341,8 +397,8 @@ export function applyDagreLayout(state: VueFlowState): VueFlowState {
     }
   })
 
-  // Post-process: Align branch children's Y positions and ensure minimum End node distance
-  const branchNodes = layoutedNodes.filter(n => n.type === 'branch')
+  // Post-process: Align branch/iterator children's Y positions and ensure minimum End node distance
+  const forkedNodes = layoutedNodes.filter(n => n.type === 'branch' || n.type === 'iterator')
 
   // Helper to get all descendants of a node
   const getDescendants = (nodeId: string, visited = new Set<string>()): string[] => {
@@ -360,24 +416,20 @@ export function applyDagreLayout(state: VueFlowState): VueFlowState {
     return descendants
   }
 
-  branchNodes.forEach(branchNode => {
-    // Get all edges from this branch (already ordered by array position)
-    const branchEdges = state.edges.filter(e => e.source === branchNode.id)
-    if (branchEdges.length < 2) return
+  forkedNodes.forEach(forkedNode => {
+    const forkedEdges = state.edges.filter(e => e.source === forkedNode.id)
+    if (forkedEdges.length < 2) return
 
-    // Get direct children in edge array order
-    const childNodes = branchEdges
+    const childNodes = forkedEdges
       .map(e => layoutedNodes.find(n => n.id === e.target))
       .filter(Boolean) as typeof layoutedNodes
 
     if (childNodes.length < 2) return
 
     // REORDER X POSITIONS: Ensure children are positioned left-to-right matching edge array order
-    // Sort children by their current X position to find the available slots
     const xPositions = childNodes.map(n => n.position.x).sort((a, b) => a - b)
 
-    // Assign X positions based on edge order (first edge = leftmost position)
-    branchEdges.forEach((edge, index) => {
+    forkedEdges.forEach((edge, index) => {
       const childNode = childNodes[index]
       if (!childNode) return
 
@@ -385,7 +437,6 @@ export function applyDagreLayout(state: VueFlowState): VueFlowState {
       const xDiff = targetX - childNode.position.x
 
       if (xDiff !== 0) {
-        // Move entire subtree
         const descendants = [edge.target, ...getDescendants(edge.target)]
         descendants.forEach(id => {
           const node = layoutedNodes.find(n => n.id === id)
@@ -396,7 +447,7 @@ export function applyDagreLayout(state: VueFlowState): VueFlowState {
 
     // Align all children to the same Y level (use the deepest one)
     const maxY = Math.max(...childNodes.map(n => n.position.y))
-    branchEdges.forEach((edge, index) => {
+    forkedEdges.forEach((edge, index) => {
       const childNode = childNodes[index]
       if (!childNode) return
 
@@ -411,15 +462,15 @@ export function applyDagreLayout(state: VueFlowState): VueFlowState {
     })
   })
 
-  // Ensure End nodes directly connected to branches have consistent minimum distance
+  // Ensure End nodes directly connected to branches/iterators have consistent minimum distance
   const MIN_END_DISTANCE = 120
-  branchNodes.forEach(branchNode => {
-    const branchEdges = state.edges.filter(e => e.source === branchNode.id)
+  forkedNodes.forEach(forkedNode => {
+    const forkedEdges = state.edges.filter(e => e.source === forkedNode.id)
 
-    branchEdges.forEach(edge => {
+    forkedEdges.forEach(edge => {
       const targetNode = layoutedNodes.find(n => n.id === edge.target)
       if (targetNode && targetNode.type === 'end') {
-        const currentDistance = targetNode.position.y - branchNode.position.y
+        const currentDistance = targetNode.position.y - forkedNode.position.y
         if (currentDistance < MIN_END_DISTANCE) {
           const adjustment = MIN_END_DISTANCE - currentDistance
           targetNode.position.y += adjustment
@@ -464,13 +515,17 @@ function getTriggerIcon(eventType?: string, catalog?: ConversionCatalog): IconDe
 }
 
 // Helper: Resolve step icon from catalog or fallback
-function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCatalog): IconDef {
+function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCatalog, isIterator?: boolean): IconDef {
   if (isCondition) return DEFAULT_ICONS.BRANCH
+
+  // Check catalog for function-specific icon (both regular functions and iterators)
   if (catalog?.functions && ref) {
     const catalogFn = catalog.functions.find(f => f.ref === ref)
     const catalogIcon = normalizeIcon(catalogFn?.meta?.icon)
     if (catalogIcon) return catalogIcon
   }
+
+  if (isIterator) return DEFAULT_ICONS.ITERATOR
   return DEFAULT_ICONS.ACTION
 }
 

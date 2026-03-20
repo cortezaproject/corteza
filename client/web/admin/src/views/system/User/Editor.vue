@@ -112,6 +112,14 @@
           :initialMembershipIDs="initialMembershipIDs"
         />
       </Panel>
+
+      <Panel v-if="isEdit" :header="$t('system.users.editor.avatar.title')" toggleable class="shadow">
+        <UserAvatar :user="user" @update:user="(u) => (user = u)" />
+      </Panel>
+
+      <Panel v-if="isEdit" :header="$t('system.users.editor.externalAuth.title')" toggleable class="shadow">
+        <UserExternalAuth :userID="user.userID" />
+      </Panel>
     </div>
 
     <!-- Bottom Actions Toolbar -->
@@ -156,6 +164,8 @@ const { CInputDelete, CInputUserGroup } = components
 
 import UserSecurity from '@/components/User/UserSecurity.vue'
 import UserRoles from '@/components/User/UserRoles.vue'
+import UserAvatar from '@/components/User/UserAvatar.vue'
+import UserExternalAuth from '@/components/User/UserExternalAuth.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -203,7 +213,7 @@ const resolver = ref(({ values }) => {
   }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
-    errors.handle = [{ message: t('system.users.editor.info.invalid-characters') }]
+    errors.handle = [{ message: t('system.users.editor.info.invalid-handle-characters') }]
   }
 
   return { errors }

@@ -14,7 +14,7 @@
 
     <!-- Main content area: pushed by sidebar margin on desktop -->
     <div
-      class="flex-1 flex flex-col transition-[margin] duration-300"
+      class="flex-1 flex flex-col min-w-0 transition-[margin] duration-300"
       :style="{ marginLeft: contentMargin }"
     >
       <header>

@@ -1,5 +1,6 @@
 import vue from '@vitejs/plugin-vue'
 import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
@@ -14,6 +15,20 @@ function getVersion() {
     console.error(error)
     return 'unknown'
   }
+}
+
+// Read CortezaAPI from public/config.js to derive proxy target
+function getServerUrl() {
+  try {
+    const config = readFileSync('./public/config.js', 'utf8')
+    const match = config.match(/window\.CortezaAPI\s*=\s*['"]([^'"]+)['"]/)
+    if (match) {
+      return match[1].replace(/\/api\/?$/, '')
+    }
+  } catch {
+    // fallback
+  }
+  return ''
 }
 
 export default defineConfig(({ mode }) => {
@@ -31,6 +46,15 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: ['dagre'],
     },
+
+    server: isDevelopment
+      ? {
+          proxy: {
+            '/custom.css': getServerUrl(),
+            '/code-snippets.js': getServerUrl(),
+          },
+        }
+      : {},
 
     plugins: [vue(), vueDevTools()],
     resolve: {

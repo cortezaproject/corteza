@@ -49,7 +49,7 @@ let cancelCurrentRequest = null
 
 function getOptionLabel(provider) {
   if (!provider) return ''
-  return provider.handle || provider.meta?.short || provider.provider || provider.llmProviderID
+  return provider.meta?.short || provider.handle || provider.provider || provider.llmProviderID
 }
 
 async function fetchProviders() {

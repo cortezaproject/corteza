@@ -173,7 +173,11 @@ func (svc *Service) Delete(ctx context.Context, providerID uint64, deletedBy uin
 		return fmt.Errorf("not allowed to delete LLM provider")
 	}
 
-	return store.DeleteLlmProviderByID(ctx, svc.store, providerID)
+	now := time.Now().Round(time.Second)
+	existing.DeletedAt = &now
+	existing.DeletedBy = deletedBy
+
+	return store.UpdateLlmProvider(ctx, svc.store, existing)
 }
 
 func (svc *Service) Search(ctx context.Context, f sysTypes.LlmProviderFilter) (sysTypes.LlmProviderSet, error) {

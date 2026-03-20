@@ -6,6 +6,7 @@ help:
   forum: Help
   version: 'Version:'
 appMenu: Menu
+automations: Automations
 appList:
   title: Menu
   search: Search...

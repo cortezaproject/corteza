@@ -1,10 +1,10 @@
-<div class="position-fixed bottom-0 right-0 p-3 mb-2" style="z-index: 5; right: 0; bottom: 0;">
+<div class="toast-container">
 {{ range . }}
-	<div class="toast align-items-center bg-dark text-white" role="alert" aria-live="polite" aria-atomic="true" data-delay="5000" style="min-width:200px;">
-	  <div class="d-flex align-items-center toast-body border-top border-{{ .Type }}">
+	<div class="toast toast-{{ .Type }}" role="alert" aria-live="polite" aria-atomic="true" data-autohide="5000">
+	  <div class="toast-body">
 		{{ .Text | html }}
-		<button type="button" class="ml-auto text-white btn p-0" data-dismiss="toast" aria-label="Close">
-		<i class="bi bi-x"></i>
+		<button type="button" class="btn-close-toast" data-action="close-toast" aria-label="Close">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
 		</button>
 	  </div>
 	</div>

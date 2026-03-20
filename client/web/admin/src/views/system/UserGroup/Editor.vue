@@ -51,7 +51,33 @@
               rows="3"
             />
           </FormField>
+
+          <!-- Parent hierarchy (edit only, non-root groups) -->
+          <div v-if="isEdit && !userGroup.isRoot" class="md:col-span-2 flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <label class="font-medium text-primary">{{ $t('system.user-groups.editor.info.parents.title') }}</label>
+              <Button icon="pi pi-plus" :label="$t('general.label.add')" text size="small" @click="addParent" />
+            </div>
+            <div v-if="!userGroup.config || !userGroup.config.path || userGroup.config.path.length === 0" class="text-muted-color text-sm p-3 border rounded bg-highlight text-center">
+              {{ $t('system.user-groups.editor.info.parents.empty') }}
+            </div>
+            <div v-else class="flex flex-col gap-2">
+              <div v-for="(parent, i) in userGroup.config.path" :key="i" class="flex items-center gap-2">
+                <CInputUserGroup v-model="parent.selfID" class="flex-1" :placeholder="$t('system.user-groups.editor.info.parents.placeholder')" />
+                <InputText v-model="parent.name" :placeholder="$t('system.user-groups.editor.info.parents.namePlaceholder')" class="flex-1" />
+                <Button v-if="userGroup.config.path.length > 1" icon="pi pi-trash" severity="danger" text rounded size="small" @click="removeParent(i)" />
+              </div>
+            </div>
+          </div>
         </div>
+      </Panel>
+
+      <Panel v-if="isEdit" :header="$t('system.user-groups.editor.members.title')" toggleable class="shadow">
+        <UserGroupMembers :userGroupID="userGroup.userGroupID" />
+      </Panel>
+
+      <Panel v-if="isEdit" :header="$t('system.user-groups.editor.roles.title')" toggleable class="shadow">
+        <UserGroupRoles :userGroupID="userGroup.userGroupID" />
       </Panel>
     </div>
 
@@ -99,8 +125,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
+import UserGroupMembers from '@/components/UserGroup/UserGroupMembers.vue'
+import UserGroupRoles from '@/components/UserGroup/UserGroupRoles.vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputUserGroup } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -145,6 +173,17 @@ const resolver = ref(({ values }) => {
   return { errors }
 })
 
+// Parent hierarchy management
+function addParent() {
+  if (!userGroup.value.config) userGroup.value.config = { path: [] }
+  if (!userGroup.value.config.path) userGroup.value.config.path = []
+  userGroup.value.config.path.push({ selfID: '', name: '' })
+}
+
+function removeParent(i) {
+  userGroup.value.config.path.splice(i, 1)
+}
+
 // Methods
 async function loadUserGroup() {
   const userGroupID = route.params.userGroupID
@@ -177,6 +216,7 @@ async function handleSubmit({ valid }) {
     const payload = {
       handle: userGroup.value.handle,
       meta: userGroup.value.meta,
+      config: userGroup.value.config,
     }
 
     if (isEdit.value) {

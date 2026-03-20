@@ -47,11 +47,11 @@ func (h ngLoopHandler) Sequence() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "loopSequence",
 		Kind:   "iterator",
-		Groups: []string{"Iterators"},
+		Groups: []string{"Loops"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Count",
 			Description: "Iterate from first to last by step",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "repeat"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "refresh"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -166,11 +166,11 @@ func (h ngLoopHandler) Do() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "loopDo",
 		Kind:   "iterator",
-		Groups: []string{"Iterators"},
+		Groups: []string{"Loops"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "While",
 			Description: "Iterate while condition is true",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "repeat"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "refresh"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -234,11 +234,11 @@ func (h ngLoopHandler) Each() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "loopEach",
 		Kind:   "iterator",
-		Groups: []string{"Iterators"},
+		Groups: []string{"Loops"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Each",
 			Description: "Iterate over items in a collection",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "list"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "refresh"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -291,11 +291,11 @@ func (h ngLoopHandler) Lines() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "loopLines",
 		Kind:   "iterator",
-		Groups: []string{"Iterators"},
+		Groups: []string{"Loops"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Lines",
 			Description: "Iterate over lines of a string",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "text"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "refresh"},
 		},
 
 		Parameters: []*atypes.Param{

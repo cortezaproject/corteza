@@ -8294,6 +8294,38 @@ export default class System {
     return '/smtp/configuration-checker/'
   }
 
+  // Get TCL master list
+  async agentTclMasterList(extra: AxiosRequestConfig = {}): Promise<KV> {
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.agentTclMasterListEndpoint(),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentTclMasterListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentTclMasterList(options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentTclMasterListEndpoint(): string {
+    return '/agents/tcl'
+  }
+
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { query, handle, status, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
@@ -8869,6 +8901,251 @@ export default class System {
   llmProviderValidateEndpoint(a: KV): string {
     const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}/validate`
+  }
+
+  // List knowledge bases
+  async knowledgeBaseList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, handle, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.knowledgeBaseListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      handle,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  knowledgeBaseListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.knowledgeBaseList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  knowledgeBaseListEndpoint(): string {
+    return '/knowledge-bases/'
+  }
+
+  // Create knowledge base
+  async knowledgeBaseCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, title, description, context } = (a as KV) || {}
+    if (!title) {
+      throw Error('field title is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.knowledgeBaseCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      title,
+      description,
+      context,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  knowledgeBaseCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.knowledgeBaseCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  knowledgeBaseCreateEndpoint(): string {
+    return '/knowledge-bases'
+  }
+
+  // Read knowledge base
+  async knowledgeBaseRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { knowledgeBaseID } = (a as KV) || {}
+    if (!knowledgeBaseID) {
+      throw Error('field knowledgeBaseID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.knowledgeBaseReadEndpoint({
+        knowledgeBaseID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  knowledgeBaseReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.knowledgeBaseRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  knowledgeBaseReadEndpoint(a: KV): string {
+    const { knowledgeBaseID } = a || {}
+    return `/knowledge-bases/${knowledgeBaseID}`
+  }
+
+  // Update knowledge base
+  async knowledgeBaseUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { knowledgeBaseID, handle, title, description, context, updatedAt } = (a as KV) || {}
+    if (!knowledgeBaseID) {
+      throw Error('field knowledgeBaseID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.knowledgeBaseUpdateEndpoint({
+        knowledgeBaseID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      title,
+      description,
+      context,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  knowledgeBaseUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.knowledgeBaseUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  knowledgeBaseUpdateEndpoint(a: KV): string {
+    const { knowledgeBaseID } = a || {}
+    return `/knowledge-bases/${knowledgeBaseID}`
+  }
+
+  // Delete knowledge base
+  async knowledgeBaseDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { knowledgeBaseID } = (a as KV) || {}
+    if (!knowledgeBaseID) {
+      throw Error('field knowledgeBaseID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.knowledgeBaseDeleteEndpoint({
+        knowledgeBaseID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  knowledgeBaseDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.knowledgeBaseDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  knowledgeBaseDeleteEndpoint(a: KV): string {
+    const { knowledgeBaseID } = a || {}
+    return `/knowledge-bases/${knowledgeBaseID}`
+  }
+
+  // Undelete knowledge base
+  async knowledgeBaseUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { knowledgeBaseID } = (a as KV) || {}
+    if (!knowledgeBaseID) {
+      throw Error('field knowledgeBaseID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.knowledgeBaseUndeleteEndpoint({
+        knowledgeBaseID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  knowledgeBaseUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.knowledgeBaseUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  knowledgeBaseUndeleteEndpoint(a: KV): string {
+    const { knowledgeBaseID } = a || {}
+    return `/knowledge-bases/${knowledgeBaseID}/undelete`
   }
 
   // List AI conversations

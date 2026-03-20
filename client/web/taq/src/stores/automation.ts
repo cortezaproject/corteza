@@ -36,6 +36,7 @@ export interface Segment {
 export interface AutomationFunction {
   ref: string
   kind?: string
+  groups?: string[]
   meta?: { short?: string; description?: string; icon?: IconDef | string }
   parameters?: Array<{
     argumentName: string

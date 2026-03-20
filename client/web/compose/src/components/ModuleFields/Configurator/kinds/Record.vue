@@ -16,7 +16,6 @@
     </div>
 
     <template v-if="selectedModule">
-      <!-- Label field -->
       <div class="flex flex-col gap-2">
         <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.moduleField') }}</label>
         <Select
@@ -28,6 +27,21 @@
           show-clear
           class="w-full"
           @update:model-value="onLabelFieldChange"
+        />
+      </div>
+
+      <!-- Record label field (when label field is a Record field itself) -->
+      <div v-if="labelField && labelField.kind === 'Record'" class="flex flex-col gap-2">
+        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.fieldFromModuleField') }}</label>
+        <Select
+          v-model="field.options.recordLabelField"
+          :options="labelFieldOptions"
+          option-label="text"
+          option-value="value"
+          :disabled="!labelFieldModule"
+          :placeholder="$t('field.kind.record.pickField')"
+          show-clear
+          class="w-full"
         />
       </div>
 
@@ -133,6 +147,26 @@ const queryFieldOptions = computed(() =>
   fieldOptions.value.filter(f => !nonQueryableFieldKinds.includes(f.kind)),
 )
 
+// Resolve the actual label field object from the selected module
+const labelField = computed(() => {
+  if (!props.field.options.labelField || !selectedModule.value) return null
+  return selectedModule.value.fields.find(f => f.name === props.field.options.labelField) || null
+})
+
+// Resolve the module that the label field points to (when label field is a Record type)
+const labelFieldModule = computed(() => {
+  if (!labelField.value || labelField.value.kind !== 'Record') return null
+  return moduleStore.getByID(labelField.value.options?.moduleID) || null
+})
+
+// Field options from the related module (for recordLabelField)
+const labelFieldOptions = computed(() => {
+  if (!labelFieldModule.value) return []
+  return labelFieldModule.value.fields
+    .map(f => ({ value: f.name, text: f.label || f.name }))
+    .sort((a, b) => a.text.localeCompare(b.text))
+})
+
 const duplicatesAllowedTypes = ['default', 'each']
 const showAllowDuplicates = computed(() =>
   duplicatesAllowedTypes.includes(props.field.options.selectType),
@@ -153,6 +187,7 @@ function onModuleChange() {
 function onLabelFieldChange() {
   props.field.options.queryFields = []
   props.field.options.prefilter = ''
+  props.field.options.recordLabelField = ''
 }
 
 function onSelectTypeChange(val) {

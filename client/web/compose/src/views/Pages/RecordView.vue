@@ -159,6 +159,7 @@ const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const $auth = inject('$auth', {})
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const moduleStore = useModuleStore()
@@ -279,13 +280,15 @@ async function loadPage() {
                 for (const field of mod.fields) {
                   newRec.setValue(field.name, source.values[field.name])
                 }
+                // Prefill ownedBy with current user
+                newRec.ownedBy = $auth?.user?.userID || undefined
                 record.value = newRec
               } catch (e) {
                 console.error('Failed to load source record for clone:', e)
-                record.value = new compose.Record(mod)
+                record.value = new compose.Record(mod, { ownedBy: $auth?.user?.userID })
               }
             } else {
-              record.value = new compose.Record(mod)
+              record.value = new compose.Record(mod, { ownedBy: $auth?.user?.userID })
             }
           } else if (recordID && recordID !== '0') {
             try {

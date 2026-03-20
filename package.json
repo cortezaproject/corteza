@@ -4,8 +4,12 @@
   "dependencies": {
     "@primeuix/themes": "^2.0.2",
     "@primevue/forms": "^4.5.4",
+    "@types/leaflet": "^1.9.21",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
+    "leaflet": "^1.9.4",
+    "leaflet-geosearch": "^4.4.0",
     "lodash-es": "^4.17.21",
     "pinia": "^3.0.3",
     "postcss": "^8.5.6",

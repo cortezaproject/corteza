@@ -60,7 +60,10 @@ configure: Configure namespace
 manage:
   title: Manage namespaces
   list-view: Back to namespace list
-  delete: Delete
+  delete:
+    confirm: Are you sure you want to delete this namespace?
+    success: Namespace deleted successfully
+    error: Failed to delete namespace
 
   disabled: Disabled
 

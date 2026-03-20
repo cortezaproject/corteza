@@ -39,7 +39,9 @@
                       :model-value="'#' + (theme.variables[key] || '')"
                       :default-value="'#' + (theme.defaultVariables[key] || '')"
                       show-text
-                      @update:model-value="theme.variables[key] = $event.replace(/^#/, '').substring(0, 6)"
+                      @update:model-value="
+                        theme.variables[key] = $event.replace(/^#/, '').substring(0, 6)
+                      "
                     />
                     <Button
                       icon="pi pi-undo"
@@ -106,23 +108,23 @@ const themeVariableKeys = [
 ]
 
 const lightModeDefaults = {
-  primary: 'FF9661',
+  primary: '09344E',
   success: '43AA8B',
   warning: 'E27646',
   danger: 'E54122',
-  'body-bg': 'F4F4F5',
-  'sidebar-bg': 'F4F4F5',
-  'topbar-bg': 'FAFAFA',
+  'body-bg': 'f4f4f5',
+  'sidebar-bg': 'ffffff',
+  'topbar-bg': 'f4f4f5',
 }
 
 const darkModeDefaults = {
-  primary: 'FF9661',
+  primary: 'E56B5B',
   success: '43AA8B',
   warning: 'E27646',
   danger: 'E54122',
-  'body-bg': '27272A',
-  'sidebar-bg': '18181B',
-  'topbar-bg': '18181B',
+  'body-bg': '27272a',
+  'sidebar-bg': '18181b',
+  'topbar-bg': '27272a',
 }
 
 const themes = reactive([

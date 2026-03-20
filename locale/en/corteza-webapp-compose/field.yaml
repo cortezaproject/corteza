@@ -140,6 +140,8 @@ kind:
     fieldFromModuleField: Label field from related module field
     pickField: Pick field
     suggestionPlaceholder: Start typing to search for records
+    selectNamespaceFirst: Select a namespace first
+    selectModuleFirst: Select a module first
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232

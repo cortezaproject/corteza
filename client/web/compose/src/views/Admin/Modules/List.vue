@@ -30,13 +30,23 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <CRouterLinkButton
-          v-if="namespace?.canCreateModule"
-          :to="{ name: 'admin.modules.create' }"
-          :label="$t('module.createLabel')"
-          icon="pi pi-plus"
-          size="small"
-        />
+        <div class="flex items-center gap-2">
+          <CRouterLinkButton
+            v-if="namespace?.canCreateModule"
+            :to="{ name: 'admin.modules.create' }"
+            :label="$t('module.createLabel')"
+            icon="pi pi-plus"
+            size="small"
+          />
+          <Button
+            v-if="namespace?.canExportModules && moduleList.length"
+            :label="$t('general.label.export')"
+            icon="pi pi-download"
+            size="small"
+            severity="secondary"
+            @click="exportAllModules"
+          />
+        </div>
       </template>
 
       <template #body-name="{ data }">
@@ -200,6 +210,14 @@ function toggleActionsMenu(event, module) {
 function getActionsMenuItems(module) {
   const items = []
 
+  if (props.namespace?.canExportModules) {
+    items.push({
+      label: t('general.label.export'),
+      icon: 'pi pi-download',
+      command: () => exportModule(module),
+    })
+  }
+
   if (module.canDeleteModule) {
     items.push({
       label: t('general.label.delete'),
@@ -232,5 +250,31 @@ async function handleDelete(module) {
     console.error('Failed to delete module:', e)
     $toast.toastDanger(t('notification.module.deleteFailed'))
   }
+}
+
+function exportModule(module) {
+  const blob = new Blob(
+    [JSON.stringify({ type: 'module', list: [module] }, null, 2)],
+    { type: 'application/json' },
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${module.handle || module.name || 'module'}-export.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function exportAllModules() {
+  const blob = new Blob(
+    [JSON.stringify({ type: 'module', list: moduleList.value }, null, 2)],
+    { type: 'application/json' },
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'modules-export.json'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 </script>

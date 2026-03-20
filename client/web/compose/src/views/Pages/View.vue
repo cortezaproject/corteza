@@ -28,7 +28,7 @@
   </div>
 
   <!-- Page content -->
-  <div v-else-if="page && positionedBlocks.length">
+  <div v-else-if="page && positionedBlocks.length" class="h-full">
     <Grid :blocks="positionedBlocks" :namespace="namespace" :page="page" />
   </div>
 

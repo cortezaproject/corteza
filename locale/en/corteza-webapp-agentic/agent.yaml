@@ -30,6 +30,7 @@ editor:
     behavior: Behavior
     knowledgeBase: Knowledge Base
     execution: Execution
+    tcl: Treaty Compliance Layer
     tools: Tools
     access: Access
     invocation: Invocation
@@ -53,9 +54,37 @@ editor:
     help: Rules the agent must follow (e.g. "Stay on topic").
     add: Add guardrail
     placeholder: e.g. Stay on topic
+  tcl:
+    label: Treaty Compliance Layer
+    help: Enforce compliance with applicable treaties and regulations at the platform level
+    enabledLabel: Enable TCL
+    enabledHelp: When enabled, the agent will enforce compliance rules and inject treaty articles into the system prompt
+    temperature:
+      label: Citation Verbosity
+      help: Controls how verbosely the agent cites compliance references in responses (1 = minimal, 10 = full citations)
+    articles:
+      label: Compliance Articles
+      help: Select which treaty articles the agent must comply with.
+      placeholder: Select articles...
+      hardwired: Required
   injectSystemContext:
-    label: Inject Corteza system context
-    help: Prepend the Corteza platform context to the system prompt, giving the agent knowledge about the system's data model and capabilities
+    label: System Context
+    help: Inject platform context into the system prompt, giving the agent knowledge about the data model and capabilities
+  knowledgeBases:
+    label: Topics
+    help: Attach topics to give the agent domain-specific context and data schema awareness
+    placeholder: Select topics...
+    createNew: Create new
+    dialogCreate: Create Topic
+    dialogEdit: Edit Topic
+    handle: Handle
+    title: Title
+    description: Description
+    descriptionHelp: Free-text knowledge — policies, domain context, instructions, or any information the agent should know
+    composeContext: Compose Context
+    namespacePlaceholder: Select namespace...
+    modulesPlaceholder: Select modules...
+    addNamespace: Add namespace
   provider:
     label: LLM Provider
     help: The LLM provider to use for this agent
@@ -65,17 +94,18 @@ editor:
   temperature:
     label: Temperature
     help: Controls randomness. Lower values (0.0) are more deterministic, higher values (1.0) are more creative
-  maxTokens:
-    label: Max Tokens (per call)
-    help: Maximum tokens the LLM can generate per call
+
   limits:
     label: Limits
   maxIterations:
     label: Max Iterations
     help: Maximum number of think-act cycles before the agent stops. Each iteration may include an LLM call and tool executions
-  totalMaxTokens:
-    label: Max Context Tokens
-    help: Maximum number of tokens allowed in the conversation context. When the context exceeds this limit, the agent will stop executing
+  contextWindow:
+    label: Token Limit
+    help: Maximum number of tokens allowed in the conversation. When the limit is exceeded, the agent will stop executing
+  outputTokens:
+    label: Agent Response Limit
+    help: Maximum number of tokens the agent can generate per single response
   timeout:
     label: Timeout
     help: Maximum duration for the entire agent execution (e.g. "30s", "2m")
@@ -89,6 +119,8 @@ editor:
     label: Allowed Tools
     help: Select which MCP tools this agent is allowed to use
     noTools: No tools configured
+    selectPlaceholder: Select a tool to add...
+    hintPlaceholder: Optional hints for this tool...
     toolName: Tool Name
     toolDescription: Description
     toolHints: Hints
@@ -127,7 +159,7 @@ editor:
     traceCopy: 'Copy'
     traceTotalTokens: 'total tokens'
     traceExecutions: 'executions'
-    traceContext: 'context'
+    traceContext: 'System Context'
     toggleRawJson: 'Toggle raw JSON'
     tokenUsage: '{input} in / {output} out / {total} total tokens'
     thinking: Thinking...

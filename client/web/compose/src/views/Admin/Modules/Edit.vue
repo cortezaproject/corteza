@@ -29,9 +29,23 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1">
+    <div class="container mx-auto p-4 flex-1 overflow-y-auto min-h-0 flex flex-col">
       <!-- Related Pages Actions -->
-      <div v-if="isEdit && namespace?.canManageNamespace" class="flex justify-end gap-2 mb-4">
+      <div
+        v-if="isEdit && namespace?.canManageNamespace"
+        class="flex justify-end gap-2 mb-4 shrink-0"
+      >
+        <!-- Export Button -->
+        <Button
+          v-if="namespace?.canExportModules"
+          :label="$t('general.label.export')"
+          icon="pi pi-download"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="exportModule"
+        />
+
         <!-- Record Page Button -->
         <CRouterLinkButton
           v-if="recordPage"
@@ -76,7 +90,10 @@
         />
       </div>
 
-      <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
+      <Card
+        :pt="{ body: { class: 'p-0 h-full' }, content: { class: 'p-0 h-full' } }"
+        class="flex-1"
+      >
         <template #content>
           <Tabs v-model:value="activeTab">
             <TabList class="rounded-t-lg">
@@ -85,11 +102,6 @@
 
             <TabPanels>
               <TabPanel value="fields">
-                <!-- Module Info -->
-                <h4 class="font-semibold text-lg mb-4">
-                  {{ $t('module.edit.moduleInfo') }}
-                </h4>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
@@ -126,9 +138,6 @@
 
                 <!-- Module Fields -->
                 <div class="flex items-center justify-between mb-4">
-                  <h4 class="font-semibold text-lg">
-                    {{ $t('module.edit.manageRecordFields') }}
-                  </h4>
                   <Button
                     :label="$t('module.edit.newField')"
                     icon="pi pi-plus"
@@ -138,27 +147,33 @@
                 </div>
 
                 <DataTable
-                  :value="fieldsForTable"
+                  ref="dataTableRef"
+                  :value="allFieldsForTable"
                   striped-rows
+                  scrollable
+                  :scroll-height="tableScrollHeight"
                   data-key="_dataKey"
-                  class="border border-b-0 border-surface rounded-border overflow-auto"
+                  class="border border-b-0 border-surface rounded-border"
                   :pt="{ headerCell: { class: 'bg-highlight-emphasis' } }"
                 >
                   <Column field="name" :header="$t('module.edit.fields.columns.name.label')">
                     <template #body="{ data }">
-                      <InputText v-model="data.name" class="w-full" size="small" />
+                      <span v-if="data.isSystem">{{ data.name }}</span>
+                      <InputText v-else v-model="data.name" class="w-full" size="small" />
                     </template>
                   </Column>
 
                   <Column field="label" :header="$t('module.edit.fields.columns.title.label')">
                     <template #body="{ data }">
-                      <InputText v-model="data.label" class="w-full" size="small" />
+                      <span v-if="data.isSystem" class="text-muted-color">{{ data.label }}</span>
+                      <InputText v-else v-model="data.label" class="w-full" size="small" />
                     </template>
                   </Column>
 
                   <Column field="kind" :header="$t('module.edit.fields.columns.type.label')">
                     <template #body="{ data, index }">
-                      <InputGroup>
+                      <span v-if="data.isSystem" class="text-muted-color">{{ data.kind }}</span>
+                      <InputGroup v-else>
                         <Select
                           v-model="data.kind"
                           :options="fieldKinds"
@@ -187,7 +202,7 @@
                     body-class="text-center"
                   >
                     <template #body="{ data }">
-                      <div class="flex justify-center">
+                      <div v-if="!data.isSystem" class="flex justify-center">
                         <Checkbox v-model="data.isRequired" :binary="true" />
                       </div>
                     </template>
@@ -201,7 +216,7 @@
                     body-class="text-center"
                   >
                     <template #body="{ data }">
-                      <div class="flex justify-center">
+                      <div v-if="!data.isSystem" class="flex justify-center">
                         <Checkbox v-model="data.isMulti" :binary="true" />
                       </div>
                     </template>
@@ -209,7 +224,7 @@
 
                   <Column header-style="width: 3rem">
                     <template #body="{ data, index }">
-                      <div class="flex justify-end gap-1">
+                      <div v-if="!data.isSystem" class="flex justify-end gap-1">
                         <Button
                           icon="pi pi-ellipsis-v"
                           text
@@ -286,7 +301,7 @@ import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
 
 const { CInputDelete, CRouterLinkButton } = components
@@ -316,6 +331,11 @@ const module = ref(null)
 const activeTab = ref('fields')
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
+
+// DataTable dynamic scroll height
+const dataTableRef = ref(null)
+const tableScrollHeight = ref('50vh')
+let resizeObserver = null
 
 // Configurator State
 const configuratorVisible = ref(false)
@@ -356,6 +376,17 @@ const fieldsForTable = computed(() => {
   if (!module.value?.fields) return []
   module.value.fields.forEach(ensureFieldKey)
   return module.value.fields
+})
+
+// Combined regular + system fields for a single table
+const allFieldsForTable = computed(() => {
+  const regular = fieldsForTable.value
+  if (!module.value) return regular
+  const system = module.value.systemFields().map(f => ({
+    ...f,
+    _dataKey: `sys_${f.name}`,
+  }))
+  return [...regular, ...system]
 })
 
 // Computed
@@ -609,8 +640,39 @@ async function handleRecordListPageCreation() {
 }
 
 // Lifecycle
+function updateTableScrollHeight() {
+  nextTick(() => {
+    const el = dataTableRef.value?.$el
+    if (!el) return
+
+    // Find the header row inside DataTable to measure its height
+    const header = el.querySelector('.p-datatable-header-cell')?.closest('thead')
+    const headerHeight = header?.offsetHeight || 40
+
+    const rect = el.getBoundingClientRect()
+    const footerOffset = 70 // footer bar height + padding
+    const remaining = window.innerHeight - rect.top - headerHeight - footerOffset
+    const minHeight = window.innerHeight * 0.5 // 50vh
+
+    tableScrollHeight.value = `${Math.max(remaining, minHeight)}px`
+  })
+}
+
 onMounted(() => {
   loadModule()
+
+  // Observe layout changes to recalculate scroll height
+  updateTableScrollHeight()
+  window.addEventListener('resize', updateTableScrollHeight)
+
+  resizeObserver = new ResizeObserver(updateTableScrollHeight)
+  const formEl = document.querySelector('form')
+  if (formEl) resizeObserver.observe(formEl)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateTableScrollHeight)
+  resizeObserver?.disconnect()
 })
 
 watch(
@@ -619,4 +681,22 @@ watch(
     loadModule()
   },
 )
+
+// Recalculate scroll height when loading finishes and DataTable renders
+watch(loading, (val) => {
+  if (!val) updateTableScrollHeight()
+})
+
+function exportModule() {
+  if (!module.value) return
+  const blob = new Blob([JSON.stringify({ type: 'module', list: [module.value] }, null, 2)], {
+    type: 'application/json',
+  })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${module.value.handle || module.value.name || 'module'}-export.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 </script>

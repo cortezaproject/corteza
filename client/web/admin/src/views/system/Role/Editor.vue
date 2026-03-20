@@ -51,6 +51,31 @@
               rows="3"
             />
           </FormField>
+
+          <!-- isContextual toggle -->
+          <div class="flex items-center gap-3">
+            <ToggleSwitch id="isContextual" v-model="isContextual" />
+            <label for="isContextual" class="font-medium text-primary cursor-pointer">
+              {{ $t('system.roles.editor.info.context.label') }}
+            </label>
+          </div>
+
+          <!-- Contextual section (shown when isContextual) -->
+          <div v-if="isContextual" class="md:col-span-2 flex flex-col gap-4 p-4 border rounded-lg bg-surface-50">
+            <div class="flex flex-col gap-2">
+              <label class="font-medium text-primary">{{ $t('system.roles.editor.info.context.expression-label') }}</label>
+              <InputText v-model="role.meta.context.expr" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="font-medium text-primary">{{ $t('system.roles.editor.info.context.resource-types-label') }}</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div v-for="rt in resourceTypes" :key="rt.value" class="flex items-center gap-2">
+                  <Checkbox :inputId="rt.value" v-model="role.meta.context.resourceTypes" :value="rt.value" />
+                  <label :for="rt.value" class="cursor-pointer text-sm">{{ rt.label }}</label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Panel>
 
@@ -108,7 +133,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
@@ -134,6 +159,27 @@ const initialMemberIDs = ref(new Set())
 
 // Computed
 const isEdit = computed(() => !!route.params.roleID)
+
+const isContextual = computed({
+  get: () => !!(role.value?.meta?.context?.expr || role.value?.meta?.context?.resourceTypes?.length),
+  set: (val) => {
+    if (!val) {
+      role.value.meta.context.expr = ''
+      role.value.meta.context.resourceTypes = []
+    }
+  },
+})
+
+const resourceTypes = [
+  { value: 'corteza::system:auth-client', label: 'system:auth-client' },
+  { value: 'corteza::system:role', label: 'system:role' },
+  { value: 'corteza::system:user', label: 'system:user' },
+  { value: 'corteza::compose:module', label: 'compose:module' },
+  { value: 'corteza::compose:namespace', label: 'compose:namespace' },
+  { value: 'corteza::compose:page', label: 'compose:page' },
+  { value: 'corteza::compose:record', label: 'compose:record' },
+  { value: 'corteza::automation:workflow', label: 'automation:workflow' },
+]
 
 const pageTitle = computed(() => {
   return isEdit.value ? t('system.roles.editor.title.edit') : t('system.roles.editor.title.create')
@@ -165,7 +211,7 @@ async function loadRole() {
   const roleID = route.params.roleID
   if (!roleID) {
     // Create new
-    role.value = new system.Role({})
+    role.value = new system.Role({ meta: { context: { expr: '', resourceTypes: [] } } })
     return
   }
 
@@ -173,6 +219,10 @@ async function loadRole() {
   try {
     const raw = await $SystemAPI.roleRead({ roleID })
     role.value = new system.Role(raw)
+
+    if (!role.value.meta.context) {
+      role.value.meta.context = { expr: '', resourceTypes: [] }
+    }
 
     // Load member IDs
     const membersResult = await $SystemAPI.roleMemberList({ roleID })

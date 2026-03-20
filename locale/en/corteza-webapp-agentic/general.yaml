@@ -5,6 +5,8 @@ label:
   cancel: Cancel
   save: Save
   saveAndClose: Save and close
+  yes: Yes
+  no: No
 resourceList:
   notFound: Not found
   noItems: No items to show

@@ -44,12 +44,23 @@
 
           <div class="flex flex-col gap-2">
             <label for="level" class="font-medium text-primary">
-              {{ $t('system.sensitivityLevel.editor.info.level') }}
+              {{ $t('system.sensitivityLevel.editor.info.level.label') }}
             </label>
             <InputNumber id="level" v-model="sensitivityLevel.level" :min="0" />
             <small class="text-muted-color">
               {{ $t('system.sensitivityLevel.editor.info.level.hint') }}
             </small>
+          </div>
+
+          <div class="flex flex-col gap-2 md:col-span-2">
+            <label for="description" class="font-medium text-primary">
+              {{ $t('system.sensitivityLevel.editor.info.description') }}
+            </label>
+            <Textarea
+              id="description"
+              v-model="sensitivityLevel.description"
+              rows="3"
+            />
           </div>
         </div>
       </Panel>
@@ -136,7 +147,7 @@ const resolver = ref(({ values }) => {
 async function loadSensitivityLevel() {
   const sensitivityLevelID = route.params.sensitivityLevelID
   if (!sensitivityLevelID) {
-    sensitivityLevel.value = { name: '', handle: '', level: 0 }
+    sensitivityLevel.value = { name: '', handle: '', level: 0, description: '' }
     return
   }
 
@@ -160,6 +171,7 @@ async function handleSubmit({ valid }) {
       name: sensitivityLevel.value.name,
       handle: sensitivityLevel.value.handle,
       level: sensitivityLevel.value.level ?? 0,
+      description: sensitivityLevel.value.description || '',
     }
 
     if (isEdit.value) {

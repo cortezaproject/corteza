@@ -109,18 +109,19 @@ function slugify(text) {
 
 // Icon mapping for groups
 const GROUP_ICONS = {
-  manual: 'pi pi-user',
-  schedule: 'pi pi-calendar',
-  records: 'pi pi-database',
-  logic: 'pi pi-sitemap',
-  general: 'pi pi-bolt',
-  system: 'pi pi-cog',
-  agents: 'pi pi-microchip-ai',
+  manual: { type: 'name', value: 'user' },
+  schedule: { type: 'name', value: 'calendar' },
+  records: { type: 'name', value: 'database' },
+  branches: { type: 'name', value: 'sitemap' },
+  loops: { type: 'name', value: 'refresh' },
+  general: { type: 'name', value: 'bolt' },
+  system: { type: 'name', value: 'cog' },
+  agents: { type: 'name', value: 'microchip-ai' },
 }
 
 function getGroupIcon(groupName) {
   const slug = slugify(groupName)
-  return GROUP_ICONS[slug] || 'pi pi-folder'
+  return GROUP_ICONS[slug] || { type: 'name', value: 'folder' }
 }
 
 // Helper to map a trigger to a node format
@@ -153,6 +154,7 @@ const availableCategories = computed(() => {
       groupsMap[id] = {
         id,
         label,
+        icon: getGroupIcon(label) || node.icon,
         nodes: [],
       }
     }
@@ -168,30 +170,40 @@ const availableCategories = computed(() => {
 
   // Populate Steps/Actions (if filterCategory isn't 'trigger')
   if (props.filterCategory !== 'trigger') {
-    // 1. Manually add Logic group
-    groupsMap['logic'] = {
-      id: 'logic',
-      label: t('builder.nodePicker.categories.logic', 'Logic'),
-      icon: getGroupIcon('logic'),
+    // 1. Branches group (exclusive + inclusive)
+    groupsMap['branches'] = {
+      id: 'branches',
+      label: t('builder.nodePicker.categories.branches', 'Branches'),
+      icon: getGroupIcon('branches'),
       nodes: [
         {
-          id: 'branch',
+          id: 'branchExclusive',
           type: 'condition',
-          label: t('builder.nodePicker.nodes.logic.branch.label'),
+          label: t('builder.nodePicker.nodes.branches.exclusive.label'),
           icon: DEFAULT_ICONS.BRANCH,
-          description: t('builder.nodePicker.nodes.logic.branch.description'),
-          ref: 'gateway',
-          group: 'Logic',
+          description: t('builder.nodePicker.nodes.branches.exclusive.description'),
+          ref: 'gatewayExclusive',
+          group: 'Branches',
           weight: 0,
+        },
+        {
+          id: 'branchInclusive',
+          type: 'condition',
+          label: t('builder.nodePicker.nodes.branches.inclusive.label'),
+          icon: DEFAULT_ICONS.BRANCH,
+          description: t('builder.nodePicker.nodes.branches.inclusive.description'),
+          ref: 'gatewayInclusive',
+          group: 'Branches',
+          weight: 1,
         },
       ],
     }
 
-    // 2. Loop through Actions
+    // 2. Loop through all functions from construct library (exclude gateways)
     store.functions
-      .filter(fn => fn.kind !== 'gateway') // Gateways are handled manually above
+      .filter(fn => fn.kind !== 'gateway')
       .forEach(fn => {
-        const icon = normalizeIcon(fn.meta?.icon) || DEFAULT_ACTION_ICON
+        const icon = normalizeIcon(fn.meta?.icon) || (fn.kind === 'iterator' ? DEFAULT_ICONS.ITERATOR : DEFAULT_ACTION_ICON)
         addNodeToGroup({
           id: fn.ref,
           type: 'action',

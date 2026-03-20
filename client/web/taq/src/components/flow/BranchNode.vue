@@ -83,7 +83,7 @@ const props = defineProps({
   alwaysShowPreview: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['delete'])
+const emit = defineEmits(['delete', 'replace'])
 const { t } = useI18n()
 const nodeRef = ref(null)
 const menuRef = ref()
@@ -96,6 +96,11 @@ const freshNode = computed(() => {
 })
 
 const menuItems = [
+  {
+    label: t('builder.nodes.menu.replace'),
+    icon: 'pi pi-sync',
+    command: () => emit('replace', props.id),
+  },
   {
     label: t('builder.nodes.menu.delete'),
     icon: 'pi pi-trash',

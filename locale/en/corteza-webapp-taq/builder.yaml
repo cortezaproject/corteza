@@ -6,6 +6,8 @@ run: Run
 enabled: Enabled
 selectTrigger: Select Trigger
 addStep: Add Step
+replaceStep: Replace Step
+replaceTrigger: Replace Trigger
 emptyState: Start by adding a trigger
 addTrigger: Add Trigger
 
@@ -55,7 +57,8 @@ nodePicker:
     triggersGeneral: General
     triggersRecord: Record
     actions: Actions
-    logic: Logic
+    branches: Branches
+
   nodes:
     triggers:
       manual:
@@ -104,10 +107,14 @@ nodePicker:
       composeRecordsCreate:
         label: Create record
         description: Records
-    logic:
-      branch:
-        label: Branch
-        description: Split flow
+    branches:
+      exclusive:
+        label: First Match
+        description: Takes the first path whose condition is true
+      inclusive:
+        label: All Matches
+        description: Takes every path whose condition is true
+
 
 referencePanel:
   title: Step Results
@@ -146,6 +153,10 @@ branch:
   noCondition: No condition set
   condition: Condition
 
+iterator:
+  body: Body
+  done: Done
+
 condition:
   addCondition: Add condition
   addGroup: Add group
@@ -175,11 +186,13 @@ nodes:
   trigger: Trigger
   step: Step
   branch: Branch
+  iterator: Loop
   end: End
   startAutomation: Start automation
   splitFlow: Split flow
   menu:
     delete: Delete
+    replace: Replace
 
 preview:
   noConfig: No configuration

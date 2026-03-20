@@ -38,17 +38,26 @@ const isBranchEdge = computed(() => {
   return sourceNode?.type === 'branch'
 })
 
+// Determine if this is an iterator edge (source is an iterator node)
+const isIteratorEdge = computed(() => {
+  const sourceNode = getNodes.value.find(n => n.id === props.source)
+  return sourceNode?.type === 'iterator'
+})
+
+// Whether to use forked path rendering (branch or iterator)
+const isForkedEdge = computed(() => isBranchEdge.value || isIteratorEdge.value)
+
 // Get the index of this edge among siblings from same source (for labeling)
 const edgeIndex = computed(() => {
-  if (!isBranchEdge.value) return -1
+  if (!isForkedEdge.value) return -1
   const siblingEdges = getEdges.value.filter(e => e.source === props.source)
   return siblingEdges.findIndex(e => e.id === props.id)
 })
 
 // Calculate the path and center position
 const path = computed(() => {
-  if (isBranchEdge.value) {
-    // Custom forked path for branch edges
+  if (isForkedEdge.value) {
+    // Custom forked path for branch/iterator edges
     // Shape: down from center -> horizontal to target X -> down to target
     const startX = props.sourceX
     const startY = props.sourceY
@@ -69,7 +78,7 @@ const path = computed(() => {
 
     return { edgePath, labelX, labelY, buttonY }
   } else {
-    // Regular smooth step path for non-branch edges
+    // Regular smooth step path for non-forked edges
     const [edgePath, labelX, labelY] = getSmoothStepPath({
       sourceX: props.sourceX,
       sourceY: props.sourceY,
@@ -78,17 +87,26 @@ const path = computed(() => {
       sourcePosition: props.sourcePosition,
       targetPosition: props.targetPosition,
     })
-    return { edgePath, labelX, labelY, buttonY: labelY }  // Button same as label for non-branch
+    return { edgePath, labelX, labelY, buttonY: labelY }
   }
 })
 
 // Edge label for branches: If (first), Else (second/last)
+// Edge label for iterators: Body (first), Done (second/last)
 const edgeLabel = computed(() => {
-  if (!isBranchEdge.value) return null
-  const siblingEdges = getEdges.value.filter(e => e.source === props.source)
-  if (edgeIndex.value === 0) return t('builder.branch.if')
-  if (edgeIndex.value === siblingEdges.length - 1) return t('builder.branch.else')
-  return t('builder.branch.elseIf')
+  if (isBranchEdge.value) {
+    const siblingEdges = getEdges.value.filter(e => e.source === props.source)
+    if (edgeIndex.value === 0) return t('builder.branch.if')
+    if (edgeIndex.value === siblingEdges.length - 1) return t('builder.branch.else')
+    return t('builder.branch.elseIf')
+  }
+  if (isIteratorEdge.value) {
+    const siblingEdges = getEdges.value.filter(e => e.source === props.source)
+    if (edgeIndex.value === 0) return t('builder.iterator.body')
+    if (edgeIndex.value === siblingEdges.length - 1) return t('builder.iterator.done')
+    return ''
+  }
+  return null
 })
 
 // Check if this edge is on the highlighted path

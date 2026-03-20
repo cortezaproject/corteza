@@ -235,6 +235,66 @@
             </div>
           </div>
         </div>
+
+        <Divider />
+
+        <!-- Page buttons sub-section -->
+        <div>
+          <h5 class="text-sm font-semibold mb-1">
+            {{ $t('ui.settings.editor.topbar.page-buttons.title') }}
+          </h5>
+          <p class="text-xs text-muted-color mb-3">
+            {{ $t('ui.settings.editor.topbar.page-buttons.description') }}
+          </p>
+          <div class="flex flex-col gap-2">
+            <DataTable :value="topbar.pageButtons" class="border rounded" size="small">
+              <Column :header="$t('ui.settings.editor.topbar.page-buttons.label')" class="w-1/4">
+                <template #body="{ data }">
+                  <InputText v-model="data.label" size="small" class="w-full" />
+                </template>
+              </Column>
+              <Column :header="$t('ui.settings.editor.topbar.page-buttons.url')" class="w-1/4">
+                <template #body="{ data }">
+                  <InputText v-model="data.url" size="small" class="w-full" />
+                </template>
+              </Column>
+              <Column :header="$t('ui.settings.editor.topbar.page-buttons.url-match')" class="w-1/4">
+                <template #body="{ data }">
+                  <InputText v-model="data.urlMatch" size="small" class="w-full" placeholder="/builder" />
+                </template>
+              </Column>
+              <Column
+                :header="$t('ui.settings.editor.topbar.page-buttons.new-tab')"
+                class="w-20 text-center"
+              >
+                <template #body="{ data }">
+                  <Checkbox v-model="data.newTab" :binary="true" />
+                </template>
+              </Column>
+              <Column class="w-16 text-right">
+                <template #body="{ index }">
+                  <Button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    text
+                    rounded
+                    size="small"
+                    @click="topbar.pageButtons.splice(index, 1)"
+                  />
+                </template>
+              </Column>
+            </DataTable>
+            <div>
+              <Button
+                :label="$t('general.label.add')"
+                icon="pi pi-plus"
+                size="small"
+                severity="secondary"
+                @click="topbar.pageButtons.push({ label: '', url: '', urlMatch: '', newTab: true })"
+              />
+            </div>
+          </div>
+        </div>
       </Panel>
     </div>
 
@@ -278,6 +338,7 @@ const topbar = reactive({
   hideThemeSelector: false,
   helpLinks: [],
   profileLinks: [],
+  pageButtons: [],
 })
 
 const hideDrafts = computed({
@@ -297,6 +358,7 @@ async function loadSettings() {
           ...s.value,
           helpLinks: s.value.helpLinks || [],
           profileLinks: s.value.profileLinks || [],
+          pageButtons: s.value.pageButtons || [],
         })
       }
     }
