@@ -5,7 +5,7 @@
       :key="index"
       class="rounded-lg border bg-[--p-content-background] p-3"
     >
-      <div class="flex items-center gap-2 mb-2">
+      <div class="flex items-center gap-1 mb-2">
         <Select
           v-model="row.field"
           :options="getAvailableFields(index)"

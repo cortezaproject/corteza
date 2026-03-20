@@ -476,8 +476,8 @@ function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCa
 
 // Operator labels for human-readable condition summaries
 const OP_LABELS: Record<string, string> = {
-  eq: '==', ne: '!=', lt: '<', lte: '<=', gt: '>', gte: '>=',
-  isNull: 'is null', isNotNull: 'is not null',
+  eq: 'equals', ne: 'not equals', lt: 'less than', lte: 'at most', gt: 'greater than', gte: 'at least',
+  isNull: 'is empty', isNotNull: 'is not empty',
   and: 'AND', or: 'OR',
 }
 
@@ -518,4 +518,56 @@ export function conditionToShort(node: Record<string, unknown>): string {
   }
 
   return ref
+}
+
+export type ConditionSegment = { type: 'text'; value: string } | { type: 'ref'; value: string; scope: string }
+
+/**
+ * Convert an ASTNode condition to an array of segments for rich rendering.
+ * Symbol nodes become { type: 'ref' }, everything else becomes { type: 'text' }.
+ */
+export function conditionToSegments(node: Record<string, unknown>): ConditionSegment[] {
+  if (!node) return []
+
+  // Leaf: value
+  if (node.value && typeof node.value === 'object') {
+    const v = node.value as Record<string, unknown>
+    return [{ type: 'text', value: String(v['@value'] ?? '') }]
+  }
+
+  // Leaf: symbol
+  if (node.symbol) {
+    const meta = (node.meta || {}) as Record<string, string>
+    return [{ type: 'ref', value: String(node.symbol), scope: meta.scope || '' }]
+  }
+
+  const ref = String(node.ref || '')
+  const args = (node.args || []) as Record<string, unknown>[]
+
+  // Unary operator
+  if (ref === 'isNull' || ref === 'isNotNull') {
+    return [...conditionToSegments(args[0]), { type: 'text', value: ` ${OP_LABELS[ref] || ref}` }]
+  }
+
+  // Combinator (and/or)
+  if (ref === 'and' || ref === 'or') {
+    const sep: ConditionSegment = { type: 'text', value: ` ${OP_LABELS[ref]} ` }
+    const result: ConditionSegment[] = []
+    args.forEach((a, i) => {
+      if (i > 0) result.push(sep)
+      result.push(...conditionToSegments(a))
+    })
+    return result
+  }
+
+  // Binary operator
+  if (args.length >= 2) {
+    return [
+      ...conditionToSegments(args[0]),
+      { type: 'text', value: ` ${OP_LABELS[ref] || ref} ` },
+      ...conditionToSegments(args[1]),
+    ]
+  }
+
+  return [{ type: 'text', value: ref }]
 }

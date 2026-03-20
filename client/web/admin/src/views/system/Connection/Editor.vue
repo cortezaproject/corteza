@@ -138,32 +138,6 @@
                   </Panel>
 
                   <Panel
-                    :header="$t('system.connections.editor.configurations.standardOperations')"
-                    toggleable
-                    :collapsed="false"
-                    class="shadow"
-                  >
-                    <FormField name="standardOperations" class="flex flex-col gap-2">
-                      <Textarea
-                        id="standardOperations"
-                        name="standardOperations"
-                        v-model="rawJSON.standardOperations"
-                        rows="10"
-                        class="font-mono text-sm max-h-[50vh] overflow-y-auto"
-                        @change="() => parseJSONField('standardOperations')"
-                      />
-                      <Message
-                        v-if="$form.standardOperations?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                      >
-                        {{ $form.standardOperations.error?.message }}
-                      </Message>
-                    </FormField>
-                  </Panel>
-
-                  <Panel
                     :header="$t('system.connections.editor.configurations.operations')"
                     toggleable
                     :collapsed="false"

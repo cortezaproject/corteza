@@ -1,10 +1,9 @@
 <template>
   <div
-    class="inline-flex items-center gap-1.5 bg-surface border border-surface text-sm"
+    class="inline-flex items-center gap-1 bg-surface border border-surface text-xs px-2 py-1 rounded-border"
     :title="displayLabel"
-    :style="{ padding: 'var(--p-form-field-sm-padding-y) var(--p-form-field-sm-padding-x)', borderRadius: 'var(--p-form-field-border-radius)' }"
   >
-    <i class="pi pi-link text-primary text-sm" />
+    <i class="pi pi-link text-primary text-xs" />
     <span class="text-color truncate">{{ displayLabel }}</span>
   </div>
 </template>

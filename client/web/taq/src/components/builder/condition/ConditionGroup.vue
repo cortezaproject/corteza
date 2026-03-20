@@ -7,7 +7,7 @@
     <div class="flex flex-col">
       <template v-for="(child, index) in node.args" :key="childKey(child, index)">
         <!-- AND/OR connector between rows (not before the first) -->
-        <div v-if="index > 0" class="flex items-center gap-2 py-1">
+        <div v-if="index > 0" class="flex items-center gap-2 py-2">
           <div class="flex-1 border-t border-surface" />
           <button
             class="text-xs font-semibold px-2 py-0.5 rounded-border cursor-pointer transition-colors"

@@ -13,45 +13,37 @@
         @mouseenter="onPreviewEnter"
       >
         <!-- Branch configuration preview -->
-        <div v-if="node?.type === 'branch'" class="flex flex-col gap-2">
+        <div v-if="node?.type === 'branch'" class="flex flex-col gap-3">
           <!-- Gateway type -->
-          <div class="flex items-baseline gap-2 text-xs">
-            <span class="text-primary shrink-0">{{ $t('builder.branch.gatewayType') }}:</span>
-            <span class="text-color-emphasis">
-              {{ gatewayLabel }}
-            </span>
+          <div class="flex flex-col gap-0.5 text-xs">
+            <label class="text-primary font-medium">{{ $t('builder.branch.gatewayType') }}</label>
+            <span class="text-color-emphasis">{{ gatewayLabel }}</span>
           </div>
           <!-- Branch paths -->
-          <div
-            v-if="branchPaths.length"
-            class="w-full rounded-lg border border-surface overflow-hidden"
-          >
-            <div class="flex text-xs font-medium text-muted-color bg-emphasis">
-              <span class="px-2 py-1 shrink-0 w-[60px]">{{ $t('builder.configSidebar.branches') }}</span>
-              <span class="px-2 py-1 flex-1">{{ $t('builder.branch.condition') }}</span>
-            </div>
-            <div
-              v-for="path in branchPaths"
-              :key="path.edgeId"
-              class="flex text-xs border-t border-surface"
-            >
-              <span class="px-2 py-1 text-muted-color shrink-0 w-[60px]">
-                {{ path.label }}
-              </span>
-              <span
-                class="px-2 py-1 flex-1 break-words"
-                :class="path.expr ? 'font-mono text-color-emphasis' : 'italic text-muted-color'"
-              >
-                {{ path.expr || path.defaultLabel }}
-              </span>
-            </div>
+          <div v-for="path in branchPaths" :key="path.edgeId" class="flex flex-col gap-1 text-xs">
+            <label class="text-primary font-medium">{{ path.label }}</label>
+            <span v-if="!path.segments.length" class="italic text-muted-color">
+              {{ path.defaultLabel }}
+            </span>
+            <span v-else class="flex flex-wrap items-center gap-1 text-color-emphasis">
+              <template v-for="(seg, si) in path.segments" :key="si">
+                <CViewReference
+                  v-if="seg.type === 'ref'"
+                  :scope="seg.scope"
+                  :source="seg.value"
+                  :nodes="nodes"
+                  size="small"
+                />
+                <span v-else>{{ seg.value }}</span>
+              </template>
+            </span>
           </div>
         </div>
 
         <!-- Configuration preview list (steps / triggers) -->
         <div v-else-if="previewItems.length" class="flex flex-col gap-3">
           <div v-for="item in previewItems" :key="item.key" class="flex flex-col gap-0.5 text-xs">
-            <span class="text-primary">{{ item.label }}</span>
+            <label class="text-primary font-medium">{{ item.label }}</label>
 
             <!-- Reference value -->
             <CViewReference
@@ -59,7 +51,7 @@
               :scope="item.refScope"
               :source="item.refSource"
               :nodes="nodes"
-              class="text-xs"
+              size="small"
             />
 
             <!-- Type-resolved value -->
@@ -84,7 +76,7 @@ import { useI18n } from 'vue-i18n'
 import CViewReference from '@/components/builder/form/viewers/CViewReference.vue'
 import { resolveViewerComponent } from '@/components/builder/form/viewers/registry'
 import { NODE_DIMENSIONS } from '@/utils/flow-constants'
-import { conditionToShort } from '@/utils/taq-parser'
+import { conditionToShort, conditionToSegments } from '@/utils/taq-parser'
 
 const { t } = useI18n()
 
@@ -187,7 +179,6 @@ watch(
       positionStyle.value = {
         ...positionStyle.value,
         top: `${yAbove}px`,
-        left: `${x}px`,
       }
       isFlippedUp.value = true
     }
@@ -246,11 +237,13 @@ const branchPaths = computed(() => {
 
       const condition = edge.data?.condition
       const conditionSummary = condition ? conditionToShort(condition) : ''
+      const segments = condition ? conditionToSegments(condition) : []
 
       return {
         edgeId: edge.id,
         label,
         expr: conditionSummary,
+        segments,
         defaultLabel: isLast ? t('builder.branch.defaultPath') : t('builder.preview.notSet'),
       }
     })
@@ -308,6 +301,15 @@ function getReferenceInfo(argumentName) {
 function getEffectiveValue(argumentName) {
   const value = getArgValue(argumentName)
   if (value != null) return value
+
+  // For triggers, check constraints directly
+  if (props.node?.type === 'trigger') {
+    const constraints = props.node.data?.constraints || []
+    const constraint = constraints.find(c => c.name === argumentName)
+    if (constraint?.values?.length) {
+      return constraint.values[0]['@value'] ?? null
+    }
+  }
 
   // If reference, resolve its value at design time
   const ref = getReferenceInfo(argumentName)

@@ -1,6 +1,6 @@
 <template>
   <div class="condition-row flex items-start gap-1">
-    <div class="flex flex-col gap-1 p-2 bg-emphasis rounded-border flex-1 min-w-0">
+    <div class="flex flex-col gap-1 flex-1 min-w-0">
       <!-- Row 1: variable -->
       <div class="flex items-center gap-1">
         <!-- Variable: reference chip when linked, else input + link button -->
@@ -83,7 +83,7 @@
       rounded
       size="small"
       severity="danger"
-      class="shrink-0 mt-1"
+      class="shrink-0"
       @click="emit('delete')"
     />
   </div>

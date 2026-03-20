@@ -144,6 +144,7 @@ branch:
   inclusiveHint: Takes every path whose condition is true
   defaultPath: Default — no condition needed
   noCondition: No condition set
+  condition: Condition
 
 condition:
   addCondition: Add condition

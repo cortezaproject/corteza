@@ -15,14 +15,9 @@
         {{ row.fieldLabel }}
       </span>
       <div v-if="row.isRef" class="px-2 py-1 flex-1">
-        <div
-          class="inline-flex items-center gap-1.5 bg-surface border border-surface text-xs"
-          :title="row.refLabel"
-          :style="{ padding: 'var(--p-form-field-sm-padding-y) var(--p-form-field-sm-padding-x)', borderRadius: 'var(--p-form-field-border-radius)' }"
-        >
-          <i class="pi pi-link text-primary text-xs" />
-          <span class="text-color truncate">{{ row.refLabel }}</span>
-        </div>
+        <CViewReference
+          :source="row.refLabel"
+        />
       </div>
       <span
         v-else
@@ -41,6 +36,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next/src/stores/useComposeResourceStore'
+import CViewReference from './CViewReference.vue'
 
 const { t } = useI18n()
 const notSet = t('builder.preview.notSet')

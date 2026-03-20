@@ -29,7 +29,6 @@
           :complete-on-focus="hasOptions"
           v-bind="$attrs"
         />
-        <!-- Reference toggle button -->
         <Button
           v-if="showReferenceToggle && !isAggregate"
           icon="pi pi-link"
