@@ -5,7 +5,7 @@
 							data-test-id="img-corteza-logo"
 							class="logo"
 							alt="Company logo"
-							src="{{ links.Assets }}/logo.svg"
+							src="{{ links.Assets }}/logo.png"
 						>
         </a>
     </div>

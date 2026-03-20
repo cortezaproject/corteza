@@ -484,10 +484,10 @@ type (
 // to avoid any unintended corruption or leaks
 func (cs AppSettings) WithDefaults() *AppSettings {
 	if len(strings.TrimSpace(cs.UI.IconLogo)) == 0 {
-		cs.UI.IconLogo = "/assets/icon.svg"
+		cs.UI.IconLogo = "/assets/icon.png"
 	}
 	if len(strings.TrimSpace(cs.UI.MainLogo)) == 0 {
-		cs.UI.MainLogo = "/assets/logo.svg"
+		cs.UI.MainLogo = "/assets/logo.png"
 	}
 
 	return &cs
