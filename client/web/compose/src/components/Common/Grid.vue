@@ -48,6 +48,7 @@
             :block-index="item.i"
             :resizing="resizing"
             :loading-record="loadingRecord"
+            :on-block-height-change="onBlockHeightChange"
             v-on="$listeners"
           />
         </grid-item>
@@ -100,6 +101,10 @@ export default {
       layout: [],
 
       resizing: false,
+
+      // Track which blocks have been programmatically modified (e.g., collapse/expand)
+      // Key: blockIndex, Value: { h, timestamp }
+      programmaticHeightChanges: {},
     }
   },
 
@@ -124,14 +129,27 @@ export default {
     blocks: {
       immediate: true,
       deep: true,
-      handler (blocks) {
+      handler (blocks, oldBlocks) {
+        // Check if this is a programmatic height change triggered by onBlockHeightChange
+        // We detect this by comparing the new blocks with what we already have in layout
+        const programmaticChanges = this.programmaticHeightChanges
+        const now = Date.now()
+
+        // Only process blocks that haven't been programmatically changed in the last 500ms
+        // This allows onBlockHeightChange to update layout without the watcher resetting it
         blocks = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
+          // Skip blocks that were recently programmatically changed
+          if (programmaticChanges[i] && (now - programmaticChanges[i].timestamp) < 500) {
+            return this.layout[i] || { i, x, y, w, h }
+          }
+
           // To avoid collision with hidden elements
           return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
         })
 
         this.$nextTick(() => {
           this.$set(this, 'layout', blocks)
+          // Force rerender to ensure grid recalculates dimensions
           this.forceRerender()
         })
       },
@@ -173,6 +191,27 @@ export default {
     forceRerender () {
       // Force the grid layout to recalculate its dimensions
       window.dispatchEvent(new Event('resize'))
+    },
+
+    onBlockHeightChange ({ blockIndex, newHeight }) {
+      // Only handle height changes in view mode (not in the page builder)
+      if (this.editable) return
+
+      // Mark this block as programmatically changed so the watcher doesn't reset it
+      this.$set(this.programmaticHeightChanges, blockIndex, {
+        h: newHeight,
+        timestamp: Date.now(),
+      })
+
+      // Find the layout item by blockIndex (which is the 'i' property)
+      const item = this.layout.find(l => l.i === blockIndex)
+      if (item) {
+        this.$set(item, 'h', newHeight)
+        // Force the grid to recalculate after height change
+        this.$nextTick(() => {
+          this.forceRerender()
+        })
+      }
     },
   },
 }

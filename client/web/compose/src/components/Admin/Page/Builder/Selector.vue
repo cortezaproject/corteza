@@ -161,6 +161,17 @@ export default {
           recordPageOnly: true,
         },
         {
+          label: this.$t('collapsibleRecord.label'),
+          block: new compose.PageBlockCollapsibleRecord(),
+          image: images.CollapsibleRecord,
+          recordPageOnly: true,
+        },
+        {
+          label: this.$t('collapsibleRecordList.label'),
+          block: new compose.PageBlockCollapsibleRecordList(),
+          image: images.CollapsibleRecordList,
+        },
+        {
           label: this.$t('recordList.label'),
           block: new compose.PageBlockRecordList(),
           image: images.RecordList,

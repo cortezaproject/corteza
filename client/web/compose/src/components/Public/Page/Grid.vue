@@ -4,7 +4,7 @@
     :editable="false"
   >
     <template
-      slot-scope="{ index, block }"
+      slot-scope="{ index, block, onBlockHeightChange }"
     >
       <page-block
         v-bind="{ ...$attrs }"
@@ -13,6 +13,7 @@
         :block="block"
         :block-index="index"
         :loading-record="loadingRecord"
+        :on-block-height-change="onBlockHeightChange"
         class="p-2"
         v-on="$listeners"
       />
