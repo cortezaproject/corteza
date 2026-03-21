@@ -1,0 +1,175 @@
+--progress is a global compose flag, better use `docker compose --progress xx build ...
+time="2026-03-23T17:17:07-06:00" level=warning msg="C:\\Projects\\Code\\corteza-toocky\\docker-compose.local.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+#1 [internal] load local bake definitions
+#1 reading from stdin 544B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.local
+#2 transferring dockerfile: 7.78kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/ubuntu:22.04
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:22-bookworm
+#4 ...
+
+#5 [internal] load metadata for docker.io/library/golang:1.24.1-bookworm
+#5 DONE 0.2s
+
+#4 [internal] load metadata for docker.io/library/node:22-bookworm
+#4 DONE 0.2s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 290B done
+#6 DONE 0.0s
+
+#7 [server-build  1/10] FROM docker.io/library/golang:1.24.1-bookworm@sha256:fa1a01d362a7b9df68b021d59a124d28cae6d99ebd1a876e3557c4dd092f1b1d
+#7 DONE 0.0s
+
+#8 [runtime  1/17] FROM docker.io/library/ubuntu:22.04
+#8 DONE 0.0s
+
+#9 [webapps-deps 1/9] FROM docker.io/library/node:22-bookworm@sha256:f90672bf4c76dfc077d17be4c115b1ae7731d2e8558b457d86bca42aeb193866
+#9 DONE 0.0s
+
+#10 [internal] load build context
+#10 transferring context: 749.31kB 0.7s done
+#10 DONE 0.8s
+
+#11 [webapps-deps 2/9] RUN apt-get -y update && apt-get install -y git make && rm -rf /var/lib/apt/lists/*
+#11 CACHED
+
+#12 [webapps-deps 4/9] WORKDIR /build
+#12 CACHED
+
+#13 [webapps-deps 6/9] COPY lib/ ./lib/
+#13 CACHED
+
+#14 [webapps-deps 3/9] RUN npm install -g @vue/cli-service
+#14 CACHED
+
+#15 [webapps-deps 5/9] COPY client/ ./client/
+#15 CACHED
+
+#16 [webapps-deps 7/9] RUN ls /build/lib/js/src/ | grep cast || echo "CAST.TS NOT FOUND"
+#16 CACHED
+
+#17 [server-build  3/10] WORKDIR /build/server
+#17 CACHED
+
+#18 [server-build  6/10] COPY server/ ./
+#18 CACHED
+
+#19 [server-build  2/10] RUN apt-get -y update && apt-get install -y git make gcc libc6-dev && rm -rf /var/lib/apt/lists/*
+#19 CACHED
+
+#20 [server-build  5/10] RUN go mod download
+#20 CACHED
+
+#21 [server-build  7/10] COPY locale/ ./locale/
+#21 CACHED
+
+#22 [server-build  4/10] COPY server/go.mod server/go.sum ./
+#22 CACHED
+
+#23 [server-build  8/10] RUN mkdir -p pkg/locale/src/en && cp -r locale/en/* pkg/locale/src/en/
+#23 CACHED
+
+#24 [server-build  9/10] COPY README.md LICENSE DCO ./
+#24 CACHED
+
+#25 [server-build 10/10] RUN CGO_ENABLED=1 go build -o corteza-server ./cmd/corteza
+#25 ...
+
+#26 [webapps-deps 8/9] RUN ls /build/lib/js/src/ | grep cast || echo "CAST.TS NOT FOUND"
+#26 0.377 cast.test.ts
+#26 0.377 cast.ts
+#26 DONE 0.5s
+
+#27 [webapps-deps 9/9] RUN cd lib && make fresh
+#27 0.784 ---Fresh js---
+#27 1.177 yarn install v1.22.22
+#27 1.210 info No lockfile found.
+#27 1.219 [1/5] Validating package.json...
+#27 1.224 [2/5] Resolving packages...
+#27 13.27 warning eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+#27 14.21 warning eslint > @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+#27 14.66 warning eslint > @humanwhocodes/config-array > @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+#27 14.88 warning eslint > file-entry-cache > flat-cache > rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+#27 15.09 warning eslint > file-entry-cache > flat-cache > rimraf > glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+#27 15.27 warning eslint > file-entry-cache > flat-cache > rimraf > glob > inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+#27 19.82 warning mocha > glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+#27 23.53 warning ts-sinon > sinon@9.2.4: 16.1.1
+#27 23.77 warning ts-sinon > sinon > nise > @sinonjs/text-encoding@0.7.3: Deprecated: no longer maintained and no longer used by Sinon packages. See
+#27 23.77   https://github.com/sinonjs/nise/issues/243 for replacement details.
+#27 23.81 warning ts-sinon > sinon > @sinonjs/samsam > lodash.get@4.4.2: This package is deprecated. Use the optional chaining (?.) operator instead.
+#27 26.35 [3/5] Fetching packages...
+#27 69.25 [4/5] Linking dependencies...
+#27 72.63 [5/5] Building fresh packages...
+#27 72.83 success Saved lockfile.
+#27 72.84 Done in 71.67s.
+#27 73.12 yarn link v1.22.22
+#27 73.16 success Registered "@cortezaproject/corteza-js".
+#27 73.16 info You can now run `yarn link "@cortezaproject/corteza-js"` in the projects where you want to use this package and it will be used instead.
+#27 73.16 Done in 0.05s.
+#27 73.37 yarn run v1.22.22
+#27 73.41 $ rollup -c --environment BUILD:production
+#27 74.08 [36m
+#27 74.08 [1msrc/index.ts[22m ÔåÆ [1mdist/index.cjs, dist/index.js[22m...[39m
+#27 76.12 [1m[31m[!] [1mRollupError: There was an error during the build:
+#27 76.12   Could not resolve "./corredor" from "src/index.ts"
+#27 76.12 Additionally, handling the error in the 'buildEnd' hook caused the following error:
+#27 76.12   [plugin rpt2] src/index.ts: Could not resolve "./corredor" from "src/index.ts"[22m[1m[39m[22m
+#27 76.12 src/index.ts
+#27 76.12 [2m    at Object.getRollupError (/build/lib/js/node_modules/rollup/dist/shared/parseAst.js:289:41)
+#27 76.12     at /build/lib/js/node_modules/rollup/dist/shared/rollup.js:23859:51
+#27 76.12     at catchUnfinishedHookActions (/build/lib/js/node_modules/rollup/dist/shared/rollup.js:23352:16)
+#27 76.12     at rollupInternal (/build/lib/js/node_modules/rollup/dist/shared/rollup.js:23842:5)
+#27 76.12     at build (/build/lib/js/node_modules/rollup/dist/bin/rollup:1722:55)
+#27 76.12     at runRollup (/build/lib/js/node_modules/rollup/dist/bin/rollup:1858:21)[22m
+#27 76.12 
+#27 76.12 
+#27 76.16 error Command failed with exit code 1.
+#27 76.16 info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+#27 76.18 Failed to fresh js
+#27 76.18 make: *** [Makefile:33: fresh] Error 1
+#27 ERROR: process "/bin/sh -c cd lib && make fresh" did not complete successfully: exit code: 2
+
+#25 [server-build 10/10] RUN CGO_ENABLED=1 go build -o corteza-server ./cmd/corteza
+#25 CANCELED
+------
+ > [webapps-deps 9/9] RUN cd lib && make fresh:
+76.12     at catchUnfinishedHookActions (/build/lib/js/node_modules/rollup/dist/shared/rollup.js:23352:16)
+76.12     at rollupInternal (/build/lib/js/node_modules/rollup/dist/shared/rollup.js:23842:5)
+76.12     at build (/build/lib/js/node_modules/rollup/dist/bin/rollup:1722:55)
+76.12     at runRollup (/build/lib/js/node_modules/rollup/dist/bin/rollup:1858:21)[22m
+76.12 
+76.12 
+76.16 error Command failed with exit code 1.
+76.16 info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+76.18 Failed to fresh js
+76.18 make: *** [Makefile:33: fresh] Error 1
+------
+Dockerfile.local:78
+
+--------------------
+
+  76 |     ENV BUILD_VERSION=$BUILD_VERSION
+
+  77 |     # Install libraries for all webapps (sequential but only once)
+
+  78 | >>> RUN cd lib && make fresh
+
+  79 |     ################################################################################
+
+  80 |     # Stage 3b: Build WebApps in Parallel (via BuildKit)
+
+--------------------
+
+failed to solve: process "/bin/sh -c cd lib && make fresh" did not complete successfully: exit code: 2
+
+
+
+View build details: docker-desktop://dashboard/build/default/default/rw8bsoh218u784y69dshendpw
+
