@@ -819,6 +819,38 @@ comment:
     frequentlyUsed: Frequently Used
     noResults: No emojis found
     quickReactions: Quick Reactions
+collapsibleRecord:
+  label: Collapsible
+  headerSection:
+    label: Header  
+    titleSection:
+      label: Title
+      placeholder: Enter title expression
+    subtitleSection:
+      label: Subtitle
+      placeholder: Enter subtitle expression
+      showWhenCollapsed: Hide subtitle when minimized    
+    expressionHelp: 'L[], C[], R[] to adjust alignment. i.e. L[${record.values.title}] C[example text] R[${record.values.status} ${record.values.date}]'
+  bodySection:
+    label: Body
+    bodyField: 
+      label: Body field
+      placeholder: Select a field for body content
+      description: Field to display as body content (rich text, long text, etc.)
+      inlineEditEnabled: Enable inline editing
+  otherFields:
+    horizontalFieldLayoutEnabled: Horizontal form layout
+    label: Other Fields
+    position:
+      label: Other fields position
+      default: Default
+      above: Above body
+      below: Below body
+  collapseSection: 
+    label: Collapse Options
+    defaultCollapsed: Collapsed by default
+collapsibleRecordList:
+  label: Collapsible List
 navigation:
   chart: Charts
   colorPicker: Choose a color

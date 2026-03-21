@@ -17,6 +17,8 @@ export { PageBlockProgress } from './progress'
 export { PageBlockNavigation } from './navigation'
 export { PageBlockTab } from './tabs'
 export { PageBlockGeometry } from './geometry'
+export { PageBlockCollapsibleRecord } from './collapsible-record'
+export { PageBlockCollapsibleRecordList } from './collapsible-record-list'
 
 export function PageBlockMaker<T extends PageBlock> (i: { kind: string }): T {
   const PageBlockTemp = Registry.get(i.kind)
