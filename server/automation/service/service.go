@@ -137,6 +137,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.JsenvHandler(Registry())
 	automation.Oauth2Handler(Registry())
 	automation.LoopHandler(Registry(), DefaultWorkflow.parser)
+	automation.NgLoopHandler(ConstructLibrary(), DefaultWorkflow.parser)
 	automation.CorredorHandler(Registry(), corredor.Service())
 	automation.EmailHandler(Registry())
 	automation.JwtHandler(Registry())
