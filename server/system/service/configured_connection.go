@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
@@ -18,6 +19,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
 	restDriver "github.com/cortezaproject/corteza/server/store/adapters/api/drivers/rest"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -202,7 +205,9 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
-		res.Config.DalConnectionID = rsp.dalConnection.ID
+		if rsp.dalConnection != nil {
+			res.Config.DalConnectionID = rsp.dalConnection.ID
+		}
 		res.Status = "active"
 
 		if res.Labels == nil {
@@ -242,6 +247,85 @@ func (svc *configuredConnection) Search(ctx context.Context, filter types.Config
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
+}
+
+func ensureGoogleCredential(cc *types.ConfiguredConnection, conn *types.Connection) {
+	if _, err := cred_registry.Default().Get(cc.ID); err != nil {
+		var saJSON string
+		for _, p := range cc.Config.Params {
+			if p.Name == "serviceAccountJSON" {
+				saJSON = p.Value
+				fmt.Println("[ensureGoogleCredential] Found saJSON param")
+				break
+			}
+		}
+		if saJSON != "" {
+			var sa struct {
+				ClientEmail string `json:"client_email"`
+				PrivateKey  string `json:"private_key"`
+			}
+			if err := json.Unmarshal([]byte(saJSON), &sa); err == nil && sa.ClientEmail != "" {
+				fmt.Println("[ensureGoogleCredential] Successfully parsed saJSON for email:", sa.ClientEmail)
+				var scopes []string
+				if strings.HasPrefix(conn.Handle, "google-calendar") {
+					scopes = []string{"https://www.googleapis.com/auth/calendar"}
+				} else if strings.HasPrefix(conn.Handle, "google-sheets") {
+					scopes = []string{"https://www.googleapis.com/auth/spreadsheets"}
+				} else if strings.HasPrefix(conn.Handle, "google-drive") {
+					scopes = []string{"https://www.googleapis.com/auth/drive"}
+				} else if strings.HasPrefix(conn.Handle, "google-tasks") {
+					scopes = []string{"https://www.googleapis.com/auth/tasks"}
+				} else {
+					fmt.Println("[ensureGoogleCredential] WARNING: No scopes found for handle:", conn.Handle)
+				}
+
+				cred, err := cred_registry.NewCredential(cred_registry.CredentialConfig{
+					ConnectionID:        cc.ID,
+					AuthType:            "google_service_account",
+					ServiceAccountEmail: sa.ClientEmail,
+					PrivateKey:          sa.PrivateKey,
+					Scopes:              scopes,
+				})
+				if err == nil && cred != nil {
+					e := cred_registry.Default().Store(cred)
+					fmt.Println("[ensureGoogleCredential] Stored credential, error:", e)
+				} else {
+					fmt.Println("[ensureGoogleCredential] Failed to create credential:", err)
+				}
+			} else {
+				fmt.Println("[ensureGoogleCredential] Failed to parse saJSON or missing client_email. Err:", err)
+			}
+		} else {
+			fmt.Println("[ensureGoogleCredential] saJSON was empty!")
+		}
+	}
+}
+
+// resolveExecutor returns the appropriate HTTP executor for the given configured
+// connection. Google connectors use the google wrapper directly (bypassing DAL)
+// because they have not yet been integrated as proper DAL connection types.
+// All other connectors are looked up via the DAL service.
+func resolveExecutor(
+	cc *types.ConfiguredConnection,
+	conn *types.Connection,
+	baseURL string,
+	dalConnectionID uint64,
+) (func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error), error) {
+	if strings.HasPrefix(conn.Handle, "google-") {
+		// Ensure the service-account credential is cached in the registry
+		// before the wrapper tries to use it.
+		ensureGoogleCredential(cc, conn)
+		gw := google.NewWrapper(baseURL, cc.ID)
+		return func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error) {
+			return gw.Run(ctx, method, path, payload, headers)
+		}, nil
+	}
+
+	cw := dal.Service().GetConnectionByID(dalConnectionID)
+	if cw == nil {
+		return nil, fmt.Errorf("DAL connection not found: %d", dalConnectionID)
+	}
+	return cw.Execute, nil
 }
 
 func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error) {
@@ -412,9 +496,13 @@ func (svc *configuredConnection) resolveTemplates(conn *types.Connection, params
 // dispatch orchestrates sub-system provisioning from a resolved connection definition.
 // TODO: implement Compose, Automation, and IG provisioning.
 func (svc *configuredConnection) dispatch(ctx context.Context, resolved *types.Connection, conn *types.ConfiguredConnection) (rsp dispatchRsp, err error) {
-	rsp.dalConnection, err = svc.provisionDAL(ctx, resolved, conn)
-	if err != nil {
-		return rsp, err
+	if !strings.HasPrefix(resolved.Handle, "google-") {
+		rsp.dalConnection, err = svc.provisionDAL(ctx, resolved, conn)
+		if err != nil {
+			return rsp, err
+		}
+	} else {
+		rsp.dalConnection = &types.DalConnection{ID: 0}
 	}
 
 	if err = svc.provisionWebhooks(ctx, resolved, conn); err != nil {
@@ -604,9 +692,29 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 				return nil, fmt.Errorf("unknown configurationID: %d", configID)
 			}
 
-			cw := dal.Service().GetConnectionByID(dalConnectionID)
-			if cw == nil {
-				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
+			var cc *types.ConfiguredConnection
+			for _, c := range ccs {
+				if c.ID == configID {
+					cc = &c
+					break
+				}
+			}
+			if cc == nil {
+				return nil, fmt.Errorf("configured connection not found: %d", configID)
+			}
+
+			// Re-resolve to get correct BaseURL for this cc
+			resolved := ConfiguredConnectionSvc().resolveTemplates(&cc.Connection, cc.Config.Params)
+			baseURL := resolved.Service.BaseURL.Value
+
+			// @todo driver selection does not belong in the service layer.
+			// Once Google connectors are provisioned as proper DAL connections
+			// (with the google wrapper as the underlying transport), this
+			// branching can be removed and all connectors can go through
+			// dal.Service().GetConnectionByID uniformly.
+			execute, err := resolveExecutor(cc, &conn, baseURL, dalConnectionID)
+			if err != nil {
+				return nil, err
 			}
 
 			var respBody []byte
@@ -620,7 +728,13 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 					return nil, err
 				}
 
-				statusCode, outHeaders, body, err := cw.Execute(ctx, step.HTTP.Method, path, headers, payload)
+				if baseURL != "" && strings.HasPrefix(path, baseURL) {
+					path = strings.TrimPrefix(path, baseURL)
+					if path != "" && !strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "?") {
+						path = "/" + path
+					}
+				}
+				statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
 				if err != nil {
 					return nil, fmt.Errorf("operation execution failed: %w", err)
 				}
