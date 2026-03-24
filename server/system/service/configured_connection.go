@@ -249,54 +249,62 @@ func (svc *configuredConnection) Search(ctx context.Context, filter types.Config
 	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
 }
 
-func ensureGoogleCredential(cc *types.ConfiguredConnection, conn *types.Connection) {
+func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.ConfiguredConnection, conn *types.Connection) {
 	if _, err := cred_registry.Default().Get(cc.ID); err != nil {
 		var saJSON string
+
+		// Prefer inline param
 		for _, p := range cc.Config.Params {
 			if p.Name == "serviceAccountJSON" {
 				saJSON = p.Value
-				fmt.Println("[ensureGoogleCredential] Found saJSON param")
 				break
 			}
 		}
-		if saJSON != "" {
-			var sa struct {
-				ClientEmail string `json:"client_email"`
-				PrivateKey  string `json:"private_key"`
-			}
-			if err := json.Unmarshal([]byte(saJSON), &sa); err == nil && sa.ClientEmail != "" {
-				fmt.Println("[ensureGoogleCredential] Successfully parsed saJSON for email:", sa.ClientEmail)
-				var scopes []string
-				if strings.HasPrefix(conn.Handle, "google-calendar") {
-					scopes = []string{"https://www.googleapis.com/auth/calendar"}
-				} else if strings.HasPrefix(conn.Handle, "google-sheets") {
-					scopes = []string{"https://www.googleapis.com/auth/spreadsheets"}
-				} else if strings.HasPrefix(conn.Handle, "google-drive") {
-					scopes = []string{"https://www.googleapis.com/auth/drive"}
-				} else if strings.HasPrefix(conn.Handle, "google-tasks") {
-					scopes = []string{"https://www.googleapis.com/auth/tasks"}
-				} else {
-					fmt.Println("[ensureGoogleCredential] WARNING: No scopes found for handle:", conn.Handle)
-				}
 
-				cred, err := cred_registry.NewCredential(cred_registry.CredentialConfig{
-					ConnectionID:        cc.ID,
-					AuthType:            "google_service_account",
-					ServiceAccountEmail: sa.ClientEmail,
-					PrivateKey:          sa.PrivateKey,
-					Scopes:              scopes,
-				})
-				if err == nil && cred != nil {
-					e := cred_registry.Default().Store(cred)
-					fmt.Println("[ensureGoogleCredential] Stored credential, error:", e)
-				} else {
-					fmt.Println("[ensureGoogleCredential] Failed to create credential:", err)
-				}
-			} else {
-				fmt.Println("[ensureGoogleCredential] Failed to parse saJSON or missing client_email. Err:", err)
+		// Fallback: load from Credential store via CredentialID
+		if saJSON == "" && cc.Config.CredentialID > 0 {
+			if storedCred, loadErr := store.LookupCredentialByID(ctx, s, cc.Config.CredentialID); loadErr == nil {
+				saJSON = storedCred.Credentials
 			}
-		} else {
-			fmt.Println("[ensureGoogleCredential] saJSON was empty!")
+		}
+
+		if saJSON == "" {
+			return
+		}
+
+		// Private key PEM blocks may contain literal newlines when stored;
+		// replace them with JSON escape sequences so Unmarshal succeeds.
+		saJSON = strings.ReplaceAll(saJSON, "\n", `\n`)
+
+		var sa struct {
+			ClientEmail string `json:"client_email"`
+			PrivateKey  string `json:"private_key"`
+		}
+		if err := json.Unmarshal([]byte(saJSON), &sa); err != nil || sa.ClientEmail == "" {
+			return
+		}
+
+		var scopes []string
+		switch {
+		case strings.HasPrefix(conn.Handle, "google-calendar"):
+			scopes = []string{"https://www.googleapis.com/auth/calendar"}
+		case strings.HasPrefix(conn.Handle, "google-sheets"):
+			scopes = []string{"https://www.googleapis.com/auth/spreadsheets"}
+		case strings.HasPrefix(conn.Handle, "google-drive"):
+			scopes = []string{"https://www.googleapis.com/auth/drive"}
+		case strings.HasPrefix(conn.Handle, "google-tasks"):
+			scopes = []string{"https://www.googleapis.com/auth/tasks"}
+		}
+
+		cred, err := cred_registry.NewCredential(cred_registry.CredentialConfig{
+			ConnectionID:        cc.ID,
+			AuthType:            "google_service_account",
+			ServiceAccountEmail: sa.ClientEmail,
+			PrivateKey:          sa.PrivateKey,
+			Scopes:              scopes,
+		})
+		if err == nil && cred != nil {
+			_ = cred_registry.Default().Store(cred)
 		}
 	}
 }
@@ -306,6 +314,7 @@ func ensureGoogleCredential(cc *types.ConfiguredConnection, conn *types.Connecti
 // because they have not yet been integrated as proper DAL connection types.
 // All other connectors are looked up via the DAL service.
 func resolveExecutor(
+	ctx context.Context,
 	cc *types.ConfiguredConnection,
 	conn *types.Connection,
 	baseURL string,
@@ -314,7 +323,7 @@ func resolveExecutor(
 	if strings.HasPrefix(conn.Handle, "google-") {
 		// Ensure the service-account credential is cached in the registry
 		// before the wrapper tries to use it.
-		ensureGoogleCredential(cc, conn)
+		ensureGoogleCredential(ctx, DefaultStore, cc, conn)
 		gw := google.NewWrapper(baseURL, cc.ID)
 		return func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error) {
 			return gw.Run(ctx, method, path, payload, headers)
@@ -339,7 +348,7 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 
 	var runner connectionRunner
 	if strings.HasPrefix(resolved.Handle, "google-") {
-		ensureGoogleCredential(cc, &cc.Connection)
+		ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
 		runner = google.NewWrapper(resolved.Service.BaseURL.Value, cc.ID)
 	} else {
 		runner, err = restDriver.RunnerFromConnection(resolved)
@@ -731,7 +740,7 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 			// (with the google wrapper as the underlying transport), this
 			// branching can be removed and all connectors can go through
 			// dal.Service().GetConnectionByID uniformly.
-			execute, err := resolveExecutor(cc, &conn, baseURL, dalConnectionID)
+			execute, err := resolveExecutor(ctx, cc, &conn, baseURL, dalConnectionID)
 			if err != nil {
 				return nil, err
 			}
@@ -898,8 +907,14 @@ func resolveTemplate(tpl types.ConnectionTemplate, vars map[string]any) (string,
 		name := sub[1]
 
 		if v, ok := vars[name]; ok {
-			return fmt.Sprintf("%v", v)
-		}
+				switch s := v.(type) {
+				case string:
+					return s
+				default:
+					b, _ := json.Marshal(s)
+					return string(b)
+				}
+			}
 
 		// Not provided — consult placeholder metadata
 		if p, ok := meta[name]; ok {

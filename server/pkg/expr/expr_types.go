@@ -296,6 +296,28 @@ func CastToArray(val interface{}) (out []TypedValue, err error) {
 		return make([]TypedValue, 0), nil
 	case *Array:
 		return val.value, nil
+	case string:
+		if val == "" {
+			return make([]TypedValue, 0), nil
+		}
+		var parsed interface{}
+		if jsonErr := json.Unmarshal([]byte(val), &parsed); jsonErr == nil {
+			if arr, ok := parsed.([]interface{}); ok {
+				out = make([]TypedValue, len(arr))
+				for i, item := range arr {
+					if out[i], err = Typify(item); err != nil {
+						return
+					}
+				}
+				return out, nil
+			}
+		}
+		// Not a JSON array — wrap as single-element array
+		tv, typErr := Typify(val)
+		if typErr != nil {
+			return nil, typErr
+		}
+		return []TypedValue{tv}, nil
 	}
 
 	cast := func(val interface{}) (out []TypedValue, err error) {
