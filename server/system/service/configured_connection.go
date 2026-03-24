@@ -337,9 +337,15 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 	// Resolve templates from stored params — works for both draft and active CCs
 	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
 
-	runner, err := restDriver.RunnerFromConnection(resolved)
-	if err != nil {
-		return nil, fmt.Errorf("could not build connection runner: %w", err)
+	var runner connectionRunner
+	if strings.HasPrefix(resolved.Handle, "google-") {
+		ensureGoogleCredential(cc, &cc.Connection)
+		runner = google.NewWrapper(resolved.Service.BaseURL.Value, cc.ID)
+	} else {
+		runner, err = restDriver.RunnerFromConnection(resolved)
+		if err != nil {
+			return nil, fmt.Errorf("could not build connection runner: %w", err)
+		}
 	}
 
 	result := &types.ConfiguredConnectionCheckResult{}
@@ -355,8 +361,9 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 }
 
 func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
-	_, _, _, err := r.Run(ctx, "HEAD", "/", nil, nil)
-	if err != nil {
+	statusCode, _, _, err := r.Run(ctx, "HEAD", "/", nil, nil)
+	// If err != nil but statusCode > 0, we reached the server but got an HTTP error. Connectivity is OK!
+	if err != nil && statusCode == 0 {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
 	}
 	return types.ConfiguredConnectionCheckStatus{OK: true}
@@ -364,12 +371,24 @@ func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connec
 
 func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
 	statusCode, _, _, err := r.Run(ctx, "GET", "/", nil, nil)
-	if err != nil {
-		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
-	}
+
 	if statusCode == 401 || statusCode == 403 {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("authentication failed (HTTP %d)", statusCode)}
 	}
+
+	if statusCode == 404 {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: "calendar or resource not found (HTTP 404), or you lack permissions to view it"}
+	}
+
+	if err != nil && statusCode == 0 {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: "network error: " + err.Error()}
+	}
+
+	if err != nil {
+		// some other HTTP error >= 400
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("API returned HTTP %d", statusCode)}
+	}
+
 	return types.ConfiguredConnectionCheckStatus{OK: true}
 }
 
