@@ -742,7 +742,20 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 					continue
 				}
 
-				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, in.Dict())
+				// Merge service-level param values into vars so that path/body
+				// templates referencing them (e.g. {{calendarId}}) resolve
+				// correctly. Runtime input takes precedence.
+				vars := make(map[string]any, len(cc.Config.Params))
+				for _, p := range cc.Config.Params {
+					if len(p.Scope) > 0 && p.Scope[0] == "service" {
+						vars[p.Name] = p.Value
+					}
+				}
+				for k, v := range in.Dict() {
+					vars[k] = v
+				}
+
+				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, vars)
 				if err != nil {
 					return nil, err
 				}
@@ -916,10 +929,23 @@ func extractByPath(data any, path []string) any {
 }
 
 func generateFunctionArguments(conn types.Connection, op types.ConnectionOperation) (params atypes.ParamSet) {
+	// Build a set of service-level param names so we can silently skip
+	// operation-level inputs that duplicate them — those are resolved from
+	// the configured connection's stored values, not from runtime user input.
+	serviceParams := make(map[string]bool)
+	for _, dp := range conn.DerivedParams {
+		if len(dp.Scope) > 0 && dp.Scope[0] == "service" {
+			serviceParams[dp.Name] = true
+		}
+	}
+
 	inLookup := make(map[string]bool)
 
-	// Explicit arguments
+	// Explicit arguments — skip any that are already covered by service-level params
 	for _, in := range op.Input {
+		if serviceParams[in.Name] {
+			continue
+		}
 		inLookup[in.Name] = true
 		params = append(params, &atypes.Param{
 			ArgumentName: in.Name,
