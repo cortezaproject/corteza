@@ -809,7 +809,7 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 					Types:        []string{dp.Type},
 					Required:     dp.Required,
 					Meta: &atypes.ParamMeta{
-						Label:       dp.Name,
+						Label:       dp.Label,
 						Description: dp.Description,
 					},
 				})

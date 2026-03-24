@@ -68,6 +68,7 @@ type (
 
 	ConnectionPlaceholder struct {
 		Name        string   `json:"name"`
+		Label       string   `json:"label,omitempty"`
 		Type        string   `json:"type"`
 		Description string   `json:"description"`
 		Required    bool     `json:"required"`
@@ -162,6 +163,7 @@ type (
 
 	ConnectionDerivedParam struct {
 		Name        string   `json:"name"`
+		Label       string   `json:"label"`
 		Scope       []string `json:"scope"`
 		Type        string   `json:"type"`
 		Description string   `json:"description"`
