@@ -67,7 +67,7 @@ type (
 	}
 )
 
-func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, maxTokens int, messages []Message, tools []Tool) (*Response, error) {
+func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
 	if model == "" {
 		model = provider.Config.Model
 	}
@@ -86,12 +86,8 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 		req.Temperature = &t
 	}
 
-	switch {
-	case maxTokens > 0:
-		req.MaxTokens = &maxTokens
-	case provider.Config.MaxTokens > 0:
-		m := provider.Config.MaxTokens
-		req.MaxTokens = &m
+	if outputTokens > 0 {
+		req.MaxTokens = &outputTokens
 	}
 
 	body, err := json.Marshal(req)

@@ -52,14 +52,14 @@ type (
 		LLMProviderID uint64  `json:"llmProviderID,string,omitempty"`
 		Model         string  `json:"model,omitempty"`
 		Temperature   float64 `json:"temperature,omitempty"`
-		MaxTokens     int     `json:"maxTokens,omitempty"`
 	}
 
 	AgentExecutionLimits struct {
 		MaxIterations  int     `json:"maxIterations,omitempty"`
-		MaxTokens      int     `json:"maxTokens,omitempty"`
 		Timeout        string  `json:"timeout,omitempty"`
 		SoftLimitRatio float64 `json:"softLimitRatio,omitempty"`
+		ContextWindow  int     `json:"contextWindow,omitempty"`
+		OutputTokens   int     `json:"outputTokens,omitempty"`
 	}
 
 	AgentAccess struct {

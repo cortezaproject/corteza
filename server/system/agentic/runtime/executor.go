@@ -128,7 +128,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 
 	var finalResponse string
-	var usage Usage
+	initialTokenCount := conversation.TokenCount
+	usage := Usage{ContextWindow: conversation.TokenCount}
 	var executedTools []ToolCallInfo
 	var decisions []DecisionInfo
 	var runErr error
@@ -140,10 +141,10 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			break
 		}
 		config := LLMConfig{
-			ProviderID:  agent.Execution.Model.LLMProviderID,
-			Model:       agent.Execution.Model.Model,
-			Temperature: agent.Execution.Model.Temperature,
-			MaxTokens:   agent.Execution.Model.MaxTokens,
+			ProviderID:   agent.Execution.Model.LLMProviderID,
+			Model:        agent.Execution.Model.Model,
+			Temperature:  agent.Execution.Model.Temperature,
+			OutputTokens: agent.Execution.Limits.OutputTokens,
 		}
 
 		llmSpanID := sid()
@@ -182,8 +183,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 		usage.accumulate(llmResp.Usage)
 
-		if limits.MaxTokens > 0 && usage.TotalTokens > limits.MaxTokens {
-			runErr = errLimitExceeded(fmt.Sprintf("token limit of %d exceeded", limits.MaxTokens))
+		if limits.ContextWindow > 0 && usage.ContextWindow > limits.ContextWindow {
+			runErr = errLimitExceeded(fmt.Sprintf("context window of %d exceeded", limits.ContextWindow))
 			break
 		}
 
@@ -231,8 +232,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			}
 
 			// Warn the LLM once when approaching the token limit so it can wrap up gracefully
-			if !windDownInjected && limits.MaxTokens > 0 && limits.SoftLimitRatio > 0 &&
-				usage.TotalTokens > int(float64(limits.MaxTokens)*limits.SoftLimitRatio) {
+			if !windDownInjected && limits.ContextWindow > 0 && limits.SoftLimitRatio > 0 &&
+				usage.ContextWindow > int(float64(limits.ContextWindow)*limits.SoftLimitRatio) {
 				conversation.Messages = append(conversation.Messages, types.AiConversationMessage{
 					Role:    "user",
 					Content: "You are reaching the maximum token limit. Please finish up and give your final answer.",
@@ -310,7 +311,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		UserID:         userIDStr,
 		ConversationID: convIDStr,
 		Details: map[string]any{
-			"totalTokens": usage.TotalTokens,
+			"totalTokens": usage.ContextWindow - initialTokenCount,
 			"toolCalls":   len(executedTools),
 		},
 	})
@@ -320,7 +321,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 
 	// Save conversation
-	conversation.TokenCount = usage.TotalTokens
+	conversation.TokenCount = usage.ContextWindow
 	if _, err := r.conversationStore.Update(ctx, conversation); err != nil {
 		return nil, fmt.Errorf("failed to save conversation: %w", err)
 	}
@@ -363,9 +364,11 @@ func (r *runtime) resolveConversation(ctx context.Context, conversationID, agent
 }
 
 func (u *Usage) accumulate(other Usage) {
-	u.InputTokens += other.InputTokens
+	if u.InputTokens == 0 {
+		u.InputTokens = other.InputTokens
+	}
 	u.OutputTokens += other.OutputTokens
-	u.TotalTokens += other.TotalTokens
+	u.ContextWindow += other.ContextWindow
 }
 
 // executeTools runs each tool call and returns conversation messages + telemetry info.

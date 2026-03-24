@@ -121,7 +121,7 @@ func errorCode(err error) string {
 }
 
 func newRuntime(reg Registry, llm LLMClient, mcp MCPClient) *runtime {
-	return Runtime(reg, llm, mcp, &mockStore{}, nil)
+	return Runtime(reg, llm, mcp, &mockStore{}, nil, nil, nil, nil)
 }
 
 //  tests 
@@ -166,7 +166,7 @@ func TestRun_LLMError(t *testing.T) {
 
 func TestRun_TokenLimitExceeded(t *testing.T) {
 	agent := activeAgent()
-	agent.Execution.Limits.MaxTokens = 10
+	agent.Execution.Limits.ContextWindow = 10
 
 	rt := newRuntime(
 		&mockRegistry{agent: agent},
@@ -174,7 +174,7 @@ func TestRun_TokenLimitExceeded(t *testing.T) {
 			{
 				Text:      "thinking",
 				ToolCalls: []ToolCall{{ID: "1", Name: "test_tool", Args: map[string]any{}}},
-				Usage:     Usage{InputTokens: 6, OutputTokens: 6, TotalTokens: 12},
+				Usage:     Usage{InputTokens: 6, OutputTokens: 6, ContextWindow: 12},
 			},
 		}},
 		&mockMCP{result: "ok"},
@@ -217,14 +217,14 @@ func TestRun_ToolSoftError(t *testing.T) {
 
 func TestRun_WindDownInjected(t *testing.T) {
 	agent := activeAgent()
-	agent.Execution.Limits.MaxTokens = 100
+	agent.Execution.Limits.ContextWindow = 100
 	agent.Execution.Limits.SoftLimitRatio = 0.5
 
 	llm := &mockLLM{responses: []LLMResponse{
 		{
 			Text:      "using tool",
 			ToolCalls: []ToolCall{{ID: "1", Name: "test_tool", Args: map[string]any{}}},
-			Usage:     Usage{InputTokens: 30, OutputTokens: 30, TotalTokens: 60},
+			Usage:     Usage{InputTokens: 30, OutputTokens: 30, ContextWindow: 60},
 		},
 		{Text: "final answer"},
 	}}

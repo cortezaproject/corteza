@@ -37,7 +37,6 @@ type (
 		PromptURL   string  `json:"promptURL"`
 		Model       string  `json:"model"`
 		Temperature float64 `json:"temperature"`
-		MaxTokens   int     `json:"maxTokens"`
 		Timeout     string  `json:"timeout"`
 	}
 

@@ -70,9 +70,9 @@ type (
 
 	// Usage tracks token usage.
 	Usage struct {
-		InputTokens  int `json:"inputTokens"`
-		OutputTokens int `json:"outputTokens"`
-		TotalTokens  int `json:"totalTokens"`
+		InputTokens   int `json:"inputTokens"`
+		OutputTokens  int `json:"outputTokens"`
+		ContextWindow int `json:"contextWindow"`
 	}
 
 	// LLMClient abstracts the LLM provider.
@@ -83,10 +83,10 @@ type (
 	}
 
 	LLMConfig struct {
-		ProviderID  uint64
-		Model       string
-		Temperature float64
-		MaxTokens   int
+		ProviderID   uint64
+		Model        string
+		Temperature  float64
+		OutputTokens int
 	}
 
 	LLMResponse struct {
