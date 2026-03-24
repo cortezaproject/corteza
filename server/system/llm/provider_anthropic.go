@@ -15,12 +15,12 @@ import (
 
 type (
 	anthropicRequest struct {
-		Model       string              `json:"model"`
-		System      string              `json:"system,omitempty"`
-		Messages    []anthropicMessage  `json:"messages"`
-		Tools       []anthropicTool     `json:"tools,omitempty"`
-		MaxTokens   int                 `json:"max_tokens"`
-		Temperature *float64            `json:"temperature,omitempty"`
+		Model       string             `json:"model"`
+		System      string             `json:"system,omitempty"`
+		Messages    []anthropicMessage `json:"messages"`
+		Tools       []anthropicTool    `json:"tools,omitempty"`
+		MaxTokens   *int               `json:"max_tokens,omitempty"`
+		Temperature *float64           `json:"temperature,omitempty"`
 	}
 
 	anthropicMessage struct {
@@ -62,8 +62,10 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 	}
 
 	req := anthropicRequest{
-		Model:     model,
-		MaxTokens: outputTokens,
+		Model: model,
+	}
+	if outputTokens > 0 {
+		req.MaxTokens = &outputTokens
 	}
 
 	if provider.Config.Temperature > 0 {
