@@ -37,10 +37,13 @@ type (
 	}
 
 	AgentBehavior struct {
-		SystemPrompt        string                 `json:"systemPrompt,omitempty"`
-		Guardrails          []string               `json:"guardrails,omitempty"`
-		InjectSystemContext bool                   `json:"injectSystemContext,omitempty"`
-		KnowledgeBases      KnowledgeBaseIDList    `json:"knowledgeBases,omitempty"`
+		SystemPrompt        string              `json:"systemPrompt,omitempty"`
+		Guardrails          []string            `json:"guardrails,omitempty"`
+		InjectSystemContext bool                `json:"injectSystemContext,omitempty"`
+		KnowledgeBases      KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
+		TreatyCLEnabled     *bool               `json:"treatyCLEnabled"`          // nil = enabled by default
+		TreatyCLTemperature int                 `json:"tclTemperature,omitempty"` // 1–10, controls citation verbosity
+		TreatyCLArticles    []string            `json:"tclArticles,omitempty"`    // selected article IDs
 	}
 
 	AgentExecution struct {

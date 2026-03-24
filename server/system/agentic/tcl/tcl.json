@@ -1,0 +1,529 @@
+{
+  "version": "1.0.0",
+  "treaties": [
+    {
+      "id": "GDPR",
+      "label": "GDPR \u2013 General Data Protection Regulation",
+      "citation": "Regulation (EU) 2016/679",
+      "jurisdiction": "European Union",
+      "required": true,
+      "canDeselect": false,
+      "defaultSelected": true,
+      "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679"
+    },
+    {
+      "id": "EU_AI_ACT",
+      "label": "EU AI Act \u2013 Artificial Intelligence Act",
+      "citation": "Regulation (EU) 2024/1689",
+      "jurisdiction": "European Union",
+      "required": true,
+      "canDeselect": false,
+      "defaultSelected": true,
+      "sourceUrl": "https://artificialintelligenceact.eu/high-level-summary/"
+    },
+    {
+      "id": "CETS_225",
+      "label": "CoE AI Convention \u2013 CETS 225",
+      "citation": "Council of Europe Framework Convention on AI",
+      "jurisdiction": "Council of Europe + signatories (EU, US, UK, CA, AU, JP, IL, MX)",
+      "required": true,
+      "canDeselect": false,
+      "defaultSelected": true,
+      "sourceUrl": "https://rm.coe.int/1680afae3c"
+    },
+    {
+      "id": "EU_CHARTER",
+      "label": "EU Charter of Fundamental Rights",
+      "citation": "2012/C 326/02",
+      "jurisdiction": "European Union",
+      "required": false,
+      "canDeselect": true,
+      "defaultSelected": true,
+      "sourceUrl": "https://fra.europa.eu/en/eu-charter"
+    },
+    {
+      "id": "ECHR",
+      "label": "European Convention on Human Rights (ECHR)",
+      "citation": "ETS No. 005",
+      "jurisdiction": "Council of Europe",
+      "required": false,
+      "canDeselect": true,
+      "defaultSelected": true,
+      "sourceUrl": "https://www.echr.coe.int"
+    },
+    {
+      "id": "UNESCO_AI",
+      "label": "UNESCO Recommendation on the Ethics of AI",
+      "citation": "UNESCO, 2021",
+      "jurisdiction": "Global (193 UNESCO member states)",
+      "required": true,
+      "canDeselect": false,
+      "defaultSelected": true,
+      "sourceUrl": "https://www.unesco.org/en/articles/recommendation-ethics-artificial-intelligence"
+    },
+    {
+      "id": "UNGP",
+      "label": "UN Guiding Principles on Business and Human Rights",
+      "citation": "UN HRC, A/HRC/17/31 (2011)",
+      "jurisdiction": "Global",
+      "required": false,
+      "canDeselect": true,
+      "defaultSelected": true,
+      "sourceUrl": "https://www.ohchr.org/"
+    },
+    {
+      "id": "ILO_CORE",
+      "label": "ILO Core Labour Conventions & HRDD",
+      "citation": "C87, C98, C111, C190 & MNE Declaration",
+      "jurisdiction": "Global (ILO members)",
+      "required": false,
+      "canDeselect": true,
+      "defaultSelected": false,
+      "sourceUrl": "https://www.ilo.org/declaration"
+    }
+  ],
+  "articles": [
+    {
+      "treatyId": "GDPR",
+      "items": [
+        {
+          "id": "GDPR-5",
+          "label": "Art. 5 \u2013 Principles relating to processing",
+          "category": "foundational",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-5-gdpr/",
+          "interpretation": "Any agent that processes personal data must respect purpose limitation, data minimisation and storage limitation by design. This is the baseline for retention rules and only-the-data-you-need filters."
+        },
+        {
+          "id": "GDPR-6",
+          "label": "Art. 6 \u2013 Lawfulness of processing",
+          "category": "foundational",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-6-gdpr/",
+          "interpretation": "Requires a lawful basis (consent, contract, legal obligation, vital interests, public task, legitimate interests) for each processing operation; the admin should record the basis for each data source."
+        },
+        {
+          "id": "GDPR-9",
+          "label": "Art. 9 \u2013 Special categories of personal data",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-9-gdpr/",
+          "interpretation": "Prohibits processing sensitive data (health, ethnicity, religion, political opinions, trade-union membership, biometric, sexual orientation) except under narrow conditions. Hard-block ingestion of these categories into agents unless explicitly permitted."
+        },
+        {
+          "id": "GDPR-13",
+          "label": "Art. 13 \u2013 Information at data collection",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-13-gdpr/",
+          "interpretation": "Defines mandatory information for data subjects; used to generate notice text when agents collect data directly."
+        },
+        {
+          "id": "GDPR-17",
+          "label": "Art. 17 \u2013 Right to erasure",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-17-gdpr/",
+          "interpretation": "Supports deletion workflows for logs and profiles generated by agents."
+        },
+        {
+          "id": "GDPR-20",
+          "label": "Art. 20 \u2013 Data portability",
+          "category": "medium",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://gdpr-info.eu/art-20-gdpr/",
+          "interpretation": "Supports export features for profiles produced by agents."
+        },
+        {
+          "id": "GDPR-22",
+          "label": "Art. 22 \u2013 Automated decision-making and profiling",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-22-gdpr/",
+          "interpretation": "Triggers human-in-the-loop pathways where agent outputs might produce legal or similarly significant effects."
+        },
+        {
+          "id": "GDPR-25",
+          "label": "Art. 25 \u2013 Data protection by design and by default",
+          "category": "high",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-25-gdpr/",
+          "interpretation": "Basis for hard-coded compliance layer; influences default settings for all agents."
+        },
+        {
+          "id": "GDPR-32",
+          "label": "Art. 32 \u2013 Security of processing",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://gdpr-info.eu/art-32-gdpr/",
+          "interpretation": "Supports security controls around agent logs and data access."
+        },
+        {
+          "id": "GDPR-35",
+          "label": "Art. 35 \u2013 Data protection impact assessment",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://gdpr-info.eu/art-35-gdpr/",
+          "interpretation": "If an agent exhibits high-risk patterns (systematic profiling, monitoring, sensitive data), flag DPIA required."
+        }
+      ]
+    },
+    {
+      "treatyId": "EU_AI_ACT",
+      "items": [
+        {
+          "id": "EU_AI_ACT-5",
+          "label": "Art. 5 \u2013 Prohibited AI practices",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-5",
+          "interpretation": "Hard bans on manipulative systems, exploitation of vulnerabilities, social scoring, untargeted facial scraping, crime-risk prediction based only on profiling, emotion recognition at work or school, sensitive biometric categorisation, and certain real-time biometric identification."
+        },
+        {
+          "id": "EU_AI_ACT-6",
+          "label": "Art. 6 \u2013 High-risk classification",
+          "category": "critical",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Used with Annex III to classify agents as minimal, limited, high or unacceptable risk."
+        },
+        {
+          "id": "EU_AI_ACT-9",
+          "label": "Art. 9 \u2013 Risk management system",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Requires systematic risk management for high-risk agents: identify, analyse, evaluate, mitigate."
+        },
+        {
+          "id": "EU_AI_ACT-10",
+          "label": "Art. 10 \u2013 Data and data governance",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Influences training and evaluation data for ML-dependent agents (representative, free of errors)."
+        },
+        {
+          "id": "EU_AI_ACT-12",
+          "label": "Art. 12 \u2013 Record-keeping",
+          "category": "high",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Requires logging of events; drives immutable agent logs."
+        },
+        {
+          "id": "EU_AI_ACT-13",
+          "label": "Art. 13 \u2013 Transparency and information to deployers",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Supports instructions-for-use and limitations attached to each agent."
+        },
+        {
+          "id": "EU_AI_ACT-14",
+          "label": "Art. 14 \u2013 Human oversight",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Requires meaningful human oversight; used to enforce escalation patterns."
+        },
+        {
+          "id": "EU_AI_ACT-26",
+          "label": "Art. 26 \u2013 Obligations of deployers",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Guides deployers own duties; relevant to console messaging."
+        },
+        {
+          "id": "EU_AI_ACT-27",
+          "label": "Art. 27 \u2013 Fundamental Rights Impact Assessment",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "For certain public-body high-risk deployments; console should flag FRIA required."
+        },
+        {
+          "id": "EU_AI_ACT-50",
+          "label": "Art. 50 \u2013 Transparency (AI identity)",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://artificialintelligenceact.eu/high-level-summary/",
+          "interpretation": "Requires user awareness when interacting with AI or deepfakes; supports AI disclosure messages."
+        }
+      ]
+    },
+    {
+      "treatyId": "CETS_225",
+      "items": [
+        {
+          "id": "CETS_225-1",
+          "label": "Art. 1 \u2013 Object and purpose",
+          "category": "foundational",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://rm.coe.int/1680afae3c",
+          "interpretation": "Ensures AI lifecycle activities are consistent with human rights, democracy and rule of law."
+        },
+        {
+          "id": "CETS_225-9",
+          "label": "Art. 9 \u2013 Accountability and responsibility",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://rm.coe.int/1680afae3c",
+          "interpretation": "Supports accountability mappings and logging."
+        },
+        {
+          "id": "CETS_225-10",
+          "label": "Art. 10 \u2013 Equality and non-discrimination",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://rm.coe.int/1680afae3c",
+          "interpretation": "Requires measures against discriminatory outcomes; underpins bias routines for agents."
+        },
+        {
+          "id": "CETS_225-11",
+          "label": "Art. 11 \u2013 Human oversight and safeguards",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://rm.coe.int/1680afae3c",
+          "interpretation": "Reinforces EU AI Act Art.14; justifies human override and escalation patterns."
+        },
+        {
+          "id": "CETS_225-16",
+          "label": "Art. 16 \u2013 Risk and impact management",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://rm.coe.int/1680afae3c",
+          "interpretation": "Supports ongoing risk and impact assessments for agents."
+        }
+      ]
+    },
+    {
+      "treatyId": "EU_CHARTER",
+      "items": [
+        {
+          "id": "EU_CHARTER-7",
+          "label": "Art. 7 \u2013 Respect for private and family life",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://fra.europa.eu/en/eu-charter/article/7-respect-private-and-family-life",
+          "interpretation": "Constrains worker and customer monitoring and intrusive agents."
+        },
+        {
+          "id": "EU_CHARTER-8",
+          "label": "Art. 8 \u2013 Protection of personal data",
+          "category": "high",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://fra.europa.eu/en/eu-charter/article/8-protection-personal-data",
+          "interpretation": "Constitutional basis for data protection rules applied to agents."
+        },
+        {
+          "id": "EU_CHARTER-21",
+          "label": "Art. 21 \u2013 Non-discrimination",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://fra.europa.eu/en/eu-charter/article/21-non-discrimination",
+          "interpretation": "Supports prohibitions on discriminatory scoring or ranking by agents."
+        }
+      ]
+    },
+    {
+      "treatyId": "ECHR",
+      "items": [
+        {
+          "id": "ECHR-8",
+          "label": "Art. 8 \u2013 Right to respect for private and family life",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://fra.europa.eu/en/law-reference/european-convention-human-rights-article-8-0",
+          "interpretation": "Key for workplace surveillance and monitoring limitations."
+        },
+        {
+          "id": "ECHR-10",
+          "label": "Art. 10 \u2013 Freedom of expression",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": false,
+          "referenceUrl": "https://fra.europa.eu/en/law-reference/european-convention-human-rights-article-10-0",
+          "interpretation": "Relevant when agents classify or moderate content."
+        }
+      ]
+    },
+    {
+      "treatyId": "UNESCO_AI",
+      "items": [
+        {
+          "id": "UNESCO-PROP",
+          "label": "Proportionality & Do No Harm",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://academy.evalcommunity.com/unesco-recommendation-on-ai-ethics/",
+          "interpretation": "Supports bounded agents, proportional data use and harm reduction."
+        },
+        {
+          "id": "UNESCO-FAIR",
+          "label": "Fairness & Non-Discrimination",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://academy.evalcommunity.com/unesco-recommendation-on-ai-ethics/",
+          "interpretation": "Underpins bias mitigation requirements."
+        },
+        {
+          "id": "UNESCO-HUMAN",
+          "label": "Human Oversight & Determination",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://academy.evalcommunity.com/unesco-recommendation-on-ai-ethics/",
+          "interpretation": "Pairs with GDPR and EU AI Act oversight obligations."
+        },
+        {
+          "id": "UNESCO-TRANSP",
+          "label": "Transparency & Explainability",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://academy.evalcommunity.com/unesco-recommendation-on-ai-ethics/",
+          "interpretation": "Supports explainability statements for agents."
+        }
+      ]
+    },
+    {
+      "treatyId": "UNGP",
+      "items": [
+        {
+          "id": "UNGP-P2",
+          "label": "Pillar II \u2013 Corporate responsibility to respect",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://www.ohchr.org/",
+          "interpretation": "Justifies Human Rights Due Diligence for agent deployments."
+        },
+        {
+          "id": "UNGP-P3",
+          "label": "Pillar III \u2013 Access to remedy",
+          "category": "high",
+          "hardwired": false,
+          "defaultSelected": true,
+          "referenceUrl": "https://www.ohchr.org/",
+          "interpretation": "Supports grievance mechanisms linked to agent decisions."
+        }
+      ]
+    },
+    {
+      "treatyId": "ILO_CORE",
+      "items": [
+        {
+          "id": "ILO-C87",
+          "label": "C87 \u2013 Freedom of association",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://www.ilo.org/",
+          "interpretation": "Constraints on agents tracking or penalising union activity."
+        },
+        {
+          "id": "ILO-C98",
+          "label": "C98 \u2013 Collective bargaining",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://www.ilo.org/",
+          "interpretation": "Protects workers from retaliation; shapes HR agent behaviour."
+        },
+        {
+          "id": "ILO-C111",
+          "label": "C111 \u2013 Discrimination (Employment and Occupation)",
+          "category": "critical",
+          "hardwired": true,
+          "defaultSelected": true,
+          "referenceUrl": "https://www.ilo.org/",
+          "interpretation": "Supports bias controls in recruitment, promotion and evaluation agents."
+        }
+      ]
+    }
+  ],
+  "selectionUi": {
+    "multiSelect": {
+      "treatyFieldId": "selectedTreaties",
+      "articleFieldId": "selectedArticles",
+      "allowArticleFilterByTreaty": true,
+      "showHardwiredBadge": true,
+      "disallowDeselectHardwired": true
+    },
+    "llmHelper": {
+      "promptTemplate": "You are a Treaty-Following compliance assistant for the @Human platform. You are given an agent description, system prompt and guardrails. Using the Treaty Compliance Layer, select all relevant treaties and articles that must govern this agent. Always include all hardwired articles. Then add optional ones that are relevant given the agents function (HR, finance, customer support, security, marketing, field service, public authority, etc.), the personal data categories used, and the kinds of decisions the agent supports. Return JSON with selectedTreaties (array of treaty IDs) and selectedArticles (array of article IDs).",
+      "autoSelectHeuristics": [
+        {
+          "condition": "agent_function in ['hr','recruitment','onboarding','employee_monitoring']",
+          "autoSelectArticles": [
+            "EU_AI_ACT-6",
+            "EU_AI_ACT-14",
+            "GDPR-22",
+            "GDPR-35",
+            "ILO-C87",
+            "ILO-C98",
+            "ILO-C111"
+          ]
+        },
+        {
+          "condition": "agent_processes_special_category_data == true",
+          "autoSelectArticles": [
+            "GDPR-9",
+            "GDPR-35",
+            "EU_AI_ACT-5"
+          ]
+        },
+        {
+          "condition": "agent_makes_scoring_or_ranking_of_persons == true",
+          "autoSelectArticles": [
+            "GDPR-22",
+            "EU_AI_ACT-5",
+            "EU_CHARTER-21",
+            "UNESCO-FAIR"
+          ]
+        },
+        {
+          "condition": "agent_deployed_by_public_body == true",
+          "autoSelectArticles": [
+            "EU_AI_ACT-27",
+            "CETS_225-16",
+            "UNGP-P2"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -130,7 +130,16 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 	}
 
 	if httpResp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("LLM API returned status %d: %s", httpResp.StatusCode, string(respBody))
+		var errResp struct {
+			Error struct {
+				Code    string `json:"code"`
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+		if json.Unmarshal(respBody, &errResp) == nil && errResp.Error.Code != "" {
+			return nil, fmt.Errorf("%s (HTTP %d)", errResp.Error.Code, httpResp.StatusCode)
+		}
+		return nil, fmt.Errorf("HTTP %d", httpResp.StatusCode)
 	}
 
 	var oaiResp openaiResponse

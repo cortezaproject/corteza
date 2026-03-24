@@ -3372,6 +3372,10 @@ endpoints:
       - github.com/cortezaproject/corteza/server/system/types
       - time
     apis:
+      - name: tclMasterList
+        method: GET
+        title: Get TCL master list
+        path: '/tcl'
       - name: list
         method: GET
         title: List agents

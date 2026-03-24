@@ -19,6 +19,7 @@ import (
 type (
 	// Internal API interface
 	AgentAPI interface {
+		TclMasterList(context.Context, *request.AgentTclMasterList) (interface{}, error)
 		List(context.Context, *request.AgentList) (interface{}, error)
 		Create(context.Context, *request.AgentCreate) (interface{}, error)
 		Read(context.Context, *request.AgentRead) (interface{}, error)
@@ -30,18 +31,35 @@ type (
 
 	// HTTP API interface
 	Agent struct {
-		List     func(http.ResponseWriter, *http.Request)
-		Create   func(http.ResponseWriter, *http.Request)
-		Read     func(http.ResponseWriter, *http.Request)
-		Update   func(http.ResponseWriter, *http.Request)
-		Delete   func(http.ResponseWriter, *http.Request)
-		Undelete func(http.ResponseWriter, *http.Request)
-		Exec     func(http.ResponseWriter, *http.Request)
+		TclMasterList func(http.ResponseWriter, *http.Request)
+		List          func(http.ResponseWriter, *http.Request)
+		Create        func(http.ResponseWriter, *http.Request)
+		Read          func(http.ResponseWriter, *http.Request)
+		Update        func(http.ResponseWriter, *http.Request)
+		Delete        func(http.ResponseWriter, *http.Request)
+		Undelete      func(http.ResponseWriter, *http.Request)
+		Exec          func(http.ResponseWriter, *http.Request)
 	}
 )
 
 func NewAgent(h AgentAPI) *Agent {
 	return &Agent{
+		TclMasterList: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAgentTclMasterList()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.TclMasterList(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAgentList()
@@ -160,6 +178,7 @@ func NewAgent(h AgentAPI) *Agent {
 func (h Agent) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
+		r.Get("/agents/tcl", h.TclMasterList)
 		r.Get("/agents/", h.List)
 		r.Post("/agents", h.Create)
 		r.Get("/agents/{agentID}", h.Read)

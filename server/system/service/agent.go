@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -73,6 +74,8 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 			new.Status = "active"
 		}
 
+		prepareTCL(&new.Behavior)
+
 		if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 			return
 		}
@@ -108,6 +111,8 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 		upd.UpdatedAt = now()
 		upd.CreatedAt = existing.CreatedAt
 		upd.DeletedAt = existing.DeletedAt
+
+		prepareTCL(&upd.Behavior)
 
 		if err = store.UpdateAgent(ctx, svc.store, upd); err != nil {
 			return
@@ -199,6 +204,20 @@ func validateAgentTools(a *types.Agent) error {
 		}
 	}
 	return nil
+}
+
+// prepareTCL ensures TCL is properly initialized on the agent behavior:
+// - if enabled and no articles selected, populate defaults
+// - always merge hardwired articles back in (user cannot remove them)
+func prepareTCL(b *types.AgentBehavior) {
+	if b.TreatyCLEnabled != nil && !*b.TreatyCLEnabled {
+		return
+	}
+	if len(b.TreatyCLArticles) == 0 {
+		b.TreatyCLArticles = tcl.DefaultArticleIDs()
+	} else {
+		b.TreatyCLArticles = tcl.MergeWithHardwired(b.TreatyCLArticles)
+	}
 }
 
 func loadAgent(ctx context.Context, s store.Agents, ID uint64) (res *types.Agent, err error) {

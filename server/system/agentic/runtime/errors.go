@@ -31,7 +31,7 @@ func errConversationNotFound(id uint64) error {
 
 
 func errLLM(err error) error {
-	return errors.New(errors.KindExternal, "LLM request failed",
+	return errors.New(errors.KindExternal, "LLM request failed: "+err.Error(),
 		errors.Meta("code", "llm_error"),
 		errors.Wrap(err),
 	)
