@@ -12,3 +12,4 @@ ignore
 dist
 .docker-build
 public/config.js
+corteza.code-workspace

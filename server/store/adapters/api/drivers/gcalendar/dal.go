@@ -1,9 +1,8 @@
-package gsheets
+package gcalendar
 
 import (
 	"context"
 	"fmt"
-
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
 	apidal "github.com/cortezaproject/corteza/server/store/adapters/api/dal"
@@ -11,8 +10,8 @@ import (
 )
 
 const (
-	SCHEMA        = "gsheets"
-	sheetsAPIBase = "https://sheets.googleapis.com/v4/spreadsheets"
+	SCHEMA          = "gcalendar"
+	calendarAPIBase = "https://www.googleapis.com/calendar/v3/calendars"
 )
 
 func init() {
@@ -25,24 +24,21 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 		return
 	}
 
-	// spreadsheetID from DSN path or arbitrary params
-	spreadsheetID := parsed.Path
-	if spreadsheetID == "" && parsed.Arbitrary != nil {
-		if sid, ok := parsed.Arbitrary["spreadsheetID"]; ok {
-			spreadsheetID = cast.ToString(sid)
+	calendarID := parsed.Path
+	if calendarID == "" && parsed.Arbitrary != nil {
+		if cid, ok := parsed.Arbitrary["calendarID"]; ok {
+			calendarID = cast.ToString(cid)
 		}
 	}
 
-	if spreadsheetID == "" {
-		return nil, fmt.Errorf("spreadsheetID is required (use gsheets://<spreadsheetID> or set spreadsheetID param)")
+	if calendarID == "" {
+		calendarID = "primary"
 	}
 
-	baseURL := fmt.Sprintf("%s/%s", sheetsAPIBase, spreadsheetID)
-
+	baseURL := fmt.Sprintf("%s/%s", calendarAPIBase, calendarID)
 	wrapper := newWrapper(baseURL, parsed.ConnectionID)
-	dl := Dialect(spreadsheetID)
+	dl := Dialect(calendarID)
 
-	// Register credential in the registry
 	if parsed.ConnectionID > 0 {
 		authType := parsed.AuthType
 		switch authType {
@@ -50,7 +46,6 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 			authType = "google_service_account"
 		}
 
-		// Scopes from arbitrary params if provided
 		var scopes []string
 		if parsed.Arbitrary != nil {
 			if s, ok := parsed.Arbitrary["scopes"]; ok {

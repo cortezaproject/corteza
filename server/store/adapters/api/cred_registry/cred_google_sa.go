@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	googleTokenURL       = "https://oauth2.googleapis.com/token"
-	googleDefaultScope   = "https://www.googleapis.com/auth/spreadsheets"
+	googleTokenURL = "https://oauth2.googleapis.com/token"
 )
 
 // GoogleServiceAccountCredential wraps JWTBearerCredential with
@@ -18,9 +17,6 @@ type GoogleServiceAccountCredential struct {
 }
 
 func NewGoogleServiceAccountCredential(connID uint64, serviceAccountEmail, privateKey string, scopes []string, tokenLifetime time.Duration) *GoogleServiceAccountCredential {
-	if len(scopes) == 0 {
-		scopes = []string{googleDefaultScope}
-	}
 
 	return &GoogleServiceAccountCredential{
 		JWTBearerCredential: NewJWTBearerCredential(

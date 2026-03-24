@@ -1,89 +1,38 @@
 package gsheets
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
 )
 
-type (
-	gsheetsWrapper struct {
-		client       *http.Client
-		baseURL      string
-		connectionID uint64
-	}
-)
+type sheetsWrapper struct {
+	*google.Wrapper
+}
 
-func newWrapper(baseURL string, connectionID uint64) *gsheetsWrapper {
-	return &gsheetsWrapper{
-		client:       &http.Client{},
-		baseURL:      baseURL,
-		connectionID: connectionID,
+func newWrapper(baseURL string, connectionID uint64) *sheetsWrapper {
+	return &sheetsWrapper{
+		Wrapper: google.NewWrapper(baseURL, connectionID),
 	}
 }
 
-// Run executes an HTTP request against the Sheets v4 API.
-//
-// For GET operations the Sheets response is
-// {"values":[["h1","h2"],["v1","v2"],...]} (array of arrays, row 0 = headers).
-// This method transforms it into [{"h1":"v1","h2":"v2"},...] so the
-// existing apidal iterator/table codec can process it unchanged.
-func (w *gsheetsWrapper) Run(ctx context.Context, method string, path string, payload []byte, extraHeaders map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error) {
-	token, err := cred_registry.Default().GetAccessToken(ctx, w.connectionID)
+func (w *sheetsWrapper) Run(ctx context.Context, method string, path string, payload []byte, extraHeaders map[string][]string) (int, map[string][]string, []byte, error) {
+	statusCode, headers, rsp, err := w.Wrapper.Run(ctx, method, path, payload, extraHeaders)
 	if err != nil {
-		return 0, nil, nil, fmt.Errorf("failed to get access token: %w", err)
-	}
-
-	fullURL := w.baseURL + path
-
-	var bodyReader io.Reader
-	if payload != nil {
-		bodyReader = bytes.NewReader(payload)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, fullURL, bodyReader)
-	if err != nil {
-		return 0, nil, nil, err
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.Header.Set("Content-Type", "application/json")
-
-	for k, vv := range extraHeaders {
-		for _, v := range vv {
-			req.Header.Add(k, v)
-		}
-	}
-
-	resp, err := w.client.Do(req)
-	if err != nil {
-		return 0, nil, nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return resp.StatusCode, resp.Header, nil, fmt.Errorf("sheets API returned %d: %s", resp.StatusCode, string(body))
+		return statusCode, headers, rsp, err
 	}
 
 	// For GET operations, transform array-of-arrays into JSON objects
-	if method == "GET" {
-		body, err = transformSheetsResponse(body)
+	if method == "GET" && statusCode >= 200 && statusCode < 300 {
+		rsp, err = transformSheetsResponse(rsp)
 		if err != nil {
-			return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to transform sheets response: %w", err)
+			return statusCode, headers, nil, fmt.Errorf("failed to transform sheets response: %w", err)
 		}
 	}
 
-	return resp.StatusCode, resp.Header, body, nil
+	return statusCode, headers, rsp, nil
 }
 
 // transformSheetsResponse converts:

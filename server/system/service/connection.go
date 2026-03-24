@@ -446,6 +446,7 @@ func (svc *connection) deriveParams(c *types.Connection) {
 
 			p := types.ConnectionDerivedParam{
 				Name:     name,
+				Label:    labelFromName(name),
 				Scope:    st.scope,
 				Type:     "string",
 				Required: true,
@@ -453,6 +454,9 @@ func (svc *connection) deriveParams(c *types.Connection) {
 			if m, ok := meta[name]; ok {
 				if m.Type != "" {
 					p.Type = m.Type
+				}
+				if m.Label != "" {
+					p.Label = m.Label
 				}
 				p.Description = m.Description
 				p.Required = m.Required
@@ -486,6 +490,88 @@ func joinScope(ss []string) string {
 		out += s
 	}
 	return out
+}
+
+// labelFromName converts any common identifier style into a human-friendly
+// title-cased string. Supported input styles:
+//
+//	camelCase        → "Camel Case"
+//	PascalCase       → "Pascal Case"
+//	snake_case       → "Snake Case"
+//	kebab-case       → "Kebab Case"
+//	SCREAMING_SNAKE  → "Screaming Snake"
+//	APIKey / apiID   → "API Key" / "Api ID"  (consecutive-uppercase runs kept as words)
+func labelFromName(name string) string {
+	runes := []rune(name)
+	n := len(runes)
+	if n == 0 {
+		return ""
+	}
+
+	// Split into words first
+	var words []string
+	start := 0
+
+	upper := func(r rune) bool { return r >= 'A' && r <= 'Z' }
+	lower := func(r rune) bool { return r >= 'a' && r <= 'z' }
+	sep   := func(r rune) bool { return r == '_' || r == '-' }
+
+	flush := func(end int) {
+		if end > start {
+			words = append(words, string(runes[start:end]))
+		}
+	}
+
+	for i := 1; i < n; i++ {
+		prev, cur := runes[i-1], runes[i]
+		switch {
+		case sep(cur):
+			flush(i)
+			start = i + 1
+		case sep(prev):
+			start = i
+		case upper(cur) && lower(prev):
+			// fooBar → foo | Bar
+			flush(i)
+			start = i
+		case upper(cur) && i+1 < n && lower(runes[i+1]) && upper(prev):
+			// APIKey → API | Key
+			flush(i)
+			start = i
+		}
+	}
+	flush(n)
+
+	// Title-case each word; preserve all-uppercase words (acronyms) as-is
+	var b strings.Builder
+	for i, w := range words {
+		if i > 0 {
+			b.WriteByte(' ')
+		}
+		rr := []rune(w)
+		allUpper := true
+		for _, r := range rr {
+			if r >= 'a' && r <= 'z' {
+				allUpper = false
+				break
+			}
+		}
+		if allUpper && len(rr) > 1 {
+			// acronym — keep as-is (e.g. API, ID)
+			b.WriteString(w)
+		} else {
+			// title-case: uppercase first, lowercase rest
+			for j, r := range rr {
+				if j == 0 && r >= 'a' && r <= 'z' {
+					r -= 32
+				} else if j > 0 && r >= 'A' && r <= 'Z' {
+					r += 32
+				}
+				b.WriteRune(r)
+			}
+		}
+	}
+	return b.String()
 }
 
 // -- helpers ------------------------------------------------------------------

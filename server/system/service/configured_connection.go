@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
@@ -18,6 +19,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
 	restDriver "github.com/cortezaproject/corteza/server/store/adapters/api/drivers/rest"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -202,7 +205,9 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
-		res.Config.DalConnectionID = rsp.dalConnection.ID
+		if rsp.dalConnection != nil {
+			res.Config.DalConnectionID = rsp.dalConnection.ID
+		}
 		res.Status = "active"
 
 		if res.Labels == nil {
@@ -244,6 +249,94 @@ func (svc *configuredConnection) Search(ctx context.Context, filter types.Config
 	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
 }
 
+func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.ConfiguredConnection, conn *types.Connection) {
+	if _, err := cred_registry.Default().Get(cc.ID); err != nil {
+		var saJSON string
+
+		// Prefer inline param
+		for _, p := range cc.Config.Params {
+			if p.Name == "serviceAccountJSON" {
+				saJSON = p.Value
+				break
+			}
+		}
+
+		// Fallback: load from Credential store via CredentialID
+		if saJSON == "" && cc.Config.CredentialID > 0 {
+			if storedCred, loadErr := store.LookupCredentialByID(ctx, s, cc.Config.CredentialID); loadErr == nil {
+				saJSON = storedCred.Credentials
+			}
+		}
+
+		if saJSON == "" {
+			return
+		}
+
+		// Private key PEM blocks may contain literal newlines when stored;
+		// replace them with JSON escape sequences so Unmarshal succeeds.
+		saJSON = strings.ReplaceAll(saJSON, "\n", `\n`)
+
+		var sa struct {
+			ClientEmail string `json:"client_email"`
+			PrivateKey  string `json:"private_key"`
+		}
+		if err := json.Unmarshal([]byte(saJSON), &sa); err != nil || sa.ClientEmail == "" {
+			return
+		}
+
+		var scopes []string
+		switch {
+		case strings.HasPrefix(conn.Handle, "google-calendar"):
+			scopes = []string{"https://www.googleapis.com/auth/calendar"}
+		case strings.HasPrefix(conn.Handle, "google-sheets"):
+			scopes = []string{"https://www.googleapis.com/auth/spreadsheets"}
+		case strings.HasPrefix(conn.Handle, "google-drive"):
+			scopes = []string{"https://www.googleapis.com/auth/drive"}
+		case strings.HasPrefix(conn.Handle, "google-tasks"):
+			scopes = []string{"https://www.googleapis.com/auth/tasks"}
+		}
+
+		cred, err := cred_registry.NewCredential(cred_registry.CredentialConfig{
+			ConnectionID:        cc.ID,
+			AuthType:            "google_service_account",
+			ServiceAccountEmail: sa.ClientEmail,
+			PrivateKey:          sa.PrivateKey,
+			Scopes:              scopes,
+		})
+		if err == nil && cred != nil {
+			_ = cred_registry.Default().Store(cred)
+		}
+	}
+}
+
+// resolveExecutor returns the appropriate HTTP executor for the given configured
+// connection. Google connectors use the google wrapper directly (bypassing DAL)
+// because they have not yet been integrated as proper DAL connection types.
+// All other connectors are looked up via the DAL service.
+func resolveExecutor(
+	ctx context.Context,
+	cc *types.ConfiguredConnection,
+	conn *types.Connection,
+	baseURL string,
+	dalConnectionID uint64,
+) (func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error), error) {
+	if strings.HasPrefix(conn.Handle, "google-") {
+		// Ensure the service-account credential is cached in the registry
+		// before the wrapper tries to use it.
+		ensureGoogleCredential(ctx, DefaultStore, cc, conn)
+		gw := google.NewWrapper(baseURL, cc.ID)
+		return func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error) {
+			return gw.Run(ctx, method, path, payload, headers)
+		}, nil
+	}
+
+	cw := dal.Service().GetConnectionByID(dalConnectionID)
+	if cw == nil {
+		return nil, fmt.Errorf("DAL connection not found: %d", dalConnectionID)
+	}
+	return cw.Execute, nil
+}
+
 func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error) {
 	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
 	if err != nil {
@@ -253,9 +346,15 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 	// Resolve templates from stored params — works for both draft and active CCs
 	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
 
-	runner, err := restDriver.RunnerFromConnection(resolved)
-	if err != nil {
-		return nil, fmt.Errorf("could not build connection runner: %w", err)
+	var runner connectionRunner
+	if strings.HasPrefix(resolved.Handle, "google-") {
+		ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+		runner = google.NewWrapper(resolved.Service.BaseURL.Value, cc.ID)
+	} else {
+		runner, err = restDriver.RunnerFromConnection(resolved)
+		if err != nil {
+			return nil, fmt.Errorf("could not build connection runner: %w", err)
+		}
 	}
 
 	result := &types.ConfiguredConnectionCheckResult{}
@@ -271,8 +370,9 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 }
 
 func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
-	_, _, _, err := r.Run(ctx, "HEAD", "/", nil, nil)
-	if err != nil {
+	statusCode, _, _, err := r.Run(ctx, "HEAD", "/", nil, nil)
+	// If err != nil but statusCode > 0, we reached the server but got an HTTP error. Connectivity is OK!
+	if err != nil && statusCode == 0 {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
 	}
 	return types.ConfiguredConnectionCheckStatus{OK: true}
@@ -280,12 +380,24 @@ func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connec
 
 func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
 	statusCode, _, _, err := r.Run(ctx, "GET", "/", nil, nil)
-	if err != nil {
-		return types.ConfiguredConnectionCheckStatus{OK: false, Message: err.Error()}
-	}
+
 	if statusCode == 401 || statusCode == 403 {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("authentication failed (HTTP %d)", statusCode)}
 	}
+
+	if statusCode == 404 {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: "calendar or resource not found (HTTP 404), or you lack permissions to view it"}
+	}
+
+	if err != nil && statusCode == 0 {
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: "network error: " + err.Error()}
+	}
+
+	if err != nil {
+		// some other HTTP error >= 400
+		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("API returned HTTP %d", statusCode)}
+	}
+
 	return types.ConfiguredConnectionCheckStatus{OK: true}
 }
 
@@ -412,9 +524,13 @@ func (svc *configuredConnection) resolveTemplates(conn *types.Connection, params
 // dispatch orchestrates sub-system provisioning from a resolved connection definition.
 // TODO: implement Compose, Automation, and IG provisioning.
 func (svc *configuredConnection) dispatch(ctx context.Context, resolved *types.Connection, conn *types.ConfiguredConnection) (rsp dispatchRsp, err error) {
-	rsp.dalConnection, err = svc.provisionDAL(ctx, resolved, conn)
-	if err != nil {
-		return rsp, err
+	if !strings.HasPrefix(resolved.Handle, "google-") {
+		rsp.dalConnection, err = svc.provisionDAL(ctx, resolved, conn)
+		if err != nil {
+			return rsp, err
+		}
+	} else {
+		rsp.dalConnection = &types.DalConnection{ID: 0}
 	}
 
 	if err = svc.provisionWebhooks(ctx, resolved, conn); err != nil {
@@ -604,9 +720,29 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 				return nil, fmt.Errorf("unknown configurationID: %d", configID)
 			}
 
-			cw := dal.Service().GetConnectionByID(dalConnectionID)
-			if cw == nil {
-				return nil, fmt.Errorf("service DAL connection not found: %d", dalConnectionID)
+			var cc *types.ConfiguredConnection
+			for _, c := range ccs {
+				if c.ID == configID {
+					cc = &c
+					break
+				}
+			}
+			if cc == nil {
+				return nil, fmt.Errorf("configured connection not found: %d", configID)
+			}
+
+			// Re-resolve to get correct BaseURL for this cc
+			resolved := ConfiguredConnectionSvc().resolveTemplates(&cc.Connection, cc.Config.Params)
+			baseURL := resolved.Service.BaseURL.Value
+
+			// @todo driver selection does not belong in the service layer.
+			// Once Google connectors are provisioned as proper DAL connections
+			// (with the google wrapper as the underlying transport), this
+			// branching can be removed and all connectors can go through
+			// dal.Service().GetConnectionByID uniformly.
+			execute, err := resolveExecutor(ctx, cc, &conn, baseURL, dalConnectionID)
+			if err != nil {
+				return nil, err
 			}
 
 			var respBody []byte
@@ -615,12 +751,31 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 					continue
 				}
 
-				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, in.Dict())
+				// Merge service-level param values into vars so that path/body
+				// templates referencing them (e.g. {{calendarId}}) resolve
+				// correctly. Runtime input takes precedence.
+				vars := make(map[string]any, len(cc.Config.Params))
+				for _, p := range cc.Config.Params {
+					if len(p.Scope) > 0 && p.Scope[0] == "service" {
+						vars[p.Name] = p.Value
+					}
+				}
+				for k, v := range in.Dict() {
+					vars[k] = v
+				}
+
+				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, vars)
 				if err != nil {
 					return nil, err
 				}
 
-				statusCode, outHeaders, body, err := cw.Execute(ctx, step.HTTP.Method, path, headers, payload)
+				if baseURL != "" && strings.HasPrefix(path, baseURL) {
+					path = strings.TrimPrefix(path, baseURL)
+					if path != "" && !strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "?") {
+						path = "/" + path
+					}
+				}
+				statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
 				if err != nil {
 					return nil, fmt.Errorf("operation execution failed: %w", err)
 				}
@@ -752,8 +907,14 @@ func resolveTemplate(tpl types.ConnectionTemplate, vars map[string]any) (string,
 		name := sub[1]
 
 		if v, ok := vars[name]; ok {
-			return fmt.Sprintf("%v", v)
-		}
+				switch s := v.(type) {
+				case string:
+					return s
+				default:
+					b, _ := json.Marshal(s)
+					return string(b)
+				}
+			}
 
 		// Not provided — consult placeholder metadata
 		if p, ok := meta[name]; ok {
@@ -783,10 +944,23 @@ func extractByPath(data any, path []string) any {
 }
 
 func generateFunctionArguments(conn types.Connection, op types.ConnectionOperation) (params atypes.ParamSet) {
+	// Build a set of service-level param names so we can silently skip
+	// operation-level inputs that duplicate them — those are resolved from
+	// the configured connection's stored values, not from runtime user input.
+	serviceParams := make(map[string]bool)
+	for _, dp := range conn.DerivedParams {
+		if len(dp.Scope) > 0 && dp.Scope[0] == "service" {
+			serviceParams[dp.Name] = true
+		}
+	}
+
 	inLookup := make(map[string]bool)
 
-	// Explicit arguments
+	// Explicit arguments — skip any that are already covered by service-level params
 	for _, in := range op.Input {
+		if serviceParams[in.Name] {
+			continue
+		}
 		inLookup[in.Name] = true
 		params = append(params, &atypes.Param{
 			ArgumentName: in.Name,
@@ -809,7 +983,7 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 					Types:        []string{dp.Type},
 					Required:     dp.Required,
 					Meta: &atypes.ParamMeta{
-						Label:       dp.Name,
+						Label:       dp.Label,
 						Description: dp.Description,
 					},
 				})
