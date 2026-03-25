@@ -46,10 +46,10 @@ func (h ngHttpRequestHandler) Send() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "httpRequestSend",
 		Kind:   "function",
-		Groups: []string{"System Sink"},
+		Groups: []string{"HTTP"},
 		Labels: map[string]string{"http request": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "HTTP request",
+			Short:       "Send HTTP Request",
 			Description: "Sends HTTP requests",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "link"},
 		},

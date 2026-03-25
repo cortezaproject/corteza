@@ -11,6 +11,8 @@ settings:
       sassNotInstalled: No dart-sass binaries were detected. For guidance on how to set it up, refer to
       installSassDocs: docs here
       custom-css: Custom CSS
+      branding:
+        title: Branding
       mainLogo:
         title: Main logo
         uploader:
@@ -91,6 +93,7 @@ settings:
         url-match: URL match
         url-match-description: 'Button is shown when the page URL contains this text (e.g. /builder, /compose)'
         new-tab: New tab
+        button-description-placeholder: Optional description shown as a tooltip on the button
 
     theming:
       title: Theming

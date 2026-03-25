@@ -11,6 +11,7 @@
 
 <script>
 import { saveAs } from 'file-saver'
+import { inject } from 'vue'
 
 export default {
   props: {
@@ -33,6 +34,11 @@ export default {
       type: String,
       default: 'secondary',
     },
+  },
+
+  setup () {
+    const $toast = inject('$toast')
+    return { toastErrorHandler: $toast.toastErrorHandler }
   },
 
   methods: {

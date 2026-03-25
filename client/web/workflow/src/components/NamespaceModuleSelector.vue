@@ -32,7 +32,7 @@
         :modelValue="getModuleValuesForNamespace(ns.split('/')[1])"
         :optionLabel="getModuleOptionLabel"
         :optionValue="m => `corteza::compose:module/${m.namespaceID}/${m.moduleID}`"
-        :placeholder="$t('filter.module.placeholder')"
+        :placeholder="$t('general.filter.module.placeholder')"
         :loading="module.processing"
         filter
         @filter="e => searchModulesForNamespace(e.value, ns.split('/')[1])"
@@ -258,7 +258,7 @@ export default {
       const namespace = this.namespace.options.find(n => n.namespaceID === namespaceID)
       const nsLabel = namespace ? this.getNamespaceOptionLabel(namespace) : namespaceID
 
-      return this.$t('filter.module.template', { namespace: nsLabel })
+      return this.$t('general.filter.module.template', { namespace: nsLabel })
     },
 
     getModulesForNamespace (namespaceID) {

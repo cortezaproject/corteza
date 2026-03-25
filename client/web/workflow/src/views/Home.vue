@@ -5,6 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
+      ref="resourceListRef"
       primary-key="workflowID"
       :fields="workflowFields"
       :items="workflowList"
@@ -13,6 +14,7 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :action-items="getActionsMenuItems"
       :translations="{
         searchPlaceholder: $t('general.searchPlaceholder'),
         showingPagination: 'general.resourceList.pagination.showing',
@@ -20,8 +22,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('general.workflow'),
-        resourcePlural: $t('general.workflows'),
+        resourceSingle: $t('general.workflow.single'),
+        resourcePlural: $t('general.workflow.plural'),
       }"
       clickable
       class="h-full"
@@ -30,21 +32,67 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <CRouterLinkButton
-          v-if="canCreate"
-          :to="{ name: 'workflow.create' }"
-          :label="$t('general.new-workflow')"
-          icon="pi pi-plus"
-          size="small"
-        />
+        <div class="flex gap-2">
+          <CRouterLinkButton
+            v-if="canCreate"
+            :to="{ name: 'workflow.create' }"
+            :label="$t('general.new-workflow')"
+            icon="pi pi-plus"
+            size="small"
+          />
+          <Button
+            v-if="canCreate"
+            :label="$t('general.import.label')"
+            icon="pi pi-upload"
+            severity="secondary"
+            size="small"
+            @click="showImportDialog = true"
+          />
+          <Export :workflows="workflowIDs" size="small" severity="secondary" />
+          <Button
+            icon="pi pi-filter"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="toggleFilterMenu"
+          />
+        </div>
       </template>
 
       <template #body-name="{ data }">
-        <div class="flex flex-col">
-          <span>{{ data.meta?.name || data.handle || '-' }}</span>
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span>{{ data.meta?.name || data.handle || '-' }}</span>
+            <Tag
+              v-if="data.meta?.subWorkflow"
+              :value="$t('general.subworkflow')"
+              severity="info"
+              class="text-xs"
+            />
+          </div>
           <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
             {{ data.meta.description }}
           </span>
+          <div
+            v-for="group in getWorkflowLabels(data)"
+            :key="'group-' + group.namespaceID"
+            class="flex items-center flex-wrap gap-1"
+          >
+            <Tag
+              v-tooltip.top="$t('general.filter.namespace.label')"
+              :value="group.namespaceName"
+              severity="primary"
+              class="text-xs"
+            />
+            <Tag
+              v-for="mod in group.modules"
+              :key="mod.id"
+              v-tooltip.top="$t('general.filter.module.label')"
+              :value="mod.name"
+              severity="secondary"
+              class="text-xs"
+            />
+          </div>
         </div>
       </template>
 
@@ -56,36 +104,85 @@
         />
       </template>
 
+      <template #body-steps="{ data }">
+        {{ (data.steps || []).length }}
+      </template>
+
       <template #body-updatedAt="{ data }">
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          class="row-action-btn w-full mr-2"
-          @click.stop="toggleActionsMenu($event, data)"
-        />
-      </template>
     </CResourceList>
 
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
-      <template #item="{ item, props }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <a v-else v-ripple v-bind="props.action" :class="item.class">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-        </a>
-      </template>
-    </TieredMenu>
+    <Dialog
+      v-model:visible="showImportDialog"
+      :header="$t('general.import.label')"
+      :style="{ width: '450px' }"
+      modal
+    >
+      <Import
+        :key="showImportDialog"
+        :disabled="importProcessing"
+        @import="importJSON"
+      />
+    </Dialog>
+
+    <Popover ref="filterMenu">
+      <div class="flex flex-col gap-4 p-2 w-72">
+        <!-- SubWorkflow filter -->
+        <div class="flex flex-col gap-2">
+          <span class="font-medium text-sm text-primary">{{ $t('general.subworkflows') }}</span>
+          <div v-for="opt in radioOptions" :key="'sw-' + opt.value" class="flex items-center gap-2">
+            <RadioButton
+              v-model="filter.subWorkflow"
+              :inputId="'sw' + opt.value"
+              :value="opt.value"
+              @change="filterList"
+            />
+            <label :for="'sw' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
+          </div>
+        </div>
+
+        <!-- Disabled filter -->
+        <div class="flex flex-col gap-2">
+          <span class="font-medium text-sm text-primary">{{ $t('general.disabled') }}</span>
+          <div v-for="opt in radioOptions" :key="'dis-' + opt.value" class="flex items-center gap-2">
+            <RadioButton
+              v-model="filter.disabled"
+              :inputId="'dis' + opt.value"
+              :value="opt.value"
+              @change="filterList"
+            />
+            <label :for="'dis' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
+          </div>
+        </div>
+
+        <!-- Deleted filter -->
+        <div class="flex flex-col gap-2">
+          <span class="font-medium text-sm text-primary">{{ $t('general.deleted') }}</span>
+          <div v-for="opt in radioOptions" :key="'del-' + opt.value" class="flex items-center gap-2">
+            <RadioButton
+              v-model="filter.deleted"
+              :inputId="'del' + opt.value"
+              :value="opt.value"
+              @change="filterList"
+            />
+            <label :for="'del' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
+          </div>
+        </div>
+
+        <Divider class="my-0" />
+
+        <!-- Namespace / module label filter -->
+        <NamespaceModuleSelector
+          :namespace-labels="selectedNamespaceLabels"
+          :module-labels="selectedModuleLabels"
+          @change="handleLabelFilterChange"
+        />
+      </div>
+    </Popover>
+
+
   </div>
 </template>
 
@@ -94,11 +191,17 @@ import {
   components,
   filters,
   useConfirmDelete,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { inject, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { saveAs } from 'file-saver'
+import { useLabelsStore } from '@/stores/labels'
+import Import from '@/components/Import.vue'
+import Export from '@/components/Export.vue'
+import NamespaceModuleSelector from '@/components/NamespaceModuleSelector.vue'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters
@@ -108,13 +211,37 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
+const $ComposeAPI = inject('$ComposeAPI')
+const $Auth = inject('$Auth')
+const labelsStore = useLabelsStore()
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref([])
+// Dialog / popover visibility
+const showImportDialog = ref(false)
+const filterMenu = ref()
+const importProcessing = ref(false)
+
+function toggleFilterMenu(event) {
+  filterMenu.value.toggle(event)
+}
+
+// Label filter state
+const selectedNamespaceLabels = ref([])
+const selectedModuleLabels = ref([])
+const labelsFilter = ref([])
+
+const radioOptions = [
+  { label: t('general.without'), value: '0' },
+  { label: t('general.including'), value: '1' },
+  { label: t('general.only'), value: '2' },
+]
+
+const userID = computed(() => $Auth?.user?.userID)
+
+const resourceListRef = ref()
 
 // RBAC
-const canCreate = ref(true)
+const rbacStore = useRBACStore()
+const canCreate = computed(() => rbacStore.can('automation/', 'workflow.create'))
 
 // Column definitions
 const workflowFields = [
@@ -130,23 +257,18 @@ const workflowFields = [
     class: 'text-center w-28',
   },
   {
+    key: 'steps',
+    sortable: false,
+    header: t('general.columns.steps'),
+    class: 'text-center w-20',
+  },
+  {
     key: 'updatedAt',
     sortable: true,
     header: t('general.columns.changedAt'),
     class: 'text-right',
     pt: {
       columnHeaderContent: 'justify-end',
-    },
-  },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
-    pt: {
-      headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'p-0 border-l-0' },
     },
   },
 ]
@@ -161,23 +283,186 @@ const {
   handleSort,
   handlePageChange,
   filterList,
-} = useResourceList(params => $AutomationAPI.workflowListCancellable(params), {
-  filter: { query: '' },
-  sorting: { sortBy: 'createdAt', sortDesc: true },
-  pagination: { limit: 50 },
+} = useResourceList(
+  params => $AutomationAPI.workflowListCancellable({ ...params, labels: labelsFilter.value }),
+  {
+    filter: { query: '', subWorkflow: '1', disabled: '0', deleted: '0' },
+    sorting: { sortBy: 'createdAt', sortDesc: true },
+    pagination: { limit: 50 },
+  },
+)
+
+const workflowIDs = computed(() => workflowList.value.map(w => w.workflowID))
+
+// Resolve namespace/module names whenever the list changes
+watch(workflowList, (workflows) => {
+  if (!workflows?.length) return
+
+  const namespaceIDs = new Set()
+  const modules = []
+
+  workflows.forEach(wf => {
+    if (!wf.labels) return
+    const ns = [wf.labels.ref_namespace].flat().filter(Boolean)
+    const mod = [wf.labels.ref_module].flat().filter(Boolean)
+
+    ns.forEach(l => {
+      const id = l.split('/')[1]
+      if (id) namespaceIDs.add(id)
+    })
+    mod.forEach(l => {
+      const [, nsID, modID] = l.split('/')
+      if (nsID) namespaceIDs.add(nsID)
+      if (modID) modules.push({ moduleID: modID, namespaceID: nsID })
+    })
+  })
+
+  if (namespaceIDs.size) {
+    labelsStore.resolveMultipleNamespaces({ namespaceIDs: [...namespaceIDs], api: $ComposeAPI })
+  }
+  if (modules.length) {
+    labelsStore.resolveMultipleModules({ modules, api: $ComposeAPI })
+  }
 })
 
 // Methods
+function getWorkflowLabels(workflow) {
+  if (!workflow.labels) return []
+
+  const nsIDs = []
+  const modsByNs = {}
+
+  ;[workflow.labels.ref_namespace].flat().filter(Boolean).forEach(l => {
+    const id = l.split('/')[1]
+    if (id && !nsIDs.includes(id)) nsIDs.push(id)
+  })
+  ;[workflow.labels.ref_module].flat().filter(Boolean).forEach(l => {
+    const [, nsID, modID] = l.split('/')
+    if (!nsID || !modID) return
+    if (!nsIDs.includes(nsID)) nsIDs.push(nsID)
+    if (!modsByNs[nsID]) modsByNs[nsID] = []
+    modsByNs[nsID].push({ id: modID, name: labelsStore.getModule(modID) || modID })
+  })
+
+  return nsIDs.map(id => ({
+    namespaceID: id,
+    namespaceName: labelsStore.getNamespace(id) || id,
+    modules: modsByNs[id] || [],
+  }))
+}
+
+function handleLabelFilterChange({ namespaceLabels, moduleLabels }) {
+  selectedNamespaceLabels.value = namespaceLabels || []
+  selectedModuleLabels.value = moduleLabels || []
+
+  const labels = []
+  if (selectedNamespaceLabels.value.length) {
+    labels.push(`ref_namespace=${JSON.stringify(selectedNamespaceLabels.value)}`)
+  }
+  if (selectedModuleLabels.value.length) {
+    labels.push(`ref_module=${JSON.stringify(selectedModuleLabels.value)}`)
+  }
+  labelsFilter.value = labels
+  filterList()
+}
+
+async function handleStatusChange(workflow) {
+  const enabled = !workflow.enabled
+  const key = enabled ? 'enable' : 'disable'
+  try {
+    const w = await $AutomationAPI.workflowRead({ workflowID: workflow.workflowID })
+    await $AutomationAPI.workflowUpdate({ ...w, enabled })
+    $toast.toastSuccess(t(`notification.list.${key}.success`))
+    filterList()
+  } catch {
+    $toast.toastDanger(t(`notification.list.${key}.failed`))
+  }
+}
+
+async function handleExportWorkflow(workflow) {
+  try {
+    const { set: tSet = [] } = await $AutomationAPI.triggerList({
+      workflowID: [workflow.workflowID],
+      disabled: 1,
+    })
+    const triggers = {}
+    tSet.forEach(tr => {
+      if (!triggers[tr.workflowID]) triggers[tr.workflowID] = []
+      triggers[tr.workflowID].push({
+        resourceType: tr.resourceType,
+        eventType: tr.eventType,
+        constraints: tr.constraints,
+        enabled: tr.enabled,
+        stepID: tr.stepID,
+        meta: tr.meta,
+      })
+    })
+
+    const { set: wSet = [] } = await $AutomationAPI.workflowList({
+      workflowID: [workflow.workflowID],
+      disabled: 1,
+      subWorkflow: 1,
+    })
+    const workflows = wSet.map(w => ({
+      handle: w.handle,
+      enabled: w.enabled,
+      meta: w.meta,
+      keepSessions: w.keepSessions,
+      steps: w.steps,
+      paths: w.paths,
+      triggers: triggers[w.workflowID],
+    }))
+
+    const blob = new Blob([JSON.stringify({ workflows }, null, 2)], { type: 'application/json' })
+    const filename = (workflow.meta?.name || workflow.handle || 'workflow').replace(/[/\\?%*:|"<>]/g, '')
+    saveAs(blob, `${filename}.json`)
+  } catch {
+    $toast.toastDanger(t('notification.failed-fetch-workflows'))
+  }
+}
+
+async function importJSON(workflows = []) {
+  importProcessing.value = true
+  const skipped = []
+
+  await Promise.all(
+    workflows.map(({ triggers = [], ...wf }) =>
+      $AutomationAPI
+        .workflowCreate({ ownedBy: userID.value, runAs: '0', ...wf })
+        .then(({ workflowID }) =>
+          Promise.all(
+            triggers.map(tr =>
+              $AutomationAPI.triggerCreate({
+                ...tr,
+                workflowID,
+                workflowStepID: tr.stepID,
+                ownedBy: userID.value,
+              }),
+            ),
+          ),
+        )
+        .catch(({ message }) => {
+          if (wf.handle) skipped.push(`${wf.handle}${message ? ' - ' + message : ''}`)
+        }),
+    ),
+  )
+
+  if (skipped.length) {
+    $toast.toastWarning(skipped.join('; '), t('notification.import.skipped-workflows'))
+  } else {
+    $toast.toastSuccess(t('notification.import.imported-workflows'))
+  }
+
+  showImportDialog.value = false
+  importProcessing.value = false
+  filterList()
+}
+
 function handleRowClick({ data }) {
   router.push({
     name: 'workflow.edit',
     params: { workflowID: data.workflowID },
   })
-}
-
-function toggleActionsMenu(event, workflow) {
-  actionsMenuItems.value = getActionsMenuItems(workflow)
-  actionsMenu.value.toggle(event)
 }
 
 function getActionsMenuItems(workflow) {
@@ -192,6 +477,22 @@ function getActionsMenuItems(workflow) {
     },
   })
 
+  if (!workflow.deletedAt) {
+    items.push({
+      label: workflow.enabled ? t('general.disable') : t('general.enable'),
+      icon: workflow.enabled ? 'pi pi-power-off' : 'pi pi-check-circle',
+      command: () => handleStatusChange(workflow),
+    })
+  }
+
+  items.push({
+    label: t('general.export'),
+    icon: 'pi pi-download',
+    command: () => handleExportWorkflow(workflow),
+  })
+
+  items.push({ separator: true })
+
   if (workflow.deletedAt) {
     items.push({
       label: t('general.undelete'),
@@ -199,9 +500,6 @@ function getActionsMenuItems(workflow) {
       command: () => handleUndelete(workflow),
     })
   } else {
-    if (items.length > 0) {
-      items.push({ separator: true })
-    }
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
@@ -222,6 +520,7 @@ function onConfirmDelete(workflow) {
 }
 
 async function handleDelete(workflow) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $AutomationAPI.workflowDelete({
       workflowID: workflow.workflowID,
@@ -235,6 +534,7 @@ async function handleDelete(workflow) {
 }
 
 async function handleUndelete(workflow) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $AutomationAPI.workflowUndelete({
       workflowID: workflow.workflowID,

@@ -42,10 +42,10 @@ func (h ngAttachmentHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "attachmentLookup",
 		Kind:   "function",
-		Groups: []string{"Compose Attachment"},
+		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Attachment lookup",
+			Short:       "Find Attachment",
 			Description: "Find specific attachment by ID",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
@@ -120,10 +120,10 @@ func (h ngAttachmentHandler) Create() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "attachmentCreate",
 		Kind:   "function",
-		Groups: []string{"Compose Attachment"},
+		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "create": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Create file and attach it to a resource",
+			Short: "Create Attachment",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
@@ -246,10 +246,10 @@ func (h ngAttachmentHandler) Delete() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "attachmentDelete",
 		Kind:   "function",
-		Groups: []string{"Compose Attachment"},
+		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "delete": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Delete attachment",
+			Short: "Delete Attachment",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
@@ -295,10 +295,10 @@ func (h ngAttachmentHandler) OpenOriginal() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "attachmentOpenOriginal",
 		Kind:   "function",
-		Groups: []string{"Compose Attachment"},
+		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "original-attachment": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Open original attachment",
+			Short: "Open Attachment",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
@@ -383,10 +383,10 @@ func (h ngAttachmentHandler) OpenPreview() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "attachmentOpenPreview",
 		Kind:   "function",
-		Groups: []string{"Compose Attachment"},
+		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "preview-attachment": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Open attachment preview",
+			Short: "Preview Attachment",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 

@@ -188,7 +188,7 @@ export function getTheme(theme: Theme) {
         z-index: 50;
         background-color: var(--p-content-background);
         border: 1px solid var(--p-content-border-color);
-        border-radius: var(--p-card-border-radius);
+        border-radius: var(--p-border-radius-xl);
         box-shadow: var(--p-overlay-popover-shadow);
       }
     `,

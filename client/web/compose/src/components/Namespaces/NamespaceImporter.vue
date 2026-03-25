@@ -23,31 +23,13 @@
 
       <!-- Step 0: File Upload -->
       <div v-else-if="step === 0" class="flex flex-col gap-4">
-        <div
-          class="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-border cursor-pointer transition-colors duration-200"
-          :class="dragOver ? 'border-primary bg-primary/5' : 'border-surface-300 hover:border-primary'"
-          @click="$refs.fileInput.click()"
-          @dragover.prevent="dragOver = true"
-          @dragleave.prevent="dragOver = false"
-          @drop.prevent="onFileDrop"
-        >
-          <i class="pi pi-cloud-upload text-4xl text-muted-color" />
-          <span class="text-muted-color text-sm text-center">
-            {{ $t('namespace.import.uploadFilePlaceholder') }}
-          </span>
-        </div>
-
-        <input
-          ref="fileInput"
-          type="file"
+        <CFileDropZone
           accept=".zip"
-          class="hidden"
-          @change="onFileSelected"
+          :uploading="uploading"
+          :error="uploadError"
+          :drop-label="$t('namespace.import.uploadFilePlaceholder')"
+          @select="onFilesSelected"
         />
-
-        <Message v-if="uploadError" severity="error" :closable="false">
-          {{ uploadError }}
-        </Message>
       </div>
 
       <!-- Step 1: Configure name & slug -->
@@ -106,6 +88,9 @@
 <script setup>
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
+
+const { CFileDropZone } = components
 
 const { t } = useI18n()
 const $ComposeAPI = inject('$ComposeAPI')
@@ -116,12 +101,12 @@ const emit = defineEmits(['imported', 'failed'])
 const showDialog = ref(false)
 const step = ref(0)
 const importing = ref(false)
-const uploadError = ref('')
 const session = ref({})
 const name = ref('')
 const slug = ref('')
-const dragOver = ref(false)
-const fileInput = ref(null)
+
+// Upload state (from composable)
+const { uploading, uploadError, uploadFileRaw, reset: resetUpload } = useFileUpload()
 
 // Validation
 const slugRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/
@@ -143,10 +128,8 @@ function reset() {
   session.value = {}
   name.value = ''
   slug.value = ''
-  uploadError.value = ''
   importing.value = false
-  dragOver.value = false
-  if (fileInput.value) fileInput.value.value = ''
+  resetUpload()
 }
 
 function onBack() {
@@ -154,47 +137,19 @@ function onBack() {
   uploadError.value = ''
 }
 
-function onFileSelected(event) {
-  const file = event.target?.files?.[0]
-  if (file) handleUpload(file)
-}
-
-function onFileDrop(event) {
-  dragOver.value = false
-  const file = event.dataTransfer?.files?.[0]
-  if (file) handleUpload(file)
-}
-
-async function handleUpload(file) {
-  uploadError.value = ''
+async function onFilesSelected(files) {
+  const file = files[0]
   if (!file) return
 
   try {
-    const formData = new FormData()
-    formData.append('upload', file)
-
     const endpoint = $ComposeAPI.baseURL + $ComposeAPI.namespaceImportInitEndpoint()
     const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    })
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}))
-      throw new Error(errData?.error?.message || t('notification.namespace.importFailed'))
-    }
-
-    const data = await response.json()
-    session.value = data.response || data
+    const data = await uploadFileRaw(file, { url: endpoint, token })
+    session.value = data
     step.value = 1
   } catch (err) {
-    uploadError.value = err.message || t('notification.namespace.importFailed')
+    // uploadError is already set by the composable
   }
 }
 

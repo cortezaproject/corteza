@@ -20,7 +20,7 @@
 
     <div
       id="topbar-title"
-      class="flex text-truncate items-center text-2xl font-medium text-color mb-0 ml-2"
+      class="topbar-title flex flex-1 min-w-0 overflow-hidden whitespace-nowrap text-truncate items-center text-2xl font-medium text-color mb-0 ml-2"
     />
 
     <div v-if="visiblePageButtons.length" class="flex items-center gap-2 ml-3">
@@ -33,6 +33,7 @@
         class="no-underline"
       >
         <Button
+          v-tooltip.bottom="btn.description || undefined"
           :label="btn.label"
           severity="secondary"
           outlined
@@ -41,11 +42,11 @@
       </a>
     </div>
 
-    <div id="topbar-tools" class="tools-wrapper ml-auto flex items-center gap-2">
+    <div id="topbar-tools" class="topbar-tools tools-wrapper ml-auto flex items-center gap-2">
       <slot name="tools" />
     </div>
 
-    <div class="flex items-center gap-1 ml-2">
+    <div class="topbar-right flex items-center gap-1 ml-2">
       <Button
         v-if="!hideAppSelector && !settings?.hideAppSelector"
         v-tooltip.bottom="labels.appMenu"
@@ -400,6 +401,7 @@ const logout = () => {
   width: 100%;
   min-height: var(--topbar-height);
   background-color: var(--topbar-bg);
+  container-type: inline-size;
 }
 
 .tools-wrapper > :deep(*) {
@@ -407,5 +409,27 @@ const logout = () => {
   justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
+}
+
+@container (max-width: 550px) {
+  .header-navigation {
+    row-gap: 0.25rem;
+  }
+
+  .topbar-title {
+    order: 99;
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-left: 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .topbar-tools {
+    display: none !important;
+  }
+
+  .topbar-right {
+    margin-left: auto;
+  }
 }
 </style>

@@ -43,10 +43,10 @@ func (h ngNotificationHandler) SendRecord() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "notificationSendRecord",
 		Kind:   "function",
-		Groups: []string{"Compose Notification"},
+		Groups: []string{"Notifications"},
 		Labels: map[string]string(nil),
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Send record notification",
+			Short:       "Send Record Notification",
 			Description: "Sends a notification that links to a specific record",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "bell"},
 		},

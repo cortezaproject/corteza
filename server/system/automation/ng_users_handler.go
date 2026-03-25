@@ -45,11 +45,11 @@ func (h ngUsersHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "usersLookup",
 		Kind:   "function",
-		Groups: []string{"System User"},
+		Groups: []string{"Users"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "User lookup",
-			Description: "Find specific user by ID, handle or string",
+			Short:       "Find User",
+			Description: "Look up a user by ID, email, or handle",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
@@ -112,11 +112,11 @@ func (h ngUsersHandler) Create() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "usersCreate",
 		Kind:   "function",
-		Groups: []string{"System User"},
+		Groups: []string{"Users"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "User create",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user-plus"},
+			Short: "Create User",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -192,11 +192,11 @@ func (h ngUsersHandler) Update() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "usersUpdate",
 		Kind:   "function",
-		Groups: []string{"System User"},
+		Groups: []string{"Users"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "User update",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "pencil"},
+			Short: "Update User",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -244,11 +244,11 @@ func (h ngUsersHandler) Delete() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "usersDelete",
 		Kind:   "function",
-		Groups: []string{"System User"},
+		Groups: []string{"Users"},
 		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "User delete",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "trash"},
+			Short: "Delete User",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -297,11 +297,11 @@ func (h ngUsersHandler) Suspend() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "usersSuspend",
 		Kind:   "function",
-		Groups: []string{"System User"},
+		Groups: []string{"Users"},
 		Labels: map[string]string{"suspend": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "User suspend",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "lock"},
+			Short: "Suspend User",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -350,11 +350,11 @@ func (h ngUsersHandler) Unsuspend() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "usersUnsuspend",
 		Kind:   "function",
-		Groups: []string{"System User"},
+		Groups: []string{"Users"},
 		Labels: map[string]string{"unsuspend": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "User unsuspend",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "unlock"},
+			Short: "Unsuspend User",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{

@@ -14,7 +14,7 @@
       />
     </Teleport>
 
-    <div class="toolbar flex flex-col h-full bg-topbar border-r border-surface shadow-lg">
+    <div class="toolbar flex flex-col h-full bg-topbar">
       <div id="toolbar" ref="toolbar" class="flex flex-col items-center mt-1 overflow-auto" />
 
       <div class="flex flex-grow-1 items-end justify-center py-3">
@@ -95,7 +95,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap absolute bottom-0 left-0 m-2 gap-2" style="z-index: 1">
+      <div class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full" style="z-index: 1">
         <Button
           v-if="changeDetected && canUpdateWorkflow"
           data-test-id="button-save-workflow"
@@ -147,7 +147,7 @@
     >
       <div
         v-show="sidebar.show"
-        class="config-drawer right-sidebar shadow-xl z-20 flex"
+        class="config-drawer right-sidebar shadow-xl z-20 flex rounded-border"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->
@@ -160,13 +160,19 @@
           <!-- Header -->
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <img v-if="getSidebarItemIcon" :src="getSidebarItemIcon" class="h-6 w-6 object-contain" />
+              <img
+                v-if="getSidebarItemIcon"
+                :src="getSidebarItemIcon"
+                class="h-6 w-6 object-contain"
+              />
               <h3 class="text-lg font-semibold text-color m-0">
                 {{ getSidebarItemType }}
               </h3>
             </div>
             <div class="flex items-center gap-2">
-              <span v-if="getSelectedItem?.node?.id" class="text-sm text-muted-color">{{ getSelectedItem.node.id }}</span>
+              <span v-if="getSelectedItem?.node?.id" class="text-sm text-muted-color">
+                {{ getSelectedItem.node.id }}
+              </span>
               <Button icon="pi pi-times" text rounded size="small" @click="sidebarClose()" />
             </div>
           </div>
@@ -203,7 +209,9 @@
 
     <Dialog
       v-model:visible="configuratorVisible"
-      :header="workflow.workflowID === '0' ? $t('general.new-workflow') : $t('general.edit-workflow')"
+      :header="
+        workflow.workflowID === '0' ? $t('general.new-workflow') : $t('general.edit-workflow')
+      "
       modal
       class="w-full max-w-3xl"
     >
@@ -304,10 +312,14 @@
       class="fixed z-50 pointer-events-none transition-opacity"
       :style="toolbarTooltipStyle"
     >
-      <div class="bg-surface-0 dark:bg-surface-800 border border-surface shadow-lg rounded-xl overflow-hidden w-64 flex flex-col">
+      <div
+        class="bg-surface-0 dark:bg-surface-800 border border-surface shadow-lg rounded-xl overflow-hidden w-64 flex flex-col"
+      >
         <div class="p-4 flex flex-col gap-2">
           <h4 class="font-semibold text-lg text-color m-0">{{ activeToolbarTooltip.title }}</h4>
-          <p class="text-sm text-color-secondary m-0 leading-snug">{{ activeToolbarTooltip.tooltip }}</p>
+          <p class="text-sm text-color-secondary m-0 leading-snug">
+            {{ activeToolbarTooltip.tooltip }}
+          </p>
         </div>
       </div>
     </div>
@@ -330,6 +342,7 @@ import { NoID } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
 import eventBus from '../lib/eventBus'
 import { useLabelsStore } from '../stores/labels'
+import { inject } from 'vue'
 
 const {
   mxClient,
@@ -411,6 +424,16 @@ export default {
     },
   },
 
+  setup() {
+    const $toast = inject('$toast')
+    return {
+      toastSuccess: $toast.toastSuccess,
+      toastWarning: $toast.toastWarning,
+      toastInfo: $toast.toastInfo,
+      toastErrorHandler: $toast.toastErrorHandler,
+    }
+  },
+
   data() {
     return {
       initialized: false,
@@ -419,23 +442,13 @@ export default {
       deferred: false,
       triggersPathsChanged: false,
 
-      graph: undefined,
-      keyHandler: undefined,
-      undoManager: undefined,
-
       workflow: {},
       triggers: [],
       vertices: {},
       edges: {},
       issues: {},
 
-      highlights: [],
-
       runAsUser: undefined,
-
-      toolbar: undefined,
-
-      rendering: false,
 
       sidebar: {
         item: undefined,
@@ -466,8 +479,6 @@ export default {
       importProcessing: false,
 
       zoomLevel: 1,
-
-      currentLabel: undefined,
 
       eventTypes: [],
       functionTypes: [],
@@ -654,6 +665,19 @@ export default {
   },
 
   mounted() {
+    // Initialize mxGraph-related properties as plain non-reactive instance properties.
+    // These must NOT be in data() — Vue 3's deep Proxy wrapping breaks mxGraph's
+    // internal object-identity checks (===), corrupting edge state during model updates.
+    this.graph = undefined
+    this.keyHandler = undefined
+    this.toolbar = undefined
+    this.undoManager = undefined
+    this.currentLabel = undefined
+    this.highlights = []
+    this.rendering = false
+    this._triggerUpdatedHandler = null
+    this._changeDetectedHandler = null
+
     this.labelsStore = useLabelsStore()
     try {
       if (!mxClient.isBrowserSupported()) {
@@ -680,9 +704,15 @@ export default {
       this.getEventTypes()
       this.getFunctionTypes()
 
-      eventBus.on('trigger-updated', ({ mxObjectId }) => {
+      this._triggerUpdatedHandler = ({ mxObjectId }) => {
         this.redrawLabel(mxObjectId)
-      })
+      }
+      eventBus.on('trigger-updated', this._triggerUpdatedHandler)
+
+      this._changeDetectedHandler = () => {
+        this.$emit('change-detected')
+      }
+      eventBus.on('change-detected', this._changeDetectedHandler)
 
       this.render(this.workflow, true)
 
@@ -698,6 +728,12 @@ export default {
   },
 
   beforeUnmount() {
+    if (this._triggerUpdatedHandler) {
+      eventBus.off('trigger-updated', this._triggerUpdatedHandler)
+    }
+    if (this._changeDetectedHandler) {
+      eventBus.off('change-detected', this._changeDetectedHandler)
+    }
     // Destroy mxgraph singletons
     this.graph.destroy()
     this.keyHandler.destroy()
@@ -870,7 +906,7 @@ export default {
 
         if (cell.edge) {
           if (cell.value) {
-            label = `<div class="text-nowrap py-1 px-3 mb-0 rounded bg-white pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: var(--dark);">${encodeHTML(cell.value)}</div>`
+            label = `<div class="whitespace-nowrap py-1 px-3 mb-0 rounded bg-white cursor-pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: var(--dark);">${encodeHTML(cell.value)}</div>`
           }
         } else if (this.vertices[cell.id]) {
           const vertex = this.vertices[cell.id]
@@ -879,7 +915,7 @@ export default {
 
           if (vertex && kind !== 'visual') {
             const icon = this.getIcon(getStyleFromKind(vertex.config).icon, this.currentTheme)
-            const type = this.$t(`steps:${style}.short`)
+            const type = this.$t(`steps.${style}.short`)
             const isSelected = this.selection.includes(cell.mxObjectId)
             const shadow = isSelected ? 'shadow' : 'shadow-sm'
             const issue = this.getIcon('issue')
@@ -891,7 +927,7 @@ export default {
             let issues = ''
             let id = ''
             if (this.issues[cell.id]) {
-              issues = `<img id="openIssues" src="${issue}" class="ml-2 pointer" style="width: 20px;"/>`
+              issues = `<img id="openIssues" src="${issue}" class="ml-2 cursor-pointer" style="width: 20px;"/>`
             } else {
               id = `<span class="show id-label">${cell.id}</span>`
             }
@@ -1033,7 +1069,7 @@ export default {
             if (values) {
               values = values
                 ? '<div class="step-values rounded hide-label">' +
-                  '<table class="table bg-white shadow mb-0">' +
+                  '<table class="bg-white shadow mb-0">' +
                   values +
                   '</table>' +
                   '</div>'
@@ -1042,42 +1078,40 @@ export default {
 
             if (this.workflow.canExecuteWorkflow && vertex.triggers && (cell.edges || []).length) {
               if (!this.dryRun.processing) {
-                test = `<img id="testWorkflow" title="${this.$t('configurator.tooltip.run-workflow')}" src="${playIcon}" class="hide pointer" style="width: 20px;"/>`
+                test = `<img id="testWorkflow" title="${this.$t('configurator.tooltip.run-workflow')}" src="${playIcon}" class="hide cursor-pointer" style="width: 20px;"/>`
               } else if (this.dryRun.cellID === cell.id) {
                 // If this is the trigger that is currently running
-                test = `<span class="spinner-border text-secondary" data-toggle="tooltip" data-placement="top" style="width: 20px; height: 20px; cursor: default;" title="Testing in progress. If your workflow includes Prompt or Delay steps, it may be waiting for them to complete">
-                          <span class="sr-only">
-                            Spinning
-                          </span>
+                test = `<span class="mx-spinner" style="width: 20px; height: 20px; cursor: default; color: var(--p-text-muted-color, #64748b);" title="Testing in progress. If your workflow includes Prompt or Delay steps, it may be waiting for them to complete">
+                          <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Spinning</span>
                         </span>
                       `
                 if (this.dryRun.sessionID) {
                   test =
                     test +
-                    `<img id="cancelWorkflow" src="${stopIcon}" class="ml-2 pointer" style="width: 20px; height: 20px;"/>`
+                    `<img id="cancelWorkflow" src="${stopIcon}" class="ml-2 cursor-pointer" style="width: 20px; height: 20px;"/>`
                 }
               }
             }
 
             label =
-              `<div class="d-flex flex-column bg-white border rounded step position-relative ${shadow}" style="min-width: 200px; border-radius: 5px;${opacity}">` +
-              '<div class=label-container">' +
-              '<div class="d-flex flex-row align-items-center text-primary px-2 my-1 h6 mb-0" style="width: 200px; height: 36px;">' +
+              `<div class="flex flex-col bg-white border rounded step relative ${shadow}" style="min-width: 200px; border-radius: 5px;${opacity}">` +
+              '<div class="label-container">' +
+              '<div class="flex items-center text-primary px-2 my-1 text-base font-medium mb-0" style="width: 200px; height: 36px;">' +
               `<img src="${icon}" class="mr-2"/>${type}` +
-              '<div class="d-flex h-100 ml-auto align-items-center">' +
+              '<div class="flex h-full ml-auto items-center">' +
               test +
               id +
               issues +
               '</div>' +
               '</div>' +
-              `<div class="label d-flex flex-grow-1 align-items-stretch bg-white border-top ${values ? 'wide-label' : ''}" style="max-width: 200px; min-height: 36px;">` +
-              `<span class="d-inline-block hover-untruncate p-2 bg-white">${encodeHTML(cell.value || '/')}</span>` +
+              `<div class="label flex grow items-stretch bg-white border-t ${values ? 'wide-label' : ''}" style="max-width: 200px; min-height: 36px;">` +
+              `<span class="inline-block hover-untruncate p-2 bg-white">${encodeHTML(cell.value || '/')}</span>` +
               '</div>' +
               '</div>' +
               values +
               '</div>'
           } else {
-            label = cell.value ? `<div class="rt-content text-wrap">${cell.value}</div>` : ''
+            label = cell.value ? `<div class="rt-content break-words">${cell.value}</div>` : ''
           }
         }
 
@@ -1802,7 +1836,7 @@ export default {
 
       this.graph.model.addListener(mxEvent.CHANGE, (sender, evt) => {
         if (!this.rendering) {
-          eventBus.emit('change-detected')
+          this.$emit('change-detected')
         }
       })
     },
@@ -1814,7 +1848,7 @@ export default {
       mxConstants.VERTEX_SELECTION_DASHED = false
       mxConstants.EDGE_SELECTION_COLOR = '#A7D0E3'
       mxConstants.EDGE_SELECTION_STROKEWIDTH = 2 // Changed from 2 to 0 to hide default selection border
-      mxConstants.DEFAULT_FONTFAMILY = 'Poppins-Regular'
+      mxConstants.DEFAULT_FONTFAMILY = 'Poppins'
       mxConstants.DEFAULT_FONTSIZE = 13
 
       mxConstants.HANDLE_FILLCOLOR = 'var(--primary)'
@@ -2084,7 +2118,7 @@ export default {
         this.activeToolbarTooltip = { title, icon, tooltip }
         this.toolbarTooltipStyle = {
           top: `${rect.top}px`,
-          left: `${rect.right + 10}px`
+          left: `${rect.right + 10}px`,
         }
       })
 
@@ -2194,7 +2228,7 @@ export default {
         edges.forEach(edge => {
           const state = this.graph.view.getState(edge)
           if (state) {
-            const highlight = new mxCellHighlight(this.graph, 'var(--primary)', 2) // Changed color to green and increased width
+            const highlight = new mxCellHighlight(this.graph, 'var(--primary)', 2)
             highlight.highlight(state)
             this.highlights.push(highlight)
           }
@@ -2739,8 +2773,8 @@ export default {
         this.render(this.workflow)
 
         this.importProcessing = false
-        eventBus.emit('change-detected')
-        this.$emit('close-import-modal')
+        this.$emit('change-detected')
+        this.configuratorVisible = false
         this.toastSuccess(this.$t('notification.imported-workflow'))
       } catch (e) {
         this.toastErrorHandler(this.$t('notification.import-failed'))(e)
@@ -2864,7 +2898,7 @@ export default {
 }
 
 .toolbar {
-  width: 66px;
+  width: 55px;
 }
 
 .component-fade-enter-active,
@@ -2904,6 +2938,12 @@ export default {
 </style>
 
 <style>
+/* mxGraph sets pointer-events:none on the label container div (inline style).
+   All descendants inherit none, so CSS :hover never fires without this override. */
+.step {
+  pointer-events: auto;
+}
+
 .hide {
   display: none;
 }
@@ -2942,19 +2982,22 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* width: 100% + min-width: 0 allow truncation to work inside a flex container */
+  width: 100%;
+  min-width: 0;
 }
 
 .step:hover .hover-untruncate {
   overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
 }
 
-.label-container {
-  overflow: hidden;
-}
-
-.step:hover .label-container {
-  overflow-x: visible;
-}
+/* Note: .label-container has no overflow:hidden rule (intentional).
+   Corteza's original HTML had a typo (class=label-container" — missing opening quote)
+   so that rule never took effect; truncation is handled solely by .hover-untruncate.
+   overflow:hidden on .label-container (even transiently on hover) creates a scroll
+   stacking context that clips mxGraph's SVG edge layer, making paths disappear. */
 
 .step-values {
   position: absolute;

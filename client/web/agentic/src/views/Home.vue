@@ -5,6 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
+      ref="resourceListRef"
       primary-key="agentID"
       :fields="agentFields"
       :items="agentList"
@@ -13,6 +14,7 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :action-items="getActionsMenuItems"
       :translations="{
         searchPlaceholder: $t('agent.list.searchPlaceholder'),
         showingPagination: 'general.resourceList.pagination.showing',
@@ -59,32 +61,7 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          class="row-action-btn w-full mr-2"
-          @click.stop="toggleActionsMenu($event, data)"
-        />
-      </template>
     </CResourceList>
-
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
-      <template #item="{ item, props }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <a v-else v-ripple v-bind="props.action" :class="item.class">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-        </a>
-      </template>
-    </TieredMenu>
   </div>
 </template>
 
@@ -108,9 +85,7 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref([])
+const resourceListRef = ref()
 
 // Column definitions
 const agentFields = [
@@ -136,17 +111,6 @@ const agentFields = [
     class: 'text-right',
     pt: {
       columnHeaderContent: 'justify-end',
-    },
-  },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
-    pt: {
-      headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'p-0 border-l-0' },
     },
   },
 ]
@@ -179,11 +143,6 @@ function handleRowClick({ data }) {
 }
 
 // Actions menu methods
-function toggleActionsMenu(event, agent) {
-  actionsMenuItems.value = getActionsMenuItems(agent)
-  actionsMenu.value.toggle(event)
-}
-
 function getActionsMenuItems(agent) {
   const items = []
 
@@ -238,6 +197,7 @@ function onConfirmDelete(agent) {
 }
 
 async function handleDelete(agent) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.agentDelete({
       agentID: agent.agentID,
@@ -284,6 +244,7 @@ async function handleDuplicate(agent) {
 }
 
 async function handleUndelete(agent) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.agentUndelete({
       agentID: agent.agentID,

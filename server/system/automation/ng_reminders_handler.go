@@ -43,12 +43,12 @@ func (h ngRemindersHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersLookup",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"reminders": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Reminder lookup",
-			Description: "Find specific reminder by ID",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "bell"},
+			Short:       "Find Reminder",
+			Description: "Look up a reminder by ID",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -111,12 +111,12 @@ func (h ngRemindersHandler) Search() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersSearch",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"reminders": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Reminders search",
-			Description: "Search reminders",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "search"},
+			Short:       "Search Reminders",
+			Description: "Search reminders with filters",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -202,11 +202,11 @@ func (h ngRemindersHandler) Create() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersCreate",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"create": "step", "reminders": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Reminder create",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "plus"},
+			Short: "Create Reminder",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -266,11 +266,11 @@ func (h ngRemindersHandler) Update() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersUpdate",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"reminders": "step,workflow", "update": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Reminder update",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "pencil"},
+			Short: "Update Reminder",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -343,11 +343,11 @@ func (h ngRemindersHandler) Dismiss() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersDismiss",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"dismiss": "step", "reminders": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Dismiss reminder",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "check"},
+			Short: "Dismiss Reminder",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -392,11 +392,11 @@ func (h ngRemindersHandler) Snooze() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersSnooze",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"reminders": "step,workflow", "snooze": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Snooze reminder",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "clock-o"},
+			Short: "Snooze Reminder",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -444,11 +444,11 @@ func (h ngRemindersHandler) Delete() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "remindersDelete",
 		Kind:   "function",
-		Groups: []string{"System Reminder"},
+		Groups: []string{"Reminders"},
 		Labels: map[string]string{"delete": "step", "reminders": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Reminder delete",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "trash"},
+			Short: "Delete Reminder",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "clock"},
 		},
 
 		Parameters: []*atypes.Param{

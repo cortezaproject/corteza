@@ -1,21 +1,33 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold text-color">
-        {{ node.data?.label || $t('builder.configSidebar.node') }}
-      </h3>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-border flex items-center justify-center shrink-0">
+          <TaqIcon
+            :icon="node.data?.icon"
+            :fallback="node.type === 'trigger' ? DEFAULT_ICONS.TRIGGER : DEFAULT_ICONS.ACTION"
+            class="text-lg text-primary"
+          />
+        </div>
+        <h3 class="text-lg font-semibold text-color">
+          {{ node.data?.label || $t('builder.configSidebar.node') }}
+        </h3>
+      </div>
       <Button icon="pi pi-times" text rounded size="small" @click="emit('close')" />
     </div>
 
     <!-- Description -->
-    <div v-if="node.data?.description" class="text-sm text-muted-color mb-4">
+    <div v-if="node.data?.description" class="text-sm text-muted-color mb-5">
       {{ node.data.description }}
     </div>
 
     <!-- Function form for step/iterator configuration -->
     <FunctionForm
-      v-if="(node.type === 'iterator' || (node.type !== 'trigger' && node.type !== 'branch')) && functionDefinition?.segments?.length"
+      v-if="
+        (node.type === 'iterator' || (node.type !== 'trigger' && node.type !== 'branch')) &&
+        functionDefinition?.segments?.length
+      "
       ref="functionFormRef"
       :function-def="functionDefinition"
       :arguments="node.data?.arguments || []"
@@ -71,11 +83,13 @@
           toggleable
           v-for="(data, index) in branchOutputs"
           :key="data.edgeId"
-          :header="index === 0
-            ? $t('builder.branch.if')
-            : index === branchOutputs.length - 1
-              ? $t('builder.branch.else')
-              : $t('builder.branch.elseIf')"
+          :header="
+            index === 0
+              ? $t('builder.branch.if')
+              : index === branchOutputs.length - 1
+                ? $t('builder.branch.else')
+                : $t('builder.branch.elseIf')
+          "
           class="transition-opacity"
           :pt="{
             root: { style: 'overflow: hidden; min-width: 0' },
@@ -139,9 +153,11 @@
 
 <script setup>
 import { components } from '@cortezaproject/corteza-vue-next'
+import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { conditionToShort } from '@/utils/taq-parser'
+import TaqIcon from '../common/TaqIcon.vue'
 import ConditionBuilder from './condition/ConditionBuilder.vue'
 import FunctionForm from './form/FunctionForm.vue'
 import TriggerForm from './form/TriggerForm.vue'
@@ -280,7 +296,10 @@ function onDrop(index) {
   items.splice(index, 0, moved)
   branchOutputs.value = items
 
-  emit('reorderBranches', items.map(b => b.edgeId))
+  emit(
+    'reorderBranches',
+    items.map(b => b.edgeId),
+  )
   dragIndex.value = null
   dropTarget.value = null
 }

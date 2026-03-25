@@ -88,13 +88,20 @@
 
       <div class="flex items-center gap-3">
         <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.background') }}</label>
-        <ColorPicker v-model="field.options.backgroundColor" format="hex" />
+        <CInputColorPicker
+          v-model="field.options.backgroundColor"
+          show-text
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { components } from '@cortezaproject/corteza-vue-next'
+
+const { CInputColorPicker } = components
+
 defineProps({
   field: {
     type: Object,

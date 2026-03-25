@@ -146,112 +146,58 @@
                   />
                 </div>
 
-                <DataTable
-                  ref="dataTableRef"
-                  :value="allFieldsForTable"
-                  striped-rows
-                  scrollable
+                <CResourceTable
+                  ref="fieldTableRef"
+                  :items="allFieldsForTable"
+                  :fields="fieldTableColumns"
+                  :action-items="getFieldActionsMenuItems"
                   :scroll-height="tableScrollHeight"
-                  data-key="_dataKey"
-                  class="border border-b-0 border-surface rounded-border"
-                  :pt="{ headerCell: { class: 'bg-highlight-emphasis' } }"
+                  empty-message="—"
                 >
-                  <Column field="name" :header="$t('module.edit.fields.columns.name.label')">
-                    <template #body="{ data }">
-                      <span v-if="data.isSystem">{{ data.name }}</span>
-                      <InputText v-else v-model="data.name" class="w-full" size="small" />
-                    </template>
-                  </Column>
+                  <template #body-name="{ data }">
+                    <span v-if="data.isSystem">{{ data.name }}</span>
+                    <InputText v-else v-model="data.name" class="w-full" size="small" />
+                  </template>
 
-                  <Column field="label" :header="$t('module.edit.fields.columns.title.label')">
-                    <template #body="{ data }">
-                      <span v-if="data.isSystem" class="text-muted-color">{{ data.label }}</span>
-                      <InputText v-else v-model="data.label" class="w-full" size="small" />
-                    </template>
-                  </Column>
+                  <template #body-label="{ data }">
+                    <span v-if="data.isSystem" class="text-muted-color">{{ data.label }}</span>
+                    <InputText v-else v-model="data.label" class="w-full" size="small" />
+                  </template>
 
-                  <Column field="kind" :header="$t('module.edit.fields.columns.type.label')">
-                    <template #body="{ data, index }">
-                      <span v-if="data.isSystem" class="text-muted-color">{{ data.kind }}</span>
-                      <InputGroup v-else>
-                        <Select
-                          v-model="data.kind"
-                          :options="fieldKinds"
-                          option-label="label"
-                          option-value="value"
-                          size="small"
-                        />
-                        <InputGroupAddon>
-                          <Button
-                            icon="pi pi-cog"
-                            severity="secondary"
-                            size="small"
-                            class="w-full border-none"
-                            @click="openFieldConfigurator(data, index)"
-                          />
-                        </InputGroupAddon>
-                      </InputGroup>
-                    </template>
-                  </Column>
-
-                  <Column
-                    field="isRequired"
-                    :header="$t('module.edit.fields.columns.required.label')"
-                    header-style="width: 5rem"
-                    header-class="text-center"
-                    body-class="text-center"
-                  >
-                    <template #body="{ data }">
-                      <div v-if="!data.isSystem" class="flex justify-center">
-                        <Checkbox v-model="data.isRequired" :binary="true" />
-                      </div>
-                    </template>
-                  </Column>
-
-                  <Column
-                    field="isMulti"
-                    :header="$t('module.edit.fields.columns.multi.label')"
-                    header-style="width: 5rem"
-                    header-class="text-center"
-                    body-class="text-center"
-                  >
-                    <template #body="{ data }">
-                      <div v-if="!data.isSystem" class="flex justify-center">
-                        <Checkbox v-model="data.isMulti" :binary="true" />
-                      </div>
-                    </template>
-                  </Column>
-
-                  <Column header-style="width: 3rem">
-                    <template #body="{ data, index }">
-                      <div v-if="!data.isSystem" class="flex justify-end gap-1">
+                  <template #body-kind="{ data, index }">
+                    <span v-if="data.isSystem" class="text-muted-color">{{ data.kind }}</span>
+                    <InputGroup v-else>
+                      <Select
+                        v-model="data.kind"
+                        :options="fieldKinds"
+                        option-label="label"
+                        option-value="value"
+                        size="small"
+                      />
+                      <InputGroupAddon>
                         <Button
-                          icon="pi pi-ellipsis-v"
-                          text
+                          icon="pi pi-cog"
                           severity="secondary"
                           size="small"
-                          class="row-action-btn w-full"
-                          @click.stop="toggleFieldActionsMenu($event, data, index)"
+                          class="w-full border-none"
+                          @click="openFieldConfigurator(data, index)"
                         />
-                      </div>
-                    </template>
-                  </Column>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </template>
 
-                  <template #empty>
-                    <div class="text-center py-4 text-muted-color">
-                      {{ $t('module.noModule') }}
+                  <template #body-isRequired="{ data }">
+                    <div v-if="!data.isSystem" class="flex justify-center">
+                      <Checkbox v-model="data.isRequired" :binary="true" />
                     </div>
                   </template>
-                </DataTable>
 
-                <TieredMenu ref="fieldActionsMenu" :model="fieldActionsMenuItems" popup>
-                  <template #item="{ item, props }">
-                    <a v-ripple v-bind="props.action" :class="item.class">
-                      <span :class="item.icon" />
-                      <span class="ml-2">{{ item.label }}</span>
-                    </a>
+                  <template #body-isMulti="{ data }">
+                    <div v-if="!data.isSystem" class="flex justify-center">
+                      <Checkbox v-model="data.isMulti" :binary="true" />
+                    </div>
                   </template>
-                </TieredMenu>
+                </CResourceTable>
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -304,7 +250,7 @@ import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
 
-const { CInputDelete, CRouterLinkButton } = components
+const { CInputDelete, CRouterLinkButton, CResourceTable } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -332,8 +278,6 @@ const activeTab = ref('fields')
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
 
-// DataTable dynamic scroll height
-const dataTableRef = ref(null)
 const tableScrollHeight = ref('50vh')
 let resizeObserver = null
 
@@ -342,9 +286,8 @@ const configuratorVisible = ref(false)
 const activeConfiguratorField = ref(null)
 const activeConfiguratorFieldIndex = ref(-1)
 
-// Field actions menu
-const fieldActionsMenu = ref()
-const fieldActionsMenuItems = ref([])
+// Field table ref
+const fieldTableRef = ref()
 
 // Field type options
 const fieldKinds = [
@@ -359,6 +302,27 @@ const fieldKinds = [
   { label: t('general.fieldKinds.User.label'), value: 'User' },
   { label: t('general.fieldKinds.Record.label'), value: 'Record' },
   { label: t('general.fieldKinds.Geometry.label'), value: 'Geometry' },
+]
+
+// Field table column definitions
+const fieldTableColumns = [
+  { key: 'name', header: t('module.edit.fields.columns.name.label') },
+  { key: 'label', header: t('module.edit.fields.columns.title.label') },
+  { key: 'kind', header: t('module.edit.fields.columns.type.label') },
+  {
+    key: 'isRequired',
+    header: t('module.edit.fields.columns.required.label'),
+    headerStyle: 'width: 5rem',
+    headerClass: 'text-center',
+    bodyClass: 'text-center',
+  },
+  {
+    key: 'isMulti',
+    header: t('module.edit.fields.columns.multi.label'),
+    headerStyle: 'width: 5rem',
+    headerClass: 'text-center',
+    bodyClass: 'text-center',
+  },
 ]
 
 // Stable key counter for new fields (fieldID is '0' for unsaved fields, so not usable as key)
@@ -483,22 +447,17 @@ function removeField(index) {
   module.value.fields.splice(index, 1)
 }
 
-function toggleFieldActionsMenu(event, field, index) {
-  fieldActionsMenuItems.value = getFieldActionsMenuItems(field, index)
-  fieldActionsMenu.value.toggle(event)
-}
-
 function getFieldActionsMenuItems(field, index) {
-  const items = []
+  if (field.isSystem) return []
 
-  items.push({
-    label: t('general.label.delete'),
-    icon: 'pi pi-trash',
-    class: 'text-red-500',
-    command: () => onConfirmFieldDelete(field, index),
-  })
-
-  return items
+  return [
+    {
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => onConfirmFieldDelete(field, index),
+    },
+  ]
 }
 
 function onConfirmFieldDelete(field, index) {
@@ -575,7 +534,7 @@ async function handleRecordPageCreation() {
     const { namespaceID } = props.namespace
 
     // Create a simple record page with a Record block
-    const blocks = [new compose.PageBlockRecord({ xywh: [0, 0, 48, 82] })]
+    const blocks = [new compose.PageBlockRecord({ xywh: [0, 0, 48, 36] })]
     const selfID = recordListPage.value?.pageID || '0'
 
     const page = new compose.Page({
@@ -605,7 +564,7 @@ async function handleRecordListPageCreation() {
     // Create a page with a RecordList block for this module
     const blocks = [
       new compose.PageBlockRecordList({
-        xywh: [0, 0, 48, 82],
+        xywh: [0, 0, 48, 36],
         options: {
           moduleID,
           fields: [],
@@ -642,7 +601,7 @@ async function handleRecordListPageCreation() {
 // Lifecycle
 function updateTableScrollHeight() {
   nextTick(() => {
-    const el = dataTableRef.value?.$el
+    const el = fieldTableRef.value?.dataTableRef?.$el
     if (!el) return
 
     // Find the header row inside DataTable to measure its height

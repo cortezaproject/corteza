@@ -5,6 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
+      ref="resourceListRef"
       primary-key="automationID"
       :fields="listFields"
       :items="items"
@@ -12,6 +13,7 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :action-items="getActionsMenuItems"
       :translations="{
         searchPlaceholder: $t('list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
@@ -67,26 +69,7 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          class="row-action-btn w-full"
-          @click.stop="toggleActionsMenu($event, data)"
-        />
-      </template>
     </CResourceList>
-
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
-      <template #item="{ item, props }">
-        <a v-ripple v-bind="props.action" :class="item.class">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-        </a>
-      </template>
-    </TieredMenu>
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-64">
@@ -214,9 +197,7 @@ const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
 const $Auth = inject('$Auth')
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref([])
+const resourceListRef = ref()
 
 // Filter menu
 const filterMenu = ref()
@@ -243,17 +224,6 @@ const listFields = [
     class: 'text-right',
     pt: {
       columnHeaderContent: 'justify-end',
-    },
-  },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
-    pt: {
-      headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'p-0 border-l-0' },
     },
   },
 ]
@@ -336,11 +306,6 @@ function handleRowClick({ data }) {
 }
 
 // Actions menu methods
-function toggleActionsMenu(event, automation) {
-  actionsMenuItems.value = getActionsMenuItems(automation)
-  actionsMenu.value.toggle(event)
-}
-
 function getActionsMenuItems(automation) {
   return [
     {
@@ -361,6 +326,7 @@ function onConfirmDelete(automation) {
 }
 
 async function handleDelete(automation) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $AutomationAPI.ngAutomationDelete({
       automationID: automation.automationID,

@@ -17,7 +17,10 @@ label:
   all: All
   any: Any
   label: Label
+  name: Name
   or: Or
+  type: Type
+edit-workflow: Edit Workflow
 loading: Loading
 name: Name
 new-workflow: New Workflow
@@ -45,7 +48,7 @@ filter:
   module:
     label: Module
     placeholder: Select module(s)
-    template: "{{namespace}} - Modules"
+    template: "{namespace} - Modules"
 workflow-list: List of Workflows
 workflow:
   single: Workflow
@@ -59,9 +62,8 @@ resourceList:
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} {{data}}'
-    single_one: 'One {{data}}'
-    single_other: '{{count}} {{data}}'
+    showing: '{from} - {to} of {count} {data}'
+    single: 'No {data} | One {data} | {count} {data}'
     recordsPerPage: Per Page
 
 tooltip:

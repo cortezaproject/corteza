@@ -1,6 +1,7 @@
 import type { App, Plugin } from 'vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
+import CFieldPicker from '../components/input/CFieldPicker.vue'
 import AutoComplete from 'primevue/autocomplete'
 import Accordion from 'primevue/accordion'
 import AccordionContent from 'primevue/accordioncontent'
@@ -39,7 +40,7 @@ import Password from 'primevue/password'
 import Popover from 'primevue/popover'
 import Paginator from 'primevue/paginator'
 import RadioButton from 'primevue/radiobutton'
-import PickList from 'primevue/picklist'
+
 import ProgressBar from 'primevue/progressbar'
 import ProgressSpinner from 'primevue/progressspinner'
 import SelectButton from 'primevue/selectbutton'
@@ -101,7 +102,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Paginator', Paginator)
     app.component('Panel', Panel)
     app.component('Password', Password)
-    app.component('PickList', PickList)
+
     app.component('Popover', Popover)
     app.component('ProgressBar', ProgressBar)
     app.component('ProgressSpinner', ProgressSpinner)
@@ -128,5 +129,6 @@ export const PrimeVueComponentsPlugin: Plugin = {
     // Corteza shared components
     app.component('CInputSwitch', CInputSwitch)
     app.component('CInputRole', CInputRole)
+    app.component('CFieldPicker', CFieldPicker)
   },
 }

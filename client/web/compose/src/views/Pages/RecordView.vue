@@ -22,7 +22,7 @@
       />
       <Button
         v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-file"
+        icon="pi pi-objects-column"
         size="small"
         @click="goToEditPage"
       />

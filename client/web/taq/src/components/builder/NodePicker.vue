@@ -109,14 +109,26 @@ function slugify(text) {
 
 // Icon mapping for groups
 const GROUP_ICONS = {
-  manual: { type: 'name', value: 'user' },
-  schedule: { type: 'name', value: 'calendar' },
-  records: { type: 'name', value: 'database' },
+  // Step categories
   branches: { type: 'name', value: 'sitemap' },
   loops: { type: 'name', value: 'refresh' },
+  records: { type: 'name', value: 'database' },
+  attachments: { type: 'name', value: 'paperclip' },
+  notifications: { type: 'name', value: 'bell' },
+  users: { type: 'name', value: 'user' },
+  roles: { type: 'name', value: 'users' },
+  reminders: { type: 'name', value: 'clock' },
+  templates: { type: 'name', value: 'file' },
+  email: { type: 'name', value: 'envelope' },
+  http: { type: 'name', value: 'link' },
+  agents: { type: 'name', value: 'microchip-ai' },
+  logging: { type: 'name', value: 'list' },
+
+  // Trigger categories
+  manual: { type: 'name', value: 'user' },
+  schedule: { type: 'name', value: 'calendar' },
   general: { type: 'name', value: 'bolt' },
   system: { type: 'name', value: 'cog' },
-  agents: { type: 'name', value: 'microchip-ai' },
 }
 
 function getGroupIcon(groupName) {
@@ -202,7 +214,9 @@ const availableCategories = computed(() => {
     store.functions
       .filter(fn => fn.kind !== 'gateway')
       .forEach(fn => {
-        const icon = normalizeIcon(fn.meta?.icon) || (fn.kind === 'iterator' ? DEFAULT_ICONS.ITERATOR : DEFAULT_ACTION_ICON)
+        const icon =
+          normalizeIcon(fn.meta?.icon) ||
+          (fn.kind === 'iterator' ? DEFAULT_ICONS.ITERATOR : DEFAULT_ACTION_ICON)
         addNodeToGroup({
           id: fn.ref,
           type: 'action',
@@ -219,16 +233,6 @@ const availableCategories = computed(() => {
 
   return Object.values(groupsMap)
     .sort((a, b) => a.label.localeCompare(b.label))
-    .map(category => {
-      // Keep nodes unsorted internally in the group definition, or just use filteredNodes getter below.
-      // But we need to find what the first node WOULD be after filtering/sorting.
-      // Actually we can just sort here to grab the first one's icon reliably.
-      const sortedNodes = [...category.nodes].sort((a, b) => a.label.localeCompare(b.label))
-      return {
-        ...category,
-        icon: sortedNodes.length > 0 ? sortedNodes[0].icon : getGroupIcon(category.label),
-      }
-    })
 })
 
 const filteredCategories = computed(() => {

@@ -130,7 +130,7 @@
         severity="danger"
         text
         :loading="processingDelete"
-        @click="$emit('delete')"
+        @click="handleDeleteClick"
       />
       <Button
         v-else-if="isDeleted"
@@ -172,13 +172,15 @@
 </template>
 
 <script>
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 import { automation } from '@cortezaproject/corteza-js-next'
 import Import from '../Import.vue'
 import Export from '../Export.vue'
 import NamespaceModuleSelector from '../NamespaceModuleSelector.vue'
 
 const { CInputUser } = components
+
+const handleRe = /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$/
 
 export default {
   i18nOptions: {
@@ -219,6 +221,11 @@ export default {
     },
   },
 
+  setup () {
+    const { confirmDelete } = useConfirmDelete()
+    return { confirmDelete }
+  },
+
   data () {
     return {
       localWorkflow: null,
@@ -234,8 +241,7 @@ export default {
       if (!this.localWorkflow) return null
       const h = this.localWorkflow.handle
       if (!h) return null
-      // Handle must match pattern: lowercase alphanumeric, underscores, hyphens, 2-64 chars
-      return /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(h) ? null : false
+      return handleRe.test(h) ? null : false
     },
 
     canUpdateWorkflow () {
@@ -300,6 +306,14 @@ export default {
       this.localWorkflow = new automation.Workflow(this.workflow)
       // Close the modal
       this.$emit('close')
+    },
+
+    handleDeleteClick () {
+      this.confirmDelete({
+        message: this.$t('editor.delete-confirm'),
+        header: this.localWorkflow?.meta?.name || this.localWorkflow?.handle || '',
+        onConfirm: () => this.$emit('delete'),
+      })
     },
   },
 }

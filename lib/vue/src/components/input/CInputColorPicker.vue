@@ -72,14 +72,6 @@
             size="small"
             @keydown.enter="applyHexInput"
           />
-          <Button
-            v-tooltip.top="'Transparent'"
-            icon="pi pi-ban"
-            text
-            size="small"
-            severity="secondary"
-            @click="setTransparent"
-          />
         </div>
 
         <!-- Actions -->
@@ -254,11 +246,6 @@ function applyHexInput() {
 
 function toggle(event) {
   popover.value?.toggle(event)
-}
-
-function setTransparent() {
-  pickerHex.value = '000000'
-  alpha.value = 0
 }
 
 function resetDefault() {

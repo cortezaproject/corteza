@@ -149,94 +149,75 @@
           />
         </div>
 
-        <DataTable
+        <CResourceTable
           v-if="layouts.length > 0"
-          :value="layouts"
-          striped-rows
-          data-key="_key"
-          class="border border-b-0 border-surface rounded-border overflow-auto"
-          :pt="{ headerCell: { class: 'bg-highlight-emphasis' } }"
+          :items="layouts"
+          :fields="layoutFields"
+          :action-items="getLayoutActions"
+          primary-key="_key"
         >
-          <Column header-style="width: 5rem">
-            <template #body="{ index }">
-              <div class="flex gap-1">
-                <Button
-                  icon="pi pi-arrow-up"
-                  text
-                  severity="secondary"
-                  size="small"
-                  :disabled="index === 0"
-                  @click="moveLayout(index, -1)"
-                />
-                <Button
-                  icon="pi pi-arrow-down"
-                  text
-                  severity="secondary"
-                  size="small"
-                  :disabled="index === layouts.length - 1"
-                  @click="moveLayout(index, 1)"
-                />
-              </div>
-            </template>
-          </Column>
+          <template #body-_order="{ index }">
+            <div class="flex gap-1">
+              <Button
+                icon="pi pi-arrow-up"
+                text
+                severity="secondary"
+                size="small"
+                :disabled="index === 0"
+                @click="moveLayout(index, -1)"
+              />
+              <Button
+                icon="pi pi-arrow-down"
+                text
+                severity="secondary"
+                size="small"
+                :disabled="index === layouts.length - 1"
+                @click="moveLayout(index, 1)"
+              />
+            </div>
+          </template>
 
-          <Column :header="$t('page.page-layout.title')" style="min-width: 250px">
-            <template #body="{ data }">
+          <template #body-title="{ data }">
+            <InputText
+              v-model="data.meta.title"
+              class="w-full"
+              size="small"
+              @input="data._updated = true"
+            />
+          </template>
+
+          <template #body-handle="{ data }">
+            <InputGroup>
               <InputText
-                v-model="data.meta.title"
+                v-model="data.handle"
                 class="w-full"
                 size="small"
                 @input="data._updated = true"
               />
-            </template>
-          </Column>
-
-          <Column :header="$t('page.page-layout.handle')" style="min-width: 250px">
-            <template #body="{ data }">
-              <InputGroup>
-                <InputText
-                  v-model="data.handle"
-                  class="w-full"
+              <InputGroupAddon>
+                <Button
+                  v-tooltip.top="$t('page.page-layout.tooltip.configure')"
+                  icon="pi pi-cog"
+                  severity="secondary"
                   size="small"
-                  @input="data._updated = true"
+                  class="w-full border-none"
+                  @click="openLayoutConfig(data)"
                 />
-                <InputGroupAddon>
-                  <Button
-                    v-tooltip.top="$t('page.page-layout.tooltip.configure')"
-                    icon="pi pi-cog"
-                    severity="secondary"
-                    size="small"
-                    class="w-full border-none"
-                    @click="openLayoutConfig(data)"
-                  />
-                </InputGroupAddon>
-                <InputGroupAddon>
-                  <Button
-                    v-tooltip.top="$t('page.page-layout.tooltip.builder')"
-                    icon="pi pi-wrench"
-                    severity="secondary"
-                    size="small"
-                    class="w-full border-none"
-                    :disabled="data.pageLayoutID === NoID"
-                    @click="goToLayoutBuilder(data)"
-                  />
-                </InputGroupAddon>
-              </InputGroup>
-            </template>
-          </Column>
-
-          <Column header-style="width: 4rem">
-            <template #body="{ data, index }">
-              <CInputDelete
-                text
-                size="small"
-                :message="$t('page.edit.deleteConfirm')"
-                :header="data.meta.title || data.handle"
-                @confirm="removeLayout(index)"
-              />
-            </template>
-          </Column>
-        </DataTable>
+              </InputGroupAddon>
+              <InputGroupAddon>
+                <Button
+                  v-tooltip.top="$t('page.page-layout.tooltip.builder')"
+                  icon="pi pi-wrench"
+                  severity="secondary"
+                  size="small"
+                  class="w-full border-none"
+                  :disabled="data.pageLayoutID === NoID"
+                  @click="goToLayoutBuilder(data)"
+                />
+              </InputGroupAddon>
+            </InputGroup>
+          </template>
+        </CResourceTable>
 
         <div v-else class="text-center py-4 text-muted-color border border-surface rounded-border">
           {{ $t('page.noBlock') }}
@@ -415,76 +396,54 @@
           />
         </div>
 
-        <DataTable
+        <CResourceTable
           v-if="configLayout.config.actions.length > 0"
-          :value="configLayout.config.actions"
-          striped-rows
-          class="border border-surface rounded-border mb-4"
+          :items="configLayout.config.actions"
+          :fields="actionTableFields"
+          :action-items="getActionTableActions"
         >
-          <Column :header="$t('page.page-layout.recordToolbar.actions.buttonLabel')" style="min-width: 200px">
-            <template #body="{ data }">
-              <InputText v-model="data.meta.label" class="w-full" size="small" />
-            </template>
-          </Column>
+          <template #body-label="{ data }">
+            <InputText v-model="data.meta.label" class="w-full" size="small" />
+          </template>
 
-          <Column :header="$t('page.page-layout.recordToolbar.actions.kind.label')" style="min-width: 180px">
-            <template #body="{ data }">
-              <Select
-                v-model="data.kind"
-                :options="actionKindOptions"
-                option-label="label"
-                option-value="value"
-                class="w-full"
-                size="small"
-                @change="onActionKindChange(data)"
-              />
-            </template>
-          </Column>
+          <template #body-kind="{ data }">
+            <Select
+              v-model="data.kind"
+              :options="actionKindOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              size="small"
+              @change="onActionKindChange(data)"
+            />
+          </template>
 
-          <Column :header="$t('page.page-layout.recordToolbar.actions.variant')" style="min-width: 140px">
-            <template #body="{ data }">
-              <Select
-                v-model="data.meta.style.variant"
-                :options="actionVariantOptions"
-                option-label="label"
-                option-value="value"
-                class="w-full"
-                size="small"
-              />
-            </template>
-          </Column>
+          <template #body-variant="{ data }">
+            <Select
+              v-model="data.meta.style.variant"
+              :options="actionVariantOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              size="small"
+            />
+          </template>
 
-          <Column :header="$t('page.page-layout.recordToolbar.actions.placement.label')" style="min-width: 120px">
-            <template #body="{ data }">
-              <Select
-                v-model="data.placement"
-                :options="actionPlacementOptions"
-                option-label="label"
-                option-value="value"
-                class="w-full"
-                size="small"
-              />
-            </template>
-          </Column>
+          <template #body-placement="{ data }">
+            <Select
+              v-model="data.placement"
+              :options="actionPlacementOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              size="small"
+            />
+          </template>
 
-          <Column :header="$t('page.page-layout.recordToolbar.actions.visible')" header-style="width: 5rem" header-class="text-center" body-class="text-center">
-            <template #body="{ data }">
-              <Checkbox v-model="data.enabled" :binary="true" />
-            </template>
-          </Column>
-
-          <Column header-style="width: 3rem">
-            <template #body="{ index }">
-              <Button
-                icon="pi pi-trash"
-                text
-                severity="danger"
-                size="small"
-                @click="removeLayoutAction(index)"
-              />
-            </template>
-          </Column>
-        </DataTable>
+          <template #body-enabled="{ data }">
+            <Checkbox v-model="data.enabled" :binary="true" />
+          </template>
+        </CResourceTable>
 
         <!-- Action-specific config (shown per action in the table) -->
         <div
@@ -550,7 +509,7 @@ import { compose, NoID } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CResourceTable } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -726,6 +685,43 @@ const actionPlacementOptions = computed(() => [
   { value: 'center', label: t('page.page-layout.recordToolbar.actions.placement.center') },
   { value: 'end', label: t('page.page-layout.recordToolbar.actions.placement.end') },
 ])
+// ─── Table field definitions ────────────────────────────────────────────────
+
+const layoutFields = [
+  { key: '_order', header: '', headerStyle: 'width: 5rem' },
+  { key: 'title', header: t('page.page-layout.title'), style: 'min-width: 250px' },
+  { key: 'handle', header: t('page.page-layout.handle'), style: 'min-width: 250px' },
+]
+
+function getLayoutActions(data, index) {
+  return [
+    {
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => removeLayout(index),
+    },
+  ]
+}
+
+const actionTableFields = [
+  { key: 'label', header: t('page.page-layout.recordToolbar.actions.buttonLabel'), style: 'min-width: 200px' },
+  { key: 'kind', header: t('page.page-layout.recordToolbar.actions.kind.label'), style: 'min-width: 180px' },
+  { key: 'variant', header: t('page.page-layout.recordToolbar.actions.variant'), style: 'min-width: 140px' },
+  { key: 'placement', header: t('page.page-layout.recordToolbar.actions.placement.label'), style: 'min-width: 120px' },
+  { key: 'enabled', header: t('page.page-layout.recordToolbar.actions.visible'), headerStyle: 'width: 5rem', headerClass: 'text-center', bodyClass: 'text-center' },
+]
+
+function getActionTableActions(data, index) {
+  return [
+    {
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => removeLayoutAction(index),
+    },
+  ]
+}
 
 // ─── Methods ────────────────────────────────────────────────────────────────
 

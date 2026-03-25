@@ -69,7 +69,7 @@ const adminNavItems = computed(() => [
     _id: 'pages',
     _parentId: '0',
     _label: t('sidebar.pages'),
-    _icon: 'pi pi-file',
+    _icon: 'pi pi-objects-column',
     _route: { name: 'admin.pages', params: { slug: route.params.slug } },
   },
   ...pageStore.set.map(p => ({

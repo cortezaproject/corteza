@@ -61,7 +61,7 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "composeRecordsLookup",
 		Kind:   "function",
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Find Record",
 			Description: "Lookup record by ID",
@@ -248,7 +248,7 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 		Ref:    "composeRecordsCreate",
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Create Record",
 			Description: "Add new record to module",
@@ -800,10 +800,10 @@ func (h ngRecordsHandler) Delete() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "composeRecordsDelete",
 		Kind:   "function",
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "delete": "step", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Compose record delete",
+			Short: "Delete Record",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
@@ -931,10 +931,10 @@ func (h ngRecordsHandler) Update() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "composeRecordsUpdate",
 		Kind:   "function",
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow", "update": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Compose record update",
+			Short: "Update Record",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
@@ -1047,10 +1047,10 @@ func (h ngRecordsHandler) First() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "composeRecordsFirst",
 		Kind:   "function",
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Compose record lookup (oldest)",
+			Short: "Find Oldest Record",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
@@ -1182,10 +1182,10 @@ func (h ngRecordsHandler) Last() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "composeRecordsLast",
 		Kind:   "function",
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Compose record lookup (newest)",
+			Short: "Find Newest Record",
 			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
@@ -1333,10 +1333,10 @@ func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "composeRecordsClone",
 		Kind:   "function",
-		Groups: []string{"Compose Record"},
+		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Compose record cloner",
+			Short:       "Clone Record",
 			Description: "Creates a copy of an existing record",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},

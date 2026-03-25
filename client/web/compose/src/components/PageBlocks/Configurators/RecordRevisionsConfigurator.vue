@@ -27,18 +27,17 @@
           {{ $t('block.recordRevisions.configurator.displayedFields') }}
         </h5>
 
-        <PickList
-          v-model="fieldPickerModel"
-          data-key="name"
-          breakpoint="768px"
-          :pt="{
-            list: { style: 'height: 250px' },
-          }"
-        >
-          <template #option="{ option }">
-            {{ option.label || option.name }}
-          </template>
-        </PickList>
+        <CFieldPicker
+          :all-fields="allModuleFields"
+          :model-value="selectedFieldNames"
+          :available-label="$t('field.selector.available')"
+          :selected-label="$t('field.selector.selected')"
+          :select-all-label="$t('field.selector.selectAll')"
+          :unselect-all-label="$t('field.selector.unselectAll')"
+          :search-placeholder="$t('field.selector.search')"
+          :no-items-label="$t('field.no-items-found')"
+          @update:model-value="onFieldPickerUpdate"
+        />
       </div>
     </template>
   </div>
@@ -97,25 +96,13 @@ watch(() => props.block.options?.displayedFields, (fields) => {
   }
 }, { immediate: true })
 
-const availableFields = computed(() => {
+const allModuleFields = computed(() => {
   if (!selectedModule.value) return []
-  const selected = new Set(selectedFieldNames.value)
-  return (selectedModule.value.fields || []).filter(f => !selected.has(f.name))
+  return selectedModule.value.fields || []
 })
 
-const selectedFields = computed(() => {
-  if (!selectedModule.value) return []
-  return selectedFieldNames.value
-    .map(name => (selectedModule.value.fields || []).find(f => f.name === name))
-    .filter(Boolean)
-})
-
-const fieldPickerModel = computed({
-  get: () => [availableFields.value, selectedFields.value],
-  set: (val) => {
-    const [, selected] = val
-    selectedFieldNames.value = selected.map(f => f.name)
-    updateOptions('displayedFields', selected.map(f => f.name))
-  },
-})
+function onFieldPickerUpdate(names) {
+  selectedFieldNames.value = names
+  updateOptions('displayedFields', names)
+}
 </script>

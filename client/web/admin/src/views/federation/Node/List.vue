@@ -50,7 +50,19 @@
         <template #body-status="{ data }">
           <Tag
             :value="data.status || 'unknown'"
-            :severity="data.status === 'paired' ? 'success' : 'secondary'"
+            :severity="data.status === 'paired' ? 'success' : data.status === 'pair_requested' ? 'warn' : 'secondary'"
+          />
+        </template>
+
+        <template #body-actions="{ data }">
+          <Button
+            v-if="data.status === 'pair_requested'"
+            :label="$t('federation.nodes.pair.confirm')"
+            icon="pi pi-check"
+            size="small"
+            severity="warn"
+            text
+            @click.stop="handleConfirmPending(data)"
           />
         </template>
       </CResourceList>
@@ -114,6 +126,7 @@ const fields = [
     header: t('federation.nodes.list.columns.createdAt'),
     formatter: v => (v ? new Date(v).toLocaleDateString() : ''),
   },
+  { key: 'actions', header: '', class: 'text-right w-24' },
 ]
 
 const {
@@ -139,8 +152,8 @@ async function handlePair() {
 
   pairing.value = true
   try {
-    const result = await $FederationAPI.nodeCreate({ pairingURI: pairURL.value })
-    await $FederationAPI.nodePair({ nodeID: result.nodeID })
+    const node = await $FederationAPI.nodeCreate({ pairingURI: pairURL.value })
+    await $FederationAPI.nodePair(node)
     $toast.toastSuccess(t('federation.nodes.pair.success'))
     pairDialogVisible.value = false
     pairURL.value = ''
@@ -149,6 +162,16 @@ async function handlePair() {
     $toast.toastErrorHandler(t('federation.nodes.pair.error'))(e)
   } finally {
     pairing.value = false
+  }
+}
+
+async function handleConfirmPending(node) {
+  try {
+    await $FederationAPI.nodeHandshakeConfirm({ nodeID: node.nodeID })
+    $toast.toastSuccess(t('federation.nodes.pair.confirmSuccess'))
+    filterList()
+  } catch (e) {
+    $toast.toastErrorHandler(t('federation.nodes.pair.confirmError'))(e)
   }
 }
 </script>

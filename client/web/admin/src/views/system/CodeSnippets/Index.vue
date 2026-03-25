@@ -23,56 +23,20 @@
           />
         </div>
 
-        <DataTable
-          :value="codeSnippets"
-          responsive-layout="scroll"
-          striped-rows
-          class="border rounded"
+        <CResourceTable
+          :items="codeSnippets"
+          :fields="snippetFields"
+          :action-items="getSnippetActions"
+          primary-key="name"
         >
-          <Column
-            field="name"
-            :header="$t('system.code-snippets.editor.code-snippets.table-headers.name')"
-          />
-          <Column
-            field="enabled"
-            :header="$t('system.code-snippets.editor.code-snippets.table-headers.enabled')"
-            class="w-24 text-center"
-          >
-            <template #body="{ data }">
-              <i
-                :class="
-                  data.enabled ? 'pi pi-check text-green-500' : 'pi pi-times text-muted-color'
-                "
-              />
-            </template>
-          </Column>
-          <Column class="w-24 text-right">
-            <template #body="{ index }">
-              <div class="flex gap-2 justify-end">
-                <Button
-                  icon="pi pi-pencil"
-                  severity="secondary"
-                  text
-                  rounded
-                  @click="openEditor(index)"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  text
-                  rounded
-                  @click="deleteSnippet(index)"
-                />
-              </div>
-            </template>
-          </Column>
-
-          <template #empty>
-            <div class="text-center py-6 text-muted-color">
-              {{ $t('system.code-snippets.editor.code-snippets.empty') }}
-            </div>
+          <template #body-enabled="{ data }">
+            <i
+              :class="
+                data.enabled ? 'pi pi-check text-green-500' : 'pi pi-times text-muted-color'
+              "
+            />
           </template>
-        </DataTable>
+        </CResourceTable>
       </Panel>
     </div>
 
@@ -137,7 +101,9 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components } from '@cortezaproject/corteza-vue-next'
 
+const { CResourceTable } = components
 const { t } = useI18n()
 
 const $toast = inject('$toast')
@@ -180,6 +146,34 @@ function saveSnippet() {
 function deleteSnippet(index) {
   codeSnippets.value.splice(index, 1)
   persistSnippets('delete')
+}
+
+const snippetFields = [
+  { key: 'name', header: t('system.code-snippets.editor.code-snippets.table-headers.name') },
+  {
+    key: 'enabled',
+    header: t('system.code-snippets.editor.code-snippets.table-headers.enabled'),
+    headerStyle: 'width: 6rem',
+    headerClass: 'text-center',
+    bodyClass: 'text-center',
+  },
+]
+
+function getSnippetActions(data, index) {
+  return [
+    {
+      label: t('general.label.edit'),
+      icon: 'pi pi-pencil',
+      command: () => openEditor(index),
+    },
+    { separator: true },
+    {
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => deleteSnippet(index),
+    },
+  ]
 }
 
 async function loadSettings() {

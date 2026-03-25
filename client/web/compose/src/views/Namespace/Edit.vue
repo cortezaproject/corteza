@@ -93,6 +93,23 @@
               <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
             </div>
 
+            <div v-if="namespace.meta.logoEnabled" class="flex flex-col gap-2">
+              <CFileDropZone
+                accept="image/*"
+                :uploading="logoUploading"
+                :error="logoError"
+                :preview-url="logoPreviewUrl"
+                :clearable="!!namespace.meta.logo"
+                :drop-label="$t('namespace.logo.upload')"
+                compact
+                preview-max-width="100%"
+                preview-max-height="200px"
+                :label="$t('namespace.logo.show')"
+                @select="onLogoSelect"
+                @clear="onLogoClear"
+              />
+            </div>
+
             <!-- Subtitle -->
             <div class="flex flex-col gap-2">
               <label for="subtitle" class="font-medium text-primary">
@@ -165,10 +182,10 @@
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
 import { compose } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CFileDropZone } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -184,6 +201,18 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const namespace = ref(null)
+
+// Logo upload
+const { uploading: logoUploading, uploadError: logoError, uploadFileRaw: uploadLogoRaw, reset: resetLogoUpload } = useFileUpload()
+
+const logoPreviewUrl = computed(() => {
+  if (!namespace.value?.meta?.logo) return ''
+  const logo = namespace.value.meta.logo
+  // If it's already a full URL, use it directly
+  if (logo.startsWith('http')) return logo
+  // Otherwise construct URL from attachment endpoint
+  return $ComposeAPI.baseURL + logo
+})
 
 // Computed
 const isEdit = computed(() => !!route.params.slug)
@@ -324,6 +353,35 @@ function exportNamespace() {
   const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
   const exportUrl = `${$ComposeAPI.baseURL}${$ComposeAPI.namespaceExportEndpoint(params)}?jwt=${encodeURIComponent(token)}`
   window.open(exportUrl)
+}
+
+async function onLogoSelect(files) {
+  const file = files[0]
+  if (!file) return
+
+  try {
+    const endpoint = $ComposeAPI.baseURL + $ComposeAPI.namespaceUploadEndpoint()
+    const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
+    const att = await uploadLogoRaw(file, { url: endpoint, token })
+
+    if (att?.attachmentID) {
+      // Build the relative URL to store in meta.logo
+      const url = $ComposeAPI.attachmentOriginalEndpoint({
+        kind: 'namespace',
+        namespaceID: namespace.value.namespaceID || '0',
+        attachmentID: att.attachmentID,
+        name: att.name || file.name,
+      })
+      namespace.value.meta.logo = url
+    }
+  } catch (err) {
+    // logoError is set by composable
+  }
+}
+
+function onLogoClear() {
+  namespace.value.meta.logo = ''
+  resetLogoUpload()
 }
 
 // Lifecycle

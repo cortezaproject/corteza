@@ -5,6 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
+      ref="resourceListRef"
       primary-key="namespaceID"
       :fields="namespaceFields"
       :items="namespaceList"
@@ -12,6 +13,7 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :action-items="getActionsMenuItems"
       :translations="{
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
@@ -53,32 +55,7 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          class="row-action-btn w-full"
-          @click="toggleActionsMenu($event, data)"
-        />
-      </template>
     </CResourceList>
-
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
-      <template #item="{ item, props }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <a v-else v-ripple v-bind="props.action" :class="item.class">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-        </a>
-      </template>
-    </TieredMenu>
   </div>
 </template>
 
@@ -104,10 +81,7 @@ const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 const namespaceStore = useNamespaceStore()
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref([])
-const currentNamespace = ref(null)
+const resourceListRef = ref()
 
 const namespaceFields = [
   {
@@ -132,13 +106,6 @@ const namespaceFields = [
     pt: {
       columnHeaderContent: 'justify-end',
     },
-  },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
   },
 ]
 
@@ -166,12 +133,6 @@ function handleRowClick({ data }) {
 }
 
 // Actions menu methods
-const toggleActionsMenu = (event, namespace) => {
-  currentNamespace.value = namespace
-  actionsMenuItems.value = getActionsMenuItems(namespace)
-  actionsMenu.value.toggle(event)
-}
-
 const getActionsMenuItems = namespace => {
   const items = []
 

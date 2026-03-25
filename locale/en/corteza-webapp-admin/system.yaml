@@ -952,7 +952,7 @@ settings:
           enabled: Password reset enabled
         password-constraints:
           title: Password constraints
-          ignored-security: The system is configured to ignore password security constraints which is insecure on production deployments. If this is a production deployment, please contact your administrator to update the system configuration (the AUTH_PASSWORD_SECURITY .env variable).
+          ignored-security: The system is configured to ignore password security constraints which are insecure on production deployments. If this is a production deployment, please contact your administrator to update the system configuration (the AUTH_PASSWORD_SECURITY .env variable).
           min-length: Minimum length
           min-length-description: Must be at least 8 characters
           min-num-count: Minimum number of digits

@@ -51,6 +51,7 @@
           :expanded-ids="expandedIds"
           :depth="depth + 1"
           :match-type="matchType"
+          class="my-1"
           @select="$emit('select', $event)"
           @toggle="$emit('toggle', $event)"
         >

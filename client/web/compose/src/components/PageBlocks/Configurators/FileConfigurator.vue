@@ -1,30 +1,13 @@
 <template>
   <div class="flex flex-col gap-3">
     <!-- File Upload -->
-    <div class="flex flex-col gap-2">
-      <div
-        class="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed rounded-border cursor-pointer transition-colors duration-200"
-        :class="
-          dragOver ? 'border-primary bg-primary/5' : 'border-surface-300 hover:border-primary'
-        "
-        @click="$refs.fileInput.click()"
-        @dragover.prevent="dragOver = true"
-        @dragleave.prevent="dragOver = false"
-        @drop.prevent="onDrop"
-      >
-        <i v-if="!uploading" class="pi pi-cloud-upload text-4xl text-muted-color" />
-        <ProgressSpinner v-else style="width: 2rem; height: 2rem" />
-        <span class="text-muted-color text-sm text-center">
-          {{ uploading ? $t('general.label.uploading') : $t('general.label.dropFiles') }}
-        </span>
-      </div>
-
-      <input ref="fileInput" type="file" multiple class="hidden" @change="onFileSelected" />
-
-      <Message v-if="uploadError" severity="error" size="small" :closable="false">
-        {{ uploadError }}
-      </Message>
-    </div>
+    <CFileDropZone
+      accept="*"
+      :multiple="true"
+      :uploading="uploading"
+      :error="uploadError"
+      @select="onFilesSelected"
+    />
 
     <!-- Uploaded attachments list -->
     <div v-if="attachmentIDs.length" class="flex flex-col gap-1">
@@ -141,9 +124,9 @@
 <script setup>
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
 
-const { CInputColorPicker } = components
+const { CInputColorPicker, CFileDropZone } = components
 
 const { t } = useI18n()
 const $ComposeAPI = inject('$ComposeAPI')
@@ -156,11 +139,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:block'])
 
-// Upload state
-const dragOver = ref(false)
-const uploading = ref(false)
-const uploadError = ref('')
-const fileInput = ref(null)
+// Upload state (from composable)
+const { uploading, uploadError, uploadFileRaw, reset: resetUpload } = useFileUpload()
 const attachmentMeta = reactive({})
 
 const modes = [
@@ -210,29 +190,13 @@ function removeAttachment(index) {
   updateOptions('attachments', updated)
 }
 
-// Upload handlers
-function onFileSelected(event) {
-  const files = Array.from(event.target?.files || [])
-  if (files.length) uploadFiles(files)
-  if (fileInput.value) fileInput.value.value = ''
-}
-
-function onDrop(event) {
-  dragOver.value = false
-  const files = Array.from(event.dataTransfer?.files || [])
-  if (files.length) uploadFiles(files)
-}
-
-async function uploadFiles(files) {
-  uploading.value = true
-  uploadError.value = ''
-
+// Upload handler using composable
+async function onFilesSelected(files) {
   const pageID = props.page?.pageID
   const namespaceID = props.namespace?.namespaceID
 
   if (!pageID || !namespaceID) {
     uploadError.value = t('notification.namespace.importFailed')
-    uploading.value = false
     return
   }
 
@@ -241,25 +205,7 @@ async function uploadFiles(files) {
 
   try {
     for (const file of files) {
-      const formData = new FormData()
-      formData.append('upload', file)
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(errData?.error?.message || `Upload failed for ${file.name}`)
-      }
-
-      const data = await response.json()
-      const att = data.response || data
+      const att = await uploadFileRaw(file, { url: endpoint, token })
       if (att.attachmentID) {
         attachmentMeta[att.attachmentID] = {
           name: att.name || file.name,
@@ -270,9 +216,7 @@ async function uploadFiles(files) {
       }
     }
   } catch (err) {
-    uploadError.value = err.message || t('notification.namespace.importFailed')
-  } finally {
-    uploading.value = false
+    // uploadError is already set by the composable
   }
 }
 

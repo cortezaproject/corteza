@@ -135,8 +135,12 @@ const multiValue = computed(() => {
   return props.modelValue ? [props.modelValue] : []
 })
 
+// Theme-independent defaults so badges are always visible
+const DEFAULT_BADGE_TEXT_COLOR = '#FFFFFFFF'
+const DEFAULT_BADGE_BG_COLOR = '#09344EFF'
+
 function toColor(hex) {
-  if (!hex) return null
+  if (!hex || hex === 'transparent') return null
   return hex.startsWith('#') ? hex : '#' + hex
 }
 
@@ -149,8 +153,8 @@ function badgeStyle(val) {
   const opt = selectOptions.value.find(o => o.value === val)
   const optStyle = opt?.style || {}
   return {
-    color: toColor(optStyle.textColor) || undefined,
-    backgroundColor: toColor(optStyle.backgroundColor) || undefined,
+    color: toColor(optStyle.textColor) || DEFAULT_BADGE_TEXT_COLOR,
+    backgroundColor: toColor(optStyle.backgroundColor) || DEFAULT_BADGE_BG_COLOR,
   }
 }
 
@@ -158,8 +162,8 @@ function badgeInlineStyle(val) {
   const opt = selectOptions.value.find(o => o.value === val)
   const optStyle = opt?.style || {}
   return {
-    color: toColor(optStyle.textColor) || undefined,
-    backgroundColor: toColor(optStyle.backgroundColor) || undefined,
+    color: toColor(optStyle.textColor) || DEFAULT_BADGE_TEXT_COLOR,
+    backgroundColor: toColor(optStyle.backgroundColor) || DEFAULT_BADGE_BG_COLOR,
     padding: '0.15rem 0.5rem',
     borderRadius: '999px',
     fontSize: '0.9rem',

@@ -5,6 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
+      ref="resourceListRef"
       primary-key="userID"
       :fields="userListFields"
       :items="userList"
@@ -13,6 +14,7 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :action-items="getActionsMenuItems"
       :translations="{
         searchPlaceholder: $t('system.users.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
@@ -77,32 +79,7 @@
         {{ locFullDateTime(data.createdAt) }}
       </template>
 
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          class="row-action-btn w-full"
-          @click.stop="toggleActionsMenu($event, data)"
-        />
-      </template>
     </CResourceList>
-
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
-      <template #item="{ item, props }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <a v-else v-ripple v-bind="props.action" :class="item.class" @click="item.command">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-        </a>
-      </template>
-    </TieredMenu>
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-64">
@@ -178,9 +155,7 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref([])
+const resourceListRef = ref()
 
 // Filter menu
 const filterMenu = ref()
@@ -219,17 +194,6 @@ const userListFields = [
       columnHeaderContent: 'justify-end',
     },
   },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
-    pt: {
-      headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'px-2 py-1 border-l-0' },
-    },
-  },
 ]
 
 // Resource list composable
@@ -260,11 +224,6 @@ function handleRowClick({ data }) {
 }
 
 // Actions menu methods
-function toggleActionsMenu(event, user) {
-  actionsMenuItems.value = getActionsMenuItems(user)
-  actionsMenu.value.toggle(event)
-}
-
 function getActionsMenuItems(user) {
   const items = []
 
@@ -308,6 +267,7 @@ function onConfirmDelete(user) {
 }
 
 async function handleDelete(user) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.userDelete({ userID: user.userID })
     $toast.toastSuccess(t('notification.user.delete.success'))
@@ -319,6 +279,7 @@ async function handleDelete(user) {
 }
 
 async function handleSuspend(user) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.userSuspend({ userID: user.userID })
     $toast.toastSuccess(t('notification.user.suspend.success'))
@@ -330,6 +291,7 @@ async function handleSuspend(user) {
 }
 
 async function handleUnsuspend(user) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.userUnsuspend({ userID: user.userID })
     $toast.toastSuccess(t('notification.user.unsuspend.success'))

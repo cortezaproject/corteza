@@ -179,9 +179,9 @@ defineExpose({ rebuildLayout })
 }
 
 .vgl-item--transform {
-  right: auto;
-  left: 0;
-  transition-property: none;
+  right: auto !important;
+  left: 0 !important;
+  transition-property: none !important;
 }
 </style>
 

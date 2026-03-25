@@ -74,6 +74,14 @@
           @click="$router.push({ name: 'federation.nodes' })"
         />
         <div class="flex gap-2">
+          <CInputDelete
+            v-if="isEdit && !node.deletedAt"
+            :label="$t('federation.nodes.editor.delete')"
+            :message="$t('general.confirm.delete')"
+            :header="node.name || node.nodeID"
+            :disabled="deleting"
+            @confirm="handleDelete"
+          />
           <Button
             v-if="isEdit"
             :label="$t('federation.nodes.editor.generateURI')"
@@ -116,7 +124,14 @@
         </div>
         <div class="flex justify-end gap-2">
           <Button
-            :label="$t('general.label.close')"
+            :label="$t('general.label.copy')"
+            icon="pi pi-copy"
+            severity="secondary"
+            outlined
+            @click="copyURI"
+          />
+          <Button
+            :label="$t('general.label.cancel')"
             severity="secondary"
             @click="uriDialogVisible = false"
           />
@@ -130,6 +145,9 @@
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { components } from '@cortezaproject/corteza-vue-next'
+
+const { CInputDelete } = components
 
 const vueRoute = useRoute()
 const router = useRouter()
@@ -139,6 +157,7 @@ const $FederationAPI = inject('$FederationAPI')
 
 const loading = ref(false)
 const saving = ref(false)
+const deleting = ref(false)
 const node = ref(null)
 
 const uriDialogVisible = ref(false)
@@ -161,6 +180,12 @@ const resolver = ref(({ values }) => {
 
   if (!values.baseURL || values.baseURL.trim().length === 0) {
     errors.baseURL = [{ message: t('general.label.required') }]
+  } else {
+    try {
+      new URL(values.baseURL)
+    } catch {
+      errors.baseURL = [{ message: t('federation.nodes.editor.info.baseURLInvalid') }]
+    }
   }
 
   return { errors }
@@ -225,6 +250,24 @@ async function handleGenerateURI() {
   } finally {
     generatingURI.value = false
   }
+}
+
+async function handleDelete() {
+  deleting.value = true
+  try {
+    await $FederationAPI.nodeDelete({ nodeID: node.value.nodeID })
+    $toast.toastSuccess(t('federation.nodes.editor.delete.success'))
+    router.push({ name: 'federation.nodes' })
+  } catch (e) {
+    $toast.toastErrorHandler(t('federation.nodes.editor.delete.error'))(e)
+  } finally {
+    deleting.value = false
+  }
+}
+
+function copyURI() {
+  navigator.clipboard.writeText(generatedURI.value).catch(() => {})
+  $toast.toastSuccess(t('general.label.copied'))
 }
 
 onMounted(() => loadNode())

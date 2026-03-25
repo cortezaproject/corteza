@@ -68,16 +68,15 @@
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
-import { useWorkflowStore } from '@/stores/workflow'
-import { components, useApplicationsStore } from '@cortezaproject/corteza-vue-next'
+import { components, useApplicationsStore, useRBACStore } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar } = components
 
 const $Settings = inject('$Settings')
-const $SystemAPI = inject('$SystemAPI')
-const workflowStore = useWorkflowStore()
+const $AutomationAPI = inject('$AutomationAPI')
 const applicationsStore = useApplicationsStore()
+const rbacStore = useRBACStore()
 
 const appListVisible = ref(false)
 
@@ -93,6 +92,7 @@ onMounted(async () => {
   try {
     await Promise.all([
       applicationsStore.fetchApplications(),
+      rbacStore.load([$AutomationAPI]),
     ])
   } catch (e) {
     console.error('Failed to load:', e)

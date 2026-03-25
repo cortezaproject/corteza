@@ -30,12 +30,19 @@
 </template>
 
 <script>
+import { inject } from 'vue'
+
 export default {
   props: {
     disabled: {
       type: Boolean,
       default: false,
     },
+  },
+
+  setup () {
+    const $toast = inject('$toast')
+    return { $toast }
   },
 
   data () {
@@ -60,15 +67,14 @@ export default {
             const { workflows = [] } = JSON.parse(evt.target.result)
             this.workflows = workflows
           } catch (err) {
-            err.message = this.$t('notification.failed-load-file')
-            this.toastErrorHandler(this.$t('notification.general.warning'))(err)
+            this.$toast.toastErrorHandler(this.$t('notification.general.warning'))(err)
           } finally {
             this.processing = false
           }
         }
 
         reader.onerror = () => {
-          this.toastErrorHandler(this.$t('notification.failed-load-file'))
+          this.$toast.toastDanger(this.$t('notification.failed-load-file'))
           this.processing = false
         }
       }

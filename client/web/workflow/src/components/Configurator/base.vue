@@ -1,4 +1,6 @@
 <script>
+import { inject } from 'vue'
+
 export default {
   props: {
     item: {
@@ -20,6 +22,17 @@ export default {
       type: Boolean,
       default: false,
     },
+  },
+
+  setup () {
+    const $toast = inject('$toast')
+    return {
+      toastSuccess: $toast.toastSuccess,
+      toastWarning: $toast.toastWarning,
+      toastInfo: $toast.toastInfo,
+      toastDanger: $toast.toastDanger,
+      toastErrorHandler: $toast.toastErrorHandler,
+    }
   },
 }
 </script>

@@ -62,71 +62,66 @@
 
         <Divider />
 
-        <DataTable :value="filtered" responsive-layout="scroll" striped-rows class="border rounded">
-          <Column :header="$t('automation.scripts.list.columns.name')">
-            <template #body="{ data }">
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span v-if="data.label" class="font-medium">{{ data.label }}</span>
-                  <span v-else class="text-muted-color italic">
-                    {{ $t('automation.scripts.list.labelMissing') }}
-                  </span>
-
-                  <Tag
-                    v-if="data.security"
-                    :value="$t('automation.scripts.list.flags.security')"
-                    severity="info"
-                    class="text-xs"
-                  />
-                  <Tag
-                    v-if="data.triggers"
-                    :value="$t('automation.scripts.list.flags.triggers')"
-                    severity="info"
-                    class="text-xs"
-                  />
-                  <Tag
-                    v-if="data.iterator"
-                    :value="$t('automation.scripts.list.flags.iterator')"
-                    severity="info"
-                    class="text-xs"
-                  />
-                </div>
-
-                <span v-if="data.description" class="text-xs text-muted-color">
-                  {{ data.description }}
+        <CResourceTable
+          :items="filtered"
+          :fields="scriptFields"
+          primary-key="name"
+          :empty-message="$t('general.resourceList.noItems')"
+        >
+          <template #body-name="{ data }">
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span v-if="data.label" class="font-medium">{{ data.label }}</span>
+                <span v-else class="text-muted-color italic">
+                  {{ $t('automation.scripts.list.labelMissing') }}
                 </span>
 
-                <code class="text-xs text-muted-color">{{ data.name }}</code>
-
-                <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
-                  <Message
-                    v-for="(error, i) in data.errors"
-                    :key="i"
-                    severity="warn"
-                    :closable="false"
-                    class="text-sm"
-                  >
-                    {{ error }}
-                  </Message>
-                </div>
+                <Tag
+                  v-if="data.security"
+                  :value="$t('automation.scripts.list.flags.security')"
+                  severity="info"
+                  class="text-xs"
+                />
+                <Tag
+                  v-if="data.triggers"
+                  :value="$t('automation.scripts.list.flags.triggers')"
+                  severity="info"
+                  class="text-xs"
+                />
+                <Tag
+                  v-if="data.iterator"
+                  :value="$t('automation.scripts.list.flags.iterator')"
+                  severity="info"
+                  class="text-xs"
+                />
               </div>
-            </template>
-          </Column>
 
-          <Column :header="$t('automation.scripts.list.columns.updatedAt')" class="w-48 text-right">
-            <template #body="{ data }">
-              <span v-if="data.updatedAt" class="text-sm text-muted-color">
-                {{ formatDate(data.updatedAt) }}
+              <span v-if="data.description" class="text-xs text-muted-color">
+                {{ data.description }}
               </span>
-            </template>
-          </Column>
 
-          <template #empty>
-            <div class="text-center py-6 text-muted-color">
-              {{ $t('general.resourceList.noItems') }}
+              <code class="text-xs text-muted-color">{{ data.name }}</code>
+
+              <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
+                <Message
+                  v-for="(error, i) in data.errors"
+                  :key="i"
+                  severity="warn"
+                  :closable="false"
+                  class="text-sm"
+                >
+                  {{ error }}
+                </Message>
+              </div>
             </div>
           </template>
-        </DataTable>
+
+          <template #body-updatedAt="{ data }">
+            <span v-if="data.updatedAt" class="text-sm text-muted-color">
+              {{ formatDate(data.updatedAt) }}
+            </span>
+          </template>
+        </CResourceTable>
       </Panel>
     </div>
   </div>
@@ -135,7 +130,9 @@
 <script setup>
 import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components } from '@cortezaproject/corteza-vue-next'
 
+const { CResourceTable } = components
 const { t } = useI18n()
 
 const $toast = inject('$toast')
@@ -151,6 +148,11 @@ const filter = reactive({
   incScriptsWithIterator: false,
   incScriptsWithSecurity: false,
 })
+
+const scriptFields = [
+  { key: 'name', header: t('automation.scripts.list.columns.name') },
+  { key: 'updatedAt', header: t('automation.scripts.list.columns.updatedAt'), headerStyle: 'width: 12rem', headerClass: 'text-right', bodyClass: 'text-right' },
+]
 
 const filtered = computed(() => {
   const lcQuery = filter.query.toLocaleLowerCase()

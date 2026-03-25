@@ -182,7 +182,7 @@
     </template>
 
     <!-- Row action menu (teleported) -->
-    <Menu ref="rowMenuRef" :model="rowMenuItems" :popup="true">
+    <Menu :key="rowMenuKey" ref="rowMenuRef" :model="rowMenuItems" :popup="true">
       <template #item="{ item, props }">
         <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
           <a v-ripple :href="href" v-bind="props.action" @click="navigate">
@@ -201,7 +201,7 @@
 
 <script setup>
 import axios from 'axios'
-import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
@@ -258,6 +258,7 @@ const currentPerPage = ref(20)
 
 // Row action menu
 const rowMenuRef = ref(null)
+const rowMenuKey = ref(0)
 const activeRowRecord = ref(null)
 
 const options = computed(() => props.block.options || {})
@@ -360,7 +361,7 @@ const rowMenuItems = computed(() => {
           ? $recordRoutes.edit(recordListModule.value.moduleID, record.recordID)
           : $recordRoutes.view(recordListModule.value.moduleID, record.recordID)
         : {
-            name: 'page.record.edit',
+            name: 'page.record',
             params: {
               pageID: recordPageID.value,
               recordID: record.recordID,
@@ -548,7 +549,10 @@ function onRowClick(event) {
 // Row actions
 function openRowMenu(event, record) {
   activeRowRecord.value = record
-  rowMenuRef.value.toggle(event)
+  rowMenuKey.value++
+  nextTick(() => {
+    rowMenuRef.value.show(event)
+  })
 }
 
 function handleAddRecord() {

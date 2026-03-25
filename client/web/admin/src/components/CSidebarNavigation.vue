@@ -15,11 +15,14 @@
 
 <script setup>
 import { components } from '@cortezaproject/corteza-vue-next'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { CSidebarNav } = components
 const { t } = useI18n()
+const $Settings = inject('$Settings')
+
+const federationEnabled = computed(() => $Settings?.get('federation.enabled', false))
 
 const navItems = computed(() => [
   {
@@ -223,6 +226,30 @@ const navItems = computed(() => [
     _icon: 'pi pi-lock',
     _route: { name: 'automation.permissions' },
   },
+
+  // ── Federation ───────────────────────────────────────────
+  ...(federationEnabled.value ? [
+    {
+      _id: 'federation',
+      _parentId: '0',
+      _label: t('navigation.federation.group'),
+      _icon: 'pi pi-share-alt',
+    },
+    {
+      _id: 'federation-nodes',
+      _parentId: 'federation',
+      _label: t('navigation.federation.items.nodes'),
+      _icon: 'pi pi-sitemap',
+      _route: { name: 'federation.nodes' },
+    },
+    {
+      _id: 'federation-permissions',
+      _parentId: 'federation',
+      _label: t('navigation.federation.items.permissions'),
+      _icon: 'pi pi-lock',
+      _route: { name: 'federation.permissions' },
+    },
+  ] : []),
 
   // ── UI ───────────────────────────────────────────────────
   {

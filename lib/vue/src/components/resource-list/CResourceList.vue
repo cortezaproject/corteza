@@ -20,7 +20,7 @@
       <CInputSearch
         v-if="!hideSearch"
         :model-value="filter[queryField]"
-        :placeholder="translations.searchPlaceholder || 'Search applications...'"
+        :placeholder="translations.searchPlaceholder"
         size="small"
         class="flex-1 max-w-xl"
         @update:model-value="$emit('update:filter', { ...filter, [queryField]: $event })"
@@ -61,7 +61,7 @@
 
           <Column v-if="selectable" selectionMode="multiple" headerStyle="width: 3rem" />
           <Column
-            v-for="field in fields"
+            v-for="field in computedFields"
             :key="field.key"
             :field="field.key"
             :header="field.header || field.label"
@@ -79,6 +79,32 @@
             </template>
           </Column>
 
+          <!-- Built-in actions column when actionItems prop is provided -->
+          <Column
+            v-if="actionItems"
+            key="__actions"
+            header=""
+            class="text-right w-12"
+            frozen
+            alignFrozen="right"
+            :pt="{
+              headerCell: { class: 'border-l-0' },
+              bodyCell: { class: 'px-2 py-1 border-l-0' },
+            }"
+          >
+            <template #body="slotProps">
+              <Button
+                v-if="actionItems(slotProps.data).length"
+                icon="pi pi-ellipsis-v"
+                text
+                severity="secondary"
+                size="small"
+                class="row-action-btn w-full"
+                @click.stop="showActionsMenu($event, slotProps.data)"
+              />
+            </template>
+          </Column>
+
           <template #footer>
             <div class="flex items-center flex-wrap gap-2 px-3 py-2">
               <div class="flex items-center text-sm">
@@ -90,13 +116,13 @@
 
                 <div v-if="!hidePerPageOption" class="flex items-center gap-2 whitespace-nowrap">
                   <span>
-                    {{ translations.recordsPerPage || 'Per Page' }}
+                    {{ translations.recordsPerPage }}
                   </span>
                   <Select
                     :model-value="pagination.limit"
                     :options="perPageOptions"
                     size="small"
-                    class="w-20"
+                    class="w-25"
                     @update:model-value="handlePerPageChange"
                   />
                 </div>
@@ -113,7 +139,7 @@
                 />
                 <Button
                   icon="pi pi-angle-left"
-                  :label="translations.prevPagination || 'Previous'"
+                  :label="translations.prevPagination"
                   text
                   severity="secondary"
                   size="small"
@@ -121,7 +147,7 @@
                   @click="goToPage('prevPage')"
                 />
                 <Button
-                  :label="translations.nextPagination || 'Next'"
+                  :label="translations.nextPagination"
                   icon="pi pi-angle-right"
                   iconPos="right"
                   text
@@ -135,12 +161,28 @@
           </template>
         </DataTable>
       </div>
+
+      <!-- Centralized TieredMenu for row actions -->
+      <TieredMenu v-if="actionItems" ref="actionsMenuRef" :key="menuKey" :model="currentMenuItems" popup>
+        <template #item="{ item, props: menuProps }">
+          <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+            <a v-ripple :href="href" v-bind="menuProps.action" @click="navigate">
+              <span :class="item.icon" />
+              <span class="ml-2">{{ item.label }}</span>
+            </a>
+          </router-link>
+          <a v-else v-ripple v-bind="menuProps.action" :class="item.class">
+            <span :class="item.icon" />
+            <span class="ml-2">{{ item.label }}</span>
+          </a>
+        </template>
+      </TieredMenu>
     </template>
   </Card>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 
@@ -211,10 +253,57 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  /**
+   * Function that receives row data and returns an array of PrimeVue MenuItem objects.
+   * When provided, the component auto-adds an actions column with ellipsis button
+   * and a centralized TieredMenu.
+   * Items can have: label, icon, command, class, route (for router-link), separator.
+   */
+  actionItems: {
+    type: Function,
+    default: null,
+  },
 })
 
 const { t } = useI18n()
 const selected = ref([])
+
+// -- Actions menu --
+const actionsMenuRef = ref()
+const currentMenuItems = ref([])
+const menuKey = ref(0)
+
+/**
+ * Filters out the 'actions' field from the fields array when actionItems is provided,
+ * since the component will render its own built-in actions column.
+ */
+const computedFields = computed(() => {
+  if (props.actionItems) {
+    return props.fields.filter(f => f.key !== 'actions')
+  }
+  return props.fields
+})
+
+function showActionsMenu(event, rowData) {
+  currentMenuItems.value = props.actionItems(rowData)
+  // Force Vue to destroy and re-create the TieredMenu by changing its key.
+  // This guarantees a fresh instance with no stale visible/position state,
+  // so show() always anchors to the correct button.
+  menuKey.value++
+  nextTick(() => {
+    actionsMenuRef.value.show(event)
+  })
+}
+
+function hideActionsMenu() {
+  if (actionsMenuRef.value) {
+    actionsMenuRef.value.hide()
+  }
+}
+
+defineExpose({
+  hideActionsMenu,
+})
 
 const hasPrevPage = computed(() => !!props.pagination.prevPage)
 const hasNextPage = computed(() => !!props.pagination.nextPage)

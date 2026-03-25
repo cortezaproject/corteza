@@ -80,15 +80,17 @@
         <div v-if="field.options.displayType === 'badge'" class="flex gap-4 pl-1">
           <div class="flex items-center gap-2">
             <label class="text-xs text-muted-color">{{ $t('field.kind.select.options.style.textColor') }}</label>
-            <CInputColor
+            <CInputColorPicker
               v-model="opt.style.textColor"
+              :default-value="DEFAULT_BADGE_TEXT_COLOR"
               @update:model-value="updateOptions"
             />
           </div>
           <div class="flex items-center gap-2">
             <label class="text-xs text-muted-color">{{ $t('field.kind.select.options.style.backgroundColor') }}</label>
-            <CInputColor
+            <CInputColorPicker
               v-model="opt.style.backgroundColor"
+              :default-value="DEFAULT_BADGE_BG_COLOR"
               @update:model-value="updateOptions"
             />
           </div>
@@ -111,7 +113,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CInputColor from '../CInputColor.vue'
+import { components } from '@cortezaproject/corteza-vue-next'
+
+const { CInputColorPicker } = components
+
+// Theme-independent defaults so badges are always visible
+const DEFAULT_BADGE_TEXT_COLOR = '#FFFFFFFF'
+const DEFAULT_BADGE_BG_COLOR = '#09344EFF'
 
 const { t } = useI18n()
 

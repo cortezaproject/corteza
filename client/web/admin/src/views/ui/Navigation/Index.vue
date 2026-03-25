@@ -99,38 +99,43 @@
               <label class="font-medium text-sm text-primary">
                 {{ $t('ui.settings.editor.topbar.links.title') }}
               </label>
-              <DataTable :value="topbar.helpLinks" class="border rounded" size="small">
-                <Column :header="$t('ui.settings.editor.topbar.links.handle')" class="w-1/3">
-                  <template #body="{ data }">
-                    <InputText v-model="data.handle" size="small" class="w-full" />
-                  </template>
-                </Column>
-                <Column :header="$t('ui.settings.editor.topbar.links.url')" class="w-1/2">
-                  <template #body="{ data }">
-                    <InputText v-model="data.url" size="small" class="w-full" />
-                  </template>
-                </Column>
-                <Column
-                  :header="$t('ui.settings.editor.topbar.links.new-tab')"
-                  class="w-20 text-center"
+              <div v-if="topbar.helpLinks.length" class="flex flex-col gap-2">
+                <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 px-3 pt-2">
+                  <span class="text-xs font-semibold text-muted-color uppercase">
+                    {{ $t('ui.settings.editor.topbar.links.handle') }}
+                  </span>
+                  <span class="text-xs font-semibold text-muted-color uppercase">
+                    {{ $t('ui.settings.editor.topbar.links.url') }}
+                  </span>
+                  <span class="text-xs font-semibold text-muted-color uppercase text-center w-16">
+                    {{ $t('ui.settings.editor.topbar.links.new-tab') }}
+                  </span>
+                  <span class="w-10" />
+                </div>
+                <div
+                  v-for="(link, index) in topbar.helpLinks"
+                  :key="index"
+                  class="border border-surface rounded-border p-3"
                 >
-                  <template #body="{ data }">
-                    <Checkbox v-model="data.newTab" :binary="true" />
-                  </template>
-                </Column>
-                <Column class="w-16 text-right">
-                  <template #body="{ index }">
-                    <Button
-                      icon="pi pi-trash"
-                      severity="danger"
-                      text
-                      rounded
-                      size="small"
-                      @click="topbar.helpLinks.splice(index, 1)"
-                    />
-                  </template>
-                </Column>
-              </DataTable>
+                  <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 items-center">
+                    <InputText v-model="link.handle" size="small" class="w-full" />
+                    <InputText v-model="link.url" size="small" class="w-full" />
+                    <div class="flex items-center justify-center w-16">
+                      <Checkbox v-model="link.newTab" :binary="true" />
+                    </div>
+                    <div class="w-10 flex justify-end">
+                      <Button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        text
+                        rounded
+                        size="small"
+                        @click="topbar.helpLinks.splice(index, 1)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <Button
                   :label="$t('general.label.add')"
@@ -191,38 +196,43 @@
               <label class="font-medium text-sm text-primary">
                 {{ $t('ui.settings.editor.topbar.links.title') }}
               </label>
-              <DataTable :value="topbar.profileLinks" class="border rounded" size="small">
-                <Column :header="$t('ui.settings.editor.topbar.links.handle')" class="w-1/3">
-                  <template #body="{ data }">
-                    <InputText v-model="data.handle" size="small" class="w-full" />
-                  </template>
-                </Column>
-                <Column :header="$t('ui.settings.editor.topbar.links.url')" class="w-1/2">
-                  <template #body="{ data }">
-                    <InputText v-model="data.url" size="small" class="w-full" />
-                  </template>
-                </Column>
-                <Column
-                  :header="$t('ui.settings.editor.topbar.links.new-tab')"
-                  class="w-20 text-center"
+              <div v-if="topbar.profileLinks.length" class="flex flex-col gap-2">
+                <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 px-3 pt-2">
+                  <span class="text-xs font-semibold text-muted-color uppercase">
+                    {{ $t('ui.settings.editor.topbar.links.handle') }}
+                  </span>
+                  <span class="text-xs font-semibold text-muted-color uppercase">
+                    {{ $t('ui.settings.editor.topbar.links.url') }}
+                  </span>
+                  <span class="text-xs font-semibold text-muted-color uppercase text-center w-16">
+                    {{ $t('ui.settings.editor.topbar.links.new-tab') }}
+                  </span>
+                  <span class="w-10" />
+                </div>
+                <div
+                  v-for="(link, index) in topbar.profileLinks"
+                  :key="index"
+                  class="border border-surface rounded-border p-3"
                 >
-                  <template #body="{ data }">
-                    <Checkbox v-model="data.newTab" :binary="true" />
-                  </template>
-                </Column>
-                <Column class="w-16 text-right">
-                  <template #body="{ index }">
-                    <Button
-                      icon="pi pi-trash"
-                      severity="danger"
-                      text
-                      rounded
-                      size="small"
-                      @click="topbar.profileLinks.splice(index, 1)"
-                    />
-                  </template>
-                </Column>
-              </DataTable>
+                  <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 items-center">
+                    <InputText v-model="link.handle" size="small" class="w-full" />
+                    <InputText v-model="link.url" size="small" class="w-full" />
+                    <div class="flex items-center justify-center w-16">
+                      <Checkbox v-model="link.newTab" :binary="true" />
+                    </div>
+                    <div class="w-10 flex justify-end">
+                      <Button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        text
+                        rounded
+                        size="small"
+                        @click="topbar.profileLinks.splice(index, 1)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <Button
                   :label="$t('general.label.add')"
@@ -247,50 +257,80 @@
             {{ $t('ui.settings.editor.topbar.page-buttons.description') }}
           </p>
           <div class="flex flex-col gap-2">
-            <DataTable :value="topbar.pageButtons" class="border rounded" size="small">
-              <Column :header="$t('ui.settings.editor.topbar.page-buttons.label')" class="w-1/4">
-                <template #body="{ data }">
-                  <InputText v-model="data.label" size="small" class="w-full" />
-                </template>
-              </Column>
-              <Column :header="$t('ui.settings.editor.topbar.page-buttons.url')" class="w-1/4">
-                <template #body="{ data }">
-                  <InputText v-model="data.url" size="small" class="w-full" />
-                </template>
-              </Column>
-              <Column :header="$t('ui.settings.editor.topbar.page-buttons.url-match')" class="w-1/4">
-                <template #body="{ data }">
-                  <InputText v-model="data.urlMatch" size="small" class="w-full" placeholder="/builder" />
-                </template>
-              </Column>
-              <Column
-                :header="$t('ui.settings.editor.topbar.page-buttons.new-tab')"
-                class="w-20 text-center"
-              >
-                <template #body="{ data }">
-                  <Checkbox v-model="data.newTab" :binary="true" />
-                </template>
-              </Column>
-              <Column class="w-16 text-right">
-                <template #body="{ index }">
-                  <Button
-                    icon="pi pi-trash"
-                    severity="danger"
-                    text
-                    rounded
-                    size="small"
-                    @click="topbar.pageButtons.splice(index, 1)"
+            <div v-if="topbar.pageButtons.length" class="flex flex-col gap-2">
+              <!-- Header row -->
+              <div class="grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 px-3 pt-2">
+                <span class="text-xs font-semibold text-muted-color uppercase">
+                  {{ $t('ui.settings.editor.topbar.page-buttons.label') }}
+                </span>
+                <span class="text-xs font-semibold text-muted-color uppercase">
+                  {{ $t('ui.settings.editor.topbar.page-buttons.url') }}
+                </span>
+                <span
+                  class="text-xs font-semibold text-muted-color uppercase flex items-center gap-1"
+                >
+                  {{ $t('ui.settings.editor.topbar.page-buttons.url-match') }}
+                  <i
+                    v-tooltip.top="
+                      $t('ui.settings.editor.topbar.page-buttons.url-match-description')
+                    "
+                    class="pi pi-info-circle text-xs cursor-help"
                   />
-                </template>
-              </Column>
-            </DataTable>
+                </span>
+                <span class="text-xs font-semibold text-muted-color uppercase text-center w-16">
+                  {{ $t('ui.settings.editor.topbar.page-buttons.new-tab') }}
+                </span>
+                <span class="w-10" />
+              </div>
+
+              <!-- Entries -->
+              <div
+                v-for="(btn, index) in topbar.pageButtons"
+                :key="index"
+                class="border border-surface rounded-border p-3 flex flex-col gap-2"
+              >
+                <div class="grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 items-center">
+                  <InputText v-model="btn.label" size="small" class="w-full" />
+                  <InputText v-model="btn.url" size="small" class="w-full" />
+                  <InputText
+                    v-model="btn.urlMatch"
+                    size="small"
+                    class="w-full"
+                    placeholder="/builder"
+                  />
+                  <div class="flex items-center justify-center w-16">
+                    <Checkbox v-model="btn.newTab" :binary="true" />
+                  </div>
+                  <div class="w-10 flex justify-end">
+                    <Button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      size="small"
+                      @click="topbar.pageButtons.splice(index, 1)"
+                    />
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <InputText
+                    v-model="btn.description"
+                    size="small"
+                    class="w-full"
+                    :placeholder="
+                      $t('ui.settings.editor.topbar.page-buttons.button-description-placeholder')
+                    "
+                  />
+                </div>
+              </div>
+            </div>
             <div>
               <Button
                 :label="$t('general.label.add')"
                 icon="pi pi-plus"
                 size="small"
                 severity="secondary"
-                @click="topbar.pageButtons.push({ label: '', url: '', urlMatch: '', newTab: true })"
+                @click="addPageButton"
               />
             </div>
           </div>
@@ -347,6 +387,10 @@ const hideDrafts = computed({
     topbar.showDrafts = !val
   },
 })
+
+function addPageButton() {
+  topbar.pageButtons.push({ label: '', url: '', urlMatch: '', newTab: true, description: '' })
+}
 
 async function loadSettings() {
   loading.value = true

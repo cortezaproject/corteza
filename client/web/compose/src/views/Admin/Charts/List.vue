@@ -5,6 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
+      ref="resourceListRef"
       primary-key="chartID"
       :fields="chartFields"
       :items="chartList"
@@ -13,6 +14,7 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :action-items="getActionsMenuItems"
       :translations="{
         searchPlaceholder: $t('chart.searchPlaceholder'),
         showingPagination: 'general.resourceList.pagination.showing',
@@ -66,32 +68,7 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          class="row-action-btn w-full"
-          @click.stop="toggleActionsMenu($event, data)"
-        />
-      </template>
     </CResourceList>
-
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
-      <template #item="{ item, props }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <a v-else v-ripple v-bind="props.action" :class="item.class">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-        </a>
-      </template>
-    </TieredMenu>
 
     <!-- Chart Type Selector Dialog -->
     <Dialog
@@ -142,9 +119,7 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref()
+const resourceListRef = ref()
 const showTypeSelector = ref(false)
 
 const chartTypes = [
@@ -173,17 +148,6 @@ const chartFields = [
     class: 'text-right',
     pt: {
       columnHeaderContent: 'justify-end',
-    },
-  },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
-    pt: {
-      headerCell: { class: 'border-l-0' },
-      bodyCell: { class: 'px-2 py-1 border-l-0' },
     },
   },
 ]
@@ -231,11 +195,6 @@ function createChart(category) {
 }
 
 // Actions menu methods
-function toggleActionsMenu(event, chart) {
-  actionsMenuItems.value = getActionsMenuItems(chart)
-  actionsMenu.value.toggle(event)
-}
-
 function getActionsMenuItems(chart) {
   const items = []
 
@@ -268,6 +227,7 @@ function onConfirmDelete(chart) {
 }
 
 async function handleDelete(chart) {
+  resourceListRef.value.hideActionsMenu()
   try {
     await $ComposeAPI.chartDelete({
       namespaceID: props.namespace.namespaceID,

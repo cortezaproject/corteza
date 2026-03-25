@@ -10,6 +10,7 @@
     :processing-delete="processingDelete"
     class="overflow-hidden"
     @save="saveWorkflow"
+    @change-detected="onChangeDetected"
     @delete="deleteWorkflow"
     @undelete="undeleteWorkflow"
   />
@@ -19,6 +20,7 @@
 import WorkflowEditor from '@/components/WorkflowEditor.vue'
 import { automation } from '@cortezaproject/corteza-js-next'
 import { throttle } from 'lodash-es'
+import { useRBACStore } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -41,10 +43,8 @@ const triggers = ref([])
 const changeDetected = ref(false)
 
 // Computed
-const canCreate = computed(() => {
-  // RBAC check
-  return true
-})
+const rbacStore = useRBACStore()
+const canCreate = rbacStore.can('automation/', 'workflow.create')
 
 const workflowID = computed(() => {
   return route.params.workflowID || (workflow.value.workflowID !== '0' ? workflow.value.workflowID : undefined)

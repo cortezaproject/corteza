@@ -91,6 +91,11 @@
           v-model:memberIDs="memberIDs"
         />
       </Panel>
+
+      <RolePermissionClone
+        v-if="isEdit"
+        :roleID="role.roleID"
+      />
     </div>
 
     <!-- Bottom Actions Toolbar -->
@@ -120,6 +125,24 @@
             @click="handleUndelete"
           />
           <Button
+            v-if="isEdit && !role.archivedAt && !role.isSystem"
+            :label="$t('system.roles.editor.info.archive')"
+            icon="pi pi-box"
+            severity="warn"
+            outlined
+            :disabled="saving"
+            @click="handleArchive"
+          />
+          <Button
+            v-if="isEdit && role.archivedAt && !role.isSystem"
+            :label="$t('system.roles.editor.info.unarchive')"
+            icon="pi pi-box"
+            severity="success"
+            outlined
+            :disabled="saving"
+            @click="handleUnarchive"
+          />
+          <Button
             v-if="!role.isSystem || role.canUpdateRole"
             type="submit"
             :label="$t('general.label.save')"
@@ -139,6 +162,7 @@ import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
 import RoleMembers from '@/components/Role/RoleMembers.vue'
+import RolePermissionClone from '@/components/Role/RolePermissionClone.vue'
 
 const { CInputDelete } = components
 
@@ -310,6 +334,34 @@ async function handleUndelete() {
   } catch (e) {
     console.error('Failed to undelete role:', e)
     $toast.toastErrorHandler(t('notification.role.undelete.error'))(e)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleArchive() {
+  saving.value = true
+  try {
+    await $SystemAPI.roleArchive({ roleID: role.value.roleID })
+    const raw = await $SystemAPI.roleRead({ roleID: role.value.roleID })
+    role.value = new system.Role(raw)
+    $toast.toastSuccess(t('notification.role.archive.success'))
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.role.archive.error'))(e)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleUnarchive() {
+  saving.value = true
+  try {
+    await $SystemAPI.roleUnarchive({ roleID: role.value.roleID })
+    const raw = await $SystemAPI.roleRead({ roleID: role.value.roleID })
+    role.value = new system.Role(raw)
+    $toast.toastSuccess(t('notification.role.unarchive.success'))
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.role.unarchive.error'))(e)
   } finally {
     saving.value = false
   }

@@ -35,6 +35,7 @@ logo:
   label: Logo
   placeholder: Choose an image for namespace logo or drop it here...
   show: Show logo
+  upload: Click or drop logo image here to upload
   preview: Preview
   reset: Reset
 name:

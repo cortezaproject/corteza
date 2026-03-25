@@ -356,62 +356,32 @@
             />
           </div>
 
-          <DataTable :value="providerItems" class="border rounded">
-            <Column
-              :header="$t('system.settings.editor.external.table.header.enabled')"
-              style="width: 80px"
-            >
-              <template #body="{ data }">
-                <Checkbox
-                  :model-value="data.enabled"
-                  :binary="true"
-                  @update:model-value="data.enable($event)"
-                />
-              </template>
-            </Column>
+          <CResourceTable
+            :items="providerItems"
+            :fields="providerFields"
+            :action-items="getProviderActions"
+            primary-key="tag"
+          >
+            <template #body-enabled="{ data }">
+              <Checkbox
+                :model-value="data.enabled"
+                :binary="true"
+                @update:model-value="data.enable($event)"
+              />
+            </template>
 
-            <Column
-              :header="$t('system.settings.editor.external.table.header.provider')"
-              style="width: 200px"
-            >
-              <template #body="{ data }">
-                <span :class="{ 'line-through opacity-40': data.deleted }">
-                  {{ data.provider || data.tag }}
-                </span>
-              </template>
-            </Column>
+            <template #body-provider="{ data }">
+              <span :class="{ 'line-through opacity-40': data.deleted }">
+                {{ data.provider || data.tag }}
+              </span>
+            </template>
 
-            <Column :header="$t('system.settings.editor.external.table.header.info')">
-              <template #body="{ data }">
-                <span :class="{ 'line-through opacity-40': data.deleted }">
-                  {{ data.info }}
-                </span>
-              </template>
-            </Column>
-
-            <Column style="width: 120px">
-              <template #body="{ data }">
-                <div class="flex items-center justify-end gap-1">
-                  <Button
-                    v-if="data.canDelete"
-                    :icon="data.deleted ? 'pi pi-undo' : 'pi pi-trash'"
-                    :severity="data.deleted ? 'warn' : 'danger'"
-                    text
-                    rounded
-                    size="small"
-                    @click="data.toggleDelete()"
-                  />
-                  <Button
-                    icon="pi pi-pencil"
-                    text
-                    rounded
-                    size="small"
-                    @click="openEditor(data.editor)"
-                  />
-                </div>
-              </template>
-            </Column>
-          </DataTable>
+            <template #body-info="{ data }">
+              <span :class="{ 'line-through opacity-40': data.deleted }">
+                {{ data.info }}
+              </span>
+            </template>
+          </CResourceTable>
         </div>
       </Panel>
 
@@ -457,9 +427,12 @@
 import { computed, inject, onMounted, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isEqual } from 'lodash-es'
+import { components } from '@cortezaproject/corteza-vue-next'
 import ExternalStd from './auth/ExternalStd.vue'
 import ExternalOIDC from './auth/ExternalOIDC.vue'
 import ExternalSAML from './auth/ExternalSAML.vue'
+
+const { CResourceTable } = components
 
 const { t } = useI18n()
 
@@ -568,6 +541,34 @@ const providerItems = computed(() => {
 
   return items
 })
+
+const providerFields = [
+  { key: 'enabled', header: t('system.settings.editor.external.table.header.enabled'), headerStyle: 'width: 80px' },
+  { key: 'provider', header: t('system.settings.editor.external.table.header.provider'), headerStyle: 'width: 200px' },
+  { key: 'info', header: t('system.settings.editor.external.table.header.info') },
+]
+
+function getProviderActions(data) {
+  const items = []
+
+  items.push({
+    label: t('general.label.edit'),
+    icon: 'pi pi-pencil',
+    command: () => openEditor(data.editor),
+  })
+
+  if (data.canDelete) {
+    items.push({ separator: true })
+    items.push({
+      label: data.deleted ? t('general.undelete') : t('general.label.delete'),
+      icon: data.deleted ? 'pi pi-undo' : 'pi pi-trash',
+      class: data.deleted ? '' : 'text-red-500',
+      command: () => data.toggleDelete(),
+    })
+  }
+
+  return items
+}
 
 function openEditor({ component, title, data, updater }) {
   modal.open = true

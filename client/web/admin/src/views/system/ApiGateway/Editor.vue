@@ -265,6 +265,15 @@
           @click="$router.push({ name: 'system.apiGateway' })"
         />
         <div class="flex gap-2">
+          <Button
+            v-if="isEdit"
+            :label="$t('system.apigw.editor.profiler')"
+            icon="pi pi-chart-bar"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="$router.push({ name: 'system.apiGateway.profiler' })"
+          />
           <CInputDelete
             v-if="isEdit && route_.canDeleteApigwRoute"
             :label="$t('system.apigw.editor.delete')"

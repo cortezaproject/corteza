@@ -46,10 +46,10 @@ func (h ngNotificationHandler) Send() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "notificationSend",
 		Kind:   "function",
-		Groups: []string{"System Notification"},
+		Groups: []string{"Notifications"},
 		Labels: map[string]string(nil),
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Send simple notification",
+			Short:       "Send Notification",
 			Description: "Sends a simple notification with title and description to a user",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "bell"},
 		},

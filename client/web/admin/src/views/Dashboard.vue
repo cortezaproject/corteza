@@ -5,7 +5,7 @@
 
   <div class="flex flex-col h-full p-3 sm:p-6 gap-4 sm:gap-10 overflow-y-auto min-w-0">
     <!-- Stat cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       <div
         v-for="card in statCards"
         :key="card.key"
@@ -69,7 +69,6 @@ const loading = ref(true)
 // Stat card totals
 const totalUsers = ref(0)
 const totalRoles = ref(0)
-const totalApps = ref(0)
 const totalWorkflows = ref(0)
 const totalNamespaces = ref(0)
 
@@ -83,9 +82,7 @@ const archivedRoles = ref(0)
 const deletedRoles = ref(0)
 const activeRoles = ref(0)
 
-// Application status breakdown
-const deletedApps = ref(0)
-const activeApps = ref(0)
+
 
 // Workflow status breakdown
 const disabledWorkflows = ref(0)
@@ -154,17 +151,6 @@ const statCards = computed(() => [
       { count: activeRoles.value, label: t('dashboard.status.active'), ...greenPill },
       { count: archivedRoles.value, label: t('dashboard.status.archived'), ...yellowPill },
       { count: deletedRoles.value, label: t('dashboard.status.deleted'), ...redPill },
-    ],
-  },
-  {
-    key: 'apps',
-    label: t('dashboard.stats.applications'),
-    value: totalApps.value,
-    icon: 'pi pi-th-large',
-    loading: loading.value,
-    statuses: [
-      { count: activeApps.value, label: t('dashboard.status.active'), ...greenPill },
-      { count: deletedApps.value, label: t('dashboard.status.deleted'), ...redPill },
     ],
   },
   {
@@ -243,10 +229,7 @@ const statusClassifiers = {
     if (item.archivedAt) return 'archived'
     return 'active'
   },
-  apps: item => {
-    if (item.deletedAt) return 'deleted'
-    return 'active'
-  },
+
   workflows: item => {
     if (item.deletedAt) return 'deleted'
     if (!item.enabled) return 'disabled'
@@ -267,10 +250,7 @@ const statusConfig = {
     { key: 'archived', label: () => t('dashboard.status.archived'), color: 'yellow' },
     { key: 'deleted', label: () => t('dashboard.status.deleted'), color: 'red' },
   ],
-  apps: [
-    { key: 'active', label: () => t('dashboard.status.active'), color: 'green' },
-    { key: 'deleted', label: () => t('dashboard.status.deleted'), color: 'red' },
-  ],
+
   workflows: [
     { key: 'enabled', label: () => t('dashboard.status.enabled'), color: 'green' },
     { key: 'disabled', label: () => t('dashboard.status.disabled'), color: 'yellow' },
@@ -445,7 +425,7 @@ function buildStackedChart(resourceKey, items) {
 const listFnMap = {
   users: () => fetchAllItems(p => $SystemAPI.userList(p), { incSuspended: true, incDeleted: true }),
   roles: () => fetchAllItems(p => $SystemAPI.roleList(p), { deleted: 1, archived: 1 }),
-  apps: () => fetchAllItems(p => $SystemAPI.applicationList(p), { deleted: 1 }),
+
   workflows: () => fetchAllItems(p => $AutomationAPI.workflowList(p), { deleted: 1, disabled: 1 }),
   namespaces: () => fetchAllItems(p => $ComposeAPI.namespaceList(p)),
 }
@@ -494,8 +474,6 @@ async function fetchAllData() {
       rolesTotal,
       rolesArchived,
       rolesDeleted,
-      appsTotal,
-      appsDeleted,
       workflowsTotal,
       workflowsDisabled,
       workflowsDeleted,
@@ -509,9 +487,6 @@ async function fetchAllData() {
       fetchCount($SystemAPI.roleListCancellable({ limit: 1, incTotal: true })),
       fetchCount($SystemAPI.roleListCancellable({ limit: 1, incTotal: true, archived: 2 })),
       fetchCount($SystemAPI.roleListCancellable({ limit: 1, incTotal: true, deleted: 2 })),
-      // Applications: default = active only (excludes deleted)
-      fetchCount($SystemAPI.applicationListCancellable({ limit: 1, incTotal: true })),
-      fetchCount($SystemAPI.applicationListCancellable({ limit: 1, incTotal: true, deleted: 2 })),
       // Workflows: default = active only (excludes disabled/deleted)
       fetchCount($AutomationAPI.workflowListCancellable({ limit: 1, incTotal: true })),
       fetchCount($AutomationAPI.workflowListCancellable({ limit: 1, incTotal: true, disabled: 2 })),
@@ -531,9 +506,6 @@ async function fetchAllData() {
     deletedRoles.value = rolesDeleted
     totalRoles.value = rolesTotal + rolesArchived + rolesDeleted
 
-    activeApps.value = appsTotal
-    deletedApps.value = appsDeleted
-    totalApps.value = appsTotal + appsDeleted
 
     enabledWorkflows.value = workflowsTotal
     disabledWorkflows.value = workflowsDisabled

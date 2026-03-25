@@ -20,7 +20,7 @@
       />
       <Button
         v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-file"
+        icon="pi pi-objects-column"
         size="small"
         @click="goToEditPage"
       />
@@ -491,7 +491,7 @@ const availableBlockTypes = computed(() => {
     { kind: 'Content', label: t('block.content.label'), icon: 'pi pi-align-left' },
     { kind: 'RecordList', label: t('block.recordList.label'), icon: 'pi pi-list' },
     ...(isRecordPage
-      ? [{ kind: 'Record', label: t('block.record.label'), icon: 'pi pi-file' }]
+      ? [{ kind: 'Record', label: t('block.record.label'), icon: 'pi pi-objects-column' }]
       : []),
     { kind: 'Chart', label: t('block.chart.label'), icon: 'pi pi-chart-bar' },
     { kind: 'Metric', label: t('block.metric.label'), icon: 'pi pi-hashtag' },

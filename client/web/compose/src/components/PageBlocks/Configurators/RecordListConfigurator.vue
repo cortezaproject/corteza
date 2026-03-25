@@ -36,18 +36,17 @@
         </h5>
         <small class="text-muted-color">{{ $t('block.recordList.moduleFieldsFootnote') }}</small>
 
-        <PickList
-          v-model="fieldPickerModel"
-          data-key="name"
-          breakpoint="768px"
-          :pt="{
-            list: { style: 'height: 300px' },
-          }"
-        >
-          <template #option="{ option }">
-            {{ option.label || option.name }}
-          </template>
-        </PickList>
+        <CFieldPicker
+          :all-fields="allModuleFields"
+          :model-value="selectedFieldNames"
+          :available-label="$t('field.selector.available')"
+          :selected-label="$t('field.selector.selected')"
+          :select-all-label="$t('field.selector.selectAll')"
+          :unselect-all-label="$t('field.selector.unselectAll')"
+          :search-placeholder="$t('field.selector.search')"
+          :no-items-label="$t('field.no-items-found')"
+          @update:model-value="onFieldPickerUpdate"
+        />
       </div>
 
       <Divider />
@@ -517,28 +516,10 @@ const allModuleFields = computed(() => {
   return [...regular, ...system]
 })
 
-// Available fields that are not yet selected
-const availableFields = computed(() => {
-  const selected = new Set(selectedFieldNames.value)
-  return allModuleFields.value.filter(f => !selected.has(f.name))
-})
-
-// Selected fields in order
-const selectedFields = computed(() => {
-  return selectedFieldNames.value
-    .map(name => allModuleFields.value.find(f => f.name === name))
-    .filter(Boolean)
-})
-
-// PickList model: [available, selected]
-const fieldPickerModel = computed({
-  get: () => [availableFields.value, selectedFields.value],
-  set: (val) => {
-    const [, selected] = val
-    selectedFieldNames.value = selected.map(f => f.name)
-    updateOptions('fields', selected.map(f => f.name))
-  },
-})
+function onFieldPickerUpdate(names) {
+  selectedFieldNames.value = names
+  updateOptions('fields', names)
+}
 
 const summaryMetrics = [
   { value: 'sum', label: t('block.recordList.summaries.metrics.sum.label') },

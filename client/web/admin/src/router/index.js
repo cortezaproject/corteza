@@ -213,6 +213,21 @@ const router = createRouter({
       component: () => import('../views/system/ApiGateway/Editor.vue'),
     },
     {
+      path: '/system/api-gateway/profiler',
+      name: 'system.apiGateway.profiler',
+      component: () => import('../views/system/ApiGateway/Profiler/Index.vue'),
+    },
+    {
+      path: '/system/api-gateway/profiler/:routeID',
+      name: 'system.apiGateway.profiler.route',
+      component: () => import('../views/system/ApiGateway/Profiler/Route.vue'),
+    },
+    {
+      path: '/system/api-gateway/profiler/:routeID/hit/:hitID',
+      name: 'system.apiGateway.profiler.hit',
+      component: () => import('../views/system/ApiGateway/Profiler/Hit.vue'),
+    },
+    {
       path: '/system/api-gateway/:routeID',
       name: 'system.apiGateway.edit',
       component: () => import('../views/system/ApiGateway/Editor.vue'),
@@ -300,6 +315,28 @@ const router = createRouter({
       path: '/automation/scripts',
       name: 'automation.scripts',
       component: () => import('../views/automation/Script/Index.vue'),
+    },
+
+    // ── Federation ────────────────────────────────────────────────
+    {
+      path: '/federation/nodes',
+      name: 'federation.nodes',
+      component: () => import('../views/federation/Node/List.vue'),
+    },
+    {
+      path: '/federation/nodes/new',
+      name: 'federation.nodes.create',
+      component: () => import('../views/federation/Node/Editor.vue'),
+    },
+    {
+      path: '/federation/nodes/:nodeID',
+      name: 'federation.nodes.edit',
+      component: () => import('../views/federation/Node/Editor.vue'),
+    },
+    {
+      path: '/federation/permissions',
+      name: 'federation.permissions',
+      component: () => import('../views/federation/Permissions/Index.vue'),
     },
     {
       path: '/automation/permissions',

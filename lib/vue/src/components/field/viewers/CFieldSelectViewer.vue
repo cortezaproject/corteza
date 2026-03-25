@@ -81,8 +81,12 @@ function resolveValue(val, options) {
   }
 }
 
+// Theme-independent defaults so badges are always visible
+const DEFAULT_BADGE_TEXT_COLOR = '#FFFFFFFF'
+const DEFAULT_BADGE_BG_COLOR = '#09344EFF'
+
 function toColor(hex) {
-  if (!hex) return null
+  if (!hex || hex === 'transparent') return null
   return hex.startsWith('#') ? hex : '#' + hex
 }
 
@@ -91,8 +95,8 @@ function getOptionStyle(opt) {
 
   if (isBadgeDisplay.value) {
     const optStyle = opt.style || {}
-    style.color = toColor(optStyle.textColor) || undefined
-    style.backgroundColor = toColor(optStyle.backgroundColor) || undefined
+    style.color = toColor(optStyle.textColor) || DEFAULT_BADGE_TEXT_COLOR
+    style.backgroundColor = toColor(optStyle.backgroundColor) || DEFAULT_BADGE_BG_COLOR
   }
 
   return style

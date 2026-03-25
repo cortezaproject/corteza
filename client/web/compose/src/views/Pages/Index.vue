@@ -7,7 +7,7 @@
       <div class="flex flex-col gap-3 items-center">
         <Button
           :label="$t('onboarding.step.page.create')"
-          icon="pi pi-file"
+          icon="pi pi-objects-column"
           @click="goToPageAdmin"
         />
         <Button

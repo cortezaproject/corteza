@@ -1,9 +1,34 @@
 <template>
   <Card class="h-full overflow-hidden" :pt="cardPt">
-    <template v-if="$slots.title || block.title" #title>
-      <slot name="title">
-        {{ block.title }}
-      </slot>
+    <template v-if="showHeader" #title>
+      <div class="flex items-center gap-2">
+        <div class="flex-1 truncate">
+          <slot name="title">
+            {{ block.title }}
+          </slot>
+        </div>
+
+        <div v-if="showHeaderActions" class="flex items-center gap-1 ml-auto shrink-0">
+          <Button
+            v-if="block.options?.showRefresh"
+            v-tooltip.bottom="$t('block.general.label.refresh')"
+            icon="pi pi-refresh"
+            text
+            severity="secondary"
+            size="small"
+            @click="$emit('refreshBlock')"
+          />
+          <Button
+            v-if="showMagnifyButton"
+            v-tooltip.bottom="$t('block.general.label.magnify')"
+            icon="pi pi-search-plus"
+            text
+            severity="secondary"
+            size="small"
+            @click="magnified = true"
+          />
+        </div>
+      </div>
     </template>
     <template v-if="$slots.subtitle || block.description" #subtitle>
       <slot name="subtitle">
@@ -17,12 +42,51 @@
       <slot name="footer" />
     </template>
   </Card>
+
+  <!-- Magnify dialog -->
+  <Dialog
+    v-if="showMagnifyButton"
+    v-model:visible="magnified"
+    :header="block.title"
+    :modal="true"
+    :maximized="magnifyOption === 'fullscreen'"
+    class="magnify-dialog"
+    :style="{
+      width: magnifyOption === 'fullscreen' ? '100vw' : '80vw',
+      height: magnifyOption === 'fullscreen' ? '100vh' : '90vh',
+      maxHeight: magnifyOption === 'fullscreen' ? '100%' : '',
+      borderRadius: magnifyOption === 'fullscreen' ? '0px' : '',
+    }"
+    :pt="{
+      content: { class: 'flex-1 flex flex-col overflow-hidden p-0' },
+      header: { class: 'pl-3 py-2 pr-2 border-b border-surface gap-1' },
+      title: {
+        style:
+          'font-size: var(--p-card-title-font-size); font-weight: var(--p-card-title-font-weight)',
+      },
+      headerActions: { class: 'ml-auto' },
+    }"
+  >
+    <div class="flex flex-col flex-1 overflow-hidden h-full">
+      <!-- Block content (toolbar + body, same as Card #content) -->
+      <div class="p-0 flex-1 flex flex-col overflow-hidden">
+        <slot />
+      </div>
+
+      <!-- Block footer (e.g. pagination) -->
+      <div v-if="$slots.footer">
+        <slot name="footer" />
+      </div>
+    </div>
+  </Dialog>
 </template>
 
 <script setup>
-import { computed, useSlots } from 'vue'
+import { computed, ref, useSlots } from 'vue'
 
 const $slots = useSlots()
+
+defineEmits(['refreshBlock'])
 
 const props = defineProps({
   block: {
@@ -30,6 +94,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const magnified = ref(false)
 
 const isPlain = computed(() => {
   return props.block.style?.wrap?.kind !== 'card'
@@ -53,6 +119,17 @@ const hasBorder = computed(() => {
   return props.block.style?.border?.enabled
 })
 
+const showHeader = computed(() => {
+  return $slots.title || props.block.title || showHeaderActions.value
+})
+
+const magnifyOption = computed(() => props.block.options?.magnifyOption || '')
+const showMagnifyButton = computed(() => !!magnifyOption.value)
+
+const showHeaderActions = computed(() => {
+  return props.block.options?.showRefresh || showMagnifyButton.value
+})
+
 const cardPt = computed(() => ({
   root: {
     class: [
@@ -61,7 +138,13 @@ const cardPt = computed(() => ({
     ],
   },
   body: { class: 'p-0 flex-1 flex flex-col overflow-hidden gap-0' },
-  caption: { class: ['pl-3 py-3 border-b border-surface gap-1', headerTextClass.value] },
+  caption: { class: ['pl-3 py-2 pr-2 border-b border-surface gap-1', headerTextClass.value] },
   content: { class: 'p-0 flex-1 flex flex-col overflow-hidden' },
 }))
 </script>
+
+<style scoped>
+.magnify-dialog :deep(.p-dialog-content) {
+  min-height: 60vh;
+}
+</style>

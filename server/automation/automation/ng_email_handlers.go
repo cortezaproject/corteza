@@ -37,9 +37,9 @@ func (h ngEmailHandler) SendEmail() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "ngEmailSend",
 		Kind:   "function",
-		Groups: []string{"System Mail"},
+		Groups: []string{"Email"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Unified Send Email",
+			Short:       "Send Email",
 			Description: "Send and configure an email message. Combines functionality of Message, Setting properties, and Sending.",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "envelope"},
 		},

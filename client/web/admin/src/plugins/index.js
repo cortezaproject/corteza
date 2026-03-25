@@ -5,6 +5,7 @@ import {
   AuthPlugin,
   AutomationAPIPlugin,
   ComposeAPIPlugin,
+  FederationAPIPlugin,
   I18nPlugin,
   PrimeVueComponentsPlugin,
   SettingsPlugin,
@@ -68,6 +69,7 @@ export function setupAndAuthenticate(app) {
       app.use(SystemAPIPlugin)
       app.use(ComposeAPIPlugin)
       app.use(AutomationAPIPlugin)
+      app.use(FederationAPIPlugin)
 
       // Settings
       app.use(SettingsPlugin, {

@@ -9,6 +9,61 @@
 
   <div v-else class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
+      <!-- Branding section -->
+      <Panel
+        :header="$t('ui.settings.editor.corteza-studio.branding.title')"
+        toggleable
+        class="shadow mb-5"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Main Logo -->
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-sm text-primary">
+              {{ $t('ui.settings.editor.corteza-studio.mainLogo.title') }}
+            </label>
+
+            <CFileDropZone
+              accept="image/*"
+              :uploading="mainLogoUploading"
+              :error="mainLogoError"
+              :preview-url="mainLogoUrl"
+              :clearable="mainLogoIsCustom"
+              :drop-label="$t('ui.settings.editor.corteza-studio.mainLogo.uploader.instructions')"
+              :uploading-label="$t('ui.settings.editor.corteza-studio.mainLogo.uploader.uploading')"
+              :label="$t('ui.settings.editor.corteza-studio.mainLogo.title')"
+              compact
+              preview-max-width="100%"
+              preview-max-height="200px"
+              @select="onMainLogoSelect"
+              @clear="onMainLogoClear"
+            />
+          </div>
+
+          <!-- Icon Logo -->
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-sm text-primary">
+              {{ $t('ui.settings.editor.corteza-studio.iconLogo.title') }}
+            </label>
+
+            <CFileDropZone
+              accept="image/*"
+              :uploading="iconLogoUploading"
+              :error="iconLogoError"
+              :preview-url="iconLogoUrl"
+              :clearable="iconLogoIsCustom"
+              :drop-label="$t('ui.settings.editor.corteza-studio.iconLogo.uploader.instructions')"
+              :uploading-label="$t('ui.settings.editor.corteza-studio.iconLogo.uploader.uploading')"
+              :label="$t('ui.settings.editor.corteza-studio.iconLogo.title')"
+              compact
+              preview-max-width="100%"
+              preview-max-height="200px"
+              @select="onIconLogoSelect"
+              @clear="onIconLogoClear"
+            />
+          </div>
+        </div>
+      </Panel>
+
       <Panel
         :header="$t('ui.settings.editor.corteza-studio.title')"
         toggleable
@@ -85,17 +140,38 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setThemes, useTheme, components } from '@cortezaproject/corteza-vue-next'
+import { setThemes, useTheme, components, useFileUpload } from '@cortezaproject/corteza-vue-next'
 
-const { CInputColorPicker } = components
+const { CInputColorPicker, CFileDropZone } = components
 
 const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $Settings = inject('$Settings')
 
 const loading = ref(false)
 const saving = ref(false)
+
+// Logo upload state
+const {
+  uploading: mainLogoUploading,
+  uploadError: mainLogoError,
+  uploadFileRaw: uploadMainLogoRaw,
+  reset: resetMainLogoUpload,
+} = useFileUpload()
+
+const {
+  uploading: iconLogoUploading,
+  uploadError: iconLogoError,
+  uploadFileRaw: uploadIconLogoRaw,
+  reset: resetIconLogoUpload,
+} = useFileUpload()
+
+const mainLogoUrl = ref('')
+const iconLogoUrl = ref('')
+const mainLogoIsCustom = ref(false)
+const iconLogoIsCustom = ref(false)
 
 const themeVariableKeys = [
   'primary',
@@ -156,9 +232,82 @@ function stripHash(color) {
   return color.replace(/^#/, '')
 }
 
+function refreshLogoUrls() {
+  mainLogoUrl.value = $Settings.attachment('ui.mainLogo') || ''
+  iconLogoUrl.value = $Settings.attachment('ui.iconLogo') || ''
+
+  // Only show delete button when a custom logo was uploaded (setting starts with 'attachment:')
+  const mainLogoRaw = $Settings.get('ui.mainLogo', '')
+  const iconLogoRaw = $Settings.get('ui.iconLogo', '')
+  mainLogoIsCustom.value = typeof mainLogoRaw === 'string' && mainLogoRaw.startsWith('attachment:')
+  iconLogoIsCustom.value = typeof iconLogoRaw === 'string' && iconLogoRaw.startsWith('attachment:')
+}
+
+async function onMainLogoSelect(files) {
+  const file = files[0]
+  if (!file) return
+
+  try {
+    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.mainLogo' })
+    const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
+    await uploadMainLogoRaw(file, { url: endpoint, token })
+    await $Settings.fetch()
+    refreshLogoUrls()
+    $toast.toastSuccess(t('notification.settings.theming.update.success'))
+  } catch (err) {
+    // uploadError is set by composable
+  }
+}
+
+async function onIconLogoSelect(files) {
+  const file = files[0]
+  if (!file) return
+
+  try {
+    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.iconLogo' })
+    const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
+    await uploadIconLogoRaw(file, { url: endpoint, token })
+    await $Settings.fetch()
+    refreshLogoUrls()
+    $toast.toastSuccess(t('notification.settings.theming.update.success'))
+  } catch (err) {
+    // uploadError is set by composable
+  }
+}
+
+async function onMainLogoClear() {
+  try {
+    await $SystemAPI.settingsUpdate({
+      values: [{ name: 'ui.mainLogo', value: null }],
+    })
+    await $Settings.fetch()
+    refreshLogoUrls()
+    resetMainLogoUpload()
+    $toast.toastSuccess(t('notification.settings.theming.update.success'))
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.settings.theming.update.error'))(e)
+  }
+}
+
+async function onIconLogoClear() {
+  try {
+    await $SystemAPI.settingsUpdate({
+      values: [{ name: 'ui.iconLogo', value: null }],
+    })
+    await $Settings.fetch()
+    refreshLogoUrls()
+    resetIconLogoUpload()
+    $toast.toastSuccess(t('notification.settings.theming.update.success'))
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.settings.theming.update.error'))(e)
+  }
+}
+
 async function loadSettings() {
   loading.value = true
   try {
+    refreshLogoUrls()
+
     const result = await $SystemAPI.settingsList({ prefix: 'ui.studio' })
     for (const s of result || []) {
       if (s.name === 'ui.studio.themes' && Array.isArray(s.value)) {

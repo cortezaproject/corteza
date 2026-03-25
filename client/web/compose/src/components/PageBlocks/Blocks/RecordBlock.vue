@@ -8,12 +8,7 @@
       {{ $t('block.record.noModule') }}
     </div>
 
-    <div
-      v-else
-      ref="fieldContainer"
-      class="p-4 overflow-y-auto"
-      :class="layoutClass"
-    >
+    <div v-else ref="fieldContainer" class="p-4 overflow-y-auto" :class="layoutClass">
       <div
         v-for="field in displayedFields"
         :key="field.fieldID || field.name"
@@ -21,7 +16,11 @@
         :class="fieldContainerClass"
       >
         <!-- Horizontal layout: label and value side-by-side -->
-        <template v-if="options.horizontalFieldLayoutEnabled && options.recordFieldLayoutOption !== 'noWrap'">
+        <template
+          v-if="
+            options.horizontalFieldLayoutEnabled && options.recordFieldLayoutOption !== 'noWrap'
+          "
+        >
           <div class="grid grid-cols-[auto_1fr] gap-x-4 items-start">
             <div class="flex flex-col min-w-[8rem]">
               <div class="flex items-center gap-1.5">
@@ -83,7 +82,7 @@
 
         <!-- Default vertical layout -->
         <template v-else>
-          <div class="flex items-center gap-1.5 mb-1.5">
+          <div class="flex items-center gap-1.5 mb-1">
             <label
               v-if="field.kind !== 'Bool' || field.options?.switch || !isEditing"
               class="text-sm font-semibold text-primary block"
@@ -325,7 +324,7 @@ function isFieldEditable(field) {
   }
 
   // Non-system: editable if no value expression
-  return !(field.expressions?.value)
+  return !field.expressions?.value
 }
 
 // --- Inline edit ---
@@ -530,7 +529,7 @@ function initializeResizeObserver(el) {
     resizeObserver.value.disconnect()
   }
 
-  resizeObserver.value = new ResizeObserver((entries) => {
+  resizeObserver.value = new ResizeObserver(entries => {
     for (const entry of entries) {
       applyColumnClasses(entry.contentRect.width)
     }
@@ -550,9 +549,9 @@ function applyColumnClasses(width) {
   // Tailwind equivalents for Bootstrap column classes
   const columnClasses = {
     xs: 'w-full px-3 mb-4', // col-12
-    md: 'w-1/2 px-3 mb-4',  // col-6
-    lg: 'w-1/3 px-3 mb-4',  // col-4
-    xl: 'w-1/4 px-3 mb-4',  // col-3
+    md: 'w-1/2 px-3 mb-4', // col-6
+    lg: 'w-1/3 px-3 mb-4', // col-4
+    xl: 'w-1/4 px-3 mb-4', // col-3
   }
 
   let columnClass
@@ -592,7 +591,7 @@ watch(
 // Load reference module when referenceModuleID option changes
 watch(
   () => options.value.referenceModuleID,
-  (moduleID) => {
+  moduleID => {
     if (moduleID) {
       fetchReferenceModule(moduleID)
     } else {
@@ -622,7 +621,7 @@ watch(
 // Evaluate field conditions when record loaded or changes
 watch(
   () => activeRecord.value,
-  (rec) => {
+  rec => {
     if (rec) {
       evaluateExpressions()
     }

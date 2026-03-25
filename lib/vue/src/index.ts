@@ -23,6 +23,7 @@ export { useResourceList } from './composables/useResourceList'
 export { getTheme, setThemes, useTheme } from './composables/useTheme'
 export { useMinDuration, withMinDuration } from './composables/useMinDuration'
 export { useUserResolver } from './composables/useUserResolver'
+export { useFileUpload } from './composables/useFileUpload'
 
 // Export filters
 export * as filters from './filters'

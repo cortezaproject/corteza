@@ -21,6 +21,7 @@ label:
   actions: Actions
   active: Active
   add: Add
+  addAll: Add all
   add-with-plus: + Add
   addNew: Add new
   addValue: Add new value
@@ -66,6 +67,7 @@ label:
   next: Next
   no: No
   noHandle: No handle
+  noResults: No results found
   none: None
   yes: Yes
   now: Now
@@ -80,6 +82,7 @@ label:
   recordPage: Record page
   field: Field
   remove: Remove
+  removeAll: Remove all
   removeDefault: Remove default
   required: Required
   reset: Reset

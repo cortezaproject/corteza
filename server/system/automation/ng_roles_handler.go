@@ -47,11 +47,11 @@ func (h ngRolesHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesLookup",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Role lookup",
-			Description: "Find specific role by ID or handle",
+			Short:       "Find Role",
+			Description: "Look up a role by ID or handle",
 			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
@@ -112,11 +112,11 @@ func (h ngRolesHandler) AddMember() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesAddMember",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role membership add",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user-plus"},
+			Short: "Add Role Member",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -180,11 +180,11 @@ func (h ngRolesHandler) RemoveMember() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesRemoveMember",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role membership remove",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user-times"},
+			Short: "Remove Role Member",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -248,11 +248,11 @@ func (h ngRolesHandler) Create() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesCreate",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"create": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role creator",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "plus"},
+			Short: "Create Role",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -308,11 +308,11 @@ func (h ngRolesHandler) Update() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesUpdate",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"update": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role update",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "pencil"},
+			Short: "Update Role",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -360,11 +360,11 @@ func (h ngRolesHandler) Delete() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesDelete",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role delete",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "trash"},
+			Short: "Delete Role",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -411,11 +411,11 @@ func (h ngRolesHandler) Archive() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesArchive",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"archive": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role archive",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "archive"},
+			Short: "Archive Role",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -462,11 +462,11 @@ func (h ngRolesHandler) Unarchive() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "rolesUnarchive",
 		Kind:   "function",
-		Groups: []string{"System Role"},
+		Groups: []string{"Roles"},
 		Labels: map[string]string{"unarchive": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Role unarchive",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "undo"},
+			Short: "Unarchive Role",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "users"},
 		},
 
 		Parameters: []*atypes.Param{

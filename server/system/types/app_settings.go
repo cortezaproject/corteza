@@ -286,10 +286,11 @@ type (
 				} `json:"profileLinks"`
 
 				PageButtons []struct {
-					Label    string `json:"label"`
-					URL      string `json:"url"`
-					URLMatch string `json:"urlMatch"`
-					NewTab   bool   `json:"newTab"`
+					Label       string `json:"label"`
+					URL         string `json:"url"`
+					URLMatch    string `json:"urlMatch"`
+					NewTab      bool   `json:"newTab"`
+					Description string `json:"description"`
 				} `json:"pageButtons"`
 			} `kv:"topbar,final" json:"topbar"`
 

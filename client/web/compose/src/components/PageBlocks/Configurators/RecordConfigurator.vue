@@ -61,18 +61,17 @@
           {{ $t('block.general.fields') }}
         </h5>
 
-        <PickList
-          v-model="fieldPickerModel"
-          data-key="name"
-          breakpoint="768px"
-          :pt="{
-            list: { style: 'height: 300px' },
-          }"
-        >
-          <template #option="{ option }">
-            {{ option.label || option.name }}
-          </template>
-        </PickList>
+        <CFieldPicker
+          :all-fields="allModuleFields"
+          :model-value="selectedFieldNames"
+          :available-label="$t('field.selector.available')"
+          :selected-label="$t('field.selector.selected')"
+          :select-all-label="$t('field.selector.selectAll')"
+          :unselect-all-label="$t('field.selector.unselectAll')"
+          :search-placeholder="$t('field.selector.search')"
+          :no-items-label="$t('field.no-items-found')"
+          @update:model-value="onFieldPickerUpdate"
+        />
       </div>
 
       <template v-if="isRecordFieldUsedConfigured">
@@ -332,25 +331,10 @@ const allModuleFields = computed(() => {
   return [...regular, ...system]
 })
 
-const availableFields = computed(() => {
-  const selected = new Set(selectedFieldNames.value)
-  return allModuleFields.value.filter(f => !selected.has(f.name))
-})
-
-const selectedFields = computed(() => {
-  return selectedFieldNames.value
-    .map(name => allModuleFields.value.find(f => f.name === name))
-    .filter(Boolean)
-})
-
-const fieldPickerModel = computed({
-  get: () => [availableFields.value, selectedFields.value],
-  set: (val) => {
-    const [, selected] = val
-    selectedFieldNames.value = selected.map(f => f.name)
-    updateOptions('fields', selected.map(f => f.name))
-  },
-})
+function onFieldPickerUpdate(names) {
+  selectedFieldNames.value = names
+  updateOptions('fields', names)
+}
 
 // --- Record display options visibility ---
 // Only show record display section when configured fields include Record-kind fields

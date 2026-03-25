@@ -39,11 +39,11 @@ func (h ngLogHandler) Debug() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "logDebug",
 		Kind:   "function",
-		Groups: []string{"System"},
+		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log debug message",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "file-text"},
+			Short: "Log Debug",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -83,11 +83,11 @@ func (h ngLogHandler) Info() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "logInfo",
 		Kind:   "function",
-		Groups: []string{"System"},
+		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log info message",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "info-circle"},
+			Short: "Log Info",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -127,11 +127,11 @@ func (h ngLogHandler) Warn() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "logWarn",
 		Kind:   "function",
-		Groups: []string{"System"},
+		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log warning message",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "exclamation-triangle"},
+			Short: "Log Warning",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -171,11 +171,11 @@ func (h ngLogHandler) Error() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
 		Ref:    "logError",
 		Kind:   "function",
-		Groups: []string{"System"},
+		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log error message",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "exclamation-circle"},
+			Short: "Log Error",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
