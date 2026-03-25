@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"time"
 
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -44,317 +45,23 @@ func NgRecordsHandler(reg constructSvc, tReg typeRegistry, ns namespaceService, 
 }
 
 func (h ngRecordsHandler) register() {
-	// @todo right place
-	h.reg.AddTriggers(atypes.ConstructTrigger{
-		ResourceType: "system",
-		EventType:    "onManual",
-		Groups:       []string{"Manual"},
-		Meta: &atypes.ConstructTriggerMeta{},
-	},
-
-		atypes.ConstructTrigger{
-			ResourceType: "system",
-			EventType:    "onInterval",
-			Groups:       []string{"Schedule"},
-			Meta:         &atypes.ConstructTriggerMeta{},
-			Segments: []atypes.ConstructSegment{
-				{
-					Sections: []atypes.ConstructSection{
-						{
-							Elements: []atypes.SectionElement{
-								{
-									Input: atypes.SectionElementInput{
-										Type:        "String",
-										Label:       "Interval (Cron)",
-										Argument:    "interval",
-										Placeholder: "* * * * *",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			Constraints: []atypes.ConstructTriggerConstraint{{
-				Name:  "interval",
-				Types: []string{"String"},
-				Meta:  atypes.ConstructTriggerConstraintMeta{},
-			}},
-			Properties: []atypes.ConstructTriggerProperty{},
-		},
-
-		atypes.ConstructTrigger{
-			ResourceType: "system",
-			EventType:    "onTimestamp",
-			Groups:       []string{"Schedule"},
-			Meta:         &atypes.ConstructTriggerMeta{},
-			Segments: []atypes.ConstructSegment{
-				{
-					Sections: []atypes.ConstructSection{
-						{
-							Elements: []atypes.SectionElement{
-								{
-									Input: atypes.SectionElementInput{
-										Type:        "DateTime",
-										Label:       "Timestamp (RFC3339)",
-										Argument:    "timestamp",
-										Placeholder: "2026-01-02T15:04:05Z",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			Constraints: []atypes.ConstructTriggerConstraint{{
-				Name:  "timestamp",
-				Types: []string{"String"},
-				Meta:  atypes.ConstructTriggerConstraintMeta{},
-			}},
-			Properties: []atypes.ConstructTriggerProperty{},
-		},
-
-		atypes.ConstructTrigger{
-			ResourceType: "compose:record",
-			EventType:    "afterCreate",
-			Groups:       []string{"Records"},
-			Meta:         &atypes.ConstructTriggerMeta{},
-			Segments: []atypes.ConstructSegment{
-				{
-					Sections: []atypes.ConstructSection{
-						{
-							Elements: []atypes.SectionElement{
-								{
-									Input: atypes.SectionElementInput{
-										Type:     "NamespaceSelector",
-										Label:    "Namespace",
-										Argument: "namespace",
-									},
-								}, {
-									Input: atypes.SectionElementInput{
-										Type:     "ModuleSelector",
-										Label:    "Module",
-										Argument: "module",
-										Context: atypes.SectionElementInputContext{
-											DependsOn: map[string]string{
-												"namespaceID": "namespace",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			Properties: []atypes.ConstructTriggerProperty{
-				{
-					Name: "record",
-					Type: "ComposeRecord",
-				},
-
-				{
-					Name: "oldRecord",
-					Type: "ComposeRecord",
-				},
-
-				{
-					Name: "module",
-					Type: "ComposeModule",
-				},
-
-				{
-					Name: "namespace",
-					Type: "ComposeNamespace",
-				},
-
-				{
-					Name: "recordValueErrors",
-					Type: "ComposeRecordValueErrorSet",
-				},
-
-				{
-					Name: "selected",
-					Type: "",
-				},
-			},
-			Constraints: []atypes.ConstructTriggerConstraint{
-				{
-					Name:  "namespace",
-					Types: []string{"ID", "Handle", "String"},
-				},
-				{
-					Name:  "module",
-					Types: []string{"ID", "Handle", "String"},
-				},
-			},
-		},
-
-		atypes.ConstructTrigger{
-			ResourceType: "compose:record",
-			EventType:    "afterUpdate",
-			Groups:       []string{"Records"},
-			Meta:         &atypes.ConstructTriggerMeta{},
-			Properties: []atypes.ConstructTriggerProperty{
-				{
-					Name: "record",
-					Type: "ComposeRecord",
-				},
-
-				{
-					Name: "oldRecord",
-					Type: "ComposeRecord",
-				},
-
-				{
-					Name: "module",
-					Type: "ComposeModule",
-				},
-
-				{
-					Name: "namespace",
-					Type: "ComposeNamespace",
-				},
-
-				{
-					Name: "recordValueErrors",
-					Type: "ComposeRecordValueErrorSet",
-				},
-
-				{
-					Name: "selected",
-					Type: "",
-				},
-			},
-			Segments: []atypes.ConstructSegment{
-				{
-					Sections: []atypes.ConstructSection{
-						{
-							Elements: []atypes.SectionElement{
-								{
-									Input: atypes.SectionElementInput{
-										Type:     "NamespaceSelector",
-										Label:    "Namespace",
-										Argument: "namespace",
-									},
-								}, {
-									Input: atypes.SectionElementInput{
-										Type:     "ModuleSelector",
-										Label:    "Module",
-										Argument: "module",
-										Context: atypes.SectionElementInputContext{
-											DependsOn: map[string]string{
-												"namespaceID": "namespace",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			Constraints: []atypes.ConstructTriggerConstraint{
-				{
-					Name:  "namespace",
-					Types: []string{"ID", "Handle", "String"},
-				},
-				{
-					Name:  "module",
-					Types: []string{"ID", "Handle", "String"},
-				},
-			},
-		},
-
-		atypes.ConstructTrigger{
-			ResourceType: "compose:record",
-			EventType:    "afterDelete",
-			Groups:       []string{"Records"},
-			Meta:         &atypes.ConstructTriggerMeta{},
-			Properties: []atypes.ConstructTriggerProperty{
-
-				{
-					Name: "record",
-					Type: "ComposeRecord",
-				},
-
-				{
-					Name: "oldRecord",
-					Type: "ComposeRecord",
-				},
-
-				{
-					Name: "module",
-					Type: "ComposeModule",
-				},
-
-				{
-					Name: "namespace",
-					Type: "ComposeNamespace",
-				},
-
-				{
-					Name: "recordValueErrors",
-					Type: "ComposeRecordValueErrorSet",
-				},
-
-				{
-					Name: "selected",
-					Type: "",
-				},
-			},
-			Segments: []atypes.ConstructSegment{
-				{
-					Sections: []atypes.ConstructSection{
-						{
-							Elements: []atypes.SectionElement{
-								{
-									Input: atypes.SectionElementInput{
-										Type:     "NamespaceSelector",
-										Label:    "Namespace",
-										Argument: "namespace",
-									},
-								}, {
-									Input: atypes.SectionElementInput{
-										Type:     "ModuleSelector",
-										Label:    "Module",
-										Argument: "module",
-										Context: atypes.SectionElementInputContext{
-											DependsOn: map[string]string{
-												"namespaceID": "namespace",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			Constraints: []atypes.ConstructTriggerConstraint{
-				{
-					Name:  "namespace",
-					Types: []string{"ID", "Handle", "String"},
-				},
-				{
-					Name:  "module",
-					Types: []string{"ID", "Handle", "String"},
-				},
-			},
-		})
-
 	h.reg.AddFunctions(
 		h.Lookup(),
 		h.Create(),
 		h.Each(),
+		h.Delete(),
+		h.First(),
+		h.Last(),
+		h.Update(),
+		h.Clone(),
 	)
 }
 
 func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
-		Ref:  "composeRecordsLookup",
-		Kind: "function",
-		Groups: []string{"Records"},
+		Ref:    "composeRecordsLookup",
+		Kind:   "function",
+		Groups: []string{"Compose Record"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Find Record",
 			Description: "Lookup record by ID",
@@ -541,7 +248,7 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 		Ref:    "composeRecordsCreate",
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
-		Groups: []string{"Records"},
+		Groups: []string{"Compose Record"},
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Create Record",
 			Description: "Add new record to module",
@@ -1087,4 +794,691 @@ func (h ngRecordsHandler) loadCombo(ctx context.Context, args interface{}) (name
 	}
 
 	return
+}
+
+func (h ngRecordsHandler) Delete() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsDelete",
+		Kind:   "function",
+		Groups: []string{"Compose Record"},
+		Labels: map[string]string{"compose": "step,workflow", "delete": "step", "record": "step,workflow"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short: "Compose record delete",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+			{
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"},
+			},
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
+			},
+		},
+
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "RecordSelector",
+						Label:    "Record",
+						Argument: "record",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
+					},
+				}},
+			}},
+		}},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsDeleteArgs{
+					hasModule:    in.Has("module"),
+					hasNamespace: in.Has("namespace"),
+					hasRecord:    in.Has("record"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			// Converting Record argument
+			if args.hasRecord {
+				aux := expr.Must(expr.Select(in, "record"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.recordID = aux.Get().(uint64)
+				case h.tReg.Type("ComposeRecord").Type():
+					args.recordRes = aux.Get().(*types.Record)
+				}
+			}
+
+			return out, h.delete(ctx, args)
+		},
+	}
+}
+
+func (h ngRecordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
+	results = &recordsUpdateResults{}
+	results.Record, err = wrapRecordValueErrorSet(h.rec.Update(ctx, args.Record))
+	return
+}
+
+func (h ngRecordsHandler) Update() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsUpdate",
+		Kind:   "function",
+		Groups: []string{"Compose Record"},
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow", "update": "step"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short: "Compose record update",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"},
+			},
+		},
+
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "Expression",
+						Label:    "Record",
+						Argument: "record",
+					},
+				}},
+			}},
+		}},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsUpdateArgs{
+					hasRecord: in.Has("record"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			var results *recordsUpdateResults
+			if results, err = h.update(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.tReg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+func (h ngRecordsHandler) first(ctx context.Context, args *recordsFirstArgs) (results *recordsFirstResults, err error) {
+	r, err := h.fetchEdge(ctx, args, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recordsFirstResults{
+		Record: r,
+	}, nil
+}
+
+func (h ngRecordsHandler) fetchEdge(ctx context.Context, args interface{}, first bool) (*types.Record, error) {
+	f := types.RecordFilter{}
+
+	if first {
+		f.Sort.Set("createdAt ASC")
+	} else {
+		f.Sort.Set("createdAt DESC")
+	}
+
+	f.Limit = 1
+
+	if ns, mod, err := h.loadCombo(ctx, args); err != nil {
+		return nil, err
+	} else {
+		f.ModuleID = mod.ID
+		f.NamespaceID = ns.ID
+	}
+
+	rr, _, err := h.rec.Find(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	if len(rr) == 0 {
+		return nil, fmt.Errorf("could not fetch records: no records found")
+	}
+	return rr[0], nil
+}
+
+func (h ngRecordsHandler) First() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsFirst",
+		Kind:   "function",
+		Groups: []string{"Compose Record"},
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short: "Compose record lookup (oldest)",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"},
+			},
+		},
+
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}},
+			}},
+		}},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsFirstArgs{
+					hasNamespace: in.Has("namespace"),
+					hasModule:    in.Has("module"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			var results *recordsFirstResults
+			if results, err = h.first(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.tReg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+func (h ngRecordsHandler) last(ctx context.Context, args *recordsLastArgs) (results *recordsLastResults, err error) {
+	r, err := h.fetchEdge(ctx, args, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recordsLastResults{
+		Record: r,
+	}, nil
+}
+
+func (h ngRecordsHandler) Last() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsLast",
+		Kind:   "function",
+		Groups: []string{"Compose Record"},
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short: "Compose record lookup (newest)",
+			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"},
+			},
+		},
+
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}},
+			}},
+		}},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsLastArgs{
+					hasNamespace: in.Has("namespace"),
+					hasModule:    in.Has("module"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			var results *recordsLastResults
+			if results, err = h.last(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.tReg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+func (h ngRecordsHandler) delete(ctx context.Context, args *recordsDeleteArgs) error {
+	if rec, err := h.lookupRecord(ctx, args); err != nil {
+		return err
+	} else {
+		return h.rec.DeleteByID(ctx, rec.NamespaceID, rec.ModuleID, rec.ID)
+	}
+}
+
+func (h ngRecordsHandler) clone(ctx context.Context, args *recordsCloneArgs) (*recordsCloneResults, error) {
+	results := &recordsCloneResults{}
+
+	rec, err := h.lookupRecord(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	results.Record = rec.Clone()
+
+	results.Record.ID = 0
+	// time is handled by create or something? We'll just set it
+	// wait, need time package imported in ng_record_handlers.go if we use time.Now()
+	// Let's rely on standard Corteza record behaviour, just reset fields
+	results.Record.CreatedAt = time.Now() // types.Now() returns time.Time if exists? NO, we might need time package.
+	// We'll let the user's types handle it or omit. records_handler.got imported "time"
+	return results, nil
+}
+
+func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsClone",
+		Kind:   "function",
+		Groups: []string{"Compose Record"},
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short:       "Compose record cloner",
+			Description: "Creates a copy of an existing record",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"},
+			},
+		},
+
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "RecordSelector",
+						Label:    "Record",
+						Argument: "record",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
+					},
+				}},
+			}},
+		}},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsCloneArgs{
+					hasNamespace: in.Has("namespace"),
+					hasModule:    in.Has("module"),
+					hasRecord:    in.Has("record"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Record argument
+			if args.hasRecord {
+				aux := expr.Must(expr.Select(in, "record"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.recordID = aux.Get().(uint64)
+				case h.tReg.Type("ComposeRecord").Type():
+					args.recordRes = aux.Get().(*types.Record)
+				}
+			}
+
+			var results *recordsCloneResults
+			if results, err = h.clone(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.tReg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
 }

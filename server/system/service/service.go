@@ -315,7 +315,20 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultRole,
 	)
 
+	automation.NgUsersHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultUser,
+		DefaultRole,
+	)
+
 	automation.TemplatesHandler(
+		automationService.Registry(),
+		DefaultRenderer,
+	)
+
+	automation.NgTemplatesHandler(
+		automationService.ConstructLibrary(),
 		automationService.Registry(),
 		DefaultRenderer,
 	)
@@ -325,7 +338,20 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultRole,
 		DefaultUser,
 	)
+
+	automation.NgRolesHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultRole,
+		DefaultUser,
+	)
 	automation.RemindersHandler(
+		automationService.Registry(),
+		DefaultReminder,
+	)
+
+	automation.NgRemindersHandler(
+		automationService.ConstructLibrary(),
 		automationService.Registry(),
 		DefaultReminder,
 	)
@@ -339,6 +365,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	// Register notification handler
 	automation.NotificationHandler(
+		automationService.Registry(),
+		DefaultNotification,
+		DefaultUser,
+		log,
+	)
+
+	automation.NgNotificationHandler(
+		automationService.ConstructLibrary(),
 		automationService.Registry(),
 		DefaultNotification,
 		DefaultUser,

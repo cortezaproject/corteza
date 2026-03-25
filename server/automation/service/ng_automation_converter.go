@@ -326,7 +326,6 @@ func wirePaths(
 		}
 	}
 
-
 	// Wire gateway paths in sorted order (conditions first, else last).
 	for parentID, gps := range gwPaths {
 		sorted := sortGatewayPaths(gps)

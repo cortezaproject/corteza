@@ -1171,6 +1171,7 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 			tt = append(tt, atypes.ConstructTrigger{
 				ResourceType: rt,
 				EventType:    wh.Event,
+				Groups:       []string{cc.Connection.Meta.Short},
 				Properties:   props,
 				Meta: &atypes.ConstructTriggerMeta{
 					Short: fmt.Sprintf("%s: %s", res.Handle, wh.Event),

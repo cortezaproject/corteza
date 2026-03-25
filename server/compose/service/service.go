@@ -213,7 +213,21 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultRecord,
 	)
 
+	automation.NgAttachmentHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultAttachment,
+	)
+
 	automation.RecordsHandler(
+		automationService.Registry(),
+		DefaultNamespace,
+		DefaultModule,
+		DefaultRecord,
+	)
+
+	automation.NgRecordsHandler(
+		automationService.ConstructLibrary(),
 		automationService.Registry(),
 		DefaultNamespace,
 		DefaultModule,
@@ -236,7 +250,23 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultAttachment,
 	)
 
+	automation.NgAttachmentHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultAttachment,
+	)
+
 	automation.NotificationHandler(
+		automationService.Registry(),
+		systemService.DefaultNotification,
+		systemService.DefaultUser,
+		DefaultNamespace,
+		DefaultModule,
+		log,
+	)
+
+	automation.NgNotificationHandler(
+		automationService.ConstructLibrary(),
 		automationService.Registry(),
 		systemService.DefaultNotification,
 		systemService.DefaultUser,
