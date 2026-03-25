@@ -38,6 +38,8 @@ func loadTemplates(rTpl *template.Template, rootDir string) (*template.Template,
 		}
 
 		name := path[pfx:]
+		// Normalize path separators to forward slashes for cross-platform compatibility
+		name = strings.ReplaceAll(name, "\\", "/")
 		rTpl, err = rTpl.New(name).Parse(string(b))
 
 		return err

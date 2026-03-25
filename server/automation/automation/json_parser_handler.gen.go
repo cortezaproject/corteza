@@ -13,16 +13,6 @@ import (
 
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
-)
-
-var _ wfexec.ExecResponse
-
-type (
-	modulesHandlerRegistry interface {
-		AddFunctions(ff ...*atypes.Function)
-		Type(ref string) expr.Type
-	}
 )
 
 func (h jsonParserHandler) Parse() *atypes.Function {
@@ -31,8 +21,8 @@ func (h jsonParserHandler) Parse() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"json": "step", "parser": "step"},
 		Meta: &atypes.FunctionMeta{
-			Short:       "Parse JSON text and extract fields",
-			Description: "Parses JSON text (supports partial JSON) and extracts specified fields. If fields are not specified, returns entire JSON object.",
+			Short:       "JSON Parse string into a JSON object",
+			Description: "Takes a JSON string and returns the parsed JSON value. The result can be an object or array depending on the input.",
 		},
 
 		Parameters: []*atypes.Param{
@@ -40,16 +30,12 @@ func (h jsonParserHandler) Parse() *atypes.Function {
 				Name:  "jsonText",
 				Types: []string{"String"}, Required: true,
 			},
-			{
-				Name:  "fields",
-				Types: []string{"Slice"}, Required: false,
-			},
 		},
 
 		Results: []*atypes.Param{
 			{
-				Name:  "data",
-				Types: []string{"Object"},
+				Name:  "result",
+				Types: []string{"Any"},
 			},
 			{
 				Name:  "error",
@@ -61,7 +47,6 @@ func (h jsonParserHandler) Parse() *atypes.Function {
 			var (
 				args = &jsonParserParseArgs{
 					hasJsonText: in.Has("jsonText"),
-					hasFields:   in.Has("fields"),
 				}
 			)
 
@@ -77,19 +62,6 @@ func (h jsonParserHandler) Parse() *atypes.Function {
 				}
 			}
 
-			// Converting fields argument
-			if args.hasFields {
-				aux := expr.Must(expr.Select(in, "fields"))
-				if sliceVal, ok := aux.Get().([]interface{}); ok {
-					args.Fields = make([]string, len(sliceVal))
-					for i, v := range sliceVal {
-						if s, ok := v.(string); ok {
-							args.Fields[i] = s
-						}
-					}
-				}
-			}
-
 			var results *jsonParserParseResults
 			if results, err = h.parse(ctx, args); err != nil {
 				return
@@ -98,14 +70,200 @@ func (h jsonParserHandler) Parse() *atypes.Function {
 			out = &expr.Vars{}
 
 			{
-				// converting results.Data (map[string]interface{}) to Object
+				// converting results.Result (interface{}) to Any
 				var (
 					tval expr.TypedValue
 				)
 
-				if tval, err = h.reg.Type("Object").Cast(results.Data); err != nil {
+				if tval, err = h.reg.Type("Any").Cast(results.Result); err != nil {
 					return
-				} else if err = expr.Assign(out, "data", tval); err != nil {
+				} else if err = expr.Assign(out, "result", tval); err != nil {
+					return
+				}
+			}
+			{
+				// converting results.Error (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Error); err != nil {
+					return
+				} else if err = expr.Assign(out, "error", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+func (h jsonParserHandler) Stringify() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "jsonStringify",
+		Kind:   "function",
+		Labels: map[string]string{"json": "step", "stringify": "step"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "JSON Convert a object to a string",
+			Description: "Takes a JSON object (Any type) and returns a JSON string representation.",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "jsonObject",
+				Types: []string{"Any"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				Name:  "result",
+				Types: []string{"String"},
+			},
+			{
+				Name:  "error",
+				Types: []string{"String"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &jsonParserStringifyArgs{
+					hasJsonObject: in.Has("jsonObject"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting jsonObject argument
+			if args.hasJsonObject {
+				aux := expr.Must(expr.Select(in, "jsonObject"))
+				args.JsonObject = aux.Get()
+			}
+
+			var results *jsonParserStringifyResults
+			if results, err = h.stringify(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Result (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Result); err != nil {
+					return
+				} else if err = expr.Assign(out, "result", tval); err != nil {
+					return
+				}
+			}
+			{
+				// converting results.Error (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Error); err != nil {
+					return
+				} else if err = expr.Assign(out, "error", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+func (h jsonParserHandler) Template() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "jsonTemplate",
+		Kind:   "function",
+		Labels: map[string]string{"json": "step", "template": "step"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "JSON Template with variable substitution",
+			Description: "Takes a JSON template string with ${var.key} placeholders and a vars map. Substitutes the placeholders with values from vars and returns the final JSON string. Supports dot-notation for nested values (e.g., ${var.filename}, ${var.data.content}).",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:     "template",
+				Types:    []string{"String"},
+				Required: true,
+			},
+			{
+				Name:     "vars",
+				Types:    []string{"Vars"},
+				Required: false,
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				Name:  "result",
+				Types: []string{"String"},
+			},
+			{
+				Name:  "error",
+				Types: []string{"String"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &jsonParserTemplateArgs{
+					hasVars: in.Has("vars"),
+				}
+			)
+
+			// Extract template manually
+			if in.Has("template") {
+				aux := expr.Must(expr.Select(in, "template"))
+				if t, ok := aux.Get().(string); ok {
+					args.Template = t
+				}
+			}
+
+			// Extract vars manually, unwrapping TypedValue
+			if args.hasVars {
+				aux := expr.Must(expr.Select(in, "vars"))
+				switch m := aux.Get().(type) {
+				case *expr.Vars:
+					args.Vars = make(map[string]interface{})
+					m.Each(func(k string, v expr.TypedValue) error {
+						args.Vars[k] = v.Get()
+						return nil
+					})
+				case map[string]expr.TypedValue:
+					args.Vars = make(map[string]interface{})
+					for k, v := range m {
+						args.Vars[k] = v.Get()
+					}
+				}
+			}
+
+			var results *jsonParserTemplateResults
+			if results, err = h.template(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Result (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Result); err != nil {
+					return
+				} else if err = expr.Assign(out, "result", tval); err != nil {
 					return
 				}
 			}

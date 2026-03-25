@@ -92,7 +92,7 @@ functions:
 
   getBase64:
     meta:
-      short: Get attachment as base64 string
+      short: Attachment lookup base64
     labels:
       <<: *labels
       base64-attachment: "step"
