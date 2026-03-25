@@ -8,7 +8,7 @@ import type { Edge, Node } from '@vue-flow/core'
 import dagre from 'dagre'
 
 import type { AutomationFunction, AutomationTrigger } from '@/stores/automation'
-import { TRIGGER_META, DEFAULT_TRIGGER_ICON } from '@/utils/flow-constants'
+import { getTriggerMeta, DEFAULT_TRIGGER_ICON } from '@/utils/flow-constants'
 
 type NgAutomation = automation.NgAutomation
 type NgAutomationTrigger = automation.NgAutomationTrigger
@@ -91,7 +91,9 @@ export function automationToVueFlow(
       data: {
         label: trigger.meta?.short || trigger.eventType || 'Trigger',
         description: trigger.meta?.description || '',
-        icon: normalizeIcon(trigger.meta?.icon) || getTriggerIcon(trigger.eventType, catalog),
+        icon:
+          normalizeIcon(trigger.meta?.icon) ||
+          getTriggerIcon(trigger.eventType, catalog, trigger.resourceType),
         nodeType: trigger.eventType || 'trigger',
         config: trigger.input || {},
         arguments: [],
@@ -504,13 +506,22 @@ export function getAllRefs(state: VueFlowState): string[] {
 }
 
 // Helper: Resolve trigger icon from catalog, TRIGGER_META, or fallback
-function getTriggerIcon(eventType?: string, catalog?: ConversionCatalog): IconDef {
+function getTriggerIcon(
+  eventType?: string,
+  catalog?: ConversionCatalog,
+  resourceType?: string,
+): IconDef {
   if (catalog?.triggers && eventType) {
     const catalogTrigger = catalog.triggers.find(t => t.eventType === eventType)
     const catalogIcon = normalizeIcon(catalogTrigger?.meta?.icon)
     if (catalogIcon) return catalogIcon
   }
-  if (eventType && TRIGGER_META[eventType]?.icon) return TRIGGER_META[eventType].icon
+
+  if (eventType) {
+    const meta = getTriggerMeta(eventType, resourceType)
+    if (meta?.icon) return meta.icon
+  }
+
   return DEFAULT_TRIGGER_ICON
 }
 
@@ -531,9 +542,16 @@ function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCa
 
 // Operator labels for human-readable condition summaries
 const OP_LABELS: Record<string, string> = {
-  eq: 'equals', ne: 'not equals', lt: 'less than', lte: 'at most', gt: 'greater than', gte: 'at least',
-  isNull: 'is empty', isNotNull: 'is not empty',
-  and: 'AND', or: 'OR',
+  eq: 'equals',
+  ne: 'not equals',
+  lt: 'less than',
+  lte: 'at most',
+  gt: 'greater than',
+  gte: 'at least',
+  isNull: 'is empty',
+  isNotNull: 'is not empty',
+  and: 'AND',
+  or: 'OR',
 }
 
 /**
@@ -575,7 +593,9 @@ export function conditionToShort(node: Record<string, unknown>): string {
   return ref
 }
 
-export type ConditionSegment = { type: 'text'; value: string } | { type: 'ref'; value: string; scope: string }
+export type ConditionSegment =
+  | { type: 'text'; value: string }
+  | { type: 'ref'; value: string; scope: string }
 
 /**
  * Convert an ASTNode condition to an array of segments for rich rendering.

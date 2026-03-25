@@ -82,7 +82,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TaqIcon from '../common/TaqIcon.vue'
 import { useAutomationStore } from '../../stores/automation'
-import { DEFAULT_ACTION_ICON, DEFAULT_TRIGGER_ICON, TRIGGER_META } from '../../utils/flow-constants'
+import { DEFAULT_ACTION_ICON, DEFAULT_TRIGGER_ICON, getTriggerMeta } from '../../utils/flow-constants'
 
 const { t } = useI18n()
 const store = useAutomationStore()
@@ -126,15 +126,14 @@ function getGroupIcon(groupName) {
 
 // Helper to map a trigger to a node format
 function mapTriggerNode(trigger) {
-  const meta = TRIGGER_META[trigger.eventType]
+  const meta = getTriggerMeta(trigger.eventType, trigger.resourceType)
   const icon = normalizeIcon(trigger.meta?.icon) || meta?.icon || DEFAULT_TRIGGER_ICON
-  const i18nPrefix = meta ? `builder.nodePicker.nodes.triggers.${meta.i18nKey}` : ''
   return {
     id: `${trigger.resourceType}:${trigger.eventType}`,
     type: 'trigger',
-    label: trigger.meta?.short || (i18nPrefix ? t(`${i18nPrefix}.label`) : trigger.eventType),
+    label: trigger.meta?.short || trigger.eventType,
     icon,
-    description: trigger.meta?.description || (i18nPrefix ? t(`${i18nPrefix}.description`) : ''),
+    description: trigger.meta?.description || '',
     eventType: trigger.eventType,
     resourceType: trigger.resourceType,
     group: trigger.groups?.[0] || 'General',
