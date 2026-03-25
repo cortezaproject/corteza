@@ -331,8 +331,13 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 
 	// If the loop exhausted iterations without a final text response, do one more call to get it.
+	// Pass nil tools so the LLM is forced to respond with text instead of calling more tools.
 	if finalResponse == "" && ctx.Err() == nil {
-		if llmResp, llmErr := r.llm.Chat(ctx, systemPrompt, conversation.Messages, tools, config); llmErr != nil {
+		finalizationMessages := append(conversation.Messages, types.AiConversationMessage{
+			Role:    "user",
+			Content: "Please summarise what you found and give your final response now.",
+		})
+		if llmResp, llmErr := r.llm.Chat(ctx, systemPrompt, finalizationMessages, nil, config); llmErr != nil {
 			return nil, errLLM(llmErr)
 		} else {
 			finalResponse = llmResp.Text
@@ -365,14 +370,17 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		return nil, fmt.Errorf("failed to save conversation: %w", err)
 	}
 
-	return &AgentResponse{
+	resp := &AgentResponse{
 		Output:         finalResponse,
 		ConversationID: conversation.ID,
 		ToolCalls:      executedTools,
 		Decisions:      decisions,
 		Usage:          usage,
-		Context: systemPrompt,
-	}, nil
+	}
+	if req.ConversationID == 0 {
+		resp.Context = systemPrompt
+	}
+	return resp, nil
 }
 
 func validateAgent(agent *types.Agent) error {

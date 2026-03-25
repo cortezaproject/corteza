@@ -120,7 +120,7 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 
 	httpResp, err := (&http.Client{Timeout: timeout}).Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("LLM request failed: %w", err)
+		return nil, fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer httpResp.Body.Close()
 
@@ -135,11 +135,17 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 				Code    string `json:"code"`
 				Message string `json:"message"`
 			} `json:"error"`
+			Message string `json:"message"` // some providers put message at top level
 		}
-		if json.Unmarshal(respBody, &errResp) == nil && errResp.Error.Code != "" {
-			return nil, fmt.Errorf("%s (HTTP %d)", errResp.Error.Code, httpResp.StatusCode)
+		if json.Unmarshal(respBody, &errResp) == nil {
+			if errResp.Error.Message != "" {
+				return nil, fmt.Errorf("%s (HTTP %d)", errResp.Error.Message, httpResp.StatusCode)
+			}
+			if errResp.Message != "" {
+				return nil, fmt.Errorf("%s (HTTP %d)", errResp.Message, httpResp.StatusCode)
+			}
 		}
-		return nil, fmt.Errorf("HTTP %d", httpResp.StatusCode)
+		return nil, fmt.Errorf("HTTP %d: %s", httpResp.StatusCode, string(respBody))
 	}
 
 	var oaiResp openaiResponse
@@ -216,10 +222,8 @@ func toOpenAIMessages(messages []Message) []openaiMessage {
 			ToolCallID: m.ToolCallID,
 		}
 
-		if m.Content != "" {
-			c := m.Content
-			msg.Content = &c
-		}
+		c := m.Content
+		msg.Content = &c
 
 		if len(m.ToolCalls) > 0 {
 			msg.ToolCalls = make([]openaiToolCall, len(m.ToolCalls))

@@ -49,7 +49,7 @@ type (
 		ToolCalls      []ToolCallInfo `json:"toolCalls"`
 		Decisions      []DecisionInfo `json:"decisions"`
 		Usage          Usage          `json:"usage"`
-		Context        string         `json:"context"`
+		Context        string         `json:"context,omitempty"`
 	}
 
 	DecisionInfo struct {

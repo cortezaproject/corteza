@@ -118,7 +118,7 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 
 	httpResp, err := (&http.Client{Timeout: timeout}).Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("LLM request failed: %w", err)
+		return nil, fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer httpResp.Body.Close()
 
@@ -128,7 +128,15 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 	}
 
 	if httpResp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("LLM API returned status %d: %s", httpResp.StatusCode, string(respBody))
+		var errResp struct {
+			Error struct {
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+		if json.Unmarshal(respBody, &errResp) == nil && errResp.Error.Message != "" {
+			return nil, fmt.Errorf("%s (HTTP %d)", errResp.Error.Message, httpResp.StatusCode)
+		}
+		return nil, fmt.Errorf("HTTP %d: %s", httpResp.StatusCode, string(respBody))
 	}
 
 	var aResp anthropicResponse

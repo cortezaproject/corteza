@@ -38,16 +38,15 @@ func errLLM(err error) error {
 }
 
 func errMCP(err error) error {
-	return errors.New(errors.KindExternal, "MCP error",
+	return errors.New(errors.KindExternal, "MCP error: "+err.Error(),
 		errors.Meta("code", "mcp_error"),
 		errors.Wrap(err),
 	)
 }
 
 func errLimitExceeded(reason string) error {
-	return errors.New(errors.KindInvalidData, "limit exceeded",
+	return errors.New(errors.KindInvalidData, "limit exceeded: "+reason,
 		errors.Meta("code", "limit_exceeded"),
-		errors.Meta("reason", reason),
 	)
 }
 
