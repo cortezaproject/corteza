@@ -224,7 +224,19 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
-		svc.registerOperations([]types.ConfiguredConnection{*res})
+		// Load all active configured connections for the same source connection
+		// so that registerOperations can merge them into a single function entry
+		// with all configurationID options. Without this, each Enable call would
+		// produce a duplicate entry containing only the newly-enabled CC.
+		siblings, _, _ := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+			ConnectionID: res.ConnectionID,
+			Status:       []string{"active"},
+		})
+		allCCs := make([]types.ConfiguredConnection, 0, len(siblings))
+		for _, s := range siblings {
+			allCCs = append(allCCs, *s)
+		}
+		svc.registerOperations(allCCs)
 		svc.registerWebhookTriggers(*res)
 		return nil
 	}()

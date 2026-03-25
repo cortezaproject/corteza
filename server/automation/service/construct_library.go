@@ -34,7 +34,19 @@ func (r *constructRegistry) AddFunctions(ff ...types.ConstructFunction) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	r.functions = append(r.functions, ff...)
+	for _, fn := range ff {
+		replaced := false
+		for i, existing := range r.functions {
+			if existing.Ref == fn.Ref {
+				r.functions[i] = fn
+				replaced = true
+				break
+			}
+		}
+		if !replaced {
+			r.functions = append(r.functions, fn)
+		}
+	}
 }
 
 func (r *constructRegistry) AddTriggers(tt ...types.ConstructTrigger) {
