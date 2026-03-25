@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
@@ -22,14 +23,32 @@ type (
 	jsonParserParseArgs struct {
 		hasJsonText bool
 		JsonText    string
-
-		hasFields bool
-		Fields    []string
 	}
 
 	jsonParserParseResults struct {
-		Data  map[string]interface{}
-		Error string
+		Result interface{}
+		Error  string
+	}
+
+	jsonParserStringifyArgs struct {
+		hasJsonObject bool
+		JsonObject    interface{}
+	}
+
+	jsonParserStringifyResults struct {
+		Result string
+		Error  string
+	}
+
+	jsonParserTemplateArgs struct {
+		hasVars  bool
+		Template string
+		Vars     map[string]interface{}
+	}
+
+	jsonParserTemplateResults struct {
+		Result string
+		Error  string
 	}
 )
 
@@ -45,136 +64,251 @@ func JsonParserHandler(reg jsonParserHandlerRegistry) *jsonParserHandler {
 func (h jsonParserHandler) register() {
 	h.reg.AddFunctions(
 		h.Parse(),
+		h.Stringify(),
+		h.Template(),
 	)
 }
 
+// parse implements the jsonParse function
 func (h jsonParserHandler) parse(ctx context.Context, args *jsonParserParseArgs) (*jsonParserParseResults, error) {
-	r := &jsonParserParseResults{
-		Data: make(map[string]interface{}),
-	}
+	r := &jsonParserParseResults{}
 
 	if args.JsonText == "" {
-		r.Error = "jsonText argument is required and cannot be empty"
+		r.Error = "jsonText is empty"
 		return r, nil
 	}
 
-	// Trim and parse JSON text
-	jsonText := strings.TrimSpace(args.JsonText)
-	var parsed map[string]interface{}
-	err := json.Unmarshal([]byte(jsonText), &parsed)
-	if err != nil {
-		// Try to complete partial JSON (using a simplified version of bifrost's parser)
-		completedJson := completePartialJSON(jsonText)
-		err = json.Unmarshal([]byte(completedJson), &parsed)
+	var result interface{}
+	if err := json.Unmarshal([]byte(strings.TrimSpace(args.JsonText)), &result); err != nil {
+		r.Error = err.Error()
+		return r, nil
+	}
+
+	r.Result = result
+	return r, nil
+}
+
+// Smart stringify: if input is already valid JSON string, return as-is
+func (h jsonParserHandler) stringify(ctx context.Context, args *jsonParserStringifyArgs) (*jsonParserStringifyResults, error) {
+
+	r := &jsonParserStringifyResults{}
+
+	if args.JsonObject == nil {
+		r.Error = "jsonObject is empty"
+		return r, nil
+	}
+
+	// If the value is already a string, check if it's valid JSON
+	if s, ok := args.JsonObject.(string); ok {
+		// Trim whitespace and try to parse
+		trimmed := strings.TrimSpace(s)
+		if len(trimmed) == 0 {
+			r.Error = "jsonObject is empty"
+			return r, nil
+		}
+
+		// Preprocess JS-like object literals into valid JSON
+		if strings.HasPrefix(trimmed, "{") || strings.HasPrefix(trimmed, "[") {
+			trimmed = preprocessJSObjectToJSON(trimmed)
+		}
+
+		var probe interface{}
+		if err := json.Unmarshal([]byte(trimmed), &probe); err == nil {
+			// Already valid JSON string - return as-is (no extra encoding)
+			r.Result = trimmed
+			return r, nil
+		}
+		// Plain text string - convert to JSON string (wrap in quotes and escape)
+		b, err := json.Marshal(s)
 		if err != nil {
 			r.Error = err.Error()
 			return r, nil
 		}
+		r.Result = string(b)
+		return r, nil
 	}
 
-	if args.hasFields && len(args.Fields) > 0 {
-		// Extract requested fields
-		for _, field := range args.Fields {
-			field = strings.TrimSpace(field)
-			if field == "" {
-				continue
-			}
-
-			// Handle nested fields using dot notation
-			value, exists := getNestedField(parsed, strings.Split(field, "."))
-			if exists {
-				r.Data[field] = value
-			}
-		}
-	} else {
-		// Return entire parsed JSON
-		r.Data = parsed
+	// Not a string (object, array, number, bool, null) - marshal normally
+	b, err := json.Marshal(args.JsonObject)
+	if err != nil {
+		r.Error = err.Error()
+		return r, nil
 	}
 
+	r.Result = string(b)
 	return r, nil
 }
 
-// completePartialJSON completes partial JSON strings (simplified implementation)
-func completePartialJSON(s string) string {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return "{}"
-	}
+// substituteVariables replaces ${varName} with values from the vars map
+// Supports dot-notation for nested values (e.g., ${var.filename}, ${var.data.content})
+// Also supports any prefix like ${jsonVars.filename}, ${data.content} etc.
+func substituteVariables(s string, vars map[string]interface{}) string {
+	var result strings.Builder
+	i := 0
+	for i < len(s) {
+		if s[i] == '$' && i+1 < len(s) && s[i+1] == '{' {
+			// Find closing brace
+			end := strings.Index(s[i+2:], "}")
+			if end != -1 {
+				placeholder := s[i+2 : i+2+end]
 
-	// Quick check: if it starts with { or [, it might be JSON
-	if s[0] != '{' && s[0] != '[' {
-		return s
-	}
+				// Strip any leading "word." prefix (e.g. var., jsonVars., data.)
+				// Use the part after the FIRST dot as the lookup key,
+				// but preserve dot-notation for nested maps
+				key := placeholder
+				if dotIdx := strings.Index(placeholder, "."); dotIdx != -1 {
+					key = placeholder[dotIdx+1:]
+				}
 
-	var stack []byte
-	inString := false
-	escaped := false
-
-	for i := 0; i < len(s); i++ {
-		char := s[i]
-
-		if escaped {
-			escaped = false
-			continue
-		}
-
-		if char == '\\' {
-			escaped = true
-			continue
-		}
-
-		if char == '"' {
-			inString = !inString
-			continue
-		}
-
-		if inString {
-			continue
-		}
-
-		switch char {
-		case '{', '[':
-			if char == '{' {
-				stack = append(stack, '}')
-			} else {
-				stack = append(stack, ']')
-			}
-		case '}', ']':
-			if len(stack) > 0 && stack[len(stack)-1] == char {
-				stack = stack[:len(stack)-1]
+				if val := getNestedValue(vars, key); val != nil {
+					// Convert value to string and sanitize for JSON
+					strVal := fmt.Sprintf("%v", val)
+					result.WriteString(sanitizeForJSON(strVal))
+				} else {
+					// Variable not found - leave as-is
+					result.WriteString("${" + placeholder + "}")
+				}
+				i += end + 3 // Skip ${...}
+				continue
 			}
 		}
+		result.WriteByte(s[i])
+		i++
 	}
+	return result.String()
+}
 
-	// Close any unclosed strings
-	if inString {
-		s += "\""
-	}
+// getNestedValue retrieves a value from a map using dot-notation (e.g., "filename" or "data.content")
+func getNestedValue(vars map[string]interface{}, key string) interface{} {
+	parts := strings.Split(key, ".")
+	var current interface{} = vars
 
-	// Add closing characters in reverse order
-	for i := len(stack) - 1; i >= 0; i-- {
-		s += string(stack[i])
+	for _, part := range parts {
+		if currentMap, ok := current.(map[string]interface{}); ok {
+			current = currentMap[part]
+			if current == nil {
+				return nil
+			}
+		} else {
+			return nil
+		}
 	}
+	return current
+}
+
+// sanitizeForJSON escapes special characters for use in JSON strings
+func sanitizeForJSON(s string) string {
+	var result strings.Builder
+	for _, c := range s {
+		switch c {
+		case '"':
+			result.WriteString(`\"`)
+		case '\\':
+			result.WriteString(`\\`)
+		case '\n':
+			result.WriteString(`\n`)
+		case '\r':
+			// skip
+		case '\t':
+			result.WriteString(`\t`)
+		default:
+			result.WriteRune(c)
+		}
+	}
+	return result.String()
+}
+
+// preprocessJSObjectToJSON converts JavaScript-like object literals to valid JSON
+func preprocessJSObjectToJSON(s string) string {
+	// Step 1: Replace backtick strings with proper JSON double-quoted strings
+	s = replaceBacktickStrings(s)
+
+	// Step 2: Fix bare backslashes (e.g. openai\gpt -> openai\\gpt)
+	// Only fix backslashes that are NOT valid JSON escape sequences
+	s = fixBareBackslashes(s)
 
 	return s
 }
 
-// getNestedField retrieves a field from nested map using path
-func getNestedField(data map[string]interface{}, path []string) (interface{}, bool) {
-	current := interface{}(data)
-
-	for _, key := range path {
-		switch v := current.(type) {
-		case map[string]interface{}:
-			val, exists := v[key]
-			if !exists {
-				return nil, false
+// replaceBacktickStrings converts backtick strings to JSON double-quoted strings
+func replaceBacktickStrings(s string) string {
+	var result strings.Builder
+	i := 0
+	for i < len(s) {
+		if s[i] == '`' {
+			// Find closing backtick
+			result.WriteByte('"')
+			i++
+			for i < len(s) && s[i] != '`' {
+				switch s[i] {
+				case '\n':
+					result.WriteString(`\n`)
+				case '\r':
+					// skip \r, handle \r\n as just \n
+				case '"':
+					result.WriteString(`\"`)
+				case '\\':
+					result.WriteString(`\\`)
+				default:
+					result.WriteByte(s[i])
+				}
+				i++
 			}
-			current = val
-		default:
-			return nil, false
+			result.WriteByte('"')
+			i++ // skip closing backtick
+		} else {
+			result.WriteByte(s[i])
+			i++
 		}
 	}
+	return result.String()
+}
 
-	return current, true
+// fixBareBackslashes escapes bare backslashes that aren't valid JSON escapes
+func fixBareBackslashes(s string) string {
+	// Valid JSON escape chars after backslash
+	validEscapes := map[byte]bool{
+		'"': true, '\\': true, '/': true, 'b': true,
+		'f': true, 'n': true, 'r': true, 't': true, 'u': true,
+	}
+
+	var result strings.Builder
+	i := 0
+	for i < len(s) {
+		if s[i] == '\\' && i+1 < len(s) {
+			if validEscapes[s[i+1]] {
+				// Valid escape sequence - keep as-is
+				result.WriteByte(s[i])
+			} else {
+				// Bare backslash - escape it
+				result.WriteString(`\\`)
+			}
+		} else {
+			result.WriteByte(s[i])
+		}
+		i++
+	}
+	return result.String()
+}
+
+// template implements the jsonTemplate function with variable substitution
+func (h jsonParserHandler) template(ctx context.Context, args *jsonParserTemplateArgs) (*jsonParserTemplateResults, error) {
+	r := &jsonParserTemplateResults{}
+
+	if args.Template == "" {
+		r.Error = "template is empty"
+		return r, nil
+	}
+
+	// If no vars provided, just return the template as-is
+	if args.Vars == nil {
+		r.Result = args.Template
+		return r, nil
+	}
+
+	// Perform variable substitution
+	result := substituteVariables(args.Template, args.Vars)
+	r.Result = result
+
+	return r, nil
 }
