@@ -508,7 +508,7 @@ func (h attachmentHandler) GetBase64() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"attachment": "step,workflow", "base64-attachment": "step"},
 		Meta: &atypes.FunctionMeta{
-			Short:       "Get attachment as base64 string with metadata",
+			Short:       "Attachment lookup base64 string with metadata",
 			Description: "Reads attachment content and returns it as a base64 encoded string with filename, extension, and mimeType",
 		},
 
