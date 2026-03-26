@@ -394,37 +394,6 @@ func (svc *connection) deriveParams(c *types.Connection) {
 		tt = append(tt, scopedTemplate{[]string{"service", "auth"}, p})
 	}
 
-	// Standard operations
-	collectStdOp := func(name string, op *types.ConnectionHTTPAction) {
-		if op == nil {
-			return
-		}
-		for _, t := range collectHTTPActionTemplates(op) {
-			tt = append(tt, scopedTemplate{[]string{"standardOperations", name}, t})
-		}
-	}
-
-	// Resource-level templates
-	for _, r := range c.Resources {
-		tt = append(tt, scopedTemplate{[]string{"resources", r.Handle, "endpoint"}, r.Endpoint})
-
-		collectStdOp("list", r.Operations.List)
-		collectStdOp("read", r.Operations.Read)
-		collectStdOp("create", r.Operations.Create)
-		collectStdOp("update", r.Operations.Update)
-		collectStdOp("delete", r.Operations.Delete)
-	}
-
-	// Custom operations
-	for _, op := range c.Operations {
-		for _, step := range op.Steps {
-			for _, t := range collectHTTPActionTemplates(step.HTTP) {
-				// @todo scope to given step
-				tt = append(tt, scopedTemplate{[]string{"operations", op.Handle}, t})
-			}
-		}
-	}
-
 	// Extract unique params (keyed by scope+name)
 	seen := make(map[string]bool)
 	var params []types.ConnectionDerivedParam
@@ -468,17 +437,6 @@ func (svc *connection) deriveParams(c *types.Connection) {
 	}
 
 	c.DerivedParams = params
-}
-
-func collectHTTPActionTemplates(a *types.ConnectionHTTPAction) []types.ConnectionTemplate {
-	tt := []types.ConnectionTemplate{a.Path, a.BodyTemplate}
-	for _, h := range a.Headers {
-		tt = append(tt, h)
-	}
-	for _, q := range a.QueryParams {
-		tt = append(tt, q)
-	}
-	return tt
 }
 
 func joinScope(ss []string) string {
