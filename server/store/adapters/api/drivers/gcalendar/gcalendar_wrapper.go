@@ -3,7 +3,6 @@ package gcalendar
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
 )
