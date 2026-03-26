@@ -284,15 +284,22 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 			return
 		}
 
-		// Private key PEM blocks may contain literal newlines when stored;
-		// replace them with JSON escape sequences so Unmarshal succeeds.
-		saJSON = strings.ReplaceAll(saJSON, "\n", `\n`)
-
 		var sa struct {
 			ClientEmail string `json:"client_email"`
 			PrivateKey  string `json:"private_key"`
 		}
-		if err := json.Unmarshal([]byte(saJSON), &sa); err != nil || sa.ClientEmail == "" {
+
+		if err := json.Unmarshal([]byte(saJSON), &sa); err != nil {
+			// Private key PEM blocks may contain literal newlines when stored;
+			// replacing them with JSON escape strings helps Unmarshal succeed
+			// for invalid single-line strings.
+			fallbackJSON := strings.ReplaceAll(saJSON, "\n", `\n`)
+			if err2 := json.Unmarshal([]byte(fallbackJSON), &sa); err2 != nil {
+				return
+			}
+		}
+
+		if sa.ClientEmail == "" {
 			return
 		}
 
@@ -781,12 +788,7 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 					return nil, err
 				}
 
-				if baseURL != "" && strings.HasPrefix(path, baseURL) {
-					path = strings.TrimPrefix(path, baseURL)
-					if path != "" && !strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "?") {
-						path = "/" + path
-					}
-				}
+
 				statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
 				if err != nil {
 					return nil, fmt.Errorf("operation execution failed: %w", err)
