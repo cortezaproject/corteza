@@ -83,7 +83,12 @@ func (svc *restAPIWrapper) appendAuthBearer(client *httpClient, token string) (_
 }
 
 func (svc *restAPIWrapper) appendAuthApiKey(client *httpClient, apiKey string) (_ *httpClient, err error) {
-	client.SetHeader(svc.dsn.APIKeyHeader, "token "+apiKey)
+	if strings.ToLower(svc.dsn.APIKeyHeader) == "authorization" {
+		if !strings.HasPrefix(strings.ToLower(apiKey), "bearer ") && !strings.HasPrefix(strings.ToLower(apiKey), "token ") {
+			apiKey = "Bearer " + apiKey
+		}
+	}
+	client.SetHeader(svc.dsn.APIKeyHeader, apiKey)
 	return client, nil
 }
 

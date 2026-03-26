@@ -919,14 +919,14 @@ func resolveTemplate(tpl types.ConnectionTemplate, vars map[string]any) (string,
 		name := sub[1]
 
 		if v, ok := vars[name]; ok {
-				switch s := v.(type) {
-				case string:
-					return s
-				default:
-					b, _ := json.Marshal(s)
-					return string(b)
-				}
+			switch s := v.(type) {
+			case string:
+				return s
+			default:
+				b, _ := json.Marshal(s)
+				return string(b)
 			}
+		}
 
 		// Not provided — consult placeholder metadata
 		if p, ok := meta[name]; ok {
@@ -1174,7 +1174,7 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 				Groups:       []string{cc.Connection.Meta.Short},
 				Properties:   props,
 				Meta: &atypes.ConstructTriggerMeta{
-					Short: fmt.Sprintf("%s: %s", res.Handle, wh.Event),
+					Short: fmt.Sprintf("%s: %s", labelFromName(res.Handle), labelFromName(wh.Event)),
 				},
 			})
 		}

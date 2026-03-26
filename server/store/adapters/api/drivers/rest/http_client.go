@@ -77,16 +77,26 @@ func (c *httpClient) buildURL(path string) (string, error) {
 		return path, nil
 	}
 
-	base, err := url.Parse(c.baseURL)
-	if err != nil {
-		return "", fmt.Errorf("invalid base URL: %w", err)
-	}
-
 	rel, err := url.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("invalid path: %w", err)
 	}
 
+	if rel.IsAbs() {
+		return rel.String(), nil
+	}
+
+	base, err := url.Parse(c.baseURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid base URL: %w", err)
+	}
+
+	base.Path, err = url.JoinPath(base.Path, rel.Path)
+	if err != nil {
+		return "", err
+	}
+
+	rel.Path = ""
 	return base.ResolveReference(rel).String(), nil
 }
 
