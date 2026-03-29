@@ -263,6 +263,7 @@ type (
 		Debug         bool   `env:"DISCOVERY_DEBUG"`
 		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
 		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
+		JwtSecret     string `env:"DISCOVERY_JWT_SECRET"`
 	}
 
 	AttachmentOpt struct {
@@ -273,6 +274,7 @@ type (
 	}
 
 	WebappOpt struct {
+		ScssDirPath string `env:"WEBAPP_SCSS_DIR_PATH"`
 	}
 
 	ObservabilityOpt struct {

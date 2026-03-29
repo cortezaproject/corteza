@@ -25,6 +25,10 @@ discovery: schema.#optionsGroup & {
 			type:        "string"
 			description: "Indicates host of corteza discovery server"
 		}
+		jwt_secret: {
+			type:        "string"
+			description: "JWT secret shared with the discovery searcher for signing search tokens"
+		}
 
 	}
 	title: "Discovery"

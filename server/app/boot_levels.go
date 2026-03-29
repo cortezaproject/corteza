@@ -15,6 +15,7 @@ import (
 	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
 	autService "github.com/cortezaproject/corteza/server/automation/service"
 	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
+	sysAgentic "github.com/cortezaproject/corteza/server/system/agentic"
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
@@ -415,6 +416,13 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	cmpAgentic.RecordHandler(sysService.DefaultMCPRegistry)
+	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
+		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
+		if err != nil {
+			return fmt.Errorf("could not initialize discovery token signer: %w", err)
+		}
+		sysAgentic.DiscoveryHandler(sysService.DefaultMCPRegistry, app.Opt.Discovery.BaseUrl, discoverySigner)
+	}
 	app.McpServer = mcpkg.NewMCPServer(sysService.DefaultMCPRegistry, app.Opt.Agentic.McpServerName, app.Opt.Agentic.McpServerVersion)
 	app.LlmService = service.DefaultLlmService
 
