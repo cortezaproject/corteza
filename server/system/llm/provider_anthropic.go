@@ -109,7 +109,7 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 	httpReq.Header.Set("x-api-key", cred.Credentials)
 	httpReq.Header.Set("anthropic-version", anthropicAPIVersion)
 
-	timeout := 30 * time.Second
+	timeout := 5 * time.Minute
 	if provider.Config.Timeout != "" {
 		if d, err := time.ParseDuration(provider.Config.Timeout); err == nil {
 			timeout = d

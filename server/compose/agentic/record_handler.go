@@ -12,13 +12,15 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-type toolRegistrar interface {
-	RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
-}
+type (
+	toolRegistrar interface {
+		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
+	}
 
-type recordHandler struct {
-	reg toolRegistrar
-}
+	recordHandler struct {
+		reg toolRegistrar
+	}
+)
 
 func RecordHandler(reg toolRegistrar) *recordHandler {
 	h := &recordHandler{reg: reg}

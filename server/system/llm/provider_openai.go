@@ -111,7 +111,7 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 		httpReq.Header.Set("Authorization", "Bearer "+apiKey)
 	}
 
-	timeout := 30 * time.Second
+	timeout := 5 * time.Minute
 	if provider.Config.Timeout != "" {
 		if d, err := time.ParseDuration(provider.Config.Timeout); err == nil {
 			timeout = d
