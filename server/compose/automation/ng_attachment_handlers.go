@@ -28,15 +28,7 @@ func NgAttachmentHandler(reg constructSvc, tReg typeRegistry, svc attachmentServ
 	return ngh
 }
 
-func (h ngAttachmentHandler) register() {
-	h.reg.AddFunctions(
-		h.Lookup(),
-		h.Create(),
-		h.Delete(),
-		h.OpenOriginal(),
-		h.OpenPreview(),
-	)
-}
+func (h ngAttachmentHandler) register() {}
 
 func (h ngAttachmentHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{

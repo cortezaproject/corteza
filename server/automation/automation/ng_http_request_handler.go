@@ -36,11 +36,7 @@ func NgHttpRequestHandler(reg constructSvc, tReg typeRegistry) *ngHttpRequestHan
 	return ngh
 }
 
-func (h ngHttpRequestHandler) register() {
-	h.reg.AddFunctions(
-		h.Send(),
-	)
-}
+func (h ngHttpRequestHandler) register() {}
 
 func (h ngHttpRequestHandler) Send() atypes.ConstructFunction {
 	return atypes.ConstructFunction{

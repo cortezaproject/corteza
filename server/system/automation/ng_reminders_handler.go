@@ -27,17 +27,7 @@ func NgRemindersHandler(reg constructSvc, tReg typeRegistry, svc reminderService
 	return ngh
 }
 
-func (h ngRemindersHandler) register() {
-	h.reg.AddFunctions(
-		h.Lookup(),
-		h.Search(),
-		h.Create(),
-		h.Update(),
-		h.Dismiss(),
-		h.Snooze(),
-		h.Delete(),
-	)
-}
+func (h ngRemindersHandler) register() {}
 
 func (h ngRemindersHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{

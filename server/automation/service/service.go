@@ -142,9 +142,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.EmailHandler(Registry())
 	automation.JwtHandler(Registry())
 	automation.ApigwBodyHandler(Registry())
-	automation.NgEmailHandler(ConstructLibrary())
-	automation.NgHttpRequestHandler(ConstructLibrary(), Registry())
-	automation.NgLogHandler(ConstructLibrary(), Registry())
 	return
 }
 

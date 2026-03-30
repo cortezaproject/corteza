@@ -65,9 +65,13 @@ func (h ngUsersHandler) Lookup() atypes.ConstructFunction {
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Lookup (ID/Handle/Email/User)", Argument: "lookup"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "User",
+						Argument: "lookup",
+					},
+				}},
 			}},
 		}},
 
@@ -211,9 +215,13 @@ func (h ngUsersHandler) Update() atypes.ConstructFunction {
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "User", Argument: "user"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "User",
+						Argument: "user",
+					},
+				}},
 			}},
 		}},
 
@@ -259,9 +267,13 @@ func (h ngUsersHandler) Delete() atypes.ConstructFunction {
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Lookup (ID/Handle/Email/User)", Argument: "lookup"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "User",
+						Argument: "lookup",
+					},
+				}},
 			}},
 		}},
 
@@ -312,9 +324,13 @@ func (h ngUsersHandler) Suspend() atypes.ConstructFunction {
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Lookup (ID/Handle/Email/User)", Argument: "lookup"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "User",
+						Argument: "lookup",
+					},
+				}},
 			}},
 		}},
 
@@ -365,9 +381,13 @@ func (h ngUsersHandler) Unsuspend() atypes.ConstructFunction {
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Lookup (ID/Handle/Email/User)", Argument: "lookup"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "User",
+						Argument: "lookup",
+					},
+				}},
 			}},
 		}},
 

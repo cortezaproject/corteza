@@ -27,11 +27,7 @@ func NgEmailHandler(reg ngEmailConstructSvc) *ngEmailHandler {
 	return h
 }
 
-func (h ngEmailHandler) register() {
-	h.reg.AddFunctions(
-		h.SendEmail(),
-	)
-}
+func (h ngEmailHandler) register() {}
 
 func (h ngEmailHandler) SendEmail() atypes.ConstructFunction {
 	return atypes.ConstructFunction{

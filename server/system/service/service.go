@@ -327,33 +327,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultRenderer,
 	)
 
-	automation.NgTemplatesHandler(
-		automationService.ConstructLibrary(),
-		automationService.Registry(),
-		DefaultRenderer,
-	)
-
 	automation.RolesHandler(
 		automationService.Registry(),
 		DefaultRole,
 		DefaultUser,
-	)
-
-	automation.NgRolesHandler(
-		automationService.ConstructLibrary(),
-		automationService.Registry(),
-		DefaultRole,
-		DefaultUser,
-	)
-	automation.RemindersHandler(
-		automationService.Registry(),
-		DefaultReminder,
-	)
-
-	automation.NgRemindersHandler(
-		automationService.ConstructLibrary(),
-		automationService.Registry(),
-		DefaultReminder,
 	)
 
 	automation.RbacHandler(
@@ -365,14 +342,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	// Register notification handler
 	automation.NotificationHandler(
-		automationService.Registry(),
-		DefaultNotification,
-		DefaultUser,
-		log,
-	)
-
-	automation.NgNotificationHandler(
-		automationService.ConstructLibrary(),
 		automationService.Registry(),
 		DefaultNotification,
 		DefaultUser,

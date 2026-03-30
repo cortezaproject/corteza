@@ -30,18 +30,7 @@ func NgRolesHandler(reg constructSvc, tReg typeRegistry, roleSvc roleService, us
 	return ngh
 }
 
-func (h ngRolesHandler) register() {
-	h.reg.AddFunctions(
-		h.Lookup(),
-		h.AddMember(),
-		h.RemoveMember(),
-		h.Create(),
-		h.Update(),
-		h.Delete(),
-		h.Archive(),
-		h.Unarchive(),
-	)
-}
+func (h ngRolesHandler) register() {}
 
 func (h ngRolesHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{

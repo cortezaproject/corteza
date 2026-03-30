@@ -29,16 +29,7 @@ func NgTemplatesHandler(reg constructSvc, tReg typeRegistry, tSvc templateServic
 	return ngh
 }
 
-func (h ngTemplatesHandler) register() {
-	h.reg.AddFunctions(
-		h.Lookup(),
-		h.Search(),
-		h.Create(),
-		h.Update(),
-		h.Delete(),
-		h.Render(),
-	)
-}
+func (h ngTemplatesHandler) register() {}
 
 func (h ngTemplatesHandler) Lookup() atypes.ConstructFunction {
 	return atypes.ConstructFunction{

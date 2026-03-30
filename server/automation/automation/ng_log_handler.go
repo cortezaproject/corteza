@@ -26,14 +26,7 @@ func NgLogHandler(reg constructSvc, tReg typeRegistry) *ngLogHandler {
 	return ngh
 }
 
-func (h ngLogHandler) register() {
-	h.reg.AddFunctions(
-		h.Debug(),
-		h.Info(),
-		h.Warn(),
-		h.Error(),
-	)
-}
+func (h ngLogHandler) register() {}
 
 func (h ngLogHandler) Debug() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
