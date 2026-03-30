@@ -15,7 +15,7 @@ import (
 
 type (
 	toolRegistrar interface {
-		RegisterTool(tool mcp.Tool, handler server.ToolHandlerFunc)
+		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
 	}
 
 	discoveryTokenSigner interface {
@@ -38,12 +38,13 @@ func DiscoveryHandler(reg toolRegistrar, baseURL string, signer discoveryTokenSi
 func (h *discoveryHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("discovery_search",
-			mcp.WithDescription("Use this tool first when the user asks any question about data, records, or information stored in Corteza. It searches across all indexed records and returns relevant results. Prefer this over compose_record_lookup or compose_record_list unless you already know the exact record ID or module."),
+			mcp.WithDescription("Use this tool first when the user asks any question about data, records, or information. It searches across all indexed records and returns relevant results. Prefer this over compose_record_lookup unless you already know the exact record ID or module."),
 			mcp.WithString("query", mcp.Required(), mcp.Description("Natural language or keyword search query")),
 			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
 			mcp.WithString("namespace", mcp.Description("Filter results to a specific namespace slug")),
 			mcp.WithString("module", mcp.Description("Filter results to a specific module handle")),
 		),
+		"Search records",
 		h.search,
 	)
 }

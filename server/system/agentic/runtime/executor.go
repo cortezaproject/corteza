@@ -18,8 +18,8 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
-//go:embed corteza.md
-var cortezaSystemContext string
+//go:embed human.md
+var humanSystemContext string
 
 const (
 	defaultMaxIterations = 10
@@ -84,7 +84,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	promptBuildStart := time.Now()
 	systemPrompt := agent.Behavior.SystemPrompt
 	if agent.Behavior.InjectSystemContext {
-		systemPrompt = cortezaSystemContext + "\n\n" + systemPrompt
+		systemPrompt = humanSystemContext + "\n\n" + systemPrompt
 	}
 	for _, t := range agent.Access.Tools {
 		if t.Hints != "" {

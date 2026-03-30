@@ -15,6 +15,7 @@ type (
 		Tool        mcp.Tool
 		Handler     server.ToolHandlerFunc
 		InputSchema map[string]any
+		Title       string
 	}
 
 	registeredResource struct {
@@ -35,7 +36,7 @@ func NewRegistry() *Registry {
 	}
 }
 
-func (r *Registry) RegisterTool(tool mcp.Tool, handler server.ToolHandlerFunc) {
+func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc) {
 	schema := map[string]any{
 		"type":       tool.InputSchema.Type,
 		"properties": tool.InputSchema.Properties,
@@ -44,7 +45,7 @@ func (r *Registry) RegisterTool(tool mcp.Tool, handler server.ToolHandlerFunc) {
 		schema["required"] = tool.InputSchema.Required
 	}
 
-	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema}
+	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema, Title: title}
 }
 
 func (r *Registry) HasTool(name string) bool {
@@ -63,6 +64,7 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 		for _, t := range r.tools {
 			out = append(out, rt.Tool{
 				Name:        t.Tool.Name,
+				Title:       t.Title,
 				Description: t.Tool.Description,
 				InputSchema: t.InputSchema,
 			})
@@ -78,6 +80,7 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 		}
 		out = append(out, rt.Tool{
 			Name:        t.Tool.Name,
+			Title:       t.Title,
 			Description: t.Tool.Description,
 			InputSchema: t.InputSchema,
 		})
