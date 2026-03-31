@@ -77,6 +77,13 @@ func (c *httpClient) buildURL(path string) (string, error) {
 		return path, nil
 	}
 
+	// Google AIP-style custom verbs (e.g. ":batchUpdate") are suffixes
+	// appended directly to the base URL, not relative paths.
+	// url.Parse would fail on them (interprets ":" as a scheme separator).
+	if strings.HasPrefix(path, ":") {
+		return strings.TrimRight(c.baseURL, "/") + path, nil
+	}
+
 	rel, err := url.Parse(path)
 	if err != nil {
 		return "", fmt.Errorf("invalid path: %w", err)

@@ -23,6 +23,7 @@ import (
 	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
 	restDriver "github.com/cortezaproject/corteza/server/store/adapters/api/drivers/rest"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -304,14 +305,15 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 		}
 
 		var scopes []string
+		baseURL := conn.Service.BaseURL.Value
 		switch {
-		case strings.HasPrefix(conn.Handle, "google-calendar"):
+		case strings.Contains(baseURL, "googleapis.com/calendar"):
 			scopes = []string{"https://www.googleapis.com/auth/calendar"}
-		case strings.HasPrefix(conn.Handle, "google-sheets"):
+		case strings.Contains(baseURL, "sheets.googleapis.com"):
 			scopes = []string{"https://www.googleapis.com/auth/spreadsheets"}
-		case strings.HasPrefix(conn.Handle, "google-drive"):
+		case strings.Contains(baseURL, "googleapis.com/drive"):
 			scopes = []string{"https://www.googleapis.com/auth/drive"}
-		case strings.HasPrefix(conn.Handle, "google-tasks"):
+		case strings.Contains(baseURL, "tasks.googleapis.com"):
 			scopes = []string{"https://www.googleapis.com/auth/tasks"}
 		}
 
@@ -329,9 +331,8 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 }
 
 // resolveExecutor returns the appropriate HTTP executor for the given configured
-// connection. Google connectors use the google wrapper directly (bypassing DAL)
-// because they have not yet been integrated as proper DAL connection types.
-// All other connectors are looked up via the DAL service.
+// connection. Connections targeting googleapis.com use the Google wrapper
+// (auth + transport). All other connectors are routed through the DAL service.
 func resolveExecutor(
 	ctx context.Context,
 	cc *types.ConfiguredConnection,
@@ -339,9 +340,10 @@ func resolveExecutor(
 	baseURL string,
 	dalConnectionID uint64,
 ) (func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error), error) {
-	if strings.HasPrefix(conn.Handle, "google-") {
-		// Ensure the service-account credential is cached in the registry
-		// before the wrapper tries to use it.
+	if strings.Contains(baseURL, "googleapis.com") {
+		// Google APIs require OAuth2 token injection via the Google wrapper.
+		// This check is URL-based and works regardless of the user-defined
+		// connection handle or whether a gsheets DAL connection was provisioned.
 		ensureGoogleCredential(ctx, DefaultStore, cc, conn)
 		gw := google.NewWrapper(baseURL, cc.ID)
 		return func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error) {
@@ -370,7 +372,7 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 		ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
 		runner = google.NewWrapper(resolved.Service.BaseURL.Value, cc.ID)
 	} else {
-		runner, err = restDriver.RunnerFromConnection(resolved)
+		runner, err = restDriver.RunnerFromConnection(resolved, cc.ID)
 		if err != nil {
 			return nil, fmt.Errorf("could not build connection runner: %w", err)
 		}
@@ -402,10 +404,6 @@ func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunn
 
 	if statusCode == 401 || statusCode == 403 {
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("authentication failed (HTTP %d)", statusCode)}
-	}
-
-	if statusCode == 404 {
-		return types.ConfiguredConnectionCheckStatus{OK: false, Message: "calendar or resource not found (HTTP 404), or you lack permissions to view it"}
 	}
 
 	if err != nil && statusCode == 0 {
@@ -730,11 +728,18 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 				switch id := v.(type) {
 				case uint64:
 					configID = id
+				case int64:
+					configID = uint64(id)
+				case float64:
+					configID = uint64(id)
 				case string:
 					configID, _ = strconv.ParseUint(id, 10, 64)
 				}
 			}
+			spew.Dump("resolveExecutor conn.Handle", conn.Handle, "configID", configID)
+
 			dalConnectionID, ok := dalByConfig[configID]
+			spew.Dump("resolveExecutor dalConnectionID", dalConnectionID, "ok", ok)
 			if !ok {
 				return nil, fmt.Errorf("unknown configurationID: %d", configID)
 			}
@@ -788,8 +793,10 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 					return nil, err
 				}
 
+				spew.Dump("prepre", path, headers, payload, err)
 
 				statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
+				spew.Dump("postpost", statusCode, outHeaders, err)
 				if err != nil {
 					return nil, fmt.Errorf("operation execution failed: %w", err)
 				}
@@ -833,20 +840,38 @@ func buildHTTPRequest(http types.ConnectionHTTPAction, in *expr.Vars, vars map[s
 		return "", nil, nil, fmt.Errorf("path: %w", err)
 	}
 
-	u, err := url.Parse(path)
-	if err != nil {
-		return "", nil, nil, fmt.Errorf("invalid path %q: %w", path, err)
-	}
-	q := u.Query()
-	for k, tpl := range http.QueryParams {
-		v, e := resolveTemplate(tpl, vars)
-		if e != nil {
-			return "", nil, nil, fmt.Errorf("queryParam %q: %w", k, e)
+	// Google AIP-style custom verbs (e.g. ":batchUpdate") start with ":" and
+	// cannot be parsed by url.Parse (it treats ":" as a scheme separator).
+	// For these we skip the parse-and-merge step; query params are appended
+	// manually and the executor's buildURL handles the base-URL concatenation.
+	if strings.HasPrefix(path, ":") {
+		if len(http.QueryParams) > 0 {
+			q := url.Values{}
+			for k, tpl := range http.QueryParams {
+				v, e := resolveTemplate(tpl, vars)
+				if e != nil {
+					return "", nil, nil, fmt.Errorf("queryParam %q: %w", k, e)
+				}
+				q.Set(k, v)
+			}
+			path = path + "?" + q.Encode()
 		}
-		q.Set(k, v)
+	} else {
+		u, err := url.Parse(path)
+		if err != nil {
+			return "", nil, nil, fmt.Errorf("invalid path %q: %w", path, err)
+		}
+		q := u.Query()
+		for k, tpl := range http.QueryParams {
+			v, e := resolveTemplate(tpl, vars)
+			if e != nil {
+				return "", nil, nil, fmt.Errorf("queryParam %q: %w", k, e)
+			}
+			q.Set(k, v)
+		}
+		u.RawQuery = q.Encode()
+		path = u.String()
 	}
-	u.RawQuery = q.Encode()
-	path = u.String()
 
 	headers = make(map[string][]string, len(http.Headers))
 	for k, tpl := range http.Headers {
@@ -957,6 +982,16 @@ func extractByPath(data any, path []string) any {
 	return current
 }
 
+// normalizeParamType maps common type aliases from connection operation specs
+// to the canonical type names registered in the automation expr registry.
+func normalizeParamType(t string) string {
+	switch strings.ToLower(t) {
+	case "number":
+		return "Integer"
+	}
+	return t
+}
+
 func generateFunctionArguments(conn types.Connection, op types.ConnectionOperation) (params atypes.ParamSet) {
 	// Build a set of service-level param names so we can silently skip
 	// operation-level inputs that duplicate them — those are resolved from
@@ -978,9 +1013,8 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 		inLookup[in.Name] = true
 		params = append(params, &atypes.Param{
 			ArgumentName: in.Name,
-			// @todo improve type mapping/determination; we might need to enforce this when defining the connection
-			Types:    []string{in.Type},
-			Required: in.Required,
+			Types:        []string{normalizeParamType(in.Type)},
+			Required:     in.Required,
 			Meta: &atypes.ParamMeta{
 				Label: in.Name,
 			},

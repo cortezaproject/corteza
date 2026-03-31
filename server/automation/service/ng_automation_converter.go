@@ -504,6 +504,15 @@ func issue(desc string, culprit map[string]int) *automationTypes.NgAutomationIss
 	}
 }
 
+// normalizeExprType maps common type aliases to canonical automation expr registry names.
+func normalizeExprType(t string) string {
+	switch strings.ToLower(t) {
+	case "number":
+		return "Integer"
+	}
+	return t
+}
+
 func stepConv(svc *ngAutomation, step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
 	if err := parseExpressions(svc, step.Arguments...); err != nil {
 		return nil, errors.Internal("failed to parse step arguments expressions for %s: %s", step.Kind, err).Wrap(err)
@@ -556,6 +565,7 @@ func parseExpressions(svc *ngAutomation, ee ...*types.Expr) (err error) {
 			}
 		}
 
+		e.Type = normalizeExprType(e.Type)
 		if err = e.SetType(exprTypeSetter(Registry(), e)); err != nil {
 			return err
 		}

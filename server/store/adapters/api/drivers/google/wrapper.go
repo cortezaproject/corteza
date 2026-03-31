@@ -48,7 +48,9 @@ func (w *Wrapper) Run(ctx context.Context, method string, path string, payload [
 	}
 
 	baseURL := strings.TrimSuffix(w.baseURL, "/")
-	if path != "" && !strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "?") {
+	// Google AIP-style custom verbs (e.g. ":batchUpdate") are suffixes appended
+	// directly to the base URL — do NOT prepend a slash for these.
+	if path != "" && !strings.HasPrefix(path, "/") && !strings.HasPrefix(path, "?") && !strings.HasPrefix(path, ":") {
 		path = "/" + path
 	}
 	fullURL := baseURL + path

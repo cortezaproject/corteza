@@ -54,6 +54,11 @@ func (svc *restAPIWrapper) Run(ctx context.Context, method string, path string, 
 	}
 }
 
+// Execute implements dal.RawExecutor, bridging the DAL connection to Run.
+func (svc *restAPIWrapper) Execute(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error) {
+	return svc.Run(ctx, method, path, payload, headers)
+}
+
 func (svc *restAPIWrapper) appendAuth(ctx context.Context, client *httpClient) (_ *httpClient, err error) {
 	switch strings.ToLower(svc.dsn.AuthType) {
 	case "basic":
