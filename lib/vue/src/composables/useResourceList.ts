@@ -39,6 +39,7 @@ export function useResourceList<T = any>(
     filter?: FilterState
     sorting?: SortingState
     pagination?: Partial<PaginationState>
+    immediate?: boolean
   } = {},
 ) {
   const route = useRoute()
@@ -306,7 +307,13 @@ export function useResourceList<T = any>(
   )
 
   // Initialize on mount
+  const immediate = options.immediate !== false
   onMounted(() => {
+    if (!immediate) {
+      loading.value = false
+      return
+    }
+
     handleQueryParams(true)
 
     fetchItems()

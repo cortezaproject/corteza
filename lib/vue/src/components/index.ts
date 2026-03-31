@@ -3,6 +3,8 @@ export * from './field'
 export * from './input'
 export * from './loader'
 export * from './navigation'
+export * from './notifications'
+export * from './prompts'
 export * from './resource-list'
 export * from './resource-table'
 

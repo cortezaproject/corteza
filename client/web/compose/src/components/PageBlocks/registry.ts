@@ -18,8 +18,7 @@ const BLOCK_REGISTRY: Record<string, Component> = {
   RecordOrganizer: defineAsyncComponent(() => import('./Blocks/RecordOrganizerBlock.vue')),
   RecordRevisions: defineAsyncComponent(() => import('./Blocks/RecordRevisionsBlock.vue')),
   Geometry: defineAsyncComponent(() => import('./Blocks/GeometryBlock.vue')),
-  SocialFeed: defineAsyncComponent(() => import('./Blocks/SocialFeedBlock.vue')),
-  Report: defineAsyncComponent(() => import('./Blocks/ReportBlock.vue')),
+
 }
 
 export function resolveBlock(kind: string): Component | null {

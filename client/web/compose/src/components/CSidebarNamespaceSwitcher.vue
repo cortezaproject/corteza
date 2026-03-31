@@ -17,12 +17,12 @@
             <span>{{ option.name }}</span>
           </div>
         </template>
-        <template #footer>
+        <template v-if="canManageNamespaces" #footer>
           <RouterLink
-            :to="{ name: 'namespace.list' }"
+            :to="{ name: 'namespace.manage' }"
             class="block p-2 text-sm text-muted-color hover:text-primary transition-colors text-center border-t"
           >
-            {{ $t('sidebar.namespaceSelector.viewAll') }}
+            {{ $t('sidebar.namespaceSelector.manage', 'Manage') }}
           </RouterLink>
         </template>
       </Select>
@@ -47,17 +47,24 @@
 
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const $Settings = inject('$Settings')
 const namespaceStore = useNamespaceStore()
 
 const enabledNamespaces = computed(() => {
   return namespaceStore.set.filter(ns => ns.enabled)
+})
+
+const canManageNamespaces = computed(() => {
+  const { hideNamespaceListLink } = $Settings.get('compose.ui.sidebar', {})
+  if (hideNamespaceListLink) return false
+  return namespaceStore.set.some(ns => ns.canManageNamespace)
 })
 
 const currentNamespaceSlug = computed(() => {

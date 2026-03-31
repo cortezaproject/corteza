@@ -23,6 +23,7 @@ import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
 import DatePicker from 'primevue/datepicker'
 import Divider from 'primevue/divider'
+import Drawer from 'primevue/drawer'
 import FloatLabel from 'primevue/floatlabel'
 import Form from '@primevue/forms/form'
 import FormField from '@primevue/forms/formfield'
@@ -86,6 +87,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('DatePicker', DatePicker)
     app.component('Dialog', Dialog)
     app.component('Divider', Divider)
+    app.component('Drawer', Drawer)
     app.component('BlockUI', BlockUI)
     app.component('FloatLabel', FloatLabel)
     app.component('Form', Form)

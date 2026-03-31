@@ -22,6 +22,8 @@ const props = defineProps({
   sourceHandleId: { type: String, default: null },
   data: { type: Object, default: () => ({}) },
   markerEnd: { type: String, default: '' },
+  traceActive: { type: Boolean, default: false },
+  traceTraversed: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['add'])
@@ -112,6 +114,20 @@ const edgeLabel = computed(() => {
 // Check if this edge is on the highlighted path
 const isHighlighted = computed(() => props.data?.highlighted === true)
 
+// Compute edge style for trace mode
+const edgeStyle = computed(() => {
+  if (props.traceActive) {
+    if (props.traceTraversed) {
+      return { stroke: 'var(--p-green-500)', strokeWidth: '2.5px' }
+    }
+    return { stroke: 'var(--p-text-muted-color)', strokeWidth: '1px', opacity: 0.3 }
+  }
+  if (isHighlighted.value) {
+    return { stroke: 'var(--p-primary-color)', strokeWidth: '2.5px' }
+  }
+  return {}
+})
+
 function handleAdd() {
   emit('add', { edgeId: props.id, source: props.source, target: props.target })
 }
@@ -119,12 +135,12 @@ function handleAdd() {
 
 <template>
   <!-- The edge path wrapped for highlighting -->
-  <g :class="{ 'highlighted-edge': isHighlighted }">
+  <g :class="{ 'highlighted-edge': isHighlighted && !traceActive }">
     <BaseEdge
       :id="id"
       :path="path.edgePath"
       :marker-end="markerEnd"
-      :style="isHighlighted ? { stroke: 'var(--p-primary-color)', strokeWidth: '2.5px' } : {}"
+      :style="edgeStyle"
     />
   </g>
 
@@ -143,8 +159,9 @@ function handleAdd() {
       {{ edgeLabel }}
     </span>
 
-    <!-- Add button (centered) -->
+    <!-- Add button (centered, hidden during trace) -->
     <div
+      v-if="!traceActive"
       class="edge-button"
       :style="{
         position: 'absolute',

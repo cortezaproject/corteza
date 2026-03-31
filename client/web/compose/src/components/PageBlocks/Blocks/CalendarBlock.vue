@@ -94,6 +94,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $eventBus = inject('$eventBus', null)
 const router = useRouter()
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
@@ -341,6 +342,15 @@ onBeforeUnmount(() => {
   }
   events.value = []
   loaded.value = { start: null, end: null }
+  offRefetch?.()
+})
+
+const offRefetch = $eventBus?.on('refetch-records', () => {
+  refreshing.value = true
+  const api = calendarApi.value
+  if (api) {
+    loadEvents(api.view.activeStart, api.view.activeEnd)
+  }
 })
 </script>
 

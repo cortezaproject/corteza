@@ -1,9 +1,6 @@
 <template>
   <div v-if="localWorkflow" class="flex flex-col gap-4">
-    <div
-      v-if="workflow.workflowID && workflow.workflowID !== '0'"
-      class="flex gap-2 px-3 pt-3"
-    >
+    <div v-if="workflow.workflowID && workflow.workflowID !== '0'" class="flex gap-2 px-3 pt-3">
       <import
         data-test-id="button-import-workflow"
         :disabled="importProcessing"
@@ -24,7 +21,7 @@
       </TabList>
 
       <TabPanels>
-        <TabPanel value="general" class="flex flex-col gap-4 p-4">
+        <TabPanel value="general" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label class="font-medium text-primary">
               {{ $t('configurator.name.label') }}
@@ -113,7 +110,7 @@
           </div>
         </TabPanel>
 
-        <TabPanel value="labels" class="p-4">
+        <TabPanel value="labels">
           <namespace-module-selector
             :namespace-labels="localWorkflow?.labels?.ref_namespace || []"
             :module-labels="localWorkflow?.labels?.ref_module || []"
@@ -123,12 +120,13 @@
       </TabPanels>
     </Tabs>
 
-    <div class="flex items-center w-full px-4 pb-4 mt-auto">
+    <div class="flex items-center w-full p-3 mt-auto border-t surface-border">
       <Button
         v-if="workflow.canDeleteWorkflow && !isDeleted"
         :label="$t('editor.delete')"
         severity="danger"
         text
+        size="small"
         :loading="processingDelete"
         @click="handleDeleteClick"
       />
@@ -137,6 +135,7 @@
         :label="$t('editor.undelete')"
         severity="secondary"
         text
+        size="small"
         :loading="processingDelete"
         @click="$emit('undelete')"
       />
@@ -149,6 +148,7 @@
           :label="$t('editor.back')"
           severity="secondary"
           text
+          size="small"
           @click="$router.back()"
         />
         <Button
@@ -156,6 +156,7 @@
           :label="$t('general.cancel')"
           severity="secondary"
           text
+          size="small"
           @click="handleCancel"
         />
 
@@ -164,6 +165,7 @@
           :label="$t('editor.save')"
           :disabled="isSaveDisabled"
           :loading="processingSave"
+          size="small"
           @click="handleSave"
         />
       </div>
@@ -221,46 +223,45 @@ export default {
     },
   },
 
-  setup () {
+  setup() {
     const { confirmDelete } = useConfirmDelete()
     return { confirmDelete }
   },
 
-  data () {
+  data() {
     return {
       localWorkflow: null,
     }
   },
 
   computed: {
-    nameState () {
+    nameState() {
       return this.localWorkflow?.meta?.name ? null : false
     },
 
-    handleState () {
+    handleState() {
       if (!this.localWorkflow) return null
       const h = this.localWorkflow.handle
       if (!h) return null
       return handleRe.test(h) ? null : false
     },
 
-    canUpdateWorkflow () {
+    canUpdateWorkflow() {
       return this.workflow.workflowID === '0' ? this.canCreate : this.workflow.canUpdateWorkflow
     },
 
-    isSaveDisabled () {
+    isSaveDisabled() {
       return !this.canUpdateWorkflow || [this.nameState, this.handleState].includes(false)
     },
 
-    isDeleted () {
+    isDeleted() {
       return this.workflow.deletedAt
     },
-
   },
 
   watch: {
     workflow: {
-      handler (newWorkflow) {
+      handler(newWorkflow) {
         if (!newWorkflow) {
           this.localWorkflow = null
           return
@@ -275,7 +276,7 @@ export default {
   },
 
   methods: {
-    handleLabelsChange ({ namespaceLabels, moduleLabels }) {
+    handleLabelsChange({ namespaceLabels, moduleLabels }) {
       if (!this.localWorkflow.labels) {
         this.localWorkflow.labels = {}
       }
@@ -294,21 +295,21 @@ export default {
       }
     },
 
-    handleSave () {
+    handleSave() {
       // Emit save event with the local workflow copy
       this.$emit('save', this.localWorkflow)
       // Close the modal after save
       this.$emit('close')
     },
 
-    handleCancel () {
+    handleCancel() {
       // Reset local workflow to original workflow data
       this.localWorkflow = new automation.Workflow(this.workflow)
       // Close the modal
       this.$emit('close')
     },
 
-    handleDeleteClick () {
+    handleDeleteClick() {
       this.confirmDelete({
         message: this.$t('editor.delete-confirm'),
         header: this.localWorkflow?.meta?.name || this.localWorkflow?.handle || '',

@@ -335,7 +335,7 @@ export default {
             }
           })
         })
-        .catch(this.toastErrorHandler(this.$t('steps.trigger.configurator.failed-fetch-event-types')))
+        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('steps.trigger.configurator.failed-fetch-event-types'), detail: e?.message, life: 5000 }))
     },
 
     addConstraint () {

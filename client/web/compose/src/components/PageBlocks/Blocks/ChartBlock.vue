@@ -102,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, inject, onMounted } from 'vue'
+import { ref, computed, watch, inject, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
 import PageBlock from './PageBlock.vue'
@@ -133,6 +133,7 @@ const props = defineProps({
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $auth = inject('$auth', {})
+const $eventBus = inject('$eventBus', null)
 const chartStore = useChartStore()
 
 const chart = ref(null)
@@ -255,4 +256,10 @@ watch(
     fetchChart()
   },
 )
+
+const offRefetch = $eventBus?.on('refetch-records', () => fetchChart())
+
+onBeforeUnmount(() => {
+  offRefetch?.()
+})
 </script>

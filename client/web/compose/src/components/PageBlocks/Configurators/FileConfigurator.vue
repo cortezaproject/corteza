@@ -226,8 +226,8 @@ const mode = computed({
 })
 
 const hideFileName = computed({
-  get: () => !!props.block.options?.hideFileName,
-  set: v => updateOptions('hideFileName', v),
+  get: () => !props.block.options?.hideFileName,
+  set: v => updateOptions('hideFileName', !v),
 })
 
 const clickToView = computed({

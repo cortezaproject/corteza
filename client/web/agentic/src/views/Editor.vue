@@ -215,7 +215,6 @@
                             icon="pi pi-trash"
                             severity="danger"
                             text
-                            rounded
                             size="small"
                             @click="removeGuardrail(idx)"
                           />
@@ -237,17 +236,11 @@
 
                 <Panel :header="$t('agent.editor.panels.tcl')" toggleable>
                   <div class="flex flex-col gap-3">
-                    <div class="flex items-center gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors">
-                      <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <span class="font-medium text-primary">
-                          {{ $t('agent.editor.tcl.enabledLabel') }}
-                        </span>
-                        <small class="text-muted-color">
-                          {{ $t('agent.editor.tcl.enabledHelp') }}
-                        </small>
-                      </div>
-                      <ToggleSwitch v-model="agent.behavior.treatyCLEnabled" class="shrink-0" />
-                    </div>
+                    <CInputToggleCard
+                      v-model="agent.behavior.treatyCLEnabled"
+                      :label="$t('agent.editor.tcl.enabledLabel')"
+                      :description="$t('agent.editor.tcl.enabledHelp')"
+                    />
 
                     <template v-if="agent.behavior.treatyCLEnabled">
                       <div class="flex flex-col gap-1">
@@ -282,29 +275,20 @@
                         :key="group.treatyLabel"
                         class="flex flex-col gap-2 mt-2"
                       >
-                        <span class="text-sm font-semibold text-muted-color uppercase tracking-wide">
+                        <span
+                          class="text-sm font-semibold text-muted-color uppercase tracking-wide"
+                        >
                           {{ group.treatyLabel }}
                         </span>
-                        <div
+                        <CInputToggleCard
                           v-for="article in group.items"
                           :key="article.id"
-                          class="flex items-center gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
-                        >
-                          <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-                            <span class="font-medium text-color text-sm">
-                              {{ article.label }}
-                            </span>
-                            <small v-if="article.interpretation" class="text-xs text-muted-color">
-                              {{ article.interpretation }}
-                            </small>
-                          </div>
-                          <ToggleSwitch
-                            v-if="!article.hardwired"
-                            :modelValue="agent.behavior.tclArticles.includes(article.id)"
-                            class="shrink-0"
-                            @update:modelValue="toggleTclArticle(article.id, $event)"
-                          />
-                        </div>
+                          :modelValue="agent.behavior.tclArticles.includes(article.id)"
+                          :label="article.label"
+                          :description="article.interpretation"
+                          :disabled="article.hardwired"
+                          @update:modelValue="toggleTclArticle(article.id, $event)"
+                        />
                       </div>
                     </template>
                   </div>
@@ -340,20 +324,12 @@
                     </div>
 
                     <!-- System Context as a KB-style entry in the list -->
-                    <div
-                      class="flex items-center gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
-                      :class="{ 'opacity-50': !agent.behavior.injectSystemContext }"
-                    >
-                      <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <span class="font-medium text-color text-sm">
-                          {{ $t('agent.editor.injectSystemContext.label') }}
-                        </span>
-                        <small class="text-muted-color text-xs">
-                          {{ $t('agent.editor.injectSystemContext.help') }}
-                        </small>
-                      </div>
-                      <ToggleSwitch v-model="agent.behavior.injectSystemContext" class="shrink-0" />
-                    </div>
+                    <CInputToggleCard
+                      v-model="agent.behavior.injectSystemContext"
+                      :label="$t('agent.editor.injectSystemContext.label')"
+                      :description="$t('agent.editor.injectSystemContext.help')"
+                      dimWhenOff
+                    />
                   </div>
                 </Panel>
                 <Panel :header="$t('agent.editor.panels.tools')" toggleable>
@@ -378,7 +354,7 @@
                       @update:model-value="onToolPickerSelect"
                     >
                       <template #option="{ option }">
-                        <span>{{ option.description || option.name }}</span>
+                        <span>{{ option.title }}</span>
                       </template>
                     </Select>
 
@@ -390,7 +366,7 @@
                       >
                         <div class="flex flex-col gap-1 flex-1 min-w-0">
                           <span class="font-medium text-color text-sm truncate">
-                            {{ tool.description || tool.name }}
+                            {{ tool.title }}
                           </span>
                           <InputText
                             :modelValue="getToolHints(tool.name)"
@@ -404,7 +380,6 @@
                           icon="pi pi-trash"
                           severity="danger"
                           text
-                          rounded
                           size="small"
                           class="shrink-0"
                           @click="removeTool(tool)"
@@ -416,36 +391,16 @@
 
                 <Panel :header="$t('agent.editor.panels.invocation')" toggleable>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1 justify-center">
-                      <div class="flex items-center gap-2">
-                        <Checkbox
-                          v-model="agent.invocation.user.enabled"
-                          inputId="userEnabled"
-                          :binary="true"
-                        />
-                        <label for="userEnabled">
-                          {{ $t('agent.editor.userEnabled.label') }}
-                        </label>
-                      </div>
-                      <small class="text-muted-color ml-7">
-                        {{ $t('agent.editor.userEnabled.help') }}
-                      </small>
-                    </div>
-                    <div class="flex flex-col gap-1 justify-center">
-                      <div class="flex items-center gap-2">
-                        <Checkbox
-                          v-model="agent.invocation.system.enabled"
-                          inputId="systemEnabled"
-                          :binary="true"
-                        />
-                        <label for="systemEnabled">
-                          {{ $t('agent.editor.systemEnabled.label') }}
-                        </label>
-                      </div>
-                      <small class="text-muted-color ml-7">
-                        {{ $t('agent.editor.systemEnabled.help') }}
-                      </small>
-                    </div>
+                    <CInputToggleCard
+                      v-model="agent.invocation.user.enabled"
+                      :label="$t('agent.editor.userEnabled.label')"
+                      :description="$t('agent.editor.userEnabled.help')"
+                    />
+                    <CInputToggleCard
+                      v-model="agent.invocation.system.enabled"
+                      :label="$t('agent.editor.systemEnabled.label')"
+                      :description="$t('agent.editor.systemEnabled.help')"
+                    />
                     <div class="flex flex-col gap-1">
                       <label for="serviceAccount" class="font-medium text-primary">
                         {{ $t('agent.editor.serviceAccount.label') }}
@@ -493,7 +448,6 @@
                     <Button
                       icon="pi pi-plus"
                       text
-                      rounded
                       severity="secondary"
                       size="small"
                       @click="addConversation"
@@ -958,7 +912,8 @@ import { useRoute, useRouter } from 'vue-router'
 
 // Components (not globally registered)
 import { components } from '@cortezaproject/corteza-vue-next'
-const { CInputLLM, CInputModel, CInputDelete, CInputUser, CInputKnowledgeBase } = components
+const { CInputLLM, CInputModel, CInputDelete, CInputUser, CInputKnowledgeBase, CInputToggleCard } =
+  components
 
 const route = useRoute()
 const router = useRouter()
@@ -1034,7 +989,9 @@ function toggleTclArticle(articleId, enabled) {
       agent.value.behavior.tclArticles.push(articleId)
     }
   } else {
-    agent.value.behavior.tclArticles = agent.value.behavior.tclArticles.filter(id => id !== articleId)
+    agent.value.behavior.tclArticles = agent.value.behavior.tclArticles.filter(
+      id => id !== articleId,
+    )
   }
 }
 
@@ -1139,7 +1096,10 @@ async function loadAgent() {
     return
   }
 
-  loading.value = true
+  // Only show spinner on first load; subsequent switches update values in-place
+  const isFirstLoad = !agent.value
+  if (isFirstLoad) loading.value = true
+
   try {
     const res = await $SystemAPI.agentRead({ agentID })
     applyAgentData(res)
@@ -1147,7 +1107,7 @@ async function loadAgent() {
     $toast.toastDanger(t('notification.agent.loadFailed'))
     router.push({ name: 'root' })
   } finally {
-    loading.value = false
+    if (isFirstLoad) loading.value = false
   }
 }
 
@@ -1410,8 +1370,31 @@ function removeGuardrail(index) {
   agent.value.behavior.guardrails.splice(index, 1)
 }
 
+// Watch for agentID changes (handles both initial mount and sidebar navigation)
+watch(
+  () => route.params.agentID,
+  () => {
+    // Reset editor state for the new agent
+    convCounter = 1
+    conversations.value = [
+      { label: `Chat 1`, messages: [], conversationID: null, traceHistory: [], context: '' },
+    ]
+    activeConvIndex.value = 0
+    chatInput.value = ''
+    executing.value = false
+    selectedTraceIndex.value = null
+    selectedTraceType.value = null
+    chatMsgRefs.value = {}
+    chatPromptRefs.value = {}
+    traceCardRefs.value = {}
+    activeTab.value = 'config'
+
+    loadAgent()
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
-  loadAgent()
   fetchAvailableTools()
   fetchTclMasterList()
 })
@@ -1440,7 +1423,7 @@ function initToolSelection() {
       name: t.name,
       hints: '',
     }))
-    selectedTools.value = [...availableTools.value]
+    selectedTools.value = []
   } else {
     // Existing agent: select only the saved tools
     const enabledNames = new Set((agent.value?.access?.tools || []).map(t => t.name))

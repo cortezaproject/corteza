@@ -1,5 +1,5 @@
 <script>
-import { inject } from 'vue'
+import { useToast } from 'primevue/usetoast'
 
 export default {
   props: {
@@ -25,14 +25,8 @@ export default {
   },
 
   setup () {
-    const $toast = inject('$toast')
-    return {
-      toastSuccess: $toast.toastSuccess,
-      toastWarning: $toast.toastWarning,
-      toastInfo: $toast.toastInfo,
-      toastDanger: $toast.toastDanger,
-      toastErrorHandler: $toast.toastErrorHandler,
-    }
+    const toast = useToast()
+    return { toast }
   },
 }
 </script>

@@ -16,6 +16,7 @@
             text
             severity="secondary"
             size="small"
+            class="p-1 border-0"
             @click="$emit('refreshBlock')"
           />
           <Button
@@ -25,6 +26,7 @@
             text
             severity="secondary"
             size="small"
+            class="p-1 border-0"
             @click="magnified = true"
           />
         </div>

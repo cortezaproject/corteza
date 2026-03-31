@@ -50,12 +50,7 @@
               {{ $t('page.label.title') }}
             </label>
             <InputText id="title" name="title" v-model="page.title" />
-            <Message
-              v-if="$form.title?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-            >
+            <Message v-if="$form.title?.invalid" severity="error" size="small" variant="simple">
               {{ $form.title.error?.message }}
             </Message>
           </FormField>
@@ -65,12 +60,7 @@
               {{ $t('page.label.handle') }}
             </label>
             <InputText id="handle" name="handle" v-model="page.handle" />
-            <Message
-              v-if="$form.handle?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-            >
+            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
               {{ $form.handle.error?.message }}
             </Message>
           </FormField>
@@ -99,12 +89,7 @@
               />
             </div>
 
-            <img
-              v-if="pageIconSrc"
-              :src="pageIconSrc"
-              width="auto"
-              height="50"
-            >
+            <img v-if="pageIconSrc" :src="pageIconSrc" width="auto" height="50" />
             <span v-else class="text-muted-color">
               {{ $t('page.icon.noIcon') }}
             </span>
@@ -282,9 +267,6 @@
     @hide="onLayoutConfigClose"
   >
     <template v-if="configLayout">
-      <!-- General -->
-      <h5 class="font-semibold mb-3">{{ $t('page.page-layout.general') }}</h5>
-
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div class="flex flex-col gap-2">
           <label class="font-medium text-primary">{{ $t('page.page-layout.title') }}</label>
@@ -304,9 +286,6 @@
 
       <Divider />
 
-      <!-- Visibility -->
-      <h5 class="font-semibold mb-3">{{ $t('page.page-layout.visibility') }}</h5>
-
       <div class="flex flex-col gap-2 mb-4">
         <label class="font-medium text-primary">{{ $t('page.page-layout.condition.label') }}</label>
         <InputGroup>
@@ -317,22 +296,26 @@
           />
         </InputGroup>
         <small class="text-muted-color" v-if="isRecordPage">
-          {{ $t('page.page-layout.condition.description.record-page', {
-            0: 'record.values.fieldName',
-            1: 'user.(userID/email...)',
-            2: 'screen.(width/height)',
-            3: 'isView/isCreate/isEdit',
-            4: 'user.userID == record.createdBy',
-            5: 'screen.width < 1024',
-          }) }}
+          {{
+            $t('page.page-layout.condition.description.record-page', {
+              0: 'record.values.fieldName',
+              1: 'user.(userID/email...)',
+              2: 'screen.(width/height)',
+              3: 'isView/isCreate/isEdit',
+              4: 'user.userID == record.createdBy',
+              5: 'screen.width < 1024',
+            })
+          }}
         </small>
         <small class="text-muted-color" v-else>
-          {{ $t('page.page-layout.condition.description.non-record-page', {
-            0: 'user.(userID/email...)',
-            1: 'screen.(width/height)',
-            2: 'user.email == "test@mail.com"',
-            3: 'screen.width < 1024',
-          }) }}
+          {{
+            $t('page.page-layout.condition.description.non-record-page', {
+              0: 'user.(userID/email...)',
+              1: 'screen.(width/height)',
+              2: 'user.email == "test@mail.com"',
+              3: 'screen.width < 1024',
+            })
+          }}
         </small>
       </div>
 
@@ -350,35 +333,71 @@
       <template v-if="isRecordPage">
         <Divider />
 
-        <h5 class="font-semibold mb-3">{{ $t('page.page-layout.recordToolbar.label') }}</h5>
-
         <div class="flex flex-col gap-2 mb-4">
-          <label class="font-medium text-primary">{{ $t('page.page-layout.recordToolbar.buttons.label') }}</label>
+          <label class="font-medium text-primary">
+            {{ $t('page.page-layout.recordToolbar.buttons.label') }}
+          </label>
 
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-3">
-              <Checkbox v-model="configLayout.config.buttons.back.enabled" :binary="true" input-id="btn-back" />
-              <label for="btn-back">{{ $t('page.page-layout.recordToolbar.buttons.showBack') }}</label>
+              <Checkbox
+                v-model="configLayout.config.buttons.back.enabled"
+                :binary="true"
+                input-id="btn-back"
+              />
+              <label for="btn-back">
+                {{ $t('page.page-layout.recordToolbar.buttons.showBack') }}
+              </label>
             </div>
             <div class="flex items-center gap-3">
-              <Checkbox v-model="configLayout.config.buttons.delete.enabled" :binary="true" input-id="btn-delete" />
-              <label for="btn-delete">{{ $t('page.page-layout.recordToolbar.buttons.showDelete') }}</label>
+              <Checkbox
+                v-model="configLayout.config.buttons.delete.enabled"
+                :binary="true"
+                input-id="btn-delete"
+              />
+              <label for="btn-delete">
+                {{ $t('page.page-layout.recordToolbar.buttons.showDelete') }}
+              </label>
             </div>
             <div class="flex items-center gap-3">
-              <Checkbox v-model="configLayout.config.buttons.clone.enabled" :binary="true" input-id="btn-clone" />
-              <label for="btn-clone">{{ $t('page.page-layout.recordToolbar.buttons.showClone') }}</label>
+              <Checkbox
+                v-model="configLayout.config.buttons.clone.enabled"
+                :binary="true"
+                input-id="btn-clone"
+              />
+              <label for="btn-clone">
+                {{ $t('page.page-layout.recordToolbar.buttons.showClone') }}
+              </label>
             </div>
             <div class="flex items-center gap-3">
-              <Checkbox v-model="configLayout.config.buttons.new.enabled" :binary="true" input-id="btn-new" />
-              <label for="btn-new">{{ $t('page.page-layout.recordToolbar.buttons.showNew') }}</label>
+              <Checkbox
+                v-model="configLayout.config.buttons.new.enabled"
+                :binary="true"
+                input-id="btn-new"
+              />
+              <label for="btn-new">
+                {{ $t('page.page-layout.recordToolbar.buttons.showNew') }}
+              </label>
             </div>
             <div class="flex items-center gap-3">
-              <Checkbox v-model="configLayout.config.buttons.edit.enabled" :binary="true" input-id="btn-edit" />
-              <label for="btn-edit">{{ $t('page.page-layout.recordToolbar.buttons.showEdit') }}</label>
+              <Checkbox
+                v-model="configLayout.config.buttons.edit.enabled"
+                :binary="true"
+                input-id="btn-edit"
+              />
+              <label for="btn-edit">
+                {{ $t('page.page-layout.recordToolbar.buttons.showEdit') }}
+              </label>
             </div>
             <div class="flex items-center gap-3">
-              <Checkbox v-model="configLayout.config.buttons.submit.enabled" :binary="true" input-id="btn-submit" />
-              <label for="btn-submit">{{ $t('page.page-layout.recordToolbar.buttons.showSave') }}</label>
+              <Checkbox
+                v-model="configLayout.config.buttons.submit.enabled"
+                :binary="true"
+                input-id="btn-submit"
+              />
+              <label for="btn-submit">
+                {{ $t('page.page-layout.recordToolbar.buttons.showSave') }}
+              </label>
             </div>
           </div>
         </div>
@@ -446,14 +465,11 @@
         </CResourceTable>
 
         <!-- Action-specific config (shown per action in the table) -->
-        <div
-          v-for="(action, aIdx) in configLayout.config.actions"
-          :key="aIdx"
-          class="mb-2"
-        >
+        <div v-for="(action, aIdx) in configLayout.config.actions" :key="aIdx" class="mb-2">
           <div v-if="action.kind === 'toLayout'" class="flex flex-col gap-2">
             <label class="text-sm text-muted-color">
-              {{ $t('page.page-layout.recordToolbar.actions.toLayout.label') }} — {{ action.meta.label || `#${aIdx + 1}` }}
+              {{ $t('page.page-layout.recordToolbar.actions.toLayout.label') }} —
+              {{ action.meta.label || `#${aIdx + 1}` }}
             </label>
             <Select
               v-model="action.params.pageLayoutID"
@@ -467,7 +483,8 @@
 
           <div v-if="action.kind === 'toURL'" class="flex flex-col gap-2">
             <label class="text-sm text-muted-color">
-              {{ $t('page.page-layout.recordToolbar.actions.toURL.label') }} — {{ action.meta.label || `#${aIdx + 1}` }}
+              {{ $t('page.page-layout.recordToolbar.actions.toURL.label') }} —
+              {{ action.meta.label || `#${aIdx + 1}` }}
             </label>
             <InputText
               v-model="action.params.url"
@@ -599,10 +616,10 @@ const pageIconSrc = computed(() => {
 
 // Show sub-pages computed property with getter/setter
 const showSubPages = computed({
-  get () {
+  get() {
     return page.value?.config?.navItem?.expanded ?? false
   },
-  set (val) {
+  set(val) {
     if (page.value) {
       if (!page.value.config) page.value.config = {}
       if (!page.value.config.navItem) page.value.config.navItem = {}
@@ -613,10 +630,10 @@ const showSubPages = computed({
 
 // Notifications enabled computed property
 const notificationsEnabled = computed({
-  get () {
+  get() {
     return page.value?.meta?.notifications?.enabled ?? false
   },
-  set (val) {
+  set(val) {
     if (page.value) {
       if (!page.value.meta) page.value.meta = {}
       if (!page.value.meta.notifications) page.value.meta.notifications = {}
@@ -654,7 +671,9 @@ const actionKindOptions = computed(() => [
 ])
 
 const actionLayoutOptions = computed(() => {
-  const options = [{ value: '', label: t('page.page-layout.recordToolbar.actions.toLayout.placeholder') }]
+  const options = [
+    { value: '', label: t('page.page-layout.recordToolbar.actions.toLayout.placeholder') },
+  ]
   layouts.value
     .filter(l => l.pageLayoutID !== NoID)
     .forEach(l => {
@@ -705,11 +724,33 @@ function getLayoutActions(data, index) {
 }
 
 const actionTableFields = [
-  { key: 'label', header: t('page.page-layout.recordToolbar.actions.buttonLabel'), style: 'min-width: 200px' },
-  { key: 'kind', header: t('page.page-layout.recordToolbar.actions.kind.label'), style: 'min-width: 180px' },
-  { key: 'variant', header: t('page.page-layout.recordToolbar.actions.variant'), style: 'min-width: 140px' },
-  { key: 'placement', header: t('page.page-layout.recordToolbar.actions.placement.label'), style: 'min-width: 120px' },
-  { key: 'enabled', header: t('page.page-layout.recordToolbar.actions.visible'), headerStyle: 'width: 5rem', headerClass: 'text-center', bodyClass: 'text-center' },
+  {
+    key: 'label',
+    header: t('page.page-layout.recordToolbar.actions.buttonLabel'),
+    style: 'min-width: 200px',
+  },
+  {
+    key: 'kind',
+    header: t('page.page-layout.recordToolbar.actions.kind.label'),
+    style: 'min-width: 180px',
+  },
+  {
+    key: 'variant',
+    header: t('page.page-layout.recordToolbar.actions.variant'),
+    style: 'min-width: 140px',
+  },
+  {
+    key: 'placement',
+    header: t('page.page-layout.recordToolbar.actions.placement.label'),
+    style: 'min-width: 120px',
+  },
+  {
+    key: 'enabled',
+    header: t('page.page-layout.recordToolbar.actions.visible'),
+    headerStyle: 'width: 5rem',
+    headerClass: 'text-center',
+    bodyClass: 'text-center',
+  },
 ]
 
 function getActionTableActions(data, index) {
@@ -725,15 +766,16 @@ function getActionTableActions(data, index) {
 
 // ─── Methods ────────────────────────────────────────────────────────────────
 
-function ensureLayoutKey (layout) {
+function ensureLayoutKey(layout) {
   if (!layout._key) {
-    layout._key = layout.pageLayoutID && layout.pageLayoutID !== NoID
-      ? layout.pageLayoutID
-      : `new_${++layoutKeyCounter}`
+    layout._key =
+      layout.pageLayoutID && layout.pageLayoutID !== NoID
+        ? layout.pageLayoutID
+        : `new_${++layoutKeyCounter}`
   }
 }
 
-async function loadPage () {
+async function loadPage() {
   const pageID = route.params.pageID
   if (!pageID) {
     // Create new
@@ -768,7 +810,7 @@ async function loadPage () {
   }
 }
 
-async function loadLayouts () {
+async function loadLayouts() {
   if (!page.value?.pageID || page.value.pageID === NoID) return
 
   try {
@@ -791,7 +833,7 @@ async function loadLayouts () {
 
 // ─── Layout CRUD ────────────────────────────────────────────────────────────
 
-function addLayout () {
+function addLayout() {
   const layout = new compose.PageLayout({
     namespaceID: props.namespace.namespaceID,
     pageID: page.value.pageID,
@@ -801,7 +843,7 @@ function addLayout () {
   layouts.value.push(layout)
 }
 
-function removeLayout (index) {
+function removeLayout(index) {
   const layout = layouts.value[index]
   if (layout && layout.pageLayoutID !== NoID) {
     removedLayouts.value.push(layout)
@@ -809,7 +851,7 @@ function removeLayout (index) {
   layouts.value.splice(index, 1)
 }
 
-function moveLayout (index, direction) {
+function moveLayout(index, direction) {
   const newIndex = index + direction
   if (newIndex < 0 || newIndex >= layouts.value.length) return
 
@@ -819,26 +861,27 @@ function moveLayout (index, direction) {
 
 // ─── Layout Config Dialog ───────────────────────────────────────────────────
 
-function openLayoutConfig (layout) {
+function openLayoutConfig(layout) {
   const idx = layouts.value.indexOf(layout)
   configLayoutIndex.value = idx
   // Deep clone the layout for editing
   configLayout.value = JSON.parse(JSON.stringify(layout))
 
   // Resolve roles
-  configLayoutRoles.value = (configLayout.value.config?.visibility?.roles || [])
-    .map(roleID => ({ roleID }))
+  configLayoutRoles.value = (configLayout.value.config?.visibility?.roles || []).map(roleID => ({
+    roleID,
+  }))
 
   layoutConfigVisible.value = true
 }
 
-function onLayoutConfigClose () {
+function onLayoutConfigClose() {
   configLayout.value = null
   configLayoutIndex.value = -1
   configLayoutRoles.value = []
 }
 
-function saveLayoutConfig () {
+function saveLayoutConfig() {
   if (configLayoutIndex.value >= 0 && configLayout.value) {
     // Apply roles back
     configLayout.value.config.visibility.roles = configLayoutRoles.value.map(r => r.roleID || r)
@@ -851,13 +894,13 @@ function saveLayoutConfig () {
   layoutConfigVisible.value = false
 }
 
-function onConfigLayoutRoleChange (roles) {
+function onConfigLayoutRoleChange(roles) {
   configLayoutRoles.value = roles
 }
 
 // ─── Layout Actions ─────────────────────────────────────────────────────────
 
-function addLayoutAction () {
+function addLayoutAction() {
   if (!configLayout.value) return
   if (!configLayout.value.config.actions) {
     configLayout.value.config.actions = []
@@ -878,11 +921,11 @@ function addLayoutAction () {
   })
 }
 
-function removeLayoutAction (index) {
+function removeLayoutAction(index) {
   configLayout.value.config.actions.splice(index, 1)
 }
 
-function onActionKindChange (action) {
+function onActionKindChange(action) {
   if (action.kind === 'toURL' && !action.params.openIn) {
     action.params.openIn = 'sameTab'
   }
@@ -890,7 +933,7 @@ function onActionKindChange (action) {
 
 // ─── Save / Delete ──────────────────────────────────────────────────────────
 
-async function handleSubmit ({ valid }) {
+async function handleSubmit({ valid }) {
   if (!valid) return
   if (!canSave.value) return
 
@@ -941,18 +984,20 @@ async function handleSubmit ({ valid }) {
   }
 }
 
-async function saveLayouts () {
+async function saveLayouts() {
   const { namespaceID } = props.namespace
   const pageID = page.value.pageID
 
   // Delete removed layouts first (so old handles don't interfere)
   await Promise.all(
     removedLayouts.value.map(layout =>
-      pageLayoutStore.delete({
-        namespaceID,
-        pageID,
-        pageLayoutID: layout.pageLayoutID,
-      }).catch(e => console.error('Failed to delete layout:', e)),
+      pageLayoutStore
+        .delete({
+          namespaceID,
+          pageID,
+          pageLayoutID: layout.pageLayoutID,
+        })
+        .catch(e => console.error('Failed to delete layout:', e)),
     ),
   )
 
@@ -1000,11 +1045,11 @@ async function saveLayouts () {
   await loadLayouts()
 }
 
-function toggleDeleteMenu (event) {
+function toggleDeleteMenu(event) {
   deleteMenu.value.toggle(event)
 }
 
-async function handleDelete (strategy = 'abort') {
+async function handleDelete(strategy = 'abort') {
   deleting.value = true
   try {
     await pageStore.delete({
@@ -1024,28 +1069,28 @@ async function handleDelete (strategy = 'abort') {
 
 // ─── Icon ───────────────────────────────────────────────────────────────────
 
-function openIconModal () {
+function openIconModal() {
   // TODO: Implement full icon management dialog (upload, select, URL link)
   console.warn('Icon management dialog not yet implemented')
 }
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
-function goToBuilder () {
+function goToBuilder() {
   router.push({
     name: 'admin.pages.builder',
     params: { pageID: page.value.pageID },
   })
 }
 
-function goToViewPage () {
+function goToViewPage() {
   router.push({
     name: 'page',
     params: { pageID: page.value.pageID },
   })
 }
 
-function goToModuleEdit () {
+function goToModuleEdit() {
   if (page.value?.moduleID) {
     router.push({
       name: 'admin.modules.edit',
@@ -1054,7 +1099,7 @@ function goToModuleEdit () {
   }
 }
 
-function goToLayoutBuilder (layout) {
+function goToLayoutBuilder(layout) {
   router.push({
     name: 'admin.pages.builder',
     params: { pageID: page.value.pageID },

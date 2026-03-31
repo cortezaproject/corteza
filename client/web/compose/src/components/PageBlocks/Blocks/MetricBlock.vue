@@ -48,6 +48,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $eventBus = inject('$eventBus', null)
 
 const processing = ref(false)
 const error = ref(undefined)
@@ -224,5 +225,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   reports.value = []
   changeValues.value = {}
+  offRefetch?.()
 })
+
+const offRefetch = $eventBus?.on('refetch-records', () => refresh())
 </script>

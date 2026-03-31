@@ -60,6 +60,8 @@
 
       <slot name="right-tools" />
 
+      <CNotificationButton v-if="!settings?.hideNotifications" />
+
       <div v-if="!settings?.hideHelp" class="help-dropdown">
         <Button
           ref="helpMenuRef"
@@ -104,6 +106,7 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import CNotificationButton from '../notifications/CNotificationButton.vue'
 
 const sidebarExpanded = defineModel('sidebarExpanded', {
   type: Boolean,
@@ -111,6 +114,10 @@ const sidebarExpanded = defineModel('sidebarExpanded', {
 })
 
 const props = defineProps({
+  settings: {
+    type: Object,
+    default: () => ({}),
+  },
   hideLogo: {
     type: Boolean,
     default: false,
@@ -131,6 +138,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  customProfileItems: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['app-menu-click'])
@@ -143,7 +154,10 @@ const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
 
 const settings = computed(() => {
-  return $Settings.get('ui.topbar', {})
+  return {
+    ...$Settings.get('ui.topbar', {}),
+    ...props.settings,
+  }
 })
 
 // Page buttons: filter by URL substring match, kept reactive for SPA navigation
@@ -209,12 +223,12 @@ const documentationURL = computed(() => {
 })
 
 const helpLinks = computed(() => {
-  const { helpLinks = [] } = props.settings || {}
+  const { helpLinks = [] } = settings.value || {}
   return (helpLinks || []).filter(({ handle, url }) => handle && url)
 })
 
 const profileLinks = computed(() => {
-  const { profileLinks = [] } = props.settings || {}
+  const { profileLinks = [] } = settings.value || {}
   return (profileLinks || []).filter(({ handle, url }) => handle && url)
 })
 
@@ -245,7 +259,7 @@ const helpMenuItems = computed(() => {
     })
   })
 
-  if (!props.settings?.hideForumLink) {
+  if (!settings.value?.hideForumLink) {
     items.push({
       label: props.labels.helpForum,
       url: 'https://forum.cortezaproject.org/',
@@ -253,7 +267,7 @@ const helpMenuItems = computed(() => {
     })
   }
 
-  if (!props.settings?.hideDocumentationLink) {
+  if (!settings.value?.hideDocumentationLink) {
     items.push({
       label: props.labels.helpDocumentation,
       url: documentationURL.value,
@@ -261,7 +275,7 @@ const helpMenuItems = computed(() => {
     })
   }
 
-  if (!props.settings?.hideFeedbackLink) {
+  if (!settings.value?.hideFeedbackLink) {
     items.push({
       label: props.labels.helpFeedback,
       url: 'mailto:info@cortezaproject.org',
@@ -309,7 +323,7 @@ const profileMenuItems = computed(() => {
     })
   })
 
-  if (!props.settings?.hideProfileLink) {
+  if (!settings.value?.hideProfileLink) {
     items.push({
       label: props.labels.userSettingsProfile,
       url: $Auth.cortezaAuthURL,
@@ -318,7 +332,7 @@ const profileMenuItems = computed(() => {
     })
   }
 
-  if (!props.settings?.hideChangePasswordLink) {
+  if (!settings.value?.hideChangePasswordLink) {
     items.push({
       label: props.labels.userSettingsChangePassword,
       url: `${$Auth.cortezaAuthURL}/change-password`,
@@ -327,7 +341,7 @@ const profileMenuItems = computed(() => {
     })
   }
 
-  if (!props.settings?.hideThemeSelector) {
+  if (!settings.value?.hideThemeSelector) {
     items.push({
       label: props.labels.userSettingsTheme,
       items: themes.value.map(theme => ({
@@ -338,6 +352,11 @@ const profileMenuItems = computed(() => {
       })),
       icon: 'pi pi-palette',
     })
+  }
+
+  if (props.customProfileItems.length) {
+    items.push({ separator: true })
+    items.push(...props.customProfileItems)
   }
 
   items.push({ separator: true })

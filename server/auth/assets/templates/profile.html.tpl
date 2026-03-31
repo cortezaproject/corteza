@@ -128,7 +128,7 @@
         </div>
 
         {{ if not .isAvatar }}
-        <div class="form-row mb-3">
+        <div class="row mb-3">
             <div class="col">
                 <label for="initialColor">{{ tr "profile.template.form.avatar-initial.color" }}</label>
                 <div class="color-picker-wrapper">

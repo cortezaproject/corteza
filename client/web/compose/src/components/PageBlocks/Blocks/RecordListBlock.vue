@@ -2,13 +2,13 @@
   <PageBlock :block="block">
     <!-- Toolbar -->
     <div v-if="recordListModule" class="flex items-center gap-2 p-3 border-b">
-      <!-- Add Record button -->
+      <!-- Add Record button (inline mode: prepend new row; otherwise: navigate) -->
       <Button
-        v-if="!options.hideAddButton && recordPageID && recordListModule?.canCreateRecord"
+        v-if="!options.hideAddButton && recordListModule?.canCreateRecord && (options.editable || recordPageID)"
         :label="$t('block.recordList.addRecord')"
         icon="pi pi-plus"
         size="small"
-        @click="handleAddRecord"
+        @click="options.editable ? addInlineRecord() : handleAddRecord()"
       />
 
       <!-- Spacer -->
@@ -24,12 +24,12 @@
       />
     </div>
 
-    <!-- Selection bar -->
+    <!-- Selection / dirty bar -->
     <div
-      v-if="selectedRecords.length"
+      v-if="selectedRecords.length || (options.editable && dirtyRecordsCount > 1)"
       class="flex items-center gap-2 px-3 py-2 bg-highlight border-b"
     >
-      <span class="text-sm font-medium">
+      <span v-if="selectedRecords.length" class="text-sm font-medium">
         {{
           $t('block.recordList.selected', {
             count: selectedRecords.length,
@@ -40,6 +40,30 @@
 
       <div class="flex-1" />
 
+      <!-- Save / discard all dirty (or just selected dirty rows) — only when 2+ rows are dirty -->
+      <template v-if="options.editable && dirtyRecordsCount > 1">
+        <Button
+          v-tooltip.bottom="$t('block.recordList.tooltip.saveChanges')"
+          icon="pi pi-check"
+          text
+          size="small"
+          severity="success"
+          :loading="processingDirtyRecords === 'save'"
+          :disabled="!!processingDirtyRecords"
+          @click="handleSaveDirtyRecords"
+        />
+        <Button
+          v-tooltip.bottom="$t('block.recordList.tooltip.discardChanges')"
+          icon="pi pi-times"
+          text
+          size="small"
+          severity="secondary"
+          :loading="processingDirtyRecords === 'deny'"
+          :disabled="!!processingDirtyRecords"
+          @click="handleDenyDirtyRecords"
+        />
+      </template>
+
       <Button
         v-if="canDeleteSelected"
         :label="$t('block.recordList.tooltip.deleteSelected')"
@@ -47,7 +71,7 @@
         severity="danger"
         text
         size="small"
-        @click="confirmDeleteSelected"
+        @click="deleteSelected"
       />
     </div>
 
@@ -67,6 +91,7 @@
         :rows="currentPerPage"
         :total-records="totalRecords"
         :lazy="true"
+        :row-class="rowClass"
         scrollable
         scroll-height="flex"
         row-hover
@@ -102,17 +127,31 @@
           :key="col.name"
           :field="col.name"
           :header="col.label"
-          :sortable="!options.hideSorting"
+          :sortable="!options.hideSorting && !options.editable"
         >
-          <template #body="{ data }">
-            <CFieldViewer :field="col" :record="data" :namespace="namespace" />
+          <template #body="{ data, index }">
+            <CFieldEditor
+              v-if="options.editable && isInlineEditField(col) && (!data.recordID || data.canUpdateRecord !== false)"
+              :field="col"
+              :namespace="namespace"
+              :model-value="data.values[col.name]"
+              style="min-width: 200px;"
+              @update:model-value="data.values[col.name] = $event; onInlineFieldChange(data)"
+              @click.stop
+            />
+            <CFieldViewer
+              v-else
+              :field="col"
+              :record="data"
+              :namespace="namespace"
+            />
           </template>
         </Column>
 
-        <!-- Actions column -->
+        <!-- Actions column: save/discard when dirty, ellipsis menu otherwise -->
         <Column
-          v-if="hasRowActions"
-          header-style="width: 3rem"
+          v-if="options.editable || hasRowActions"
+          header-style="width: 5rem"
           :pt="{
             headerCell: { class: 'border-l-0' },
             bodyCell: { class: 'px-2 py-1 border-l-0' },
@@ -120,16 +159,45 @@
           frozen
           align-frozen="right"
         >
-          <template #body="{ data }">
-            <Button
-              icon="pi pi-ellipsis-v"
-              text
-              size="small"
-              severity="secondary"
-              class="row-action-btn w-full"
-              @click="openRowMenu($event, data)"
-              @click.stop
-            />
+          <template #body="{ data, index }">
+            <div class="flex items-center justify-end gap-1">
+              <!-- Inline save/discard (only when row is dirty) -->
+              <template v-if="options.editable && showSaveAction(data)">
+                <Button
+                  v-tooltip.top="$t('block.recordList.tooltip.saveChanges')"
+                  icon="pi pi-check"
+                  text
+                  size="small"
+                  severity="success"
+                  :loading="processingRecords[getRecordKey(data)] === 'save'"
+                  :disabled="!!processingRecords[getRecordKey(data)]"
+                  @click.stop="handleSaveInline(data, index)"
+                />
+                <Button
+                  v-tooltip.top="$t('block.recordList.tooltip.discardChanges')"
+                  icon="pi pi-times"
+                  text
+                  size="small"
+                  severity="secondary"
+                  :loading="processingRecords[getRecordKey(data)] === 'deny'"
+                  :disabled="!!processingRecords[getRecordKey(data)]"
+                  @click.stop="handleDenyInline(data, index)"
+                />
+
+                <Divider v-if="hasRowActions" layout="vertical" class="mx-1 h-5" />
+              </template>
+
+              <!-- Row action menu button (always visible for dirty rows) -->
+              <Button
+                v-if="hasRowActions"
+                icon="pi pi-ellipsis-v"
+                text
+                size="small"
+                severity="secondary"
+                :class="showSaveAction(data) ? '' : 'row-action-btn'"
+                @click.stop="openRowMenu($event, data)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -201,16 +269,18 @@
 
 <script setup>
 import axios from 'axios'
-import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
-const { CFieldViewer, CInputSearch } = components
+const { CFieldViewer, CFieldEditor, CInputSearch } = components
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
+import { useReminderStore } from '@/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@/stores/page'
+import { evaluatePrefilter, queryToFilter, getFieldFilter } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: {
@@ -225,15 +295,22 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  record: {
+    type: Object,
+    default: undefined,
+  },
 })
 
 const { t } = useI18n()
 const router = useRouter()
 const { confirmDelete } = useConfirmDelete()
 const $ComposeAPI = inject('$ComposeAPI')
+const $auth = inject('$auth', {})
+const $eventBus = inject('$eventBus', null)
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 const pageStore = usePageStore()
+const reminderStore = useReminderStore()
 
 // Injectable route resolver — allows admin views to override routes
 // Default: public page routes using recordPageID
@@ -260,6 +337,17 @@ const currentPerPage = ref(20)
 const rowMenuRef = ref(null)
 const rowMenuKey = ref(0)
 const activeRowRecord = ref(null)
+
+// Inline editing — Corteza-style dirty tracking
+const dirtyRecords = reactive({})
+const processingRecords = reactive({})
+const processingDirtyRecords = ref('')
+
+// Counter for temp IDs on newly added inline rows
+let _tempIdCounter = 0
+function getRecordKey(record) {
+  return record.recordID || record._tempID || ''
+}
 
 const options = computed(() => props.block.options || {})
 
@@ -378,6 +466,14 @@ const rowMenuItems = computed(() => {
     })
   }
 
+  if (record?.recordID && !options.value.hideRecordReminderButton) {
+    items.push({
+      label: t('reminder.add'),
+      icon: 'pi pi-clock',
+      command: () => createReminder(record),
+    })
+  }
+
   if (record?.canDeleteRecord && !options.value.hideRecordDeleteButton) {
     if (items.length > 0) {
       items.push({ separator: true })
@@ -394,6 +490,173 @@ const rowMenuItems = computed(() => {
   return items
 })
 
+// Inline editing helpers
+const dirtyRecordsCount = computed(() => Object.keys(dirtyRecords).length)
+
+function rowClass(data) {
+  return dirtyRecords[getRecordKey(data)] ? 'bg-yellow-50 dark:bg-yellow-950' : ''
+}
+
+function isInlineEditField(col) {
+  const editFields = options.value.editFields || []
+  if (!editFields.length) return true
+  return editFields.some(f => (f.name ?? f) === col.name)
+}
+
+function onInlineFieldChange(record) {
+  const key = getRecordKey(record)
+  if (!dirtyRecords[key]) {
+    dirtyRecords[key] = true
+  }
+}
+
+function showSaveAction(record) {
+  if (!recordListModule.value) return false
+  const key = getRecordKey(record)
+  // New inline record (no recordID) always shows save action if module allows create
+  if (!record.recordID) return !!recordListModule.value.canCreateRecord
+  if (!dirtyRecords[key]) return false
+  return record.canUpdateRecord !== false
+}
+
+function addInlineRecord() {
+  const r = new compose.Record(recordListModule.value, {})
+  // Assign a temp ID so multiple new rows can be tracked independently
+  r._tempID = `_new_${++_tempIdCounter}`
+
+  // Prefill refField if present (links to parent record)
+  if (options.value.refField && props.record) {
+    const refField = recordListModule.value.fields.find(f => f.name === options.value.refField)
+    if (refField?.isMulti) {
+      r.values[options.value.refField] = [props.record.recordID]
+    } else {
+      r.values[options.value.refField] = props.record.recordID
+    }
+  }
+
+  records.value.unshift(r)
+  // Mark new row as dirty immediately so save/discard controls appear
+  dirtyRecords[r._tempID] = true
+}
+
+async function handleSaveInline(record, index) {
+  if (!recordListModule.value) return
+  const key = getRecordKey(record)
+  processingRecords[key] = 'save'
+  try {
+    const isNew = !record.recordID
+    const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
+    delete dirtyRecords[key]
+    const newRecord = new compose.Record(recordListModule.value, saved)
+    records.value.splice(index, 1, newRecord)
+  } catch (e) {
+    console.error('Failed to save inline record:', e)
+  } finally {
+    delete processingRecords[key]
+  }
+}
+
+async function handleDenyInline(record, index) {
+  if (!recordListModule.value) return
+  const key = getRecordKey(record)
+  processingRecords[key] = 'deny'
+  delete dirtyRecords[key]
+  const isNew = !record.recordID
+  if (isNew) {
+    records.value.splice(index, 1)
+    delete processingRecords[key]
+    return
+  }
+  try {
+    const fresh = await recordStore.findByID({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: recordListModule.value.moduleID,
+      recordID: record.recordID,
+      force: true,
+    })
+    records.value.splice(index, 1, fresh)
+  } catch (e) {
+    console.error('Failed to revert inline record:', e)
+  } finally {
+    delete processingRecords[key]
+  }
+}
+
+async function handleSaveDirtyRecords() {
+  if (!recordListModule.value) return
+  // Collect: if rows selected, only those; otherwise all dirty
+  const toSave = records.value.filter((r, idx) => {
+    if (!showSaveAction(r)) return false
+    if (selectedRecords.value.length > 0) {
+      return selectedRecords.value.some(s => getRecordKey(s) === getRecordKey(r))
+    }
+    return true
+  })
+  if (!toSave.length) return
+
+  processingDirtyRecords.value = 'save'
+  let hasError = false
+
+  for (const record of toSave) {
+    const key = getRecordKey(record)
+    const index = records.value.findIndex(r => getRecordKey(r) === key)
+    if (index === -1) continue
+    const isNew = !record.recordID
+    try {
+      const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
+      delete dirtyRecords[key]
+      const newRecord = new compose.Record(recordListModule.value, saved)
+      records.value.splice(index, 1, newRecord)
+    } catch (e) {
+      hasError = true
+      console.error('Failed to save record:', e)
+    }
+  }
+
+  processingDirtyRecords.value = ''
+  if (!hasError) selectedRecords.value = []
+}
+
+async function handleDenyDirtyRecords() {
+  if (!recordListModule.value) return
+  const toDeny = records.value.filter(r => {
+    if (!showSaveAction(r)) return false
+    if (selectedRecords.value.length > 0) {
+      return selectedRecords.value.some(s => getRecordKey(s) === getRecordKey(r))
+    }
+    return true
+  })
+  if (!toDeny.length) return
+
+  processingDirtyRecords.value = 'deny'
+
+  for (const record of [...toDeny]) {
+    const key = getRecordKey(record)
+    const index = records.value.findIndex(r => getRecordKey(r) === key)
+    if (index === -1) continue
+    delete dirtyRecords[key]
+    const isNew = !record.recordID
+    if (isNew) {
+      records.value.splice(index, 1)
+      continue
+    }
+    try {
+      const fresh = await recordStore.findByID({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: recordListModule.value.moduleID,
+        recordID: record.recordID,
+        force: true,
+      })
+      records.value.splice(index, 1, fresh)
+    } catch (e) {
+      console.error('Failed to revert record:', e)
+    }
+  }
+
+  processingDirtyRecords.value = ''
+  selectedRecords.value = []
+}
+
 // Request cancellation
 let cancelPendingRequest = null
 
@@ -402,6 +665,44 @@ function abortPendingRequest() {
     cancelPendingRequest()
     cancelPendingRequest = null
   }
+}
+
+/**
+ * Build the evaluated prefilter string from block options,
+ * matching Corteza's prepRecordList() logic.
+ *
+ * - Evaluates template expressions (${recordID}, ${ownerID}, ${userID})
+ * - Handles refField for parent record linking
+ */
+function buildPrefilter() {
+  const { prefilter, refField } = options.value
+  const mod = recordListModule.value
+  const filterParts = []
+
+  if (prefilter) {
+    const record = props.record
+    const user = $auth?.user || {}
+    const pf = evaluatePrefilter(prefilter, {
+      record,
+      user,
+      recordID: record?.recordID || '0',
+      ownerID: record?.ownedBy || '0',
+      userID: user?.userID || '0',
+    })
+    filterParts.push(`(${pf})`)
+  }
+
+  // Handle refField — links to parent record
+  if (refField && props.record) {
+    const refFieldObj = mod?.fields?.find(f => f.name === refField)
+    if (refFieldObj && refFieldObj.isMulti) {
+      filterParts.push(getFieldFilter(refField, 'Record', props.record.recordID, 'IN'))
+    } else {
+      filterParts.push(getFieldFilter(refField, 'Record', props.record.recordID, '='))
+    }
+  }
+
+  return filterParts.filter(Boolean).join(' AND ')
 }
 
 // Fetch records with cancellation support
@@ -416,6 +717,9 @@ async function fetchRecords(resetCursor = false) {
     nextPageCursor.value = null
     currentPageIndex.value = 0
     selectedRecords.value = []
+    // Clear inline editing state on full refresh
+    Object.keys(dirtyRecords).forEach(k => delete dirtyRecords[k])
+    Object.keys(processingRecords).forEach(k => delete processingRecords[k])
   }
 
   try {
@@ -425,12 +729,25 @@ async function fetchRecords(resetCursor = false) {
       sort = `${sortField.value} ${sortOrder.value === 1 ? 'ASC' : 'DESC'}`
     }
 
-    // Build query
-    let query = options.value.prefilter || ''
-    if (searchQuery.value) {
-      const searchFilter = searchQuery.value
-      query = query ? `(${query}) AND ${searchFilter}` : searchFilter
+    // Build query using queryToFilter — matches Corteza's RecordListBase behavior
+    const evaluatedPrefilter = buildPrefilter()
+
+    // Determine search fields: use configured searchableFields or fall back to visible columns
+    let searchFields = []
+    const searchableFieldConfig = options.value.searchableFields || []
+    if (searchableFieldConfig.length > 0 && recordListModule.value.filterFields) {
+      searchFields = recordListModule.value.filterFields(searchableFieldConfig)
+    } else {
+      // Default to visible columns (same as old Corteza behavior)
+      searchFields = columns.value
     }
+
+    const query = queryToFilter(
+      searchQuery.value || '',
+      evaluatedPrefilter,
+      searchFields,
+      [], // recordListFilter groups — not yet implemented in new UI
+    )
 
     // Determine page cursor for API call
     let pageCursor
@@ -488,6 +805,7 @@ watch(searchQuery, () => {
 onBeforeUnmount(() => {
   abortPendingRequest()
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  offRefetch?.()
 })
 
 function onSort(event) {
@@ -517,6 +835,9 @@ function goToPrevPage() {
 function onRowClick(event) {
   const record = event.data
   if (!record?.recordID) return
+
+  // Don't navigate in inline editing mode — fields are edited in-place
+  if (options.value.editable) return
 
   // Don't navigate if clicking on a checkbox or action button
   const target = event.originalEvent?.target
@@ -588,6 +909,38 @@ function handleCloneRecord(record) {
   )
 }
 
+function createReminder (record) {
+  if (!record?.recordID) return
+
+  const sourceField = (options.value.fields || []).find(({ name }) => {
+    const value = record.values?.[name]
+    return Array.isArray(value) ? value.length > 0 : !!value
+  })
+
+  const fieldValue = sourceField ? record.values?.[sourceField.name] : null
+  const title = Array.isArray(fieldValue) ? fieldValue.join(', ') : (fieldValue || '')
+  const payload = {
+    title,
+  }
+
+  if (recordPageID.value) {
+    payload.link = {
+      name: 'page.record',
+      label: t('reminder.recordPageLink'),
+      params: {
+        slug: props.namespace.slug || props.namespace.namespaceID,
+        pageID: recordPageID.value,
+        recordID: record.recordID,
+      },
+    }
+  }
+
+  reminderStore.startCreate({
+    resource: `compose:record:${record.recordID}`,
+    payload,
+  })
+}
+
 function confirmDeleteRecord(record) {
   if (!record?.recordID) return
 
@@ -609,29 +962,24 @@ function confirmDeleteRecord(record) {
   })
 }
 
-function confirmDeleteSelected() {
+async function deleteSelected() {
   if (!selectedRecords.value.length) return
-
-  confirmDelete({
-    message: t('block.recordList.tooltip.deleteSelected'),
-    header: t('block.recordList.record.tooltip.delete'),
-    onConfirm: async () => {
-      try {
-        for (const record of selectedRecords.value) {
-          await recordStore.delete({
-            namespaceID: props.namespace.namespaceID,
-            moduleID: recordListModule.value.moduleID,
-            recordID: record.recordID,
-          })
-        }
-        selectedRecords.value = []
-        fetchRecords(true)
-      } catch (e) {
-        console.error('Failed to delete selected records:', e)
-      }
-    },
-  })
+  try {
+    for (const record of selectedRecords.value) {
+      await recordStore.delete({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: recordListModule.value.moduleID,
+        recordID: record.recordID,
+      })
+    }
+    selectedRecords.value = []
+    fetchRecords(true)
+  } catch (e) {
+    console.error('Failed to delete selected records:', e)
+  }
 }
+
+const offRefetch = $eventBus?.on('refetch-records', () => fetchRecords(true))
 
 // Reload when module changes
 watch(

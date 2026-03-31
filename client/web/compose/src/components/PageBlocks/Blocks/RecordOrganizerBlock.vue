@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
@@ -58,6 +58,7 @@ const props = defineProps({
 
 const $ComposeAPI = inject('$ComposeAPI', null)
 const $auth = inject('$auth', {})
+const $eventBus = inject('$eventBus', null)
 const router = useRouter()
 const route = useRoute()
 
@@ -141,4 +142,10 @@ function createNewRecord() {
 onMounted(() => pullRecords())
 watch(() => props.record?.recordID, () => pullRecords())
 watch(() => props.block.options, () => pullRecords(), { deep: true })
+
+const offRefetch = $eventBus?.on('refetch-records', () => pullRecords())
+
+onBeforeUnmount(() => {
+  offRefetch?.()
+})
 </script>

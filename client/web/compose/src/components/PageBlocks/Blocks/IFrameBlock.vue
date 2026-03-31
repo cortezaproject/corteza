@@ -31,9 +31,12 @@ const $auth = inject('$auth', {})
 const iframeRef = ref(null)
 
 const src = computed(() => {
-  const { srcField, src: srcUrl } = props.block.options || {}
+  const opts = props.block.options || {}
+  const { srcField } = opts
   const blank = 'about:blank'
-  let url = srcUrl
+
+  // Support both 'src' (current) and 'url' (legacy) keys
+  let url = opts.src || opts.url || ''
 
   // If srcField is set and we have a record, use the field value
   if (srcField && props.record) {
@@ -42,18 +45,23 @@ const src = computed(() => {
 
   if (!url) return blank
 
-  // Interpolate variables like ${record.values.X}, ${userID}, etc.
-  const record = props.record
-  const user = $auth?.user || {}
+  try {
+    // Interpolate variables like ${record.values.X}, ${userID}, etc.
+    const record = props.record
+    const user = $auth?.user || {}
 
-  const interpolatedURL = evaluatePrefilter(url, {
-    record,
-    user,
-    recordID: record?.recordID || '0',
-    ownerID: record?.ownedBy || '0',
-    userID: user?.userID || '0',
-  })
+    const interpolatedURL = evaluatePrefilter(url, {
+      record,
+      user,
+      recordID: record?.recordID || '0',
+      ownerID: record?.ownedBy || '0',
+      userID: user?.userID || '0',
+    })
 
-  return interpolatedURL || blank
+    return interpolatedURL || blank
+  } catch (e) {
+    console.error('Failed to interpolate IFrame URL:', e)
+    return url || blank
+  }
 })
 </script>

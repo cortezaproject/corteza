@@ -5,6 +5,7 @@ import {
   AuthPlugin,
   AutomationAPIPlugin,
   ComposeAPIPlugin,
+  EventBusPlugin,
   FederationAPIPlugin,
   I18nPlugin,
   PrimeVueComponentsPlugin,
@@ -78,6 +79,7 @@ export function setupAndAuthenticate(app) {
 
       // State management & routing
       app.use(createPinia())
+      app.use(EventBusPlugin)
       app.use(router)
 
       // i18n

@@ -39,6 +39,7 @@ export class Reminder {
     if (!r) return
 
     Apply(this, r, CortezaID, 'reminderID')
+    Apply(this, r, String, 'resource')
     Apply(this, r, Number, 'snoozeCount')
     Apply(this, r, CortezaID, 'assignedTo', 'assignedBy', 'dismissedBy')
 

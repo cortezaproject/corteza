@@ -20,7 +20,7 @@
       />
       <Button
         v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-objects-column"
+        icon="pi pi-pencil"
         size="small"
         @click="goToEditPage"
       />
@@ -107,7 +107,7 @@
   >
     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
       <div
-        v-for="bt in availableBlockTypes"
+        v-for="bt in addableBlockTypes"
         :key="bt.kind"
         class="flex flex-col items-center gap-2 p-4 border border-surface rounded cursor-pointer hover:bg-highlight transition-colors"
         @click="addBlock(bt.kind)"
@@ -178,8 +178,12 @@
                   :invalid="customIDInvalid"
                   class="w-full"
                 />
-                <small v-if="customIDInvalid" class="text-red-500">{{ $t('block.general.customID.invalid-state') }}</small>
-                <small v-else class="text-muted-color">{{ $t('block.general.customID.description') }}</small>
+                <small v-if="customIDInvalid" class="text-red-500">
+                  {{ $t('block.general.customID.invalid-state') }}
+                </small>
+                <small v-else class="text-muted-color">
+                  {{ $t('block.general.customID.description') }}
+                </small>
               </div>
 
               <!-- Custom CSS Class -->
@@ -193,8 +197,12 @@
                   :invalid="customCSSClassInvalid"
                   class="w-full"
                 />
-                <small v-if="customCSSClassInvalid" class="text-red-500">{{ $t('block.general.customCSSClass.invalid-state') }}</small>
-                <small v-else class="text-muted-color">{{ $t('block.general.customCSSClass.description') }}</small>
+                <small v-if="customCSSClassInvalid" class="text-red-500">
+                  {{ $t('block.general.customCSSClass.invalid-state') }}
+                </small>
+                <small v-else class="text-muted-color">
+                  {{ $t('block.general.customCSSClass.description') }}
+                </small>
               </div>
             </div>
 
@@ -225,8 +233,6 @@
                   :options="magnifyOptions"
                   option-label="label"
                   option-value="value"
-                  :placeholder="$t('block.general.magnifyOptions.disabled')"
-                  show-clear
                   class="w-full"
                 />
               </div>
@@ -244,8 +250,14 @@
                 <label for="wrapCard" class="text-sm">{{ $t('block.general.wrap') }}</label>
               </div>
               <div class="flex items-center gap-2">
-                <Checkbox v-model="editingBlock.style.border.enabled" binary input-id="borderEnabled" />
-                <label for="borderEnabled" class="text-sm">{{ $t('block.general.border.show') }}</label>
+                <Checkbox
+                  v-model="editingBlock.style.border.enabled"
+                  binary
+                  input-id="borderEnabled"
+                />
+                <label for="borderEnabled" class="text-sm">
+                  {{ $t('block.general.border.show') }}
+                </label>
               </div>
             </div>
 
@@ -266,11 +278,15 @@
                       @blur="clampRefreshRate"
                     />
                   </div>
-                  <small class="text-muted-color">{{ $t('block.general.refresh.description') }}</small>
+                  <small class="text-muted-color">
+                    {{ $t('block.general.refresh.description') }}
+                  </small>
                 </div>
-                <div class="flex items-center gap-2 self-center">
-                  <Checkbox v-model="editingBlock.options.showRefresh" binary input-id="showRefresh" />
-                  <label for="showRefresh" class="text-sm">{{ $t('block.general.refresh.show') }}</label>
+                <div class="flex gap-2">
+                  <CInputSwitch
+                    v-model="editingBlock.options.showRefresh"
+                    :label="$t('block.general.refresh.show')"
+                  />
                 </div>
               </div>
             </template>
@@ -287,7 +303,10 @@
                 <label class="text-primary font-medium text-sm">
                   {{ $t('block.general.visibility.condition.label') }}
                 </label>
-                <i class="pi pi-exclamation-triangle text-orange-500 text-xs" v-tooltip="$t('block.general.visibility.tooltip.performance.condition')" />
+                <i
+                  class="pi pi-exclamation-triangle text-orange-500 text-xs"
+                  v-tooltip="$t('block.general.visibility.tooltip.performance.condition')"
+                />
               </div>
               <Textarea
                 v-model="editingBlock.meta.visibility.expression"
@@ -296,21 +315,22 @@
                 class="w-full"
               />
               <small class="text-muted-color">
-                {{ isRecordPage
-                  ? $t('block.general.visibility.condition.description.record-page', [
-                      'record.values.fieldName',
-                      'user.(userID/email...)',
-                      'screen.(width/height)',
-                      'isView/isCreate/isEdit',
-                      'user.userID == record.createdBy',
-                      'screen.width < 1024',
-                    ])
-                  : $t('block.general.visibility.condition.description.non-record-page', [
-                      'user.(userID/email...)',
-                      'screen.(width/height)',
-                      'user.email == "test@mail.com"',
-                      'screen.width < 1024',
-                    ])
+                {{
+                  isRecordPage
+                    ? $t('block.general.visibility.condition.description.record-page', [
+                        'record.values.fieldName',
+                        'user.(userID/email...)',
+                        'screen.(width/height)',
+                        'isView/isCreate/isEdit',
+                        'user.userID == record.createdBy',
+                        'screen.width < 1024',
+                      ])
+                    : $t('block.general.visibility.condition.description.non-record-page', [
+                        'user.(userID/email...)',
+                        'screen.(width/height)',
+                        'user.email == "test@mail.com"',
+                        'screen.width < 1024',
+                      ])
                 }}
               </small>
             </div>
@@ -339,6 +359,8 @@
             :page="page"
             :blocks="blocks"
             @update:block="onBlockConfigUpdate"
+            @edit-tab-block="onEditTabBlock"
+            @create-tab-block="onCreateTabBlock"
           />
 
           <!-- Fallback when no configurator exists -->
@@ -390,8 +412,7 @@ import ProgressConfigurator from '@/components/PageBlocks/Configurators/Progress
 import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue'
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
-import SocialFeedConfigurator from '@/components/PageBlocks/Configurators/SocialFeedConfigurator.vue'
-import ReportConfigurator from '@/components/PageBlocks/Configurators/ReportConfigurator.vue'
+
 
 const { t } = useI18n()
 const route = useRoute()
@@ -419,6 +440,7 @@ const editingBlock = ref(null)
 const editingBlockIndex = ref(-1)
 const gridRef = ref(null)
 const configuratorTab = ref('block')
+const pendingTabBlockIndex = ref(null)
 
 const headerTextVariantOptions = computed(() => [
   { value: 'dark', label: t('block.general.style.default') },
@@ -430,11 +452,12 @@ const headerTextVariantOptions = computed(() => [
 ])
 
 const magnifyOptions = computed(() => [
+  { value: 'disabled', label: t('block.general.magnifyOptions.disabled') },
   { value: 'modal', label: t('block.general.magnifyOptions.modal') },
   { value: 'fullscreen', label: t('block.general.magnifyOptions.fullscreen') },
 ])
 
-const isRecordPage = computed(() => !!page.value?.moduleID)
+const isRecordPage = computed(() => !!page.value?.isRecordPage)
 
 // Custom ID validation: must be at least 2 chars, alphanumeric/underscore/dash, end with letter/number
 const customIDInvalid = computed(() => {
@@ -460,22 +483,37 @@ function clampRefreshRate() {
 }
 
 // Ensure nested objects exist when editingBlock is set
-watch(editingBlock, (block) => {
-  if (!block) return
-  if (!block.meta) block.meta = {}
-  if (!block.meta.visibility) block.meta.visibility = { expression: '', roles: [] }
-  if (block.meta.visibility.expression === undefined) block.meta.visibility.expression = ''
-  if (!block.meta.visibility.roles) block.meta.visibility.roles = []
-  if (!block.style) block.style = {}
-  if (!block.style.variants) block.style.variants = { headerText: '' }
-  if (!block.style.wrap) block.style.wrap = { kind: 'card' }
-  if (!block.style.border) block.style.border = { enabled: false }
-  // Ensure options defaults
-  if (!block.options) block.options = {}
-  if (block.options.magnifyOption === undefined || block.options.magnifyOption === '') block.options.magnifyOption = null
-  if (block.options.showRefresh === undefined) block.options.showRefresh = false
-  if (block.options.refreshRate === undefined) block.options.refreshRate = 0
-}, { immediate: true })
+watch(
+  editingBlock,
+  block => {
+    if (!block) return
+    if (!block.meta) block.meta = {}
+    if (!block.meta.visibility) block.meta.visibility = { expression: '', roles: [] }
+    if (block.meta.visibility.expression === undefined) block.meta.visibility.expression = ''
+    if (!block.meta.visibility.roles) block.meta.visibility.roles = []
+    if (!block.style) block.style = {}
+    if (!block.style.variants) block.style.variants = { headerText: '' }
+    if (!block.style.wrap) block.style.wrap = { kind: 'card' }
+    if (!block.style.border) block.style.border = { enabled: false }
+    // Ensure options defaults
+    if (!block.options) block.options = {}
+    if (
+      block.options.magnifyOption === undefined ||
+      block.options.magnifyOption === null ||
+      block.options.magnifyOption === ''
+    )
+      block.options.magnifyOption = 'disabled'
+    if (block.options.showRefresh === undefined) block.options.showRefresh = false
+    if (block.options.refreshRate === undefined) block.options.refreshRate = 0
+  },
+  { immediate: true },
+)
+
+watch(showAddBlock, visible => {
+  if (!visible) {
+    pendingTabBlockIndex.value = null
+  }
+})
 
 // Label for the block-specific tab
 const editingBlockTypeLabel = computed(() => {
@@ -486,7 +524,7 @@ const editingBlockTypeLabel = computed(() => {
 
 // Available block types for the "add block" dialog
 const availableBlockTypes = computed(() => {
-  const isRecordPage = page.value?.moduleID
+  const isRecordPage = page.value?.isRecordPage
   return [
     { kind: 'Content', label: t('block.content.label'), icon: 'pi pi-align-left' },
     { kind: 'RecordList', label: t('block.recordList.label'), icon: 'pi pi-list' },
@@ -505,13 +543,24 @@ const availableBlockTypes = computed(() => {
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'RecordOrganizer', label: t('block.recordOrganizer.label'), icon: 'pi pi-th-large' },
     ...(isRecordPage
-      ? [{ kind: 'RecordRevisions', label: t('block.recordRevisions.label'), icon: 'pi pi-history' }]
+      ? [
+          {
+            kind: 'RecordRevisions',
+            label: t('block.recordRevisions.label'),
+            icon: 'pi pi-history',
+          },
+        ]
       : []),
     { kind: 'Geometry', label: t('block.geometry.label'), icon: 'pi pi-map' },
-    { kind: 'SocialFeed', label: t('block.socialFeed.label'), icon: 'pi pi-twitter' },
-    { kind: 'Report', label: t('block.report.label'), icon: 'pi pi-chart-bar' },
+
   ]
 })
+
+const addableBlockTypes = computed(() =>
+  pendingTabBlockIndex.value !== null
+    ? availableBlockTypes.value.filter(({ kind }) => kind !== 'Tabs')
+    : availableBlockTypes.value,
+)
 
 // Configurator registry
 const configurators = {
@@ -531,8 +580,7 @@ const configurators = {
   RecordOrganizer: markRaw(RecordOrganizerConfigurator),
   RecordRevisions: markRaw(RecordRevisionsConfigurator),
   Geometry: markRaw(GeometryConfigurator),
-  SocialFeed: markRaw(SocialFeedConfigurator),
-  Report: markRaw(ReportConfigurator),
+
 }
 
 const blockConfigurator = computed(() => {
@@ -547,16 +595,94 @@ function getBlockId(block) {
   return block.meta?.tempID || ''
 }
 
+function syncTabbedBlockVisibility() {
+  const tabbedBlockIds = new Set()
+
+  for (const block of blocks.value) {
+    if (block.kind !== 'Tabs') continue
+
+    for (const tab of block.options?.tabs || []) {
+      if (tab.blockID) {
+        tabbedBlockIds.add(String(tab.blockID))
+      }
+    }
+  }
+
+  for (const block of blocks.value) {
+    if (block.kind === 'Tabs') continue
+
+    const blockID = String(getBlockId(block))
+    if (!blockID) continue
+
+    block.meta = {
+      ...(block.meta || {}),
+      hidden: tabbedBlockIds.has(blockID),
+    }
+  }
+}
+
+function commitEditingBlock() {
+  if (editingBlockIndex.value < 0 || !editingBlock.value) return null
+
+  const original = blocks.value[editingBlockIndex.value]
+  if (!original) return null
+
+  if (editingBlock.value.options?.magnifyOption === 'disabled') {
+    editingBlock.value.options.magnifyOption = ''
+  }
+
+  const updated = compose.PageBlockMaker({
+    ...editingBlock.value,
+    xywh: original.xywh,
+  })
+
+  blocks.value.splice(editingBlockIndex.value, 1, updated)
+  syncTabbedBlockVisibility()
+  gridRef.value?.rebuildLayout()
+  editingBlock.value = JSON.parse(JSON.stringify(updated))
+
+  return updated
+}
+
 function addBlock(kind) {
   try {
     const block = compose.PageBlockMaker({ kind })
-    // Place at the bottom of existing blocks
     const maxY = blocks.value.reduce((max, b) => {
       const [, y, , h] = b.xywh || [0, 0, 24, 18]
       return Math.max(max, y + h)
     }, 0)
     block.xywh = [0, maxY, 24, 18]
+
+    if (pendingTabBlockIndex.value !== null && editingBlock.value?.kind === 'Tabs') {
+      block.meta = { ...(block.meta || {}), hidden: true }
+      blocks.value.push(block)
+      const newBlockId = getBlockId(block)
+
+      const items = [...(editingBlock.value.options?.tabs || [])]
+      if (items[pendingTabBlockIndex.value]) {
+        items[pendingTabBlockIndex.value] = {
+          lazy: true,
+          title: '',
+          ...items[pendingTabBlockIndex.value],
+          blockID: newBlockId,
+        }
+
+        editingBlock.value = {
+          ...editingBlock.value,
+          options: { ...editingBlock.value.options, tabs: items },
+        }
+
+        commitEditingBlock()
+      }
+
+      pendingTabBlockIndex.value = null
+      showAddBlock.value = false
+      editBlock(newBlockId)
+      return
+    }
+
     blocks.value.push(block)
+    syncTabbedBlockVisibility()
     gridRef.value?.rebuildLayout()
     showAddBlock.value = false
 
@@ -609,10 +735,21 @@ function editBlock(blockId) {
   showConfigurator.value = true
 }
 
+function onCreateTabBlock(index) {
+  pendingTabBlockIndex.value = index
+  showAddBlock.value = true
+}
+
+function onEditTabBlock(blockId) {
+  commitEditingBlock()
+  editBlock(blockId)
+}
+
 function deleteBlock(blockId) {
   const index = blocks.value.findIndex(b => String(getBlockId(b)) === blockId)
   if (index > -1) {
     blocks.value.splice(index, 1)
+    syncTabbedBlockVisibility()
     gridRef.value?.rebuildLayout()
   }
 }
@@ -622,18 +759,11 @@ function onBlockConfigUpdate(updatedBlock) {
 }
 
 function saveBlockConfig() {
-  if (editingBlockIndex.value > -1 && editingBlock.value) {
-    // Preserve xywh from original
-    const original = blocks.value[editingBlockIndex.value]
-    const updated = compose.PageBlockMaker({
-      ...editingBlock.value,
-      xywh: original.xywh,
-    })
-    blocks.value.splice(editingBlockIndex.value, 1, updated)
-  }
+  commitEditingBlock()
   showConfigurator.value = false
   editingBlock.value = null
   editingBlockIndex.value = -1
+  pendingTabBlockIndex.value = null
 }
 
 async function loadPage() {
@@ -689,15 +819,47 @@ async function handleSave() {
     const rawBlocks = blocks.value.map(b => toRaw(b))
 
     // Update page with blocks
-    await pageStore.update({
+    let updatedPage = await pageStore.update({
       ...toRaw(page.value),
       blocks: rawBlocks,
     })
 
+    const savedBlocks = updatedPage?.blocks || []
+    const blockIdMap = new Map(
+      rawBlocks.map((block, index) => [String(getBlockId(block)), String(savedBlocks[index]?.blockID || block.blockID)]),
+    )
+
+    const remappedBlocks = savedBlocks.map(block => {
+      if (block.kind !== 'Tabs') return block
+
+      let changed = false
+      const tabs = (block.options?.tabs || []).map(tab => {
+        const mappedBlockID = blockIdMap.get(String(tab.blockID))
+        if (mappedBlockID && mappedBlockID !== String(tab.blockID)) {
+          changed = true
+          return { ...tab, blockID: mappedBlockID }
+        }
+
+        return tab
+      })
+
+      return changed
+        ? { ...toRaw(block), options: { ...block.options, tabs } }
+        : block
+    })
+
+    if (remappedBlocks.some((block, index) => block !== savedBlocks[index])) {
+      updatedPage = await pageStore.update({
+        ...toRaw(updatedPage),
+        blocks: remappedBlocks,
+      })
+    }
+
     // If we have a layout, update it too with block positions
     if (pageLayout.value) {
-      const layoutBlocks = rawBlocks.map(b => ({
-        blockID: b.blockID,
+      const persistedBlocks = updatedPage?.blocks || []
+      const layoutBlocks = rawBlocks.map((b, index) => ({
+        blockID: persistedBlocks[index]?.blockID || b.blockID,
         xywh: b.xywh,
       }))
 
@@ -721,7 +883,7 @@ async function handleSave() {
 
 function goToViewPage() {
   if (page.value) {
-    if (page.value.moduleID) {
+    if (page.value.isRecordPage) {
       // Record page — open create record view
       router.push({
         name: 'page.record',
@@ -750,7 +912,7 @@ function goToEditPage() {
 }
 
 function goToModuleEdit() {
-  if (page.value?.moduleID) {
+  if (page.value?.isRecordPage) {
     router.push({
       name: 'admin.modules.edit',
       params: { moduleID: page.value.moduleID },

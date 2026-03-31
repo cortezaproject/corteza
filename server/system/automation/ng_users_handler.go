@@ -119,8 +119,9 @@ func (h ngUsersHandler) Create() atypes.ConstructFunction {
 		Groups: []string{"Users"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Create User",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
+			Short:       "Create User",
+			Description: "Create a new user account",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -199,8 +200,9 @@ func (h ngUsersHandler) Update() atypes.ConstructFunction {
 		Groups: []string{"Users"},
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Update User",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
+			Short:       "Update User",
+			Description: "Update an existing user account",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -255,8 +257,9 @@ func (h ngUsersHandler) Delete() atypes.ConstructFunction {
 		Groups: []string{"Users"},
 		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Delete User",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
+			Short:       "Delete User",
+			Description: "Delete a user account",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -312,8 +315,9 @@ func (h ngUsersHandler) Suspend() atypes.ConstructFunction {
 		Groups: []string{"Users"},
 		Labels: map[string]string{"suspend": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Suspend User",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
+			Short:       "Suspend User",
+			Description: "Suspend a user account",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -369,8 +373,9 @@ func (h ngUsersHandler) Unsuspend() atypes.ConstructFunction {
 		Groups: []string{"Users"},
 		Labels: map[string]string{"unsuspend": "step", "users": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Unsuspend User",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "user"},
+			Short:       "Unsuspend User",
+			Description: "Reactivate a suspended user account",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "user"},
 		},
 
 		Parameters: []*atypes.Param{

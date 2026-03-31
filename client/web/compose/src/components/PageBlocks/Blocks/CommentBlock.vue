@@ -248,6 +248,7 @@ const props = defineProps({
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $Auth = inject('$Auth')
+const $eventBus = inject('$eventBus', null)
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 const userStore = useUserStore()
@@ -943,7 +944,7 @@ function isScrollAtBottom() {
 // ---- Prefilter ----
 
 function expandFilter() {
-  /* eslint-disable no-template-curly-in-string */
+   
   if (!props.record) {
     // If there is no current record and we are using recordID/ownerID variable in (pre)filter
     // we should disable the block
@@ -1014,7 +1015,11 @@ onBeforeUnmount(() => {
     clearInterval(refreshInterval)
     refreshInterval = null
   }
+
+  offRefetch?.()
 })
+
+const offRefetch = $eventBus?.on('refetch-records', () => refresh())
 </script>
 
 <style scoped>

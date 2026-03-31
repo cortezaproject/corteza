@@ -190,6 +190,7 @@ export function getTheme(theme: Theme) {
         border: 1px solid var(--p-content-border-color);
         border-radius: var(--p-border-radius-xl);
         box-shadow: var(--p-overlay-popover-shadow);
+        overflow: hidden;
       }
     `,
   })

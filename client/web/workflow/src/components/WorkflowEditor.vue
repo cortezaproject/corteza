@@ -14,8 +14,28 @@
       />
     </Teleport>
 
+    <!-- Toolbar strip -->
     <div class="toolbar flex flex-col h-full bg-topbar">
-      <div id="toolbar" ref="toolbar" class="flex flex-col items-center mt-1 overflow-auto" />
+      <div class="flex flex-col items-center mt-1 overflow-auto gap-1 px-1">
+        <template v-for="(item, idx) in toolbarItems" :key="idx">
+          <hr v-if="item.kind === 'hr'" class="w-full my-1 border-surface" />
+          <div
+            v-else
+            class="toolbar-item"
+            draggable="true"
+            @dragstart="onToolbarDragStart($event, item)"
+            @mouseenter="showToolbarTooltip($event, item)"
+            @mouseleave="activeToolbarTooltip = null"
+          >
+            <img
+              v-if="item.iconSrc"
+              :src="item.iconSrc"
+              class="w-8 h-8 cursor-pointer"
+              :alt="item.label"
+            />
+          </div>
+        </template>
+      </div>
 
       <div class="flex flex-grow-1 items-end justify-center py-3">
         <Button
@@ -31,9 +51,9 @@
       </div>
     </div>
 
-    <div ref="tooltips" class="max-h-full" />
-
+    <!-- Main canvas area -->
     <div class="w-full h-full border-0 shadow-sm rounded-none relative">
+      <!-- Workflow info overlay -->
       <div v-if="workflow.meta" class="absolute pl-2 pt-2" style="z-index: 1">
         <p
           v-if="workflow.meta.description"
@@ -74,19 +94,14 @@
 
         <div class="flex items-center mb-1 gap-1">
           <Tag v-if="workflow.deletedAt" :value="$t('editor.deleted')" severity="danger" />
-
           <Tag v-if="!workflow.enabled" :value="$t('editor.disabled')" severity="danger" />
-
           <Tag v-if="hasIssues" :value="$t('editor.detected-issues')" severity="danger" />
-
           <Tag
             v-if="workflow.meta.subWorkflow"
             :value="$t('general.subworkflow')"
             severity="info"
           />
-
           <Tag v-if="deferred" :value="$t('editor.deferred')" severity="info" />
-
           <Tag
             v-if="triggersPathsChanged"
             :value="$t('notification.trigger-paths-changed')"
@@ -95,6 +110,7 @@
         </div>
       </div>
 
+      <!-- Bottom bar: save + zoom -->
       <div class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full" style="z-index: 1">
         <Button
           v-if="changeDetected && canUpdateWorkflow"
@@ -130,13 +146,70 @@
         </div>
       </div>
 
-      <div id="graph" ref="graph" class="h-full p-0" />
+      <!-- VueFlow canvas -->
+      <VueFlow
+        :id="vfId"
+        v-model:nodes="nodes"
+        v-model:edges="edges"
+        :snap-to-grid="true"
+        :snap-grid="[8, 8]"
+        :min-zoom="0.1"
+        :max-zoom="3"
+        :pan-on-drag="[1, 2]"
+        :pan-on-scroll="true"
+        :zoom-on-scroll="false"
+        :zoom-on-double-click="false"
+        :delete-key-code="null"
+        :connection-mode="ConnectionMode.Loose"
+        :is-valid-connection="isValidConnection"
+        class="vueflow-canvas"
+        @connect="onConnect"
+        @node-click="onNodeClick"
+        @edge-click="onEdgeClick"
+        @pane-click="onPaneClick"
+        @node-drag-stop="onNodeDragStop"
+        @dragover="onCanvasDragOver"
+        @drop="onCanvasDrop"
+      >
+        <Background variant="dots" />
+        <template #node-workflow="props">
+          <WorkflowNode
+            v-bind="props"
+            :issues="issues"
+            :function-types="functionTypes"
+            :event-types="eventTypes"
+            :current-theme="currentTheme"
+            @open-issues="openIssuesModal"
+          />
+        </template>
+        <template #node-trigger="props">
+          <TriggerNode
+            v-bind="props"
+            :issues="issues"
+            :event-types="eventTypes"
+            :can-test="!!workflow.canExecuteWorkflow"
+            :dry-run-processing="dryRun.processing"
+            :dry-run-cell-i-d="dryRun.cellID"
+            :dry-run-session-i-d="dryRun.sessionID"
+            :current-theme="currentTheme"
+            @test="startTest"
+            @cancel="cancelWorkflow"
+            @open-issues="openIssuesModal"
+          />
+        </template>
+        <template #node-termination="props">
+          <TerminationNode v-bind="props" :current-theme="currentTheme" />
+        </template>
+        <template #node-visual="props">
+          <VisualNode v-bind="props" />
+        </template>
+        <template #edge-workflow="props">
+          <FlowEdge v-bind="props" @update-label="onEdgeLabelUpdate" />
+        </template>
+      </VueFlow>
     </div>
 
-    <!--
-      Sidebar for step configurator
-    -->
-    <!-- Config Sidebar (resizable drawer) -->
+    <!-- Sidebar for step configurator -->
     <Transition
       enter-active-class="transition-transform duration-300 ease-in-out"
       enter-from-class="translate-x-full"
@@ -183,7 +256,7 @@
               <configurator
                 v-if="sidebar.showItem"
                 v-model:item="sidebar.item"
-                v-model:edges="edges"
+                v-model:edges="sidebarEdges"
                 :out-edges="sidebar.outEdges"
                 :is-subworkflow="!!workflow.meta.subWorkflow"
                 @update-value="setValue($event)"
@@ -207,12 +280,14 @@
       </div>
     </Transition>
 
+    <!-- Workflow Configurator Dialog -->
     <Dialog
       v-model:visible="configuratorVisible"
       :header="
         workflow.workflowID === '0' ? $t('general.new-workflow') : $t('general.edit-workflow')
       "
       modal
+      :pt="{ content: 'p-0' }"
       class="w-full max-w-3xl"
     >
       <workflow-configurator
@@ -252,6 +327,7 @@
       </div>
     </Dialog>
 
+    <!-- Dry Run Dialog -->
     <Dialog
       v-model:visible="dryRun.show"
       :header="$t('editor.initial-scope')"
@@ -306,6 +382,7 @@
         </div>
       </template>
     </Dialog>
+
     <!-- Sidebar Rich Tooltip -->
     <div
       v-if="activeToolbarTooltip"
@@ -313,7 +390,7 @@
       :style="toolbarTooltipStyle"
     >
       <div
-        class="bg-surface-0 dark:bg-surface-800 border border-surface shadow-lg rounded-xl overflow-hidden w-64 flex flex-col"
+        class="bg-surface border border-surface shadow-lg rounded-xl overflow-hidden w-64 flex flex-col"
       >
         <div class="p-4 flex flex-col gap-2">
           <h4 class="font-semibold text-lg text-color m-0">{{ activeToolbarTooltip.title }}</h4>
@@ -326,2579 +403,1371 @@
   </div>
 </template>
 
-<script>
-import mxgraph from 'mxgraph'
-import { encodeGraph } from '../lib/codec'
+<script setup>
+import { VueFlow, ConnectionMode, useVueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import '@vue-flow/core/dist/style.css'
+import '@vue-flow/core/dist/theme-default.css'
+
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject, markRaw } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'primevue/usetoast'
+
+import { decodeWorkflow, encodeWorkflow } from '../lib/codec'
 import { getStyleFromKind, getKindFromStyle } from '../lib/style'
 import { encodeInput } from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
-import { getConstraintNameLabel } from '../lib/constraint'
 import { camelToTitle } from '../lib/string'
-import Configurator from '../components/Configurator/index.vue'
-import Tooltip from '../components/Tooltip.vue'
-import WorkflowConfigurator from '../components/Configurator/Workflow.vue'
-import Help from '../components/Help.vue'
+import eventBus from '../lib/eventBus'
 import { NoID } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
-import eventBus from '../lib/eventBus'
+
+import Configurator from './Configurator/index.vue'
+import WorkflowConfigurator from './Configurator/Workflow.vue'
+import Help from './Help.vue'
+import WorkflowNode from './FlowNodes/WorkflowNode.vue'
+import TriggerNode from './FlowNodes/TriggerNode.vue'
+import TerminationNode from './FlowNodes/TerminationNode.vue'
+import VisualNode from './FlowNodes/VisualNode.vue'
+import FlowEdge from './FlowEdge.vue'
+
+import { useWorkflowHistory } from '../composables/useWorkflowHistory'
+import { useWorkflowDnD } from '../composables/useWorkflowDnD'
+import { useWorkflowHighlight } from '../composables/useWorkflowHighlight'
+import { useWorkflowClipboard } from '../composables/useWorkflowClipboard'
 import { useLabelsStore } from '../stores/labels'
-import { inject } from 'vue'
 
+const { t } = useI18n()
+const toast = useToast()
+
+const $SystemAPI = inject('$SystemAPI')
+const $ComposeAPI = inject('$ComposeAPI')
+const $AutomationAPI = inject('$AutomationAPI')
+const $Auth = inject('$Auth')
+
+/* ─── Props & Emits ─── */
+const props = defineProps({
+  workflowObject: { type: Object, default: () => ({}) },
+  workflowTriggers: { type: Array, default: () => [] },
+  changeDetected: { type: Boolean },
+  canCreate: { type: Boolean },
+  processingSave: { type: Boolean },
+  processingDelete: { type: Boolean },
+})
+
+const emit = defineEmits(['save', 'change-detected', 'delete', 'undelete'])
+
+/* ─── Reactive State ─── */
+const initialized = ref(false)
+const helpVisible = ref(false)
+const configuratorVisible = ref(false)
+const deferred = ref(false)
+const triggersPathsChanged = ref(false)
+const importProcessing = ref(false)
+
+const workflow = ref({})
+const triggers = ref([])
+const issues = ref({})
+const runAsUser = ref(undefined)
+
+const nodes = ref([])
+const edges = ref([])
+
+const eventTypes = ref([])
+const functionTypes = ref([])
+
+const deferredKinds = ['delay', 'prompt']
+const labelsStore = useLabelsStore()
+
+const activeToolbarTooltip = ref(null)
+const toolbarTooltipStyle = ref({ top: '0px', left: '0px' })
+
+const drawerWidth = ref(380)
+const isResizingDrawer = ref(false)
+
+/* ─── Composables ─── */
+const vfId = 'workflow-editor-flow'
 const {
-  mxClient,
-  mxGraph,
-  mxEvent,
-  mxUtils,
-  mxCell,
-  mxGeometry,
-  mxUndoManager,
-  mxGraphHandler,
-  mxEdgeHandler,
-  mxKeyHandler,
-  mxDivResizer,
-  mxToolbar,
-  mxConstants,
-  mxDragSource,
-  mxRubberband,
-  mxPerimeter,
-  mxEdgeStyle,
-  mxConnectionHandler,
-  mxClipboard,
-  mxPoint,
-  mxRectangle,
-  mxLog,
-  mxImage,
-  mxConstraintHandler,
-  mxConnectionConstraint,
-  mxCellState,
-  mxEllipse,
-  mxCellOverlay,
-  mxCellHighlight,
-} = (() => {
-  // mxgraph's UMD factory uses `this` to set/read config, but in ESM `this` is undefined.
-  // Pre-set all required globals on window before calling the factory.
-  window.mxLoadResources = false
-  window.mxForceIncludes = false
-  window.mxResourceExtension = '.txt'
-  window.mxLoadStylesheets = false
-  window.mxImageBasePath = `${(document.getElementsByTagName('base')[0] || {}).href || '/'}icons`
-  return mxgraph({})
-})()
-
-const originPoint = -2042
-
-export default {
-  name: 'WorkflowEditor',
-
-  components: {
-    Configurator,
-    WorkflowConfigurator,
-    Help,
-  },
-
-  props: {
-    workflowObject: {
-      type: Object,
-      default: () => {},
-    },
-
-    workflowTriggers: {
-      type: Array,
-      default: () => [],
-    },
-
-    changeDetected: {
-      type: Boolean,
-    },
-
-    canCreate: {
-      type: Boolean,
-    },
-
-    processingSave: {
-      type: Boolean,
-    },
-
-    processingDelete: {
-      type: Boolean,
-    },
-  },
-
-  setup() {
-    const $toast = inject('$toast')
-    return {
-      toastSuccess: $toast.toastSuccess,
-      toastWarning: $toast.toastWarning,
-      toastInfo: $toast.toastInfo,
-      toastErrorHandler: $toast.toastErrorHandler,
-    }
-  },
-
-  data() {
-    return {
-      initialized: false,
-      helpVisible: false,
-
-      deferred: false,
-      triggersPathsChanged: false,
-
-      workflow: {},
-      triggers: [],
-      vertices: {},
-      edges: {},
-      issues: {},
-
-      runAsUser: undefined,
-
-      sidebar: {
-        item: undefined,
-        itemType: undefined,
-        outEdges: 0,
-        show: false,
-        showItem: false,
-      },
-
-      issuesModal: {
-        show: false,
-        issues: [],
-      },
-
-      dryRun: {
-        show: false,
-        processing: false,
-        lookup: false,
-        cellID: undefined,
-        initialScope: {},
-        input: {},
-        inputEdited: {},
-        sessionID: undefined,
-      },
-
-      selection: [],
-
-      importProcessing: false,
-
-      zoomLevel: 1,
-
-      eventTypes: [],
-      functionTypes: [],
-
-      deferredKinds: ['delay', 'prompt'],
-
-      labelsStore: null,
-
-      configuratorVisible: false,
-      activeToolbarTooltip: null,
-      toolbarTooltipStyle: { top: '0px', left: '0px' },
-
-      drawerWidth: 380,
-      isResizingDrawer: false,
-    }
-  },
-
-  computed: {
-    workflowLabelsDisplay() {
-      const namespaceIDs = []
-      const modulesByNamespace = {}
-
-      if (!this.workflow.labels) {
-        return []
-      }
-
-      // Parse namespace labels
-      if (this.workflow.labels.ref_namespace) {
-        const nsValues = Array.isArray(this.workflow.labels.ref_namespace)
-          ? this.workflow.labels.ref_namespace
-          : [this.workflow.labels.ref_namespace]
-
-        nsValues.forEach(label => {
-          const nsID = label.split('/')[1]
-          if (nsID && !namespaceIDs.includes(nsID)) {
-            namespaceIDs.push(nsID)
-            // Resolve via store
-            this.labelsStore.resolveNamespace({
-              namespaceID: nsID,
-              api: this.$ComposeAPI,
-            })
-          }
-        })
-      }
-
-      // Parse module labels
-      if (this.workflow.labels.ref_module) {
-        const modValues = Array.isArray(this.workflow.labels.ref_module)
-          ? this.workflow.labels.ref_module
-          : [this.workflow.labels.ref_module]
-
-        modValues.forEach(label => {
-          const parts = label.split('/')
-          const nsID = parts[1]
-          const modID = parts[2]
-
-          if (!nsID || !modID) return
-
-          if (!namespaceIDs.includes(nsID)) {
-            namespaceIDs.push(nsID)
-            this.labelsStore.resolveNamespace({
-              namespaceID: nsID,
-              api: this.$ComposeAPI,
-            })
-          }
-
-          if (!modulesByNamespace[nsID]) {
-            modulesByNamespace[nsID] = []
-          }
-
-          // Resolve via store
-          this.labelsStore.resolveModule({
-            moduleID: modID,
-            namespaceID: nsID,
-            api: this.$ComposeAPI,
-          })
-
-          const name = this.labelsStore.getModule(modID)
-          modulesByNamespace[nsID].push({
-            id: modID,
-            name: name || modID,
-          })
-        })
-      }
-
-      // Build grouped result
-      return namespaceIDs.map(nsID => {
-        const name = this.labelsStore.getNamespace(nsID)
-        return {
-          namespaceID: nsID,
-          namespaceName: name || nsID,
-          modules: modulesByNamespace[nsID] || [],
-        }
-      })
-    },
-
-    getSidebarItemType() {
-      const { item = {} } = this.sidebar || {}
-      const { style, edge } = item.node || {}
-
-      if (edge) {
-        return this.$t('steps.path.short')
-      }
-
-      return this.$t(`steps.${style}.short`) || style
-    },
-
-    getSidebarItemIcon() {
-      const { item } = this.sidebar
-
-      if (item && item.config) {
-        return this.getIcon(getStyleFromKind(item.config).icon, this.currentTheme)
-      }
-
-      return undefined
-    },
-
-    getSelectedItem() {
-      return this.sidebar.item ? this.sidebar.item : undefined
-    },
-
-    getZoomPercent() {
-      return `${Math.floor(this.zoomLevel * 100).toFixed(0)}%`
-    },
-
-    canUpdateWorkflow() {
-      return this.workflow.workflowID === '0' ? this.canCreate : this.workflow.canUpdateWorkflow
-    },
-
-    hasIssues() {
-      return (this.workflow.issues || []).length
-    },
-
-    getRunAs() {
-      if (this.runAsUser) {
-        const { userID, name, username, email } = this.runAsUser
-        return name || username || email || `<@${userID}>`
-      }
-      return undefined
-    },
-
-    currentTheme() {
-      return this.$Auth?.user ? this.$Auth.user.meta.theme : 'light'
-    },
-  },
-
-  watch: {
-    'workflow.runAs': {
-      immediate: true,
-      handler(runAs = '0') {
-        if (runAs !== '0') {
-          this.$SystemAPI.userRead({ userID: runAs }).then(user => {
-            this.runAsUser = user
-          })
-        } else {
-          this.runAsUser = undefined
-        }
-      },
-    },
-
-    workflowObject: {
-      immediate: true,
-      handler(workflow) {
-        // If first save was successful, close workflow configurator modal
-        if (workflow.workflowID !== this.workflow.workflowID) {
-          this.configuratorVisible = false
-        }
-
-        this.workflow = workflow
-
-        // Every change to workflowObject from parent component after initial render triggers rerender
-        if (this.initialized) {
-          this.render(this.workflow)
-        }
-      },
-    },
-
-    workflowTriggers: {
-      immediate: true,
-      handler(triggers) {
-        this.triggers = triggers
-      },
-    },
-  },
-
-  mounted() {
-    // Initialize mxGraph-related properties as plain non-reactive instance properties.
-    // These must NOT be in data() — Vue 3's deep Proxy wrapping breaks mxGraph's
-    // internal object-identity checks (===), corrupting edge state during model updates.
-    this.graph = undefined
-    this.keyHandler = undefined
-    this.toolbar = undefined
-    this.undoManager = undefined
-    this.currentLabel = undefined
-    this.highlights = []
-    this.rendering = false
-    this._triggerUpdatedHandler = null
-    this._changeDetectedHandler = null
-
-    this.labelsStore = useLabelsStore()
-    try {
-      if (!mxClient.isBrowserSupported()) {
-        throw new Error(mxUtils.error(this.$t('editor.unsupported-browser'), 200, false))
-      }
-
-      mxEvent.disableContextMenu(this.$refs.graph)
-      this.graph = new mxGraph(this.$refs.graph, null, mxConstants.DIALECT_STRICTHTML)
-      this.keyHandler = new mxKeyHandler(this.graph)
-
-      this.setup()
-
-      this.initToolbar()
-      this.initUndoManager()
-      this.initClipboard()
-
-      this.keys()
-      this.events()
-      this.cellOverlay()
-
-      this.styling()
-      this.connectionHandler()
-
-      this.getEventTypes()
-      this.getFunctionTypes()
-
-      this._triggerUpdatedHandler = ({ mxObjectId }) => {
-        this.redrawLabel(mxObjectId)
-      }
-      eventBus.on('trigger-updated', this._triggerUpdatedHandler)
-
-      this._changeDetectedHandler = () => {
-        this.$emit('change-detected')
-      }
-      eventBus.on('change-detected', this._changeDetectedHandler)
-
-      this.render(this.workflow, true)
-
-      // Open workflow configurator if workflow is new
-      if (this.workflow.workflowID && this.workflow.workflowID === '0') {
-        this.configuratorVisible = true
-      }
-
-      this.initialized = true
-    } catch (e) {
-      console.error(e)
-    }
-  },
-
-  beforeUnmount() {
-    if (this._triggerUpdatedHandler) {
-      eventBus.off('trigger-updated', this._triggerUpdatedHandler)
-    }
-    if (this._changeDetectedHandler) {
-      eventBus.off('change-detected', this._changeDetectedHandler)
-    }
-    // Destroy mxgraph singletons
-    this.graph.destroy()
-    this.keyHandler.destroy()
-    this.toolbar.destroy()
-    document.removeEventListener('keydown', this.keybinds)
-  },
-
-  methods: {
-    deleteSelectedCells() {
-      if (this.sidebar.item && this.graph.isCellSelected(this.sidebar.item.node)) {
-        this.sidebarClose()
-      }
-      this.graph.removeCells()
-      // Clear path highlights when cells are deleted
-      this.clearHighlights()
-    },
-
-    sidebarClose() {
-      this.sidebar.show = false
-
-      setTimeout(() => {
-        const mxObjectId = this.sidebar.item.node.mxObjectId
-        this.sidebar.showItem = false
-        this.sidebar.item = undefined
-        this.sidebar.itemType = undefined
-        this.redrawLabel(mxObjectId)
-      }, 300)
-    },
-
-    sidebarDelete() {
-      if (this.getSelectedItem) {
-        this.graph.removeCells([this.getSelectedItem.node])
-        this.sidebarClose()
-      }
-    },
-
-    sidebarReopen(item, itemType) {
-      this.sidebar.outEdges = (item.node.edges || []).length
-
-      // If not open, just open sidebar
-      if (!this.sidebar.show) {
-        this.sidebar.item = item
-        this.sidebar.itemType = itemType
-        this.sidebar.show = true
-        this.sidebar.showItem = true
-        this.redrawLabel(item.node.mxObjectId)
-      } else {
-        // If item already opened in sidebar, keep open
-        if (this.sidebar.item && item.node.id === this.sidebar.item.node.id) {
-          return
-        }
-
-        // Otherwise fade item in and out
-        const oldMxObjectId = ((this.getSelectedItem || {}).node || {}).mxObjectId
-        this.sidebar.showItem = false
-        this.sidebar.item = item
-        this.sidebar.itemType = itemType
-        this.redrawLabel(oldMxObjectId)
-        this.redrawLabel(item.node.mxObjectId)
-        setTimeout(() => {
-          this.sidebar.showItem = true
-        }, 100)
-      }
-    },
-
-    setup() {
-      this.graph.zoomFactor = 1.2
-
-      // Sets a background image and restricts child movement to its bounds
-      this.graph.setBackgroundImage(
-        new mxImage(this.getIcon('grid', this.currentTheme), 8192, 8192),
-      )
-      this.graph.maximumGraphBounds = new mxRectangle(0, 0, 8192, 8192)
-      this.graph.gridSize = 8
-
-      this.graph.setPanning(true)
-      this.graph.setConnectable(true)
-      this.graph.setAllowDanglingEdges(false)
-      this.graph.setTooltips(true)
-
-      this.graph.container.style.overflow = 'hidden'
-
-      // Panning: middle mouse button and right-click; left-click for selection
-      this.graph.setPanning(true)
-      this.graph.panningHandler.useLeftButtonForPanning = false
-      this.graph.panningHandler.usePopupTrigger = true
-      this.graph.panningHandler.ignoreCell = true
-      this.graph.panningHandler.isForcePanningEvent = me => {
-        const evt = me.getEvent()
-        return mxEvent.isMiddleMouseButton(evt) || mxEvent.isRightMouseButton(evt)
-      }
-
-      const panningHandler = this.graph.panningHandler
-      const originalMouseDown = panningHandler.mouseDown
-      panningHandler.mouseDown = function (sender, me) {
-        const evt = me.getEvent()
-        const isPanButton = mxEvent.isMiddleMouseButton(evt) || mxEvent.isRightMouseButton(evt)
-        if (isPanButton) {
-          sender.container.style.cursor = 'grabbing'
-        }
-        if (originalMouseDown) {
-          originalMouseDown.apply(this, arguments)
-        }
-      }
-
-      const originalMouseUp = panningHandler.mouseUp
-      panningHandler.mouseUp = function (sender, me) {
-        sender.container.style.cursor = 'default'
-        if (originalMouseUp) {
-          originalMouseUp.apply(this, arguments)
-        }
-      }
-
-      mxEvent.addListener(this.graph.container, 'mousedown', evt => {
-        if (mxEvent.isMiddleMouseButton(evt) || mxEvent.isRightMouseButton(evt)) {
-          this.graph.container.style.cursor = 'grabbing'
-          this.graph.panningHandler.start(evt)
-          mxEvent.consume(evt)
-        }
-      })
-      mxEvent.disableContextMenu(this.graph.container)
-
-      new mxRubberband(this.graph) // Enables multiple selection
-      this.graph.edgeLabelsMovable = false
-
-      // Prevent showing tooltips on regular cells, just show overlay
-      this.graph.getTooltipForCell = () => {}
-
-      // Enables guides
-      mxGraphHandler.prototype.guidesEnabled = true
-
-      // Prevent cloning with ctrl + drag
-
-      // Alt disables guides
-      mxGraphHandler.prototype.useGuidesForEvent = evt => {
-        return !mxEvent.isAltDown(evt.getEvent())
-      }
-
-      const mxGraphHandlerIsValidDropTarget = mxGraphHandler.prototype.isValidDropTarget
-      mxGraphHandler.prototype.isValidDropTarget = function (target, me) {
-        return mxGraphHandlerIsValidDropTarget.apply(this, arguments) && !target.edge
-      }
-
-      mxEdgeHandler.prototype.snapToTerminals = true
-
-      mxGraph.prototype.minFitScale = 1
-      mxGraph.prototype.maxFitScale = 1
-
-      this.graph.isHtmlLabel = cell => {
-        return true
-      }
-
-      this.graph.isWrapping = cell => {
-        return true
-      }
-
-      this.graph.getLabel = cell => {
-        let label = mxGraph.prototype.getLabel.apply(this, arguments)
-
-        // Used to encode html labels to prevent security issues
-        const encodeHTML = (value = '') => {
-          if (value) {
-            return value.replace(/[\u00A0-\u9999<>&]/gim, i => {
-              return '&#' + i.charCodeAt(0) + ';'
-            })
-          }
-
-          return value
-        }
-
-        if (cell.edge) {
-          if (cell.value) {
-            label = `<div class="whitespace-nowrap py-1 px-3 mb-0 rounded bg-white cursor-pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: var(--dark);">${encodeHTML(cell.value)}</div>`
-          }
-        } else if (this.vertices[cell.id]) {
-          const vertex = this.vertices[cell.id]
-          const { kind } = vertex.config
-          const { style } = vertex.node
-
-          if (vertex && kind !== 'visual') {
-            const icon = this.getIcon(getStyleFromKind(vertex.config).icon, this.currentTheme)
-            const type = this.$t(`steps.${style}.short`)
-            const isSelected = this.selection.includes(cell.mxObjectId)
-            const shadow = isSelected ? 'shadow' : 'shadow-sm'
-            const issue = this.getIcon('issue')
-            const playIcon = this.getIcon('play')
-            const stopIcon = this.getIcon('stop')
-            const opacity = kind === 'trigger' && !vertex.triggers.enabled ? 'opacity: 0.7;' : ''
-
-            let test = ''
-            let issues = ''
-            let id = ''
-            if (this.issues[cell.id]) {
-              issues = `<img id="openIssues" src="${issue}" class="ml-2 cursor-pointer" style="width: 20px;"/>`
-            } else {
-              id = `<span class="show id-label">${cell.id}</span>`
-            }
-
-            let values = []
-
-            if (kind === 'gateway' && cell.edges && cell.style !== 'gatewayParallel') {
-              values = cell.edges
-                .filter(({ source }) => cell.id === source.id)
-                .map(({ id }) => this.edges[id])
-                .map(
-                  ({ node, config }) =>
-                    `<tr><td><var>${encodeHTML(node.value)}</var></td><td><code>${encodeHTML(config.expr || '')}</code></td></tr>`,
-                )
-                .join('')
-            } else if (
-              [
-                'expressions',
-                'function',
-                'prompt',
-                'iterator',
-                'exec-workflow',
-                'error-handler',
-              ].includes(kind)
-            ) {
-              let { arguments: args = [], results = [], ref, kind } = vertex.config || {}
-
-              if (!ref) {
-                ref = kind
-              }
-
-              const {
-                meta = {},
-                results: functionResults = [],
-                parameters = [],
-              } = this.functionTypes.find(f => f.ref === ref) || {}
-
-              const functionLabel = meta.short
-
-              if (functionLabel) {
-                values.push(`<tr><td><b class="text-primary">${functionLabel}</b></td><td/></tr>`)
-              }
-
-              if (kind === 'expressions') {
-                args = args.map(({ target, expr, type }) => {
-                  return `<tr><td><var>${encodeHTML(target)}</var> <samp>(${type})</samp></td><td><code>${encodeHTML(expr)}</code></td><td/></tr>`
-                })
-              } else {
-                if (args.length) {
-                  values.push('<tr class="title"><td><b>Arguments</b></td><td/><td/></tr>')
-                }
-
-                args = parameters.map(({ name, types = [] }) => {
-                  const { type, expr, value } = args.find(({ target }) => target === name) || {}
-                  const exprType = type || `${types[0]}`
-                  const exprBadge = expr
-                    ? '<span title="Expression" class="circle-badge badge-small ml-1">e</span>'
-                    : ''
-
-                  return `<tr><td><var>${encodeHTML(name)}</var> <samp>(${exprType})</samp></td><td><code>${encodeHTML(expr || value)}</code></td><td>${exprBadge}</td></tr>`
-                })
-              }
-
-              if (results.length) {
-                args.push('<tr class="title border-top"><td><b>Results</b></td><td/><td/></tr>')
-              }
-
-              results = results.map(({ target = '', expr = '', value = '' }) => {
-                const { types = [] } =
-                  functionResults.find(({ name }) => name === expr || name === value) || {}
-                const type = types.length ? `(${types[0]})` : ''
-                return `<tr><td><code>${encodeHTML(target)}</code> <samp>${type}</samp></td><td><var>${encodeHTML(expr || value)}</var></td><td/></tr>`
-              })
-
-              values = [...values, ...args, ...results].join('')
-            } else if (kind === 'trigger') {
-              let { resourceType = '', eventType = '', constraints = [] } = vertex.triggers || {}
-              let { properties = [] } =
-                this.eventTypes.find(
-                  et => resourceType === et.resourceType && eventType === et.eventType,
-                ) || {}
-
-              if (resourceType) {
-                resourceType = resourceType
-                  .split(':')
-                  .map(part =>
-                    part
-                      .split('-')
-                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                      .join(' '),
-                  )
-                  .join(' - ')
-              }
-
-              if (eventType) {
-                eventType = camelToTitle(eventType.replace('on', ''))
-              }
-
-              values.push('<tr class="title"><td><b>Configuration</b></td><td/><td/></tr>')
-              values.push(
-                `<tr><td><var>Resource</var></td><td/><td><code>${resourceType || ''}</code></td></tr>`,
-              )
-              values.push(
-                `<tr><td><var>Event</var></td><td/><td><code>${eventType || ''}</code></td></tr>`,
-              )
-
-              if (constraints.length && eventType && eventType !== 'onManual') {
-                constraints = [
-                  '<tr class="title"><td><b>Constraints</b></td><td/><td/></tr>',
-                  ...constraints.map(({ name = '', op = '', values = '' }) => {
-                    return `<tr><td><samp>${getConstraintNameLabel(name) || eventType}</var></td><td><samp>${op}</samp></td><td><code>${encodeHTML(values.join(' or '))}</code></td></tr>`
-                  }),
-                ]
-              } else {
-                constraints = []
-              }
-
-              if (properties.length) {
-                properties = [
-                  '<tr class="title"><td><b>Initial scope</b></td><td/><td/></tr>',
-                  ...properties.map(({ name = '', type = '' }) => {
-                    return `<tr><td><var>${name}</var></td><td/><td><samp>${type || 'Any'}</samp></td></tr>`
-                  }),
-                ]
-              }
-
-              values = [...values, ...constraints, ...properties].join('')
-            } else if (['error', 'delay'].includes(kind)) {
-              const { arguments: args = [] } = vertex.config || {}
-              const { target, expr, value } = args[0] || {}
-
-              if (target) {
-                values = `<tr><td><var>${target}</var></td><td><code>${encodeHTML(expr || value)}</code></td></tr>`
-              }
-            } else {
-              values = ''
-            }
-
-            if (values) {
-              values = values
-                ? '<div class="step-values rounded hide-label">' +
-                  '<table class="bg-white shadow mb-0">' +
-                  values +
-                  '</table>' +
-                  '</div>'
-                : ''
-            }
-
-            if (this.workflow.canExecuteWorkflow && vertex.triggers && (cell.edges || []).length) {
-              if (!this.dryRun.processing) {
-                test = `<img id="testWorkflow" title="${this.$t('configurator.tooltip.run-workflow')}" src="${playIcon}" class="hide cursor-pointer" style="width: 20px;"/>`
-              } else if (this.dryRun.cellID === cell.id) {
-                // If this is the trigger that is currently running
-                test = `<span class="mx-spinner" style="width: 20px; height: 20px; cursor: default; color: var(--p-text-muted-color, #64748b);" title="Testing in progress. If your workflow includes Prompt or Delay steps, it may be waiting for them to complete">
-                          <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Spinning</span>
-                        </span>
-                      `
-                if (this.dryRun.sessionID) {
-                  test =
-                    test +
-                    `<img id="cancelWorkflow" src="${stopIcon}" class="ml-2 cursor-pointer" style="width: 20px; height: 20px;"/>`
-                }
-              }
-            }
-
-            label =
-              `<div class="flex flex-col bg-white border rounded step relative ${shadow}" style="min-width: 200px; border-radius: 5px;${opacity}">` +
-              '<div class="label-container">' +
-              '<div class="flex items-center text-primary px-2 my-1 text-base font-medium mb-0" style="width: 200px; height: 36px;">' +
-              `<img src="${icon}" class="mr-2"/>${type}` +
-              '<div class="flex h-full ml-auto items-center">' +
-              test +
-              id +
-              issues +
-              '</div>' +
-              '</div>' +
-              `<div class="label flex grow items-stretch bg-white border-t ${values ? 'wide-label' : ''}" style="max-width: 200px; min-height: 36px;">` +
-              `<span class="inline-block hover-untruncate p-2 bg-white">${encodeHTML(cell.value || '/')}</span>` +
-              '</div>' +
-              '</div>' +
-              values +
-              '</div>'
-          } else {
-            label = cell.value ? `<div class="rt-content break-words">${cell.value}</div>` : ''
-          }
-        }
-
-        return label
-      }
-
-      this.graph.isCellEditable = () => {
-        return false
-      }
-
-      // Disables mxGraph console window
-      mxLog.setVisible = () => {}
-      mxLog.DEBUG = false
-      mxLog.TRACE = false
-
-      mxGraph.prototype.expandedImage = undefined
-
-      if (mxClient.IS_QUIRKS) {
-        document.body.style.overflow = 'hidden'
-
-        new mxDivResizer(this.graph.container)
-      }
-
-      if (mxClient.IS_NS) {
-        mxEvent.addListener(this.graph.container, 'mousedown', () => {
-          if (!this.graph.isEditing()) {
-            this.graph.container.setAttribute('tabindex', '-1')
-          }
-        })
-      }
-    },
-
-    initToolbar() {
-      this.toolbar = new mxToolbar(this.$refs.toolbar)
-      this.graph.dropEnabled = true
-
-      // Matches DnD inside the this.editor.
-      mxDragSource.prototype.getDropTarget = (graph, x, y) => {
-        let cell = graph.getCellAt(x, y)
-
-        if (!graph.isValidDropTarget(cell)) {
-          cell = null
-        }
-
-        return cell
-      }
-
-      const addCell = ({ icon, width = 60, height = 60, style }) => {
-        const { label, tooltip } = this.translateCell(style)
-        let value = tooltip
-
-        if (['break', 'continue'].includes(style)) {
-          value = style === 'break' ? 'Stop iterator execution' : 'Skip current iteration'
-        } else if (style.includes('gateway')) {
-          value = style.split('gateway')[1]
-        } else if (style === 'expressions') {
-          value = 'Define and mutate scope variables'
-        } else if (style === 'content') {
-          value = 'Text here'
-        }
-
-        const cell = new mxCell(value, new mxGeometry(0, 0, width, height), style)
-        cell.setVertex(true)
-
-        this.addToolbarItem(label, this.graph, this.toolbar, cell, icon, tooltip)
-      }
-
-      toolbarConfig.forEach(cell => {
-        if (cell.kind === 'hr') {
-          this.toolbar.addLine()
-        } else if (cell.kind === 'nl') {
-          this.toolbar.addBreak()
-        } else {
-          const cellStyle = getStyleFromKind(cell)
-          if (cellStyle) {
-            addCell({
-              ...cell,
-              ...cellStyle,
-            })
-          }
-        }
-      })
-    },
-
-    initUndoManager() {
-      this.undoManager = new mxUndoManager()
-      // Register UNDO and REDO
-      const listener = (sender, evt) => {
-        if (!this.rendering) {
-          this.undoManager.undoableEditHappened(evt.getProperty('edit'))
-        }
-      }
-
-      this.graph.getModel().addListener(mxEvent.UNDO, listener)
-      this.graph.getView().addListener(mxEvent.UNDO, listener)
-
-      this.graph.getModel().addListener(mxEvent.REDO, listener)
-      this.graph.getView().addListener(mxEvent.REDO, listener)
-    },
-
-    makeCellCopy({ edge, id }) {
-      const cell = edge ? this.edges[id] : this.vertices[id]
-      const node = this.graph.model.cloneCell(cell.node, false)
-      node.id = cell.node.id
-      node.parent = cell.node.parent.id
-
-      if (edge) {
-        node.source = cell.node.source.id
-        node.target = cell.node.target.id
-      }
-
-      const cellCopy = {
-        node,
-      }
-
-      // Need to use JSON.parse to remove references
-      if (cell.config) {
-        cellCopy.config = JSON.parse(JSON.stringify(cell.config))
-      }
-
-      if (cell.triggers) {
-        const triggers = {
-          enabled: cell.triggers.enabled,
-          constraints: cell.triggers.constraints,
-          eventType: cell.triggers.eventType,
-          resourceType: cell.triggers.resourceType,
-        }
-
-        cellCopy.triggers = JSON.parse(JSON.stringify(triggers))
-      }
-
-      return cellCopy
-    },
-
-    initClipboard() {
-      const absoluteGeometry = cell => {
-        // If parent not container cell
-        if (!cell.parent.geometry) {
-          return {
-            x: cell.geometry.x,
-            y: cell.geometry.y,
-          }
-        }
-
-        // Get absoluteGeometry recursively
-        const { x, y } = absoluteGeometry(cell.parent)
-        return {
-          x: cell.geometry.x + x,
-          y: cell.geometry.y + y,
-        }
-      }
-
-      const copyCells = (cells, parentID) => {
-        let copiedCells = {}
-        let copiedEdges = []
-
-        cells.forEach(cell => {
-          const newCell = this.makeCellCopy(cell)
-
-          if (cell.edge) {
-            copiedEdges.push(newCell)
-          } else {
-            if (!copiedCells[cell.parent.id]) {
-              copiedCells[cell.parent.id] = []
-            }
-
-            // Cell parent is container cell, and copyCells wasn't called by parent of curent cell
-            if (cell.parent.geometry && cell.parent.id !== parentID) {
-              // Get relative x,y recursively - Needed because of relative x,y in swimlanes. And paste not respecting relative x,y
-              const { x, y } = absoluteGeometry(cell)
-              newCell.node.geometry.x = x
-              newCell.node.geometry.y = y
-            }
-
-            copiedCells[cell.parent.id].push(newCell)
-
-            // Handle children
-            if (cell.children) {
-              if (!copiedCells[cell.id]) {
-                copiedCells[cell.id] = []
-              }
-
-              // Recursively copy children
-              const childrenCells = copyCells(cell.children, cell.id)
-              copiedCells = { ...copiedCells, ...childrenCells.cells }
-              copiedEdges = [...copiedEdges, ...childrenCells.edges]
-            }
-          }
-        })
-
-        return {
-          cells: copiedCells,
-          edges: copiedEdges,
-        }
-      }
-
-      const pasteCells = evt => {
-        if (evt.clipboardData.getData('text').includes('"cells":')) {
-          // Get cells from actual system clipboard
-          const { cells = {}, edges = [] } = JSON.parse(evt.clipboardData.getData('text')) || {}
-
-          const delta = mxClipboard.insertCount * this.graph.gridSize * 20
-          const defaultParent = this.graph.getDefaultParent()
-          const newCellIDs = {}
-          const allCells = []
-
-          this.graph.getModel().beginUpdate()
-
-          // Handle cells
-          Object.entries(cells).forEach(([parentID, children]) => {
-            children.forEach(({ node, ...rest }) => {
-              const parent = newCellIDs[parentID]
-                ? this.graph.model.getCell(newCellIDs[parentID])
-                : defaultParent
-              const { id, geometry, value, style } = node
-
-              // Offset only the topmost cell. Children are relative and will be offset automaticially
-              if (!newCellIDs[parentID]) {
-                geometry.x += delta
-                geometry.y += delta
-              }
-
-              const newVertex = this.graph.insertVertex(
-                parent,
-                null,
-                value,
-                geometry.x,
-                geometry.y,
-                geometry.width,
-                geometry.height,
-                style,
-              )
-              allCells.push(newVertex)
-
-              newCellIDs[id] = newVertex.id
-              rest.config.stepID = newVertex.id
-
-              this.vertices[newVertex.id] = { node: newVertex, ...rest }
-            })
-          })
-
-          // Handle edges
-          edges.forEach(({ node, ...rest }) => {
-            const parent = newCellIDs[node.id]
-              ? this.graph.model.getCell(newCellIDs[node.id])
-              : defaultParent
-            const { id, geometry, value, style } = node
-
-            const source = (this.vertices[newCellIDs[rest.config.parentID || node.source]] || {})
-              .node
-            const target = (this.vertices[newCellIDs[rest.config.childID || node.target]] || {})
-              .node
-            if (!source || !target) {
-              return
-            }
-
-            node.source = source
-            node.target = target
-
-            const newEdge = this.graph.insertEdge(
-              parent,
-              null,
-              value,
-              node.source,
-              node.target,
-              style,
-            )
-            newEdge.geometry.points = (geometry.points || []).map(({ x, y }) => {
-              return new mxPoint(x, y)
-            })
-            allCells.push(newEdge)
-
-            newCellIDs[id] = newEdge.id
-            rest.config.parentID = node.source.id
-            rest.config.childID = node.target.id
-
-            this.edges[newEdge.id] = { node: newEdge, ...rest }
-          })
-
-          Object.keys(this.vertices).forEach(vID => this.updateVertexConfig(vID))
-
-          mxClipboard.insertCount++
-          this.graph.setSelectionCells(allCells)
-          this.graph.getModel().endUpdate() // Updates the display
-        }
-      }
-
-      mxClipboard.copy = (graph, cells) => {
-        const exportableCells = graph.getExportableCells(
-          graph.model.getTopmostCells(cells || graph.getSelectionCells()),
-        )
-        const copiedCells = copyCells(exportableCells)
-
-        // Copy to actual browser(system) clipboard
-        const editor = this.$refs.editor
-        const tempInput = document.createElement('input')
-        editor.appendChild(tempInput)
-        tempInput.setAttribute('value', JSON.stringify(copiedCells))
-        tempInput.select()
-        document.execCommand('copy')
-        editor.removeChild(tempInput)
-
-        mxClipboard.insertCount = 1
-
-        return copiedCells
-      }
-
-      mxClipboard.cut = (graph, cells) => {
-        const copiedCells = mxClipboard.copy(graph, cells)
-
-        const cutCells = []
-        Object.entries(copiedCells.cells).forEach(([parentID, children]) => {
-          children.forEach(({ node }) => {
-            cutCells.push(this.graph.model.getCell(node.id))
-          })
-        })
-
-        copiedCells.edges.forEach(({ node }) => {
-          cutCells.push(this.graph.model.getCell(node.id))
-        })
-
-        mxClipboard.insertCount = 0
-        this.graph.removeCells(cutCells)
-
-        return cells
-      }
-
-      // Register paste handler
-      document.querySelector('body').addEventListener('paste', pasteCells)
-    },
-
-    // Works on all of editor (mostly)
-    keybinds(event) {
-      // Ctrl + S
-      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-        event.preventDefault()
-        // Prevent the workflow from being saved if expressions editor is open
-        if (!document.getElementById('expression-editor')) {
-          this.saveWorkflow()
-        }
-      }
-    },
-
-    // Only works when canvas is focused
-    keys() {
-      // Register general keydown event if we need it (we destroy it in beforeUnmount)
-      document.addEventListener('keydown', this.keybinds)
-
-      // Register control and meta key if Mac
-      this.keyHandler.getFunction = evt => {
-        if (evt != null) {
-          // If CTRL or META key is pressed
-          if (evt.ctrlKey || (mxClient.IS_MAC && evt.metaKey)) {
-            // If SHIFT key is pressed
-            if (evt.shiftKey) {
-              return this.keyHandler.controlShiftKeys[evt.keyCode]
-            }
-            return this.keyHandler.controlKeys[evt.keyCode]
-          }
-
-          // If only normal keys are pressed
-          return this.keyHandler.normalKeys[evt.keyCode]
-        }
-
-        return null
-      }
-
-      // Ctrl + X
-      this.keyHandler.controlKeys[88] = () => {
-        mxClipboard.cut(this.graph, this.graph.getSelectionCells())
-      }
-
-      // Ctrl + C
-      this.keyHandler.controlKeys[67] = () => {
-        mxClipboard.copy(this.graph, this.graph.getSelectionCells())
-      }
-
-      // Ctrl + A
-      this.keyHandler.controlKeys[65] = () => {
-        this.graph.selectAll()
-      }
-
-      // Ctrl + Z
-      this.keyHandler.controlKeys[90] = () => {
-        this.undoManager.undo()
-        this.checkExistingTriggerPaths()
-      }
-
-      // Ctrl + Shift + Z
-      this.keyHandler.controlShiftKeys[90] = () => {
-        this.undoManager.redo()
-        this.checkExistingTriggerPaths()
-      }
-
-      // Backspace
-      this.keyHandler.normalKeys[8] = () => {
-        this.deleteSelectedCells()
-      }
-
-      // Delete
-      this.keyHandler.normalKeys[46] = () => {
-        this.deleteSelectedCells()
-      }
-
-      // Ctrl + Space, Resets view to original state (zoom = 1, x = 0, y = 0)
-      this.keyHandler.controlKeys[32] = () => {
-        if (this.graph.model.getChildCount(this.graph.getDefaultParent())) {
-          this.graph.fit()
-          this.graph.view.setTranslate(
-            this.graph.view.translate.x + 79,
-            this.graph.view.translate.y + 220,
-          )
-          this.zoomLevel = this.graph.view.scale
-        } else {
-          this.resetZoom()
-          this.graph.view.setTranslate(originPoint, originPoint)
-        }
-      }
-
-      // Shift + ?
-      this.keyHandler.bindKey(191, event => {
-        if (event.shiftKey && event.key === '?') {
-          this.$refs.help.click()
-        }
-      })
-
-      // Nudge
-      const nudge = (keyCode, evt) => {
-        if (!this.graph.isSelectionEmpty()) {
-          let dx = 0
-          let dy = 0
-
-          // If shift is not pressed move cell by whole grid block
-          const delta = evt.shiftKey ? this.graph.gridSize : this.graph.gridSize * 5
-
-          if (keyCode === 37) {
-            dx = -delta
-          } else if (keyCode === 38) {
-            dy = -delta
-          } else if (keyCode === 39) {
-            dx = delta
-          } else if (keyCode === 40) {
-            dy = delta
-          }
-
-          this.graph.moveCells(this.graph.getSelectionCells(), dx, dy)
-        }
-      }
-
-      // Move cells with arrow keys
-      this.keyHandler.bindKey(37, evt => {
-        nudge(37, evt)
-      })
-
-      this.keyHandler.bindKey(38, evt => {
-        nudge(38, evt)
-      })
-
-      this.keyHandler.bindKey(39, evt => {
-        nudge(39, evt)
-      })
-
-      this.keyHandler.bindKey(40, evt => {
-        nudge(40, evt)
-      })
-    },
-
-    checkExistingTriggerPaths() {
-      // If trigger was reconnected, check if all triggers are still connected to the previous stepID
-      this.triggersPathsChanged = [...this.triggers].some(({ stepID = '0', meta = {} }) => {
-        if (stepID !== NoID) {
-          let [triggerEdge] = this.vertices[meta.visual.id].node.edges || []
-
-          if (triggerEdge) {
-            triggerEdge = this.graph.model.getCell(triggerEdge.id)
-            return triggerEdge.target && triggerEdge.target.id !== stepID
-          } else {
-            return true
-          }
-        }
-
-        return false
-      })
-    },
-
-    events() {
-      // Redraw selected border of cells that have been newly added/removed
-      this.graph.getSelectionModel().addListener(mxEvent.CHANGE, (sender, evt) => {
-        const cells = [...(evt.getProperty('added') || []), ...(evt.getProperty('removed') || [])]
-        this.selection = this.graph.getSelectionCells().map(({ mxObjectId }) => mxObjectId)
-        cells.forEach(({ mxObjectId }) => {
-          this.redrawLabel(mxObjectId)
-        })
-      })
-
-      // Edge connect event
-      this.graph.connectionHandler.addListener(mxEvent.CONNECT, (sender, evt) => {
-        const node = evt.getProperty('cell')
-
-        this.edges[node.id] = {
-          node,
-          config: {
-            parentID: node.source.id,
-            childID: node.source.id,
+  fitView,
+  zoomIn: vfZoomIn,
+  zoomOut: vfZoomOut,
+  getZoom,
+  screenToFlowPosition,
+  onNodesInitialized,
+} = useVueFlow({ id: vfId })
+
+const { saveToHistory, undo, redo, canUndo, canRedo } = useWorkflowHistory(nodes, edges)
+const {
+  onToolbarDragStart,
+  onCanvasDragOver,
+  onCanvasDrop: dndDrop,
+} = useWorkflowDnD(nodes, saveToHistory, screenToFlowPosition)
+const { highlightConnected, clearHighlights } = useWorkflowHighlight(nodes, edges)
+const { copySelected, cutSelected, pasteClipboard } = useWorkflowClipboard(
+  nodes,
+  edges,
+  saveToHistory,
+)
+
+const zoomLevel = ref(1)
+
+// Fit view once on first load
+let hasInitiallyFit = false
+onNodesInitialized(() => {
+  if (!hasInitiallyFit && nodes.value.length > 0) {
+    fitView({ padding: 0.2, maxZoom: 1 })
+    hasInitiallyFit = true
+    zoomLevel.value = getZoom() || 1
+  }
+})
+
+/* ─── Sidebar State ─── */
+const sidebar = ref({
+  item: undefined,
+  itemType: undefined,
+  outEdges: 0,
+  show: false,
+  showItem: false,
+})
+
+const issuesModal = ref({
+  show: false,
+  issues: [],
+})
+
+const dryRun = ref({
+  show: false,
+  processing: false,
+  lookup: false,
+  cellID: undefined,
+  initialScope: {},
+  input: {},
+  inputEdited: {},
+  sessionID: undefined,
+})
+
+/* ─── Sidebar Edges Bridge ─── */
+// The Configurator expects edges as an object map { [id]: { node, config } }
+// We need to bridge that with VueFlow's edges array.
+// IMPORTANT: Gateway.vue directly mutates `this.edges[id].config.expr` so we
+// must use a reactive ref + deep watcher rather than a computed getter/setter.
+const sidebarEdges = ref({})
+
+// Rebuild the bridge map whenever VueFlow edges change
+watch(
+  edges,
+  () => {
+    const map = {}
+    edges.value.forEach(e => {
+      map[e.id] = {
+        node: {
+          id: e.id,
+          value: e.label || '',
+          source: {
+            id: e.source,
+            style: nodes.value.find(n => n.id === e.source)?.data?.kind || '',
           },
-        }
-
-        const source = this.vertices[node.source.id]
-        const target = this.vertices[node.target.id]
-        const outPaths = source.node.edges.filter(e => e.source.id === source.node.id) || []
-
-        if (target.config.kind === 'gateway') {
-          if (['join', 'fork'].includes(target.config.ref)) {
-            this.updateVertexConfig(target.node.id)
-          }
-        }
-
-        if (source.config.kind === 'gateway') {
-          if (['join', 'fork'].includes(source.config.ref)) {
-            this.updateVertexConfig(source.node.id)
-          }
-
-          if (source.config.ref === 'excl') {
-            this.edges[node.id].node.value =
-              `#${outPaths.length} - ${outPaths.length === 1 ? 'If' : 'Else (if)'}`
-          } else if (source.config.ref === 'incl') {
-            this.edges[node.id].node.value = 'If'
-          }
-
-          this.sidebar.outEdges = (source.node.edges || []).length
-        } else if (source.config.kind === 'error-handler') {
-          this.edges[node.id].node.value = `${outPaths.length === 1 ? 'Try' : 'Catch'}`
-        } else if (source.config.kind === 'iterator') {
-          this.edges[node.id].node.value = `${outPaths.length === 1 ? 'Body' : 'End'}`
-        }
-      })
-
-      this.graph.addListener(mxEvent.CELL_CONNECTED, (sender, evt) => {
-        if (!this.rendering) {
-          const edge = evt.getProperty('edge')
-          const source = this.vertices[edge.source.id]
-          if (source.config.kind === 'trigger') {
-            this.checkExistingTriggerPaths()
-          }
-        }
-      })
-
-      this.graph.addListener(mxEvent.CELLS_ADDED, (sender, evt) => {
-        if (!this.rendering) {
-          const cells = evt.getProperty('cells')
-          let lastVertexID = null
-          cells.forEach(cell => {
-            if (cell && cell.vertex) {
-              if (!this.rendering) {
-                cell.defaultName = true
-                this.addCellToVertices(cell)
-                this.graph.setSelectionCells([cell])
-                lastVertexID = cell.id
-              }
-            }
-          })
-
-          if (lastVertexID) {
-            this.$nextTick(() => {
-              const vertex = this.vertices[lastVertexID]
-              this.sidebarReopen(vertex, vertex.config.kind)
-            })
-          }
-        }
-      })
-
-      this.graph.addListener(mxEvent.CELLS_REMOVED, (sender, evt) => {
-        const cells = evt.getProperty('cells') || []
-        cells.forEach(cell => {
-          if (cell.edge) {
-            const source = this.vertices[cell.source.id]
-            const target = this.vertices[cell.target.id]
-
-            // If exlusive gateway, update edge indexes (#n)
-            if (source.config.kind === 'gateway') {
-              if (source.config.ref === 'excl') {
-                source.node.edges
-                  .filter(e => e.source.id === source.node.id)
-                  .forEach((edge, index) => {
-                    /* eslint-disable no-unused-vars */
-                    const [edgeID, ...rest] = edge.value.split(' - ')
-
-                    this.edges[edge.id].node.value = `#${index + 1} - ${rest.join(' - ')}`
-                    this.redrawLabel(edge.mxObjectId)
-                  })
-              }
-
-              if (['join', 'fork'].includes(target.config.ref)) {
-                this.updateVertexConfig(source.node.id)
-              }
-            } else if (
-              source.config.kind === 'iterator' ||
-              source.config.kind === 'error-handler'
-            ) {
-              // Since later placed edges will have greater id than the ones placed before, we can filter by id
-              // Remove all edges that were placed after the one that was just deleted.
-              // This needs to be done to preserve edge order
-              this.graph.removeCells(
-                source.node.edges.filter(e => e.source.id === source.node.id && e.id > cell.id),
-              )
-            } else if (source.config.kind === 'trigger') {
-              this.checkExistingTriggerPaths()
-            }
-
-            if (target.config.kind === 'gateway') {
-              if (['join', 'fork'].includes(target.config.ref)) {
-                this.updateVertexConfig(target.node.id)
-              }
-            }
-          }
-        })
-      })
-
-      // Scroll to pan, Ctrl+scroll to zoom
-      this.graph.container.addEventListener(
-        'wheel',
-        event => {
-          if (event.ctrlKey || (mxClient.IS_MAC && event.metaKey)) {
-            this.zoom(event.deltaY < 0)
-            event.preventDefault()
-            event.stopPropagation()
-          } else {
-            const view = this.graph.getView()
-            view.setTranslate(
-              view.translate.x - (event.deltaX || 0) / view.scale,
-              view.translate.y - (event.deltaY || 0) / view.scale,
-            )
-            event.preventDefault()
-          }
+          target: {
+            id: e.target,
+            style: nodes.value.find(n => n.id === e.target)?.data?.kind || '',
+          },
         },
-        { passive: false },
-      )
-
-      // On hover, bring cell to foreground
-      this.graph.addMouseListener({
-        mouseMove: (sender, evt) => {
-          if (this.currentLabel !== null && evt.getState() === this.currentLabel) {
-            return
-          }
-
-          let tmp = sender.view.getState(evt.getCell())
-
-          // Ignores everything but vertices
-          if (tmp !== null && !sender.getModel().isVertex(tmp.cell)) {
-            tmp = null
-          }
-
-          if (tmp !== this.currentLabel) {
-            this.currentLabel = tmp
-            if (this.currentLabel?.cell) {
-              this.rendering = true
-              sender.orderCells(false, [this.currentLabel.cell])
-              this.rendering = false
-            }
-          }
-        },
-
-        mouseUp: (sender, evt) => {
-          evt.consume()
-        },
-
-        mouseDown: (sender, evt) => {
-          const event = evt.evt
-          const cell = evt.state?.cell
-
-          if (event) {
-            // Check if clicked element is an anchor point
-            const isAnchorPoint = event.target?.href?.baseVal?.includes('connection-point')
-
-            if (isAnchorPoint) {
-              evt.consume()
-              return
-            }
-
-            if (mxEvent.isControlDown(event) || (mxClient.IS_MAC && mxEvent.isMetaDown(event))) {
-              // Prevent sidebar opening/closing when CTRL(CMD) is pressed while clicking
-              if (cell) {
-                this.highlightConnectedPaths(cell)
-              }
-            } else if (cell) {
-              // Clear any existing path highlights before adding new ones
-              this.clearHighlights()
-              // Highlight the clicked cell and its connected paths
-              this.highlightConnectedPaths(cell)
-
-              // If clicked on Cog icon
-              const item = cell.edge ? this.edges[cell.id] : this.vertices[cell.id]
-              const itemType = cell.edge ? 'edge' : item.config.kind
-
-              if (event.target.id === 'openIssues') {
-                this.issuesModal.issues = this.issues[cell.id]
-                this.issuesModal.show = true
-              } else if (event.target.id === 'testWorkflow') {
-                this.dryRun.cellID = cell.id
-                this.loadTestScope()
-              } else if (event.target.id === 'cancelWorkflow') {
-                this.cancelWorkflow()
-              } else {
-                this.sidebarReopen(item, itemType)
-              }
-            } else if (!event.defaultPrevented) {
-              // If click is on background and is not multiple selection, deselect all selected cells
-              this.graph.getSelectionModel().clear()
-              this.sidebar.show = false
-              if (this.getSelectedItem) {
-                this.sidebarClose()
-              }
-
-              // Clear path highlights when clicking on the background
-              this.clearHighlights()
-            }
-          }
-
-          evt.consume()
-        },
-      })
-
-      this.graph.model.addListener(mxEvent.CHANGE, (sender, evt) => {
-        if (!this.rendering) {
-          this.$emit('change-detected')
-        }
-      })
-    },
-
-    styling() {
-      // General
-      mxConstants.VERTEX_SELECTION_COLOR = '#A7D0E3'
-      mxConstants.VERTEX_SELECTION_STROKEWIDTH = 2 // Changed from 2 to 0 to hide default selection border
-      mxConstants.VERTEX_SELECTION_DASHED = false
-      mxConstants.EDGE_SELECTION_COLOR = '#A7D0E3'
-      mxConstants.EDGE_SELECTION_STROKEWIDTH = 2 // Changed from 2 to 0 to hide default selection border
-      mxConstants.DEFAULT_FONTFAMILY = 'Poppins'
-      mxConstants.DEFAULT_FONTSIZE = 13
-
-      mxConstants.HANDLE_FILLCOLOR = 'var(--primary)'
-      mxConstants.HANDLE_STROKECOLOR = 'none'
-      mxConstants.HANDLE_SIZE = 9
-      mxConstants.CONNECT_HANDLE_FILLCOLOR = '#A7D0E3'
-      mxConstants.OUTLINE_HIGHLIGHT_COLOR = '#A7D0E3'
-      mxConstants.TARGET_HIGHLIGHT_COLOR = '#A7D0E3'
-      mxConstants.DROP_TARGET_COLOR = '#A7D0E3'
-      mxConstants.DEFAULT_VALID_COLOR = '#A7D0E3'
-      mxConstants.VALID_COLOR = '#A7D0E3'
-      mxGraphHandler.prototype.previewColor = '#A7D0E3'
-
-      mxConstants.STYLE_PERIMETER = mxPerimeter.RectanglePerimeter
-
-      mxConstants.GUIDE_COLOR = 'var(--dark)'
-      mxConstants.GUIDE_STROKEWIDTH = 1
-
-      // Creates the default style for vertices
-
-      let style = this.graph.getStylesheet().getDefaultVertexStyle()
-      style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE
-      style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter
-      style[mxConstants.STYLE_STROKECOLOR] = 'none'
-      style[mxConstants.STYLE_STROKEWIDTH] = 0
-      style[mxConstants.STYLE_ROUNDED] = true
-      style[mxConstants.STYLE_ARCSIZE] = 5
-      style[mxConstants.STYLE_RESIZABLE] = false
-      style[mxConstants.STYLE_FILLCOLOR] = 'none'
-      style[mxConstants.STYLE_FONTCOLOR] = 'var(--dark)'
-      style[mxConstants.STYLE_FONTSIZE] = 13
-      this.graph.getStylesheet().putDefaultVertexStyle(style)
-
-      // Creates the default style for edges
-      style = this.graph.getStylesheet().getDefaultEdgeStyle()
-      style[mxConstants.STYLE_STROKECOLOR] = '#A7D0E3'
-      style[mxConstants.STYLE_EDGE] = mxEdgeStyle.OrthConnector
-      style[mxConstants.STYLE_ROUNDED] = true
-      style[mxConstants.STYLE_ORTHOGONAL] = true
-      style[mxConstants.STYLE_MOVABLE] = false
-      style[mxConstants.STYLE_FONTCOLOR] = 'var(--dark)'
-      style[mxConstants.STYLE_STROKEWIDTH] = 2
-      style[mxConstants.STYLE_ENDSIZE] = 15
-      style[mxConstants.STYLE_STARTSIZE] = 15
-      style[mxConstants.STYLE_SOURCE_JETTY_SIZE] = 48
-      style[mxConstants.STYLE_TARGET_JETTY_SIZE] = 48
-      this.graph.getStylesheet().putDefaultEdgeStyle(style)
-
-      // Swimlane
-      style = {}
-      style[mxConstants.STYLE_ROUNDED] = true
-      style[mxConstants.STYLE_ARCSIZE] = 5
-      style[mxConstants.STYLE_RESIZABLE] = true
-      style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_SWIMLANE
-      style[mxConstants.STYLE_FONTSIZE] = 15
-      style[mxConstants.STYLE_HORIZONTAL] = false
-      style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_MIDDLE
-      style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_MIDDLE
-      style[mxConstants.STYLE_FILLCOLOR] = 'var(--white)'
-      style[mxConstants.STYLE_STROKECOLOR] = 'var(--dark)'
-      style[mxConstants.STYLE_STROKEWIDTH] = 1
-      this.graph.getStylesheet().putCellStyle('swimlane', style)
-
-      // Content
-      style = {}
-      style[mxConstants.STYLE_RESIZABLE] = true
-      style[mxConstants.STYLE_CONNECTABLE] = false
-      style[mxConstants.STYLE_FILLCOLOR] = 'var(--white)'
-      style[mxConstants.STYLE_STROKECOLOR] = 'var(--extra-light)'
-      style[mxConstants.STYLE_STROKEWIDTH] = 1
-      style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP
-      style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_LEFT
-      style[mxConstants.STYLE_SPACING_TOP] = 10
-      style[mxConstants.STYLE_SPACING_LEFT] = 10
-      style[mxConstants.STYLE_WHITE_SPACE] = 'wrap'
-      style[mxConstants.STYLE_OVERFLOW] = 'hidden'
-      this.graph.getStylesheet().putCellStyle('content', style)
-    },
-
-    translateCell(style) {
-      return {
-        label: this.$t(`steps.${style}.label`),
-        tooltip: this.$t(`steps.${style}.tooltip`),
-      }
-    },
-
-    cellOverlay() {
-      mxCellOverlay.prototype.defaultOverlap = 1.2
-    },
-
-    connectionHandler() {
-      mxConstraintHandler.prototype.intersects = function (icon, point, source, existingEdge) {
-        return !source || existingEdge || mxUtils.intersects(icon.bounds, point)
-      }
-
-      // Removes default connect logic (from center of cell)
-      if (this.graph.connectionHandler.connectImage === null) {
-        this.graph.connectionHandler.isConnectableCell = () => {
-          return false
-        }
-        mxEdgeHandler.prototype.isConnectableCell = cell => {
-          return this.graph.connectionHandler.isConnectableCell(cell)
-        }
-      }
-
-      this.graph.getAllConnectionConstraints = function (terminal, source = false) {
-        if (!terminal) {
-          return null
-        }
-
-        const { cell } = terminal
-
-        let isConnectable =
-          this.model.isVertex(cell) && !['swimlane', 'content'].includes(cell.style)
-
-        // Only one outbound connection per trigger
-        if (cell.style.includes('trigger') && cell.edges) {
-          isConnectable = isConnectable && !cell.edges.length
-        }
-
-        if (isConnectable) {
-          let possibleConnections = [
-            [0, 0],
-            [0.25, 0],
-            [0.5, 0],
-            [0.75, 0],
-            [1, 0],
-            [1, 0.25],
-            [1, 0.5],
-            [1, 0.75],
-            [1, 1],
-            [0.75, 1],
-            [0.5, 1],
-            [0.25, 1],
-            [0, 1],
-            [0, 0.75],
-            [0, 0.5],
-            [0, 0.25],
-          ]
-
-          // Allows for multiple inbound edges on the same point, but not outbound from the same point
-          if (source) {
-            const edges = cell.edges || []
-            edges.forEach(({ source, target, style }) => {
-              const points = {}
-              if (style) {
-                style.split(';').forEach(point => {
-                  const [key, value] = point.split('=')
-                  if (key && value) {
-                    points[key] = parseFloat(value)
-                  }
-                })
-
-                possibleConnections = possibleConnections.filter(([x, y]) => {
-                  // Outgoing edge, check exitX/Y
-                  if (source.id === cell.id) {
-                    // Filter out exit point
-                    return !(x === points.exitX && y === points.exitY)
-                  } else if (target.id === cell.id) {
-                    // Incoming edge
-                    return !(x === points.entryX && y === points.entryY)
-                  }
-                  return true
-                })
-              }
-            })
-          } else {
-            // Prevent triggers from being connected to
-            if (cell.style.includes('trigger')) {
-              possibleConnections = []
-            }
-          }
-
-          return possibleConnections.map(([x, y]) => {
-            return new mxConnectionConstraint(new mxPoint(x, y), true)
-          })
-        }
-
-        return null
-      }
-
-      // Connect preview
-      mxConnectionHandler.prototype.createEdgeState = function (me) {
-        const edge = this.graph.createEdge(null, null, null, null, null)
-        return new mxCellState(
-          this.graph.view,
-          edge,
-          this.graph.getStylesheet().getDefaultEdgeStyle(),
-        )
-      }
-
-      // Resets control points when related cells are moved
-      this.graph.resetEdgesOnMove = true
-      mxGraph.prototype.resetEdges = function (cells) {
-        if (cells != null) {
-          this.model.beginUpdate()
-          try {
-            cells.forEach(cell => {
-              const edges = this.model.getEdges(cell)
-              if (edges != null) {
-                edges.forEach(edge => {
-                  this.resetEdge(edge)
-                })
-              }
-
-              this.resetEdges(this.model.getChildren(cell))
-            })
-          } finally {
-            this.model.endUpdate()
-          }
-        }
-      }
-
-      // Image for fixed point
-      mxConstraintHandler.prototype.pointImage = new mxImage(
-        this.getIcon('connection-point'),
-        16,
-        16,
-      )
-
-      // On hover outline for fixed point
-      mxConstraintHandler.prototype.createHighlightShape = function () {
-        return new mxEllipse(null, '#A7D0E3', '#A7D0E3', 1)
-      }
-    },
-
-    addToolbarItem(title, graph, toolbar, prototype, icon, tooltip) {
-      const funct = (graph, evt, cell) => {
-        graph.stopEditing(false)
-
-        const pt = graph.getPointForEvent(evt)
-        const vertex = graph.getModel().cloneCell(prototype)
-        vertex.geometry.x = pt.x
-        vertex.geometry.y = pt.y
-
-        graph.importCells([vertex], 0, 0, cell)
-      }
-
-      const dragElt = document.createElement('div')
-      dragElt.style.border = 'dashed #A7D0E3 2px'
-      dragElt.style.width = `${prototype.geometry.width}px`
-      dragElt.style.height = `${prototype.geometry.height}px`
-
-      icon = this.getIcon(icon, this.currentTheme)
-
-      const img = toolbar.addMode(title, icon, funct)
-
-      const ds = mxUtils.makeDraggable(
-        img,
-        graph,
-        funct,
-        dragElt,
-        null,
-        null,
-        this.graph.autoscroll,
-        true,
-      )
-
-      // Init step tooltip
-      img.id = prototype.style.split(';')[0]
-      // Remove default title to prevent browser tooltip from overlapping
-      img.removeAttribute('title')
-
-      // Use a custom floating tooltip instead of the native one
-      img.addEventListener('mouseenter', () => {
-        const rect = img.getBoundingClientRect()
-        this.activeToolbarTooltip = { title, icon, tooltip }
-        this.toolbarTooltipStyle = {
-          top: `${rect.top}px`,
-          left: `${rect.right + 10}px`,
-        }
-      })
-
-      img.addEventListener('mouseleave', () => {
-        this.activeToolbarTooltip = null
-      })
-
-      // When dragged over toolbar it shows as img otherwise show border
-      ds.createDragElement = mxDragSource.prototype.createDragElement
-    },
-
-    addCellToVertices(cell) {
-      const triggers = this.triggers.find(({ meta }) => {
-        return ((meta || {}).visual || {}).id === cell.id
-      })
-
-      const {
-        kind = '',
-        ref = '',
-        defaultName = false,
-        arguments: args,
-        results = [],
-        meta = {},
-      } = (this.workflow.steps || []).find(({ stepID }) => {
-        return stepID === cell.id
-      }) || {}
-
-      this.vertices[cell.id] = {
-        node: cell,
         config: {
-          stepID: cell.id,
-          kind: kind || '',
-          ref: ref || '',
-          defaultName: defaultName || meta.visual?.defaultName || cell.defaultName || false,
-          ...(this.rendering ? {} : getKindFromStyle(cell)),
+          parentID: e.source,
+          childID: e.target,
+          expr: e.data?.expr || '',
         },
       }
-
-      if (args) {
-        this.vertices[cell.id].config.arguments = args
-      }
-
-      if (results) {
-        this.vertices[cell.id].config.results = results
-      }
-
-      if (triggers || cell.style === 'trigger') {
-        this.vertices[cell.id].triggers = triggers || {
-          resourceType: null,
-          eventType: null,
-          constraints: [],
-          enabled: true,
-        }
-      }
-    },
-
-    updateVertexConfig(vID) {
-      const { node, config } = this.vertices[vID]
-      this.vertices[vID].config = { ...config, ...(this.rendering ? {} : getKindFromStyle(node)) }
-    },
-
-    setValue(value, defaultName = false) {
-      this.graph.model.setValue(this.sidebar.item.node, value)
-
-      if (this.sidebar.itemType !== 'edge') {
-        this.vertices[this.sidebar.item.node.id].config.defaultName = defaultName
-      }
-    },
-
-    zoom(up = true) {
-      if (up && this.graph.view.scale < 3) {
-        this.graph.zoomIn()
-      } else if (!up && this.graph.view.scale > 0.1) {
-        this.graph.zoomOut()
-      }
-      this.zoomLevel = this.graph.view.scale
-    },
-
-    resetZoom() {
-      this.graph.zoomTo(1)
-      this.zoomLevel = this.graph.view.scale
-    },
-
-    redrawLabel(id = '') {
-      if (id) {
-        const state = this.graph.view.states.map[id]
-        if (state) {
-          this.graph.cellRenderer.redrawLabel(state)
-        }
-      }
-    },
-
-    clearHighlights() {
-      if (this.highlights.length > 0) {
-        this.highlights.forEach(h => {
-          h.destroy()
-        })
-        this.highlights = []
-        this.graph.clearCellOverlays()
-      }
-    },
-
-    highlightConnectedPaths(cell) {
-      if (cell.vertex) {
-        // If a vertex (step) is selected, highlight all connected edges
-        const edges = cell.edges || []
-        edges.forEach(edge => {
-          const state = this.graph.view.getState(edge)
-          if (state) {
-            const highlight = new mxCellHighlight(this.graph, 'var(--primary)', 2)
-            highlight.highlight(state)
-            this.highlights.push(highlight)
-          }
-        })
-      } else if (cell.edge) {
-        // 2. Highlight the source vertex
-        if (cell.source) {
-          const sourceState = this.graph.view.getState(cell.source)
-          if (sourceState) {
-            const highlight = new mxCellHighlight(this.graph, 'var(--primary)', 2) // Changed color to green and increased width
-            highlight.highlight(sourceState)
-            this.highlights.push(highlight)
-          }
-        }
-
-        // 3. Highlight the target vertex
-        if (cell.target) {
-          const targetState = this.graph.view.getState(cell.target)
-          if (targetState) {
-            const highlight = new mxCellHighlight(this.graph, 'var(--primary)', 2) // Changed color to green and increased width
-            highlight.highlight(targetState)
-            this.highlights.push(highlight)
-          }
-        }
-      }
-    },
-
-    async loadTestScope() {
-      // Can only test saved workflow
-      if (this.changeDetected) {
-        this.toastWarning(
-          this.$t('notification.save-workflow'),
-          this.$t('notification.failed-test'),
-        )
-        return
-      }
-
-      // Can only test valid workflow
-      if (this.hasIssues) {
-        this.toastWarning(
-          this.$t('notification.resolve-issues'),
-          this.$t('notification.failed-test'),
-        )
-        return
-      }
-
-      const lookupableTypes = [
-        'record',
-        'oldRecord',
-        'module',
-        'oldModule',
-        'page',
-        'oldPage',
-        'namespace',
-        'oldNamespace',
-        'user',
-        'oldUser',
-        'role',
-        'oldRole',
-        'application',
-        'oldApplication',
-      ]
-
-      // Assume trigger is valid since workflow is saved and has no issues
-      const { resourceType, eventType } = this.vertices[this.dryRun.cellID].triggers
-      const et = (
-        this.eventTypes.find(
-          et => resourceType === et.resourceType && eventType === et.eventType,
-        ) || {}
-      ).properties
-      if (et) {
-        // Flag to check if lookup should be opened, or JSON editor
-        let lookup = false
-        if (et.length) {
-          this.dryRun.initialScope = et.reduce((initialScope, p) => {
-            let label = `${p.name}${lookupableTypes.includes(p.name) ? this.$t('editor.id-parenthesis') : ''}`
-            if (p.type === 'ComposeNamespace' || p.type === 'ComposeModule') {
-              label = `${p.name} ${this.$t('editor.handle')}`
-            }
-
-            let description = ''
-            if (p.type === 'ComposeRecord') {
-              description = this.$t('editor.required-namespace-and-module')
-            } else if (p.type === 'ComposeModule' || p.name === 'page' || p.name === 'oldPage') {
-              description = this.$t('editor.required-namespace')
-            }
-
-            initialScope[p.name] = {
-              label,
-              value: (this.dryRun.initialScope[p.name] || {}).value,
-              lookup: lookupableTypes.includes(p.name),
-              description,
-            }
-
-            lookup = lookup ? true : lookupableTypes.includes(p.name)
-            return initialScope
-          }, {})
-
-          // Set initial values for unlookable types
-          encodeInput(this.dryRun.initialScope, this.$ComposeAPI, this.$SystemAPI)
-            .then(input => {
-              this.dryRun.input = input
-              this.dryRun.lookup = lookup
-              this.dryRun.show = true
-            })
-            .catch(this.toastErrorHandler(this.$t('notification.initial-scope-load-failed')))
-        } else {
-          // If no constraints, just run
-          this.dryRun.initialScope = {}
-          this.testWorkflow()
-        }
-      } else {
-        this.toastWarning(
-          this.$t('notification.event-type-not-found'),
-          this.$t('notification.failed-test'),
-        )
-      }
-    },
-
-    async dryRunOk(e) {
-      if (this.dryRun.lookup) {
-        e.preventDefault()
-        // Lookup based on provided ids
-        encodeInput(this.dryRun.initialScope, this.$ComposeAPI, this.$SystemAPI)
-          .then(input => {
-            this.dryRun.input = input
-            this.dryRun.inputEdited = input
-            this.dryRun.lookup = false
-          })
-          .catch(this.toastErrorHandler(this.$t('notification.initial-scope-load-failed')))
-      } else {
-        this.testWorkflow(this.dryRun.inputEdited)
-      }
-    },
-
-    onDryRunEdit(e) {
-      this.dryRun.inputEdited = e
-    },
-
-    async testWorkflow(input = {}) {
-      this.clearHighlights()
-      this.dryRun.processing = true
-      this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
-
-      const testParams = {
-        workflowID: this.workflow.workflowID,
-        stepID: this.vertices[this.dryRun.cellID].triggers.stepID,
-        trace: this.workflow.canManageWorkflowSessions || false,
-        wait: false,
-        async: true,
-        input,
-      }
-
-      this.toastInfo(this.$t('notification.started-test'), this.$t('notification.test-in-progress'))
-
-      this.$AutomationAPI
-        .workflowExec(testParams)
-        .then(({ sessionID, error: wfExecErr }) => {
-          this.dryRun.sessionID = sessionID
-          this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
-
-          // Create a polling function that returns a promise
-          const pollSession = () => {
-            return new Promise((resolve, reject) => {
-              const checkSession = () => {
-                this.$AutomationAPI
-                  .sessionRead({ sessionID })
-                  .then(session => {
-                    const { completedAt, status, stacktrace, error = false } = session
-
-                    setTimeout(() => {
-                      if (completedAt) {
-                        if (stacktrace) {
-                          this.renderTrace(testParams.stepID, stacktrace)
-                          if (status === 'completed') {
-                            this.toastSuccess(
-                              this.$t('notification.workflow-test-completed'),
-                              this.$t('notification.test-completed'),
-                            )
-                          }
-                        } else {
-                          this.toastWarning(
-                            this.$t('notification.trace-unavailable'),
-                            this.$t('notification.test-completed'),
-                          )
-                        }
-
-                        if (error) {
-                          reject(new Error(error))
-                        } else {
-                          resolve() // Resolve the promise when session is complete
-                        }
-                      } else {
-                        checkSession()
-                      }
-                    }, 1000)
-                  })
-                  .catch(reject)
-              }
-
-              // Start the polling
-              checkSession()
-            })
-          }
-
-          // Return the polling promise to continue the chain
-          return pollSession()
-        })
-        .catch(this.toastErrorHandler(this.$t('notification.failed-test')))
-        .finally(() => {
-          // Reset state only after polling is complete
-          this.dryRun.lookup = true
-          this.dryRun.processing = false
-          this.dryRun.sessionID = undefined
-          this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
-        })
-    },
-
-    cancelWorkflow() {
-      const { sessionID, processing } = this.dryRun
-      if (processing && sessionID) {
-        this.dryRun.sessionID = undefined
-        this.dryRun.processing = false
-        this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
-
-        this.$AutomationAPI
-          .sessionCancel({ sessionID })
-          .then(() => {
-            this.toastInfo('Workflow test canceled', 'Stopping test')
-          })
-          .catch(e => {
-            this.toastErrorHandler('Test cancel failed')(e)
-          })
-      }
-    },
-
-    render(workflow, initial = false) {
-      this.rendering = true
-
-      if (this.sidebar.show) {
-        this.sidebarClose()
-      }
-
-      // Clear any existing path highlights
-      this.clearHighlights()
-
-      const { x = originPoint, y = originPoint } = this.graph.view.translate
-      const { scale } = this.graph.view
-
-      if (!this.workflow.steps) {
-        this.workflow.steps = []
-      }
-
-      if (!this.workflow.paths) {
-        this.workflow.paths = []
-      }
-
-      // Add triggers to steps/paths
-      this.triggers.forEach(({ meta, ...config }) => {
-        this.workflow.steps.push({
-          stepID: meta.visual.id,
-          kind: 'trigger',
-          defaultName: meta.visual.defaultName || false,
-          meta,
-        })
-
-        meta.visual.edges.forEach(edge => {
-          this.workflow.paths.push(edge)
-        })
-      })
-
-      // Assemble issues
-      this.issues = {}
-      if (this.workflow.issues) {
-        this.workflow.issues.forEach(({ culprit, description }) => {
-          if (culprit) {
-            const { step = -1, trigger = -1 } = culprit
-            let stepID = ''
-
-            if (step >= 0) {
-              stepID = (this.workflow.steps[step] || {}).stepID
-            } else if (trigger >= 0) {
-              stepID = (this.triggers[trigger] || {}).meta?.visual?.id || ''
-            }
-
-            if (stepID) {
-              this.issues[stepID]
-                ? this.issues[stepID].push(description)
-                : (this.issues[stepID] = [description])
-            }
-          }
-        })
-      }
-
-      this.deferred = false
-      this.triggersPathsChanged = false
-
-      const steps = workflow.steps || []
-      const paths = workflow.paths || []
-      const root = this.graph.getDefaultParent()
-
-      this.vertices = {}
-      this.edges = {}
-
-      if (initial) {
-        this.graph.view.rendering = false
-      }
-
-      this.graph.getModel().clear()
-
-      this.graph.getModel().beginUpdate() // Adds cells to the model in a single step
-
-      try {
-        // Add vertices
-        steps
-          .sort((a, b) => a.meta.visual.parent - b.meta.visual.parent)
-          .forEach(({ meta = {}, ...config }) => {
-            const node = (meta || {}).visual
-            if (node) {
-              node.parent = this.graph.model.getCell(node.parent) || root
-
-              const { width, height, style } = getStyleFromKind(config)
-
-              const newCell = this.graph.insertVertex(
-                node.parent,
-                node.id,
-                node.value,
-                node.xywh[0],
-                node.xywh[1],
-                node.xywh[2] || width,
-                node.xywh[3] || height,
-                style,
-              )
-              this.addCellToVertices(newCell)
-
-              // Only set if not yet true
-              this.deferred = this.deferred || this.deferredKinds.includes(config.kind)
-            }
-          })
-
-        // Add edges
-        paths.forEach(({ meta, ...config }) => {
-          const edge = (meta || {}).visual
-          if (edge) {
-            edge.parent = this.graph.model.getCell(edge.parent) || root
-            edge.source = config.parentID || edge.source
-            edge.target = config.childID || edge.target
-
-            const newEdge = this.graph.insertEdge(
-              edge.parent,
-              edge.id,
-              edge.value,
-              this.vertices[edge.source].node,
-              this.vertices[edge.target].node,
-              edge.style,
-            )
-            newEdge.geometry.points = (edge.points || []).map(({ x, y }) => {
-              return new mxPoint(x, y)
-            })
-
-            this.edges[edge.id] = {
-              node: newEdge,
-              config,
-            }
-          }
-        })
-
-        // Updates vertices now that edges are present
-        Object.keys(this.vertices).forEach(vID => this.updateVertexConfig(vID))
-      } finally {
-        this.graph.view.scale = scale
-        this.graph.view.setTranslate(x || originPoint, y || originPoint)
-
-        if (this.undoManager && initial) {
-          this.undoManager.clear()
-        }
-
-        this.graph.getModel().endUpdate() // Updates the display
-
-        // Resolves problems with same id's being reused
-        this.graph.getModel().nextId = this.graph.getModel().nextId + 1
-
-        if (initial) {
-          this.graph.fit()
-          this.graph.view.rendering = true
-          this.graph.refresh()
-
-          this.graph.view.setTranslate(
-            this.graph.view.translate.x + 79,
-            this.graph.view.translate.y + 220,
-          )
-          this.zoomLevel = this.graph.view.scale
-        }
-
-        this.rendering = false
-      }
-    },
-
-    renderTrace(firstStepID, trace = []) {
-      const cells = {}
-      this.clearHighlights()
-
-      // Build cells object for easier drawing of overlay
-      trace
-        .filter(t => t)
-        .forEach(({ stepID, parentID, stepTime, error = false }, index) => {
-          const cell = {
-            index,
-            stepID,
-            parentID,
-            stepTime,
-            error,
-          }
-
-          if (cells[stepID]) {
-            cells[stepID].push(cell)
-          } else {
-            cells[stepID] = [cell]
-          }
-        })
-
-      this.highlights = []
-
-      // Handle first cell & edge
-      const firstEdge = this.graph.model.getEdgesBetween(
-        this.graph.model.getCell(this.dryRun.cellID),
-        this.graph.model.getCell(firstStepID),
-        true,
-      )[0]
-      if (firstEdge) {
-        this.highlights[
-          this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1
-        ].highlight(this.graph.view.getState(firstEdge))
-      }
-
-      // Handle others
-      Object.entries(cells).forEach(([stepID, frames]) => {
-        if (stepID !== '0') {
-          let error = frames[0].error
-          let log = `#${frames[0].index + 1} - ${frames[0].stepTime}ms${error ? this.$t('notification.error') + error : ''}`
-          if (frames.length < 2) {
-            const [cell] = frames
-            // If first cell, dont paint parent edge
-            if (cell && cell.index !== 0) {
-              this.graph.model
-                .getEdgesBetween(
-                  this.graph.model.getCell(cell.parentID),
-                  this.graph.model.getCell(stepID),
-                  true,
-                )
-                .forEach(edge => {
-                  this.highlights[
-                    this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1
-                  ].highlight(this.graph.view.getState(edge))
-                })
-            }
-          } else {
-            // If step is visited multiple times, keep track of execution info
-            const time = {
-              min: frames[0].stepTime,
-              max: frames[0].stepTime,
-              avg: 0,
-              sum: 0.0,
-            }
-
-            error = ''
-
-            frames.forEach(({ index, parentID, stepTime, error }, i) => {
-              if (i !== 0) {
-                if (stepTime < time.min) {
-                  time.min = stepTime
-                }
-
-                if (stepTime > time.max) {
-                  time.max = stepTime
-                }
-
-                log = `${log}<br>#${index + 1} - ${stepTime}ms${error ? this.$t('notification.error') + error : ''}`
-              }
-
-              time.sum += stepTime
-              this.graph.model
-                .getEdgesBetween(
-                  this.graph.model.getCell(parentID),
-                  this.graph.model.getCell(stepID),
-                  true,
-                )
-                .forEach(edge => {
-                  this.highlights[
-                    this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1
-                  ].highlight(this.graph.view.getState(edge))
-                })
-            })
-
-            time.avg = time.sum ? (time.sum / frames.length).toFixed(2) : time.sum
-            log = `${log}<br><br>MIN: ${time.min}<br>MAX: ${time.max}<br>AVG: ${time.avg}<br>SUM: ${time.sum}`
-          }
-
-          // Set info overlay
-          const time = new mxCellOverlay(
-            new mxImage(this.getIcon(`clock-${error ? 'danger' : 'success'}`), 16, 16),
-            `<span>${log}</span>`,
-          )
-          this.graph.addCellOverlay(this.graph.model.getCell(stepID), time)
-
-          // Highlight cell based on error
-          if (error) {
-            this.highlights[
-              this.highlights.push(new mxCellHighlight(this.graph, 'var(--danger)', 2)) - 1
-            ].highlight(this.graph.view.getState(this.graph.model.getCell(stepID)))
-          } else {
-            this.highlights[
-              this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1
-            ].highlight(this.graph.view.getState(this.graph.model.getCell(stepID)))
-          }
-        }
-      })
-    },
-
-    getJsonModel() {
-      return encodeGraph(this.graph.getModel(), this.vertices, this.edges)
-    },
-
-    importJSON(workflows = []) {
-      try {
-        this.importProcessing = true
-
-        // Only render first workflow
-        const [workflow] = workflows
-
-        // Replace triggers
-        this.triggers = workflow.triggers || []
-
-        // Replace workflow steps and paths
-        this.workflow = {
-          ...this.workflow,
-          steps: workflow.steps || [],
-          paths: workflow.paths || [],
-        }
-
-        // Fresh render
-        this.render(this.workflow)
-
-        this.importProcessing = false
-        this.$emit('change-detected')
-        this.configuratorVisible = false
-        this.toastSuccess(this.$t('notification.imported-workflow'))
-      } catch (e) {
-        this.toastErrorHandler(this.$t('notification.import-failed'))(e)
-      }
-    },
-
-    handleWorkflowSave(workflow) {
-      // Update the internal workflow object with changes from configurator
-      this.workflow = workflow
-
-      // Save workflow with graph model
-      this.saveWorkflow()
-    },
-
-    saveWorkflow() {
-      // Just emit, let parent component take care of permission checks
-      this.$emit('save', { ...this.workflow, ...this.getJsonModel() })
-    },
-
-    async getFunctionTypes() {
-      return this.$AutomationAPI
-        .functionList()
-        .then(({ set }) => {
-          this.functionTypes = [
-            ...set,
-            ...components.promptDefinitions,
-            ...[
-              {
-                ref: 'error-handler',
-                kind: 'error-handler',
-                meta: {
-                  short: 'Handle error',
-                },
-                parameters: [],
-                results: [
-                  {
-                    name: 'error',
-                    types: ['Any'],
-                  },
-                  {
-                    name: 'errorMessage',
-                    types: ['String'],
-                  },
-                  {
-                    name: 'errorStepID',
-                    types: ['Integer'],
-                  },
-                ],
-              },
-              {
-                ref: 'exec-workflow',
-                kind: 'error-handler',
-                meta: {
-                  short: 'Execute a workflow',
-                },
-                parameters: [
-                  {
-                    name: 'workflow',
-                    types: ['ID', 'Handle'],
-                    required: true,
-                  },
-                  {
-                    name: 'scope',
-                    types: ['Vars'],
-                    required: false,
-                  },
-                ],
-                results: [],
-              },
-            ],
-          ]
-        })
-        .catch(this.toastErrorHandler(this.$t('notification.failed-fetch-functions')))
-    },
-
-    async getEventTypes() {
-      return this.$AutomationAPI
-        .eventTypesList()
-        .then(({ set }) => {
-          this.eventTypes = set
-        })
-        .catch(this.toastErrorHandler(this.$t('notification.event-type-fetch-failed')))
-    },
-
-    getIcon(icon, mode = 'light') {
-      if (!icon) {
-        return ''
-      }
-
-      return `${mxClient.imageBasePath}/${mode === 'dark' ? 'dark/' : ''}${icon}.svg`
-    },
-
-    startDrawerResize() {
-      this.isResizingDrawer = true
-      document.addEventListener('mousemove', this.resizeDrawer)
-      document.addEventListener('mouseup', this.stopDrawerResize)
-    },
-
-    resizeDrawer(e) {
-      if (!this.isResizingDrawer) return
-      const newWidth = window.innerWidth - e.clientX
-      this.drawerWidth = Math.max(280, Math.min(800, newWidth))
-    },
-
-    stopDrawerResize() {
-      this.isResizingDrawer = false
-      document.removeEventListener('mousemove', this.resizeDrawer)
-      document.removeEventListener('mouseup', this.stopDrawerResize)
-    },
+    })
+    sidebarEdges.value = map
   },
+  { immediate: true, deep: true },
+)
+
+// Sync mutations from Configurator back to VueFlow edges (deep watch catches
+// direct property mutations like Gateway.vue's `this.edges[id].config.expr = expr`)
+watch(
+  sidebarEdges,
+  newMap => {
+    Object.entries(newMap).forEach(([edgeId, edgeData]) => {
+      const edge = edges.value.find(e => e.id === edgeId)
+      if (edge && edgeData.config) {
+        const newExpr = edgeData.config.expr || ''
+        const newLabel = edgeData.node?.value || ''
+        if (edge.data?.expr !== newExpr) {
+          edge.data = { ...edge.data, expr: newExpr }
+        }
+        if (edge.label !== newLabel) {
+          edge.label = newLabel
+        }
+      }
+    })
+  },
+  { deep: true },
+)
+
+// Sync Configurator sidebar item mutations back to VueFlow nodes (#5 CRITICAL).
+// The Configurator directly mutates sidebar.item.config (arguments, results, ref, etc.)
+// and sidebar.item.triggers. Without this watcher, those changes are lost on save because
+// encodeWorkflow() reads from nodes.value, not sidebar.item.
+watch(
+  () => sidebar.value.item,
+  newItem => {
+    if (!newItem?.node?.id) return
+    const node = nodes.value.find(n => n.id === newItem.node.id)
+    if (!node) return
+
+    const config = newItem.config || {}
+    const changed = {}
+
+    // Sync config fields
+    if (
+      config.arguments &&
+      JSON.stringify(config.arguments) !== JSON.stringify(node.data.arguments)
+    ) {
+      changed.arguments = config.arguments
+    }
+    if (config.results && JSON.stringify(config.results) !== JSON.stringify(node.data.results)) {
+      changed.results = config.results
+    }
+    if (config.ref !== undefined && config.ref !== node.data.ref) {
+      changed.ref = config.ref
+    }
+    if (config.kind !== undefined && config.kind !== node.data.kind) {
+      changed.kind = config.kind
+    }
+    if (config.defaultName !== undefined && config.defaultName !== node.data.defaultName) {
+      changed.defaultName = config.defaultName
+    }
+
+    // Sync triggers (for trigger nodes)
+    if (
+      newItem.triggers &&
+      JSON.stringify(newItem.triggers) !== JSON.stringify(node.data.triggers)
+    ) {
+      changed.triggers = newItem.triggers
+    }
+
+    // Sync label (from node.value)
+    if (newItem.node.value !== undefined && newItem.node.value !== node.data.label) {
+      changed.label = newItem.node.value
+    }
+
+    if (Object.keys(changed).length) {
+      node.data = { ...node.data, ...changed }
+    }
+  },
+  { deep: true },
+)
+
+/* ─── Computed ─── */
+const currentTheme = computed(() => $Auth?.user?.meta?.theme || 'light')
+
+function getIcon(name, mode = 'light') {
+  if (!name) return ''
+  const basePath = `${(document.getElementsByTagName('base')[0] || {}).href || '/'}icons`
+  return `${basePath}/${mode === 'dark' ? 'dark/' : ''}${name}.svg`
 }
+
+const canUpdateWorkflow = computed(() =>
+  workflow.value.workflowID === '0' ? props.canCreate : workflow.value.canUpdateWorkflow,
+)
+
+const hasIssues = computed(() => (workflow.value.issues || []).length)
+
+const getRunAs = computed(() => {
+  if (runAsUser.value) {
+    const { userID, name, username, email } = runAsUser.value
+    return name || username || email || `<@${userID}>`
+  }
+  return undefined
+})
+
+const getZoomPercent = computed(() => `${Math.floor(zoomLevel.value * 100).toFixed(0)}%`)
+
+/* ─── Sidebar computed ─── */
+const getSidebarItemType = computed(() => {
+  const item = sidebar.value.item
+  if (!item) return ''
+  if (item.config?.kind === 'edge' || item.node?.edge) {
+    return t('steps.path.short')
+  }
+  const style = getStyleFromKind(item.config || {})?.style || item.config?.kind || ''
+  return t(`steps.${style}.short`, style)
+})
+
+const getSidebarItemIcon = computed(() => {
+  const item = sidebar.value.item
+  if (item?.config) {
+    const styleInfo = getStyleFromKind(item.config)
+    return styleInfo?.icon ? getIcon(styleInfo.icon, currentTheme.value) : undefined
+  }
+  return undefined
+})
+
+const getSelectedItem = computed(() => sidebar.value.item || undefined)
+
+/* ─── Labels display ─── */
+const workflowLabelsDisplay = computed(() => {
+  const namespaceIDs = []
+  const modulesByNamespace = {}
+  if (!workflow.value.labels) return []
+
+  if (workflow.value.labels.ref_namespace) {
+    const nsValues = Array.isArray(workflow.value.labels.ref_namespace)
+      ? workflow.value.labels.ref_namespace
+      : [workflow.value.labels.ref_namespace]
+    nsValues.forEach(label => {
+      const nsID = label.split('/')[1]
+      if (nsID && !namespaceIDs.includes(nsID)) {
+        namespaceIDs.push(nsID)
+        labelsStore.resolveNamespace({ namespaceID: nsID, api: $ComposeAPI })
+      }
+    })
+  }
+
+  if (workflow.value.labels.ref_module) {
+    const modValues = Array.isArray(workflow.value.labels.ref_module)
+      ? workflow.value.labels.ref_module
+      : [workflow.value.labels.ref_module]
+    modValues.forEach(label => {
+      const parts = label.split('/')
+      const nsID = parts[1]
+      const modID = parts[2]
+      if (!nsID || !modID) return
+      if (!namespaceIDs.includes(nsID)) {
+        namespaceIDs.push(nsID)
+        labelsStore.resolveNamespace({ namespaceID: nsID, api: $ComposeAPI })
+      }
+      if (!modulesByNamespace[nsID]) modulesByNamespace[nsID] = []
+      labelsStore.resolveModule({ moduleID: modID, namespaceID: nsID, api: $ComposeAPI })
+      const name = labelsStore.getModule(modID)
+      modulesByNamespace[nsID].push({ id: modID, name: name || modID })
+    })
+  }
+
+  return namespaceIDs.map(nsID => {
+    const name = labelsStore.getNamespace(nsID)
+    return {
+      namespaceID: nsID,
+      namespaceName: name || nsID,
+      modules: modulesByNamespace[nsID] || [],
+    }
+  })
+})
+
+/* ─── Toolbar Items ─── */
+const toolbarItems = computed(() => {
+  return toolbarConfig.map(item => {
+    if (item.kind === 'hr') return item
+    const styleInfo = getStyleFromKind(item) || {}
+    const label = t(`steps.${styleInfo.style || item.kind}.label`, item.kind)
+    const tooltip = t(`steps.${styleInfo.style || item.kind}.tooltip`, '')
+    return {
+      ...item,
+      ...styleInfo,
+      label,
+      tooltip,
+      iconSrc: styleInfo.icon ? getIcon(styleInfo.icon, currentTheme.value) : '',
+    }
+  })
+})
+
+/* ─── Watchers ─── */
+watch(
+  () => workflow.value.runAs,
+  (runAs = '0') => {
+    if (runAs !== '0') {
+      $SystemAPI.userRead({ userID: runAs }).then(user => {
+        runAsUser.value = user
+      })
+    } else {
+      runAsUser.value = undefined
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.workflowObject,
+  wf => {
+    if (wf.workflowID !== workflow.value.workflowID) {
+      configuratorVisible.value = false
+    }
+    workflow.value = wf
+    if (initialized.value) {
+      nextTick(() => render(workflow.value))
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.workflowTriggers,
+  t => {
+    triggers.value = t
+  },
+  { immediate: true },
+)
+
+/* ─── Lifecycle ─── */
+onMounted(() => {
+  getEventTypes()
+  getFunctionTypes()
+
+  eventBus.on('trigger-updated', onTriggerUpdated)
+  eventBus.on('change-detected', onEventBusChange)
+
+  render(workflow.value, true)
+
+  if (workflow.value.workflowID && workflow.value.workflowID === '0') {
+    configuratorVisible.value = true
+  }
+
+  document.addEventListener('keydown', keybinds)
+  initialized.value = true
+})
+
+onBeforeUnmount(() => {
+  eventBus.off('trigger-updated', onTriggerUpdated)
+  eventBus.off('change-detected', onEventBusChange)
+  document.removeEventListener('keydown', keybinds)
+})
+
+function onTriggerUpdated({ nodeId }) {
+  // Trigger label changed in configurator — refresh the node data
+  const node = nodes.value.find(n => n.id === nodeId)
+  if (node) {
+    node.data = { ...node.data }
+  }
+}
+
+function onEventBusChange() {
+  emit('change-detected')
+}
+
+/* ─── Render ─── */
+function render(wf, initial = false) {
+  if (sidebar.value.show) sidebarClose()
+  clearHighlights()
+
+  if (!wf.steps) wf.steps = []
+  if (!wf.paths) wf.paths = []
+
+  // Assemble issues
+  issues.value = {}
+  if (wf.issues) {
+    wf.issues.forEach(({ culprit, description }) => {
+      if (culprit) {
+        const { step = -1, trigger: triggerIdx = -1 } = culprit
+        let stepID = ''
+        if (step >= 0) stepID = (wf.steps[step] || {}).stepID
+        else if (triggerIdx >= 0)
+          stepID = (triggers.value[triggerIdx] || {})?.meta?.visual?.id || ''
+        if (stepID) {
+          issues.value[stepID]
+            ? issues.value[stepID].push(description)
+            : (issues.value[stepID] = [description])
+        }
+      }
+    })
+  }
+
+  deferred.value = false
+  triggersPathsChanged.value = false
+
+  // Decode
+  const decoded = decodeWorkflow(wf, triggers.value)
+  nodes.value = decoded.nodes
+  edges.value = decoded.edges
+
+  // Check deferred
+  nodes.value.forEach(n => {
+    if (deferredKinds.includes(n.data?.kind)) deferred.value = true
+  })
+
+  if (initial) {
+    hasInitiallyFit = false
+    saveToHistory()
+  }
+
+  // Check if trigger→step edges match trigger.stepID (#12)
+  nextTick(() => checkExistingTriggerPaths())
+}
+
+/* ─── VueFlow Event Handlers ─── */
+
+function onConnect(connection) {
+  const sourceNode = nodes.value.find(n => n.id === connection.source)
+  const outCount = edges.value.filter(e => e.source === connection.source).length
+
+  let label = ''
+  const kind = sourceNode?.data?.kind
+  const ref = sourceNode?.data?.ref
+
+  if (kind === 'gateway') {
+    if (ref === 'excl') {
+      label = outCount === 0 ? '#1 - If' : `#${outCount + 1} - Else (if)`
+    } else if (ref === 'incl') {
+      label = 'If'
+    }
+  } else if (kind === 'error-handler') {
+    label = outCount === 0 ? 'Try' : 'Catch'
+  } else if (kind === 'iterator') {
+    label = outCount === 0 ? 'Body' : 'End'
+  }
+
+  const newEdge = {
+    id: `e-${Date.now()}`,
+    source: connection.source,
+    target: connection.target,
+    sourceHandle: connection.sourceHandle,
+    targetHandle: connection.targetHandle,
+    type: 'workflow',
+    label,
+    data: {
+      expr: '',
+      parentID: connection.source,
+      childID: connection.target,
+      highlighted: false,
+      traceState: null,
+    },
+  }
+
+  edges.value = [...edges.value, newEdge]
+  saveToHistory()
+  emit('change-detected')
+}
+
+function onNodeClick({ node, event }) {
+  const ctrlDown = event.ctrlKey || event.metaKey
+
+  if (ctrlDown) {
+    highlightConnected(node.id)
+    return
+  }
+
+  clearHighlights()
+  highlightConnected(node.id)
+
+  // Build sidebar item
+  const sidebarItem = buildSidebarItem(node)
+  if (sidebarItem) {
+    sidebarReopen(sidebarItem, node.data?.kind || 'workflow')
+  }
+}
+
+function onEdgeClick({ edge, event }) {
+  clearHighlights()
+
+  // Build sidebar item for edge
+  const sidebarItem = {
+    node: {
+      id: edge.id,
+      value: edge.label || '',
+      edge: true,
+      source: {
+        id: edge.source,
+        style: nodes.value.find(n => n.id === edge.source)?.data?.kind || '',
+      },
+      target: { id: edge.target },
+      edges: [],
+    },
+    config: {
+      kind: 'edge',
+      stepID: edge.id,
+      parentID: edge.source,
+      childID: edge.target,
+      expr: edge.data?.expr || '',
+    },
+  }
+
+  sidebarReopen(sidebarItem, 'edge')
+}
+
+function onPaneClick() {
+  sidebar.value.show = false
+  if (getSelectedItem.value) sidebarClose()
+  clearHighlights()
+}
+
+function onNodeDragStop({ node }) {
+  saveToHistory()
+  emit('change-detected')
+}
+
+function onCanvasDrop(event) {
+  const newNode = dndDrop(event)
+  if (newNode) {
+    emit('change-detected')
+    nextTick(() => {
+      const sidebarItem = buildSidebarItem(newNode)
+      if (sidebarItem) {
+        sidebarReopen(sidebarItem, newNode.data?.kind || 'workflow')
+      }
+    })
+  }
+}
+
+function onEdgeLabelUpdate({ id, label }) {
+  const edge = edges.value.find(e => e.id === id)
+  if (edge) {
+    edge.label = label
+    // Also update sidebar item if open
+    if (sidebar.value.item?.node?.id === id) {
+      sidebar.value.item.node.value = label
+    }
+    emit('change-detected')
+  }
+}
+
+/* ─── Sidebar ─── */
+
+function buildSidebarItem(node) {
+  const { data = {} } = node
+  const outEdges = edges.value.filter(e => e.source === node.id)
+
+  return {
+    node: {
+      id: node.id,
+      value: data.label || '',
+      edges: outEdges.map(e => ({
+        id: e.id,
+        value: e.label || '',
+        source: {
+          id: e.source,
+          style: nodes.value.find(n => n.id === e.source)?.data?.kind || '',
+        },
+        target: {
+          id: e.target,
+          style: nodes.value.find(n => n.id === e.target)?.data?.kind || '',
+        },
+      })),
+      style: getStyleFromKind(data)?.style || data.kind || '',
+    },
+    config: {
+      stepID: node.id,
+      kind: data.kind || '',
+      ref: data.ref || '',
+      defaultName: data.defaultName || false,
+      arguments: data.arguments || [],
+      results: data.results || [],
+    },
+    triggers: data.triggers || undefined,
+  }
+}
+
+function sidebarReopen(item, itemType) {
+  sidebar.value.outEdges = (item.node.edges || []).length
+
+  if (!sidebar.value.show) {
+    sidebar.value.item = item
+    sidebar.value.itemType = itemType
+    sidebar.value.show = true
+    sidebar.value.showItem = true
+  } else {
+    if (sidebar.value.item && item.node.id === sidebar.value.item.node.id) return
+    sidebar.value.showItem = false
+    sidebar.value.item = item
+    sidebar.value.itemType = itemType
+    setTimeout(() => {
+      sidebar.value.showItem = true
+    }, 100)
+  }
+}
+
+function sidebarClose() {
+  sidebar.value.show = false
+  setTimeout(() => {
+    const nodeId = sidebar.value.item?.node?.id
+    sidebar.value.showItem = false
+    sidebar.value.item = undefined
+    sidebar.value.itemType = undefined
+  }, 300)
+}
+
+function sidebarDelete() {
+  if (!getSelectedItem.value) return
+  const id = getSelectedItem.value.node.id
+
+  if (sidebar.value.itemType === 'edge') {
+    // Delete the edge itself (#3)
+    const edge = edges.value.find(e => e.id === id)
+    edges.value = edges.value.filter(e => e.id !== id)
+    // Renumber excl gateway edges if applicable (#1)
+    if (edge) renumberGatewayEdges(edge.source)
+  } else {
+    // Remove node + connected edges
+    const sourceIds = new Set([id])
+    nodes.value = nodes.value.filter(n => n.id !== id)
+    edges.value = edges.value.filter(e => {
+      if (e.source === id || e.target === id) {
+        // Renumber remaining excl gateway edges for any affected sources
+        if (e.target === id) sourceIds.add(e.source)
+        return false
+      }
+      return true
+    })
+    sourceIds.forEach(sid => renumberGatewayEdges(sid))
+  }
+
+  sidebarClose()
+  saveToHistory()
+  emit('change-detected')
+}
+
+function setValue(value, defaultName = false) {
+  const item = sidebar.value.item
+  if (!item) return
+
+  if (sidebar.value.itemType === 'edge') {
+    // Update edge label
+    const edge = edges.value.find(e => e.id === item.node.id)
+    if (edge) {
+      edge.label = value
+      item.node.value = value
+    }
+  } else {
+    // Update node label + data
+    const node = nodes.value.find(n => n.id === item.node.id)
+    if (node) {
+      node.data = { ...node.data, label: value, defaultName }
+      item.node.value = value
+      item.config.defaultName = defaultName
+    }
+  }
+
+  emit('change-detected')
+}
+
+/* ─── Issues ─── */
+function openIssuesModal(nodeId) {
+  issuesModal.value.issues = issues.value[nodeId] || []
+  issuesModal.value.show = true
+}
+
+/* ─── Zoom ─── */
+function zoom(up = true) {
+  if (up) vfZoomIn()
+  else vfZoomOut()
+  zoomLevel.value = getZoom() || zoomLevel.value
+}
+
+function resetZoom() {
+  fitView({ padding: 0.2, maxZoom: 1 })
+  zoomLevel.value = getZoom() || 1
+}
+
+/* ─── Keyboard ─── */
+function keybinds(event) {
+  // Ctrl+S
+  if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+    event.preventDefault()
+    if (!document.getElementById('expression-editor')) {
+      saveWorkflow()
+    }
+  }
+
+  // Ctrl+Z
+  if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+    event.preventDefault()
+    undo()
+  }
+
+  // Ctrl+Shift+Z
+  if ((event.ctrlKey || event.metaKey) && event.key === 'z' && event.shiftKey) {
+    event.preventDefault()
+    redo()
+  }
+
+  // Ctrl+C
+  if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+    copySelected()
+  }
+
+  // Ctrl+X
+  if ((event.ctrlKey || event.metaKey) && event.key === 'x') {
+    cutSelected()
+  }
+
+  // Ctrl+V
+  if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+    pasteClipboard()
+  }
+
+  // Ctrl+A
+  if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+    event.preventDefault()
+    nodes.value = nodes.value.map(n => ({ ...n, selected: true }))
+  }
+
+  // Ctrl+Space
+  if ((event.ctrlKey || event.metaKey) && event.key === ' ') {
+    event.preventDefault()
+    resetZoom()
+  }
+
+  // Delete / Backspace
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    if (
+      event.target.tagName !== 'INPUT' &&
+      event.target.tagName !== 'TEXTAREA' &&
+      !event.target.closest('[contenteditable]')
+    ) {
+      deleteSelected()
+    }
+  }
+
+  // Arrow nudge
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+    if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+      const delta = event.shiftKey ? 8 : 40
+      const selected = nodes.value.filter(n => n.selected)
+      if (selected.length) {
+        event.preventDefault()
+        selected.forEach(n => {
+          if (event.key === 'ArrowLeft') n.position.x -= delta
+          if (event.key === 'ArrowRight') n.position.x += delta
+          if (event.key === 'ArrowUp') n.position.y -= delta
+          if (event.key === 'ArrowDown') n.position.y += delta
+        })
+        saveToHistory()
+        emit('change-detected')
+      }
+    }
+  }
+
+  // Shift + ?
+  if (event.shiftKey && event.key === '?') {
+    helpVisible.value = true
+  }
+}
+
+function deleteSelected() {
+  const selectedNodes = nodes.value.filter(n => n.selected)
+  const selectedEdges = edges.value.filter(e => e.selected)
+
+  if (selectedNodes.length === 0 && selectedEdges.length === 0) return
+
+  if (sidebar.value.item && selectedNodes.some(n => n.id === sidebar.value.item.node.id)) {
+    sidebarClose()
+  }
+
+  // Track gateway sources that need edge renumbering
+  const gatewaySourceIds = new Set()
+
+  // Delete selected edges (#10)
+  if (selectedEdges.length) {
+    const edgeIds = new Set(selectedEdges.map(e => e.id))
+    selectedEdges.forEach(e => gatewaySourceIds.add(e.source))
+    edges.value = edges.value.filter(e => !edgeIds.has(e.id))
+  }
+
+  // Delete selected nodes + their connected edges
+  if (selectedNodes.length) {
+    const nodeIds = new Set(selectedNodes.map(n => n.id))
+    edges.value = edges.value.filter(e => {
+      if (nodeIds.has(e.source) || nodeIds.has(e.target)) {
+        if (nodeIds.has(e.target)) gatewaySourceIds.add(e.source)
+        return false
+      }
+      return true
+    })
+    nodes.value = nodes.value.filter(n => !nodeIds.has(n.id))
+  }
+
+  // Renumber excl gateway edges (#1)
+  gatewaySourceIds.forEach(sid => renumberGatewayEdges(sid))
+
+  clearHighlights()
+  saveToHistory()
+  emit('change-detected')
+}
+
+/**
+ * Renumber remaining edges of an exclusive gateway after deletion (#1).
+ * e.g. #1 - If, #3 - Else (if) → #1 - If, #2 - Else (if)
+ */
+function renumberGatewayEdges(sourceId) {
+  const sourceNode = nodes.value.find(n => n.id === sourceId)
+  if (!sourceNode || sourceNode.data?.kind !== 'gateway' || sourceNode.data?.ref !== 'excl') return
+
+  const gwEdges = edges.value.filter(e => e.source === sourceId)
+  gwEdges.forEach((e, idx) => {
+    e.label = idx === 0 ? '#1 - If' : `#${idx + 1} - Else (if)`
+  })
+}
+
+/**
+ * Prevent connections to/from visual (swimlane/content) nodes (#8).
+ */
+function isValidConnection(connection) {
+  const sourceNode = nodes.value.find(n => n.id === connection.source)
+  const targetNode = nodes.value.find(n => n.id === connection.target)
+  if (sourceNode?.type === 'visual' || targetNode?.type === 'visual') return false
+  return true
+}
+
+/* ─── Toolbar tooltip ─── */
+function showToolbarTooltip(event, item) {
+  const rect = event.target.getBoundingClientRect()
+  activeToolbarTooltip.value = { title: item.label, icon: item.iconSrc, tooltip: item.tooltip }
+  toolbarTooltipStyle.value = {
+    top: `${rect.top}px`,
+    left: `${rect.right + 10}px`,
+  }
+}
+
+/* ─── Drawer resize ─── */
+function startDrawerResize() {
+  isResizingDrawer.value = true
+  document.addEventListener('mousemove', resizeDrawer)
+  document.addEventListener('mouseup', stopDrawerResize)
+}
+
+function resizeDrawer(e) {
+  if (!isResizingDrawer.value) return
+  const newWidth = window.innerWidth - e.clientX
+  drawerWidth.value = Math.max(280, Math.min(800, newWidth))
+}
+
+function stopDrawerResize() {
+  isResizingDrawer.value = false
+  document.removeEventListener('mousemove', resizeDrawer)
+  document.removeEventListener('mouseup', stopDrawerResize)
+}
+
+/* ─── Trigger path check ─── */
+function checkExistingTriggerPaths() {
+  triggersPathsChanged.value = [...triggers.value].some(({ stepID = '0', meta = {} }) => {
+    if (stepID !== NoID) {
+      const triggerNodeId = meta?.visual?.id
+      const outEdge = edges.value.find(e => e.source === String(triggerNodeId))
+      if (outEdge) {
+        return outEdge.target !== String(stepID)
+      }
+      return true
+    }
+    return false
+  })
+}
+
+/* ─── Dry Run / Test ─── */
+function startTest(cellID) {
+  dryRun.value.cellID = cellID
+  loadTestScope()
+}
+
+async function loadTestScope() {
+  if (props.changeDetected) {
+    toast.add({
+      severity: 'warn',
+      summary: t('notification.failed-test'),
+      detail: t('notification.save-workflow'),
+      life: 5000,
+    })
+    return
+  }
+  if (hasIssues.value) {
+    toast.add({
+      severity: 'warn',
+      summary: t('notification.failed-test'),
+      detail: t('notification.resolve-issues'),
+      life: 5000,
+    })
+    return
+  }
+
+  const lookupableTypes = [
+    'record',
+    'oldRecord',
+    'module',
+    'oldModule',
+    'page',
+    'oldPage',
+    'namespace',
+    'oldNamespace',
+    'user',
+    'oldUser',
+    'role',
+    'oldRole',
+    'application',
+    'oldApplication',
+  ]
+
+  const triggerNode = nodes.value.find(n => n.id === String(dryRun.value.cellID))
+  const trg = triggerNode?.data?.triggers
+  if (!trg) return
+
+  const { resourceType, eventType } = trg
+  const et = (
+    eventTypes.value.find(et => resourceType === et.resourceType && eventType === et.eventType) ||
+    {}
+  ).properties
+
+  if (et) {
+    let lookup = false
+    if (et.length) {
+      dryRun.value.initialScope = et.reduce((scope, p) => {
+        let label = `${p.name}${lookupableTypes.includes(p.name) ? t('editor.id-parenthesis') : ''}`
+        if (p.type === 'ComposeNamespace' || p.type === 'ComposeModule') {
+          label = `${p.name} ${t('editor.handle')}`
+        }
+
+        let description = ''
+        if (p.type === 'ComposeRecord') description = t('editor.required-namespace-and-module')
+        else if (p.type === 'ComposeModule' || p.name === 'page' || p.name === 'oldPage')
+          description = t('editor.required-namespace')
+
+        scope[p.name] = {
+          label,
+          value: (dryRun.value.initialScope[p.name] || {}).value,
+          lookup: lookupableTypes.includes(p.name),
+          description,
+        }
+        lookup = lookup || lookupableTypes.includes(p.name)
+        return scope
+      }, {})
+
+      encodeInput(dryRun.value.initialScope, $ComposeAPI, $SystemAPI)
+        .then(input => {
+          dryRun.value.input = input
+          dryRun.value.lookup = lookup
+          dryRun.value.show = true
+        })
+        .catch(e =>
+          toast.add({
+            severity: 'error',
+            summary: t('notification.initial-scope-load-failed'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
+    } else {
+      dryRun.value.initialScope = {}
+      testWorkflow()
+    }
+  } else {
+    toast.add({
+      severity: 'warn',
+      summary: t('notification.failed-test'),
+      detail: t('notification.event-type-not-found'),
+      life: 5000,
+    })
+  }
+}
+
+async function dryRunOk(e) {
+  if (dryRun.value.lookup) {
+    e.preventDefault()
+    encodeInput(dryRun.value.initialScope, $ComposeAPI, $SystemAPI)
+      .then(input => {
+        dryRun.value.input = input
+        dryRun.value.inputEdited = input
+        dryRun.value.lookup = false
+      })
+      .catch(e =>
+        toast.add({
+          severity: 'error',
+          summary: t('notification.initial-scope-load-failed'),
+          detail: e?.message,
+          life: 5000,
+        }),
+      )
+  } else {
+    testWorkflow(dryRun.value.inputEdited)
+  }
+}
+
+function onDryRunEdit(e) {
+  dryRun.value.inputEdited = e
+}
+
+async function testWorkflow(input = {}) {
+  clearHighlights()
+  dryRun.value.processing = true
+
+  const triggerNode = nodes.value.find(n => n.id === String(dryRun.value.cellID))
+  const trg = triggerNode?.data?.triggers
+
+  const testParams = {
+    workflowID: workflow.value.workflowID,
+    stepID: trg?.stepID || '0',
+    trace: workflow.value.canManageWorkflowSessions || false,
+    wait: false,
+    async: true,
+    input,
+  }
+
+  toast.add({
+    severity: 'info',
+    summary: t('notification.test-in-progress'),
+    detail: t('notification.started-test'),
+    life: 3000,
+  })
+
+  $AutomationAPI
+    .workflowExec(testParams)
+    .then(({ sessionID, error: wfExecErr }) => {
+      dryRun.value.sessionID = sessionID
+
+      const pollSession = () => {
+        return new Promise((resolve, reject) => {
+          const checkSession = () => {
+            $AutomationAPI
+              .sessionRead({ sessionID })
+              .then(session => {
+                const { completedAt, status, stacktrace, error = false } = session
+                setTimeout(() => {
+                  if (completedAt) {
+                    if (stacktrace) {
+                      renderTrace(testParams.stepID, stacktrace)
+                      if (status === 'completed') {
+                        toast.add({
+                          severity: 'success',
+                          summary: t('notification.test-completed'),
+                          detail: t('notification.workflow-test-completed'),
+                          life: 3000,
+                        })
+                      }
+                    } else {
+                      toast.add({
+                        severity: 'warn',
+                        summary: t('notification.test-completed'),
+                        detail: t('notification.trace-unavailable'),
+                        life: 5000,
+                      })
+                    }
+                    if (error) reject(new Error(error))
+                    else resolve()
+                  } else {
+                    checkSession()
+                  }
+                }, 1000)
+              })
+              .catch(reject)
+          }
+          checkSession()
+        })
+      }
+
+      return pollSession()
+    })
+    .catch(e =>
+      toast.add({
+        severity: 'error',
+        summary: t('notification.failed-test'),
+        detail: e?.message,
+        life: 5000,
+      }),
+    )
+    .finally(() => {
+      dryRun.value.lookup = true
+      dryRun.value.processing = false
+      dryRun.value.sessionID = undefined
+    })
+}
+
+function cancelWorkflow() {
+  const { sessionID, processing } = dryRun.value
+  if (processing && sessionID) {
+    dryRun.value.sessionID = undefined
+    dryRun.value.processing = false
+    $AutomationAPI
+      .sessionCancel({ sessionID })
+      .then(() =>
+        toast.add({
+          severity: 'info',
+          summary: 'Stopping test',
+          detail: 'Workflow test canceled',
+          life: 3000,
+        }),
+      )
+      .catch(e =>
+        toast.add({
+          severity: 'error',
+          summary: 'Test cancel failed',
+          detail: e?.message,
+          life: 5000,
+        }),
+      )
+  }
+}
+
+/* ─── Trace rendering ─── */
+function renderTrace(firstStepID, trace = []) {
+  clearHighlights()
+
+  const cells = {}
+  trace
+    .filter(t => t)
+    .forEach(({ stepID, parentID, stepTime, error = false }, index) => {
+      const cell = { index, stepID, parentID, stepTime, error }
+      if (cells[stepID]) cells[stepID].push(cell)
+      else cells[stepID] = [cell]
+    })
+
+  // Highlight first edge (trigger → first step)
+  const firstEdge = edges.value.find(
+    e => e.source === String(dryRun.value.cellID) && e.target === String(firstStepID),
+  )
+  if (firstEdge) {
+    firstEdge.data = { ...firstEdge.data, traceState: 'success' }
+  }
+
+  Object.entries(cells).forEach(([stepID, frames]) => {
+    if (stepID !== '0') {
+      const error = frames.some(f => f.error)
+      const logParts = frames.map(
+        f => `#${f.index + 1} - ${f.stepTime}ms${f.error ? ` (Error: ${f.error})` : ''}`,
+      )
+      const log = logParts.join('\n')
+
+      // Set trace state on node
+      const node = nodes.value.find(n => n.data?.stepID === stepID || n.id === stepID)
+      if (node) {
+        node.data = { ...node.data, traceState: error ? 'error' : 'success', traceLog: log }
+      }
+
+      // Highlight connected edges
+      frames.forEach(({ parentID }) => {
+        const edge = edges.value.find(
+          e => e.source === String(parentID) && e.target === String(stepID),
+        )
+        if (edge) {
+          edge.data = { ...edge.data, traceState: error ? 'error' : 'success' }
+        }
+      })
+    }
+  })
+}
+
+/* ─── Save / Import ─── */
+function getJsonModel() {
+  return encodeWorkflow(nodes.value, edges.value)
+}
+
+function handleWorkflowSave(wf) {
+  workflow.value = wf
+  saveWorkflow()
+}
+
+function saveWorkflow() {
+  emit('save', { ...workflow.value, ...getJsonModel() })
+}
+
+function importJSON(workflows = []) {
+  try {
+    importProcessing.value = true
+    const [wf] = workflows
+    triggers.value = wf.triggers || []
+    workflow.value = {
+      ...workflow.value,
+      steps: wf.steps || [],
+      paths: wf.paths || [],
+    }
+    render(workflow.value)
+    importProcessing.value = false
+    emit('change-detected')
+    configuratorVisible.value = false
+    toast.add({ severity: 'success', summary: t('notification.imported-workflow'), life: 3000 })
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: t('notification.import-failed'),
+      detail: e?.message,
+      life: 5000,
+    })
+  }
+}
+
+/* ─── API Calls ─── */
+async function getFunctionTypes() {
+  return $AutomationAPI
+    .functionList()
+    .then(({ set }) => {
+      functionTypes.value = [
+        ...set,
+        ...(components.promptDefinitions || []),
+        ...[
+          {
+            ref: 'error-handler',
+            kind: 'error-handler',
+            meta: { short: 'Handle error' },
+            parameters: [],
+            results: [
+              { name: 'error', types: ['Any'] },
+              { name: 'errorMessage', types: ['String'] },
+              { name: 'errorStepID', types: ['Integer'] },
+            ],
+          },
+          {
+            ref: 'exec-workflow',
+            kind: 'error-handler',
+            meta: { short: 'Execute a workflow' },
+            parameters: [
+              { name: 'workflow', types: ['ID', 'Handle'], required: true },
+              { name: 'scope', types: ['Vars'], required: false },
+            ],
+            results: [],
+          },
+        ],
+      ]
+    })
+    .catch(e =>
+      toast.add({
+        severity: 'error',
+        summary: t('notification.failed-fetch-functions'),
+        detail: e?.message,
+        life: 5000,
+      }),
+    )
+}
+
+async function getEventTypes() {
+  return $AutomationAPI
+    .eventTypesList()
+    .then(({ set }) => {
+      eventTypes.value = set
+    })
+    .catch(e =>
+      toast.add({
+        severity: 'error',
+        summary: t('notification.event-type-fetch-failed'),
+        detail: e?.message,
+        life: 5000,
+      }),
+    )
+}
+
+/* ─── Expose for parent ─── */
+defineExpose({
+  getJsonModel,
+})
 </script>
 
 <style scoped>
-#workflow-editor {
-  color: var(--dark);
-}
-
-#graph {
-  outline: none;
+#editor {
+  color: var(--p-text-color, #1e293b);
 }
 
 .toolbar {
   width: 55px;
+}
+
+.toolbar-item {
+  cursor: grab;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.toolbar-item:hover {
+  background: var(--p-highlight-background);
+}
+
+.toolbar-item:active {
+  cursor: grabbing;
 }
 
 .component-fade-enter-active,
@@ -2909,6 +1778,33 @@ export default {
 .component-fade-enter,
 .component-fade-leave-to {
   opacity: 0;
+}
+
+.vueflow-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.vueflow-canvas :deep(.vue-flow__background) {
+  background-color: transparent;
+}
+
+.vueflow-canvas :deep(.vue-flow__background pattern circle) {
+  fill: color-mix(in srgb, var(--p-text-muted-color) 30%, transparent);
+}
+
+.vueflow-canvas :deep(.vue-flow__edge-path) {
+  stroke: var(--p-text-muted-color);
+  stroke-width: 2;
+}
+
+.vueflow-canvas :deep(.vue-flow__edge.selected .vue-flow__edge-path),
+.vueflow-canvas :deep(.vue-flow__edge:hover .vue-flow__edge-path) {
+  stroke: var(--p-primary-color);
+}
+
+.vueflow-canvas :deep(.vue-flow__minimap) {
+  display: none;
 }
 
 /* https://stackoverflow.com/a/40991531/17926309 */
@@ -2938,91 +1834,18 @@ export default {
 </style>
 
 <style>
-/* mxGraph sets pointer-events:none on the label container div (inline style).
-   All descendants inherit none, so CSS :hover never fires without this override. */
-.step {
-  pointer-events: auto;
+/* VueFlow global overrides (unscoped) */
+.vue-flow__connection-line {
+  stroke: var(--p-text-muted-color);
+  stroke-width: 2;
 }
 
-.hide {
-  display: none;
+.vue-flow__edge-path {
+  stroke: var(--p-text-muted-color);
 }
 
-.step:hover .hide {
-  display: flex;
-}
-
-.show {
-  display: flex;
-}
-
-.step:hover .show {
-  display: none;
-}
-
-.hide-label {
-  display: none;
-}
-
-.step:hover .hide-label {
-  text-align: justify;
-  display: flex;
-}
-
-.id-label {
-  position: absolute;
-  font-size: 8px;
-  top: 4px;
-  right: 4px;
-}
-
-.hover-untruncate {
-  text-align: left;
-  line-height: 18px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  /* width: 100% + min-width: 0 allow truncation to work inside a flex container */
-  width: 100%;
-  min-width: 0;
-}
-
-.step:hover .hover-untruncate {
-  overflow: visible;
-  white-space: normal;
-  text-overflow: clip;
-}
-
-/* Note: .label-container has no overflow:hidden rule (intentional).
-   Corteza's original HTML had a typo (class=label-container" — missing opening quote)
-   so that rule never took effect; truncation is handled solely by .hover-untruncate.
-   overflow:hidden on .label-container (even transiently on hover) creates a scroll
-   stacking context that clips mxGraph's SVG edge layer, making paths disappear. */
-
-.step-values {
-  position: absolute;
-  min-width: 200px;
-  top: 80px;
-  border-top: 0;
-}
-
-.step-values td,
-th {
-  text-align: left;
-  padding: 8px;
-  white-space: nowrap;
-}
-
-.step-values tr.title {
-  background-color: var(--light) !important;
-}
-
-.step-values tr.title th {
-  border-top: none;
-}
-
-#toolbar > hr {
-  margin: 0.5rem 0 0.5rem 0 !important;
-  align-self: stretch;
+/* Selection rectangle */
+.vue-flow__selection-pane {
+  cursor: grab;
 }
 </style>

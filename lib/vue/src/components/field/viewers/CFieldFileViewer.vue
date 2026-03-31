@@ -1,35 +1,76 @@
 <template>
   <!-- Gallery mode -->
-  <div v-if="isGallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+  <div
+    v-if="isGallery"
+    class="flex items-start justify-around gap-3 flex-wrap h-full"
+  >
     <div
       v-for="att in resolvedAttachments"
       :key="att.attachmentID"
-      class="flex flex-col items-center gap-1 p-3 border border-surface rounded"
+      class="item-preview relative"
     >
-      <i v-if="!att.isImage" class="pi pi-file text-3xl text-primary" />
-      <a
-        v-else-if="opts.clickToView"
-        :href="att.originalUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <!-- Image preview -->
+      <template v-if="att.isImage">
+        <a
+          v-if="isClickToView && att.originalUrl"
+          :href="att.originalUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            :src="att.previewUrl || att.originalUrl"
+            :alt="att.name"
+            :style="{ width: 'unset', ...inlineCustomStyles(att) }"
+            class="object-contain"
+          />
+        </a>
         <img
-          :src="att.previewUrl"
+          v-else
+          :src="att.previewUrl || att.originalUrl"
           :alt="att.name"
-          :style="galleryImgStyle"
-          class="w-full max-h-32 object-contain rounded"
+          :style="{ width: 'unset', ...inlineCustomStyles(att) }"
+          class="object-contain"
+        />
+      </template>
+      <i v-else class="pi pi-file text-3xl text-primary" />
+
+      <!-- File name -->
+      <div
+        class="flex items-start justify-center"
+        :style="{ width: `calc(${inlineCustomStyles(att).width || '100%'})` }"
+      >
+        <div
+          v-if="!opts.hideFileName"
+          class="filename-container text-center"
+          style="margin-top: 0.1rem;"
+        >
+          <a
+            v-if="isClickToView && att.originalUrl"
+            :href="att.originalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:underline"
+          >
+            {{ att.name }}
+          </a>
+          <span v-else>{{ att.name }}</span>
+        </div>
+      </div>
+
+      <!-- Download button (overlay) -->
+      <a
+        v-if="isDownloadEnabled && att.downloadUrl"
+        :href="att.downloadUrl"
+        class="preview-download-button absolute top-0 right-0"
+        @click.stop
+      >
+        <Button
+          icon="pi pi-download"
+          text
+          size="small"
+          severity="secondary"
         />
       </a>
-      <img
-        v-else
-        :src="att.previewUrl"
-        :alt="att.name"
-        :style="galleryImgStyle"
-        class="w-full max-h-32 object-contain rounded"
-      />
-      <span v-if="!opts.hideFileName" class="text-sm truncate max-w-full text-center">
-        {{ att.name }}
-      </span>
     </div>
   </div>
 
@@ -44,7 +85,7 @@
       <div class="flex-1 min-w-0">
         <div class="text-sm font-medium truncate">
           <a
-            v-if="opts.clickToView"
+            v-if="isClickToView && att.originalUrl"
             :href="att.originalUrl"
             target="_blank"
             rel="noopener noreferrer"
@@ -57,12 +98,16 @@
         <div v-if="att.size" class="text-xs text-muted-color">{{ formatSize(att.size) }}</div>
       </div>
       <a
-        v-if="opts.enableDownload && att.downloadUrl"
+        v-if="isDownloadEnabled && att.downloadUrl"
         :href="att.downloadUrl"
-        download
-        class="text-muted-color hover:text-primary transition-colors"
+        @click.stop
       >
-        <i class="pi pi-download text-sm" />
+        <Button
+          icon="pi pi-download"
+          text
+          size="small"
+          severity="secondary"
+        />
       </a>
     </div>
     <span v-if="!resolvedAttachments.length" class="text-muted-color text-sm">—</span>
@@ -104,6 +149,8 @@ const $ComposeAPI = inject('$ComposeAPI', null)
 const opts = computed(() => props.field.options || {})
 const isGallery = computed(() => opts.value.mode === 'gallery')
 const namespaceID = computed(() => props.namespace?.namespaceID || '')
+const isDownloadEnabled = computed(() => opts.value.enableDownload !== false)
+const isClickToView = computed(() => opts.value.clickToView !== false)
 
 const attachmentIDs = computed(() => {
   const v = props.record?.values?.[props.field.name]
@@ -114,18 +161,29 @@ const attachmentIDs = computed(() => {
 
 const resolvedAttachments = ref([])
 
-const galleryImgStyle = computed(() => {
+function inlineCustomStyles (att) {
   const o = opts.value
-  return {
-    height: o.height || undefined,
-    width: o.width || undefined,
-    maxHeight: o.maxHeight || undefined,
-    maxWidth: o.maxWidth || undefined,
-    borderRadius: o.borderRadius || undefined,
-    margin: o.margin || undefined,
-    backgroundColor: o.backgroundColor ? `#${o.backgroundColor}` : undefined,
+  let { width, height, maxWidth, maxHeight, margin, borderRadius, backgroundColor } = o
+
+  maxWidth = maxWidth || '100%'
+  maxHeight = maxHeight || '100%'
+  margin = margin || 'auto'
+
+  if (!att.isImage) {
+    width = width || '200px'
+    height = height || 'auto'
   }
-})
+
+  return {
+    width,
+    height,
+    maxWidth,
+    maxHeight,
+    borderRadius,
+    backgroundColor: backgroundColor ? `#${backgroundColor}` : undefined,
+    margin,
+  }
+}
 
 function formatSize(bytes) {
   if (!bytes) return ''
@@ -160,9 +218,9 @@ async function resolveAttachments(ids) {
         name: att.name || attachmentID,
         size: att.meta?.original?.size || 0,
         isImage: mime.startsWith('image/'),
-        previewUrl: url,
+        previewUrl: att.previewUrl ? baseURL + att.previewUrl : url,
         originalUrl: url,
-        downloadUrl: url,
+        downloadUrl: url ? url + '&download=1' : '',
       })
     } catch {
       results.push({
@@ -182,3 +240,32 @@ async function resolveAttachments(ids) {
 
 watch(attachmentIDs, ids => resolveAttachments(ids), { immediate: true })
 </script>
+
+<style scoped>
+.item-preview .preview-download-button {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.item-preview:hover .preview-download-button {
+  opacity: 1;
+}
+
+.filename-container {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.filename-container:hover {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
+}
+</style>
+

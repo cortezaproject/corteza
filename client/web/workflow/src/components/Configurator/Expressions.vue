@@ -192,7 +192,7 @@ export default {
         .then(({ set }) => {
           this.fieldTypes = set
         })
-        .catch(this.toastErrorHandler(this.$t('notification.fetch-types-failed')))
+        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.fetch-types-failed'), detail: e?.message, life: 5000 }))
     },
 
     getTypeDescription (type) {

@@ -48,6 +48,6 @@
 		{{ end }}
 	</header>
 
-	<main class="auth mt-sm-5">
+	<main class="auth">
 		<div class="tabs card">
 {{ template "inc_nav.html.tpl" . }}

@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
@@ -39,6 +39,7 @@ const props = defineProps({
 
 const $ComposeAPI = inject('$ComposeAPI', null)
 const $auth = inject('$auth', {})
+const $eventBus = inject('$eventBus', null)
 
 const loading = ref(false)
 const value = ref(0)
@@ -153,4 +154,10 @@ onMounted(() => refresh())
 
 watch(() => props.record?.recordID, () => refresh())
 watch(() => props.block.options, () => refresh(), { deep: true })
+
+const offRefetch = $eventBus?.on('refetch-records', () => refresh())
+
+onBeforeUnmount(() => {
+  offRefetch?.()
+})
 </script>

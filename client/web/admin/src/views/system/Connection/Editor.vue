@@ -592,7 +592,6 @@ const {
   filterList: filterConfiguredConnectionsList,
 } = useResourceList(
   params => {
-    if (!isEdit.value || !route.params.connectionID) return Promise.resolve({ set: [] })
     return $SystemAPI.configuredConnectionListCancellable({
       ...params,
       connectionID: route.params.connectionID,
@@ -602,6 +601,7 @@ const {
     filter: { query: '' },
     sorting: { sortBy: 'createdAt', sortDesc: true },
     pagination: { limit: 10 },
+    immediate: false,
   },
 )
 

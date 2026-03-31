@@ -158,3 +158,17 @@ preview:
   toggleAll: Show all previews
   showConfigurations: Show step configurations
   hideConfigurations: Hide step configurations
+
+trace:
+  running: Running...
+  completed: Completed
+  failed: Failed
+  clear: Clear Trace
+  duration: Duration
+  stepsExecuted: steps executed
+  input: Input
+  output: Output
+  error: Error
+  noData: No trace data
+  skipped: Skipped
+  panelTitle: Execution Trace

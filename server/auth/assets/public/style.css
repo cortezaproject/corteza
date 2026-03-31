@@ -160,8 +160,9 @@ p {
 .auth {
   width: 100%;
   max-width: 650px;
-  margin: auto;
+  margin: 1rem auto;
   padding: 0 1.25rem;
+  place-self: center;
 }
 
 .logo {

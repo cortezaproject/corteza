@@ -1,4 +1,5 @@
 import { automation } from '@cortezaproject/corteza-js-next'
+import type { StackFrame, ExecutionResult, TraceStatus } from '@cortezaproject/corteza-js-next/src/automation/types/trace'
 import { withMinDuration } from '@cortezaproject/corteza-vue-next'
 import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
@@ -47,6 +48,11 @@ export function useFlowEditor() {
   const loading = ref(false)
   const saving = ref(false)
   const running = ref(false)
+
+  // Trace state
+  const traceFrames = ref<StackFrame[]>([])
+  const traceExecution = ref<ExecutionResult | null>(null)
+  const traceStatus = ref<TraceStatus>('idle')
 
   // VueFlow state
   const nodes = ref<Node<FlowNodeData>[]>([])
@@ -833,21 +839,75 @@ export function useFlowEditor() {
     if (!id || id === '0') return
 
     running.value = true
+    traceStatus.value = 'running'
+    traceFrames.value = []
+    traceExecution.value = null
+
     try {
-      await $AutomationAPI.ngAutomationExec({
+      // ExecAndWait blocks until the automation completes
+      const result = await $AutomationAPI.ngAutomationExec({
         automationID: id,
         trace: true,
-        wait: false,
-        async: true,
       })
-      $toast?.toastSuccess(t('builder.toast.run.detail'), t('builder.toast.run.summary'))
+
+      // Extract execution result from response
+      const execResult: ExecutionResult = result?.response ?? result
+      traceExecution.value = execResult
+
+      // Fetch execution trace frames
+      if (execResult?.executionID) {
+        try {
+          const traceResponse = await $AutomationAPI.ngAutomationExecutionTrace({
+            automationID: id,
+            executionID: execResult.executionID,
+          })
+          traceFrames.value = traceResponse?.response ?? traceResponse ?? []
+        } catch (traceErr) {
+          console.error('Failed to fetch trace:', traceErr)
+        }
+      }
+
+      if (execResult?.status === 'failed') {
+        traceStatus.value = 'failed'
+        $toast?.toastDanger(
+          execResult.error || t('builder.toast.runError.detail'),
+          t('builder.toast.runError.summary'),
+        )
+      } else {
+        traceStatus.value = 'completed'
+        $toast?.toastSuccess(t('builder.toast.run.detail'), t('builder.toast.run.summary'))
+      }
     } catch (e) {
       console.error('Failed to execute automation:', e)
+      traceStatus.value = 'failed'
       $toast?.toastDanger(t('builder.toast.runError.detail'), t('builder.toast.runError.summary'))
     } finally {
       running.value = false
     }
   }
+
+  /**
+   * Clear active trace overlay.
+   */
+  function clearTrace() {
+    traceFrames.value = []
+    traceExecution.value = null
+    traceStatus.value = 'idle'
+  }
+
+  /**
+   * Map step handle → StackFrame for quick lookup by flow nodes.
+   * The backend StackFrame.handle matches the step handle (e.g., "step_3").
+   */
+  const traceByHandle = computed(() => {
+    const map = new Map<string, StackFrame>()
+    for (const frame of traceFrames.value) {
+      if (frame.handle) {
+        map.set(frame.handle, frame)
+      }
+    }
+    return map
+  })
 
   /**
    * Walk edges backward from a node to find all upstream step nodes,
@@ -1134,6 +1194,12 @@ export function useFlowEditor() {
     saving,
     running,
 
+    // Trace state
+    traceFrames,
+    traceExecution,
+    traceStatus,
+    traceByHandle,
+
     // Computed
     name,
     enabled,
@@ -1146,6 +1212,7 @@ export function useFlowEditor() {
     load,
     save,
     exec,
+    clearTrace,
     reset,
     undo,
     redo,

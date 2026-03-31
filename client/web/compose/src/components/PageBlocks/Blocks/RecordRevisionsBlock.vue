@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PageBlock from './PageBlock.vue'
 
@@ -113,6 +113,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI', null)
+const $eventBus = inject('$eventBus', null)
 
 const loading = ref(false)
 const loadedRevisions = ref(false)
@@ -183,5 +184,15 @@ onMounted(() => {
 
 watch(() => props.record?.recordID, () => {
   if (preloadRevisions.value) loadRevisions()
+})
+
+const offRefetch = $eventBus?.on('refetch-records', () => {
+  if (preloadRevisions.value) {
+    loadRevisions()
+  }
+})
+
+onBeforeUnmount(() => {
+  offRefetch?.()
 })
 </script>

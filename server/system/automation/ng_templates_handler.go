@@ -103,8 +103,9 @@ func (h ngTemplatesHandler) Search() atypes.ConstructFunction {
 		Groups: []string{"Templates"},
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Search Templates",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "file"},
+			Short:       "Search Templates",
+			Description: "Search templates with filters",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "file"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -192,8 +193,9 @@ func (h ngTemplatesHandler) Create() atypes.ConstructFunction {
 		Groups: []string{"Templates"},
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Create Template",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "file"},
+			Short:       "Create Template",
+			Description: "Create a new template",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "file"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -274,8 +276,9 @@ func (h ngTemplatesHandler) Update() atypes.ConstructFunction {
 		Groups: []string{"Templates"},
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Update Template",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "file"},
+			Short:       "Update Template",
+			Description: "Update an existing template",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "file"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -326,8 +329,9 @@ func (h ngTemplatesHandler) Delete() atypes.ConstructFunction {
 		Groups: []string{"Templates"},
 		Labels: map[string]string{"delete": "step", "templates": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Delete Template",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "file"},
+			Short:       "Delete Template",
+			Description: "Delete a template",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "file"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -377,8 +381,9 @@ func (h ngTemplatesHandler) Render() atypes.ConstructFunction {
 		Groups: []string{"Templates"},
 		Labels: map[string]string{"render": "step", "templates": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Render Template",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "file"},
+			Short:       "Render Template",
+			Description: "Render a template with given variables",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "file"},
 		},
 
 		Parameters: []*atypes.Param{

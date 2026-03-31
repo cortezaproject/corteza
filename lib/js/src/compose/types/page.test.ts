@@ -159,11 +159,10 @@ describe('page', () => {
           { kind: 'Record', xywh: [0, 0, 3, 3] },
           { kind: 'RecordList', xywh: [0, 0, 3, 3] },
           { kind: 'RecordOrganizer', xywh: [0, 0, 3, 3] },
-          { kind: 'SocialFeed', xywh: [0, 0, 3, 3] },
         ] as PageBlock[],
       })
 
-      expect(p.blocks).lengthOf(8)
+      expect(p.blocks).lengthOf(7)
     })
   })
 })

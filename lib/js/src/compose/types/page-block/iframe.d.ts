@@ -12,6 +12,6 @@ export declare class PageBlockIFrame extends PageBlock {
   readonly kind = 'IFrame'
   options: Options
   constructor(i?: PageBlockInput)
-  applyOptions(o?: Partial<Options>): void
+  applyOptions(o?: Partial<Options & { url?: string }>): void
 }
 export {}

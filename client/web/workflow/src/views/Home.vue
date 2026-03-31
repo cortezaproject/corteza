@@ -197,6 +197,7 @@ import {
 import { inject, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import { saveAs } from 'file-saver'
 import { useLabelsStore } from '@/stores/labels'
 import Import from '@/components/Import.vue'
@@ -209,7 +210,7 @@ const { locFullDateTime } = filters
 const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
-const $toast = inject('$toast')
+const toast = useToast()
 const $AutomationAPI = inject('$AutomationAPI')
 const $ComposeAPI = inject('$ComposeAPI')
 const $Auth = inject('$Auth')
@@ -372,10 +373,10 @@ async function handleStatusChange(workflow) {
   try {
     const w = await $AutomationAPI.workflowRead({ workflowID: workflow.workflowID })
     await $AutomationAPI.workflowUpdate({ ...w, enabled })
-    $toast.toastSuccess(t(`notification.list.${key}.success`))
+    toast.add({ severity: 'success', summary: t(`notification.list.${key}.success`), life: 3000 })
     filterList()
   } catch {
-    $toast.toastDanger(t(`notification.list.${key}.failed`))
+    toast.add({ severity: 'error', summary: t(`notification.list.${key}.failed`), life: 5000 })
   }
 }
 
@@ -417,7 +418,7 @@ async function handleExportWorkflow(workflow) {
     const filename = (workflow.meta?.name || workflow.handle || 'workflow').replace(/[/\\?%*:|"<>]/g, '')
     saveAs(blob, `${filename}.json`)
   } catch {
-    $toast.toastDanger(t('notification.failed-fetch-workflows'))
+    toast.add({ severity: 'error', summary: t('notification.failed-fetch-workflows'), life: 5000 })
   }
 }
 
@@ -448,9 +449,9 @@ async function importJSON(workflows = []) {
   )
 
   if (skipped.length) {
-    $toast.toastWarning(skipped.join('; '), t('notification.import.skipped-workflows'))
+    toast.add({ severity: 'warn', summary: t('notification.import.skipped-workflows'), detail: skipped.join('; '), life: 5000 })
   } else {
-    $toast.toastSuccess(t('notification.import.imported-workflows'))
+    toast.add({ severity: 'success', summary: t('notification.import.imported-workflows'), life: 3000 })
   }
 
   showImportDialog.value = false
@@ -525,11 +526,11 @@ async function handleDelete(workflow) {
     await $AutomationAPI.workflowDelete({
       workflowID: workflow.workflowID,
     })
-    $toast.toastSuccess(t('notification.delete.success'))
+    toast.add({ severity: 'success', summary: t('notification.delete.success'), life: 3000 })
     filterList()
   } catch (e) {
     console.error('Failed to delete workflow:', e)
-    $toast.toastDanger(t('notification.delete.failed'))
+    toast.add({ severity: 'error', summary: t('notification.delete.failed'), life: 5000 })
   }
 }
 
@@ -539,11 +540,11 @@ async function handleUndelete(workflow) {
     await $AutomationAPI.workflowUndelete({
       workflowID: workflow.workflowID,
     })
-    $toast.toastSuccess(t('notification.undelete.success'))
+    toast.add({ severity: 'success', summary: t('notification.undelete.success'), life: 3000 })
     filterList()
   } catch (e) {
     console.error('Failed to restore workflow:', e)
-    $toast.toastDanger(t('notification.undelete.failed'))
+    toast.add({ severity: 'error', summary: t('notification.undelete.failed'), life: 5000 })
   }
 }
 </script>

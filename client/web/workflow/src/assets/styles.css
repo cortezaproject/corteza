@@ -23,39 +23,16 @@ body {
   overflow-y: auto;
 }
 
-/* ===== CSS variables for mxGraph styling() and inline styles ===== */
-/* mxGraph's styling() method and inline HTML label styles reference these by name */
-:root {
-  --dark: var(--p-text-color, #1e293b);
-  --primary: var(--p-primary-color, #3b82f6);
-  --white: var(--p-surface-0, #ffffff);
-  --extra-light: var(--p-surface-200, #e2e8f0);
-  --light: var(--p-surface-100, #f1f5f9);
-  --success: var(--p-green-500, #22c55e);
-  --danger: var(--p-red-500, #ef4444);
-}
-
-/* mxGraph table inside step-values popup */
-.step-values table {
+/* ===== Workflow step values table ===== */
+.step-values table,
+.workflow-node__values table,
+.trigger-node__values table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--p-surface-0, #ffffff);
+  background: var(--p-content-background);
 }
 
-/* Spinner for dry-run in-progress indicator in mxGraph HTML labels */
-.mx-spinner {
-  display: inline-block;
-  border: 0.2em solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: mx-spin 0.75s linear infinite;
-}
-
-@keyframes mx-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Expression badge in mxGraph function/argument labels */
+/* Expression badge in function/argument labels */
 .circle-badge {
   display: inline-flex;
   align-items: center;
@@ -67,8 +44,8 @@ body {
   line-height: 1.25rem;
   text-align: center;
   border-radius: 50%;
-  color: #ffffff;
-  background-color: var(--p-primary-color, #3b82f6);
+  color: var(--p-primary-contrast-color);
+  background-color: var(--p-primary-color);
   font-size: 0.875rem;
   font-weight: 600;
   font-style: italic;
@@ -80,29 +57,28 @@ body {
   line-height: 1.125rem;
 }
 
-/* ===== mxGraph infrastructure CSS ===== */
-div.mxRubberband {
-  visibility: visible;
-  position: absolute;
-  z-index: 1000;
-  border: 1px solid #0000ff;
-  background: rgba(0, 119, 255, 0.2);
+/* ===== Right sidebar / config drawer ===== */
+.right-sidebar {
+  position: fixed;
+  top: var(--topbar-height, 60px);
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--p-content-background);
+  border-left: 1px solid var(--p-surface-border);
+}
+
+.config-drawer {
+  overflow: hidden;
+}
+
+/* Toolbar icons */
+#toolbar > hr {
+  margin: 0.5rem 0 0.5rem 0 !important;
+  align-self: stretch;
 }
 
 img.mxToolbarMode {
   cursor: pointer;
   margin: 2px;
-}
-
-div.mxTooltip {
-  font-family: 'Poppins', sans-serif;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
-  background: var(--p-surface-0, #ffffff);
-  border: 2px solid #a7d0e3;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  position: absolute;
-  cursor: default;
-  padding: 10px;
-  color: var(--p-text-color, #1e293b);
 }

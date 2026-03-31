@@ -16,4 +16,5 @@ export type {
 } from './types/taq'
 export { Encode, IsTyped } from './types/values'
 export type { Typed, Vars } from './types/values'
+export type { StackFrame, ExecutionResult, ExecutionStatus, TraceStatus } from './types/trace'
 export { Workflow } from './types/workflow'

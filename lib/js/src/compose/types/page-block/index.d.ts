@@ -8,11 +8,11 @@ export { PageBlockRecord } from './record'
 export { PageBlockRecordList } from './record-list'
 export { PageBlockRecordRevisions } from './record-revisions'
 export { PageBlockRecordOrganizer } from './record-organizer'
-export { PageBlockSocialFeed } from './social-feed'
+
 export { PageBlockCalendar } from './calendar'
 export { PageBlockMetric } from './metric'
 export { PageBlockComment } from './comment'
-export { PageBlockReport } from './report'
+
 export { PageBlockProgress } from './progress'
 export { PageBlockNavigation } from './navigation'
 export { PageBlockTab } from './tabs'

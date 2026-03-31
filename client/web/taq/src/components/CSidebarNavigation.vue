@@ -33,11 +33,17 @@ const navItems = computed(() => [
     _icon: 'pi pi-bolt',
     _route: { name: 'list' },
   },
-  ...automationStore.list.map(a => ({
-    _id: a.automationID,
-    _parentId: 'automations',
-    _label: a.meta?.short || t('list.untitled', 'Untitled'),
-    _route: { name: 'builder-edit', params: { id: a.automationID } },
-  })),
+  ...[...automationStore.list]
+    .sort((a, b) => {
+      const labelA = a.meta?.short || ''
+      const labelB = b.meta?.short || ''
+      return labelA.localeCompare(labelB)
+    })
+    .map(a => ({
+      _id: a.automationID,
+      _parentId: 'automations',
+      _label: a.meta?.short || t('list.untitled', 'Untitled'),
+      _route: { name: 'builder-edit', params: { id: a.automationID } },
+    })),
 ])
 </script>

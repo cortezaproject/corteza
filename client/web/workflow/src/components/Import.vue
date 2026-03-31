@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { inject } from 'vue'
+import { useToast } from 'primevue/usetoast'
 
 export default {
   props: {
@@ -41,8 +41,8 @@ export default {
   },
 
   setup () {
-    const $toast = inject('$toast')
-    return { $toast }
+    const toast = useToast()
+    return { toast }
   },
 
   data () {
@@ -67,14 +67,14 @@ export default {
             const { workflows = [] } = JSON.parse(evt.target.result)
             this.workflows = workflows
           } catch (err) {
-            this.$toast.toastErrorHandler(this.$t('notification.general.warning'))(err)
+            this.toast.add({ severity: 'error', summary: this.$t('notification.general.warning'), detail: err?.message, life: 5000 })
           } finally {
             this.processing = false
           }
         }
 
         reader.onerror = () => {
-          this.$toast.toastDanger(this.$t('notification.failed-load-file'))
+          this.toast.add({ severity: 'error', summary: this.$t('notification.failed-load-file'), life: 5000 })
           this.processing = false
         }
       }

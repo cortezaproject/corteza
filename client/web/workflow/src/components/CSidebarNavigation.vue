@@ -40,11 +40,17 @@ const navItems = computed(() => [
     _icon: 'pi pi-sitemap',
     _divider: true,
   },
-  ...workflowStore.list.map(w => ({
-    _id: w.workflowID,
-    _parentId: 'workflows',
-    _label: w.meta?.name || w.handle || t('workflow.untitled', 'Untitled'),
-    _route: { name: 'workflow.edit', params: { workflowID: w.workflowID } },
-  })),
+  ...[...workflowStore.list]
+    .sort((a, b) => {
+      const labelA = a.meta?.name || a.handle || ''
+      const labelB = b.meta?.name || b.handle || ''
+      return labelA.localeCompare(labelB)
+    })
+    .map(w => ({
+      _id: w.workflowID,
+      _parentId: 'workflows',
+      _label: w.meta?.name || w.handle || t('workflow.untitled', 'Untitled'),
+      _route: { name: 'workflow.edit', params: { workflowID: w.workflowID } },
+    })),
 ])
 </script>

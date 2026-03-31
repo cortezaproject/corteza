@@ -154,6 +154,7 @@ export class Auth {
   private expiresIn: number
 
   private $emit?: (event: string, ...args: unknown[]) => unknown
+  private listeners = new Map<string, Set<(...args: unknown[]) => void>>()
 
   constructor({
     app,
@@ -191,15 +192,30 @@ export class Auth {
 
   // Vue 3 equivalent - setup emit function
   setupEmitter(app: App): Auth {
-    // In Vue 3, we can use app.config.globalProperties for global event emitting
-    // or implement a custom event emitter if needed
     this.$emit = (event, ...args): void => {
-      // Emit to app instance if it has an emit method
-      if (app && typeof (app as any).emit === 'function') {
-        ;(app as any).emit(event, ...args)
-      }
+      this.listeners.get(event)?.forEach(listener => listener(...args))
     }
     return this
+  }
+
+  on(event: string, listener: (...args: unknown[]) => void): () => void {
+    const set = this.listeners.get(event) ?? new Set<(...args: unknown[]) => void>()
+    set.add(listener)
+    this.listeners.set(event, set)
+
+    return () => this.off(event, listener)
+  }
+
+  off(event: string, listener: (...args: unknown[]) => void): void {
+    const set = this.listeners.get(event)
+    if (!set) {
+      return
+    }
+
+    set.delete(listener)
+    if (set.size === 0) {
+      this.listeners.delete(event)
+    }
   }
 
   get axios(): AxiosInstance {

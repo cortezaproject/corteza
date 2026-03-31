@@ -63,20 +63,30 @@
         noApps: $t('navigation.appList.noApps'),
       }"
     />
+
+    <CPrompts />
+    <CNotificationSidebar />
   </div>
 </template>
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
-import { components, useApplicationsStore, useRBACStore } from '@cortezaproject/corteza-vue-next'
+import { useWorkflowStore } from '@/stores/workflow'
+import { components, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar } = components
 
+const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
+const $SystemAPI = inject('$SystemAPI')
 const $AutomationAPI = inject('$AutomationAPI')
 const applicationsStore = useApplicationsStore()
+const notificationsStore = useNotificationsStore()
 const rbacStore = useRBACStore()
+const workflowStore = useWorkflowStore()
+const workflowPromptsStore = useWorkflowPromptsStore()
+let realtimeClient
 
 const appListVisible = ref(false)
 
@@ -91,18 +101,57 @@ onMounted(async () => {
 
   try {
     await Promise.all([
+      workflowStore.fetchList($AutomationAPI),
       applicationsStore.fetchApplications(),
       rbacStore.load([$AutomationAPI]),
+      notificationsStore.fetchNotifications($SystemAPI),
+      workflowPromptsStore.update($AutomationAPI, 'workflow'),
     ])
   } catch (e) {
     console.error('Failed to load:', e)
   } finally {
     loading.value = false
   }
+
+  realtimeClient = websocket.createRealtimeClient({
+    auth: $Auth,
+    onMessage: ({ data }) => {
+      const msg = JSON.parse(data)
+      switch (msg['@type']) {
+        case 'workflowSessionPrompt':
+          workflowPromptsStore.newPrompt(msg['@value'], 'workflow')
+          break
+        case 'workflowSessionResumed':
+          workflowPromptsStore.clear(msg['@value'])
+          break
+        case 'notification':
+          notificationsStore.addNotification(msg['@value'])
+          break
+        case 'notification.read':
+          notificationsStore.updateReadNotification(msg['@value'])
+          break
+        case 'notification.unread':
+          notificationsStore.updateUnreadNotification(msg['@value'])
+          break
+        case 'notification.read.all':
+          notificationsStore.updateAllReadNotifications(msg['@value'])
+          break
+        case 'notification.unread.all':
+          notificationsStore.updateAllUnreadNotifications(msg['@value'])
+          break
+        case 'notification.delete':
+          notificationsStore.removeNotification(msg['@value'])
+          break
+      }
+    },
+  })
+
+  realtimeClient.connect()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+  realtimeClient?.disconnect?.()
 })
 
 const expanded = ref(false)

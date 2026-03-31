@@ -11,7 +11,7 @@
 
 <script>
 import { saveAs } from 'file-saver'
-import { inject } from 'vue'
+import { useToast } from 'primevue/usetoast'
 
 export default {
   props: {
@@ -37,8 +37,8 @@ export default {
   },
 
   setup () {
-    const $toast = inject('$toast')
-    return { toastErrorHandler: $toast.toastErrorHandler }
+    const toast = useToast()
+    return { toast }
   },
 
   methods: {
@@ -64,7 +64,7 @@ export default {
             })
           })
         })
-        .catch(this.toastErrorHandler(this.$t('notification.failed-fetch-triggers')))
+        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.failed-fetch-triggers'), detail: e?.message, life: 5000 }))
 
       // Get workflows, add related triggers
       await this.$AutomationAPI.workflowList({ workflowID, disabled: 1, subWorkflow: 1 })
@@ -81,7 +81,7 @@ export default {
             }
           })
         })
-        .catch(this.toastErrorHandler(this.$t('notification.failed-fetch-workflows')))
+        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.failed-fetch-workflows'), detail: e?.message, life: 5000 }))
 
       // Save file
       const blob = new Blob([JSON.stringify({ workflows }, null, 2)], { type: 'application/json' })

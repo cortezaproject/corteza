@@ -43,10 +43,7 @@
       />
 
       <!-- Geo search marker -->
-      <LMarker
-        v-if="geoSearchMarker"
-        :lat-lng="geoSearchMarker"
-      />
+      <LMarker v-if="geoSearchMarker" :lat-lng="geoSearchMarker" />
     </LMap>
 
     <!-- Current location button -->
@@ -205,7 +202,7 @@ defineExpose({ invalidateSize })
 // Watch center changes to re-center the map
 watch(
   () => props.center,
-  (newCenter) => {
+  newCenter => {
     if (Array.isArray(newCenter) && newCenter.length === 2) {
       const map = mapRef.value?.leafletObject
       if (map) {
@@ -268,7 +265,6 @@ watch(
   border-radius: 4px;
   background: #fff;
   color: #333;
-  font-size: 14px;
   cursor: pointer;
   background-clip: padding-box;
 }

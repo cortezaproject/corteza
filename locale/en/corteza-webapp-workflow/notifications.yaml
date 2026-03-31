@@ -1,11 +1,11 @@
 title: Notifications
 empty: No notifications
-emptyDescription: You will see notifications here when they arrive
 markAllAsRead: Mark all as read
 markAllAsUnread: Mark all as unread
 markAsRead: Mark as read
 markAsUnread: Mark as unread
 delete: Delete
+open: Open
 all: All
 unread: Unread
 read: Read

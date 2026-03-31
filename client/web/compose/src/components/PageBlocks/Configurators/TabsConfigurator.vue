@@ -1,16 +1,14 @@
 <template>
   <div class="flex flex-col gap-4">
-    <Message severity="info" variant="simple" class="mb-0">
-      {{ $t('block.tabs.alertTitle') }}
-    </Message>
-
     <!-- Style section -->
     <div class="flex flex-col gap-3">
       <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.tabs.style.label') }}</h5>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.style.appearance') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.tabs.style.appearance') }}
+          </label>
           <Select
             v-model="appearance"
             :options="appearanceOptions"
@@ -21,18 +19,9 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.style.alignment') }}</label>
-          <Select
-            v-model="alignment"
-            :options="alignmentOptions"
-            option-label="label"
-            option-value="value"
-            class="w-full"
-          />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.style.justify') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.tabs.style.justify') }}
+          </label>
           <Select
             v-model="justify"
             :options="justifyOptions"
@@ -43,7 +32,9 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.style.orientation') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.tabs.style.orientation') }}
+          </label>
           <Select
             v-model="orientation"
             :options="orientationOptions"
@@ -54,10 +45,26 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.style.position') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.tabs.style.position') }}
+          </label>
           <Select
             v-model="position"
             :options="positionOptions"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.tabs.style.alignment') }}
+          </label>
+          <Select
+            v-model="alignment"
+            :options="alignmentOptions"
+            :disabled="justify === 'justify'"
             option-label="label"
             option-value="value"
             class="w-full"
@@ -69,81 +76,158 @@
     <Divider />
 
     <!-- Tab list -->
-    <div class="flex items-center justify-between">
-      <label class="text-primary font-medium text-sm">{{ $t('block.tabs.title') }}</label>
-      <Button
-        :label="$t('general.label.add')"
-        icon="pi pi-plus"
-        size="small"
-        severity="secondary"
-        @click="addTab"
-      />
-    </div>
-
-    <div v-for="(tab, index) in tabs" :key="index" class="border border-surface rounded-border p-3">
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <div class="flex flex-col gap-1">
-            <Button
-              icon="pi pi-chevron-up"
-              text
-              rounded
-              size="small"
-              severity="secondary"
-              :disabled="index === 0"
-              @click="moveTab(index, -1)"
-            />
-            <Button
-              icon="pi pi-chevron-down"
-              text
-              rounded
-              size="small"
-              severity="secondary"
-              :disabled="index === tabs.length - 1"
-              @click="moveTab(index, 1)"
-            />
-          </div>
-
-          <InputText
-            :model-value="tab.title || ''"
-            :placeholder="`${$t('block.tabs.tab')} ${index + 1}`"
-            class="flex-1"
-            @update:model-value="updateTab(index, 'title', $event)"
-          />
-
+    <CResourceTable
+      :items="tabsTableRows"
+      :fields="tableFields"
+      primary-key="_rowKey"
+      empty-message="—"
+    >
+      <template #header>
+        <div class="flex items-center justify-between w-full">
+          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.title') }}</label>
           <Button
-            icon="pi pi-trash"
-            text
-            rounded
+            :label="$t('general.label.add')"
+            icon="pi pi-plus"
             size="small"
-            severity="danger"
-            @click="removeTab(index)"
+            severity="secondary"
+            @click="addTab"
           />
         </div>
+      </template>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('block.tabs.blockAssociation') }}</label>
+      <template #empty>
+        {{ $t('block.tabs.noTabs') }}
+      </template>
+
+      <template #body-_order="{ data }">
+        <div class="flex gap-1">
+          <Button
+            icon="pi pi-chevron-up"
+            text
+            severity="secondary"
+            size="small"
+            :disabled="data._index === 0"
+            @click="moveTab(data._index, -1)"
+          />
+          <Button
+            icon="pi pi-chevron-down"
+            text
+            severity="secondary"
+            size="small"
+            :disabled="data._index === tabs.length - 1"
+            @click="moveTab(data._index, 1)"
+          />
+        </div>
+      </template>
+
+      <template #body-title="{ data }">
+        <InputText
+          :model-value="data.title || ''"
+          :placeholder="`${$t('block.tabs.tab')} ${data._index + 1}`"
+          class="w-full"
+          size="small"
+          @update:model-value="updateTab(data._index, 'title', $event)"
+        />
+      </template>
+
+      <template #body-blockID="{ data }">
+        <div class="flex items-center gap-1 min-w-0">
           <Select
-            :model-value="tab.blockID || ''"
-            :options="blockOptions"
+            :model-value="data.blockID || ''"
+            :options="getBlockOptions(data.blockID)"
             option-label="label"
             option-value="value"
             :placeholder="$t('block.tabs.selectBlock')"
-            class="w-full"
+            class="w-full min-w-0"
+            size="small"
             show-clear
-            @update:model-value="updateTab(index, 'blockID', $event)"
+            @update:model-value="updateTab(data._index, 'blockID', $event)"
+          />
+
+          <Button
+            v-if="data.blockID"
+            v-tooltip.top="$t('block.tabs.tooltip.edit')"
+            icon="pi pi-pencil"
+            text
+            severity="secondary"
+            size="small"
+            class="shrink-0"
+            @click="editTabBlock(data._index)"
+          />
+
+          <Button
+            v-else
+            v-tooltip.top="$t('block.tabs.tooltip.addBlock')"
+            icon="pi pi-plus"
+            text
+            severity="secondary"
+            size="small"
+            class="shrink-0"
+            @click="createTabBlock(data._index)"
           />
         </div>
-      </div>
-    </div>
+      </template>
+
+      <Column
+        field="lazy"
+        :header-style="'width: 8rem'"
+        header-class="text-center whitespace-nowrap"
+        body-class="text-center whitespace-nowrap"
+      >
+        <template #header>
+          <div class="flex items-center justify-center gap-1 whitespace-nowrap">
+            <span class="p-datatable-column-title">
+              {{ $t('block.tabs.table.columns.lazy.label') }}
+            </span>
+            <i
+              class="pi pi-info-circle text-muted-color text-sm"
+              v-tooltip.top="$t('block.tabs.table.columns.lazy.tooltip')"
+            />
+          </div>
+        </template>
+
+        <template #body="{ data }">
+          <div class="flex justify-center">
+            <Checkbox
+              :model-value="data.lazy !== false"
+              binary
+              :input-id="`tabs-lazy-${data._index}`"
+              @update:model-value="updateTab(data._index, 'lazy', $event)"
+            />
+          </div>
+        </template>
+      </Column>
+
+      <Column
+        field="_delete"
+        :header-style="'width: 4rem'"
+        header-class="whitespace-nowrap"
+        body-class="whitespace-nowrap"
+      >
+        <template #body="{ data }">
+          <div class="flex justify-center">
+            <Button
+              icon="pi pi-trash"
+              text
+              rounded
+              size="small"
+              severity="danger"
+              @click="removeTab(data._index)"
+            />
+          </div>
+        </template>
+      </Column>
+    </CResourceTable>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components } from '@cortezaproject/corteza-vue-next'
 
 const { t } = useI18n()
+const { CResourceTable } = components
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -152,7 +236,7 @@ const props = defineProps({
   blocks: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:block'])
+const emit = defineEmits(['update:block', 'edit-tab-block', 'create-tab-block'])
 
 const appearanceOptions = [
   { value: 'tabs', label: t('block.tabs.style.appearanceTabs') },
@@ -183,15 +267,61 @@ const positionOptions = [
 
 const tabs = computed(() => props.block.options?.tabs || [])
 
-const blockOptions = computed(() => {
-  return (props.blocks || []).map(b => {
-    const bid = (b.blockID && b.blockID !== '0') ? b.blockID : b.meta?.tempID || ''
-    return {
-      value: bid,
-      label: b.title || b.kind || bid,
-    }
-  }).filter(o => o.value)
-})
+const tabsTableRows = computed(() =>
+  tabs.value.map((tab, index) => ({
+    ...tab,
+    _index: index,
+    _rowKey: `${index}-${tab.blockID || ''}-${tab.title || ''}`,
+  })),
+)
+
+const tableFields = computed(() => [
+  {
+    key: '_order',
+    header: '',
+    style: 'width: 5rem',
+    headerClass: 'whitespace-nowrap',
+    bodyClass: 'whitespace-nowrap',
+  },
+  {
+    key: 'title',
+    header: t('block.tabs.table.columns.title.label'),
+    style: 'min-width: 14rem',
+    headerClass: 'whitespace-nowrap',
+    bodyClass: 'whitespace-nowrap',
+  },
+  {
+    key: 'blockID',
+    header: t('block.tabs.table.columns.block.label'),
+    style: 'min-width: 16rem',
+    headerClass: 'whitespace-nowrap',
+    bodyClass: 'whitespace-nowrap',
+  },
+])
+
+function getBlockId(block) {
+  return block.blockID && block.blockID !== '0' ? block.blockID : block.meta?.tempID || ''
+}
+
+function getBlockOptions(currentBlockID = '') {
+  return (props.blocks || [])
+    .filter(block => {
+      const blockID = getBlockId(block)
+      if (!blockID) return false
+      if (block.kind === 'Tabs') return false
+      if (blockID === getBlockId(props.block)) return false
+
+      // Keep the current selection available, but prevent picking blocks already used by other tabs.
+      return blockID === currentBlockID || !tabs.value.some(tab => tab.blockID === blockID)
+    })
+    .map(block => {
+      const blockID = getBlockId(block)
+      return {
+        value: blockID,
+        label: block.title || block.kind || blockID,
+      }
+    })
+}
 
 function updateOptions(key, value) {
   emit('update:block', {
@@ -211,12 +341,12 @@ const appearance = computed({
 })
 
 const alignment = computed({
-  get: () => props.block.options?.style?.alignment || 'left',
+  get: () => props.block.options?.style?.alignment || 'center',
   set: v => updateStyle('alignment', v),
 })
 
 const justify = computed({
-  get: () => props.block.options?.style?.justify || 'none',
+  get: () => props.block.options?.style?.justify || 'justify',
   set: v => updateStyle('justify', v),
 })
 
@@ -231,7 +361,7 @@ const position = computed({
 })
 
 function addTab() {
-  updateOptions('tabs', [...tabs.value, { title: '', blockID: '' }])
+  updateOptions('tabs', [...tabs.value, { title: '', blockID: '', lazy: true }])
 }
 
 function removeTab(index) {
@@ -242,7 +372,13 @@ function removeTab(index) {
 
 function updateTab(index, key, value) {
   const items = [...tabs.value]
-  items[index] = { ...items[index], [key]: value }
+  items[index] = {
+    lazy: true,
+    title: '',
+    blockID: '',
+    ...items[index],
+    [key]: value,
+  }
   updateOptions('tabs', items)
 }
 
@@ -254,5 +390,15 @@ function moveTab(index, direction) {
   items[index] = items[newIndex]
   items[newIndex] = temp
   updateOptions('tabs', items)
+}
+
+function editTabBlock(index) {
+  const blockID = tabs.value[index]?.blockID
+  if (!blockID) return
+  emit('edit-tab-block', blockID)
+}
+
+function createTabBlock(index) {
+  emit('create-tab-block', index)
 }
 </script>

@@ -34,6 +34,7 @@
             lightTheme: $t('general.themes.labels.light'),
             darkTheme: $t('general.themes.labels.dark'),
           }"
+          :custom-profile-items="profileReminderItems"
           @app-menu-click="appListVisible = true"
         />
       </header>
@@ -65,23 +66,35 @@
         noApps: $t('navigation.appList.noApps'),
       }"
     />
+
+    <CPrompts />
+    <CNotificationSidebar />
+    <ReminderSidebar />
+    <ReminderToastHost />
   </div>
 </template>
 
 <script setup>
 import CSidebarNamespaceSwitcher from '@/components/CSidebarNamespaceSwitcher.vue'
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
+import ReminderSidebar from '@/components/Reminders/ReminderSidebar.vue'
+import ReminderToastHost from '@/components/Reminders/ReminderToastHost.vue'
 import { useNamespaceStore } from '@/stores/namespace'
 import { useRecordStore } from '@/stores/record'
+import { useReminderStore } from '@/stores/reminder'
 import { useUserStore } from '@/stores/user'
-import { components, useRBACStore, useApplicationsStore } from '@cortezaproject/corteza-vue-next'
+import { components, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar } = components
 
+const { t } = useI18n()
+const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
 const $ComposeAPI = inject('$ComposeAPI')
 const $SystemAPI = inject('$SystemAPI')
+const $AutomationAPI = inject('$AutomationAPI')
 
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')
@@ -94,8 +107,28 @@ const usersStore = useUserStore()
 const recordStore = useRecordStore()
 const rbacStore = useRBACStore()
 const applicationsStore = useApplicationsStore()
+const notificationsStore = useNotificationsStore()
+const workflowPromptsStore = useWorkflowPromptsStore()
+const reminderStore = useReminderStore()
 
 const appListVisible = ref(false)
+let realtimeClient
+
+const profileReminderItems = computed(() => {
+  const label = reminderStore.activeCount > 0
+    ? `${t('navigation.userSettings.reminders')} (${reminderStore.activeCount})`
+    : t('navigation.userSettings.reminders')
+
+  return [
+    {
+      label,
+      icon: 'pi pi-clock',
+      command: () => {
+        reminderStore.toggleVisibility()
+      },
+    },
+  ]
+})
 
 // Provide stores to field editor/viewer components in lib/vue
 provide('$userStore', usersStore)
@@ -107,12 +140,53 @@ onMounted(() => {
     usersStore.load({ limit: 500 }),
     rbacStore.load([$ComposeAPI, $SystemAPI]),
     applicationsStore.fetchApplications(),
+    notificationsStore.fetchNotifications($SystemAPI),
+    reminderStore.fetchReminders(),
+    workflowPromptsStore.update($AutomationAPI, 'compose'),
   ]
   const delayPromise = new Promise(resolve => setTimeout(resolve, 1000))
 
   Promise.all([...fetchPromises, delayPromise]).finally(() => {
     loading.value = false
   })
+
+  realtimeClient = websocket.createRealtimeClient({
+    auth: $Auth,
+    onMessage: ({ data }) => {
+      const msg = JSON.parse(data)
+      switch (msg['@type']) {
+        case 'workflowSessionPrompt':
+          workflowPromptsStore.newPrompt(msg['@value'], 'compose')
+          break
+        case 'workflowSessionResumed':
+          workflowPromptsStore.clear(msg['@value'])
+          break
+        case 'notification':
+          notificationsStore.addNotification(msg['@value'])
+          break
+        case 'reminder':
+          reminderStore.handleRealtimeReminder(msg['@value'])
+          break
+        case 'notification.read':
+          notificationsStore.updateReadNotification(msg['@value'])
+          break
+        case 'notification.unread':
+          notificationsStore.updateUnreadNotification(msg['@value'])
+          break
+        case 'notification.read.all':
+          notificationsStore.updateAllReadNotifications(msg['@value'])
+          break
+        case 'notification.unread.all':
+          notificationsStore.updateAllUnreadNotifications(msg['@value'])
+          break
+        case 'notification.delete':
+          notificationsStore.removeNotification(msg['@value'])
+          break
+      }
+    },
+  })
+
+  realtimeClient.connect()
 })
 
 const expanded = ref(false)
@@ -134,6 +208,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+  realtimeClient?.disconnect?.()
+  reminderStore.dispose()
 })
 
 // Route-based sidebar control

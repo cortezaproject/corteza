@@ -9,7 +9,7 @@
   >
     <div v-if="visible" class="right-sidebar flex flex-col">
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 pt-4 pb-2">
+      <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
         <span class="text-lg font-semibold text-color">{{ labels.title }}</span>
         <Button
           icon="pi pi-times"
@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import defaultAppIcon from '../../assets/default-app.png'
@@ -102,6 +102,7 @@ const props = defineProps({
 })
 
 const $SystemAPI = inject('$SystemAPI')
+const $eventBus = inject('$eventBus', null)
 
 const query = ref('')
 const applicationsStore = useApplicationsStore()
@@ -151,4 +152,20 @@ const close = () => {
   visible.value = false
   query.value = ''
 }
+
+const offSidebar = $eventBus?.on('right-sidebar:opened', name => {
+  if (name !== 'app-list') {
+    close()
+  }
+})
+
+watch(visible, next => {
+  if (next) {
+    $eventBus?.emit('right-sidebar:opened', 'app-list')
+  }
+})
+
+onBeforeUnmount(() => {
+  offSidebar?.()
+})
 </script>

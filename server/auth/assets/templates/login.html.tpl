@@ -62,7 +62,7 @@
 				{{ end }}
 				<button
 					data-test-id="button-login"
-					class="btn btn-light btn-block btn-lg"
+					class="btn btn-light btn-block btn-lg mt-2"
 					type="submit"
 				>
 					{{ tr "login.template.form.button.login" }}

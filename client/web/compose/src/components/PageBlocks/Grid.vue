@@ -3,9 +3,9 @@
   <div v-if="isSingleBlockView" class="single-block-wrapper p-4">
     <div class="block-content">
       <component
-        :is="resolveBlock(blocks[0]?.kind)"
-        v-if="resolveBlock(blocks[0]?.kind)"
-        :block="blocks[0]"
+        :is="resolveBlock(visibleBlocks[0]?.kind)"
+        v-if="resolveBlock(visibleBlocks[0]?.kind)"
+        :block="visibleBlocks[0]"
         :blocks="blocks"
         :namespace="namespace"
         :page="page"
@@ -23,7 +23,7 @@
     :margin="[12, 12]"
     :is-draggable="editable"
     :is-resizable="editable"
-    :responsive="true"
+    :responsive="!editable"
     :breakpoints="{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }"
     :cols="{ lg: 48, md: 48, sm: 1, xs: 1, xxs: 1 }"
     :vertical-compact="true"
@@ -98,7 +98,9 @@ const props = defineProps({
 const emit = defineEmits(['update:blocks', 'layout-updated'])
 
 // Single block in view mode — bypass grid entirely, let CSS flex handle sizing
-const isSingleBlockView = computed(() => !props.editable && props.blocks.length === 1)
+const visibleBlocks = computed(() => props.blocks.filter(block => !block.meta?.hidden))
+
+const isSingleBlockView = computed(() => !props.editable && visibleBlocks.value.length === 1)
 
 // Unique ID for each block — blockID '0' is NoID (unsaved), so fall back to tempID
 function getBlockId(block) {
@@ -110,7 +112,7 @@ function getBlockId(block) {
 // Block map for grid lookups
 const blockMap = computed(() => {
   const map = new Map()
-  for (const block of props.blocks) {
+  for (const block of visibleBlocks.value) {
     const id = getBlockId(block)
     if (id) map.set(String(id), block)
   }
@@ -122,7 +124,7 @@ const layoutModel = ref([])
 
 // Build layout from blocks
 function rebuildLayout() {
-  layoutModel.value = props.blocks.map(block => {
+  layoutModel.value = visibleBlocks.value.map(block => {
     const [x, y, w, h] = block.xywh || [0, 0, 24, 18]
     return {
       i: String(getBlockId(block)),

@@ -13,17 +13,21 @@ export { I18nPlugin } from './plugins/i18n'
 export { SettingsPlugin } from './plugins/settings'
 export { PrimeVueComponentsPlugin } from './plugins/primevue-components'
 export { ToastPlugin } from './plugins/toast'
+export { EventBusPlugin } from './plugins/event-bus'
 
 // Export stores
 export { useRBACStore } from './composables/useRBAC'
 export { useApplicationsStore } from './stores/useApplicationsStore'
 export { useComposeResourceStore } from './stores/useComposeResourceStore'
+export { useNotificationsStore } from './stores/useNotificationsStore'
+export { useWorkflowPromptsStore } from './stores/useWorkflowPromptsStore'
 export { useConfirmDelete } from './composables/useConfirmDelete'
 export { useResourceList } from './composables/useResourceList'
 export { getTheme, setThemes, useTheme } from './composables/useTheme'
 export { useMinDuration, withMinDuration } from './composables/useMinDuration'
 export { useUserResolver } from './composables/useUserResolver'
 export { useFileUpload } from './composables/useFileUpload'
+export * as websocket from './libs/websocket'
 
 // Export filters
 export * as filters from './filters'

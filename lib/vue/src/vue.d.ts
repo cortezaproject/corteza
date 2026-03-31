@@ -15,6 +15,7 @@ declare module '*.vue' {
 
 // Import types for augmentation
 import type { Auth } from './plugins/auth'
+import type { EventBus } from './plugins/event-bus'
 import type { Settings } from './plugins/settings'
 
 // API Client types - import from declaration files
@@ -61,6 +62,16 @@ declare module 'vue' {
      * Provides access to system settings with reactive updates
      */
     $Settings: Settings
+    $eventBus: EventBus
+    $toast: {
+      add: (options: unknown) => void;
+      addToast: (options: unknown) => void;
+      toastSuccess: (message: string, title?: string) => void;
+      toastWarning: (message: string, title?: string) => void;
+      toastInfo: (message: string, title?: string) => void;
+      toastDanger: (message: string, title?: string) => void;
+      toastErrorHandler: (prefix?: string, title?: string) => (err?: unknown) => string;
+    }
 
     /**
      * Translation function from vue-i18n
@@ -78,6 +89,7 @@ declare module 'vue' {
     Button: (typeof import('primevue/button'))['default']
     Card: (typeof import('primevue/card'))['default']
     Checkbox: (typeof import('primevue/checkbox'))['default']
+    Drawer: (typeof import('primevue/drawer'))['default']
     InputText: (typeof import('primevue/inputtext'))['default']
     Select: (typeof import('primevue/select'))['default']
     Menu: (typeof import('primevue/menu'))['default']
@@ -106,6 +118,11 @@ declare global {
      * @example 'https://corteza.example.com/auth'
      */
     CortezaAuth?: string
+
+    /**
+     * Corteza websocket URL (optional, auto-derived from CortezaAPI if not set)
+     */
+    CortezaWebsocket?: string
 
     /**
      * Corteza Webapp base URL (optional)

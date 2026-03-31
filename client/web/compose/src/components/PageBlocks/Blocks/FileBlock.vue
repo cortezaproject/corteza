@@ -4,7 +4,7 @@
       <ProgressSpinner style="width: 2rem; height: 2rem" />
     </div>
 
-    <div v-else-if="resolvedAttachments.length" class="p-3">
+    <div v-else-if="resolvedAttachments.length" class="p-2">
       <!-- List mode -->
       <div v-if="viewMode === 'list'" class="flex flex-col gap-2">
         <div
@@ -14,37 +14,96 @@
         >
           <i class="pi pi-file text-xl text-primary" />
           <div class="flex-1 min-w-0">
-            <div v-if="showName" class="font-medium truncate">{{ att.name }}</div>
-            <div class="text-sm text-muted-color">{{ formatSize(att.meta?.original?.size) }}</div>
+            <div v-if="!hideFileName" class="font-medium truncate">{{ att.name }}</div>
+            <div class="text-sm text-muted-color">{{ formatSize(att.size) }}</div>
           </div>
-          <Button
-            v-if="enableDownload && att.downloadUrl"
-            icon="pi pi-download"
-            text
-            size="small"
-            severity="secondary"
-            @click="downloadAttachment(att)"
-          />
+          <a
+            v-if="att.download"
+            :href="att.download"
+            @click.stop
+          >
+            <Button
+              icon="pi pi-download"
+              text
+              size="small"
+              severity="secondary"
+            />
+          </a>
         </div>
       </div>
 
-      <!-- Grid / Gallery mode -->
-      <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <!-- Gallery mode -->
+      <div
+        v-else
+        class="flex items-start justify-around gap-3 flex-wrap h-full"
+      >
         <div
           v-for="att in resolvedAttachments"
           :key="att.attachmentID"
-          class="flex flex-col items-center gap-1 p-3 border border-surface rounded"
+          class="item-preview relative"
         >
-          <i v-if="!isImage(att)" class="pi pi-file text-3xl text-primary" />
-          <img
-            v-else
-            :src="att.previewUrl || '#'"
-            :alt="att.name"
-            class="w-full max-h-32 object-contain rounded"
-          />
-          <span v-if="showName" class="text-sm truncate max-w-full text-center">
-            {{ att.name }}
-          </span>
+          <!-- Image preview -->
+          <template v-if="isImage(att)">
+            <a
+              v-if="att.clickToView && att.url"
+              :href="att.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                :src="att.previewUrl || att.url"
+                :alt="att.name"
+                :style="{ width: 'unset', ...inlineCustomStyles(att) }"
+                class="object-contain"
+              />
+            </a>
+            <img
+              v-else
+              :src="att.previewUrl || att.url"
+              :alt="att.name"
+              :style="{ width: 'unset', ...inlineCustomStyles(att) }"
+              class="object-contain"
+            />
+          </template>
+          <i v-else class="pi pi-file text-3xl text-primary" />
+
+          <!-- File name -->
+          <div
+            class="flex items-start justify-center"
+            :style="{ width: `calc(${inlineCustomStyles(att).width || '100%'})` }"
+          >
+            <div
+              v-if="!hideFileName"
+              class="filename-container text-center"
+              style="margin-top: 0.1rem;"
+            >
+              <a
+                v-if="att.clickToView && att.url"
+                :href="att.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="hover:underline"
+              >
+                {{ att.name }}
+              </a>
+              <span v-else>{{ att.name }}</span>
+            </div>
+          </div>
+
+          <!-- Download button (overlay) -->
+          <a
+            v-if="att.download"
+            :href="att.download"
+            class="preview-download-button absolute top-0 right-0"
+            @click.stop
+          >
+            <Button
+              icon="pi pi-download"
+              text
+              size="small"
+              severity="secondary"
+            />
+          </a>
         </div>
       </div>
     </div>
@@ -67,13 +126,38 @@ const props = defineProps({
 const $ComposeAPI = inject('$ComposeAPI')
 
 const viewMode = computed(() => props.block.options?.mode || 'list')
-const showName = computed(() => props.block.options?.showName ?? true)
-const enableDownload = computed(() => props.block.options?.enableDownload ?? true)
+const hideFileName = computed(() => !!props.block.options?.hideFileName)
+const enableDownload = computed(() => props.block.options?.enableDownload !== false)
+const clickToView = computed(() => props.block.options?.clickToView !== false)
 
 const loading = ref(false)
 const resolvedAttachments = ref([])
 
 const rawAttachments = computed(() => props.block.options?.attachments || [])
+
+function inlineCustomStyles (att) {
+  const o = props.block.options || {}
+  let { width, height, maxWidth, maxHeight, margin, borderRadius, backgroundColor } = o
+
+  maxWidth = maxWidth || '100%'
+  maxHeight = maxHeight || '100%'
+  margin = margin || 'auto'
+
+  if (!isImage(att)) {
+    width = width || '200px'
+    height = height || 'auto'
+  }
+
+  return {
+    width,
+    height,
+    maxWidth,
+    maxHeight,
+    borderRadius,
+    backgroundColor: backgroundColor ? `#${backgroundColor}` : undefined,
+    margin,
+  }
+}
 
 // Resolve attachment IDs into full attachment objects
 async function resolveAttachments(ids) {
@@ -102,12 +186,17 @@ async function resolveAttachments(ids) {
         attachmentID,
       })
 
+      const url = att.url ? baseURL + att.url : ''
+
       results.push({
         attachmentID: att.attachmentID,
         name: att.name,
         meta: att.meta,
-        previewUrl: att.url ? baseURL + att.url : '',
-        downloadUrl: att.url ? baseURL + att.url : '',
+        size: att.meta?.original?.size || 0,
+        url,
+        previewUrl: att.previewUrl ? baseURL + att.previewUrl : url,
+        download: enableDownload.value && url ? url + '&download=1' : undefined,
+        clickToView: clickToView.value,
       })
     } catch (e) {
       // Skip unresolvable attachments
@@ -132,10 +221,34 @@ function formatSize(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
-
-function downloadAttachment(att) {
-  if (att.downloadUrl) {
-    window.open(att.downloadUrl, '_blank')
-  }
-}
 </script>
+
+<style scoped>
+.item-preview .preview-download-button {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.item-preview:hover .preview-download-button {
+  opacity: 1;
+}
+
+.filename-container {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.filename-container:hover {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
+}
+</style>
+
+

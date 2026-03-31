@@ -31,8 +31,13 @@ export class PageBlockIFrame extends PageBlock {
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions(o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options & { url?: string }>): void {
     if (!o) return
+
+    // Handle legacy 'url' key: map to 'src' if 'src' is not provided
+    if (!o.src && (o as Record<string, unknown>).url) {
+      o = { ...o, src: (o as Record<string, unknown>).url as string }
+    }
 
     Apply(this.options, o, String, 'srcField', 'src', 'wrap', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')

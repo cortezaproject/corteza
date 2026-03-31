@@ -22,5 +22,6 @@ userSettings:
   changePassword: Change password
   logout: Logout
   profile: Profile
+  reminders: Reminders
   theme: Theme
 viewPage: View Page

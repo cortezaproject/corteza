@@ -40,11 +40,17 @@ const navItems = computed(() => [
     _icon: 'pi pi-android',
     _divider: true,
   },
-  ...agentStore.list.map(a => ({
-    _id: a.agentID,
-    _parentId: 'agents',
-    _label: a.meta?.short || a.handle || t('agent.list.untitled', 'Untitled'),
-    _route: { name: 'agent.edit', params: { agentID: a.agentID } },
-  })),
+  ...[...agentStore.list]
+    .sort((a, b) => {
+      const labelA = a.meta?.short || a.handle || ''
+      const labelB = b.meta?.short || b.handle || ''
+      return labelA.localeCompare(labelB)
+    })
+    .map(a => ({
+      _id: a.agentID,
+      _parentId: 'agents',
+      _label: a.meta?.short || a.handle || t('agent.list.untitled', 'Untitled'),
+      _route: { name: 'agent.edit', params: { agentID: a.agentID } },
+    })),
 ])
 </script>

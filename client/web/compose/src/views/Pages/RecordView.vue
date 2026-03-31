@@ -22,7 +22,7 @@
       />
       <Button
         v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-objects-column"
+        icon="pi pi-pencil"
         size="small"
         @click="goToEditPage"
       />
@@ -46,8 +46,8 @@
       <Grid :blocks="positionedBlocks" :namespace="namespace" :page="page" :record="record" />
     </div>
 
-    <!-- Record Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
+    <!-- Record Toolbar (only on record pages) -->
+    <div v-if="page?.isRecordPage" class="shrink-0 border-t border-surface bg-surface">
       <div class="flex items-center justify-between p-3">
         <!-- Left side -->
         <div class="flex gap-2">
@@ -141,7 +141,7 @@ import { usePageStore } from '@/stores/page'
 import { useRecordStore } from '@/stores/record'
 import { compose, validator } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
-import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 
@@ -160,6 +160,7 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const $auth = inject('$auth', {})
+const $eventBus = inject('$eventBus', null)
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const moduleStore = useModuleStore()
@@ -260,6 +261,17 @@ async function loadPage() {
     page.value = pageStore.getByID(pageID) || null
 
     if (page.value) {
+      if (!page.value.isRecordPage) {
+        router.replace({
+          name: 'page',
+          params: {
+            slug: route.params.slug,
+            pageID: page.value.pageID,
+          },
+        })
+        return
+      }
+
       const layouts = pageLayoutStore.getByPageID(pageID)
       layout.value = layouts.length > 0 ? layouts[0] : null
 
@@ -483,7 +495,7 @@ function goToEditPage() {
 }
 
 function goToModuleEdit() {
-  if (page.value?.moduleID) {
+  if (page.value?.isRecordPage) {
     router.push({
       name: 'admin.modules.edit',
       params: { moduleID: page.value.moduleID },
@@ -532,4 +544,10 @@ watch(
   () => loadPage(),
   { immediate: true },
 )
+
+const offRefetch = $eventBus?.on('refetch-records', () => loadPage())
+
+onBeforeUnmount(() => {
+  offRefetch?.()
+})
 </script>

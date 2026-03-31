@@ -1,8 +1,12 @@
 <template>
   <div ref="nodeRef" class="flow-node group">
     <Card
-      class="rounded-border overflow-hidden border border-surface hover:scale-[1.02] hover:shadow transition-all cursor-pointer"
-      :class="{ '!border-primary scale-[1.02] shadow': selected }"
+      class="rounded-border overflow-hidden border hover:scale-[1.02] hover:shadow transition-all cursor-pointer"
+      :class="[
+        selected ? '!border-primary scale-[1.02] shadow' : '',
+        !selected && traceActive ? '!border-green-500' : '',
+        !selected && !traceActive ? 'border-surface' : '',
+      ]"
       :style="{ width: `${NODE_DIMENSIONS.WIDTH}px` }"
       :pt="{ body: { class: 'p-2' } }"
       @mouseenter="onMouseEnter"
@@ -77,6 +81,7 @@ const props = defineProps({
   triggers: { type: Array, default: () => [] },
   nodes: { type: Array, default: () => [] },
   alwaysShowPreview: { type: Boolean, default: false },
+  traceActive: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['delete', 'replace'])

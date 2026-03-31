@@ -115,8 +115,9 @@ func (h ngAttachmentHandler) Create() atypes.ConstructFunction {
 		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "create": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Create Attachment",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
+			Short:       "Create Attachment",
+			Description: "Upload and create a new attachment",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -241,8 +242,9 @@ func (h ngAttachmentHandler) Delete() atypes.ConstructFunction {
 		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "delete": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Delete Attachment",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
+			Short:       "Delete Attachment",
+			Description: "Delete an attachment",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -290,8 +292,9 @@ func (h ngAttachmentHandler) OpenOriginal() atypes.ConstructFunction {
 		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "original-attachment": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Open Attachment",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
+			Short:       "Open Attachment",
+			Description: "Open and read attachment content",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -378,8 +381,9 @@ func (h ngAttachmentHandler) OpenPreview() atypes.ConstructFunction {
 		Groups: []string{"Attachments"},
 		Labels: map[string]string{"attachment": "step,workflow", "preview-attachment": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Preview Attachment",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
+			Short:       "Preview Attachment",
+			Description: "Generate a preview of an attachment",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "paperclip"},
 		},
 
 		Parameters: []*atypes.Param{

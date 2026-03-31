@@ -1,10 +1,15 @@
 <template>
-  <div ref="nodeRef" class="flow-node group">
+  <div ref="nodeRef" class="flow-node group" :class="{ 'opacity-40': traceActive && !traceFrame }">
     <Handle type="target" :position="Position.Top" />
 
     <Card
-      class="rounded-border overflow-hidden border border-surface hover:scale-[1.02] hover:shadow transition-all cursor-pointer"
-      :class="{ '!border-primary scale-[1.02] shadow': selected }"
+      class="rounded-border overflow-hidden border hover:scale-[1.02] hover:shadow transition-all cursor-pointer"
+      :class="[
+        selected ? '!border-primary scale-[1.02] shadow' : '',
+        !selected && traceFrame?.error ? '!border-red-500' : '',
+        !selected && traceFrame && !traceFrame.error ? '!border-green-500' : '',
+        !selected && !traceFrame && !traceActive ? 'border-surface' : '',
+      ]"
       :style="{ width: `${NODE_DIMENSIONS.WIDTH}px` }"
       :pt="{ body: { class: 'p-2' } }"
       @mouseenter="onMouseEnter"
@@ -81,6 +86,8 @@ const props = defineProps({
   nodes: { type: Array, default: () => [] },
   edges: { type: Array, default: () => [] },
   alwaysShowPreview: { type: Boolean, default: false },
+  traceFrame: { type: Object, default: null },
+  traceActive: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['delete', 'replace'])

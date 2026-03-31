@@ -127,7 +127,13 @@ const saveWorkflow = throttle(async function (wf) {
     const isNew = wf.workflowID === '0'
     const { triggers: wfTriggers = [] } = wf
 
-    // Handle trigger updates - delete removed triggers
+    // For new workflows, create the workflow first to get a real workflowID
+    // before creating triggers — otherwise triggers are created with workflowID='0'
+    if (isNew) {
+      wf = await $AutomationAPI.workflowCreate(wf)
+    }
+
+    // Handle trigger updates - delete removed triggers, then create/update remaining
     await Promise.all(triggers.value.filter(({ triggerID }) => {
       return !wfTriggers.find(t => triggerID === t.triggerID)
     }).map(({ triggerID }) => {
@@ -152,10 +158,8 @@ const saveWorkflow = throttle(async function (wf) {
       })
     })
 
-    // Handle workflow create/update
-    if (isNew) {
-      wf = await $AutomationAPI.workflowCreate(wf)
-    } else {
+    // For existing workflows, update after triggers are saved
+    if (!isNew) {
       wf = await $AutomationAPI.workflowUpdate(wf)
     }
 

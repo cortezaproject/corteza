@@ -1,0 +1,1773 @@
+{
+  "workflows": [
+    {
+      "handle": "",
+      "enabled": true,
+      "meta": {
+        "name": "API Gateway - Render LinkedIn Template",
+        "description": "",
+        "visual": null
+      },
+      "keepSessions": 0,
+      "steps": [
+        {
+          "stepID": "3",
+          "kind": "error-handler",
+          "ref": "",
+          "arguments": [],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "3",
+              "parent": "1",
+              "value": "Continue workflow from this step if an error is triggered",
+              "xywh": [
+                3040,
+                760,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "4",
+          "kind": "function",
+          "ref": "jsenvExecute",
+          "arguments": [
+            {
+              "target": "scope",
+              "expr": "response",
+              "type": "Any"
+            },
+            {
+              "target": "source",
+              "value": "var Result = {}\n\ninput.split(\"&\").forEach(pair => {\n  var parts = pair.split(\"=\")\n  Result[parts[0]] = parts[1]\n})\n\nreturn Result",
+              "type": "String"
+            }
+          ],
+          "results": [
+            {
+              "target": "response",
+              "expr": "resultAny",
+              "type": "Any"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "4",
+              "parent": "1",
+              "value": "Process arbitrary data in jsenv",
+              "xywh": [
+                2480,
+                1120,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "5",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "response",
+              "expr": "request.URL.RawQuery",
+              "type": "Reader"
+            },
+            {
+              "target": "response",
+              "expr": "response",
+              "type": "String"
+            }
+          ],
+          "results": null,
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "5",
+              "parent": "1",
+              "value": "Prepare state",
+              "xywh": [
+                3320,
+                760,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "6",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "result",
+              "expr": "\"No valid template id has been sent\"",
+              "type": "String"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "6",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                3040,
+                920,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "7",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "TemplateID",
+              "expr": "response.TemplateId",
+              "type": "ID"
+            },
+            {
+              "target": "recordID",
+              "expr": "response.RecordId",
+              "type": "ID"
+            },
+            {
+              "target": "templateVars",
+              "expr": "{}",
+              "type": "Any"
+            },
+            {
+              "target": "templateVars",
+              "expr": "set(templateVars, \"content_article_title\", content_article_title)",
+              "type": "Any"
+            },
+            {
+              "target": "templateVars",
+              "expr": "set(templateVars, \"author\", user.name)",
+              "type": "Any"
+            },
+            {
+              "target": "renderVariables",
+              "type": "Vars"
+            },
+            {
+              "target": "renderVariables.t",
+              "expr": "templateVars",
+              "type": "Any"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "7",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                3600,
+                1120,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "8",
+          "kind": "visual",
+          "ref": "swimlane",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "8",
+              "parent": "1",
+              "value": "Get data from the URL",
+              "xywh": [
+                2400,
+                1080,
+                40,
+                160
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "23",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "templateName",
+              "expr": "\"(Not found)\"",
+              "type": "String"
+            },
+            {
+              "target": "result",
+              "expr": "\"\"",
+              "type": "String"
+            },
+            {
+              "target": "namespaceHandle",
+              "expr": "\"LinkedInManager\"",
+              "type": "String"
+            },
+            {
+              "target": "moduleHandle",
+              "expr": "\"Post\"",
+              "type": "String"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "23",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                2760,
+                760,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "25",
+          "kind": "function",
+          "ref": "templatesRender",
+          "arguments": [
+            {
+              "target": "lookup",
+              "expr": "TemplateID",
+              "type": "ID"
+            },
+            {
+              "target": "documentType",
+              "value": "text/plain",
+              "type": "String"
+            },
+            {
+              "target": "variables",
+              "expr": "renderVariables",
+              "type": "Vars"
+            }
+          ],
+          "results": [
+            {
+              "target": "t",
+              "expr": "document",
+              "type": "RenderedDocument"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "25",
+              "parent": "1",
+              "value": "Template render",
+              "xywh": [
+                2760,
+                2400,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "28",
+          "kind": "visual",
+          "ref": "swimlane",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "28",
+              "parent": "1",
+              "value": "Receive data via gateway",
+              "xywh": [
+                2400,
+                720,
+                40,
+                320
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "57",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "result",
+              "expr": "t",
+              "type": "String"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "57",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                3040,
+                2400,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "64",
+          "kind": "gateway",
+          "ref": "excl",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "64",
+              "parent": "1",
+              "value": "Exclusive",
+              "xywh": [
+                2760,
+                600,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "68",
+          "kind": "function",
+          "ref": "jsenvExecute",
+          "arguments": [
+            {
+              "target": "scope",
+              "expr": "response.content_article_title",
+              "type": "Any"
+            },
+            {
+              "target": "source",
+              "value": "return decodeURIComponent(input)",
+              "type": "String"
+            }
+          ],
+          "results": [
+            {
+              "target": "content_article_title",
+              "expr": "resultString",
+              "type": "String"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "68",
+              "parent": "1",
+              "value": "Process arbitrary data in jsenv",
+              "xywh": [
+                2760,
+                1120,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "70",
+          "kind": "visual",
+          "ref": "swimlane",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "70",
+              "parent": "1",
+              "value": "Render the template",
+              "xywh": [
+                2400,
+                2360,
+                40,
+                160
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "71",
+          "kind": "function",
+          "ref": "usersLookup",
+          "arguments": [
+            {
+              "target": "lookup",
+              "expr": "userId",
+              "type": "ID"
+            }
+          ],
+          "results": [
+            {
+              "target": "user",
+              "expr": "user",
+              "type": "User"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "71",
+              "parent": "1",
+              "value": "User lookup",
+              "xywh": [
+                3320,
+                1120,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "73",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "userId",
+              "expr": "response.author",
+              "type": "String"
+            },
+            {
+              "target": "userId",
+              "expr": "userId",
+              "type": "ID"
+            },
+            {
+              "target": "recordId",
+              "expr": "response.RecordId",
+              "type": "String"
+            },
+            {
+              "target": "recordId",
+              "expr": "recordId",
+              "type": "ID"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "73",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                3040,
+                1120,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "75",
+          "kind": "visual",
+          "ref": "swimlane",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "75",
+              "parent": "1",
+              "value": "Get data from the Record",
+              "xywh": [
+                2400,
+                1280,
+                40,
+                360
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "77",
+          "kind": "gateway",
+          "ref": "excl",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "77",
+              "parent": "1",
+              "value": "Exclusive",
+              "xywh": [
+                2480,
+                1320,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "79",
+          "kind": "function",
+          "ref": "composeRecordsLookup",
+          "arguments": [
+            {
+              "target": "namespace",
+              "expr": "namespaceHandle",
+              "type": "Handle"
+            },
+            {
+              "target": "module",
+              "expr": "moduleHandle",
+              "type": "Handle"
+            },
+            {
+              "target": "record",
+              "expr": "recordId",
+              "type": "ID"
+            }
+          ],
+          "results": [
+            {
+              "target": "r",
+              "expr": "record",
+              "type": "ComposeRecord"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "79",
+              "parent": "1",
+              "value": "Compose record lookup",
+              "xywh": [
+                2600,
+                1480,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "85",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "commentary",
+              "expr": "r.values.commentary",
+              "type": "String"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "85",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                2880,
+                1480,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "87",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "templateVars",
+              "expr": "set(templateVars, \"commentary\", commentary)",
+              "type": "Any"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "87",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                3160,
+                1480,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "89",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "renderVariables",
+              "type": "Vars"
+            },
+            {
+              "target": "renderVariables.t",
+              "expr": "templateVars",
+              "type": "Any"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "89",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                2480,
+                2400,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "92",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "error",
+              "expr": "\"The workflow could not fetch the correct API token to make the API call. Please contact the admin.\" ",
+              "type": "String"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "92",
+              "parent": "1",
+              "value": "set error message (if available)",
+              "xywh": [
+                3920,
+                2200,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "93",
+          "kind": "exec-workflow",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "workflow",
+              "value": "corteza_api_auth",
+              "type": "Handle"
+            }
+          ],
+          "results": [
+            {
+              "target": "apiToken",
+              "expr": "token",
+              "type": "String"
+            },
+            {
+              "target": "tokenFetched",
+              "expr": "token_fetched",
+              "type": "Boolean"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "93",
+              "parent": "1",
+              "value": "Refetch api token",
+              "xywh": [
+                3520,
+                2040,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "94",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "authAttempted",
+              "expr": "true",
+              "type": "Boolean"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "94",
+              "parent": "1",
+              "value": "auth attempted!",
+              "xywh": [
+                3680,
+                2200,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "95",
+          "kind": "gateway",
+          "ref": "excl",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "95",
+              "parent": "1",
+              "value": "token fetched ?",
+              "xywh": [
+                3800,
+                2040,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "96",
+          "kind": "function",
+          "ref": "httpRequestSend",
+          "arguments": [
+            {
+              "target": "url",
+              "expr": "apiBaseUrl + \"/api/compose/namespace/\" + s.namespaceID  + \"/attachment/record/\" + r.values.media_file_image",
+              "type": "String"
+            },
+            {
+              "target": "method",
+              "value": "GET",
+              "type": "String"
+            },
+            {
+              "target": "headerAuthBearer",
+              "expr": "apiToken",
+              "type": "String"
+            },
+            {
+              "target": "headerContentType",
+              "expr": "\"application/json\"",
+              "type": "String"
+            }
+          ],
+          "results": [
+            {
+              "target": "statusCode1",
+              "expr": "statusCode",
+              "type": "Integer"
+            },
+            {
+              "target": "response1",
+              "expr": "body",
+              "type": "Reader"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "96",
+              "parent": "1",
+              "value": "HTTP request",
+              "xywh": [
+                3240,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "97",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "media_file_image",
+              "expr": "apiBaseUrl + \"/api/compose\" + data1.response.url",
+              "type": "String"
+            },
+            {
+              "target": "templateVars",
+              "expr": "set(templateVars, \"media_file_image\", media_file_image)",
+              "type": "Any"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "97",
+              "parent": "1",
+              "value": "Define and mutate scope variables",
+              "xywh": [
+                4360,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "98",
+          "kind": "gateway",
+          "ref": "excl",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "98",
+              "parent": "1",
+              "value": "Exclusive",
+              "xywh": [
+                4080,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "99",
+          "kind": "visual",
+          "ref": "swimlane",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "99",
+              "parent": "1",
+              "value": "Get the form header image",
+              "xywh": [
+                2400,
+                1680,
+                40,
+                640
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "100",
+          "kind": "gateway",
+          "ref": "excl",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "id": "100",
+              "parent": "1",
+              "value": "Exclusive",
+              "xywh": [
+                2568,
+                1720,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "101",
+          "kind": "gateway",
+          "ref": "excl",
+          "arguments": null,
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "101",
+              "parent": "1",
+              "value": "valid status?",
+              "xywh": [
+                3520,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "102",
+          "kind": "function",
+          "ref": "jsenvExecute",
+          "arguments": [
+            {
+              "target": "scope",
+              "expr": "response1",
+              "type": "Any"
+            },
+            {
+              "target": "source",
+              "value": "var request\n\ntry {\n\trequest = JSON.parse(readRequestBody(input));\n} catch (e) {\n\tthrow new Error('could not parse json info payload: ' + e)\n}\n\nreturn request",
+              "type": "String"
+            }
+          ],
+          "results": [
+            {
+              "target": "data1",
+              "expr": "resultAny",
+              "type": "Any"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "102",
+              "parent": "1",
+              "value": "parse response",
+              "xywh": [
+                3800,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "103",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "error",
+              "expr": "\"The workflow could not regenerate the correct token.\"",
+              "type": "String"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "103",
+              "parent": "1",
+              "value": "set error message (if available)",
+              "xywh": [
+                4080,
+                2040,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "117",
+          "kind": "expressions",
+          "ref": "",
+          "arguments": [
+            {
+              "target": "apiBaseUrl",
+              "expr": "s.values.CortezaBaseUrl",
+              "type": "String"
+            },
+            {
+              "target": "apiToken",
+              "expr": "s.values.CortezaAuthToken",
+              "type": "String"
+            },
+            {
+              "target": "authAttempted",
+              "expr": "false",
+              "type": "Boolean"
+            }
+          ],
+          "results": [],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "117",
+              "parent": "1",
+              "value": "prep api settings",
+              "xywh": [
+                2960,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        },
+        {
+          "stepID": "119",
+          "kind": "function",
+          "ref": "composeRecordsLast",
+          "arguments": [
+            {
+              "target": "namespace",
+              "expr": "\"formbuilder\"",
+              "type": "Handle"
+            },
+            {
+              "target": "module",
+              "expr": "\"Settings\"",
+              "type": "Handle"
+            }
+          ],
+          "results": [
+            {
+              "target": "s",
+              "expr": "record",
+              "type": "ComposeRecord"
+            }
+          ],
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "defaultName": false,
+              "id": "119",
+              "parent": "1",
+              "value": "Fetch Settings",
+              "xywh": [
+                2680,
+                1880,
+                200,
+                80
+              ]
+            }
+          }
+        }
+      ],
+      "paths": [
+        {
+          "parentID": "3",
+          "childID": "5",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "30",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": "Try"
+            }
+          }
+        },
+        {
+          "parentID": "3",
+          "childID": "6",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "31",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "Catch"
+            }
+          }
+        },
+        {
+          "parentID": "4",
+          "childID": "68",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "33",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "5",
+          "childID": "4",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "54",
+              "parent": "1",
+              "points": [
+                {
+                  "x": 3420,
+                  "y": 1064
+                },
+                {
+                  "x": 2580,
+                  "y": 1064
+                }
+              ],
+              "style": "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "25",
+          "childID": "57",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "58",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "23",
+          "childID": "64",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "65",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "expr": "true",
+          "parentID": "64",
+          "childID": "5",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "66",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#1 - If"
+            }
+          }
+        },
+        {
+          "parentID": "64",
+          "childID": "3",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "67",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#2 - Else (if)"
+            }
+          }
+        },
+        {
+          "parentID": "68",
+          "childID": "73",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "69",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "73",
+          "childID": "71",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "74",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "7",
+          "childID": "77",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "78",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "expr": "recordId != 0",
+          "parentID": "77",
+          "childID": "79",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "82",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#1 - If"
+            }
+          }
+        },
+        {
+          "parentID": "77",
+          "childID": "89",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "83",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#2 - Else (if)"
+            }
+          }
+        },
+        {
+          "parentID": "71",
+          "childID": "7",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "84",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "79",
+          "childID": "85",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "86",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "85",
+          "childID": "87",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "88",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "89",
+          "childID": "25",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "90",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "87",
+          "childID": "100",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "91",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "expr": "tokenFetched",
+          "parentID": "95",
+          "childID": "94",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "104",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#1 - "
+            }
+          }
+        },
+        {
+          "parentID": "95",
+          "childID": "92",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "105",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#2 - "
+            }
+          }
+        },
+        {
+          "parentID": "93",
+          "childID": "95",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "106",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "expr": "(statusCode1 == 200 || statusCode1 == 201)",
+          "parentID": "101",
+          "childID": "102",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "107",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": "#1 - If"
+            }
+          }
+        },
+        {
+          "expr": "authAttempted == false",
+          "parentID": "101",
+          "childID": "93",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "108",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#2 - Else (if)"
+            }
+          }
+        },
+        {
+          "parentID": "101",
+          "childID": "103",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "109",
+              "parent": "1",
+              "points": [
+                {
+                  "x": 3670,
+                  "y": 2008
+                },
+                {
+                  "x": 4180,
+                  "y": 2008
+                }
+              ],
+              "style": "exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#3 - Else (if)"
+            }
+          }
+        },
+        {
+          "expr": "r.values.media_file_image",
+          "parentID": "100",
+          "childID": "119",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "110",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#1 - If"
+            }
+          }
+        },
+        {
+          "parentID": "96",
+          "childID": "101",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "111",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "102",
+          "childID": "98",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "112",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "expr": "has(data1, \"error\") == false",
+          "parentID": "98",
+          "childID": "97",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "113",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": "#1 - If"
+            }
+          }
+        },
+        {
+          "expr": "authAttempted == false",
+          "parentID": "98",
+          "childID": "93",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "114",
+              "parent": "1",
+              "points": [
+                {
+                  "x": 4130,
+                  "y": 1984
+                },
+                {
+                  "x": 3620,
+                  "y": 1984
+                }
+              ],
+              "style": "exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#2 - Else (if)"
+            }
+          }
+        },
+        {
+          "parentID": "98",
+          "childID": "103",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "115",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#3 - Else (if)"
+            }
+          }
+        },
+        {
+          "parentID": "94",
+          "childID": "96",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "116",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "119",
+          "childID": "117",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "120",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "100",
+          "childID": "89",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "121",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+              "value": "#2 - Else (if)"
+            }
+          }
+        },
+        {
+          "parentID": "117",
+          "childID": "96",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "122",
+              "parent": "1",
+              "points": [],
+              "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        },
+        {
+          "parentID": "97",
+          "childID": "89",
+          "meta": {
+            "name": "",
+            "description": "",
+            "visual": {
+              "id": "123",
+              "parent": "1",
+              "points": [
+                {
+                  "x": 4460,
+                  "y": 2344
+                },
+                {
+                  "x": 2630,
+                  "y": 2344
+                }
+              ],
+              "style": "exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;",
+              "value": null
+            }
+          }
+        }
+      ],
+      "triggers": [
+        {
+          "resourceType": "system",
+          "eventType": "onManual",
+          "constraints": [],
+          "enabled": true,
+          "stepID": "23",
+          "meta": {
+            "description": "",
+            "visual": {
+              "defaultName": true,
+              "edges": [
+                {
+                  "childID": "23",
+                  "meta": {
+                    "description": "",
+                    "label": "",
+                    "visual": {
+                      "id": "52",
+                      "parent": "1",
+                      "points": [],
+                      "style": "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+                      "value": null
+                    }
+                  },
+                  "parentID": "24"
+                }
+              ],
+              "id": "24",
+              "parent": "1",
+              "value": "System - onManual",
+              "xywh": [
+                2480,
+                760,
+                200,
+                80
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

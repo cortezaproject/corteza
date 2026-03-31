@@ -295,7 +295,7 @@ const liveExampleOutput = computed(() => {
   }
 
   // Touch reactive dependencies so Vue recomputes when these change
-  // eslint-disable-next-line no-unused-expressions
+   
   void (props.field.options?.format, props.field.options?.presetFormat,
     props.field.options?.precision, props.field.options?.prefix, props.field.options?.suffix)
 

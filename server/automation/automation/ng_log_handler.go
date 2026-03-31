@@ -35,8 +35,9 @@ func (h ngLogHandler) Debug() atypes.ConstructFunction {
 		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log Debug",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
+			Short:       "Log Debug",
+			Description: "Write a debug-level log message",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -79,8 +80,9 @@ func (h ngLogHandler) Info() atypes.ConstructFunction {
 		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log Info",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
+			Short:       "Log Info",
+			Description: "Write an info-level log message",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -123,8 +125,9 @@ func (h ngLogHandler) Warn() atypes.ConstructFunction {
 		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log Warning",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
+			Short:       "Log Warning",
+			Description: "Write a warning-level log message",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -167,8 +170,9 @@ func (h ngLogHandler) Error() atypes.ConstructFunction {
 		Groups: []string{"Logging"},
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Log Error",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "list"},
+			Short:       "Log Error",
+			Description: "Write an error-level log message",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "list"},
 		},
 
 		Parameters: []*atypes.Param{

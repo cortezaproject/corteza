@@ -16,7 +16,7 @@
       <div class="flex items-center gap-2">
         <ToggleSwitch
           :model-value="editor.enabled.value"
-          @update:model-value="editor.enabled.value = $event"
+          @update:model-value="toggleEnabled"
           input-id="taq-enabled"
         />
         <label for="taq-enabled" class="text-sm">{{ $t('builder.enabled') }}</label>
@@ -36,14 +36,69 @@
       </template>
       <Divider layout="vertical" class="!m-0" />
       <Button
-        v-tooltip.bottom="showAllPreviews ? $t('builder.preview.hideConfigurations') : $t('builder.preview.showConfigurations')"
+        v-tooltip.bottom="
+          showAllPreviews
+            ? $t('builder.preview.hideConfigurations')
+            : $t('builder.preview.showConfigurations')
+        "
         :icon="showAllPreviews ? 'pi pi-eye' : 'pi pi-eye-slash'"
         :severity="showAllPreviews ? 'primary' : 'secondary'"
         :outlined="!showAllPreviews"
         size="small"
-        @click="showAllPreviews = !showAllPreviews"
+        @click="togglePreviews"
       />
     </div>
+
+    <!-- Execution result card (below the toolbar card) -->
+    <Transition
+      enter-active-class="transition-all duration-200 ease-out"
+      enter-from-class="-translate-y-2 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition-all duration-150 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="-translate-y-2 opacity-0"
+    >
+      <div
+        v-if="isTraceActive"
+        class="absolute top-16 left-3 z-20 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm flex items-center gap-2 mt-2"
+      >
+        <Tag
+          :severity="editor.traceStatus.value === 'failed' ? 'danger' : 'success'"
+          :icon="
+            editor.traceStatus.value === 'failed' ? 'pi pi-times-circle' : 'pi pi-check-circle'
+          "
+          :value="
+            editor.traceStatus.value === 'failed'
+              ? $t('builder.trace.failed')
+              : $t('builder.trace.completed')
+          "
+          class="text-xs"
+        />
+        <span
+          v-if="editor.traceExecution.value?.duration"
+          class="text-xs text-muted-color flex items-center gap-1"
+        >
+          <i class="pi pi-clock text-xs" />
+          {{ editor.traceExecution.value.duration }}
+        </span>
+        <span
+          v-if="editor.traceFrames.value.length"
+          class="text-xs text-muted-color flex items-center gap-1"
+        >
+          <i class="pi pi-list text-xs" />
+          {{ editor.traceFrames.value.length }} {{ $t('builder.trace.stepsExecuted') }}
+        </span>
+        <Divider layout="vertical" class="!m-0 !mx-1" />
+        <Button
+          :label="$t('builder.trace.clear')"
+          icon="pi pi-times"
+          severity="secondary"
+          text
+          size="small"
+          @click="editor.clearTrace"
+        />
+      </div>
+    </Transition>
 
     <!-- VueFlow Canvas -->
     <div class="flex-1 min-h-0" @auxclick="onMiddleMouseClick">
@@ -69,16 +124,53 @@
 
         <!-- Custom node types -->
         <template #node-trigger="props">
-          <TriggerNode v-bind="props" :triggers="store.triggers" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
+          <TriggerNode
+            v-bind="props"
+            :triggers="store.triggers"
+            :nodes="editor.nodes.value"
+            :always-show-preview="showAllPreviews"
+            :trace-active="isTraceActive"
+            @delete="confirmDeleteNode"
+            @replace="startReplace"
+          />
         </template>
         <template #node-step="props">
-          <StepNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
+          <StepNode
+            v-bind="props"
+            :functions="store.functions"
+            :nodes="editor.nodes.value"
+            :always-show-preview="showAllPreviews"
+            :trace-frame="getTraceFrame(props)"
+            :trace-active="isTraceActive"
+            @delete="confirmDeleteNode"
+            @replace="startReplace"
+          />
         </template>
         <template #node-branch="props">
-          <BranchNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :edges="editor.edges.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
+          <BranchNode
+            v-bind="props"
+            :functions="store.functions"
+            :nodes="editor.nodes.value"
+            :edges="editor.edges.value"
+            :always-show-preview="showAllPreviews"
+            :trace-frame="getTraceFrame(props)"
+            :trace-active="isTraceActive"
+            @delete="confirmDeleteNode"
+            @replace="startReplace"
+          />
         </template>
         <template #node-iterator="props">
-          <IteratorNode v-bind="props" :functions="store.functions" :nodes="editor.nodes.value" :edges="editor.edges.value" :always-show-preview="showAllPreviews" @delete="confirmDeleteNode" @replace="startReplace" />
+          <IteratorNode
+            v-bind="props"
+            :functions="store.functions"
+            :nodes="editor.nodes.value"
+            :edges="editor.edges.value"
+            :always-show-preview="showAllPreviews"
+            :trace-frame="getTraceFrame(props)"
+            :trace-active="isTraceActive"
+            @delete="confirmDeleteNode"
+            @replace="startReplace"
+          />
         </template>
         <template #node-end="props">
           <EndNode v-bind="props" />
@@ -86,7 +178,12 @@
 
         <!-- Custom edge with + button -->
         <template #edge-addable="props">
-          <AddableEdge v-bind="props" @add="onEdgeAdd" />
+          <AddableEdge
+            v-bind="props"
+            :trace-active="isTraceActive"
+            :trace-traversed="isEdgeTraversed(props)"
+            @add="onEdgeAdd"
+          />
         </template>
       </VueFlow>
     </div>
@@ -95,7 +192,12 @@
     <div class="shrink-0 z-10 body-bg">
       <CToolbar>
         <template #start>
-          <Button :label="$t('general.label.back')" icon="pi pi-arrow-left" severity="secondary" @click="$router.push('/')" />
+          <Button
+            :label="$t('general.label.back')"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            @click="goBack"
+          />
         </template>
         <template #center>
           <!-- Zoom -->
@@ -141,8 +243,12 @@
       modal
       :header="
         replaceNodeId
-          ? (nodePickerCategory === 'trigger' ? $t('builder.replaceTrigger') : $t('builder.replaceStep'))
-          : (nodePickerCategory === 'trigger' ? $t('builder.selectTrigger') : $t('builder.addStep'))
+          ? nodePickerCategory === 'trigger'
+            ? $t('builder.replaceTrigger')
+            : $t('builder.replaceStep')
+          : nodePickerCategory === 'trigger'
+            ? $t('builder.selectTrigger')
+            : $t('builder.addStep')
       "
       :pt="{ content: { class: 'p-0' } }"
       :style="{ width: '50rem' }"
@@ -150,9 +256,28 @@
       <NodePicker
         :filter-category="nodePickerCategory"
         @select="handleNodeSelect"
-        @close="showNodePicker = false; replaceNodeId = null"
+        @close="closeNodePicker"
       />
     </Dialog>
+
+    <!-- Trace Step Sidebar (shows I/O for the selected node, positioned like reference panel) -->
+    <Transition
+      enter-active-class="transition-transform duration-200 ease-out"
+      enter-from-class="translate-x-[300px]"
+      enter-to-class="translate-x-0"
+    >
+      <div
+        v-if="isTraceActive && selectedNode && selectedTraceFrame"
+        class="right-sidebar"
+        :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '300px' }"
+      >
+        <TracePanel
+          :frame="selectedTraceFrame"
+          :execution-error="editor.traceExecution.value?.error"
+          @close="clearSelection"
+        />
+      </div>
+    </Transition>
 
     <!-- Reference Panel (opens on input click, closes via button or sidebar close) -->
     <Transition
@@ -252,6 +377,7 @@ import { useRoute } from 'vue-router'
 import ConfigSidebar from '@/components/builder/ConfigSidebar.vue'
 import NodePicker from '@/components/builder/NodePicker.vue'
 import ReferencePanel from '@/components/builder/ReferencePanel.vue'
+import TracePanel from '@/components/builder/TracePanel.vue'
 import AddableEdge from '@/components/flow/AddableEdge.vue'
 import BranchNode from '@/components/flow/BranchNode.vue'
 import EndNode from '@/components/flow/EndNode.vue'
@@ -305,6 +431,52 @@ const configSidebarRef = ref(null)
 
 // Provide active reference argument to descendant components (DynamicInput, CInputFieldValueMap)
 provide('activeReferenceArgument', activeReferenceArgument)
+
+// Trace helpers
+const isTraceActive = computed(() => editor.traceStatus.value !== 'idle')
+
+// Look up trace frame for a step node by matching its data.ref (handle) to the traceByHandle map
+// Falls back to matching by stepID if handle-based lookup fails
+function getTraceFrame(nodeProps) {
+  if (!isTraceActive.value) return null
+  const handle = nodeProps.data?.ref
+  if (handle) {
+    const frame = editor.traceByHandle.value.get(handle)
+    if (frame) return frame
+  }
+  // Fallback: match by stepID
+  const stepID = nodeProps.data?.stepID
+  if (stepID) {
+    return editor.traceFrames.value.find(f => f.stepID === stepID) || null
+  }
+  return null
+}
+
+// Check if an edge was traversed: both source and target nodes must have been executed
+// Helper to check if a node has a matching trace frame
+function nodeHasTrace(node) {
+  if (!node) return false
+  if (node.type === 'trigger') return true // triggers always count as traced
+  const handle = node.data?.ref
+  if (handle && editor.traceByHandle.value.get(handle)) return true
+  const stepID = node.data?.stepID
+  if (stepID && editor.traceFrames.value.some(f => f.stepID === stepID)) return true
+  return false
+}
+
+function isEdgeTraversed(edgeProps) {
+  if (!isTraceActive.value) return false
+  const sourceNode = editor.nodes.value.find(n => n.id === edgeProps.source)
+  const targetNode = editor.nodes.value.find(n => n.id === edgeProps.target)
+  if (!sourceNode || !targetNode) return false
+  return nodeHasTrace(sourceNode) && nodeHasTrace(targetNode)
+}
+
+// Get the trace frame for the currently selected node
+const selectedTraceFrame = computed(() => {
+  if (!selectedNode.value || !isTraceActive.value) return null
+  return getTraceFrame(selectedNode.value) || null
+})
 
 // Get selected node - look up from nodes array to get latest version after updates
 const selectedNode = computed(() => {
@@ -382,6 +554,23 @@ function zoomOut() {
 
 function fitToScreen() {
   fitView({ padding: 0.2, zoom: 1.5 })
+}
+
+function toggleEnabled(val) {
+  editor.enabled.value = val
+}
+
+function togglePreviews() {
+  showAllPreviews.value = !showAllPreviews.value
+}
+
+function goBack() {
+  router.push('/')
+}
+
+function closeNodePicker() {
+  showNodePicker.value = false
+  replaceNodeId.value = null
 }
 
 // Drawer resize handlers
@@ -724,5 +913,4 @@ watch(
   opacity: 0;
   pointer-events: none;
 }
-
 </style>

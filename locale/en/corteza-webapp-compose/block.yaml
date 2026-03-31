@@ -426,6 +426,8 @@ recordList:
     filter:
       label: Drill down filter
   tooltip:
+    saveChanges: Save changes
+    discardChanges: Discard changes
     deleteSelected: Delete selected records
     performance:
       impact: Using this feature will impact performance

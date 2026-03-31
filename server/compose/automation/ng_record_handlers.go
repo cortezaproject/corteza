@@ -803,8 +803,9 @@ func (h ngRecordsHandler) Delete() atypes.ConstructFunction {
 		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "delete": "step", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Delete Record",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+			Short:       "Delete Record",
+			Description: "Delete a record by ID",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -934,8 +935,9 @@ func (h ngRecordsHandler) Update() atypes.ConstructFunction {
 		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow", "update": "step"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Update Record",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+			Short:       "Update Record",
+			Description: "Update an existing record",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -1050,8 +1052,9 @@ func (h ngRecordsHandler) First() atypes.ConstructFunction {
 		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Find Oldest Record",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+			Short:       "Find Oldest Record",
+			Description: "Find the oldest record in a module",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
 		Parameters: []*atypes.Param{
@@ -1185,8 +1188,9 @@ func (h ngRecordsHandler) Last() atypes.ConstructFunction {
 		Groups: []string{"Records"},
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Find Newest Record",
-			Icon:  &atypes.NgAutomationIcon{Type: "name", Value: "database"},
+			Short:       "Find Newest Record",
+			Description: "Find the newest record in a module",
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "database"},
 		},
 
 		Parameters: []*atypes.Param{

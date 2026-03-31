@@ -2,8 +2,10 @@ import type { App } from 'vue'
 
 export const ToastPlugin = {
   install(app: App) {
+    const primeToast = app.config.globalProperties.$toast
+
     const addToast = (options: any) => {
-      app.config.globalProperties.$toast.add(options)
+      primeToast?.add(options)
     }
 
     const toastSuccess = (message: string, title = 'Success') => {
@@ -52,6 +54,7 @@ export const ToastPlugin = {
     }
 
     const toastService = {
+      add: addToast,
       addToast,
       toastSuccess,
       toastWarning,
@@ -60,8 +63,7 @@ export const ToastPlugin = {
       toastErrorHandler,
     }
 
+    app.config.globalProperties.$toast = toastService
     app.provide('$toast', toastService)
-
-    console.log('Toast plugin installed')
   },
 }
