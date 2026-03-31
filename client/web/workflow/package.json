@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-workflow",
-  "version": "2026.3.0-dev.5",
+  "version": "2026.3.0-dev.6",
   "private": true,
   "type": "module",
   "scripts": {

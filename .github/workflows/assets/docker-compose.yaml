@@ -1,11 +1,11 @@
-version: "3.5"
+version: '3.5'
 
 services:
   backend:
     network_mode: host
     image: golang:${GO_VERSION}
     volumes:
-      - "${PWD}:/corteza"
+      - '${PWD}:/corteza'
     entrypoint: |
       sh -c "
         git config --global --add safe.directory /corteza &&
@@ -36,7 +36,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: corteza_cy_test
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      test: ['CMD-SHELL', 'pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,10 +45,10 @@ services:
     network_mode: host
     image: node:22-slim
     volumes:
-      - "${PWD}:/corteza"
+      - '${PWD}:/corteza'
     working_dir: /corteza
     environment:
-      BUILD_VERSION: 2024.9.8-dev.2
+      BUILD_VERSION: 2026.3.0-dev.6
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
       interval: 30s
