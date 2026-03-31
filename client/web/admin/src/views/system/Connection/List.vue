@@ -44,7 +44,6 @@
             resource="corteza::system:dal-connection/*"
             :label="$t('general.label.permissions')"
           />
-
         </div>
       </template>
 
@@ -121,7 +120,6 @@ import {
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import CPermissionsButton from '@/components/permissions/CPermissionsButton.vue'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters

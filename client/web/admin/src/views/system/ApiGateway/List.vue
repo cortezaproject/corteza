@@ -90,7 +90,6 @@
             resource="corteza::system:apigw-route/*"
             :label="$t('general.label.permissions')"
           />
-
         </div>
       </template>
 
@@ -151,7 +150,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   components,
@@ -162,8 +161,6 @@ import {
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
-
-import CPermissionsButton from '@/components/permissions/CPermissionsButton.vue'
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
@@ -298,7 +295,10 @@ async function saveSettings() {
   savingSettings.value = true
   try {
     const values = [
-      { name: 'apigw.profiler.enabled', value: ['filter', 'global'].includes(profilerSetting.value) },
+      {
+        name: 'apigw.profiler.enabled',
+        value: ['filter', 'global'].includes(profilerSetting.value),
+      },
       { name: 'apigw.profiler.global', value: profilerSetting.value === 'global' },
       { name: 'apigw.proxy.follow-redirects', value: proxyFollowRedirects.value },
     ]

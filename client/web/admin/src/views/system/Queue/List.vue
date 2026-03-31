@@ -47,7 +47,6 @@
             resource="corteza::system:queue/*"
             :label="$t('general.label.permissions')"
           />
-
         </div>
       </template>
 
@@ -107,8 +106,6 @@ import {
 } from '@cortezaproject/corteza-vue-next'
 const { CResourceList } = components
 const { locFullDateTime } = filters
-
-import CPermissionsButton from '@/components/permissions/CPermissionsButton.vue'
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
