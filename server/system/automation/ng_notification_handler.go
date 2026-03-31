@@ -55,20 +55,49 @@ func (h ngNotificationHandler) Send() atypes.ConstructFunction {
 		},
 
 		Parameters: []*atypes.Param{
-			{ArgumentName: "recipient", Types: []string{"ID", "Handle", "String"}, Required: true},
-			{ArgumentName: "title", Types: []string{"String"}, Required: true},
-			{ArgumentName: "description", Types: []string{"String"}},
+			{
+				ArgumentName: "recipient",
+				Types:        []string{"ID", "Handle", "String"},
+				Required:     true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Recipient",
+					Description: "User to send the notification to. Can be an ID, handle, or email address.",
+				},
+			},
+			{
+				ArgumentName: "title",
+				Types:        []string{"String"},
+				Required:     true,
+			},
+			{
+				ArgumentName: "description",
+				Types:        []string{"String"},
+			},
 		},
 
 		Segments: []atypes.ConstructSegment{{
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Recipient", Argument: "recipient"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Title", Argument: "title"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Description", Argument: "description"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "Recipient",
+						Argument: "recipient",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "String",
+						Label:    "Title",
+						Argument: "title",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "String",
+						Label:    "Description",
+						Argument: "description",
+					},
+				}},
 			}},
 		}},
 

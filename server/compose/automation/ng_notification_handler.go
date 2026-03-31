@@ -52,30 +52,112 @@ func (h ngNotificationHandler) SendRecord() atypes.ConstructFunction {
 		},
 
 		Parameters: []*atypes.Param{
-			{ArgumentName: "recipient", Types: []string{"ID", "Handle", "String"}, Required: true},
-			{ArgumentName: "title", Types: []string{"String"}, Required: true},
-			{ArgumentName: "description", Types: []string{"String"}},
-			{ArgumentName: "module", Types: []string{"ID", "Handle"}, Required: true},
-			{ArgumentName: "namespace", Types: []string{"ID", "Handle"}, Required: true},
-			{ArgumentName: "record", Types: []string{"ID"}},
-			{ArgumentName: "openMode", Types: []string{"String"}},
-			{ArgumentName: "edit", Types: []string{"Boolean"}},
+			{
+				ArgumentName: "recipient",
+				Types:        []string{"ID", "Handle", "String"},
+				Required:     true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Recipient",
+					Description: "User to send the notification to. Can be an ID, handle, or email address.",
+				},
+			},
+			{
+				ArgumentName: "title",
+				Types:        []string{"String"},
+				Required:     true,
+			},
+			{
+				ArgumentName: "description",
+				Types:        []string{"String"},
+			},
+			{
+				ArgumentName: "namespace",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"},
+				Required:     true,
+			},
+			{
+				ArgumentName: "module",
+				Types:        []string{"ID", "Handle", "ComposeModule"},
+				Required:     true,
+			},
+			{
+				ArgumentName: "record",
+				Types:        []string{"ID", "ComposeRecord"},
+			},
+			{
+				ArgumentName: "openMode",
+				Types:        []string{"String"},
+			},
+			{
+				ArgumentName: "edit",
+				Types:        []string{"Boolean"},
+			},
 		},
 
 		Segments: []atypes.ConstructSegment{{
 			Meta: atypes.ConstructSegmentMeta{},
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
-				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Recipient", Argument: "recipient"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Title", Argument: "title"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Description", Argument: "description"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Module", Argument: "module"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Namespace", Argument: "namespace"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Record ID", Argument: "record"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Open Mode", Argument: "openMode"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Edit", Argument: "edit"}},
-				},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "UserSelector",
+						Label:    "Recipient",
+						Argument: "recipient",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "String",
+						Label:    "Title",
+						Argument: "title",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "String",
+						Label:    "Description",
+						Argument: "description",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "RecordSelector",
+						Label:    "Record",
+						Argument: "record",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "String",
+						Label:    "Open Mode",
+						Argument: "openMode",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "Boolean",
+						Label:    "Edit",
+						Argument: "edit",
+					},
+				}},
 			}},
 		}},
 
