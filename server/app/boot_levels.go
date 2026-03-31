@@ -14,7 +14,6 @@ import (
 	"github.com/cortezaproject/corteza/server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
 	autService "github.com/cortezaproject/corteza/server/automation/service"
-	autoAgentic "github.com/cortezaproject/corteza/server/automation/agentic"
 	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
 	sysAgentic "github.com/cortezaproject/corteza/server/system/agentic"
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
@@ -417,8 +416,10 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	cmpAgentic.RecordHandler(sysService.DefaultMCPRegistry)
-	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
-	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
+	// TAQ and workflow tools are not exposed as selectable MCP tools;
+	// TAQ invocation is handled via the agent's TAQ access list.
+	// autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
+	// autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
 		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
 		if err != nil {

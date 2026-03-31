@@ -44,7 +44,7 @@ func (h *discoveryHandler) register() {
 			mcp.WithString("namespace", mcp.Description("Filter results to a specific namespace slug")),
 			mcp.WithString("module", mcp.Description("Filter results to a specific module handle")),
 		),
-		"Search records",
+		"Discover Records",
 		h.search,
 	)
 }
