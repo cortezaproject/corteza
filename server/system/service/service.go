@@ -95,34 +95,34 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth                *auth
-	DefaultAuthClient          *authClient
-	DefaultUser                *user
-	DefaultCredentials         *credentials
-	DefaultDalConnection       *dalConnection
-	DefaultDalSensitivityLevel *dalSensitivityLevel
-	DefaultDalSchemaAlteration *dalSchemaAlteration
-	DefaultRole                *role
-	DefaultUserGroup           *userGroup
-	DefaultApplication         *application
-	DefaultReminder            ReminderService
-	DefaultNotification        NotificationService
-	DefaultAttachment          AttachmentService
-	DefaultRenderer            TemplateService
-	DefaultResourceTranslation ResourceTranslationService
-	DefaultQueue               *queue
-	DefaultAgent               *agent
-	DefaultAiConversation      *aiConversation
-	DefaultKnowledgeBase       *knowledgeBase
-	DefaultAgenticRuntime      AgenticRunner
-	DefaultMCPRegistry         *agenticMcp.Registry
-	DefaultLlmService          *llm.Service
-	DefaultApigwRoute          *apigwRoute
-	DefaultApigwFilter         *apigwFilter
-	DefaultApigwProfiler       *apigwProfiler
-	DefaultReport              *report
-	DefaultDataPrivacy         *dataPrivacy
-	DefaultSMTPChecker         *smtpConfigurationChecker
+	DefaultAuth                 *auth
+	DefaultAuthClient           *authClient
+	DefaultUser                 *user
+	DefaultCredentials          *credentials
+	DefaultDalConnection        *dalConnection
+	DefaultDalSensitivityLevel  *dalSensitivityLevel
+	DefaultDalSchemaAlteration  *dalSchemaAlteration
+	DefaultRole                 *role
+	DefaultUserGroup            *userGroup
+	DefaultApplication          *application
+	DefaultReminder             ReminderService
+	DefaultNotification         NotificationService
+	DefaultAttachment           AttachmentService
+	DefaultRenderer             TemplateService
+	DefaultResourceTranslation  ResourceTranslationService
+	DefaultQueue                *queue
+	DefaultAgent                *agent
+	DefaultAiConversation       *aiConversation
+	DefaultKnowledgeBase        *knowledgeBase
+	DefaultAgenticRuntime       AgenticRunner
+	DefaultMCPRegistry          *agenticMcp.Registry
+	DefaultLlmService           *llm.Service
+	DefaultApigwRoute           *apigwRoute
+	DefaultApigwFilter          *apigwFilter
+	DefaultApigwProfiler        *apigwProfiler
+	DefaultReport               *report
+	DefaultDataPrivacy          *dataPrivacy
+	DefaultSMTPChecker          *smtpConfigurationChecker
 	DefaultExpression           *expression
 	DefaultConnection           *connection
 	DefaultConfiguredConnection *configuredConnection
@@ -333,6 +333,17 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultUser,
 	)
 
+	automation.RemindersHandler(
+		automationService.Registry(),
+		DefaultReminder,
+	)
+
+	automation.NgRemindersHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultReminder,
+	)
+
 	automation.RbacHandler(
 		automationService.Registry(),
 		rbac.Global(),
@@ -360,6 +371,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		automationService.Registry(),
 		DefaultAgenticRuntime,
 		DefaultAiConversation,
+	)
+
+	automation.NgNotificationHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultNotification,
+		DefaultUser,
+		log,
 	)
 
 	// ValuestoreHandler isn't (yet) a system thing but this initialization resides

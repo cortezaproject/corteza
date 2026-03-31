@@ -259,6 +259,16 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		log,
 	)
 
+	automation.NgNotificationHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		systemService.DefaultNotification,
+		systemService.DefaultUser,
+		DefaultNamespace,
+		DefaultModule,
+		log,
+	)
+
 	return nil
 }
 

@@ -33,7 +33,11 @@ func NgNotificationHandler(reg constructSvc, tReg typeRegistry, ntfSvc notificat
 	return ngh
 }
 
-func (h ngNotificationHandler) register() {}
+func (h ngNotificationHandler) register() {
+	h.reg.AddFunctions(
+		h.SendRecord(),
+	)
+}
 
 func (h ngNotificationHandler) SendRecord() atypes.ConstructFunction {
 	return atypes.ConstructFunction{
