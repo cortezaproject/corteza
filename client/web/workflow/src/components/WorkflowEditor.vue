@@ -159,6 +159,7 @@
         :pan-on-scroll="true"
         :zoom-on-scroll="false"
         :zoom-on-double-click="false"
+        :selection-key-code="null"
         :delete-key-code="null"
         :connection-mode="ConnectionMode.Loose"
         :is-valid-connection="isValidConnection"
@@ -229,14 +230,14 @@
           @mousedown="startDrawerResize"
         />
         <!-- Drawer content -->
-        <div class="flex-1 overflow-auto p-4">
+        <div class="flex-1 overflow-auto px-3 py-2">
           <!-- Header -->
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <img
                 v-if="getSidebarItemIcon"
                 :src="getSidebarItemIcon"
-                class="h-6 w-6 object-contain"
+                class="h-10 w-10 object-contain"
               />
               <h3 class="text-lg font-semibold text-color m-0">
                 {{ getSidebarItemType }}
@@ -419,6 +420,7 @@ import { encodeInput } from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
 import { camelToTitle } from '../lib/string'
 import eventBus from '../lib/eventBus'
+import { nextId } from '../lib/id'
 import { NoID } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
 
@@ -491,17 +493,17 @@ const {
   fitView,
   zoomIn: vfZoomIn,
   zoomOut: vfZoomOut,
-  getZoom,
-  screenToFlowPosition,
+  getViewport,
+  project,
   onNodesInitialized,
-} = useVueFlow({ id: vfId })
+} = useVueFlow(vfId)
 
 const { saveToHistory, undo, redo, canUndo, canRedo } = useWorkflowHistory(nodes, edges)
 const {
   onToolbarDragStart,
   onCanvasDragOver,
   onCanvasDrop: dndDrop,
-} = useWorkflowDnD(nodes, saveToHistory, screenToFlowPosition)
+} = useWorkflowDnD(nodes, edges, saveToHistory, project)
 const { highlightConnected, clearHighlights } = useWorkflowHighlight(nodes, edges)
 const { copySelected, cutSelected, pasteClipboard } = useWorkflowClipboard(
   nodes,
@@ -517,7 +519,7 @@ onNodesInitialized(() => {
   if (!hasInitiallyFit && nodes.value.length > 0) {
     fitView({ padding: 0.2, maxZoom: 1 })
     hasInitiallyFit = true
-    zoomLevel.value = getZoom() || 1
+    zoomLevel.value = getViewport().zoom || 1
   }
 })
 
@@ -834,11 +836,12 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', keybinds)
 })
 
-function onTriggerUpdated({ nodeId }) {
+function onTriggerUpdated(node) {
   // Trigger label changed in configurator — refresh the node data
-  const node = nodes.value.find(n => n.id === nodeId)
-  if (node) {
-    node.data = { ...node.data }
+  const nodeId = node?.id || node?.nodeId
+  const n = nodes.value.find(n => n.id === nodeId)
+  if (n) {
+    n.data = { ...n.data }
   }
 }
 
@@ -918,7 +921,7 @@ function onConnect(connection) {
   }
 
   const newEdge = {
-    id: `e-${Date.now()}`,
+    id: String(nextId(nodes, edges)),
     source: connection.source,
     target: connection.target,
     sourceHandle: connection.sourceHandle,
@@ -1150,12 +1153,12 @@ function openIssuesModal(nodeId) {
 function zoom(up = true) {
   if (up) vfZoomIn()
   else vfZoomOut()
-  zoomLevel.value = getZoom() || zoomLevel.value
+  zoomLevel.value = getViewport().zoom || zoomLevel.value
 }
 
 function resetZoom() {
   fitView({ padding: 0.2, maxZoom: 1 })
-  zoomLevel.value = getZoom() || 1
+  zoomLevel.value = getViewport().zoom || 1
 }
 
 /* ─── Keyboard ─── */
@@ -1847,5 +1850,27 @@ defineExpose({
 /* Selection rectangle */
 .vue-flow__selection-pane {
   cursor: grab;
+}
+
+/* ─── Sidebar section styles ─── */
+/* Simple div-based sections with border-bottom separators */
+.configurator-section {
+  border-bottom: 1px solid var(--p-surface-border, var(--p-content-border-color));
+  padding: 0.75rem 0;
+}
+
+.configurator-section:last-child {
+  border-bottom: none;
+}
+
+.configurator-section__title {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--p-text-muted-color);
+  margin-bottom: 0.5rem;
 }
 </style>

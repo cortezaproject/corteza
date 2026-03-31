@@ -42,13 +42,12 @@
             size="small"
             @click="$router.push({ name: 'system.queues.create' })"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+          <CPermissionsButton
+            v-if="canGrant"
+            resource="corteza::system:queue/*"
+            :label="$t('general.label.permissions')"
           />
+
         </div>
       </template>
 
@@ -56,6 +55,15 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">
@@ -97,15 +105,22 @@ import {
   useConfirmDelete,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-
 const { CResourceList } = components
 const { locFullDateTime } = filters
+
+import CPermissionsButton from '@/components/permissions/CPermissionsButton.vue'
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $auth = inject('$auth')
+
+const canGrant = ref(false)
+$auth.check(['system.grant']).then(check => {
+  canGrant.value = check
+})
 
 const resourceListRef = ref()
 const filterMenu = ref()

@@ -132,6 +132,13 @@
           @click="$router.push({ name: 'system.users' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && user.canGrant"
+            :resource="`corteza::system:user/${user.userID}`"
+            :title="user.name || user.handle || user.email || user.userID"
+            :target="user.name || user.handle || user.email || user.userID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && user.canDeleteUser"
             :label="$t('system.users.editor.info.delete')"

@@ -38,6 +38,11 @@
           icon="pi pi-plus"
           size="small"
         />
+        <CPermissionsButton
+          v-if="canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          resource="corteza::system:agent/*"
+        />
       </template>
 
       <template #body-name="{ data }">
@@ -70,9 +75,10 @@ import {
   components,
   filters,
   useConfirmDelete,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -84,6 +90,8 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
 
 const resourceListRef = ref()
 

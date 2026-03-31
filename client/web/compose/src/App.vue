@@ -71,6 +71,7 @@
     <CNotificationSidebar />
     <ReminderSidebar />
     <ReminderToastHost />
+    <CPermissionsDialog />
   </div>
 </template>
 
@@ -83,11 +84,14 @@ import { useNamespaceStore } from '@/stores/namespace'
 import { useRecordStore } from '@/stores/record'
 import { useReminderStore } from '@/stores/reminder'
 import { useUserStore } from '@/stores/user'
-import { components, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import { components, providePermissions, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog } = components
+
+// Provide permissions dialog context for the entire app
+providePermissions()
 
 const { t } = useI18n()
 const $Auth = inject('$Auth')

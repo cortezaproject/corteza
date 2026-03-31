@@ -36,7 +36,7 @@ automation:
       tabLabel: Mail triggers
     nameLabel: Name
     namePlaceholder: Automation script name
-    runAsCurrentUser: Run as "{{ user }}"
+    runAsCurrentUser: Run as "{user}"
     runAsHelp: Script runner
     scheduledTriggers:
       tabLabel: Scheduled
@@ -57,7 +57,7 @@ automation:
         runAs: Run As
         runInUA: In browser
     unnamed: (Unnamed script)
-  manage: Manage automation scripts ({{count}})
+  manage: Manage automation scripts ({count})
   manage-id-permissions: Manage permissions for this script
   manage-wc-permissions: Manage permissions for all scripts
   newLabel: Create a new script
@@ -85,9 +85,9 @@ general:
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} {{data}}'
-    single_one: 'One {{data}}'
-    single_other: '{{count}} {{data}}'
+    showing: '{from} - {to} of {count} {data}'
+    single_one: 'One {data}'
+    single_other: '{count} {data}'
 navigation:
   appMenu: Menu
   adminPanel: Admin panel

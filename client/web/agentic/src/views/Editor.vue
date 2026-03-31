@@ -180,14 +180,22 @@
                     <div class="flex flex-col gap-1">
                       <label for="systemPrompt" class="font-medium text-primary">
                         {{ $t('agent.editor.systemPrompt.label') }}
+                        <span class="text-red-500">*</span>
                       </label>
                       <Textarea
                         id="systemPrompt"
                         v-model="agent.behavior.systemPrompt"
                         rows="6"
                         autoResize
+                        :invalid="submitted && !agent.behavior.systemPrompt?.trim()"
                       />
-                      <small class="text-muted-color">
+                      <small
+                        v-if="submitted && !agent.behavior.systemPrompt?.trim()"
+                        class="text-red-500"
+                      >
+                        {{ $t('agent.editor.systemPrompt.required') }}
+                      </small>
+                      <small v-else class="text-muted-color">
                         {{ $t('agent.editor.systemPrompt.help') }}
                       </small>
                     </div>
@@ -925,6 +933,7 @@ const agentStore = useAgentStore()
 
 const loading = ref(false)
 const saving = ref(false)
+const submitted = ref(false)
 const agent = ref(null)
 const activeTab = ref('config')
 
@@ -1112,6 +1121,13 @@ async function loadAgent() {
 }
 
 async function handleSubmit() {
+  submitted.value = true
+
+  if (!agent.value.behavior.systemPrompt?.trim()) {
+    activeTab.value = 'config'
+    return
+  }
+
   saving.value = true
   try {
     if (isCreate.value) {

@@ -49,12 +49,11 @@
             @click="showImportDialog = true"
           />
           <Export :workflows="workflowIDs" size="small" severity="secondary" />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::automation:workflow/*"
           />
         </div>
       </template>
@@ -112,6 +111,15 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Dialog
@@ -243,6 +251,7 @@ const resourceListRef = ref()
 // RBAC
 const rbacStore = useRBACStore()
 const canCreate = computed(() => rbacStore.can('automation/', 'workflow.create'))
+const canGrant = computed(() => rbacStore.can('automation/', 'grant'))
 
 // Column definitions
 const workflowFields = [

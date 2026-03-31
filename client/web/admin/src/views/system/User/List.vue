@@ -39,12 +39,11 @@
             icon="pi pi-plus"
             size="small"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::system:user/*"
           />
         </div>
       </template>
@@ -79,6 +78,15 @@
         {{ locFullDateTime(data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">
@@ -140,9 +148,11 @@ import {
   components,
   filters,
   useConfirmDelete,
+  usePermissions,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -152,6 +162,9 @@ const { locFullDateTime } = filters
 const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
@@ -227,7 +240,23 @@ function handleRowClick({ data }) {
 function getActionsMenuItems(user) {
   const items = []
 
+  if (user.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::system:user/${user.userID}`,
+          title: user.name || user.handle || user.email || user.userID,
+          target: user.name || user.handle || user.email || user.userID,
+        })
+      },
+    })
+  }
+
   if (user.canUpdateUser) {
+    if (items.length > 0) items.push({ separator: true })
     if (user.suspendedAt) {
       items.push({
         label: t('system.users.list.unsuspend'),

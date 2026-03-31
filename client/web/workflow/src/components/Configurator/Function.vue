@@ -2,10 +2,11 @@
   <div
     v-if="!processing"
   >
-    <Panel
+    <div
       v-if="showFunctionList"
-      :header="$t('configurator.configuration')"
+      class="configurator-section"
     >
+      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div
         v-if="functionTypes.length"
         class="flex flex-col gap-3"
@@ -23,7 +24,7 @@
             :optionDisabled="f => f.disabled"
             :placeholder="$t('steps.function.configurator.select-function')"
             class="w-full"
-            @change="functionChanged"
+          @change="functionChanged(functionRef)"
           />
         </div>
 
@@ -34,12 +35,13 @@
           {{ functionDescription }}
         </p>
       </div>
-    </Panel>
+    </div>
 
-    <Panel
+    <div
       v-if="args.length"
-      :header="$t('steps.function.configurator.arguments')"
+      class="configurator-section"
     >
+      <div class="configurator-section__title">{{ $t('steps.function.configurator.arguments') }}</div>
       <div
         v-for="(a, index) in args"
         :key="index"
@@ -150,7 +152,7 @@
               v-model="a.valueType"
               :true-value="'expr'"
               :false-value="'value'"
-              @change="valueTypeChanged($event, index)"
+              @change="valueTypeChanged(a.valueType, index)"
             />
             <div class="flex items-center gap-1">
               <span class="text-sm">{{ $t('steps.function.configurator.expression') }}</span>
@@ -165,12 +167,13 @@
           </div>
         </div>
       </div>
-    </Panel>
+    </div>
 
-    <Panel
+    <div
       v-if="expressionResults || results.length"
-      :header="$t('steps.function.configurator.results')"
+      class="configurator-section"
     >
+      <div class="configurator-section__title">{{ $t('steps.function.configurator.results') }}</div>
       <div v-if="results.length">
         <expression-table
           v-if="expressionResults"
@@ -211,7 +214,7 @@
           </div>
         </div>
       </div>
-    </Panel>
+    </div>
 
     <Teleport to="#sidebar-footer">
       <Button

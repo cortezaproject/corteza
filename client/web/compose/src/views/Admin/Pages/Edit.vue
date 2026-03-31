@@ -220,6 +220,13 @@
           @click="$router.push({ name: 'admin.pages' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && page.canGrant"
+            :resource="`corteza::compose:page/${page.namespaceID}/${page.pageID}`"
+            :title="page.title || page.handle || page.pageID"
+            :target="page.title || page.handle || page.pageID"
+            :label="$t('general.label.permissions')"
+          />
           <!-- Delete with strategy for pages with children -->
           <template v-if="isEdit && page.canDeletePage">
             <template v-if="hasChildren">

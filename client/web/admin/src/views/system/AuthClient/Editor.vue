@@ -288,6 +288,13 @@
           @click="$router.push({ name: 'system.authClients' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && authClient.canGrant"
+            :resource="`corteza::system:auth-client/${authClient.authClientID}`"
+            :title="authClient.meta?.name || authClient.handle || authClient.authClientID"
+            :target="authClient.meta?.name || authClient.handle || authClient.authClientID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && authClient.canDeleteAuthClient"
             :label="$t('system.authclients.editor.info.delete')"

@@ -6,7 +6,7 @@
       </label>
       <InputText
         v-model="label"
-        @input="$emit('update-value', $event)"
+        @update:modelValue="$emit('update-value', label)"
       />
     </div>
   </div>

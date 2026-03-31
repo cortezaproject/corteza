@@ -39,6 +39,11 @@
             size="small"
           />
           <NamespaceImporter @imported="onImported" @failed="onFailed" />
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::compose:namespace/*"
+          />
         </div>
       </template>
 
@@ -64,11 +69,12 @@ import {
   components,
   filters,
   useConfirmDelete,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
 import NamespaceImporter from '@/components/Namespaces/NamespaceImporter.vue'
 import { useNamespaceStore } from '@/stores/namespace'
-import { inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 const { CResourceList, CRouterLinkButton } = components
@@ -80,6 +86,8 @@ const $ComposeAPI = inject('$ComposeAPI')
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 const namespaceStore = useNamespaceStore()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('compose/', 'grant'))
 
 const resourceListRef = ref()
 

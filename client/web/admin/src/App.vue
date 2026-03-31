@@ -64,15 +64,19 @@
 
     <CPrompts />
     <CNotificationSidebar />
+    <CPermissionsDialog />
   </div>
 </template>
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
-import { components, useApplicationsStore, useNotificationsStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import { components, providePermissions, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog } = components
+
+// Provide permissions dialog context for the entire app
+providePermissions()
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
@@ -82,6 +86,7 @@ const $AutomationAPI = inject('$AutomationAPI')
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
+const rbacStore = useRBACStore()
 const appListVisible = ref(false)
 let realtimeClient
 
@@ -99,6 +104,7 @@ onMounted(() => {
     applicationsStore.fetchApplications(),
     notificationsStore.fetchNotifications($SystemAPI),
     workflowPromptsStore.update($AutomationAPI, 'admin'),
+    rbacStore.load([$SystemAPI, $AutomationAPI]),
   ]).finally(() => {
     loading.value = false
   })

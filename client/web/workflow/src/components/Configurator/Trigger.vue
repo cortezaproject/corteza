@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col gap-3">
-    <Panel :header="$t('configurator.configuration')">
+    <div class="configurator-section">
+      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="font-medium text-primary">
@@ -50,22 +51,24 @@
           </label>
         </div>
       </div>
-    </Panel>
+    </div>
 
-    <Panel
+    <div
       v-if="showConstraints"
-      :header="$t('steps.trigger.configurator.constraints')"
+      class="configurator-section"
     >
-      <template #icons>
+      <div class="configurator-section__title">
+        {{ $t('steps.trigger.configurator.constraints') }}
         <Button
           v-if="constraintNameTypes.length"
           :label="$t('steps.trigger.configurator.add-constraints')"
           severity="secondary"
           size="small"
           text
+          class="ml-auto"
           @click="addConstraint()"
         />
-      </template>
+      </div>
 
       <div v-if="constraintNameTypes.length">
         <div
@@ -207,12 +210,13 @@
           @input="emitChange"
         />
       </div>
-    </Panel>
+    </div>
 
-    <Panel
+    <div
       v-if="(eventType.properties || []).length"
-      :header="$t('steps.trigger.configurator.initial-scope')"
+      class="configurator-section"
     >
+      <div class="configurator-section__title">{{ $t('steps.trigger.configurator.initial-scope') }}</div>
       <DataTable
         :value="eventType.properties || []"
         class="border border-surface rounded-border"
@@ -224,7 +228,7 @@
           </template>
         </Column>
       </DataTable>
-    </Panel>
+    </div>
   </div>
 </template>
 

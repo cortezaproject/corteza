@@ -49,6 +49,7 @@ editor:
   systemPrompt:
     label: System Prompt
     help: Instructions that define the agent's personality, capabilities, and constraints. This is sent to the LLM at the start of every conversation
+    required: System prompt is required
   guardrails:
     label: Guardrails
     help: Rules the agent must follow (e.g. "Stay on topic").

@@ -91,6 +91,13 @@
           @click="$router.push({ name: 'automation.workflows' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && workflow.canGrant"
+            :resource="`corteza::automation:workflow/${workflow.workflowID}`"
+            :title="workflow.meta?.name || workflow.handle || workflow.workflowID"
+            :target="workflow.meta?.name || workflow.handle || workflow.workflowID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && workflow.canDeleteWorkflow && !workflow.deletedAt"
             :label="$t('automation.workflows.editor.info.delete')"

@@ -82,6 +82,7 @@
       :style="{ left: '75%' }"
     />
     <Handle type="source" :position="Position.Right" id="source-right" />
+    <Handle type="source" :position="Position.Left" id="source-left" />
   </div>
 </template>
 
@@ -333,7 +334,7 @@ const valueRows = computed(() => {
 .trigger-node__values {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 14px);
   left: 0;
   width: 200px;
   overflow: hidden;

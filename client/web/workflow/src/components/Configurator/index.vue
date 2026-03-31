@@ -1,14 +1,15 @@
 <template>
   <div class="flex flex-col">
-    <Panel
+    <div
       v-if="kind !== 'Content'"
-      :header="$t('general.general')"
+      class="configurator-section"
     >
+      <div class="configurator-section__title">{{ $t('general.general') }}</div>
       <basic
         :item="item"
         @update-value="$emit('update-value', $event)"
       />
-    </Panel>
+    </div>
 
     <component
       :is="stepComponent"

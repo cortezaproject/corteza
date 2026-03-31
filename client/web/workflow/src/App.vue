@@ -66,16 +66,20 @@
 
     <CPrompts />
     <CNotificationSidebar />
+    <CPermissionsDialog />
   </div>
 </template>
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { useWorkflowStore } from '@/stores/workflow'
-import { components, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import { components, providePermissions, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog } = components
+
+// Provide permissions dialog context for the entire app
+providePermissions()
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

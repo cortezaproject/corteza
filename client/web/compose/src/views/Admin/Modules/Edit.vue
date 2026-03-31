@@ -214,6 +214,13 @@
           @click="$router.back()"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && module.canGrant"
+            :resource="`corteza::compose:module/${module.namespaceID}/${module.moduleID}`"
+            :title="module.name || module.handle || module.moduleID"
+            :target="module.name || module.handle || module.moduleID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && module.canDeleteModule"
             :label="$t('general.label.delete')"

@@ -1,6 +1,7 @@
 <template>
   <div v-if="['incl', 'excl'].includes(gatewayKind)">
-    <Panel :header="$t('configurator.configuration')">
+    <div class="configurator-section">
+      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div v-if="outEdges < 2" class="text-muted-color italic">
         {{ $t('steps.gateway.configurator.two-paths') }}
       </div>
@@ -20,7 +21,7 @@
           />
         </div>
       </div>
-    </Panel>
+    </div>
   </div>
 </template>
 
@@ -52,7 +53,7 @@ export default {
                 source: source.id,
                 target: target.id,
                 value,
-                expr: this.edges[id].config.expr || '',
+                expr: (this.edges[id] && this.edges[id].config) ? this.edges[id].config.expr || '' : '',
               })
             }
           })
@@ -64,7 +65,9 @@ export default {
 
   methods: {
     updateEdge (id, expr) {
-      this.edges[id].config.expr = expr
+      if (this.edges[id] && this.edges[id].config) {
+        this.edges[id].config.expr = expr
+      }
       eventBus.emit('change-detected')
     },
   },

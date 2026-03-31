@@ -28,6 +28,9 @@
             <TabList class="rounded-t-lg shrink-0">
               <Tab value="basic">{{ $t('system.templates.editor.tabs.basic') }}</Tab>
               <Tab value="content">{{ $t('system.templates.editor.tabs.content') }}</Tab>
+              <Tab v-if="isEdit && !template.partial" value="preview">
+                {{ $t('system.templates.editor.tabs.preview') }}
+              </Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -99,19 +102,27 @@
                 </div>
               </TabPanel>
 
-              <TabPanel value="content" class="h-full">
-                <div class="flex flex-col gap-2 h-full">
-                  <label for="templateContent" class="font-medium text-primary">
-                    {{ $t('system.templates.editor.content.title') }}
-                  </label>
-                  <Textarea
-                    id="templateContent"
-                    v-model="template.template"
-                    rows="20"
-                    autoResize
-                    class="font-mono text-sm flex-1"
-                  />
+              <TabPanel value="content" class="h-full p-0">
+                <div class="flex h-full min-h-0 gap-3">
+                  <!-- Toolbox sidebar -->
+                  <div class="w-64 shrink-0 overflow-y-auto">
+                    <CTemplateToolbox :partials="partials" />
+                  </div>
+
+                  <!-- Code editor -->
+                  <div class="flex-1 min-w-0 flex flex-col">
+                    <CCodeEditor
+                      v-model="template.template"
+                      :language="editorLanguage"
+                      min-height="500px"
+                      :border="false"
+                    />
+                  </div>
                 </div>
+              </TabPanel>
+
+              <TabPanel v-if="isEdit && !template.partial" value="preview">
+                <CTemplatePreview :template="template" />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -128,6 +139,13 @@
           @click="$router.push({ name: 'system.templates' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && template.canGrant"
+            :resource="`corteza::system:template/${template.templateID}`"
+            :title="template.meta?.short || template.handle || template.templateID"
+            :target="template.meta?.short || template.handle || template.templateID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && template.canDeleteTemplate"
             :label="$t('system.templates.editor.info.delete')"
@@ -154,6 +172,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
 import { components } from '@cortezaproject/corteza-vue-next'
+import CCodeEditor from '@/components/Template/CCodeEditor.vue'
+import CTemplateToolbox from '@/components/Template/CTemplateToolbox.vue'
+import CTemplatePreview from '@/components/Template/CTemplatePreview.vue'
 
 const { CInputDelete } = components
 
@@ -169,6 +190,7 @@ const saving = ref(false)
 const deleting = ref(false)
 const template = ref(null)
 const activeTab = ref('basic')
+const partials = ref([])
 
 const typeOptions = computed(() => [
   { label: t('system.templates.editor.info.contentType.text_html'), value: 'text/html' },
@@ -183,6 +205,11 @@ const pageTitle = computed(() =>
     ? t('system.templates.editor.title.edit')
     : t('system.templates.editor.title.create'),
 )
+
+const editorLanguage = computed(() => {
+  if (template.value?.type === 'text/html') return 'html'
+  return 'text'
+})
 
 const initialValues = computed(() => ({
   name: template.value?.meta?.short || '',
@@ -202,6 +229,15 @@ const resolver = ref(({ values }) => {
 
   return { errors }
 })
+
+async function loadPartials() {
+  try {
+    const result = await $SystemAPI.templateList({ partial: true, limit: 0 })
+    partials.value = (result?.set || []).filter(tpl => tpl.partial)
+  } catch (e) {
+    console.error('Failed to load partials:', e)
+  }
+}
 
 async function loadTemplate() {
   const templateID = route.params.templateID
@@ -271,7 +307,10 @@ async function handleDelete() {
   }
 }
 
-onMounted(() => loadTemplate())
+onMounted(() => {
+  loadTemplate()
+  loadPartials()
+})
 watch(
   () => route.params.templateID,
   () => loadTemplate(),

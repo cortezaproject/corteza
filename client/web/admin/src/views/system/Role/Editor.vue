@@ -108,6 +108,13 @@
           @click="$router.push({ name: 'system.roles' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && role.canGrant"
+            :resource="`corteza::system:role/${role.roleID}`"
+            :title="role.name || role.handle || role.roleID"
+            :target="role.name || role.handle || role.roleID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && role.canDeleteRole && !role.deletedAt && !role.isSystem"
             :label="$t('system.roles.editor.info.delete')"
@@ -160,7 +167,7 @@ import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, usePermissions } from '@cortezaproject/corteza-vue-next'
 import RoleMembers from '@/components/Role/RoleMembers.vue'
 import RolePermissionClone from '@/components/Role/RolePermissionClone.vue'
 

@@ -48,6 +48,11 @@
             severity="secondary"
             @click="exportAllModules"
           />
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::compose:module/*"
+          />
         </div>
       </template>
 
@@ -80,9 +85,11 @@ import {
   components,
   filters,
   useConfirmDelete,
+  usePermissions,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -99,6 +106,9 @@ const props = defineProps({
 const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('compose/', 'grant'))
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 
@@ -169,6 +179,21 @@ function handleRowClick({ data }) {
 function getActionsMenuItems(module) {
   const items = []
 
+  if (module.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::compose:module/${props.namespace.namespaceID}/${module.moduleID}`,
+          title: module.name || module.handle || module.moduleID,
+          target: module.name || module.handle || module.moduleID,
+        })
+      },
+    })
+  }
+
   if (props.namespace?.canExportModules) {
     items.push({
       label: t('general.label.export'),
@@ -178,6 +203,7 @@ function getActionsMenuItems(module) {
   }
 
   if (module.canDeleteModule) {
+    if (items.length > 0) items.push({ separator: true })
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',

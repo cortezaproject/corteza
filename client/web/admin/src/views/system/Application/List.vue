@@ -45,12 +45,11 @@
             size="small"
             @click="$router.push({ name: 'system.applications.create' })"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::system:application/*"
           />
         </div>
       </template>
@@ -75,6 +74,15 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">
@@ -108,12 +116,14 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   components,
   filters,
   useConfirmDelete,
+  usePermissions,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
 
@@ -122,6 +132,9 @@ const { locFullDateTime } = filters
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
@@ -163,7 +176,23 @@ const { items, loading, filter, sorting, pagination, handleSort, handlePageChang
 function getActionsMenuItems(item) {
   const menuItems = []
 
+  if (item.canGrant) {
+    menuItems.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::system:application/${item.applicationID}`,
+          title: item.name || item.applicationID,
+          target: item.name || item.applicationID,
+        })
+      },
+    })
+  }
+
   if (item.canDeleteApplication) {
+    if (menuItems.length > 0) menuItems.push({ separator: true })
     menuItems.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',

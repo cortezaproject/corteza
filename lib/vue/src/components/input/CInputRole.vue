@@ -37,7 +37,7 @@
     class="w-full"
     filter
     fluid
-    showClear
+    :showClear="showClear"
     @show="onShow"
   >
     <template #option="{ option }">
@@ -76,6 +76,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  excludeRoles: {
+    type: Array,
+    default: () => [],
+  },
+  showClear: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'select'])
@@ -110,8 +118,18 @@ async function fetchRoles() {
 
     const result = await response()
 
+    let fetchedOptions = result.set || []
+
+    if (props.excludeRoles && props.excludeRoles.length > 0) {
+      fetchedOptions = fetchedOptions.filter(r => 
+        !props.excludeRoles.includes(r.handle) && 
+        !props.excludeRoles.includes(r.roleID) && 
+        !props.excludeRoles.includes(r.name)
+      )
+    }
+
     if (props.filterContextRoles) {
-      options.value = (result.set || []).filter(r => {
+      options.value = fetchedOptions.filter(r => {
         const isContext = r.meta?.context?.expr || r.meta?.context?.resourceTypes?.length > 0
         const isSpecialHandle = ['authenticated', 'anonymous', 'everyone'].includes(
           (r.handle || '').toLowerCase(),
@@ -119,7 +137,7 @@ async function fetchRoles() {
         return !(isContext || isSpecialHandle)
       })
     } else {
-      options.value = result.set || []
+      options.value = fetchedOptions
     }
   } catch (e) {
     if (e?.message !== 'canceled') {

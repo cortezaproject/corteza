@@ -48,6 +48,11 @@
             severity="secondary"
             @click="exportAllCharts"
           />
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::compose:chart/*"
+          />
         </div>
       </template>
 
@@ -97,9 +102,11 @@ import {
   components,
   filters,
   useConfirmDelete,
+  usePermissions,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -116,6 +123,9 @@ const props = defineProps({
 const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('compose/', 'grant'))
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 
@@ -198,6 +208,21 @@ function createChart(category) {
 function getActionsMenuItems(chart) {
   const items = []
 
+  if (chart.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::compose:chart/${props.namespace.namespaceID}/${chart.chartID}`,
+          title: chart.name || chart.handle || chart.chartID,
+          target: chart.name || chart.handle || chart.chartID,
+        })
+      },
+    })
+  }
+
   if (props.namespace?.canExportCharts) {
     items.push({
       label: t('general.label.export'),
@@ -207,6 +232,7 @@ function getActionsMenuItems(chart) {
   }
 
   if (chart.canDeleteChart) {
+    if (items.length > 0) items.push({ separator: true })
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',

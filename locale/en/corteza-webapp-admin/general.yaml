@@ -61,6 +61,8 @@ label:
   back: Back
   submit: Submit
   delete: Delete
+  permissions: Permissions
+  export: Export
   undelete: Undelete
   fileTypeNotAllowed: File type not allowed
   uploading: Uploading
@@ -93,4 +95,4 @@ themes:
 extendSession:
   labels:
     extend: Extend Session
-    warning: You will be logged out in {{ countdownTime }} seconds
+    warning: You will be logged out in { countdownTime } seconds

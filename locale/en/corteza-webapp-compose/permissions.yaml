@@ -4,6 +4,10 @@ ui:
   set-for: Set permissions for {target}
   loading: Loading permissions
   label: Permissions
+  not-allowed: You do not have permission to manage permissions
+  no-rules: No permissions available for this resource
+  select-role: Select a role to manage permissions
+  title: Permissions
 
   notification:
     save:
@@ -11,7 +15,7 @@ ui:
       failed: Failed to save permissions
 
   edit:
-    label: User roles
+    label: Role
     description: Select role to set permissions
 
   evaluate:

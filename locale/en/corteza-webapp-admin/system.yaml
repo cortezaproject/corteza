@@ -103,6 +103,7 @@ apigw:
     new: New Route
     delete: Delete
     permissions: Permissions
+    profiler: Profiler
 
     tabs:
       route: Route
@@ -150,6 +151,7 @@ apigw:
       addHeader: Add header
       params: Params
       filterListEmpty: Filter list is empty!
+      noParams: This filter has no configurable parameters.
 
       modal:
         title: Query parameters verifier
@@ -200,7 +202,7 @@ apigw:
   profiler:
     label: Profiler
     title: Integration Gateway Profiler
-    refreshingIn: Refreshing in {{seconds}}s
+    refreshingIn: Refreshing in {seconds}s
     description:
       globalEnabled: Showing routes for all incoming requests
       globalDisabled: Showing only registered routes with profiler prefilter
@@ -764,6 +766,8 @@ queues:
       consumerOptions:
         eventbus: Event Bus
         store: Store
+        corteza: Corteza
+        redis: Redis
       createdAt: Created at
       createdBy: Created by
       delete: Delete
@@ -777,6 +781,7 @@ queues:
       poll_delay: Polling changes delay
       poll_delay_empty: 'Poll delay will not be used; to enable, use duration format (ie: 1h / 1m15s / 1h90s)'
       poll_delay_set: Poll delay will be used; if empty, it will not be used.
+      poll_delay_invalid: 'Invalid duration format. Use Go duration format (e.g. 1h, 5m, 30s, 1h30m)'
       title: Basic information
       undelete: Undelete
       updatedAt: Updated at
@@ -901,7 +906,7 @@ sensitivityLevel:
       name: Name
       description: Description
       level:
-        label: Level {{level}}
+        label: Level {level}
         hint: Higher values indicate more sensitive data
       createdAt: Created at
       createdBy: Created by
@@ -1103,9 +1108,17 @@ templates:
         html: Preview HTML
         pdf: Preview PDF
         title: Preview output
+        description: Configure preview variables and options (JSON). Variables are passed to the template, options control render settings.
+        partialNotice: Partial templates cannot be previewed directly. They must be included in another template.
+        saveFirst: Please save the template before previewing.
+        invalidJSON: Preview data contains invalid JSON.
+        error: Failed to render preview.
+        noDrivers: No render drivers available on the server.
       title: Template content
       toolbox:
         partials: Partials
+        noPartials: No partial templates found.
+        copied: Copied to clipboard
         samples:
           defaultHTML: Default HTML
           label: Samples
@@ -1118,6 +1131,7 @@ templates:
     tabs:
       basic: Basic Information
       content: Content
+      preview: Preview
     info:
       contentType:
         text_html: HTML

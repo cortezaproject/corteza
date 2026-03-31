@@ -44,6 +44,11 @@
               severity="secondary"
               @click="pairDialogVisible = true"
             />
+            <CPermissionsButton
+              v-if="canGrant"
+              v-tooltip.bottom="$t('general.label.permissions')"
+              resource="corteza::federation:node/*"
+            />
           </div>
         </template>
 
@@ -102,8 +107,8 @@
 </template>
 
 <script setup>
-import { components, useResourceList } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { components, useResourceList, useRBACStore } from '@cortezaproject/corteza-vue-next'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { CResourceList } = components
@@ -111,6 +116,9 @@ const { CResourceList } = components
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $FederationAPI = inject('$FederationAPI')
+
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('federation/', 'grant'))
 
 const pairDialogVisible = ref(false)
 const pairURL = ref('')

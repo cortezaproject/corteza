@@ -185,6 +185,13 @@
           @click="$router.back()"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && chart.canGrant"
+            :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
+            :title="chart.name || chart.handle || chart.chartID"
+            :target="chart.name || chart.handle || chart.chartID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && chart.canDeleteChart"
             :label="$t('general.label.delete')"

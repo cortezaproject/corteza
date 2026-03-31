@@ -2,6 +2,8 @@ import type { App, Plugin } from 'vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
 import CFieldPicker from '../components/input/CFieldPicker.vue'
+import CPermissionsButton from '../components/permissions/CPermissionsButton.vue'
+import CPermissionsDialog from '../components/permissions/CPermissionsDialog.vue'
 import AutoComplete from 'primevue/autocomplete'
 import Accordion from 'primevue/accordion'
 import AccordionContent from 'primevue/accordioncontent'
@@ -132,5 +134,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('CInputSwitch', CInputSwitch)
     app.component('CInputRole', CInputRole)
     app.component('CFieldPicker', CFieldPicker)
+    app.component('CPermissionsButton', CPermissionsButton)
+    app.component('CPermissionsDialog', CPermissionsDialog)
   },
 }

@@ -6,8 +6,10 @@ ui:
   save: Save changes
   cancel: Cancel
   not-allowed: You do not have permission to manage permissions
-  set-for: Set permissions for {{target}}
+  set-for: Set permissions for {target}
   loading: Loading permissions
+  no-rules: No permissions available for this resource
+  select-role: Select a role to manage permissions
 
   notification:
     save:
@@ -16,7 +18,7 @@ ui:
 
   edit:
     title: Edit permissions
-    label: User roles
+    label: Role
     description: Select role to set permissions
 
   evaluate:
@@ -89,7 +91,7 @@ resources:
     workflow:
       label: Workflows
       all: all workflows
-      specific: workflow "{{target}}"
+      specific: workflow "{target}"
       operations:
         delete:
           description: 'Default: deny'
@@ -202,77 +204,77 @@ resources:
     application:
       label: Applications
       all: all applications
-      specific: application "{{target}}"
+      specific: application "{target}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any application
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any application
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any application
 
     apigw-route:
       label: Gateway routes
       all: all routes
-      specific: route "{{target}}"
+      specific: route "{target}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any route
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any route
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any route
 
     auth-client:
       label: Auth Clients
       all: all auth clients
-      specific: auth client "{{target}}"
+      specific: auth client "{target}"
       operations:
         authorize:
           description: 'User can authorize (use) this client. Default: deny'
-          specific: Authorize client "{{target}}
+          specific: Authorize client "{target}"
           title: Authorize any client
         delete:
           description: 'Default: deny'
-          specific: Delete client "{{target}}
+          specific: Delete client "{target}"
           title: Delete any client
         read:
           description: 'Default: deny'
-          specific: Read client "{{target}}
+          specific: Read client "{target}"
           title: Read any client
         update:
           description: 'Default: deny'
-          specific: Update client "{{target}}
+          specific: Update client "{target}"
           title: Update any client
 
     dal-connection:
       label: Connections
       all: all connections
-      specific: connection "{{target}}"
+      specific: connection "{target}"
       operations:
         read:
           description: 'Default: deny'
-          specific: Read connection "{{target}}
+          specific: Read connection "{target}"
           title: Read any connection
         update:
           description: 'Default: deny'
-          specific: Update connection "{{target}}
+          specific: Update connection "{target}"
           title: Update any connection
         delete:
           description: 'Default: deny'
-          specific: Delete connection "{{target}}
+          specific: Delete connection "{target}"
           title: Delete any connection
         dal-config:
           manage:
@@ -280,175 +282,175 @@ resources:
     role:
       label: Roles
       all: all roles
-      specific: role "{{target}}"
+      specific: role "{target}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any role
         members.manage:
           description: 'Default: deny'
-          specific: Manage members for {{target}}
+          specific: Manage members for {target}
           title: Manage members for any role
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any role
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any role
 
     queue:
       label: Queues
       all: all queues
-      specific: queue "{{target}}"
+      specific: queue "{target}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any queue
         members.manage:
           description: 'Default: deny'
-          specific: Manage members for {{target}}
+          specific: Manage members for {target}
           title: Manage members for any queue
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any queue
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any queue
         queue.read:
           description: 'Default: deny'
-          specific: Read messages from {{target}}
+          specific: Read messages from {target}
           title: Read messages from any queue
         queue.write:
           description: 'Default: deny'
-          specific: Write messages to {{target}}
+          specific: Write messages to {target}
           title: Write messages to any queue
 
     template:
       label: Templates
       all: all templates
-      specific: template "{{target}}"
+      specific: template "{target}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any template
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any template
         render:
           description: 'Default: deny'
-          specific: Render {{target}}
+          specific: Render {target}
           title: Render any template
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any template
 
     report:
       label: Reports
       all: all reports
-      specific: report "{{target}}"
+      specific: report "{target}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any report
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any report
         run:
           description: 'Default: deny'
-          specific: Run {{target}}
+          specific: Run {target}
           title: Run any report
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any report
 
     user:
       label: Users
       all: all users
-      specific: user "{{target}}"
+      specific: user "{target}"
       operations:
         credentials:
           manage:
-            specific: Manage {{target}}'s credentials
+            specific: Manage {target}'s credentials
             title: Manage any user
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any user
         email.unmask:
           description: 'Default: deny'
-          specific: Show email details for {{target}}
+          specific: Show email details for {target}
           title: Show email details for any user
         name.unmask:
           description: 'Default: deny'
-          specific: Show name details for {{target}}
+          specific: Show name details for {target}
           title: Show name details for any user
         impersonate:
           description: 'Default: deny'
-          specific: Impersonate this user {{target}}
+          specific: Impersonate this user {target}
           title: Impersonate any user
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any user
         suspend:
           description: 'Default: deny'
-          specific: Suspend {{target}}
+          specific: Suspend {target}
           title: Suspend any user
         unsuspend:
           description: 'Default: deny'
-          specific: Unsuspend {{target}}
+          specific: Unsuspend {target}
           title: Unsuspend any user
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any user
 
     user-group:
       label: User groups
       all: all user groups
-      specific: user group "{{target}}"
+      specific: user group "{target}"
       operations:
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any user group
         update:
           description: 'Default: deny'
-          specific: Update {{target}}
+          specific: Update {target}
           title: Update any user group
         delete:
           description: 'Default: deny'
-          specific: Delete {{target}}
+          specific: Delete {target}
           title: Delete any user group
         members.manage:
           description: 'Default: deny'
-          specific: Manage members for {{target}}
+          specific: Manage members for {target}
           title: Manage members for any user group
 
     data-privacy-request:
       label: Privacy Requests
       all: all requests
-      specific: request "{{target}}"
+      specific: request "{target}"
       operations:
         read:
           description: 'Default: deny'
-          specific: Read {{target}}
+          specific: Read {target}
           title: Read any request
         approve:
           description: 'Default: deny'
-          specific: Approve {{target}}
+          specific: Approve {target}
           title: Approve any request
 
     connection:

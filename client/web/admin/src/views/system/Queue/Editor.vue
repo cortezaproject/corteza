@@ -57,6 +57,39 @@
             </label>
             <InputNumber id="dispatchTimeout" v-model="queue.meta.dispatch.timeout" :min="0" />
           </div>
+
+          <FormField name="pollDelay" class="flex flex-col gap-2">
+            <label for="pollDelay" class="font-medium text-primary">
+              {{ $t('system.queues.editor.info.poll_delay') }}
+            </label>
+            <InputText
+              id="pollDelay"
+              name="pollDelay"
+              v-model="queue.meta.poll_delay"
+              placeholder="1h / 1m15s / 1h90s"
+            />
+            <small class="text-muted-color">
+              {{ queue.meta.poll_delay
+                ? $t('system.queues.editor.info.poll_delay_set')
+                : $t('system.queues.editor.info.poll_delay_empty')
+              }}
+            </small>
+            <Message v-if="$form.pollDelay?.invalid" severity="error" size="small" variant="simple">
+              {{ $form.pollDelay.error?.message }}
+            </Message>
+          </FormField>
+
+          <div class="flex items-center gap-3">
+            <ToggleSwitch id="dispatchEvents" v-model="queue.meta.dispatch_events" />
+            <div class="flex flex-col">
+              <label for="dispatchEvents" class="font-medium text-primary cursor-pointer">
+                {{ $t('system.queues.editor.info.dispatch_events') }}
+              </label>
+              <small class="text-muted-color">
+                {{ $t('system.queues.editor.info.dispatch_events_desc') }}
+              </small>
+            </div>
+          </div>
         </div>
       </Panel>
     </div>
@@ -112,10 +145,9 @@ const queue = ref(null)
 
 const consumerOptions = computed(() => [
   { label: t('system.queues.editor.info.consumerOptions.store'), value: 'store' },
-  {
-    label: t('system.queues.editor.info.consumerOptions.eventbus'),
-    value: 'eventbus',
-  },
+  { label: t('system.queues.editor.info.consumerOptions.eventbus'), value: 'eventbus' },
+  { label: t('system.queues.editor.info.consumerOptions.corteza'), value: 'corteza' },
+  { label: t('system.queues.editor.info.consumerOptions.redis'), value: 'redis' },
 ])
 
 const isEdit = computed(() => !!route.params.queueID)
@@ -127,6 +159,7 @@ const pageTitle = computed(() =>
 const initialValues = computed(() => ({
   queue: queue.value?.queue || '',
   consumer: queue.value?.consumer || '',
+  pollDelay: queue.value?.meta?.poll_delay || '',
 }))
 
 const resolver = ref(({ values }) => {
@@ -140,15 +173,26 @@ const resolver = ref(({ values }) => {
     errors.consumer = [{ message: t('general.label.required') }]
   }
 
+  // Validate poll_delay Go duration format (e.g. 1h, 5m, 1h30m, 90s)
+  if (values.pollDelay && values.pollDelay.trim().length > 0) {
+    const durationRegex = /^((\d+h)?(\d+m)?(\d+s)?)$/
+    const match = values.pollDelay.trim().match(durationRegex)
+    if (!match || match[0] !== values.pollDelay.trim()) {
+      errors.pollDelay = [{ message: t('system.queues.editor.info.poll_delay_invalid') }]
+    }
+  }
+
   return { errors }
 })
 
 function newQueue() {
   return {
     queue: '',
-    consumer: 'store',
+    consumer: 'corteza',
     meta: {
       handler: '',
+      poll_delay: '',
+      dispatch_events: false,
       dispatch: { timeout: 0 },
     },
   }
@@ -168,6 +212,8 @@ async function loadQueue() {
       ...raw,
       meta: {
         handler: raw.meta?.handler || '',
+        poll_delay: raw.meta?.poll_delay || '',
+        dispatch_events: !!raw.meta?.dispatch_events,
         dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
       },
     }
@@ -197,6 +243,8 @@ async function handleSubmit({ valid }) {
         ...raw,
         meta: {
           handler: raw.meta?.handler || '',
+          poll_delay: raw.meta?.poll_delay || '',
+          dispatch_events: !!raw.meta?.dispatch_events,
           dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
         },
       }

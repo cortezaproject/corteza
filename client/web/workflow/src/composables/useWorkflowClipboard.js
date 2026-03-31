@@ -3,6 +3,8 @@
  * Copies selected nodes (and their connecting edges), remaps IDs on paste,
  * and offsets positions by 160px.
  */
+import { nextId } from '../lib/id'
+
 export function useWorkflowClipboard (nodes, edges, saveToHistory) {
   let clipboard = null
 
@@ -46,9 +48,12 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
     const idMap = {}
     const offset = 160
 
-    // Create new nodes with remapped IDs
+    // Start from the next available ID and increment locally
+    let currentId = nextId(nodes, edges)
+
+    // Create new nodes with remapped IDs (incrementing integers like Corteza)
     const newNodes = clipboard.nodes.map(n => {
-      const newId = String(Date.now() + Math.random())
+      const newId = String(currentId++)
       idMap[n.id] = newId
 
       return {
@@ -71,7 +76,7 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
       .filter(e => idMap[e.source] && idMap[e.target])
       .map(e => ({
         ...e,
-        id: `e-${Date.now()}-${Math.random()}`,
+        id: String(currentId++),
         source: idMap[e.source],
         target: idMap[e.target],
         data: {
@@ -97,3 +102,4 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
     pasteClipboard,
   }
 }
+

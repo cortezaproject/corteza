@@ -45,13 +45,7 @@
             size="small"
             @click="$router.push({ name: 'system.dataSources.create' })"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
-          />
+
         </div>
       </template>
 
@@ -72,6 +66,15 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">

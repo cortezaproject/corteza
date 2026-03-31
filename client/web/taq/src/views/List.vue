@@ -39,12 +39,11 @@
             size="small"
             @click="openCreateDialog"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::automation:ng-automation/*"
           />
         </div>
       </template>
@@ -69,6 +68,15 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">
@@ -180,9 +188,10 @@ import {
   components,
   filters,
   useConfirmDelete,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -196,6 +205,8 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
 const $Auth = inject('$Auth')
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('automation/', 'grant'))
 
 const resourceListRef = ref()
 

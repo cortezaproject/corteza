@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { getStyleFromKind } from '../lib/style'
+import { nextId } from '../lib/id'
 
 /**
  * Drag-from-toolbar-to-canvas composable.
@@ -7,10 +8,11 @@ import { getStyleFromKind } from '../lib/style'
  * On canvas drop, creates a VueFlow node at the drop position.
  *
  * @param {Ref} nodes - reactive nodes array
+ * @param {Ref} edges - reactive edges array
  * @param {Function} saveToHistory - history snapshot function
- * @param {Function} screenToFlowPosition - from useVueFlow() in the parent component
+ * @param {Function} projectPosition - VueFlow's project() fn (container-relative → flow coords)
  */
-export function useWorkflowDnD (nodes, saveToHistory, screenToFlowPosition) {
+export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
 
   const draggedItem = ref(null)
 
@@ -38,34 +40,41 @@ export function useWorkflowDnD (nodes, saveToHistory, screenToFlowPosition) {
     }
 
     const styleInfo = getStyleFromKind(item) || {}
+    const nodeWidth = styleInfo.width || 200
+    const nodeHeight = styleInfo.height || 80
 
-    // Convert screen coordinates to flow canvas coordinates
+    // VueFlow's project() expects coordinates relative to the flow container,
+    // not raw screen/client coordinates. Subtract the container's bounding rect.
+    const flowContainer = event.currentTarget
+    const rect = flowContainer ? flowContainer.getBoundingClientRect() : { left: 0, top: 0 }
+
     let position
-    const toFlowPos = typeof screenToFlowPosition === 'function'
-      ? screenToFlowPosition
-      : (screenToFlowPosition?.value || null)
-
-    if (toFlowPos) {
-      position = toFlowPos({
-        x: event.clientX,
-        y: event.clientY,
-      })
-    } else {
-      // Fallback: use client coordinates relative to the canvas container
-      const container = event.currentTarget || event.target
-      const rect = container.getBoundingClientRect()
+    try {
+      if (typeof projectPosition === 'function') {
+        position = { ...projectPosition({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        }) }
+      } else {
+        throw new Error('project not available')
+      }
+    } catch {
       position = {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top,
       }
     }
 
+    // Center the node on the cursor
+    position.x -= nodeWidth / 2
+    position.y -= nodeHeight / 2
+
     // 8px grid snap
     position.x = Math.round(position.x / 8) * 8
     position.y = Math.round(position.y / 8) * 8
 
-    // Generate unique ID
-    const id = String(Date.now())
+    // Generate incrementing integer ID (like Corteza's mxGraph)
+    const id = String(nextId(nodes, edges))
 
     let nodeType = 'workflow'
     if (item.kind === 'trigger') nodeType = 'trigger'
@@ -102,8 +111,8 @@ export function useWorkflowDnD (nodes, saveToHistory, screenToFlowPosition) {
         highlighted: false,
         traceState: null,
         traceLog: null,
-        width: styleInfo.width || 200,
-        height: styleInfo.height || 80,
+        width: nodeWidth,
+        height: nodeHeight,
         // Trigger-specific
         ...(item.kind === 'trigger'
           ? {

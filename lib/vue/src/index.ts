@@ -27,6 +27,7 @@ export { getTheme, setThemes, useTheme } from './composables/useTheme'
 export { useMinDuration, withMinDuration } from './composables/useMinDuration'
 export { useUserResolver } from './composables/useUserResolver'
 export { useFileUpload } from './composables/useFileUpload'
+export { providePermissions, usePermissions, PermissionsKey } from './composables/usePermissions'
 export * as websocket from './libs/websocket'
 
 // Export filters

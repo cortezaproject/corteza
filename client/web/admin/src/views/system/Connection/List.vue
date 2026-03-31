@@ -39,13 +39,12 @@
             icon="pi pi-plus"
             size="small"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+          <CPermissionsButton
+            v-if="canGrant"
+            resource="corteza::system:dal-connection/*"
+            :label="$t('general.label.permissions')"
           />
+
         </div>
       </template>
 
@@ -71,6 +70,15 @@
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">
@@ -113,6 +121,7 @@ import {
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import CPermissionsButton from '@/components/permissions/CPermissionsButton.vue'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters
@@ -122,6 +131,12 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $auth = inject('$auth')
+
+const canGrant = ref(false)
+$auth.check(['system.grant']).then(check => {
+  canGrant.value = check
+})
 
 const resourceListRef = ref()
 

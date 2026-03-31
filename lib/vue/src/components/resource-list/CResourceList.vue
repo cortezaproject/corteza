@@ -13,18 +13,21 @@
       },
     }"
   >
-    <template v-if="$slots.header || !hideSearch" #header>
-      <div class="flex-1">
+    <template v-if="$slots.header || $slots.filter || !hideSearch" #header>
+      <div class="flex-1 min-w-0">
         <slot name="header" />
       </div>
-      <CInputSearch
-        v-if="!hideSearch"
-        :model-value="filter[queryField]"
-        :placeholder="translations.searchPlaceholder"
-        size="small"
-        class="flex-1 max-w-xl"
-        @update:model-value="$emit('update:filter', { ...filter, [queryField]: $event })"
-      />
+      <div class="flex items-center gap-2" :class="!hideSearch ? 'flex-1 max-w-xl' : ''">
+        <slot name="filter" />
+        <CInputSearch
+          v-if="!hideSearch"
+          :model-value="filter[queryField]"
+          :placeholder="translations.searchPlaceholder"
+          size="small"
+          class="flex-1 min-w-0"
+          @update:model-value="$emit('update:filter', { ...filter, [queryField]: $event })"
+        />
+      </div>
     </template>
 
     <template #content>

@@ -79,6 +79,13 @@
           @click="$router.push({ name: 'system.applications' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && application.canGrant"
+            :resource="`corteza::system:application/${application.applicationID}`"
+            :title="application.name || application.applicationID"
+            :target="application.name || application.applicationID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && application.canDeleteApplication"
             :label="$t('system.applications.editor.info.delete')"

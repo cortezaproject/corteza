@@ -1,37 +1,26 @@
 <template>
-  <div
-    class="position-relative"
-  >
-    <c-ace-editor
+  <div class="expression-editor">
+    <Textarea
       v-model="expressionValue"
-      :lang="lang"
-      :min-height="minHeight"
-      :show-line-numbers="showLineNumbers"
-      :font-size="fontSize"
-      :show-popout="showPopout"
-      :auto-complete="autoComplete"
-      :border="border"
-      :auto-complete-suggestions="expressionAutoCompleteValues"
-      resizable
+      :auto-resize="true"
+      rows="3"
+      class="expression-textarea w-full font-mono text-sm"
+      spellcheck="false"
     />
   </div>
 </template>
 
 <script>
-import { components } from '@cortezaproject/corteza-vue-next'
-import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../lib/editor-auto-complete.js'
-
-const { CAceEditor } = components
-
 export default {
-  components: {
-    CAceEditor,
-  },
-
   props: {
     value: {
       type: String,
       default: '',
+    },
+
+    modelValue: {
+      type: String,
+      default: undefined,
     },
 
     lang: {
@@ -70,20 +59,19 @@ export default {
     },
   },
 
-  data () {
-    return {
-      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
-    }
-  },
+  emits: ['update:value', 'update:modelValue', 'input', 'open'],
 
   computed: {
     expressionValue: {
       get () {
-        return this.value
+        // Support both v-model:value and v-model (modelValue)
+        return this.modelValue !== undefined ? this.modelValue : this.value
       },
 
-      set (value = '') {
-        this.$emit('update:value', value)
+      set (val = '') {
+        this.$emit('update:value', val)
+        this.$emit('update:modelValue', val)
+        this.$emit('input', val)
       },
     },
   },
@@ -91,9 +79,16 @@ export default {
 </script>
 
 <style scoped>
-.popout {
-  z-index: 7;
-  bottom: 0;
-  right: 0;
+.expression-editor {
+  width: 100%;
+}
+
+.expression-textarea {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  tab-size: 2;
+  resize: vertical;
+  min-height: v-bind(minHeight);
 }
 </style>

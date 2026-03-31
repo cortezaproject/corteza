@@ -12,6 +12,16 @@
         :workflows="[workflow.workflowID]"
         :file-name="workflow.meta.name || workflow.handle"
       />
+
+      <CPermissionsButton
+        v-if="workflow.canGrant"
+        :resource="`corteza::automation:workflow/${workflow.workflowID}`"
+        :title="workflow.meta.name || workflow.handle || workflow.workflowID"
+        :target="workflow.meta.name || workflow.handle || workflow.workflowID"
+        icon="pi pi-lock"
+        size="small"
+        outlined
+      />
     </div>
 
     <Tabs value="general">

@@ -1,15 +1,16 @@
 <template>
   <div>
-    <Panel :header="$t('steps.expressions.label')">
-      <template #icons>
+    <div class="configurator-section">
+      <div class="configurator-section__title">
+        {{ $t('steps.expressions.label') }}
         <a
           :href="documentationURL"
           target="_blank"
-          class="text-muted-color hover:text-color"
+          class="text-muted-color hover:text-color ml-auto"
         >
           <i class="pi pi-question-circle" />
         </a>
-      </template>
+      </div>
 
       <div v-if="hasArguments">
         <expression-table
@@ -21,7 +22,7 @@
           @open-editor="openInEditor"
         />
       </div>
-    </Panel>
+    </div>
 
     <Teleport to="#sidebar-footer">
       <Button

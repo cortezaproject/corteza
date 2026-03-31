@@ -91,6 +91,13 @@
           @click="$router.push({ name: 'system.userGroups' })"
         />
         <div class="flex gap-2">
+          <CPermissionsButton
+            v-if="isEdit && userGroup.canGrant"
+            :resource="`corteza::system:user-group/${userGroup.userGroupID}`"
+            :title="userGroup.meta?.short || userGroup.handle || userGroup.userGroupID"
+            :target="userGroup.meta?.short || userGroup.handle || userGroup.userGroupID"
+            :label="$t('general.label.permissions')"
+          />
           <CInputDelete
             v-if="isEdit && userGroup.canDeleteUserGroup && !userGroup.deletedAt"
             :label="$t('system.user-groups.editor.info.delete')"

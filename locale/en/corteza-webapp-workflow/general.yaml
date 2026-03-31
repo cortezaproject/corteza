@@ -18,6 +18,7 @@ label:
   any: Any
   label: Label
   name: Name
+  permissions: Permissions
   or: Or
   type: Type
 edit-workflow: Edit Workflow
@@ -82,4 +83,4 @@ themes:
 extendSession:
   labels:
     extend: Extend Session
-    warning: You will be logged out in {{ countdownTime }} seconds
+    warning: You will be logged out in { countdownTime } seconds

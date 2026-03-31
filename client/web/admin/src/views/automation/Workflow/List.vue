@@ -45,12 +45,11 @@
             size="small"
             @click="$router.push({ name: 'automation.workflows.create' })"
           />
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilterMenu"
+
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::automation:workflow/*"
           />
         </div>
       </template>
@@ -75,6 +74,15 @@
         {{ locFullDateTime(data.createdAt) }}
       </template>
 
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
 
     <Popover ref="filterMenu">
@@ -108,12 +116,14 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   components,
   filters,
   useConfirmDelete,
+  usePermissions,
+  useRBACStore,
   useResourceList,
 } from '@cortezaproject/corteza-vue-next'
 
@@ -122,6 +132,9 @@ const { locFullDateTime } = filters
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('automation/', 'grant'))
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
@@ -166,10 +179,26 @@ const { items, loading, filter, sorting, pagination, handleSort, handlePageChang
   })
 
 function getActionsMenuItems(item) {
-  const items = []
+  const menuItems = []
+
+  if (item.canGrant) {
+    menuItems.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::automation:workflow/${item.workflowID}`,
+          title: item.meta?.name || item.handle || item.workflowID,
+          target: item.meta?.name || item.handle || item.workflowID,
+        })
+      },
+    })
+  }
 
   if (item.canDeleteWorkflow) {
-    items.push({
+    if (menuItems.length > 0) menuItems.push({ separator: true })
+    menuItems.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
       class: 'text-red-500',
@@ -177,7 +206,7 @@ function getActionsMenuItems(item) {
     })
   }
 
-  return items
+  return menuItems
 }
 
 function onConfirmDelete(item) {
