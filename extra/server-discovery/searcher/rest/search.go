@@ -12,7 +12,14 @@ import (
 )
 
 type (
-	search struct{}
+	search struct {
+		embedder   embedderService
+		searchMode string
+	}
+
+	embedderService interface {
+		GenerateEmbeddings(input string) ([]float64, error)
+	}
 
 	cResponse struct {
 		Response struct {
@@ -60,8 +67,11 @@ type (
 	}
 )
 
-func Search() *search {
-	return &search{}
+func Search(embedderSvc embedderService, searchMode string) *search {
+	return &search{
+		embedder:   embedderSvc,
+		searchMode: searchMode,
+	}
 }
 
 func (s search) SearchResources(ctx context.Context, r *request.SearchResources) (out interface{}, err error) {
@@ -94,10 +104,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		mHandleMap  = make(map[string]mMeta)
 	)
 
-	esc, err := searcher.DefaultEs.Client()
-	if err != nil {
-		return nil, err
-	}
+	esc := searcher.DefaultEsClient
 
 	results, page, err = esSearch(ctx, log, esc, searchParams{
 		title:         "results",
@@ -109,6 +116,8 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		namespaceAggs: namespaceAggs,
 		dumpRaw:       validDumpRaw,
 		allowedRoles:  allowedRoles,
+		embedder:      s.embedder,
+		searchMode:    s.searchMode,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute search: %w", err)
@@ -221,6 +230,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		aggOnly:       true,
 		mAggOnly:      true,
 		allowedRoles:  allowedRoles,
+		embedder:      s.embedder,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute module aggregation search: %w", err)

@@ -95,7 +95,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	
 
 			if app.Opt.Discovery.Enabled {
-				r.Route("/discovery", discoveryRest.MountRoutes())
+				r.Route("/discovery", discoveryRest.MountRoutes(app.Opt.Discovery))
 			}
 
 			if app.Opt.Federation.Enabled {

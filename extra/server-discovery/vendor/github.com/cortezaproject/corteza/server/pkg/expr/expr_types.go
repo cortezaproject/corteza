@@ -465,6 +465,12 @@ func CastToString(val interface{}) (out string, err error) {
 			return "", err
 		}
 		return string(bb), nil
+	case []any:
+		bb, err := json.Marshal(val)
+		if err != nil {
+			return out, err
+		}
+		return string(bb), err
 	default:
 		return cast.ToStringE(UntypedValue(val))
 	}

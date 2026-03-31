@@ -6,6 +6,7 @@ import (
 	"html"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -36,8 +37,8 @@ type (
 	}
 
 	cdHit struct {
-		Type  string      `json:"type"`
-		Value interface{} `json:"value"`
+		Type  string                 `json:"type"`
+		Value map[string]interface{} `json:"value"`
 	}
 
 	cdAggregation struct {
@@ -278,6 +279,7 @@ hits:
 			if err = json.Unmarshal(h.Source, &r); err != nil {
 				return
 			}
+
 			type valueJson struct {
 				Name  string      `json:"name"`
 				Label string      `json:"label"`
@@ -325,9 +327,18 @@ hits:
 					}
 				}
 			}
+
+			matching_fields := make(map[string]any)
+
+			for key, value := range h.Highlight {
+				newKey := strings.TrimPrefix(key, "values.")
+				matching_fields[newKey] = value
+			}
+
 			aux["created"] = uc
 			aux["customValues"] = ssVal
 			aux["values"] = slice
+			aux["matching_fields"] = matching_fields
 			aux["@id"] = aux["_id"]
 			delete(aux, "_id")
 			delete(aux, "valueLabels")
