@@ -40,6 +40,7 @@
     />
 
     <CPrompts />
+    <CAgentSidebar />
     <CNotificationSidebar />
   </div>
 </template>
@@ -49,7 +50,7 @@ import { useApplicationsStore } from '@/stores/applications'
 import { components, useNotificationsStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
-const { CTopbar, CLoaderLogo, CPrompts, CNotificationSidebar } = components
+const { CTopbar, CLoaderLogo, CPrompts, CNotificationSidebar, CAgentSidebar } = components
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

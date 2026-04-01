@@ -16,6 +16,15 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-if="template.canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:template/${template.templateID}`"
+          :title="template.meta?.short || template.handle || template.templateID"
+          :target="template.meta?.short || template.handle || template.templateID"
+        />
+      </div>
       <Card
         :pt="{
           body: { class: 'p-0 flex flex-col h-full min-h-0' },
@@ -139,13 +148,6 @@
           @click="$router.push({ name: 'system.templates' })"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && template.canGrant"
-            :resource="`corteza::system:template/${template.templateID}`"
-            :title="template.meta?.short || template.handle || template.templateID"
-            :target="template.meta?.short || template.handle || template.templateID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && template.canDeleteTemplate"
             :label="$t('system.templates.editor.info.delete')"

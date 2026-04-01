@@ -66,16 +66,20 @@
 
     <CPrompts />
     <CNotificationSidebar />
+    <CAgentSidebar />
+    <CPermissionsDialog />
   </div>
 </template>
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
-import { components, withMinDuration, useApplicationsStore, useNotificationsStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import { components, providePermissions, withMinDuration, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useAutomationStore } from '@/stores/automation'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog, CAgentSidebar } = components
+
+providePermissions()
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
@@ -85,6 +89,7 @@ const store = useAutomationStore()
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
+const rbacStore = useRBACStore()
 
 const appListVisible = ref(false)
 let realtimeClient
@@ -106,6 +111,7 @@ onMounted(async () => {
         applicationsStore.fetchApplications(),
         notificationsStore.fetchNotifications($SystemAPI),
         workflowPromptsStore.update($AutomationAPI, 'taq'),
+        rbacStore.load([$SystemAPI, $AutomationAPI]),
       ]),
     )
   } catch (e) {

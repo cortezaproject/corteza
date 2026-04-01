@@ -45,7 +45,7 @@
           <CPermissionsButton
             v-if="canGrant"
             resource="corteza::system:queue/*"
-            :label="$t('general.label.permissions')"
+            v-tooltip.bottom="$t('general.label.permissions')"
           />
         </div>
       </template>
@@ -96,13 +96,15 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   components,
   filters,
   useConfirmDelete,
   useResourceList,
+  useRBACStore,
+  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
 const { CResourceList } = components
 const { locFullDateTime } = filters
@@ -112,12 +114,10 @@ const { confirmDelete } = useConfirmDelete()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
-const $auth = inject('$auth')
 
-const canGrant = ref(false)
-$auth.check(['system.grant']).then(check => {
-  canGrant.value = check
-})
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
+const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
 const filterMenu = ref()
@@ -155,6 +155,20 @@ const { items, loading, filter, sorting, pagination, handleSort, handlePageChang
 
 function getActionsMenuItems(item) {
   const items = []
+
+  if (item.canGrant || canGrant.value) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value?.hideActionsMenu?.()
+        openPermissions({
+          resource: `corteza::system:queue/${item.queueID}`,
+          title: item.queue,
+        })
+      },
+    })
+  }
 
   if (item.canDeleteQueue) {
     items.push({

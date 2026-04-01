@@ -71,6 +71,7 @@ import {
   useConfirmDelete,
   useRBACStore,
   useResourceList,
+  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
 import NamespaceImporter from '@/components/Namespaces/NamespaceImporter.vue'
 import { useNamespaceStore } from '@/stores/namespace'
@@ -86,6 +87,7 @@ const $ComposeAPI = inject('$ComposeAPI')
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 const namespaceStore = useNamespaceStore()
+const { open: openPermissions } = usePermissions()
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('compose/', 'grant'))
 
@@ -158,6 +160,19 @@ const getActionsMenuItems = namespace => {
       icon: 'pi pi-trash',
       class: 'text-red-500',
       command: () => handleDelete(namespace),
+    })
+  }
+
+  if (namespace.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        openPermissions({
+          resource: `corteza::compose:namespace/${namespace.namespaceID}`,
+          title: namespace.name || namespace.slug || namespace.namespaceID,
+        })
+      },
     })
   }
 

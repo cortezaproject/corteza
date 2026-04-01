@@ -18,6 +18,15 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-if="userGroup.canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:user-group/${userGroup.userGroupID}`"
+          :title="userGroup.meta?.short || userGroup.handle || userGroup.userGroupID"
+          :target="userGroup.meta?.short || userGroup.handle || userGroup.userGroupID"
+        />
+      </div>
       <Panel :header="$t('system.user-groups.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
@@ -91,13 +100,6 @@
           @click="$router.push({ name: 'system.userGroups' })"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && userGroup.canGrant"
-            :resource="`corteza::system:user-group/${userGroup.userGroupID}`"
-            :title="userGroup.meta?.short || userGroup.handle || userGroup.userGroupID"
-            :target="userGroup.meta?.short || userGroup.handle || userGroup.userGroupID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && userGroup.canDeleteUserGroup && !userGroup.deletedAt"
             :label="$t('system.user-groups.editor.info.delete')"

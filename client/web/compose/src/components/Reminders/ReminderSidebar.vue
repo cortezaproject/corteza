@@ -7,7 +7,16 @@
     leave-from-class="translate-x-0"
     leave-to-class="translate-x-full"
   >
-    <div v-if="isVisible" class="right-sidebar flex flex-col">
+    <div
+      v-if="isVisible"
+      class="right-sidebar flex flex-row"
+      :style="{ width: `${drawerWidth}px` }"
+    >
+      <div
+        class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
+        @mousedown="startDrawerResize"
+      />
+      <div class="flex-1 flex flex-col min-w-0">
       <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
         <h3 class="m-0 text-lg font-semibold">
           {{ $t('reminder.listLabel') }}
@@ -28,6 +37,7 @@
           <ReminderManager />
         </div>
       </div>
+      </div>
     </div>
   </Transition>
 </template>
@@ -36,9 +46,11 @@
 import { computed, inject, onBeforeUnmount, watch } from 'vue'
 import { useReminderStore } from '@/stores/reminder'
 import ReminderManager from './ReminderManager.vue'
+import { useRightSidebarResize } from '@cortezaproject/corteza-vue-next'
 
 const store = useReminderStore()
 const $eventBus = inject('$eventBus', null)
+const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
   get: () => store.visible,

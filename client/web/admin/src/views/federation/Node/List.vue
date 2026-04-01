@@ -6,12 +6,14 @@
   <div class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0">
       <CResourceList
+        ref="resourceListRef"
         primary-key="nodeID"
         :fields="fields"
         :items="items"
         :filter="filter"
         :sorting="sorting"
         :pagination="pagination"
+        :action-items="getActionsMenuItems"
         :loading="loading"
         :translations="{
           searchPlaceholder: $t('federation.nodes.list.filter.query.placeholder'),
@@ -59,17 +61,6 @@
           />
         </template>
 
-        <template #body-actions="{ data }">
-          <Button
-            v-if="data.status === 'pair_requested'"
-            :label="$t('federation.nodes.pair.confirm')"
-            icon="pi pi-check"
-            size="small"
-            severity="warn"
-            text
-            @click.stop="handleConfirmPending(data)"
-          />
-        </template>
       </CResourceList>
     </div>
   </div>
@@ -107,7 +98,12 @@
 </template>
 
 <script setup>
-import { components, useResourceList, useRBACStore } from '@cortezaproject/corteza-vue-next'
+import {
+  components,
+  useResourceList,
+  useRBACStore,
+  usePermissions,
+} from '@cortezaproject/corteza-vue-next'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -119,7 +115,9 @@ const $FederationAPI = inject('$FederationAPI')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('federation/', 'grant'))
+const { open: openPermissions } = usePermissions()
 
+const resourceListRef = ref()
 const pairDialogVisible = ref(false)
 const pairURL = ref('')
 const pairing = ref(false)
@@ -154,6 +152,35 @@ const {
     pagination: { limit: 20 },
   },
 )
+
+function getActionsMenuItems(node) {
+  const actions = []
+
+  if (node.canGrant || canGrant.value) {
+    actions.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value?.hideActionsMenu?.()
+        openPermissions({
+          resource: `corteza::federation:node/${node.nodeID}`,
+          title: node.name || node.nodeID,
+        })
+      },
+    })
+  }
+
+  if (node.status === 'pair_requested') {
+    actions.push({
+      label: t('federation.nodes.pair.confirm'),
+      icon: 'pi pi-check',
+      class: 'text-orange-500',
+      command: () => handleConfirmPending(node),
+    })
+  }
+
+  return actions
+}
 
 async function handlePair() {
   if (!pairURL.value) return

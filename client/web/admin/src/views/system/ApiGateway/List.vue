@@ -88,7 +88,7 @@
           <CPermissionsButton
             v-if="canGrant"
             resource="corteza::system:apigw-route/*"
-            :label="$t('general.label.permissions')"
+            v-tooltip.bottom="$t('general.label.permissions')"
           />
         </div>
       </template>
@@ -150,13 +150,15 @@
 </template>
 
 <script setup>
-import { inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   components,
   filters,
   useConfirmDelete,
   useResourceList,
+  useRBACStore,
+  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
 
 const { CResourceList } = components
@@ -167,12 +169,10 @@ const { confirmDelete } = useConfirmDelete()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
-const $auth = inject('$auth')
 
-const canGrant = ref(false)
-$auth.check(['system.grant']).then(check => {
-  canGrant.value = check
-})
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
+const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
 const filterMenu = ref()
@@ -220,6 +220,20 @@ const { items, loading, filter, sorting, pagination, handleSort, handlePageChang
 
 function getActionsMenuItems(item) {
   const items = []
+
+  if (item.canGrant || canGrant.value) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value?.hideActionsMenu?.()
+        openPermissions({
+          resource: `corteza::system:apigw-route/${item.routeID}`,
+          title: item.endpoint || item.routeID,
+        })
+      },
+    })
+  }
 
   if (item.canDeleteApigwRoute) {
     items.push({

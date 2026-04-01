@@ -16,6 +16,14 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:queue/${queue.queueID}`"
+          :title="queue.queue"
+          :target="queue.queue"
+        />
+      </div>
       <Panel :header="$t('system.queues.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="queue" class="flex flex-col gap-2">

@@ -35,6 +35,33 @@
         v-if="isEdit && namespace?.canManageNamespace"
         class="flex justify-end gap-2 mb-4 shrink-0"
       >
+        <!-- Discovery & Federation Buttons -->
+        <Button
+          v-if="module?.moduleID"
+          :label="$t('module.edit.schemaAlterations.title', 'Schema Alterations')"
+          icon="pi pi-database"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="checkSchemaAlterations"
+        />
+        <Button
+          :label="$t('module.edit.discoverySettings.title', 'Discovery')"
+          icon="pi pi-globe"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="discoveryModal = true"
+        />
+        <Button
+          :label="$t('module.edit.federationSettings.title', 'Federation')"
+          icon="pi pi-share-alt"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="federationModal = true"
+        />
+
         <!-- Export Button -->
         <Button
           v-if="namespace?.canExportModules"
@@ -88,6 +115,25 @@
           :disabled="!recordPage"
           @click="handleRecordListPageCreation"
         />
+
+        <Button
+          v-if="isEdit && module.canGrant"
+          type="button"
+          icon="pi pi-lock"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          size="small"
+          severity="secondary"
+          @click="togglePermissionsMenu"
+          aria-haspopup="true"
+          aria-controls="permissions_menu"
+          outlined
+        />
+        <Menu
+          ref="permissionsMenu"
+          id="permissions_menu"
+          :model="permissionsMenuItems"
+          :popup="true"
+        />
       </div>
 
       <Card
@@ -96,8 +142,17 @@
       >
         <template #content>
           <Tabs v-model:value="activeTab">
-            <TabList class="rounded-t-lg">
+            <TabList class="rounded-t-lg overflow-x-auto whitespace-nowrap">
               <Tab value="fields">{{ $t('module.edit.fields.label') }}</Tab>
+              <Tab value="dal">{{ $t('module.edit.config.dal.title', 'Data Store') }}</Tab>
+              <Tab value="unique">
+                {{ $t('module.edit.config.uniqueValues.title', 'Unique Values') }}
+              </Tab>
+              <Tab value="revisions">
+                {{ $t('module.edit.config.record-revisions.title', 'Record Revisions') }}
+              </Tab>
+              <Tab value="privacy">{{ $t('module.edit.config.privacy.title', 'Privacy') }}</Tab>
+              <Tab value="issues">{{ $t('module.edit.issues.tab', 'Issues') }}</Tab>
             </TabList>
 
             <TabPanels>
@@ -155,7 +210,7 @@
                   empty-message="—"
                 >
                   <template #body-name="{ data }">
-                    <span v-if="data.isSystem">{{ data.name }}</span>
+                    <span v-if="data.isSystem" class="text-muted-color">{{ data.name }}</span>
                     <InputText v-else v-model="data.name" class="w-full" size="small" />
                   </template>
 
@@ -190,14 +245,41 @@
                     <div v-if="!data.isSystem" class="flex justify-center">
                       <Checkbox v-model="data.isRequired" :binary="true" />
                     </div>
+                    <span v-else />
                   </template>
 
                   <template #body-isMulti="{ data }">
                     <div v-if="!data.isSystem" class="flex justify-center">
                       <Checkbox v-model="data.isMulti" :binary="true" />
                     </div>
+                    <span v-else />
                   </template>
                 </CResourceTable>
+              </TabPanel>
+
+              <TabPanel value="dal">
+                <DalSettings :module="module" />
+              </TabPanel>
+
+              <TabPanel value="unique">
+                <UniqueValues :module="module" />
+              </TabPanel>
+
+              <TabPanel value="revisions">
+                <RecordRevisionsSettings :module="module" />
+              </TabPanel>
+
+              <TabPanel value="privacy">
+                <DataPrivacySettings
+                  :resource="module"
+                  :connection="{}"
+                  :sensitivityLevels="sensitivityLevels"
+                  :translations="privacyTranslations"
+                />
+              </TabPanel>
+
+              <TabPanel value="issues">
+                <ModuleIssues :module="module" />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -214,13 +296,6 @@
           @click="$router.back()"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && module.canGrant"
-            :resource="`corteza::compose:module/${module.namespaceID}/${module.moduleID}`"
-            :title="module.name || module.handle || module.moduleID"
-            :target="module.name || module.handle || module.moduleID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && module.canDeleteModule"
             :label="$t('general.label.delete')"
@@ -246,6 +321,11 @@
       :field="activeConfiguratorField"
       @save="onFieldSave"
     />
+
+    <!-- Config Modals -->
+    <FederationSettings v-model:modal="federationModal" :module="module" />
+    <DiscoverySettings v-model:modal="discoveryModal" :module="module" @save="onDiscoverySave" />
+    <DalSchemaAlterations v-model:modal="schemaModal" :module="module" :batch="schemaBatch" />
   </Form>
 </template>
 
@@ -253,9 +333,17 @@
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete, usePermissions } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
+import DalSettings from '@/components/Admin/Module/DalSettings.vue'
+import UniqueValues from '@/components/Admin/Module/UniqueValues.vue'
+import RecordRevisionsSettings from '@/components/Admin/Module/RecordRevisionsSettings.vue'
+import DataPrivacySettings from '@/components/Admin/Module/DataPrivacySettings.vue'
+import FederationSettings from '@/components/Admin/Module/FederationSettings.vue'
+import DiscoverySettings from '@/components/Admin/Module/DiscoverySettings.vue'
+import DalSchemaAlterations from '@/components/Admin/Module/DalSchemaAlterations.vue'
+import ModuleIssues from '@/components/Admin/Module/ModuleIssues.vue'
 
 const { CInputDelete, CRouterLinkButton, CResourceTable } = components
 import { useI18n } from 'vue-i18n'
@@ -295,6 +383,82 @@ const activeConfiguratorFieldIndex = ref(-1)
 
 // Field table ref
 const fieldTableRef = ref()
+
+// App State Defaults
+const $SystemAPI = inject('$SystemAPI')
+const sensitivityLevels = ref([])
+const federationModal = ref(false)
+const discoveryModal = ref(false)
+const schemaModal = ref(false)
+const schemaBatch = ref(undefined)
+
+// Permissions State
+const permissionsMenu = ref(null)
+const { open: openPermissions } = usePermissions()
+
+const togglePermissionsMenu = event => {
+  permissionsMenu.value?.toggle(event)
+}
+
+const permissionsMenuItems = computed(() => {
+  if (!module.value) return []
+  return [
+    {
+      label: t('module.tooltip.permissions', 'Module Permissions'),
+      command: () => {
+        openPermissions({
+          resource: `corteza::compose:module/${module.value.namespaceID}/${module.value.moduleID}`,
+          title: module.value.name || module.value.handle || module.value.moduleID,
+          target: module.value.name || module.value.handle || module.value.moduleID,
+        })
+      },
+    },
+    {
+      label: t('module.fieldPermissions', 'Field Permissions'),
+      command: () => {
+        openPermissions({
+          resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/*`,
+          title: module.value.name || module.value.handle || module.value.moduleID,
+          target: module.value.name || module.value.handle || module.value.moduleID,
+        })
+      },
+    },
+    {
+      label: t('module.recordPermissions', 'Record Permissions'),
+      command: () => {
+        openPermissions({
+          resource: `corteza::compose:record/${module.value.namespaceID}/${module.value.moduleID}/*`,
+          title: module.value.name || module.value.handle || module.value.moduleID,
+          target: module.value.name || module.value.handle || module.value.moduleID,
+        })
+      },
+    },
+  ]
+})
+
+const privacyTranslations = computed(() => ({
+  sensitivity: {
+    label: t('module.edit.config.privacy.sensitivity-level.label', 'Sensitivity'),
+    description: t('module.edit.config.privacy.sensitivity-level.description', 'Data access sensitivity'),
+    placeholder: t('module.edit.config.privacy.sensitivity-level.placeholder', 'Select Sensitivity'),
+  },
+  usage: {
+    label: t('module.edit.config.privacy.usage-disclosure.label', 'Usage Disclosure'),
+  },
+}))
+
+function onDiscoverySave(mod) {
+  module.value.config = mod.config
+  discoveryModal.value = false
+  // Flag to maybe save right after discovery save? It's fine to require top level form save.
+}
+
+async function fetchSensitivityLevels() {
+  try {
+    const { set } = await $SystemAPI.dalSensitivityLevelList()
+    sensitivityLevels.value = set || []
+  } catch (e) {}
+}
 
 // Field type options
 const fieldKinds = [
@@ -457,14 +621,29 @@ function removeField(index) {
 function getFieldActionsMenuItems(field, index) {
   if (field.isSystem) return []
 
-  return [
-    {
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmFieldDelete(field, index),
-    },
-  ]
+  const items = []
+
+  if (isEdit.value && field.fieldID && field.fieldID !== '0' && module.value?.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        openPermissions({
+          resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/${field.fieldID}`,
+          title: field.label || field.name || field.fieldID,
+        })
+      },
+    })
+  }
+
+  items.push({
+    label: t('general.label.delete'),
+    icon: 'pi pi-trash',
+    class: 'text-red-500',
+    command: () => onConfirmFieldDelete(field, index),
+  })
+
+  return items
 }
 
 function onConfirmFieldDelete(field, index) {
@@ -531,6 +710,24 @@ async function handleDelete() {
     $toast.toastDanger(t('notification.module.deleteFailed'))
   } finally {
     deleting.value = false
+  }
+}
+
+async function checkSchemaAlterations() {
+  try {
+    const { set } = await $SystemAPI.dalSchemaAlterationList({
+      resourceType: 'compose:module',
+      resourceID: module.value.moduleID,
+      completedAt: null,
+    })
+    schemaBatch.value = (set || []).filter(s => !!s.batchID).map(s => s.batchID)
+    schemaModal.value = false
+    setTimeout(() => {
+      schemaModal.value = true
+    }, 10)
+  } catch (e) {
+    if ($toast && $toast.toastErrorHandler)
+      $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.load.error'))(e)
   }
 }
 
@@ -626,6 +823,7 @@ function updateTableScrollHeight() {
 
 onMounted(() => {
   loadModule()
+  fetchSensitivityLevels()
 
   // Observe layout changes to recalculate scroll height
   updateTableScrollHeight()
@@ -649,7 +847,7 @@ watch(
 )
 
 // Recalculate scroll height when loading finishes and DataTable renders
-watch(loading, (val) => {
+watch(loading, val => {
   if (!val) updateTableScrollHeight()
 })
 

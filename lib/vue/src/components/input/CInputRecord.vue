@@ -1,24 +1,21 @@
 <template>
   <Select
-    :model-value="selectedRecord"
+    :model-value="modelValue"
     @update:model-value="onSelect"
     :options="options"
-    :option-label="getOptionLabel"
+    option-label="label"
+    option-value="recordID"
     :placeholder="effectivePlaceholder"
     :disabled="disabled || !resolvedNamespaceID || !moduleID"
     :loading="loading"
     class="w-full"
     filter
+    :filter-fields="['label', 'recordID']"
     fluid
     showClear
     @filter="onFilter"
     @show="onShow"
   >
-    <template #option="{ option }">
-      <div class="flex items-center gap-2">
-        <span>{{ getOptionLabel(option) }}</span>
-      </div>
-    </template>
     <template v-if="hasNextPage || hasPrevPage" #footer>
       <div class="flex justify-between items-center px-3 py-2 border-t border-surface">
         <Button
@@ -94,7 +91,6 @@ const resolvedNamespaceID = computed(
 )
 
 const options = ref([])
-const selectedRecord = ref(null)
 const loading = ref(false)
 
 // Pagination state
@@ -187,15 +183,21 @@ async function fetchRecords(searchQuery = '', pageCursor = '') {
       params.pageCursor = pageCursor
     }
 
-    const { response, cancel } = $ComposeAPI.recordListCancellable(params)
-    cancelCurrentRequest = cancel
-
-    const result = await response()
-    options.value = result.set || []
+    const result = await $ComposeAPI.recordList(params)
+    const records = result.set || []
+    
+    options.value = records.map(r => ({ ...r, label: getOptionLabel(r) }))
+    
     nextPageCursor.value = result.filter?.nextPage || ''
     prevPageCursor.value = result.filter?.prevPage || ''
     hasNextPage.value = !!nextPageCursor.value
     hasPrevPage.value = !!prevPageCursor.value
+
+    if (props.modelValue && resolvedNamespaceID.value && props.moduleID) {
+      if (!options.value.some(r => r.recordID === props.modelValue)) {
+        loadRecordById(props.modelValue)
+      }
+    }
   } catch (e) {
     // Ignore cancelled requests
     if (e?.message !== 'canceled') {
@@ -228,9 +230,8 @@ function goToPage(next) {
   }
 }
 
-function onSelect(value) {
-  selectedRecord.value = value
-  emit('update:modelValue', value?.recordID || null)
+function onSelect(recordID) {
+  emit('update:modelValue', recordID || null)
 }
 
 async function loadRecordById(recordID) {
@@ -239,7 +240,6 @@ async function loadRecordById(recordID) {
   // First check if already in options
   const existing = options.value.find(r => r.recordID === recordID)
   if (existing) {
-    selectedRecord.value = existing
     return
   }
 
@@ -251,9 +251,12 @@ async function loadRecordById(recordID) {
       moduleID: props.moduleID,
       recordID,
     })
-    selectedRecord.value = record
-    if (!options.value.find(r => r.recordID === recordID)) {
-      options.value = [...options.value, record]
+    
+    if (record) {
+      record.label = getOptionLabel(record)
+      if (!options.value.find(r => r.recordID === recordID)) {
+        options.value = [...options.value, record]
+      }
     }
   } catch {
     // Record not found or API error
@@ -267,7 +270,6 @@ watch(
   () => [resolvedNamespaceID.value, props.moduleID],
   ([newNs, newMod], [oldNs, oldMod]) => {
     if ((oldNs && newNs !== oldNs) || (oldMod && newMod !== oldMod)) {
-      selectedRecord.value = null
       emit('update:modelValue', null)
     }
     if (newNs && newMod) {
@@ -281,10 +283,8 @@ watch(
 watch(
   () => props.modelValue,
   newVal => {
-    if (newVal && (!selectedRecord.value || selectedRecord.value.recordID !== newVal)) {
+    if (newVal) {
       loadRecordById(newVal)
-    } else if (!newVal) {
-      selectedRecord.value = null
     }
   },
   { immediate: true },

@@ -73,6 +73,8 @@ edit:
     public: Public
     private: Private
     protected: Protected
+    placeholder: Select a field
+    description: Selected fields will be exposed via the Discovery API if the user has correct permissions.
   fieldPermissions: Field permissions
   manageRecordFields: Manage record fields
   moduleFieldSettings: Module field settings
@@ -95,6 +97,9 @@ edit:
 
   issues:
     label: Issues ({count})
+    title: Configuration Issues
+    noIssues: No configuration issues detected
+    tab: Issues
 
   schemaAlterations:
     title: Schema alterations
@@ -117,6 +122,15 @@ edit:
       model:
         add: Add schema for model {ident}
         delete: Delete schema for model {ident}
+    notification:
+      load:
+        error: Failed to load schema alterations
+      dismiss:
+        success: Schema alteration dismissed successfully
+        error: Failed to dismiss schema alteration
+      resolve:
+        success: Schema alteration resolved successfully
+        error: Failed to resolve schema alteration
 
   config:
     dal:

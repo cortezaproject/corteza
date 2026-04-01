@@ -125,9 +125,22 @@ editor:
     toolName: Tool Name
     toolDescription: Description
     toolHints: Hints
+  taqs:
+    label: Allowed TAQs
+    help: Select TAQs this agent can invoke to automate routines
+    selectPlaceholder: Select a TAQ to add...
+    hintPlaceholder: Optional hints for this TAQ...
+  workflows:
+    label: Allowed Workflows
+    help: Select Corteza workflows this agent can trigger
+    selectPlaceholder: Select a workflow to add...
+    hintPlaceholder: Optional hints for this workflow...
   userEnabled:
     label: Enable User Chat Invocation
     help: Allow users to invoke this agent directly through chat
+  sidebarRoles:
+    label: Agent Sidebar Roles
+    help: Select roles that will see this agent in their App Sidebar.
   systemEnabled:
     label: Enable System Invocation
     help: Allow this agent to be invoked programmatically by the system (e.g. workflows, automation)
@@ -164,3 +177,10 @@ editor:
     toggleRawJson: 'Toggle raw JSON'
     tokenUsage: '{input} in / {output} out / {total} total tokens'
     thinking: Thinking...
+
+sidebar:
+  title: Human Assistant
+  chatTab: Chat {id}
+  newChat: New Chat
+  empty: How can I help you today?
+  placeholder: Message...

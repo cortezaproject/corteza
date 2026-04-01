@@ -947,11 +947,35 @@ export function useFlowEditor() {
     // Remove the node itself from visited
     visited.delete(nodeId)
 
+    const EXPANDABLE_TYPES = [
+      'ComposeRecord',
+      'SystemUser',
+      'SystemRole',
+      'SystemApplication',
+      'ComposeNamespace',
+      'ComposeModule',
+      'ComposePage',
+      'HttpRequest',
+    ]
+
     // Helper: resolve a trigger constraint value by property name
     function getTriggerConstraintValue(nodeData: any, propName: string): string | null {
       const constraints = nodeData?.constraints || []
       const c = constraints.find((cc: any) => cc.name === propName)
       return c?.values?.[0]?.['@value'] ?? null
+    }
+
+    // Helper: resolve a function argument value by argument name
+    function getFunctionArgumentValue(nodeData: any, argName: string): string | null {
+      const args = nodeData?.arguments || []
+      const a = args.find((aa: any) => aa.argumentName === argName)
+      if (!a) return null
+      
+      // If entered manually in UI, expressions may be wrapped in quotes
+      if (a.expr && typeof a.expr === 'string' && a.expr.startsWith('"') && a.expr.endsWith('"')) {
+        return a.expr.slice(1, -1)
+      }
+      return a.expr || a.source || null
     }
 
     // For each ancestor node, look up results (functions) or properties (triggers)
@@ -979,11 +1003,14 @@ export function useFlowEditor() {
               types: p.type ? [p.type] : [],
             }
 
-            // Mark record-type properties as expandable and attach constraint IDs
-            if (p.type === 'ComposeRecord') {
+            // Mark structurally complex types as expandable
+            if (result.types.some((t: string) => EXPANDABLE_TYPES.includes(t))) {
               result.expandable = true
-              result.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
-              result.moduleID = getTriggerConstraintValue(node.data, 'module')
+              
+              if (result.types.includes('ComposeRecord')) {
+                result.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
+                result.moduleID = getTriggerConstraintValue(node.data, 'module')
+              }
             }
 
             return result
@@ -998,11 +1025,25 @@ export function useFlowEditor() {
           handle: node.data?.ref || ancestorId,
           label: node.data?.label || funcDef.meta?.short || funcDef.ref,
           icon: (funcDef.meta?.icon || node.data?.icon) as IconDef | undefined,
-          results: funcDef.results.map(r => ({
-            name: r.argumentName,
-            sourceName: r.argumentName,
-            types: r.types || [],
-          })),
+          results: funcDef.results.map(r => {
+            const result: any = {
+              name: r.argumentName,
+              sourceName: r.argumentName,
+              types: r.types || [],
+            }
+            
+            // Mark structurally complex types as expandable
+            if (result.types.some((t: string) => EXPANDABLE_TYPES.includes(t))) {
+              result.expandable = true
+              
+              if (result.types.includes('ComposeRecord')) {
+                result.namespaceID = getFunctionArgumentValue(node.data, 'namespace')
+                result.moduleID = getFunctionArgumentValue(node.data, 'module')
+              }
+            }
+            
+            return result
+          }),
         })
       }
     }

@@ -16,6 +16,14 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::federation:node/${node.nodeID}`"
+          :title="node.name || node.nodeID"
+          :target="node.name || node.nodeID"
+        />
+      </div>
       <Card class="shadow">
         <template #content>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

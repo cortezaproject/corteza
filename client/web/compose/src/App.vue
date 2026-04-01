@@ -69,6 +69,7 @@
 
     <CPrompts />
     <CNotificationSidebar />
+    <CAgentSidebar />
     <ReminderSidebar />
     <ReminderToastHost />
     <CPermissionsDialog />
@@ -88,7 +89,7 @@ import { components, providePermissions, useApplicationsStore, useNotificationsS
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog, CAgentSidebar } = components
 
 // Provide permissions dialog context for the entire app
 providePermissions()

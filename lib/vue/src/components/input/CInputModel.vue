@@ -1,26 +1,26 @@
 <template>
   <Select
-    :model-value="selectedModel"
+    :model-value="modelValue"
     @update:model-value="onSelect"
     :options="options"
-    :option-label="getOptionLabel"
+    option-label="label"
+    option-value="id"
     :placeholder="placeholder"
     :disabled="disabled || !llmProviderID || llmProviderID === '0'"
     :loading="loading"
     class="w-full"
     filter
+    :filter-fields="['label', 'id']"
     fluid
     showClear
     @show="onShow"
-  >
-    <template #option="{ option }">
-      {{ getOptionLabel(option) }}
-    </template>
-  </Select>
+  />
 </template>
 
 <script setup>
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
@@ -46,8 +46,8 @@ const emit = defineEmits(['update:modelValue'])
 const $SystemAPI = inject('$SystemAPI')
 
 const options = ref([])
-const selectedModel = ref(null)
 const loading = ref(false)
+const selectedModel = ref(null)
 
 let cancelCurrentRequest = null
 
@@ -76,7 +76,14 @@ async function fetchModels() {
     cancelCurrentRequest = cancel
 
     const result = await response()
-    options.value = Array.isArray(result) ? result : result.models || result.set || []
+    const rawModels = Array.isArray(result) ? result : result.models || result.set || []
+    
+    options.value = rawModels.map(m => {
+      const isStr = typeof m === 'string'
+      const id = isStr ? m : (m.model || m.name || m.id)
+      const label = getOptionLabel(m)
+      return isStr ? { id, label } : { ...m, id, label }
+    })
   } catch (e) {
     if (e?.message !== 'canceled') {
       options.value = []
@@ -93,19 +100,11 @@ function onShow() {
   }
 }
 
-function onSelect(value) {
-  selectedModel.value = value
-
-  if (!value) {
-    emit('update:modelValue', null)
-  } else if (typeof value === 'string') {
-    emit('update:modelValue', value)
-  } else {
-    emit('update:modelValue', value.model || value.name || value.id || null)
-  }
+function onSelect(modelID) {
+  emit('update:modelValue', modelID || null)
 }
 
-// Restore selection from modelValue string
+// Ensure the specific string/model value gets emitted if available
 function restoreSelection() {
   if (!props.modelValue) {
     selectedModel.value = null

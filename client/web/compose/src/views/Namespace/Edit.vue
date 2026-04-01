@@ -12,6 +12,15 @@
         :disabled="!namespace?.enabled"
         @click="visitNamespace"
       />
+      <CPermissionsButton
+        v-if="namespace?.canGrant"
+        :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
+        :title="namespace.name || namespace.slug || namespace.namespaceID"
+        :target="namespace.name || namespace.slug || namespace.namespaceID"
+        v-tooltip.bottom="$t('general.label.permissions')"
+        severity="secondary"
+        size="small"
+      />
     </div>
   </Teleport>
 

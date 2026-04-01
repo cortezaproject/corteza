@@ -8,13 +8,21 @@
   </div>
 
   <div v-else-if="agent" class="flex flex-col h-full overflow-hidden">
-    <div class="container mx-auto p-4 flex-1 overflow-hidden min-h-0">
+    <div class="container mx-auto p-4 flex-1 overflow-hidden min-h-0 flex flex-col gap-4">
+      <div v-if="!isCreate" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:agent/${agent.agentID}`"
+          :title="agent.meta?.short || agent.handle || agent.agentID"
+          :target="agent.meta?.short || agent.handle || agent.agentID"
+        />
+      </div>
       <Card
         :pt="{
           body: { class: 'p-0 h-full flex flex-col' },
           content: { class: 'p-0 h-full flex flex-col min-h-0' },
         }"
-        class="h-full overflow-hidden"
+        class="flex-1 min-h-0 overflow-hidden"
       >
         <template #content>
           <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
@@ -390,7 +398,94 @@
                           text
                           size="small"
                           class="shrink-0"
-                          @click="removeTool(tool)"
+                        />
+                      </div>
+                    </div>
+
+                    <Divider class="my-4" />
+
+                    <!-- TAQs -->
+                    <div class="flex flex-col gap-1">
+                      <label class="font-medium text-primary">
+                        {{ $t('agent.editor.taqs.label') }}
+                      </label>
+                      <small class="text-muted-color">{{ $t('agent.editor.taqs.help') }}</small>
+                    </div>
+
+                    <CInputTAQ
+                      v-model="taqPickerSelection"
+                      :placeholder="$t('agent.editor.taqs.selectPlaceholder')"
+                      @update:model-value="onTaqPickerSelect"
+                    />
+
+                    <div v-if="agent.access.taqs?.length" class="flex flex-col gap-2">
+                      <div
+                        v-for="(taq, idx) in agent.access.taqs"
+                        :key="taq.id"
+                        class="flex items-start gap-3 p-3 border border-surface rounded-lg"
+                      >
+                        <div class="flex flex-col gap-1 flex-1 min-w-0">
+                          <span class="font-medium text-color text-sm truncate">
+                            {{ loadedTaqNames[taq.id] || $t('general.label.loading') }}
+                          </span>
+                          <InputText
+                            v-model="agent.access.taqs[idx].hints"
+                            class="w-full mt-1"
+                            size="small"
+                            :placeholder="$t('agent.editor.taqs.hintPlaceholder')"
+                          />
+                        </div>
+                        <Button
+                          icon="pi pi-trash"
+                          severity="danger"
+                          text
+                          size="small"
+                          class="shrink-0"
+                          @click="removeTaq(idx)"
+                        />
+                      </div>
+                    </div>
+
+                    <Divider class="my-4" />
+
+                    <!-- Workflows -->
+                    <div class="flex flex-col gap-1">
+                      <label class="font-medium text-primary">
+                        {{ $t('agent.editor.workflows.label') }}
+                      </label>
+                      <small class="text-muted-color">{{ $t('agent.editor.workflows.help') }}</small>
+                    </div>
+
+                    <CInputWorkflow
+                      v-model="workflowPickerSelection"
+                      :placeholder="$t('agent.editor.workflows.selectPlaceholder')"
+                      @update:model-value="onWorkflowPickerSelect"
+                    />
+
+                    <div v-if="agent.access.workflows?.length" class="flex flex-col gap-2">
+                      <div
+                        v-for="(workflow, idx) in agent.access.workflows"
+                        :key="workflow.id"
+                        class="flex items-start gap-3 p-3 border border-surface rounded-lg"
+                      >
+                        <div class="flex flex-col gap-1 flex-1 min-w-0">
+                          <span class="font-medium text-color text-sm truncate">
+                            {{ loadedWorkflowNames[workflow.id] || $t('general.label.loading') }}
+                          </span>
+                          <InputText
+                            v-model="agent.access.workflows[idx].hints"
+                            class="w-full mt-1"
+                            size="small"
+                            :placeholder="$t('agent.editor.workflows.hintPlaceholder')"
+                          />
+                        </div>
+                        <Button
+                          icon="pi pi-trash"
+                          severity="danger"
+                          text
+                          size="small"
+                          class="shrink-0"
+                          @click="removeWorkflow(idx)"
                         />
                       </div>
                     </div>
@@ -398,28 +493,52 @@
                 </Panel>
 
                 <Panel :header="$t('agent.editor.panels.invocation')" toggleable>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CInputToggleCard
-                      v-model="agent.invocation.user.enabled"
-                      :label="$t('agent.editor.userEnabled.label')"
-                      :description="$t('agent.editor.userEnabled.help')"
-                    />
-                    <CInputToggleCard
-                      v-model="agent.invocation.system.enabled"
-                      :label="$t('agent.editor.systemEnabled.label')"
-                      :description="$t('agent.editor.systemEnabled.help')"
-                    />
-                    <div class="flex flex-col gap-1">
-                      <label for="serviceAccount" class="font-medium text-primary">
-                        {{ $t('agent.editor.serviceAccount.label') }}
-                      </label>
-                      <CInputUser
-                        id="serviceAccount"
-                        v-model="agent.invocation.system.serviceAccount"
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- User Invocation Group -->
+                    <div class="flex flex-col gap-4">
+                      <CInputToggleCard
+                        v-model="agent.invocation.user.enabled"
+                        :label="$t('agent.editor.userEnabled.label')"
+                        :description="$t('agent.editor.userEnabled.help')"
                       />
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.serviceAccount.help') }}
-                      </small>
+                      
+                      <div class="flex flex-col gap-1" :class="{ 'opacity-50 pointer-events-none': !agent.invocation.user.enabled }">
+                        <label for="sidebarRoles" class="font-medium text-primary">
+                          {{ $t('agent.editor.sidebarRoles.label') }}
+                        </label>
+                        <CInputRole
+                          id="sidebarRoles"
+                          v-model="agent.meta.sidebarRoles"
+                          :multiple="true"
+                          :disabled="!agent.invocation.user.enabled"
+                        />
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.sidebarRoles.help') }}
+                        </small>
+                      </div>
+                    </div>
+
+                    <!-- System Invocation Group -->
+                    <div class="flex flex-col gap-4">
+                      <CInputToggleCard
+                        v-model="agent.invocation.system.enabled"
+                        :label="$t('agent.editor.systemEnabled.label')"
+                        :description="$t('agent.editor.systemEnabled.help')"
+                      />
+
+                      <div class="flex flex-col gap-1" :class="{ 'opacity-50 pointer-events-none': !agent.invocation.system.enabled }">
+                        <label for="serviceAccount" class="font-medium text-primary">
+                          {{ $t('agent.editor.serviceAccount.label') }}
+                        </label>
+                        <CInputUser
+                          id="serviceAccount"
+                          v-model="agent.invocation.system.serviceAccount"
+                          :disabled="!agent.invocation.system.enabled"
+                        />
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.serviceAccount.help') }}
+                        </small>
+                      </div>
                     </div>
                   </div>
                 </Panel>
@@ -920,7 +1039,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 // Components (not globally registered)
 import { components } from '@cortezaproject/corteza-vue-next'
-const { CInputLLM, CInputModel, CInputDelete, CInputUser, CInputKnowledgeBase, CInputToggleCard } =
+const { CInputLLM, CInputModel, CInputDelete, CInputUser, CInputKnowledgeBase, CInputToggleCard, CInputRole, CInputTAQ, CInputWorkflow } =
   components
 
 const route = useRoute()
@@ -929,6 +1048,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $AutomationAPI = inject('$AutomationAPI')
 const agentStore = useAgentStore()
 
 const loading = ref(false)
@@ -1021,6 +1141,7 @@ const emptyAgent = () => ({
   meta: {
     short: '',
     description: '',
+    sidebarRoles: [],
   },
   behavior: {
     systemPrompt: '',
@@ -1051,6 +1172,8 @@ const emptyAgent = () => ({
       module: '',
     },
     tools: [],
+    taqs: [],
+    workflows: [],
     allow: [],
   },
   invocation: {
@@ -1094,6 +1217,10 @@ function applyAgentData(res) {
   if (!agent.value.execution.model.llmProviderID) {
     agent.value.execution.model.llmProviderID = '0'
   }
+
+  agent.value.meta.sidebarRoles = agent.value.meta.sidebarRoles || []
+  agent.value.access.taqs = agent.value.access.taqs || []
+  agent.value.access.workflows = agent.value.access.workflows || []
 
   initToolSelection()
 }
@@ -1464,9 +1591,84 @@ function onToolPickerSelect(tool) {
   })
 }
 
+const loadedTaqNames = ref({})
+const loadingTaqNames = ref({})
+
+async function resolveTaqName(id) {
+  if (!id || loadedTaqNames.value[id] || loadingTaqNames.value[id]) return
+  loadingTaqNames.value[id] = true
+  try {
+    const res = await $AutomationAPI.ngAutomationRead({ automationID: id })
+    loadedTaqNames.value[id] = res.meta?.short || res.handle || res.automationID
+  } catch (e) {
+    loadedTaqNames.value[id] = 'Unknown TAQ'
+  }
+}
+
+watch(() => agent.value?.access?.taqs, (taqs) => {
+  if (!taqs) return
+  taqs.forEach(t => resolveTaqName(t.id))
+}, { deep: true, immediate: true })
+
+const loadedWorkflowNames = ref({})
+const loadingWorkflowNames = ref({})
+
+async function resolveWorkflowName(id) {
+  if (!id || loadedWorkflowNames.value[id] || loadingWorkflowNames.value[id]) return
+  loadingWorkflowNames.value[id] = true
+  try {
+    const res = await $AutomationAPI.workflowRead({ workflowID: id })
+    loadedWorkflowNames.value[id] = res.meta?.name || res.handle || res.workflowID
+  } catch (e) {
+    loadedWorkflowNames.value[id] = 'Unknown Workflow'
+  }
+}
+
+watch(() => agent.value?.access?.workflows, (workflows) => {
+  if (!workflows) return
+  workflows.forEach(w => resolveWorkflowName(w.id))
+}, { deep: true, immediate: true })
+
 function removeTool(tool) {
   selectedTools.value = selectedTools.value.filter(t => t.name !== tool.name)
   agent.value.access.tools = agent.value.access.tools.filter(t => t.name !== tool.name)
+}
+
+const taqPickerSelection = ref(null)
+const workflowPickerSelection = ref(null)
+
+function onTaqPickerSelect(id) {
+  if (!id) return
+  if (!agent.value.access.taqs) {
+    agent.value.access.taqs = []
+  }
+  if (!agent.value.access.taqs.some(t => t.id === id)) {
+    agent.value.access.taqs.push({ id, hints: '' })
+  }
+  nextTick(() => {
+    taqPickerSelection.value = null
+  })
+}
+
+function removeTaq(idx) {
+  agent.value.access.taqs.splice(idx, 1)
+}
+
+function onWorkflowPickerSelect(id) {
+  if (!id) return
+  if (!agent.value.access.workflows) {
+    agent.value.access.workflows = []
+  }
+  if (!agent.value.access.workflows.some(w => w.id === id)) {
+    agent.value.access.workflows.push({ id, hints: '' })
+  }
+  nextTick(() => {
+    workflowPickerSelection.value = null
+  })
+}
+
+function removeWorkflow(idx) {
+  agent.value.access.workflows.splice(idx, 1)
 }
 
 function getToolHints(name) {

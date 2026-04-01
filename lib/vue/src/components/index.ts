@@ -8,6 +8,6 @@ export * from './prompts'
 export * from './resource-list'
 export * from './resource-table'
 export * from './permissions'
-
+export * from './agent'
 export { default as CEmojiPicker } from './CEmojiPicker.vue'
 export { emojis as emojiData } from '@tiptap/extension-emoji'

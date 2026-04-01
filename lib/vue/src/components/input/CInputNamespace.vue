@@ -4,11 +4,13 @@
     @update:model-value="onSelect"
     :options="options"
     :option-label="getOptionLabel"
+    data-key="namespaceID"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
     class="w-full"
     filter
+    :filter-fields="['name', 'slug', 'namespaceID']"
     fluid
     showClear
     @show="onShow"

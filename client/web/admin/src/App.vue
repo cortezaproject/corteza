@@ -64,6 +64,7 @@
 
     <CPrompts />
     <CNotificationSidebar />
+    <CAgentSidebar />
     <CPermissionsDialog />
   </div>
 </template>
@@ -73,7 +74,7 @@ import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { components, providePermissions, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog } = components
+const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog, CAgentSidebar } = components
 
 // Provide permissions dialog context for the entire app
 providePermissions()

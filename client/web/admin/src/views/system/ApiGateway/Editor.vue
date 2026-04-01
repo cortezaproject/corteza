@@ -16,6 +16,14 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:apigw-route/${route_.routeID}`"
+          :title="route_.endpoint || route_.routeID"
+          :target="route_.endpoint || route_.routeID"
+        />
+      </div>
       <!-- Route info panel -->
       <Panel :header="$t('system.apigw.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -26,7 +26,7 @@
 
     <!-- Selection / dirty bar -->
     <div
-      v-if="selectedRecords.length || (options.editable && dirtyRecordsCount > 1)"
+      v-if="selectedRecords.length || showBulkSave"
       class="flex items-center gap-2 px-3 py-2 bg-highlight border-b"
     >
       <span v-if="selectedRecords.length" class="text-sm font-medium">
@@ -40,8 +40,8 @@
 
       <div class="flex-1" />
 
-      <!-- Save / discard all dirty (or just selected dirty rows) — only when 2+ rows are dirty -->
-      <template v-if="options.editable && dirtyRecordsCount > 1">
+      <!-- Save / discard all dirty (or just selected dirty rows) -->
+      <template v-if="showBulkSave">
         <Button
           v-tooltip.bottom="$t('block.recordList.tooltip.saveChanges')"
           icon="pi pi-check"
@@ -131,7 +131,7 @@
         >
           <template #body="{ data, index }">
             <CFieldEditor
-              v-if="options.editable && isInlineEditField(col) && (!data.recordID || data.canUpdateRecord !== false)"
+              v-if="options.editable && isInlineEditField(col) && (!data.recordID || data.recordID === '0' || data.canUpdateRecord !== false)"
               :field="col"
               :namespace="namespace"
               :model-value="data.values[col.name]"
@@ -273,7 +273,7 @@ import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } fro
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete, usePermissions } from '@cortezaproject/corteza-vue-next'
 const { CFieldViewer, CFieldEditor, CInputSearch } = components
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
@@ -304,6 +304,7 @@ const props = defineProps({
 const { t } = useI18n()
 const router = useRouter()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
 const $ComposeAPI = inject('$ComposeAPI')
 const $auth = inject('$auth', {})
 const $eventBus = inject('$eventBus', null)
@@ -474,6 +475,19 @@ const rowMenuItems = computed(() => {
     })
   }
 
+  if (record?.recordID && (record.canGrant ?? recordListModule.value?.canGrant) && !options.value.hideRecordPermissionsButton) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        openPermissions({
+          resource: `corteza::compose:record/${props.namespace.namespaceID}/${recordListModule.value.moduleID}/${record.recordID}`,
+          title: record.recordID,
+        })
+      },
+    })
+  }
+
   if (record?.canDeleteRecord && !options.value.hideRecordDeleteButton) {
     if (items.length > 0) {
       items.push({ separator: true })
@@ -492,6 +506,15 @@ const rowMenuItems = computed(() => {
 
 // Inline editing helpers
 const dirtyRecordsCount = computed(() => Object.keys(dirtyRecords).length)
+
+const showBulkSave = computed(() => {
+  if (!options.value.editable) return false
+  if (selectedRecords.value.length > 0) {
+    const toSaveCount = selectedRecords.value.filter(r => showSaveAction(r)).length
+    return toSaveCount > 0
+  }
+  return dirtyRecordsCount.value > 1
+})
 
 function rowClass(data) {
   return dirtyRecords[getRecordKey(data)] ? 'bg-yellow-50 dark:bg-yellow-950' : ''
@@ -514,7 +537,7 @@ function showSaveAction(record) {
   if (!recordListModule.value) return false
   const key = getRecordKey(record)
   // New inline record (no recordID) always shows save action if module allows create
-  if (!record.recordID) return !!recordListModule.value.canCreateRecord
+  if (!record.recordID || record.recordID === '0') return !!recordListModule.value.canCreateRecord
   if (!dirtyRecords[key]) return false
   return record.canUpdateRecord !== false
 }
@@ -544,7 +567,7 @@ async function handleSaveInline(record, index) {
   const key = getRecordKey(record)
   processingRecords[key] = 'save'
   try {
-    const isNew = !record.recordID
+    const isNew = !record.recordID || record.recordID === '0'
     const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
     delete dirtyRecords[key]
     const newRecord = new compose.Record(recordListModule.value, saved)
@@ -561,7 +584,7 @@ async function handleDenyInline(record, index) {
   const key = getRecordKey(record)
   processingRecords[key] = 'deny'
   delete dirtyRecords[key]
-  const isNew = !record.recordID
+  const isNew = !record.recordID || record.recordID === '0'
   if (isNew) {
     records.value.splice(index, 1)
     delete processingRecords[key]
@@ -601,7 +624,7 @@ async function handleSaveDirtyRecords() {
     const key = getRecordKey(record)
     const index = records.value.findIndex(r => getRecordKey(r) === key)
     if (index === -1) continue
-    const isNew = !record.recordID
+    const isNew = !record.recordID || record.recordID === '0'
     try {
       const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
       delete dirtyRecords[key]
@@ -635,7 +658,7 @@ async function handleDenyDirtyRecords() {
     const index = records.value.findIndex(r => getRecordKey(r) === key)
     if (index === -1) continue
     delete dirtyRecords[key]
-    const isNew = !record.recordID
+    const isNew = !record.recordID || record.recordID === '0'
     if (isNew) {
       records.value.splice(index, 1)
       continue

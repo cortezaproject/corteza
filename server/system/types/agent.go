@@ -32,8 +32,9 @@ type (
 	}
 
 	AgentMeta struct {
-		Short       string `json:"short"`
-		Description string `json:"description,omitempty"`
+		Short        string   `json:"short"`
+		Description  string   `json:"description,omitempty"`
+		SidebarRoles []string `json:"sidebarRoles,omitempty"`
 	}
 
 	AgentBehavior struct {

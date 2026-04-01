@@ -19,7 +19,7 @@
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-border flex items-center justify-center shrink-0">
             <TaqIcon
-              :icon="data?.icon"
+              :icon="freshNode.data?.icon"
               :fallback="DEFAULT_ICONS.ACTION"
               class="text-lg text-primary"
             />
@@ -27,7 +27,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1">
               <div class="font-medium text-color flex-1 truncate">
-                {{ data?.label || $t('builder.nodes.step') }}
+                {{ freshNode.data?.label || $t('builder.nodes.step') }}
               </div>
               <Button
                 icon="pi pi-ellipsis-v"
@@ -40,7 +40,7 @@
               />
             </div>
             <div class="text-sm text-muted-color truncate mb-1">
-              {{ data?.description || '' }}
+              {{ freshNode.data?.description || '' }}
             </div>
           </div>
         </div>

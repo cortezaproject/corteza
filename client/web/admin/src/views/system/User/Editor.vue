@@ -18,26 +18,36 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
-      <div v-if="isEdit && user.canUpdateUser" class="flex justify-end gap-2">
-        <Button
-          v-if="!user.suspendedAt"
-          :label="$t('system.users.editor.info.suspend')"
-          icon="pi pi-pause"
-          severity="secondary"
-          size="small"
-          outlined
-          :disabled="suspending"
-          @click="confirmSuspend"
-        />
-        <Button
-          v-else
-          :label="$t('system.users.editor.info.unsuspend')"
-          icon="pi pi-play"
-          severity="secondary"
-          size="small"
-          outlined
-          :disabled="suspending"
-          @click="confirmUnsuspend"
+      <div v-if="isEdit" class="flex justify-end gap-2">
+        <template v-if="user.canUpdateUser">
+          <Button
+            v-if="!user.suspendedAt"
+            :label="$t('system.users.editor.info.suspend')"
+            icon="pi pi-pause"
+            severity="secondary"
+            size="small"
+            outlined
+            :disabled="suspending"
+            @click="confirmSuspend"
+          />
+          <Button
+            v-else
+            :label="$t('system.users.editor.info.unsuspend')"
+            icon="pi pi-play"
+            severity="secondary"
+            size="small"
+            outlined
+            :disabled="suspending"
+            @click="confirmUnsuspend"
+          />
+        </template>
+        
+        <CPermissionsButton
+          v-if="user.canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:user/${user.userID}`"
+          :title="user.name || user.handle || user.email || user.userID"
+          :target="user.name || user.handle || user.email || user.userID"
         />
       </div>
 
@@ -132,13 +142,6 @@
           @click="$router.push({ name: 'system.users' })"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && user.canGrant"
-            :resource="`corteza::system:user/${user.userID}`"
-            :title="user.name || user.handle || user.email || user.userID"
-            :target="user.name || user.handle || user.email || user.userID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && user.canDeleteUser"
             :label="$t('system.users.editor.info.delete')"

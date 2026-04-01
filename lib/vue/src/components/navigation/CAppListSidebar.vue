@@ -7,8 +7,17 @@
     leave-from-class="translate-x-0"
     leave-to-class="translate-x-full"
   >
-    <div v-if="visible" class="right-sidebar flex flex-col">
-      <!-- Header -->
+    <div
+      v-if="visible"
+      class="right-sidebar flex"
+      :style="{ width: `${drawerWidth}px` }"
+    >
+      <div
+        class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
+        @mousedown="startDrawerResize"
+      />
+      <div class="flex-1 flex flex-col min-w-0">
+        <!-- Header -->
       <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
         <span class="text-lg font-semibold text-color">{{ labels.title }}</span>
         <Button
@@ -57,6 +66,7 @@
           {{ query ? labels.noResults : labels.noApps }}
         </span>
       </div>
+      </div>
     </div>
   </Transition>
 </template>
@@ -65,6 +75,7 @@
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
+import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import defaultAppIcon from '../../assets/default-app.png'
 import adminAreaIcon from '../../assets/admin-area.png'
 import discoveryIcon from '../../assets/discovery.png'
@@ -106,6 +117,7 @@ const $eventBus = inject('$eventBus', null)
 
 const query = ref('')
 const applicationsStore = useApplicationsStore()
+const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const apps = computed(() => applicationsStore.unifyOnly)
 

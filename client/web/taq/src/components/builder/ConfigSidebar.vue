@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full flex-1 overflow-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
+    <div class="flex items-start justify-between py-2 pr-2 group/header">
+      <div class="flex items-center gap-3 flex-1 min-w-0 pr-2">
         <div class="w-10 h-10 rounded-border flex items-center justify-center shrink-0">
           <TaqIcon
             :icon="node.data?.icon"
@@ -10,135 +10,179 @@
             class="text-lg text-primary"
           />
         </div>
-        <h3 class="text-lg font-semibold text-color">
-          {{ node.data?.label || $t('builder.configSidebar.node') }}
-        </h3>
+        <div class="flex-1 min-w-0">
+          <div v-if="isEditingLabel" class="flex items-center gap-2">
+            <InputText
+              ref="labelInputRef"
+              v-model="editLabelValue"
+              @keyup.enter="saveLabel"
+              @blur="saveLabel"
+              size="small"
+              class="w-full"
+            />
+          </div>
+          <h3 v-else class="text-lg font-semibold text-color truncate flex items-center gap-2">
+            <span class="truncate">{{ node.data?.label || $t('builder.configSidebar.node') }}</span>
+            <Button
+              icon="pi pi-pencil"
+              text
+              rounded
+              size="small"
+              class="opacity-0 group-hover/header:opacity-100 transition-opacity !w-6 !h-6 !p-0 shrink-0"
+              @click="startEditLabel"
+            />
+          </h3>
+        </div>
       </div>
-      <Button icon="pi pi-times" text rounded size="small" @click="emit('close')" />
+      <Button icon="pi pi-times" text rounded size="small" class="shrink-0 mt-1" @click="emit('close')" />
     </div>
 
     <!-- Description -->
-    <div v-if="node.data?.description" class="text-sm text-muted-color mb-5">
-      {{ node.data.description }}
-    </div>
-
-    <!-- Function form for step/iterator configuration -->
-    <FunctionForm
-      v-if="
-        (node.type === 'iterator' || (node.type !== 'trigger' && node.type !== 'branch')) &&
-        functionDefinition?.segments?.length
-      "
-      ref="functionFormRef"
-      :function-def="functionDefinition"
-      :arguments="node.data?.arguments || []"
-      :upstream-results="upstreamResults"
-      :nodes="nodes"
-      @update:arguments="onArgumentsUpdate"
-      @toggle-reference="onToggleReference"
-      class="mb-4"
-    />
-
-    <!-- Trigger form for trigger configuration -->
-    <TriggerForm
-      v-if="node.type === 'trigger' && triggerDefinition?.segments?.length"
-      :trigger-def="triggerDefinition"
-      :constraints="node.data?.constraints || []"
-      @update:constraints="onConstraintsUpdate"
-      class="mb-4"
-    />
-
-    <!-- Branch configuration (only for branch nodes) -->
-    <div v-if="node.type === 'branch'" class="mb-4">
-      <!-- Gateway type -->
-      <div class="mb-4">
-        <label class="text-sm font-medium text-color block mb-2">
-          {{ $t('builder.branch.gatewayType') }}
-        </label>
-        <Select
-          :model-value="gatewayType"
-          :options="gatewayOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
-          @update:model-value="onGatewayTypeChange"
-        >
-          <template #value="{ value }">
-            <span>{{ gatewayOptions.find(o => o.value === value)?.label }}</span>
-          </template>
-          <template #option="{ option }">
-            <div class="flex flex-col gap-1">
-              <span class="font-medium">{{ option.label }}</span>
-              <span class="text-xs text-muted-color">{{ option.description }}</span>
-            </div>
-          </template>
-        </Select>
+    <div class="mb-5 px-2 group/desc relative">
+      <div v-if="isEditingDescription">
+        <Textarea
+          ref="descriptionInputRef"
+          v-model="editDescriptionValue"
+          autoResize
+          rows="2"
+          class="w-full text-sm"
+          @blur="saveDescription"
+        />
       </div>
-
-      <!-- Branch outputs -->
-      <div class="text-sm font-medium text-color mb-2">
-        {{ $t('builder.configSidebar.branches') }}
-      </div>
-      <div class="flex flex-col gap-2">
-        <Panel
-          toggleable
-          v-for="(data, index) in branchOutputs"
-          :key="data.edgeId"
-          :header="
-            index === 0
-              ? $t('builder.branch.if')
-              : index === branchOutputs.length - 1
-                ? $t('builder.branch.else')
-                : $t('builder.branch.elseIf')
-          "
-          class="transition-opacity"
-          :pt="{
-            root: { style: 'overflow: hidden; min-width: 0' },
-            toggleableContent: { style: 'overflow: hidden' },
-            content: { style: 'padding: 0.5rem !important; overflow: hidden; min-width: 0' },
-          }"
-          :class="{
-            'cursor-grab': index < branchOutputs.length - 1,
-            'opacity-50': dragIndex === index,
-          }"
-          :draggable="index < branchOutputs.length - 1"
-          @dragstart="onDragStart(index, $event)"
-          @dragover.prevent="onDragOver(index)"
-          @dragleave="onDragLeave"
-          @drop.prevent="onDrop(index)"
-          @dragend="onDragEnd"
-        >
-          <!-- Condition builder (not for the last/Else branch) -->
-          <ConditionBuilder
-            v-if="index < branchOutputs.length - 1"
-            :model-value="data.condition"
-            :edge-id="data.edgeId"
-            @update:model-value="onBranchConditionChange(data.edgeId, $event)"
-            @toggle-reference="onConditionToggleReference"
-          />
-          <span v-else class="text-sm text-muted-color italic">
-            {{ $t('builder.branch.defaultPath') }}
-          </span>
-        </Panel>
+      <div v-else class="flex items-start gap-2 min-h-6">
+        <div class="text-sm text-muted-color whitespace-pre-wrap" :class="{ 'italic opacity-75': !node.data?.description }">
+          {{ node.data?.description || $t('builder.configSidebar.noDescription') }}
+        </div>
+        <Button
+          icon="pi pi-pencil"
+          text
+          rounded
+          size="small"
+          class="opacity-0 group-hover/desc:opacity-100 transition-opacity !w-6 !h-6 !p-0 shrink-0"
+          @click="startEditDescription"
+        />
       </div>
     </div>
 
-    <!-- Spacer -->
-    <div class="flex-1" />
-
-    <!-- Branch-specific actions -->
-    <div v-if="node.type === 'branch'" class="mb-4">
-      <Button
-        :label="$t('builder.configSidebar.addElseIf')"
-        icon="pi pi-plus"
-        severity="secondary"
-        outlined
-        class="w-full"
-        @click="emit('addBranch')"
+    <div class="flex-1 overflow-auto p-2">
+      <!-- Function form for step/iterator configuration -->
+      <FunctionForm
+        v-if="
+          (node.type === 'iterator' || (node.type !== 'trigger' && node.type !== 'branch')) &&
+          functionDefinition?.segments?.length
+        "
+        ref="functionFormRef"
+        :function-def="functionDefinition"
+        :arguments="node.data?.arguments || []"
+        :upstream-results="upstreamResults"
+        :nodes="nodes"
+        @update:arguments="onArgumentsUpdate"
+        @toggle-reference="onToggleReference"
+        class="mb-4"
       />
+
+      <!-- Trigger form for trigger configuration -->
+      <TriggerForm
+        v-if="node.type === 'trigger' && triggerDefinition?.segments?.length"
+        :trigger-def="triggerDefinition"
+        :constraints="node.data?.constraints || []"
+        @update:constraints="onConstraintsUpdate"
+        class="mb-4"
+      />
+
+      <!-- Branch configuration (only for branch nodes) -->
+      <div v-if="node.type === 'branch'" class="mb-4">
+        <!-- Gateway type -->
+        <div class="mb-4">
+          <label class="text-sm font-medium text-color block mb-2">
+            {{ $t('builder.branch.gatewayType') }}
+          </label>
+          <Select
+            :model-value="gatewayType"
+            :options="gatewayOptions"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+            @update:model-value="onGatewayTypeChange"
+          >
+            <template #value="{ value }">
+              <span>{{ gatewayOptions.find(o => o.value === value)?.label }}</span>
+            </template>
+            <template #option="{ option }">
+              <div class="flex flex-col gap-1">
+                <span class="font-medium">{{ option.label }}</span>
+                <span class="text-xs text-muted-color">{{ option.description }}</span>
+              </div>
+            </template>
+          </Select>
+        </div>
+
+        <!-- Branch outputs -->
+        <div class="text-sm font-medium text-color mb-2">
+          {{ $t('builder.configSidebar.branches') }}
+        </div>
+        <div class="flex flex-col gap-2">
+          <Panel
+            toggleable
+            v-for="(data, index) in branchOutputs"
+            :key="data.edgeId"
+            :header="
+              index === 0
+                ? $t('builder.branch.if')
+                : index === branchOutputs.length - 1
+                  ? $t('builder.branch.else')
+                  : $t('builder.branch.elseIf')
+            "
+            class="transition-opacity"
+            :pt="{
+              root: { style: 'overflow: hidden; min-width: 0' },
+              toggleableContent: { style: 'overflow: hidden' },
+              content: { style: 'padding: 0.5rem !important; overflow: hidden; min-width: 0' },
+            }"
+            :class="{
+              'cursor-grab': index < branchOutputs.length - 1,
+              'opacity-50': dragIndex === index,
+            }"
+            :draggable="index < branchOutputs.length - 1"
+            @dragstart="onDragStart(index, $event)"
+            @dragover.prevent="onDragOver(index)"
+            @dragleave="onDragLeave"
+            @drop.prevent="onDrop(index)"
+            @dragend="onDragEnd"
+          >
+            <!-- Condition builder (not for the last/Else branch) -->
+            <ConditionBuilder
+              v-if="index < branchOutputs.length - 1"
+              :model-value="data.condition"
+              :edge-id="data.edgeId"
+              @update:model-value="onBranchConditionChange(data.edgeId, $event)"
+              @toggle-reference="onConditionToggleReference"
+            />
+            <span v-else class="text-sm text-muted-color italic">
+              {{ $t('builder.branch.defaultPath') }}
+            </span>
+          </Panel>
+        </div>
+      </div>
+
+      <!-- Spacer -->
+      <div class="flex-1" />
+
+      <!-- Branch-specific actions -->
+      <div v-if="node.type === 'branch'" class="mb-4">
+        <Button
+          :label="$t('builder.configSidebar.addElseIf')"
+          icon="pi pi-plus"
+          severity="secondary"
+          outlined
+          class="w-full"
+          @click="emit('addBranch')"
+        />
+      </div>
     </div>
 
     <!-- Delete action at bottom -->
-    <div class="pt-4 border-t border-surface">
+    <div class="p-2">
       <CInputDelete
         :label="$t('builder.configSidebar.deleteNode')"
         :message="$t('builder.confirmDelete.message')"
@@ -154,7 +198,7 @@
 <script setup>
 import { components } from '@cortezaproject/corteza-vue-next'
 import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { conditionToShort } from '@/utils/taq-parser'
 import TaqIcon from '../common/TaqIcon.vue'
@@ -191,7 +235,48 @@ const emit = defineEmits([
   'toggleReference',
   'updateGatewayType',
   'updateBranchExpr',
+  'updateMetadata',
 ])
+
+const isEditingLabel = ref(false)
+const editLabelValue = ref('')
+const labelInputRef = ref(null)
+
+const isEditingDescription = ref(false)
+const editDescriptionValue = ref('')
+const descriptionInputRef = ref(null)
+
+function startEditLabel() {
+  editLabelValue.value = props.node.data?.label || ''
+  isEditingLabel.value = true
+  nextTick(() => {
+    labelInputRef.value?.$el?.focus()
+  })
+}
+
+function saveLabel() {
+  if (!isEditingLabel.value) return
+  isEditingLabel.value = false
+  if (editLabelValue.value !== props.node.data?.label) {
+    emit('updateMetadata', { label: editLabelValue.value })
+  }
+}
+
+function startEditDescription() {
+  editDescriptionValue.value = props.node.data?.description || ''
+  isEditingDescription.value = true
+  nextTick(() => {
+    descriptionInputRef.value?.$el?.focus()
+  })
+}
+
+function saveDescription() {
+  if (!isEditingDescription.value) return
+  isEditingDescription.value = false
+  if (editDescriptionValue.value !== props.node.data?.description) {
+    emit('updateMetadata', { description: editDescriptionValue.value })
+  }
+}
 
 // Look up function definition from store.functions by node.data.nodeType (which holds the function ref)
 const functionDefinition = computed(() => {

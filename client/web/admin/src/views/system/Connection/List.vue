@@ -42,7 +42,7 @@
           <CPermissionsButton
             v-if="canGrant"
             resource="corteza::system:dal-connection/*"
-            :label="$t('general.label.permissions')"
+            v-tooltip.bottom="$t('general.label.permissions')"
           />
         </div>
       </template>
@@ -116,8 +116,10 @@ import {
   filters,
   useConfirmDelete,
   useResourceList,
+  useRBACStore,
+  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -129,12 +131,10 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
-const $auth = inject('$auth')
 
-const canGrant = ref(false)
-$auth.check(['system.grant']).then(check => {
-  canGrant.value = check
-})
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
+const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
 
@@ -202,6 +202,20 @@ function handleRowClick({ data }) {
 // Actions menu methods
 function getActionsMenuItems(connection) {
   const items = []
+
+  if (connection.canGrant || canGrant.value) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value?.hideActionsMenu?.()
+        openPermissions({
+          resource: `corteza::system:dal-connection/${connection.connectionID}`,
+          title: connection.meta?.short || connection.handle || connection.connectionID,
+        })
+      },
+    })
+  }
 
   if (connection.canDeleteConnection) {
     items.push({

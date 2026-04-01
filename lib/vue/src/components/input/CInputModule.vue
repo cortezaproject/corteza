@@ -4,11 +4,13 @@
     @update:model-value="onSelect"
     :options="options"
     :option-label="getOptionLabel"
+    data-key="moduleID"
     :placeholder="placeholder"
     :disabled="disabled || !namespaceID"
     :loading="loading"
     class="w-full"
     filter
+    :filter-fields="['name', 'handle', 'moduleID']"
     fluid
     showClear
     @show="onShow"

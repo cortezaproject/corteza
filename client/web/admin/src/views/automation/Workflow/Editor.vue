@@ -18,6 +18,15 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-if="workflow.canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::automation:workflow/${workflow.workflowID}`"
+          :title="workflow.meta?.name || workflow.handle || workflow.workflowID"
+          :target="workflow.meta?.name || workflow.handle || workflow.workflowID"
+        />
+      </div>
       <Panel :header="$t('automation.workflows.editor.info.title')" toggleable :collapsed="false" class="shadow">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
@@ -91,13 +100,6 @@
           @click="$router.push({ name: 'automation.workflows' })"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && workflow.canGrant"
-            :resource="`corteza::automation:workflow/${workflow.workflowID}`"
-            :title="workflow.meta?.name || workflow.handle || workflow.workflowID"
-            :target="workflow.meta?.name || workflow.handle || workflow.workflowID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && workflow.canDeleteWorkflow && !workflow.deletedAt"
             :label="$t('automation.workflows.editor.info.delete')"

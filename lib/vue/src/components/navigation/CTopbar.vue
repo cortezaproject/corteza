@@ -60,6 +60,7 @@
 
       <slot name="right-tools" />
 
+      <CAgentSidebarButton v-if="!settings?.hideAgentSidebar" />
       <CNotificationButton v-if="!settings?.hideNotifications" />
 
       <div v-if="!settings?.hideHelp" class="help-dropdown">
@@ -107,6 +108,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CNotificationButton from '../notifications/CNotificationButton.vue'
+import CAgentSidebarButton from '../agent/CAgentSidebarButton.vue'
 
 const sidebarExpanded = defineModel('sidebarExpanded', {
   type: Boolean,

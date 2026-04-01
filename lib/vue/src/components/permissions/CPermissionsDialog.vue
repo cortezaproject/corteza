@@ -37,7 +37,7 @@
         </div>
 
         <!-- Selector row (sticky) -->
-        <div class="flex border-t bg-emphasis sticky top-[37px] z-10">
+        <div class="flex border-y bg-emphasis sticky top-[37px] z-10">
           <!-- Left: Role picker -->
           <div class="perm-col-left p-3">
             <div class="flex flex-col gap-1">
@@ -90,7 +90,7 @@
         <div
           v-for="rule in rules"
           :key="rule.operation"
-          class="flex border-t hover:bg-emphasis transition-colors"
+          class="flex border-b hover:bg-emphasis transition-colors"
         >
           <!-- Left: Rule with toggles -->
           <div class="perm-col-left p-3">

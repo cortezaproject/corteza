@@ -73,36 +73,54 @@
                             :key="field.name"
                             class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full"
                             :class="
-                              isActive(step.handle, result.sourceName + '.values.' + field.name)
+                              isActive(
+                                step.handle,
+                                field.isProperty
+                                  ? result.sourceName + '.' + field.name
+                                  : result.sourceName + '.values.' + field.name,
+                              )
                                 ? 'bg-highlight !text-primary'
                                 : ''
                             "
                             @click="
                               emit('select', {
                                 scope: step.handle,
-                                source: result.sourceName + '.values.' + field.name,
+                                source: field.isProperty
+                                  ? result.sourceName + '.' + field.name
+                                  : result.sourceName + '.values.' + field.name,
                               })
                             "
                           >
                             <span
-                              class="text-sm"
+                              class="flex items-center justify-between w-full"
                               :class="
-                                isActive(step.handle, result.sourceName + '.values.' + field.name)
+                                isActive(
+                                  step.handle,
+                                  field.isProperty
+                                    ? result.sourceName + '.' + field.name
+                                    : result.sourceName + '.values.' + field.name,
+                                )
                                   ? ''
                                   : 'text-color'
                               "
                             >
-                              {{ field.label || field.name }}
+                              <span>{{ field.label || field.name }}</span>
+                              <span
+                                v-if="field.isProperty"
+                                class="text-xs text-[--p-text-muted-color] ml-2 opacity-70"
+                              >
+                                Prop
+                              </span>
                             </span>
                           </button>
                         </template>
 
-                        <!-- No module configured -->
+                        <!-- No module configured for custom fields -->
                         <div
-                          v-else-if="!result.moduleID"
+                          v-else-if="result.types?.includes('ComposeRecord') && !result.moduleID"
                           class="text-xs text-[--p-text-muted-color] px-2 py-1.5"
                         >
-                          No module configured on trigger
+                          No module configured
                         </div>
 
                         <!-- No fields found -->
@@ -142,6 +160,89 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+
+const STRUCT_FIELDS = {
+  ComposeRecord: [
+    { name: 'recordID', label: 'Record ID', kind: 'ID', isProperty: true },
+    { name: 'moduleID', label: 'Module ID', kind: 'ID', isProperty: true },
+    { name: 'namespaceID', label: 'Namespace ID', kind: 'ID', isProperty: true },
+    { name: 'values', label: 'Values', kind: 'Object', isProperty: true },
+    { name: 'ownedBy', label: 'Owned By', kind: 'ID', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+  ],
+  SystemUser: [
+    { name: 'userID', label: 'User ID', kind: 'ID', isProperty: true },
+    { name: 'email', label: 'Email', kind: 'String', isProperty: true },
+    { name: 'name', label: 'Name', kind: 'String', isProperty: true },
+    { name: 'username', label: 'Username', kind: 'String', isProperty: true },
+    { name: 'handle', label: 'Handle', kind: 'String', isProperty: true },
+    { name: 'emailConfirmed', label: 'Email Confirmed', kind: 'Boolean', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+    { name: 'suspendedAt', label: 'Suspended At', kind: 'DateTime', isProperty: true },
+  ],
+  SystemRole: [
+    { name: 'roleID', label: 'Role ID', kind: 'ID', isProperty: true },
+    { name: 'name', label: 'Name', kind: 'String', isProperty: true },
+    { name: 'handle', label: 'Handle', kind: 'String', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+    { name: 'archivedAt', label: 'Archived At', kind: 'DateTime', isProperty: true },
+  ],
+  SystemApplication: [
+    { name: 'applicationID', label: 'Application ID', kind: 'ID', isProperty: true },
+    { name: 'name', label: 'Name', kind: 'String', isProperty: true },
+    { name: 'enabled', label: 'Enabled', kind: 'Boolean', isProperty: true },
+    { name: 'unlisted', label: 'Unlisted', kind: 'Boolean', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+  ],
+  ComposeModule: [
+    { name: 'moduleID', label: 'Module ID', kind: 'ID', isProperty: true },
+    { name: 'namespaceID', label: 'Namespace ID', kind: 'ID', isProperty: true },
+    { name: 'name', label: 'Name', kind: 'String', isProperty: true },
+    { name: 'handle', label: 'Handle', kind: 'String', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+  ],
+  ComposeNamespace: [
+    { name: 'namespaceID', label: 'Namespace ID', kind: 'ID', isProperty: true },
+    { name: 'name', label: 'Name', kind: 'String', isProperty: true },
+    { name: 'slug', label: 'Slug', kind: 'String', isProperty: true },
+    { name: 'enabled', label: 'Enabled', kind: 'Boolean', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+  ],
+  ComposePage: [
+    { name: 'pageID', label: 'Page ID', kind: 'ID', isProperty: true },
+    { name: 'moduleID', label: 'Module ID', kind: 'ID', isProperty: true },
+    { name: 'namespaceID', label: 'Namespace ID', kind: 'ID', isProperty: true },
+    { name: 'title', label: 'Title', kind: 'String', isProperty: true },
+    { name: 'handle', label: 'Handle', kind: 'String', isProperty: true },
+    { name: 'description', label: 'Description', kind: 'String', isProperty: true },
+    { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+  ],
+  HttpRequest: [
+    { name: 'method', label: 'Method', kind: 'String', isProperty: true },
+    { name: 'url', label: 'URL', kind: 'String', isProperty: true },
+    { name: 'header', label: 'Headers', kind: 'Object', isProperty: true },
+    { name: 'cookie', label: 'Cookies', kind: 'Object', isProperty: true },
+    { name: 'form', label: 'Form', kind: 'Object', isProperty: true },
+    { name: 'query', label: 'Query', kind: 'Object', isProperty: true },
+    { name: 'body', label: 'Body', kind: 'Reader', isProperty: true },
+    { name: 'postForm', label: 'Post Form', kind: 'Object', isProperty: true },
+    { name: 'remoteAddr', label: 'Remote Address', kind: 'String', isProperty: true },
+  ],
+}
 
 const props = defineProps({
   upstreamResults: {
@@ -225,27 +326,40 @@ function fieldKey(step, result) {
 async function fetchFields(step, result) {
   const key = fieldKey(step, result)
   if (recordFields[key] || loadingFields[key]) return
-  if (!result.namespaceID || !result.moduleID) return
 
-  loadingFields[key] = true
-  try {
-    const mod = await store.resolveModule(result.namespaceID, result.moduleID)
-    if (mod?.fields) {
-      recordFields[key] = mod.fields
-        .filter(f => !f.isSystem)
-        .map(f => ({
-          name: f.name,
-          label: f.label || f.name,
-          kind: f.kind,
-        }))
-    } else {
-      recordFields[key] = []
+  let resolvedFields = []
+
+  // Add standard struct fields based on result type
+  for (const t of result.types || []) {
+    if (STRUCT_FIELDS[t]) {
+      resolvedFields = [...resolvedFields, ...STRUCT_FIELDS[t]]
     }
-  } catch {
-    recordFields[key] = []
-  } finally {
-    loadingFields[key] = false
   }
+
+  // If it's a ComposeRecord with module configuration, fetch custom fields
+  if (result.types?.includes('ComposeRecord') && result.namespaceID && result.moduleID) {
+    loadingFields[key] = true
+    try {
+      const mod = await store.resolveModule(result.namespaceID, result.moduleID)
+      if (mod?.fields) {
+        const moduleFields = mod.fields
+          .filter(f => !f.isSystem)
+          .map(f => ({
+            name: f.name,
+            label: f.label || f.name,
+            kind: f.kind,
+            isProperty: false,
+          }))
+        resolvedFields = [...resolvedFields, ...moduleFields]
+      }
+    } catch {
+      // Gracefully continue with standard properties
+    } finally {
+      loadingFields[key] = false
+    }
+  }
+
+  recordFields[key] = resolvedFields
 }
 
 // Auto-fetch fields for all expandable results when upstream data changes
@@ -254,7 +368,7 @@ watch(
   results => {
     for (const step of results) {
       for (const result of step.results) {
-        if (result.expandable && result.namespaceID && result.moduleID) {
+        if (result.expandable) {
           // Auto-expand sub-panels
           const subKey = step.handle + ':' + result.sourceName
           if (!expandedSubPanels[subKey]) {

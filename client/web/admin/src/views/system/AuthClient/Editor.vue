@@ -16,6 +16,15 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-if="authClient.canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:auth-client/${authClient.authClientID}`"
+          :title="authClient.meta?.name || authClient.handle || authClient.authClientID"
+          :target="authClient.meta?.name || authClient.handle || authClient.authClientID"
+        />
+      </div>
       <Card
         :pt="{
           body: { class: 'p-0 flex flex-col h-full min-h-0' },
@@ -288,13 +297,6 @@
           @click="$router.push({ name: 'system.authClients' })"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && authClient.canGrant"
-            :resource="`corteza::system:auth-client/${authClient.authClientID}`"
-            :title="authClient.meta?.name || authClient.handle || authClient.authClientID"
-            :target="authClient.meta?.name || authClient.handle || authClient.authClientID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && authClient.canDeleteAuthClient"
             :label="$t('system.authclients.editor.info.delete')"

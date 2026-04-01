@@ -32,17 +32,19 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <CRouterLinkButton
-          :to="{ name: 'agent.create' }"
-          :label="$t('agent.list.create')"
-          icon="pi pi-plus"
-          size="small"
-        />
-        <CPermissionsButton
-          v-if="canGrant"
-          v-tooltip.bottom="$t('general.label.permissions')"
-          resource="corteza::system:agent/*"
-        />
+        <div class="flex gap-2">
+          <CRouterLinkButton
+            :to="{ name: 'agent.create' }"
+            :label="$t('agent.list.create')"
+            icon="pi pi-plus"
+            size="small"
+          />
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::system:agent/*"
+          />
+        </div>
       </template>
 
       <template #body-name="{ data }">
@@ -77,6 +79,7 @@ import {
   useConfirmDelete,
   useRBACStore,
   useResourceList,
+  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -92,6 +95,7 @@ const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
+const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
 
@@ -153,6 +157,20 @@ function handleRowClick({ data }) {
 // Actions menu methods
 function getActionsMenuItems(agent) {
   const items = []
+
+  if (agent.canGrant || canGrant.value) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value?.hideActionsMenu?.()
+        openPermissions({
+          resource: `corteza::system:agent/${agent.agentID}`,
+          title: agent.meta?.short || agent.handle || agent.agentID,
+        })
+      },
+    })
+  }
 
   if (agent.canUpdateAgent !== false) {
     items.push({

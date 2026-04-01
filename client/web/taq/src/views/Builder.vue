@@ -9,43 +9,55 @@
   </div>
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
-    <!-- Enabled toggle -->
-    <div
-      class="absolute top-3 left-3 z-20 flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm"
-    >
-      <div class="flex items-center gap-2">
-        <ToggleSwitch
-          :model-value="editor.enabled.value"
-          @update:model-value="toggleEnabled"
-          input-id="taq-enabled"
-        />
-        <label for="taq-enabled" class="text-sm">{{ $t('builder.enabled') }}</label>
-      </div>
-      <template v-if="editor.automationId.value && !editor.isEmpty.value">
+    <!-- Top-left overlay actions -->
+    <div class="absolute top-3 left-3 z-20 flex items-center gap-2">
+      <!-- Main toggle/run card -->
+      <div class="flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm">
+        <div class="flex items-center gap-2">
+          <ToggleSwitch
+            :model-value="editor.enabled.value"
+            @update:model-value="toggleEnabled"
+            input-id="taq-enabled"
+          />
+          <label for="taq-enabled" class="text-sm">{{ $t('builder.enabled') }}</label>
+        </div>
+        <template v-if="editor.automationId.value && !editor.isEmpty.value">
+          <Divider layout="vertical" class="!m-0" />
+          <Button
+            :label="$t('builder.run')"
+            icon="pi pi-play"
+            severity="success"
+            outlined
+            size="small"
+            :loading="editor.running.value"
+            :disabled="!editor.enabled.value || editor.running.value"
+            @click="editor.exec"
+          />
+        </template>
         <Divider layout="vertical" class="!m-0" />
         <Button
-          :label="$t('builder.run')"
-          icon="pi pi-play"
-          severity="success"
-          outlined
+          v-tooltip.bottom="
+            showAllPreviews
+              ? $t('builder.preview.hideConfigurations')
+              : $t('builder.preview.showConfigurations')
+          "
+          :icon="showAllPreviews ? 'pi pi-eye' : 'pi pi-eye-slash'"
+          :severity="showAllPreviews ? 'primary' : 'secondary'"
+          :outlined="!showAllPreviews"
           size="small"
-          :loading="editor.running.value"
-          :disabled="!editor.enabled.value || editor.running.value"
-          @click="editor.exec"
+          @click="togglePreviews"
         />
-      </template>
-      <Divider layout="vertical" class="!m-0" />
-      <Button
-        v-tooltip.bottom="
-          showAllPreviews
-            ? $t('builder.preview.hideConfigurations')
-            : $t('builder.preview.showConfigurations')
-        "
-        :icon="showAllPreviews ? 'pi pi-eye' : 'pi pi-eye-slash'"
-        :severity="showAllPreviews ? 'primary' : 'secondary'"
-        :outlined="!showAllPreviews"
-        size="small"
-        @click="togglePreviews"
+      </div>
+
+      <!-- Standalone permissions button -->
+      <CPermissionsButton
+        v-if="editor.automationId.value"
+        v-tooltip.bottom="$t('general.label.permissions')"
+        :resource="`corteza::automation:ng-automation/${editor.automationId.value}`"
+        :title="editor.name.value"
+        :target="editor.name.value"
+        severity="secondary"
+        class="bg-surface shadow-sm !border-surface"
       />
     </div>
 
@@ -320,26 +332,25 @@
           @mousedown="startDrawerResize"
         />
         <!-- Drawer content -->
-        <div class="flex-1 overflow-auto p-4">
-          <ConfigSidebar
-            ref="configSidebarRef"
-            :node="selectedNode"
-            :edges="editor.edges.value"
-            :nodes="editor.nodes.value"
-            :functions="store.functions"
-            :triggers="store.triggers"
-            :upstream-results="upstreamResults"
-            @close="clearSelection"
-            @delete="handleDeleteSelected"
-            @add-branch="handleAddBranch"
-            @reorder-branches="handleReorderBranches"
-            @update-arguments="handleUpdateArguments"
-            @update-constraints="handleUpdateConstraints"
-            @toggle-reference="handleToggleReference"
-            @update-gateway-type="handleUpdateGatewayType"
-            @update-branch-expr="handleUpdateBranchExpr"
-          />
-        </div>
+        <ConfigSidebar
+          ref="configSidebarRef"
+          :node="selectedNode"
+          :edges="editor.edges.value"
+          :nodes="editor.nodes.value"
+          :functions="store.functions"
+          :triggers="store.triggers"
+          :upstream-results="upstreamResults"
+          @close="clearSelection"
+          @delete="handleDeleteSelected"
+          @add-branch="handleAddBranch"
+          @reorder-branches="handleReorderBranches"
+          @update-arguments="handleUpdateArguments"
+          @update-constraints="handleUpdateConstraints"
+          @toggle-reference="handleToggleReference"
+          @update-gateway-type="handleUpdateGatewayType"
+          @update-branch-expr="handleUpdateBranchExpr"
+          @update-metadata="handleUpdateMetadata"
+        />
       </div>
     </Transition>
 
@@ -766,6 +777,17 @@ function handleUpdateGatewayType(gatewayRef) {
 // Handle branch condition change from ConfigSidebar
 function handleUpdateBranchExpr({ edgeId, condition }) {
   editor.updateEdgeCondition(edgeId, condition)
+}
+
+// Handle node metadata updates (label, description) from ConfigSidebar
+function handleUpdateMetadata(meta) {
+  const selected = getSelectedNodes.value?.[0]
+  if (!selected) return
+
+  const node = editor.nodes.value.find(n => n.id === selected.id)
+  if (node) {
+    editor.updateNodeData(node.id, meta)
+  }
 }
 
 // Compute current reference (scope + source) for the active argument

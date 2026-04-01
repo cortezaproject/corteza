@@ -1,0 +1,54 @@
+ui:
+  save: Save changes
+  cancel: Cancel
+  set-for: Set permissions for {target}
+  loading: Loading permissions
+  label: Permissions
+  no-rules: No permissions available for this resource
+  select-role: Select a role to manage permissions
+  title: Permissions
+
+  notification:
+    save:
+      success: Permissions saved
+      failed: Failed to save permissions
+
+  edit:
+    label: Role
+    description: Select role to set permissions
+
+  add:
+    label: Add
+    title: Evaluate permissions
+    save: Save & Close
+    role:
+      label: Roles
+      placeholder: Select role(s)
+    user:
+      label: Users
+      placeholder: Search or select a user
+
+  evaluate:
+    description: Evaluate applied permissions
+
+  tooltip:
+    unknown-context:
+      user: Can not evaluate permission for a user with contextual role on a non-specific resource
+      role: Can not evaluate permission for contextual role on a non-specific resource
+
+  access:
+    allow: Allow
+    inherit: Inherit
+    deny: Deny
+
+resources:
+  automation:
+    ng-automation:
+      all: all automations
+      specific: automation "{target}"
+      tooltip: Automation permissions
+      operations:
+        read: Read automation
+        update: Update automation
+        delete: Delete automation
+        grant: Manage automation permissions

@@ -9,15 +9,24 @@
 
   <div v-else-if="chart" class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 overflow-auto min-w-0">
-      <!-- Export button above cards -->
-      <div v-if="isEdit && namespace?.canExportCharts" class="flex justify-end mb-4">
+      <!-- Actions above cards -->
+      <div v-if="isEdit" class="flex justify-end gap-2 mb-4">
         <Button
+          v-if="namespace?.canExportCharts"
           :label="$t('general.label.export')"
           icon="pi pi-download"
           size="small"
           severity="secondary"
           outlined
           @click="exportChart"
+        />
+        <CPermissionsButton
+          v-if="chart.canGrant"
+          :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
+          :title="chart.name || chart.handle || chart.chartID"
+          :target="chart.name || chart.handle || chart.chartID"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          outlined
         />
       </div>
 
@@ -185,13 +194,6 @@
           @click="$router.back()"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && chart.canGrant"
-            :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
-            :title="chart.name || chart.handle || chart.chartID"
-            :target="chart.name || chart.handle || chart.chartID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && chart.canDeleteChart"
             :label="$t('general.label.delete')"

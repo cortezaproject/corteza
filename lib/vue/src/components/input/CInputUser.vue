@@ -1,24 +1,23 @@
 <template>
   <Select
-    :model-value="selectedUser"
+    :model-value="modelValue"
     @update:model-value="onSelect"
     :options="options"
-    :option-label="getOptionLabel"
+    option-label="label"
+    option-value="userID"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
     class="w-full"
     filter
+    :filter-fields="['label', 'name', 'handle', 'email', 'username']"
     fluid
     showClear
     @filter="onFilter"
     @show="onShow"
   >
-    <template #option="{ option }">
-      {{ getOptionLabel(option) }}
-    </template>
-    <template v-if="hasNextPage || hasPrevPage" #footer>
-      <div class="flex justify-between items-center px-3 py-2 border-t border-surface">
+    <template #footer>
+      <div v-if="hasNextPage || hasPrevPage" class="flex justify-between items-center px-3 py-2 border-t border-surface">
         <Button
           icon="pi pi-angle-left"
           text
@@ -42,6 +41,8 @@
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useUserResolver } from '../../composables/useUserResolver'
 
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps({
   modelValue: {
     type: [String, Number],
@@ -59,7 +60,12 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  roleID: {
+    type: Array,
+    default: () => [],
+  },
   roleId: {
+    // for backwards compatibility
     type: Array,
     default: () => [],
   },
@@ -71,7 +77,6 @@ const $SystemAPI = inject('$SystemAPI')
 const { formatUser, resolveUser, cacheUsers } = useUserResolver()
 
 const options = ref([])
-const selectedUser = ref(null)
 const loading = ref(false)
 
 let cancelCurrentRequest = null
@@ -83,10 +88,6 @@ const prevPage = ref('')
 const hasNextPage = ref(false)
 const hasPrevPage = ref(false)
 const currentQuery = ref('')
-
-function getOptionLabel(user) {
-  return formatUser(user)
-}
 
 async function fetchUsers(query = '', pageCursor = '') {
   if (cancelCurrentRequest) {
@@ -105,25 +106,24 @@ async function fetchUsers(query = '', pageCursor = '') {
       params.pageCursor = pageCursor
     }
 
-    if (props.roleId && props.roleId.length > 0) {
-      params.roleID = props.roleId
+    const effectiveRoleID = props.roleID?.length ? props.roleID : props.roleId
+    if (effectiveRoleID && effectiveRoleID.length > 0) {
+      params.roleID = effectiveRoleID
     }
 
     const { response, cancel } = $SystemAPI.userListCancellable(params)
     cancelCurrentRequest = cancel
 
     const result = await response()
-    options.value = result.set || []
+    const users = result.set || []
+    
+    // Add an explicit string label property for PrimeVue to easily render/filter
+    options.value = users.map(u => ({ ...u, label: formatUser(u) }))
 
-    // Re-sync selectedUser reference with the matching option from the new set
-    // so PrimeVue Select can match it by reference
-    if (selectedUser.value) {
-      const match = options.value.find(u => u.userID === selectedUser.value.userID)
-      if (match) {
-        selectedUser.value = match
-      } else {
-        // Selected user not in current page — keep them in options
-        options.value = [...options.value, selectedUser.value]
+    // If we have a bound ID that isn't in this new page, append it to prevent deselection
+    if (props.modelValue) {
+      if (!options.value.some(u => u.userID === props.modelValue)) {
+        loadUserById(props.modelValue)
       }
     }
 
@@ -163,17 +163,16 @@ function goToPage(next) {
   }
 }
 
-function onSelect(value) {
-  selectedUser.value = value
-  emit('update:modelValue', value?.userID || null)
+function onSelect(userID) {
+  emit('update:modelValue', userID || null)
 
-  if (value) {
-    emit('select', value)
+  const selectedNode = options.value.find(u => u.userID === userID)
+  if (selectedNode) {
+    emit('select', selectedNode)
   }
 
-  if (props.clearOnSelect && value) {
+  if (props.clearOnSelect && userID) {
     setTimeout(() => {
-      selectedUser.value = null
       emit('update:modelValue', null)
     }, 0)
   }
@@ -186,7 +185,7 @@ async function loadUserById(userID) {
   try {
     const user = await resolveUser(userID)
     if (user) {
-      selectedUser.value = user
+      user.label = formatUser(user)
       if (!options.value.find(u => u.userID === userID)) {
         options.value = [...options.value, user]
       }
@@ -201,10 +200,8 @@ async function loadUserById(userID) {
 watch(
   () => props.modelValue,
   newVal => {
-    if (newVal && (!selectedUser.value || selectedUser.value.userID !== newVal)) {
+    if (newVal) {
       loadUserById(newVal)
-    } else if (!newVal) {
-      selectedUser.value = null
     }
   },
   { immediate: true },

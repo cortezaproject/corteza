@@ -18,6 +18,14 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:dal-connection/${connection.connectionID}`"
+          :title="connection.meta?.short || connection.handle || connection.connectionID"
+          :target="connection.meta?.short || connection.handle || connection.connectionID"
+        />
+      </div>
       <Card
         :pt="{
           body: { class: 'p-0 flex flex-col h-full min-h-0' },
@@ -74,13 +82,6 @@
                         {{ $t('system.connections.editor.info.description') }}
                       </label>
                       <Textarea id="description" v-model="connection.meta.description" rows="3" />
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                      <label for="status" class="font-medium text-primary">
-                        {{ $t('system.connections.editor.info.status') }}
-                      </label>
-                      <InputText id="status" v-model="connection.status" />
                     </div>
                   </div>
 

@@ -190,6 +190,7 @@ import {
   useConfirmDelete,
   useRBACStore,
   useResourceList,
+  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -207,6 +208,7 @@ const $AutomationAPI = inject('$AutomationAPI')
 const $Auth = inject('$Auth')
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('automation/', 'grant'))
+const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
 
@@ -318,14 +320,30 @@ function handleRowClick({ data }) {
 
 // Actions menu methods
 function getActionsMenuItems(automation) {
-  return [
-    {
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(automation),
-    },
-  ]
+  const items = []
+
+  if (automation.canGrant || canGrant.value) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value?.hideActionsMenu?.()
+        openPermissions({
+          resource: `corteza::automation:ng-automation/${automation.automationID}`,
+          title: automation.meta?.short || automation.automationID,
+        })
+      },
+    })
+  }
+
+  items.push({
+    label: t('general.label.delete'),
+    icon: 'pi pi-trash',
+    class: 'text-red-500',
+    command: () => onConfirmDelete(automation),
+  })
+
+  return items
 }
 
 function onConfirmDelete(automation) {

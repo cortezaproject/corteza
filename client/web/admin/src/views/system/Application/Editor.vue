@@ -16,6 +16,15 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <CPermissionsButton
+          v-if="application.canGrant"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::system:application/${application.applicationID}`"
+          :title="application.name || application.applicationID"
+          :target="application.name || application.applicationID"
+        />
+      </div>
       <Panel :header="$t('system.applications.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2 md:col-span-2">
@@ -79,13 +88,6 @@
           @click="$router.push({ name: 'system.applications' })"
         />
         <div class="flex gap-2">
-          <CPermissionsButton
-            v-if="isEdit && application.canGrant"
-            :resource="`corteza::system:application/${application.applicationID}`"
-            :title="application.name || application.applicationID"
-            :target="application.name || application.applicationID"
-            :label="$t('general.label.permissions')"
-          />
           <CInputDelete
             v-if="isEdit && application.canDeleteApplication"
             :label="$t('system.applications.editor.info.delete')"

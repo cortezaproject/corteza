@@ -1,22 +1,20 @@
 <template>
   <Select
-    :model-value="selectedAgent"
+    :model-value="modelValue"
     @update:model-value="onSelect"
     :options="options"
-    :option-label="getOptionLabel"
+    option-label="label"
+    option-value="agentID"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
     class="w-full"
     filter
+    :filter-fields="['label', 'handle', 'agentID']"
     fluid
     showClear
     @show="onShow"
-  >
-    <template #option="{ option }">
-      {{ getOptionLabel(option) }}
-    </template>
-  </Select>
+  />
 </template>
 
 <script setup>
@@ -44,7 +42,6 @@ const emit = defineEmits(['update:modelValue'])
 const $SystemAPI = inject('$SystemAPI')
 
 const options = ref([])
-const selectedAgent = ref(null)
 const loading = ref(false)
 
 let cancelCurrentRequest = null
@@ -68,10 +65,14 @@ async function fetchAgents() {
     cancelCurrentRequest = cancel
 
     const result = await response()
-    options.value = Array.isArray(result) ? result : result.set || []
-  } catch (e) {
-    if (e?.message !== 'canceled') {
-      options.value = []
+    const agents = Array.isArray(result) ? result : result.set || []
+    
+    options.value = agents.map(a => ({ ...a, label: getOptionLabel(a) }))
+
+    if (props.modelValue && props.modelValue !== '0') {
+      if (!options.value.some(a => a.agentID === props.modelValue)) {
+        loadAgentById(props.modelValue)
+      }
     }
   } finally {
     loading.value = false
@@ -85,9 +86,8 @@ function onShow() {
   }
 }
 
-function onSelect(value) {
-  selectedAgent.value = value
-  emit('update:modelValue', value?.agentID || null)
+function onSelect(agentID) {
+  emit('update:modelValue', agentID || null)
 }
 
 async function loadAgentById(agentID) {
@@ -95,9 +95,11 @@ async function loadAgentById(agentID) {
   loading.value = true
   try {
     const agent = await $SystemAPI.agentRead({ agentID })
-    selectedAgent.value = agent
-    if (!options.value.find(a => a.agentID === agentID)) {
-      options.value = [...options.value, agent]
+    if (agent) {
+      agent.label = getOptionLabel(agent)
+      if (!options.value.find(a => a.agentID === agentID)) {
+        options.value = [...options.value, agent]
+      }
     }
   } catch {
     // Agent not found or API error
@@ -111,12 +113,9 @@ watch(
   newVal => {
     if (
       newVal &&
-      newVal !== '0' &&
-      (!selectedAgent.value || selectedAgent.value.agentID !== newVal)
+      newVal !== '0'
     ) {
       loadAgentById(newVal)
-    } else if (!newVal || newVal === '0') {
-      selectedAgent.value = null
     }
   },
   { immediate: true },
