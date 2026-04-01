@@ -88,7 +88,7 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ID", "ComposeRecord"}, Required: true,
+				Types:        []string{"ComposeRecord", "ID"}, Required: true,
 			},
 		},
 
@@ -826,7 +826,7 @@ func (h ngRecordsHandler) Delete() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ID", "ComposeRecord"}, Required: true,
+				Types:        []string{"ComposeRecord", "ID"}, Required: true,
 			},
 		},
 
@@ -922,9 +922,73 @@ func (h ngRecordsHandler) Delete() atypes.ConstructFunction {
 	}
 }
 
-func (h ngRecordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
+type (
+	ngRecordsUpdateArgs struct {
+		hasNamespace    bool
+		Namespace       interface{}
+		namespaceID     uint64
+		namespaceHandle string
+		namespaceRes    *types.Namespace
+
+		hasModule    bool
+		Module       interface{}
+		moduleID     uint64
+		moduleHandle string
+		moduleRes    *types.Module
+
+		hasRecord bool
+		Record    interface{}
+		recordID  uint64
+		recordRes *types.Record
+
+		hasValues  bool
+		Values     interface{}
+		ValuesKV   map[string]string
+		ValuesKVV  map[string][]string
+		ValuesVars *expr.Vars
+	}
+)
+
+func (a ngRecordsUpdateArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
+	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
+}
+
+func (a ngRecordsUpdateArgs) GetModule() (bool, uint64, string, *types.Module) {
+	return a.hasModule, a.moduleID, a.moduleHandle, a.moduleRes
+}
+
+func (a ngRecordsUpdateArgs) GetRecord() (bool, uint64, *types.Record) {
+	return a.hasRecord, a.recordID, a.recordRes
+}
+
+func (h ngRecordsHandler) update(ctx context.Context, args *ngRecordsUpdateArgs) (results *recordsUpdateResults, err error) {
 	results = &recordsUpdateResults{}
-	results.Record, err = wrapRecordValueErrorSet(h.rec.Update(ctx, args.Record))
+
+	_, _, record := args.GetRecord()
+	if record == nil {
+		namespace, module, lerr := h.loadCombo(ctx, args)
+		if lerr != nil {
+			return nil, lerr
+		}
+		if args.recordID == 0 {
+			return nil, fmt.Errorf("record is required")
+		}
+		record, _, err = h.rec.FindByID(ctx, namespace.ID, module.ID, args.recordID)
+		if err != nil {
+			return nil, fmt.Errorf("could not load record: %w", err)
+		}
+	}
+
+	for k, v := range args.ValuesKV {
+		record.Values = record.Values.Set(&types.RecordValue{Name: k, Value: v})
+	}
+	for k, vv := range args.ValuesKVV {
+		for i, v := range vv {
+			record.Values = record.Values.Set(&types.RecordValue{Name: k, Place: uint(i), Value: v})
+		}
+	}
+
+	results.Record, err = wrapRecordValueErrorSet(h.rec.Update(ctx, record))
 	return
 }
 
@@ -942,9 +1006,29 @@ func (h ngRecordsHandler) Update() atypes.ConstructFunction {
 
 		Parameters: []*atypes.Param{
 			{
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ComposeRecord"}, Required: true,
+				Types:        []string{"ComposeRecord", "ID"}, Required: true,
+			},
+			{
+				ArgumentName: "values",
+				Name:         "",
+				Types:        []string{"KV", "KVV", "Any"}, Required: true,
+				Aggregate:    true,
 			},
 		},
 
@@ -962,23 +1046,141 @@ func (h ngRecordsHandler) Update() atypes.ConstructFunction {
 				Meta: atypes.ConstructSectionMeta{},
 				Elements: []atypes.SectionElement{{
 					Input: atypes.SectionElementInput{
-						Type:     "Expression",
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "RecordSelector",
 						Label:    "Record",
 						Argument: "record",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "FieldValueMap",
+						Label:    "Values",
+						Argument: "values",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
 					},
 				}},
 			}},
 		}},
 
+		ArgsMerger: func(ctx context.Context, args atypes.ExprSet, raw []expr.TypedValue) (out *expr.Vars, err error) {
+			aux := make(map[string]any, 3)
+			aux[args[0].ArgumentName] = raw[0]
+			aux[args[1].ArgumentName] = raw[1]
+			aux[args[2].ArgumentName] = raw[2]
+
+			auxVals := make(map[string][]string, 4)
+			for i := 3; i < len(raw); i++ {
+				rv := raw[i]
+				switch rv.Type() {
+				case h.tReg.Type("KV").Type():
+					for k, v := range rv.Get().(map[string]string) {
+						auxVals[k] = append(auxVals[k], v)
+					}
+				case h.tReg.Type("KVV").Type():
+					for k, v := range rv.Get().(map[string][]string) {
+						auxVals[k] = append(auxVals[k], v...)
+					}
+				default:
+					var s string
+					s, err = expr.CastToString(rv.Get())
+					if err != nil {
+						return
+					}
+					auxVals[args[i].Target] = append(auxVals[args[i].Target], s)
+				}
+			}
+
+			aux[args[3].ArgumentName], err = expr.NewKVV(auxVals)
+			if err != nil {
+				return
+			}
+
+			return expr.NewVars(aux)
+		},
+
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
-				args = &recordsUpdateArgs{
-					hasRecord: in.Has("record"),
+				args = &ngRecordsUpdateArgs{
+					hasNamespace: in.Has("namespace"),
+					hasModule:    in.Has("module"),
+					hasRecord:    in.Has("record"),
+					hasValues:    in.Has("values"),
 				}
 			)
 
-			if err = in.Decode(args); err != nil {
-				return
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Record argument
+			if args.hasRecord {
+				aux := expr.Must(expr.Select(in, "record"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.recordID = aux.Get().(uint64)
+				case h.tReg.Type("ComposeRecord").Type():
+					args.recordRes = aux.Get().(*types.Record)
+				}
+			}
+
+			// Converting Values argument
+			if args.hasValues {
+				aux := expr.Must(expr.Select(in, "values"))
+				switch aux.Type() {
+				case h.tReg.Type("KV").Type():
+					args.ValuesKV = aux.Get().(map[string]string)
+				case h.tReg.Type("KVV").Type():
+					args.ValuesKVV = aux.Get().(map[string][]string)
+				}
 			}
 
 			var results *recordsUpdateResults
@@ -1363,7 +1565,7 @@ func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ID", "ComposeRecord"}, Required: true,
+				Types:        []string{"ComposeRecord", "ID"}, Required: true,
 			},
 		},
 
