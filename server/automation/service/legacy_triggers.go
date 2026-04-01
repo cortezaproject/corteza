@@ -10,6 +10,17 @@ func recordConstraints() []types.ConstructTriggerConstraint {
 	}
 }
 
+func recordProperties() []types.ConstructTriggerProperty {
+	return []types.ConstructTriggerProperty{
+		{Name: "record", Type: "ComposeRecord"},
+		{Name: "oldRecord", Type: "ComposeRecord"},
+		{Name: "module", Type: "ComposeModule"},
+		{Name: "namespace", Type: "ComposeNamespace"},
+		{Name: "recordValueErrors", Type: "ComposeRecordValueErrorSet"},
+		{Name: "selected", Type: ""},
+	}
+}
+
 func recordSegments() []types.ConstructSegment {
 	return []types.ConstructSegment{{
 		Sections: []types.ConstructSection{{
@@ -50,6 +61,13 @@ func recordSegments() []types.ConstructSegment {
 func userConstraints() []types.ConstructTriggerConstraint {
 	return []types.ConstructTriggerConstraint{
 		{Name: "user", Types: []string{"ID", "Handle", "SystemUser"}},
+	}
+}
+
+func userProperties() []types.ConstructTriggerProperty {
+	return []types.ConstructTriggerProperty{
+		{Name: "user", Type: "User"},
+		{Name: "oldUser", Type: "User"},
 	}
 }
 
@@ -138,6 +156,20 @@ func init() {
 				Description: "Triggered before record is created",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
 			},
+			Properties:  recordProperties(),
+			Segments:    recordSegments(),
+			Constraints: recordConstraints(),
+		},
+		types.ConstructTrigger{
+			ResourceType: "compose:record",
+			EventType:    "afterCreate",
+			Groups:       []string{"Records"},
+			Meta: &types.ConstructTriggerMeta{
+				Short:       "After Record Create",
+				Description: "Triggered after record is created",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
+			},
+			Properties:  recordProperties(),
 			Segments:    recordSegments(),
 			Constraints: recordConstraints(),
 		},
@@ -150,6 +182,20 @@ func init() {
 				Description: "Triggered before record is updated",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
 			},
+			Properties:  recordProperties(),
+			Segments:    recordSegments(),
+			Constraints: recordConstraints(),
+		},
+		types.ConstructTrigger{
+			ResourceType: "compose:record",
+			EventType:    "afterUpdate",
+			Groups:       []string{"Records"},
+			Meta: &types.ConstructTriggerMeta{
+				Short:       "After Record Update",
+				Description: "Triggered after record is updated",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
+			},
+			Properties:  recordProperties(),
 			Segments:    recordSegments(),
 			Constraints: recordConstraints(),
 		},
@@ -162,6 +208,20 @@ func init() {
 				Description: "Triggered before record is deleted",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
 			},
+			Properties:  recordProperties(),
+			Segments:    recordSegments(),
+			Constraints: recordConstraints(),
+		},
+		types.ConstructTrigger{
+			ResourceType: "compose:record",
+			EventType:    "afterDelete",
+			Groups:       []string{"Records"},
+			Meta: &types.ConstructTriggerMeta{
+				Short:       "After Record Delete",
+				Description: "Triggered after record is deleted",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
+			},
+			Properties:  recordProperties(),
 			Segments:    recordSegments(),
 			Constraints: recordConstraints(),
 		},
@@ -174,6 +234,7 @@ func init() {
 				Description: "Triggered before record is undeleted",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
 			},
+			Properties:  recordProperties(),
 			Segments:    recordSegments(),
 			Constraints: recordConstraints(),
 		},
@@ -186,6 +247,7 @@ func init() {
 				Description: "Triggered after record is undeleted",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "database"},
 			},
+			Properties:  recordProperties(),
 			Segments:    recordSegments(),
 			Constraints: recordConstraints(),
 		},
@@ -198,6 +260,7 @@ func init() {
 				Description: "Triggered before user is created",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -210,6 +273,7 @@ func init() {
 				Description: "Triggered after user is created",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -222,6 +286,7 @@ func init() {
 				Description: "Triggered before user is updated",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -234,6 +299,7 @@ func init() {
 				Description: "Triggered after user is updated",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -246,6 +312,7 @@ func init() {
 				Description: "Triggered before user is deleted",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -258,6 +325,7 @@ func init() {
 				Description: "Triggered after user is deleted",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -270,6 +338,7 @@ func init() {
 				Description: "Triggered before user is suspended",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
@@ -282,6 +351,7 @@ func init() {
 				Description: "Triggered after user is suspended",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "users"},
 			},
+			Properties:  userProperties(),
 			Segments:    userSegments(),
 			Constraints: userConstraints(),
 		},
