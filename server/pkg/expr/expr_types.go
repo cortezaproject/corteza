@@ -518,6 +518,14 @@ func CastToStringSlice(val interface{}) (out []string, err error) {
 func CastToHandle(val interface{}) (string, error) {
 	val = UntypedValue(val)
 
+	if p, ok := val.(HandleProvider); ok {
+		h := p.GetHandle()
+		if !handle.IsValid(h) {
+			return "", fmt.Errorf("invalid handle format: '%s'", h)
+		}
+		return h, nil
+	}
+
 	h, err := cast.ToStringE(val)
 
 	if !handle.IsValid(h) {
@@ -563,7 +571,21 @@ func CastToFloat(val interface{}) (out float64, err error) {
 	return cast.ToFloat64E(emptyStringFailsafe(val))
 }
 
+// IDProvider is implemented by resource types that can be coerced to an ID.
+type IDProvider interface {
+	GetID() uint64
+}
+
+// HandleProvider is implemented by resource types that can be coerced to a Handle string.
+type HandleProvider interface {
+	GetHandle() string
+}
+
 func CastToID(val interface{}) (out uint64, err error) {
+	val = UntypedValue(val)
+	if p, ok := val.(IDProvider); ok {
+		return p.GetID(), nil
+	}
 	return cast.ToUint64E(emptyStringFailsafe(val))
 }
 

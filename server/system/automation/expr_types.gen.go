@@ -357,6 +357,16 @@ func (t *Reminder) Assign(val interface{}) error {
 	}
 }
 
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *Reminder) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
 func (t *Reminder) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
@@ -800,6 +810,26 @@ func (t *Role) Assign(val interface{}) error {
 	}
 }
 
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *Role) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *Role) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
+}
+
 func (t *Role) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
@@ -992,6 +1022,26 @@ func (t *Template) Assign(val interface{}) error {
 		t.value = c
 		return nil
 	}
+}
+
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *Template) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *Template) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
 }
 
 func (t *Template) AssignFieldValue(key string, val TypedValue) error {
@@ -1384,6 +1434,26 @@ func (t *User) Assign(val interface{}) error {
 		t.value = c
 		return nil
 	}
+}
+
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *User) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *User) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
 }
 
 func (t *User) AssignFieldValue(key string, val TypedValue) error {

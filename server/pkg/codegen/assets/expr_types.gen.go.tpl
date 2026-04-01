@@ -75,6 +75,44 @@ func (t *{{ $exprType }}) Assign(val interface{}) (error) {
 	}
 }
 
+{{ if $def.Struct }}
+{{- range $def.Struct }}
+{{- if and (eq .ExprType "ID") (eq .Name "ID") }}
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *{{ $exprType }}) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+{{ end }}
+{{- if and (eq .ExprType "Handle") (eq .Name "handle") }}
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *{{ $exprType }}) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
+}
+{{ end }}
+{{- if and (eq .ExprType "Handle") (eq .Name "slug") }}
+// GetHandle implements HandleProvider interface, returning the resource's slug as handle.
+func (t *{{ $exprType }}) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Slug
+}
+{{ end }}
+{{- end }}
+{{ end }}
+
 {{ if $def.Comparable }}
 {{ if not $def.CustomComparator }}
 // Compare the two {{ $exprType }} values

@@ -68,6 +68,16 @@ func (t *Attachment) Assign(val interface{}) error {
 	}
 }
 
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *Attachment) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
 func (t *Attachment) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
@@ -268,6 +278,26 @@ func (t *ComposeModule) Assign(val interface{}) error {
 	}
 }
 
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *ComposeModule) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *ComposeModule) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
+}
+
 func (t *ComposeModule) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
@@ -462,6 +492,26 @@ func (t *ComposeNamespace) Assign(val interface{}) error {
 	}
 }
 
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *ComposeNamespace) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's slug as handle.
+func (t *ComposeNamespace) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Slug
+}
+
 func (t *ComposeNamespace) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
@@ -646,6 +696,16 @@ func (t *ComposeRecord) Assign(val interface{}) error {
 		t.value = c
 		return nil
 	}
+}
+
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *ComposeRecord) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
 }
 
 func (t *ComposeRecord) Has(k string) bool {
