@@ -180,6 +180,11 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		return id.Zero(), ErrSystemDraining
 	}
 
+	rm.log.Debug("queuing execution",
+		zap.Stringer("executableID", executableID),
+		zap.Int("revision", revision),
+	)
+
 	global, err := rm.validateGlobalState(params.Input)
 	if err != nil {
 		return id.Zero(), err
@@ -402,6 +407,19 @@ func (rm *runtimeManager) runRuntime(ctx context.Context, e *RuntimeEntry, globa
 func (rm *runtimeManager) onExit(ctx context.Context, e *RuntimeEntry, err error) {
 	e.Err = err
 
+	if err != nil {
+		rm.log.Warn("execution failed",
+			zap.Stringer("execID", e.execID),
+			zap.Stringer("executableID", e.executableID),
+			zap.Error(err),
+		)
+	} else {
+		rm.log.Debug("execution completed",
+			zap.Stringer("execID", e.execID),
+			zap.Stringer("executableID", e.executableID),
+		)
+	}
+
 	status := types.StatusCompleted
 	if err != nil {
 		status = types.StatusFailed
@@ -458,6 +476,7 @@ func (rm *runtimeManager) Get(execID id.ID) (*RuntimeEntry, error) {
 
 func (rm *runtimeManager) createRuntime(executionID id.ID, exe types.Executable, entryPoint string) Runtime {
 	return runtime.Runtime(
+		rm.log.Named("runtime").With(zap.Stringer("executionID", executionID)),
 		executionID,
 		exe,
 		rm.governor,

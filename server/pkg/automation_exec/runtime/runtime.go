@@ -11,8 +11,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/modern-go/reflect2"
+	"go.uber.org/zap"
 )
 
 var (
@@ -52,6 +52,7 @@ type executionState struct {
 }
 
 type runtime struct {
+	log         *zap.Logger
 	executionID id.ID
 	exec        types.Executable
 	scheduler   *scheduler
@@ -72,6 +73,7 @@ type runtime struct {
 }
 
 func Runtime(
+	log *zap.Logger,
 	executionID id.ID,
 	exec types.Executable,
 	gate executionGate,
@@ -84,6 +86,7 @@ func Runtime(
 	}
 
 	return &runtime{
+		log:         log,
 		executionID: executionID,
 		exec:        exec,
 		gate:        gate,
@@ -97,6 +100,13 @@ func Runtime(
 }
 
 func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
+	r.log.Debug("execution started",
+		zap.Stringer("executionID", r.executionID),
+		zap.String("executableID", r.exec.ID.String()),
+		zap.String("entryPoint", r.entryPoint),
+	)
+	defer r.log.Debug("execution loop exited", zap.Stringer("executionID", r.executionID))
+
 	r.globalState = global
 
 	for {
@@ -131,9 +141,12 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 		}
 
 		if err := r.executeStep(ctx, step, frameID, parentID); err != nil {
-			// @todo logging
-			spew.Dump("err", err)
-
+			r.log.Error("step execution failed",
+				zap.String("stepID", step.ID.String()),
+				zap.String("handle", step.Handle),
+				zap.String("kind", step.Kind),
+				zap.Error(err),
+			)
 			// executeStep only propagates errors not already dispatched internally.
 			return r.fail(ctx, err)
 		}
@@ -212,6 +225,11 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 
 	// Only log StepStarted on the very first phase (phaseIndex == 0).
 	if cf == nil || cf.phaseIndex == 0 {
+		r.log.Debug("step started",
+			zap.String("stepID", step.ID.String()),
+			zap.String("handle", step.Handle),
+			zap.String("kind", step.Kind),
+		)
 		if err := r.ledger.StepStarted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision); err != nil {
 			return fmt.Errorf("step started: %w", err)
 		}
@@ -262,6 +280,13 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 
 	if err != nil {
 		result.Error = err
+
+		r.log.Warn("step failed",
+			zap.String("stepID", step.ID.String()),
+			zap.String("handle", step.Handle),
+			zap.String("kind", step.Kind),
+			zap.Error(err),
+		)
 
 		r.state.mux.Lock()
 		delete(r.state.InProgressSteps, step.ID)
@@ -319,6 +344,13 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 	if err := r.scheduler.StoreOutputs(step.ID, outputMap); err != nil {
 		return fmt.Errorf("store outputs: %w", err)
 	}
+
+	r.log.Debug("step completed",
+		zap.String("stepID", step.ID.String()),
+		zap.String("handle", step.Handle),
+		zap.String("kind", step.Kind),
+		zap.Duration("duration", result.CompletedAt.Sub(result.StartedAt)),
+	)
 
 	if err := r.ledger.StepCompleted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, outputMap); err != nil {
 		return fmt.Errorf("step completed: %w", err)

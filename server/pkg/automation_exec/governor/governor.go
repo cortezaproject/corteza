@@ -136,6 +136,7 @@ func (g *governor) Request(executionID id.ID, ops int) (<-chan struct{}, error) 
 
 	if g.paused.Load() {
 		g.metrics.BlockedByPause.Add(1)
+		g.log.Debug("execution blocked by global pause", zap.Stringer("executionID", executionID))
 		return g.gates.globalPause.ch, nil
 	}
 
@@ -149,19 +150,23 @@ func (g *governor) Request(executionID id.ID, ops int) (<-chan struct{}, error) 
 
 	if wouldExceed(ep.budget, ops) {
 		g.metrics.BlockedByExecBudget.Add(1)
+		g.log.Debug("execution blocked by budget", zap.Stringer("executionID", executionID), zap.Int("ops", ops))
 		return g.execBudgetGate(executionID), nil
 	}
 	if wouldExceed(ep.rate, ops) {
 		g.metrics.BlockedByExecRate.Add(1)
+		g.log.Debug("execution blocked by rate", zap.Stringer("executionID", executionID), zap.Int("ops", ops))
 		return g.execRateGate(executionID), nil
 	}
 
 	if wouldExceed(g.global.budget, ops) {
 		g.metrics.BlockedByGlobalBudget.Add(1)
+		g.log.Debug("execution blocked by global budget", zap.Stringer("executionID", executionID), zap.Int("ops", ops))
 		return g.globalBudgetGate(), nil
 	}
 	if wouldExceed(g.global.rate, ops) {
 		g.metrics.BlockedByGlobalRate.Add(1)
+		g.log.Debug("execution blocked by global rate", zap.Stringer("executionID", executionID), zap.Int("ops", ops))
 		return g.globalRateGate(), nil
 	}
 
