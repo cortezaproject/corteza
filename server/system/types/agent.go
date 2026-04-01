@@ -66,9 +66,21 @@ type (
 	}
 
 	AgentAccess struct {
-		Context AgentAccessContext `json:"context"`
-		Tools   []AgentAccessTool  `json:"tools,omitempty"`
-		Allow   []AgentAccessAllow `json:"allow,omitempty"`
+		Context   AgentAccessContext    `json:"context"`
+		Tools     []AgentAccessTool     `json:"tools,omitempty"`
+		Allow     []AgentAccessAllow    `json:"allow,omitempty"`
+		TAQs      []AgentAccessTAQ      `json:"taqs,omitempty"`
+		Workflows []AgentAccessWorkflow `json:"workflows,omitempty"`
+	}
+
+	AgentAccessTAQ struct {
+		ID     uint64 `json:"id,string"`
+		Handle string `json:"handle,omitempty"`
+	}
+
+	AgentAccessWorkflow struct {
+		ID     uint64 `json:"id,string"`
+		Handle string `json:"handle,omitempty"`
 	}
 
 	AgentAccessContext struct {

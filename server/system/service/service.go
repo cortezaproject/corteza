@@ -65,6 +65,8 @@ type (
 	AgenticRunner interface {
 		Run(ctx context.Context, req *agenticRuntime.AgentRequest) (*agenticRuntime.AgentResponse, error)
 		SetLookups(ns agenticKnowledge.NamespaceLookup, mod agenticKnowledge.ModuleLookup)
+		SetTAQService(s agenticRuntime.TAQService)
+		SetWorkflowService(s agenticRuntime.WorkflowService)
 	}
 )
 

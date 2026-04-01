@@ -13,6 +13,7 @@ import (
 	authService "github.com/cortezaproject/corteza/server/auth"
 	"github.com/cortezaproject/corteza/server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
+	autoAgentic "github.com/cortezaproject/corteza/server/automation/agentic"
 	autService "github.com/cortezaproject/corteza/server/automation/service"
 	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
 	sysAgentic "github.com/cortezaproject/corteza/server/system/agentic"
@@ -416,10 +417,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	cmpAgentic.RecordHandler(sysService.DefaultMCPRegistry)
-	// TAQ and workflow tools are not exposed as selectable MCP tools;
-	// TAQ invocation is handled via the agent's TAQ access list.
-	// autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
-	// autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
+	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
+	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
 		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
 		if err != nil {
@@ -467,6 +466,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	sysService.DefaultAgenticRuntime.SetLookups(cmpService.DefaultNamespace, cmpService.DefaultModule)
+	sysService.DefaultAgenticRuntime.SetTAQService(autService.DefaultNgAutomation)
+	sysService.DefaultAgenticRuntime.SetWorkflowService(autService.DefaultWorkflow)
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)

@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 
+	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/system/agentic/knowledge"
 	"github.com/cortezaproject/corteza/server/system/agentic/observability"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -19,6 +20,8 @@ type (
 		namespaceLookup   knowledge.NamespaceLookup
 		moduleLookup      knowledge.ModuleLookup
 		obs               *observability.Bus
+		taqService        TAQService
+		workflowService   WorkflowService
 	}
 
 	// Registry interface for fetching agent definitions
@@ -106,6 +109,14 @@ type (
 		FindByID(ctx context.Context, ID uint64) (*types.KnowledgeBase, error)
 	}
 
+	TAQService interface {
+		LookupByID(ctx context.Context, ID uint64) (*autoTypes.NgAutomation, error)
+	}
+
+	WorkflowService interface {
+		LookupByID(ctx context.Context, ID uint64) (*autoTypes.Workflow, error)
+	}
+
 	// MCPClient abstracts the Model Context Protocol tools.
 	MCPClient interface {
 		// GetTools returns tools filtered to the agent's allowed tool list.
@@ -140,3 +151,12 @@ func (r *runtime) SetLookups(ns knowledge.NamespaceLookup, mod knowledge.ModuleL
 	r.namespaceLookup = ns
 	r.moduleLookup = mod
 }
+
+func (r *runtime) SetTAQService(s TAQService) {
+	r.taqService = s
+}
+
+func (r *runtime) SetWorkflowService(s WorkflowService) {
+	r.workflowService = s
+}
+

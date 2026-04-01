@@ -17,6 +17,7 @@ import (
 type (
 	toolRegistrar interface {
 		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
+		RegisterHiddenTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
 	}
 
 	taqHandler struct {
@@ -31,7 +32,7 @@ func TAQHandler(reg toolRegistrar) *taqHandler {
 }
 
 func (h *taqHandler) register() {
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_lookup",
 			mcp.WithDescription("List all TAQs or look up a specific one by ID or handle. Omit 'taq' to list all."),
 			mcp.WithString("taq", mcp.Description("TAQ ID or handle. Omit to list all.")),
@@ -40,7 +41,7 @@ func (h *taqHandler) register() {
 		"Lookup TAQ",
 		h.lookup,
 	)
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_exec",
 			mcp.WithDescription("Execute a TAQ by ID or handle and wait for the result"),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID or handle")),
@@ -50,7 +51,7 @@ func (h *taqHandler) register() {
 		"Execute TAQ",
 		h.exec,
 	)
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_executions",
 			mcp.WithDescription("List executions for a TAQ"),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID or handle")),
@@ -58,7 +59,7 @@ func (h *taqHandler) register() {
 		"List TAQ executions",
 		h.executions,
 	)
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_execution_trace",
 			mcp.WithDescription("Get the execution trace for a specific TAQ execution"),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID or handle")),

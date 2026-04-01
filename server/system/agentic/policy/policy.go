@@ -45,6 +45,28 @@ type Decision struct {
 }
 
 func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
+	// TAQ and workflow tools are auto-injected — validate against the agent's allowlist
+	if tool == "automation_taq_exec" {
+		ref, _ := args.Get("taq")
+		if !agentAllowsTAQ(agent, fmt.Sprintf("%v", ref)) {
+			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute TAQ %q", ref)}
+		}
+		return allowedDecision(agent, nil, args)
+	}
+	if tool == "automation_workflow_exec" {
+		ref, _ := args.Get("workflow")
+		if !agentAllowsWorkflow(agent, fmt.Sprintf("%v", ref)) {
+			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute workflow %q", ref)}
+		}
+		return allowedDecision(agent, nil, args)
+	}
+	if tool == "automation_taq_lookup" && len(agent.Access.TAQs) > 0 {
+		return allowedDecision(agent, nil, args)
+	}
+	if tool == "automation_workflow_lookup" && len(agent.Access.Workflows) > 0 {
+		return allowedDecision(agent, nil, args)
+	}
+
 	var entry *types.AgentAccessTool
 	for i := range agent.Access.Tools {
 		stored := agent.Access.Tools[i].Name
@@ -64,6 +86,10 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 		}
 	}
 
+	return allowedDecision(agent, entry, args)
+}
+
+func allowedDecision(agent *types.Agent, entry *types.AgentAccessTool, args ValueGetter) Decision {
 	keys := args.Keys()
 	sanitized := make(map[string]any, len(keys))
 	for _, k := range keys {
@@ -77,14 +103,15 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 		}
 	}
 
-	for k, v := range entry.Context.Defaults {
-		if _, exists := sanitized[k]; !exists {
+	if entry != nil {
+		for k, v := range entry.Context.Defaults {
+			if _, exists := sanitized[k]; !exists {
+				sanitized[k] = v
+			}
+		}
+		for k, v := range entry.Context.Overrides {
 			sanitized[k] = v
 		}
-	}
-
-	for k, v := range entry.Context.Overrides {
-		sanitized[k] = v
 	}
 
 	return Decision{
@@ -92,6 +119,24 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 		Reason:        "tool is in agent's allow-list",
 		SanitizedArgs: sanitized,
 	}
+}
+
+func agentAllowsTAQ(agent *types.Agent, ref string) bool {
+	for _, t := range agent.Access.TAQs {
+		if fmt.Sprintf("%d", t.ID) == ref || t.Handle == ref {
+			return true
+		}
+	}
+	return false
+}
+
+func agentAllowsWorkflow(agent *types.Agent, ref string) bool {
+	for _, w := range agent.Access.Workflows {
+		if fmt.Sprintf("%d", w.ID) == ref || w.Handle == ref {
+			return true
+		}
+	}
+	return false
 }
 
 func FilterResponse(ctx context.Context, agent *types.Agent, resource string, data ValueGetter) map[string]any {

@@ -16,6 +16,7 @@ type (
 		Handler     server.ToolHandlerFunc
 		InputSchema map[string]any
 		Title       string
+		Hidden      bool
 	}
 
 	registeredResource struct {
@@ -51,6 +52,17 @@ func NewRegistry() *Registry {
 	}
 }
 
+func (r *Registry) RegisterHiddenTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc) {
+	schema := map[string]any{
+		"type":       tool.InputSchema.Type,
+		"properties": tool.InputSchema.Properties,
+	}
+	if len(tool.InputSchema.Required) > 0 {
+		schema["required"] = tool.InputSchema.Required
+	}
+	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema, Title: title, Hidden: true}
+}
+
 func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc) {
 	schema := map[string]any{
 		"type":       tool.InputSchema.Type,
@@ -73,10 +85,13 @@ func (r *Registry) RegisterResource(resource mcp.Resource, handler server.Resour
 }
 
 func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.Tool, error) {
-	// nil means no filter — return all registered tools
+	// nil means no filter — return all non-hidden registered tools
 	if allowedTools == nil {
 		out := make([]rt.Tool, 0, len(r.tools))
 		for _, t := range r.tools {
+			if t.Hidden {
+				continue
+			}
 			out = append(out, rt.Tool{
 				Name:        t.Tool.Name,
 				Title:       t.Title,

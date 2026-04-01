@@ -26,7 +26,7 @@ func WorkflowHandler(reg toolRegistrar) *workflowHandler {
 }
 
 func (h *workflowHandler) register() {
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_workflow_lookup",
 			mcp.WithDescription("List all workflows or look up a specific one by ID or handle. Omit 'workflow' to list all."),
 			mcp.WithString("workflow", mcp.Description("Workflow ID or handle. Omit to list all.")),
@@ -35,7 +35,7 @@ func (h *workflowHandler) register() {
 		"Lookup workflow",
 		h.lookup,
 	)
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_workflow_exec",
 			mcp.WithDescription("Execute a workflow by ID or handle and wait for the result"),
 			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow ID or handle")),
