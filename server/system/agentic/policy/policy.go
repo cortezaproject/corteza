@@ -8,6 +8,13 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
+// toolAliases mirrors the alias map in the mcp package.
+// Keep both in sync when renaming tools.
+var toolAliases = map[string]string{
+	"compose_namespace_list": "compose_namespace_lookup",
+	"compose_module_list":    "compose_module_lookup",
+}
+
 type (
 	ValueGetter interface {
 		Get(key string) (any, bool)
@@ -40,7 +47,11 @@ type Decision struct {
 func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 	var entry *types.AgentAccessTool
 	for i := range agent.Access.Tools {
-		if agent.Access.Tools[i].Name == tool {
+		stored := agent.Access.Tools[i].Name
+		if alias, ok := toolAliases[stored]; ok {
+			stored = alias
+		}
+		if stored == tool {
 			entry = &agent.Access.Tools[i]
 			break
 		}

@@ -29,6 +29,21 @@ type (
 	}
 )
 
+// ToolAliases maps old tool names to their current equivalents.
+// Add entries here when a tool is renamed so existing agents keep working.
+var ToolAliases = map[string]string{
+	"compose_namespace_list": "compose_namespace_lookup",
+	"compose_module_list":    "compose_module_lookup",
+}
+
+// ResolveToolAlias returns the current tool name for a given name, resolving any alias.
+func ResolveToolAlias(name string) string {
+	if alias, ok := ToolAliases[name]; ok {
+		return alias
+	}
+	return name
+}
+
 func NewRegistry() *Registry {
 	return &Registry{
 		tools:     make(map[string]registeredTool),
@@ -49,7 +64,7 @@ func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.Tool
 }
 
 func (r *Registry) HasTool(name string) bool {
-	_, ok := r.tools[name]
+	_, ok := r.tools[ResolveToolAlias(name)]
 	return ok
 }
 
@@ -74,7 +89,7 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 
 	out := make([]rt.Tool, 0, len(allowedTools))
 	for _, name := range allowedTools {
-		t, ok := r.tools[name]
+		t, ok := r.tools[ResolveToolAlias(name)]
 		if !ok {
 			continue
 		}
