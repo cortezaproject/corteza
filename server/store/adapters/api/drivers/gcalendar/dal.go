@@ -47,6 +47,7 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 		}
 
 		var scopes []string
+		var subject string
 		if parsed.Arbitrary != nil {
 			if s, ok := parsed.Arbitrary["scopes"]; ok {
 				if ss, ok := s.([]any); ok {
@@ -54,6 +55,9 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 						scopes = append(scopes, cast.ToString(v))
 					}
 				}
+			}
+			if sub, ok := parsed.Arbitrary["subject"]; ok {
+				subject = cast.ToString(sub)
 			}
 		}
 
@@ -63,6 +67,7 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 			ServiceAccountEmail: parsed.Username,
 			PrivateKey:          parsed.Token,
 			Scopes:              scopes,
+			Subject:             subject,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create credential: %w", err)

@@ -1,4 +1,4 @@
-package gsheets
+package gmail
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	SCHEMA        = "gsheets"
-	sheetsAPIBase = "https://sheets.googleapis.com/v4/spreadsheets"
+	SCHEMA      = "gmail"
+	gmailAPIBase = "https://gmail.googleapis.com/gmail/v1"
 )
 
 func init() {
@@ -25,24 +25,21 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 		return
 	}
 
-	// spreadsheetID from DSN path or arbitrary params
-	spreadsheetID := parsed.Path
-	if spreadsheetID == "" && parsed.Arbitrary != nil {
-		if sid, ok := parsed.Arbitrary["spreadsheetID"]; ok {
-			spreadsheetID = cast.ToString(sid)
+	// userID from DSN path or arbitrary params; defaults to "me"
+	userID := parsed.Path
+	if userID == "" && parsed.Arbitrary != nil {
+		if uid, ok := parsed.Arbitrary["userID"]; ok {
+			userID = cast.ToString(uid)
 		}
 	}
-
-	if spreadsheetID == "" {
-		return nil, fmt.Errorf("spreadsheetID is required (use gsheets://<spreadsheetID> or set spreadsheetID param)")
+	if userID == "" {
+		userID = "me"
 	}
 
-	baseURL := fmt.Sprintf("%s/%s", sheetsAPIBase, spreadsheetID)
-
+	baseURL := fmt.Sprintf("%s/users/%s", gmailAPIBase, userID)
 	wrapper := newWrapper(baseURL, parsed.ConnectionID)
-	dl := Dialect(spreadsheetID)
+	dl := Dialect()
 
-	// Register credential in the registry
 	if parsed.ConnectionID > 0 {
 		authType := parsed.AuthType
 		switch authType {
@@ -50,7 +47,6 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 			authType = "google_service_account"
 		}
 
-		// Scopes and subject from arbitrary params if provided
 		var scopes []string
 		var subject string
 		if parsed.Arbitrary != nil {

@@ -156,9 +156,20 @@ type (
 		Meta     map[string]any `json:"meta,omitempty"`
 	}
 
+	ConnectionMimeBuildAction struct {
+		// Template strings referencing input vars via {{varName}}
+		To      string `json:"to"`
+		Subject string `json:"subject"`
+		Body    string `json:"body"`
+		From    string `json:"from,omitempty"`
+		// Output is the variable name the base64url-encoded raw message is stored under
+		Output string `json:"output"`
+	}
+
 	ConnectionOperationStep struct {
-		Type string                `json:"type"` // http | taq
-		HTTP *ConnectionHTTPAction `json:"http,omitempty"`
+		Type      string                     `json:"type"` // http | mime_build
+		HTTP      *ConnectionHTTPAction      `json:"http,omitempty"`
+		MimeBuild *ConnectionMimeBuildAction `json:"mime_build,omitempty"`
 	}
 
 	ConnectionDerivedParam struct {

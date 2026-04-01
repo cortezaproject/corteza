@@ -1,7 +1,9 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -315,6 +317,16 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 			scopes = []string{"https://www.googleapis.com/auth/drive"}
 		case strings.Contains(baseURL, "tasks.googleapis.com"):
 			scopes = []string{"https://www.googleapis.com/auth/tasks"}
+		case strings.Contains(baseURL, "gmail.googleapis.com"):
+			scopes = []string{"https://mail.google.com/"}
+		}
+
+		var subject string
+		for _, p := range cc.Config.Params {
+			if p.Name == "dwdSubject" {
+				subject = p.Value
+				break
+			}
 		}
 
 		cred, err := cred_registry.NewCredential(cred_registry.CredentialConfig{
@@ -323,6 +335,7 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 			ServiceAccountEmail: sa.ClientEmail,
 			PrivateKey:          sa.PrivateKey,
 			Scopes:              scopes,
+			Subject:             subject,
 		})
 		if err == nil && cred != nil {
 			_ = cred_registry.Default().Store(cred)
@@ -368,7 +381,7 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
 
 	var runner connectionRunner
-	if strings.HasPrefix(resolved.Handle, "google-") {
+	if strings.Contains(resolved.Service.BaseURL.Value, "googleapis.com") {
 		ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
 		runner = google.NewWrapper(resolved.Service.BaseURL.Value, cc.ID)
 	} else {
@@ -411,6 +424,12 @@ func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunn
 	}
 
 	if err != nil {
+		if statusCode == 404 || statusCode == 405 {
+			// If the server returns Not Found or Method Not Allowed for the root path,
+			// it means the request successfully passed the authentication layer.
+			return types.ConfiguredConnectionCheckStatus{OK: true}
+		}
+
 		// some other HTTP error >= 400
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("API returned HTTP %d", statusCode)}
 	}
@@ -769,46 +788,62 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 				return nil, err
 			}
 
+			// Build shared vars map once; mime_build steps may add to it.
+			vars := make(map[string]any, len(cc.Config.Params))
+			for _, p := range cc.Config.Params {
+				if len(p.Scope) > 0 && p.Scope[0] == "service" {
+					vars[p.Name] = p.Value
+				}
+			}
+			for k, v := range in.Dict() {
+				vars[k] = v
+			}
+
 			var respBody []byte
 			for _, step := range op.Steps {
-				if step.Type != "http" || step.HTTP == nil {
-					continue
-				}
-
-				// Merge service-level param values into vars so that path/body
-				// templates referencing them (e.g. {{calendarId}}) resolve
-				// correctly. Runtime input takes precedence.
-				vars := make(map[string]any, len(cc.Config.Params))
-				for _, p := range cc.Config.Params {
-					if len(p.Scope) > 0 && p.Scope[0] == "service" {
-						vars[p.Name] = p.Value
+				switch step.Type {
+				case "mime_build":
+					if step.MimeBuild == nil {
+						continue
 					}
+					mb := step.MimeBuild
+					to, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.To}, vars)
+					subject, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.Subject}, vars)
+					body, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.Body}, vars)
+					from, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.From}, vars)
+					outKey := mb.Output
+					if outKey == "" {
+						outKey = "raw"
+					}
+					raw, err := buildMIMEEmail(from, to, subject, body)
+					if err != nil {
+						return nil, fmt.Errorf("mime_build: %w", err)
+					}
+					vars[outKey] = raw
+
+				case "http":
+					if step.HTTP == nil {
+						continue
+					}
+					path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, vars)
+					if err != nil {
+						return nil, err
+					}
+
+					spew.Dump("prepre", path, headers, payload, err)
+
+					statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
+					spew.Dump("postpost", statusCode, outHeaders, err)
+					if err != nil {
+						return nil, fmt.Errorf("operation execution failed: %w", err)
+					}
+
+					if err = checkHTTPResponse(statusCode, outHeaders, body); err != nil {
+						return nil, err
+					}
+
+					respBody = body
 				}
-				for k, v := range in.Dict() {
-					vars[k] = v
-				}
-
-				path, headers, payload, err := buildHTTPRequest(*step.HTTP, in, vars)
-				if err != nil {
-					return nil, err
-				}
-
-				spew.Dump("prepre", path, headers, payload, err)
-
-				statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
-				spew.Dump("postpost", statusCode, outHeaders, err)
-				if err != nil {
-					return nil, fmt.Errorf("operation execution failed: %w", err)
-				}
-
-				if err = checkHTTPResponse(statusCode, outHeaders, body); err != nil {
-					return nil, err
-				}
-
-				respBody = body
-
-				// @todo fix up when we support multi-step operations
-				break
 			}
 
 			if len(respBody) == 0 || len(op.Output) == 0 {
@@ -1004,6 +1039,18 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 	}
 
 	inLookup := make(map[string]bool)
+
+	// Build a set of variables produced by intermediate steps
+	// so we don't expose them to the user as derived params.
+	for _, step := range op.Steps {
+		if step.MimeBuild != nil {
+			outKey := step.MimeBuild.Output
+			if outKey == "" {
+				outKey = "raw"
+			}
+			inLookup[outKey] = true
+		}
+	}
 
 	// Explicit arguments — skip any that are already covered by service-level params
 	for _, in := range op.Input {
@@ -1219,4 +1266,19 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 	if len(tt) > 0 {
 		automationService.ConstructLibrary().AddTriggers(tt...)
 	}
+}
+
+// buildMIMEEmail constructs a minimal RFC 2822 email message and returns it
+// base64url-encoded, suitable for the Gmail API "raw" field.
+func buildMIMEEmail(from, to, subject, body string) (string, error) {
+	var buf bytes.Buffer
+	if from != "" {
+		buf.WriteString("From: " + from + "\r\n")
+	}
+	buf.WriteString("To: " + to + "\r\n")
+	buf.WriteString("Subject: " + subject + "\r\n")
+	buf.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
+	buf.WriteString("\r\n")
+	buf.WriteString(body)
+	return base64.URLEncoding.EncodeToString(buf.Bytes()), nil
 }

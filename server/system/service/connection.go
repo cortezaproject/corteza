@@ -347,8 +347,8 @@ func (svc *connection) validateConnection(c *types.Connection) error {
 	}
 
 	for _, op := range c.Operations {
-		if len(op.Steps) > 1 {
-			return fmt.Errorf("multi step operations are currently not supoorted")
+		if len(op.Steps) == 0 {
+			return fmt.Errorf("operation must have at least one step")
 		}
 	}
 

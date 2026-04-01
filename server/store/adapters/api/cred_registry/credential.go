@@ -60,7 +60,7 @@ func NewCredential(cfg CredentialConfig) (Credential, error) {
 	case "jwt_bearer":
 		return NewJWTBearerCredential(cfg.ConnectionID, cfg.Issuer, cfg.Subject, cfg.Audience, cfg.TokenURL, cfg.PrivateKey, cfg.Scopes, cfg.TokenLifetime), nil
 	case "google_service_account":
-		return NewGoogleServiceAccountCredential(cfg.ConnectionID, cfg.ServiceAccountEmail, cfg.PrivateKey, cfg.Scopes, cfg.TokenLifetime), nil
+		return NewGoogleServiceAccountCredential(cfg.ConnectionID, cfg.ServiceAccountEmail, cfg.PrivateKey, cfg.Subject, cfg.Scopes, cfg.TokenLifetime), nil
 	default:
 		return nil, fmt.Errorf("unsupported auth type: %s", cfg.AuthType)
 	}

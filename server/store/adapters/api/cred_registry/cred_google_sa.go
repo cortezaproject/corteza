@@ -16,13 +16,13 @@ type GoogleServiceAccountCredential struct {
 	*JWTBearerCredential
 }
 
-func NewGoogleServiceAccountCredential(connID uint64, serviceAccountEmail, privateKey string, scopes []string, tokenLifetime time.Duration) *GoogleServiceAccountCredential {
+func NewGoogleServiceAccountCredential(connID uint64, serviceAccountEmail, privateKey, subject string, scopes []string, tokenLifetime time.Duration) *GoogleServiceAccountCredential {
 
 	return &GoogleServiceAccountCredential{
 		JWTBearerCredential: NewJWTBearerCredential(
 			connID,
 			serviceAccountEmail, // issuer
-			"",                  // subject (no domain-wide delegation)
+			subject,             // subject (empty = no DWD; set to user email for impersonation)
 			googleTokenURL,      // audience
 			googleTokenURL,      // tokenURL
 			privateKey,
