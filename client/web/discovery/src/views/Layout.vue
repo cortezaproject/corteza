@@ -20,7 +20,7 @@
         }"
       >
         <template #title>
-          {{ $t('discovery') }}
+          {{ $t("discovery") }}
         </template>
       </c-topbar>
     </header>
@@ -47,7 +47,7 @@
         <div
           class="sidebar-spacer d-print-none"
           :class="{
-            'expanded': expanded,
+            expanded: expanded,
           }"
         />
       </template>
@@ -62,10 +62,13 @@
       :timeout="$Settings.get('auth.autoLogout.timeout')"
       :labels="{
         extend: $t('general:extendSession.labels.extend'),
-        warning: (countdownTime) => $t('general:extendSession.labels.warning', { countdownTime }),
+        warning: (countdownTime) =>
+          $t('general:extendSession.labels.warning', { countdownTime }),
       }"
     />
-    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
+    <c-notification-sidebar
+      v-if="!$Settings.get('ui.topbar', {}).hideNotifications"
+    />
   </div>
 </template>
 

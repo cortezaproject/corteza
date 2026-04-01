@@ -8,6 +8,7 @@
       :size="size"
       :disabled="disabled || processing"
       :class="`${buttonClass} ${borderless ? 'border-0' : ''} flex-fill`"
+      :style="buttonStyle"
       @click.stop.prevent="onPrompt"
     >
       <b-spinner
@@ -88,6 +89,11 @@ export default {
     buttonClass: {
       type: String,
       default: '',
+    },
+
+    buttonStyle: {
+      type: Object,
+      default: () => ({}),
     },
 
     iconClass: {

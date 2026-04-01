@@ -32,6 +32,12 @@ describe('Layout.vue', () => {
             setNamespaceSlug: () => {},
           },
         },
+        namespace: {
+          namespaced: true,
+          getters: {
+            getByUrlPart: () => () => undefined,
+          },
+        },
       },
     })
 

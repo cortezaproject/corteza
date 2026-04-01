@@ -116,4 +116,15 @@ export {
   CNotificationSidebar,
 } from './notifications'
 
+export {
+  CTopbarSearch,
+  CSearchButton,
+  RecordItem,
+  ItemGroup,
+} from './search'
+
 export { default as C3 } from './c3'
+
+export { default as CEmojiPicker } from './CEmojiPicker.vue'
+
+export { emojis as emojiData } from '@tiptap/extension-emoji'

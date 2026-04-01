@@ -140,6 +140,12 @@ content:
   ok: Ok
   label: Content
   urlPlaceholder: https://example.tld
+  emojiPicker:
+    search: Search
+    searchResults: Search Results
+    frequentlyUsed: Frequently Used
+    noResults: No emojis found
+    quickReactions: Quick Reactions
 file:
   label: File
   preview:
@@ -359,6 +365,8 @@ recordList:
     filter:
       label: Drill down filter
   tooltip:
+    saveChanges: Save changes
+    discardChanges: Discard changes
     deleteSelected: Delete selected records
     performance:
       impact: Using this feature will impact performance
@@ -796,12 +804,21 @@ comment:
   attachmentField:
     label: Attachment field
     footnote: Field used to store comment attachments
+  reactionsField:
+    label: Reactions field
+    footnote: Field used to store comment reactions
   today: Today
   yesterday: Yesterday
   tooltip:
     reply: Reply
     edit: Edit
     attach: Attach file
+  emojiPicker:
+    search: Search
+    searchResults: Search Results
+    frequentlyUsed: Frequently Used
+    noResults: No emojis found
+    quickReactions: Quick Reactions
 navigation:
   chart: Charts
   colorPicker: Choose a color
@@ -995,6 +1012,9 @@ tabs:
         label: Title
       block:
         label: Block
+      lazy:
+        label: Lazy load
+        tooltip: When enabled, the tab content will only be rendered when the tab is first activated
   tooltip:
     edit: Edit block
     clone: Clone block & tab

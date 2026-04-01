@@ -11,10 +11,12 @@ ui:
       failed: Failed to save permissions
 
   edit:
+    title: Edit permissions
     label: User roles
     description: Select role to set permissions
 
   evaluate:
+    title: Evaluate permissions
     description: Evaluate applied permissions
 
   add:

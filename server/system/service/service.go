@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/objstore"
 	"github.com/cortezaproject/corteza/server/pkg/objstore/minio"
@@ -237,6 +238,39 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
 	}
+
+	// Register a user resolver with the RBAC service so that contextual role
+	// expressions can access user properties (email, username, handle, name, labels).
+	rbac.Global().SetUserResolver(func(userID uint64) map[string]interface{} {
+		u, err := store.LookupUserByID(ctx, s, userID)
+		if err != nil || u == nil {
+			return nil
+		}
+
+		// Load user labels
+		if err = label.Load(ctx, s, u); err != nil {
+			log.Warn("failed to load user labels for RBAC scope", zap.Uint64("userID", userID), zap.Error(err))
+		}
+
+		// Convert labels to map[string]interface{} for expression evaluation.
+		// Single-value labels are exposed as strings, multi-value as string slices.
+		ll := make(map[string]interface{}, len(u.Labels))
+		for k, v := range u.Labels {
+			if len(v.Values) > 0 {
+				ll[k] = v.Values
+			} else {
+				ll[k] = v.Val
+			}
+		}
+
+		return map[string]interface{}{
+			"email":    u.Email,
+			"username": u.Username,
+			"handle":   u.Handle,
+			"name":     u.Name,
+			"labels":   ll,
+		}
+	})
 
 	automationService.DefaultUser = DefaultUser
 

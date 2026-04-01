@@ -47,7 +47,7 @@ nodeSync: {
 	filter: {
 		struct: {
 			rel_node:     { goType: "uint64", storeIdent: "rel_node",   ident: "nodeID" }
-			rel_module:   { goType: "uint64", storeIdent: "rel_module", ident: "moduleID" }
+			rel_module:   { goType: "uint64", storeIdent: "rel_compose_module", ident: "moduleID" }
 			sync_status: { goType: "string", storeIdent: "sync_status" }
 			sync_type:   { goType: "string", storeIdent: "sync_type"   }
 		}

@@ -20,15 +20,25 @@
       @keyup.enter="submitQuery"
     />
 
+    <div
+      v-if="loading"
+      class="spinner d-inline-flex align-items-center p-3"
+    >
+      <b-spinner
+        small
+        variant="secondary"
+      />
+    </div>
+
     <b-button
-      v-if="clearable && localValue && !disabled"
-      variant="link"
-      class="close-button d-inline-flex align-items-center rounded-0 p-3"
+      v-else-if="clearable && localValue && !disabled"
+      variant="outline-extra-light"
+      class="clear-button d-inline-flex align-items-center rounded-0 p-3"
       @click="onClear"
     >
       <font-awesome-icon
         :icon="['fas', 'times']"
-        class="text-primary"
+        class="text-secondary"
       />
     </b-button>
 
@@ -91,6 +101,10 @@ export default {
       type: Number,
       default: 0,
     },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data () {
@@ -126,23 +140,18 @@ export default {
   methods: {
     onInput (value) {
       this.localValue = value
-
-      if (!this.submittable) {
-        this.$emit('input', value)
-      }
+      this.$emit('input', value)
     },
 
     submitQuery () {
       if (this.submittable) {
-        this.$emit('search', this.$refs.searchInput.localValue)
+        this.$emit('search', this.localValue)
       }
     },
 
     onClear () {
       this.localValue = ''
-      if (!this.submittable) {
-        this.$emit('input', '')
-      }
+      this.$emit('input', '')
       this.$nextTick(() => {
         this.$refs.searchInput.focus()
       })
@@ -166,22 +175,28 @@ input:focus::placeholder {
     border-left-width: 2px;
   }
 
-  .close-button {
+  .clear-button,
+  .spinner {
     position: absolute;
     right: 1px;
     top: 1px;
     bottom: 1px;
     z-index: 5;
-    border: none;
-    background: none;
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    background-color: transparent !important;
 
     &:hover {
       text-decoration: none;
     }
   }
 
-  &.submittable .close-button {
-    right: 48px;
+  &.submittable {
+    .clear-button,
+    .spinner {
+      right: 48px;
+    }
   }
 
   .form-control {

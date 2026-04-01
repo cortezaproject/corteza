@@ -14,6 +14,7 @@ interface Style {
 interface Tab {
   blockID: string;
   title: string;
+  lazy: boolean;
 }
 
 interface Options {
@@ -50,7 +51,10 @@ export class PageBlockTab extends PageBlock {
     Apply(this.options, o, String, 'magnifyOption')
 
     if (o.tabs) {
-      this.options.tabs = o.tabs
+      this.options.tabs = o.tabs.map(tab => ({
+        ...tab,
+        lazy: tab.lazy !== false,
+      }))
     }
 
     if (o.style) {

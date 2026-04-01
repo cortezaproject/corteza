@@ -27,7 +27,7 @@ export default {
     },
   },
 
-  beforeUnmount () {
+  beforeDestroy () {
     if (this.$refs.chart) {
       this.$refs.chart.dispose()
     }

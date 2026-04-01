@@ -131,6 +131,9 @@ export default {
         mFields = mFields.filter(({ kind }) => !this.disabledTypes.find(t => t === kind))
       }
 
+      // Filter out fields the user cannot read (RBAC)
+      mFields = mFields.filter(({ canReadRecordValue }) => canReadRecordValue !== false)
+
       let sysFields = []
 
       if (this.disableSystemFields && mFields) {

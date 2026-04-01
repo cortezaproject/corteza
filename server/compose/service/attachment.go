@@ -476,24 +476,14 @@ func (svc attachment) CreateNamespaceAttachment(ctx context.Context, name string
 		}
 
 		{
-			// Verify file size and
+			// Verify file size and mimetype
 			var (
-				// use max-file-size from page attachments for now
-				maxSize  = int64(systemService.CurrentSettings.Compose.Page.Attachments.MaxSize) * megabyte
-				mimeType *mimetype.MIME
+				maxSize      = int64(systemService.CurrentSettings.Compose.Namespace.Attachments.MaxSize) * megabyte
+				allowedTypes = systemService.CurrentSettings.Compose.Namespace.Attachments.Mimetypes
 			)
 
-			if maxSize > 0 && maxSize < size {
-				return AttachmentErrTooLarge().Apply(
-					errors.Meta("size", size),
-					errors.Meta("maxSize", maxSize),
-				)
-			}
-
-			if mimeType, err = svc.extractMimetype(fh); err != nil {
+			if err = svc.verifySizeAndMimetype(fh, size, maxSize, allowedTypes); err != nil {
 				return err
-			} else if !svc.checkMimeType(mimeType, "image/png", "image/gif", "image/jpeg") {
-				return AttachmentErrNotAllowedToUploadThisType()
 			}
 		}
 
@@ -591,6 +581,11 @@ func (svc attachment) extractMimetypeS(file io.ReadSeeker) (mType string, err er
 func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
 	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
 		// Only supporting previews from images (for now)
+		return
+	}
+
+	if att.Meta.Original.Mimetype == "image/svg+xml" {
+		// SVG is a vector format, skip raster image processing/preview generation
 		return
 	}
 

@@ -94,10 +94,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		mHandleMap  = make(map[string]mMeta)
 	)
 
-	esc, err := searcher.DefaultEs.Client()
-	if err != nil {
-		return nil, err
-	}
+	esc := searcher.DefaultEsClient
 
 	results, page, err = esSearch(ctx, log, esc, searchParams{
 		title:         "results",
@@ -225,6 +222,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 	if err != nil {
 		return nil, fmt.Errorf("could not execute module aggregation search: %w", err)
 	}
+
 	if len(searchString) > 0 {
 		if results != nil && mAggregation != nil {
 			results.Aggregations.Module = mAggregation.Aggregations.Module

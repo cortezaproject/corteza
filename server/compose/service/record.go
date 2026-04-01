@@ -12,6 +12,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/spf13/cast"
 
@@ -396,6 +397,16 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 			return RecordErrNotAllowedToSearch()
 		}
 
+		// Validate field-level permissions for filter query
+		if err = svc.validateFilterFieldPermissions(ctx, svc.ac, m, filter.Query); err != nil {
+			return err
+		}
+
+		// Validate field-level permissions for sort expression
+		if err = svc.validateSortFieldPermissions(ctx, svc.ac, m, filter.Sort); err != nil {
+			return err
+		}
+
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
 
 		if set, f, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, filter); err != nil {
@@ -429,6 +440,16 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 
 		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
 			return RecordErrNotAllowedToSearch()
+		}
+
+		// Validate field-level permissions for filter query
+		if err = svc.validateFilterFieldPermissions(ctx, svc.ac, m, filter.Query); err != nil {
+			return err
+		}
+
+		// Validate field-level permissions for sort expression
+		if err = svc.validateSortFieldPermissions(ctx, svc.ac, m, filter.Sort); err != nil {
+			return err
 		}
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
@@ -1101,7 +1122,11 @@ func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessControlle
 		}
 
 		if v.IsUpdated() && !ac.CanUpdateRecordValueOnModuleField(ctx, f) {
-			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
+			rve.Push(types.RecordValueError{
+				Kind:    "updateDenied",
+				Meta:    map[string]interface{}{"field": v.Name},
+				Message: locale.Global().T(ctx, "compose", "record-field.errors.updateDenied"),
+			})
 		}
 
 		return nil
@@ -2603,4 +2628,118 @@ func (rr recordReportEntry) SetValue(n string, pos uint, v any) error {
 	rr[n] = v
 
 	return nil
+}
+
+// validateFilterFieldPermissions checks if the user is allowed to filter requested fields
+func (svc record) validateFilterFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, query string) error {
+	if query == "" {
+		return nil
+	}
+
+	// Parse the filter query to extract field symbols
+	parser := ql.NewParser()
+	ast, err := parser.Parse(query)
+	if err != nil {
+		// If parsing fails, let it pass through - the DAL layer will handle the error
+		// @todo not sure if I am a fan of this
+		return nil
+	}
+
+	symbols := ast.CollectUniqueSymbols()
+	if len(symbols) == 0 {
+		return nil
+	}
+
+	// Build a set of module field names for quick lookup
+	moduleFieldNames := make(map[string]bool)
+	for _, f := range m.Fields {
+		moduleFieldNames[f.Name] = true
+	}
+
+	// System fields that are always filterable (not module-specific fields)
+	systemFields := svc.systemExprFields()
+
+	// Check each symbol in the filter query
+	for _, symbol := range symbols {
+		// Skip system fields as they're always accessible
+		if systemFields[symbol] {
+			continue
+		}
+
+		// Skip symbols that aren't module fields (could be functions, operators, etc.)
+		if !moduleFieldNames[symbol] {
+			continue
+		}
+
+		// Find the field and check permission
+		field := m.Fields.FindByName(symbol)
+		if field == nil {
+			continue
+		}
+
+		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
+			return RecordErrNotAllowedToFilterByField(&recordActionProps{field: symbol})
+		}
+	}
+
+	return nil
+}
+
+// validateFilterFieldPermissions checks if the user is allowed to sort requested fields
+func (svc record) validateSortFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, sort filter.SortExprSet) error {
+	if len(sort) == 0 {
+		return nil
+	}
+
+	// Build a set of module field names for quick lookup
+	moduleFieldNames := make(map[string]bool)
+	for _, f := range m.Fields {
+		moduleFieldNames[f.Name] = true
+	}
+
+	// System fields that are always sortable
+	systemFields := svc.systemExprFields()
+
+	for _, sort := range sort {
+		fieldName := sort.Column
+
+		// Skip system fields
+		if systemFields[fieldName] {
+			continue
+		}
+
+		// Skip non-module fields
+		if !moduleFieldNames[fieldName] {
+			continue
+		}
+
+		// Find the field and check permission
+		field := m.Fields.FindByName(fieldName)
+		if field == nil {
+			continue
+		}
+
+		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
+			return RecordErrNotAllowedToSortByField(&recordActionProps{field: fieldName})
+		}
+	}
+
+	return nil
+}
+
+func (svc record) systemExprFields() map[string]bool {
+	return map[string]bool{
+		"recordID":    true,
+		"id":          true,
+		"ID":          true,
+		"moduleID":    true,
+		"namespaceID": true,
+		"ownedBy":     true,
+		"createdAt":   true,
+		"createdBy":   true,
+		"updatedAt":   true,
+		"updatedBy":   true,
+		"deletedAt":   true,
+		"deletedBy":   true,
+	}
 }

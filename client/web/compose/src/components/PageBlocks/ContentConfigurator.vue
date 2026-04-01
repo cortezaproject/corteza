@@ -6,6 +6,13 @@
         :labels="{
           urlPlaceholder: $t('content.urlPlaceholder'),
           ok: $t('content.ok'),
+          emojiPicker: {
+            search: $t('content.emojiPicker.search'),
+            searchResults: $t('content.emojiPicker.searchResults'),
+            frequentlyUsed: $t('content.emojiPicker.frequentlyUsed'),
+            noResults: $t('content.emojiPicker.noResults'),
+            quickReactions: $t('content.emojiPicker.quickReactions'),
+          },
         }"
       />
 

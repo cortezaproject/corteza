@@ -23,7 +23,7 @@
     <b-modal
       v-model="map.show"
       :title="field.label || field.name"
-      size="lg"
+      size="xl"
       body-class="p-0"
       hide-footer
     >

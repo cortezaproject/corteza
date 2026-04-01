@@ -148,6 +148,8 @@ record:
   createSuccess: Record created
   updateFailed: Could not update record
   updateSuccess: Record updated
+  saveFailed: Could not save records
+  saveSuccess: Records saved
   deleteFailed: Could not delete record
   deleteSuccess: Record deleted
   restoreFailed: Could not restore record

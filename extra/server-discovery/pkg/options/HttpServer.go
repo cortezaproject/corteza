@@ -1,5 +1,7 @@
 package options
 
+import "os"
+
 type (
 	HttpServerOpt struct {
 		Addr                   string `env:"HTTP_ADDR"`
@@ -32,4 +34,10 @@ func HttpServer() (o *HttpServerOpt) {
 	}(o)
 
 	return
+}
+
+func (o *HttpServerOpt) Defaults() {
+	if val, has := os.LookupEnv("PORT"); has {
+		o.Addr = ":" + val
+	}
 }

@@ -961,10 +961,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cortezaproject/corteza-js@^2024.9.7-hotfix.1":
-  version "2024.9.7"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.7.tgz#4eb73c98bba1db6f983412c332c4a2d05c434c64"
-  integrity sha512-DBo+dQa0sGzeSoPjrPXS6zMSVS01JRO5UQGCfr3Fvx3EMnWvzpEL2bHVFvd/mJ8Gm2rfVjw7Dr1HWItVnk8Q7w==
+"@cortezaproject/corteza-js@^2024.9.8":
+  version "2024.9.8"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.8.tgz#a51e2717ea55c5956eb0db23541e5c50815bfd23"
+  integrity sha512-cS5VbUdlxsVhmMvivBeTEle9nmGl7mIPClSUqiA7ccbACHMcDxB5oERRwaY5teBMA4dz5lH/URfHIvdV1b9/Tg==
   dependencies:
     axios "^1.8.3"
     hex-rgb "^5.0.0"
@@ -975,12 +975,12 @@
     numeral "^2.0.6"
     pino "^9.6.0"
 
-"@cortezaproject/corteza-vue@2024.9.7-hotfix.1":
-  version "2024.9.7-hotfix.1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.7-hotfix.1.tgz#2343287b391abbfcc518b47d540053b5f08c7b2f"
-  integrity sha512-QsTltW+lmKz0eiC7ORTxlnWDuC6gRdwySnEVWCXYpmEEdxP1Emee3QmzBgs7R/AcXKYmOLDvADZeVri4ShhmKA==
+"@cortezaproject/corteza-vue@2024.9.8":
+  version "2024.9.8"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.8.tgz#69b2dfa26279b2bc57905dc9fdda3b3dc66a3e58"
+  integrity sha512-1twALhN4moCQiAGqtLnpAE2NEM+BDmg0eic5UBsWjfmWEcVIZAn00KwX00WV3YQV0KBO+QmeVyrw64RXmQ2atQ==
   dependencies:
-    "@cortezaproject/corteza-js" "^2024.9.7-hotfix.1"
+    "@cortezaproject/corteza-js" "^2024.9.8"
     "@floating-ui/dom" "^1.7.4"
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-regular-svg-icons" "^6.7.2"
@@ -988,6 +988,7 @@
     "@fortawesome/vue-fontawesome" "^2.0.10"
     "@panter/vue-i18next" "^0.15.0"
     "@popperjs/core" "^2.11.8"
+    "@tiptap/extension-emoji" "^3.4.2"
     "@tiptap/extension-mention" "^3.4.2"
     "@tiptap/extension-placeholder" "^3.4.2"
     "@tiptap/extension-table" "^3.4.2"
@@ -2030,6 +2031,15 @@
   version "3.4.2"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-dropcursor/-/extension-dropcursor-3.4.2.tgz#15a6a49361def6610dac794069117ecccda24324"
   integrity sha512-BHjfpusRvxsa8aV1C0O0mNNjBGWfa1uwolHflCOb4PNkh9nGU0htuaPYTS4fGEVVKOhOC9qsp0hUHSejWL1E6g==
+
+"@tiptap/extension-emoji@^3.4.2":
+  version "3.20.2"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-emoji/-/extension-emoji-3.20.2.tgz#f4c00f1493c8aa40bd89e407f2cac00bc911721c"
+  integrity sha512-Qnbt2meUkpwzYF+XhszuG0VAZ57w7krJw1hb+3FJd3RRyjQHKtG4NwcWdbRiqenVzDhJ6muIUzS8f1JWOfKHwg==
+  dependencies:
+    emoji-regex "^10.4.0"
+    emojibase-data "^15"
+    is-emoji-supported "^0.0.5"
 
 "@tiptap/extension-floating-menu@^3.4.2":
   version "3.4.2"
@@ -4702,6 +4712,11 @@ emittery@^0.8.1:
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.8.1.tgz#bb23cc86d03b30aa75a7f734819dee2e1ba70860"
   integrity sha512-uDfvUjVrfGJJhymx/kz6prltenw1u7WrCg1oa94zYY8xxVpLLUu045LAT0dhDZdXG58/EpPL/5kA180fQ/qudg==
 
+emoji-regex@^10.4.0:
+  version "10.6.0"
+  resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-10.6.0.tgz#bf3d6e8f7f8fd22a65d9703475bc0147357a6b0d"
+  integrity sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==
+
 emoji-regex@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-8.0.0.tgz#e818fd69ce5ccfcb404594f842963bf53164cc37"
@@ -4711,6 +4726,11 @@ emoji-regex@^9.2.2:
   version "9.2.2"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-9.2.2.tgz#840c8803b0d8047f4ff0cf963176b32d4ef3ed72"
   integrity sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==
+
+emojibase-data@^15:
+  version "15.3.2"
+  resolved "https://registry.yarnpkg.com/emojibase-data/-/emojibase-data-15.3.2.tgz#2742246bfe14f16a7829b42ca156dec09934cf85"
+  integrity sha512-TpDyTDDTdqWIJixV5sTA6OQ0P0JfIIeK2tFRR3q56G9LK65ylAZ7z3KyBXokpvTTJ+mLUXQXbLNyVkjvnTLE+A==
 
 emojis-list@^3.0.0:
   version "3.0.0"
@@ -4913,7 +4933,7 @@ escodegen@^2.0.0:
     source-map "~0.6.1"
 
 "eslint-config-corteza-client@file:../../../lib/eslint-client":
-  version "2024.9.7-hotfix.1"
+  version "2024.9.8"
 
 eslint-config-standard@^17.0.0:
   version "17.1.0"
@@ -6196,6 +6216,11 @@ is-docker@^2.0.0, is-docker@^2.1.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/is-docker/-/is-docker-2.2.1.tgz#33eeabe23cfe86f14bde4408a02c0cfb853acdaa"
   integrity sha512-F+i2BKsFrH66iaUFc0woD8sLy8getkwTwtOBjvs56Cx4CgJDeKQeqfz8wAYiSb8JOprWhHH5p77PbmYCvvUuXQ==
+
+is-emoji-supported@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/is-emoji-supported/-/is-emoji-supported-0.0.5.tgz#f22301b22c63d6322935e829f39dfa59d03a7fe2"
+  integrity sha512-WOlXUhDDHxYqcSmFZis+xWhhqXiK2SU0iYiqmth5Ip0FHLZQAt9rKL5ahnilE8/86WH8tZ3bmNNNC+bTzamqlw==
 
 is-extendable@^0.1.0:
   version "0.1.1"

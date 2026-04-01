@@ -1,36 +1,39 @@
 # build stage
-FROM golang:1.19-buster as build-stage
+FROM golang:1.24.1 as build-stage
 
 ENV BUILD_OS=linux
 ENV BUILD_ARCH=amd64
 ENV BUILD_VERSION=latest
 
-WORKDIR /corteza
+WORKDIR /build
 
-COPY . ./
+# Copy the full monorepo context (server + extra/server-discovery)
+# because go.mod has: replace github.com/cortezaproject/corteza/server => ../../server
+COPY server/ ./server/
+COPY extra/server-discovery/ ./extra/server-discovery/
+
+WORKDIR /build/extra/server-discovery
 
 RUN make release-clean release
 
 
 # deploy stage
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 RUN apt-get -y update \
  && apt-get -y install \
     ca-certificates \
+    curl \
  && rm -rf /var/lib/apt/lists/*
 
 ENV STORAGE_PATH "/data"
-#ENV CORREDOR_ADDR "corredor:80"
-#ENV HTTP_ADDR "0.0.0.0:80"
-#ENV HTTP_WEBAPP_ENABLED "false"
 ENV PATH "/corteza/bin:${PATH}"
 
 WORKDIR /corteza
 
 VOLUME /data
 
-COPY --from=build-stage /corteza/build/pkg/corteza-server ./
+COPY --from=build-stage /build/extra/server-discovery/build/pkg/corteza-server ./
 
 HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
     CMD curl --silent --fail --fail-early http://127.0.0.1:80/healthcheck || exit 1
@@ -38,5 +41,3 @@ HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
 EXPOSE 80
 
 ENTRYPOINT ["./bin/corteza-server"]
-
-#CMD ["serve-api"]

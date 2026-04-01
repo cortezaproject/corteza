@@ -219,11 +219,7 @@
 </template>
 
 <script>
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
 import CNotificationButton from '../notifications/CNotificationButton.vue'
-
-library.add(faMoon, faSun)
 
 export default {
   components: {

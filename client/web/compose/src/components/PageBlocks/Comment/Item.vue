@@ -31,6 +31,16 @@
         class="comment-toolbox d-flex align-items-center justify-content-end bg-light rounded-lg gap"
       >
         <b-button
+          v-if="reactionsField"
+          :id="reactionPickerId"
+          v-b-tooltip.hover="{ title: 'React', delay: { show: 300, hide: 0 } }"
+          variant="extra-light"
+          size="sm"
+          class="py-1"
+        >
+          <font-awesome-icon :icon="['far', 'face-smile']" />
+        </b-button>
+        <b-button
           v-b-tooltip.hover="{ title: $t('comment.tooltip.reply'), delay: { show: 300, hide: 0 } }"
           variant="extra-light"
           size="sm"
@@ -50,6 +60,32 @@
           <font-awesome-icon :icon="['fas', 'pen']" />
         </b-button>
       </div>
+
+      <!-- Reaction Picker Popover -->
+      <b-popover
+        v-if="reactionsField"
+        :target="reactionPickerId"
+        triggers="click blur"
+        placement="bottom"
+        container="body"
+        custom-class="reaction-emoji-popover border-light"
+        @shown="onReactionPickerShown"
+      >
+        <c-emoji-picker
+          ref="reactionPicker"
+          :emojis="emojiData"
+          :viewport-height="200"
+          :viewport-width="240"
+          :labels="{
+            search: $t('comment.emojiPicker.search'),
+            searchResults: $t('comment.emojiPicker.searchResults'),
+            frequentlyUsed: $t('comment.emojiPicker.frequentlyUsed'),
+            noResults: $t('comment.emojiPicker.noResults'),
+            quickReactions: $t('comment.emojiPicker.quickReactions'),
+          }"
+          @select="onReactionSelect"
+        />
+      </b-popover>
 
       <div
         :title="commentFullDateTime"
@@ -87,6 +123,13 @@
             :labels="{
               urlPlaceholder: $t('content.urlPlaceholder'),
               ok: $t('content.ok'),
+              emojiPicker: {
+                search: $t('content.emojiPicker.search'),
+                searchResults: $t('content.emojiPicker.searchResults'),
+                frequentlyUsed: $t('content.emojiPicker.frequentlyUsed'),
+                noResults: $t('content.emojiPicker.noResults'),
+                quickReactions: $t('content.emojiPicker.quickReactions'),
+              },
             }"
             min-body-height="4rem"
             max-body-height="10rem"
@@ -153,6 +196,25 @@
             :namespace="namespace"
             value-only
           />
+
+          <!-- Reaction badges -->
+          <div
+            v-if="hasReactions"
+            class="comment-reactions d-flex flex-wrap align-items-center gap-1 mt-1"
+          >
+            <button
+              v-for="(userIDs, emoji) in reactions"
+              :key="emoji"
+              v-b-tooltip.hover="{ title: reactionTooltip(emoji, userIDs), delay: { show: 200, hide: 0 } }"
+              type="button"
+              class="reaction-badge"
+              :class="{ 'reaction-mine': userIDs.includes(currentUserID) }"
+              @click.stop="$emit('react', emoji)"
+            >
+              <span class="reaction-emoji">{{ emoji }}</span>
+              <span class="reaction-count">{{ userIDs.length }}</span>
+            </button>
+          </div>
         </template>
       </div>
     </b-card>
@@ -165,7 +227,9 @@ import { components } from '@cortezaproject/corteza-vue'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import CommentReply from './Reply.vue'
 
-const { CRichTextInput } = components
+const { CRichTextInput, CEmojiPicker } = components
+
+let reactionPickerCounter = 0
 
 export default {
   name: 'CommentItem',
@@ -178,6 +242,7 @@ export default {
     FieldViewer,
     CommentReply,
     CRichTextInput,
+    CEmojiPicker,
   },
 
   props: {
@@ -199,6 +264,16 @@ export default {
     attachmentField: {
       type: Object,
       default: undefined,
+    },
+
+    reactionsField: {
+      type: Object,
+      default: undefined,
+    },
+
+    emojiData: {
+      type: Array,
+      default: () => [],
     },
 
     namespace: {
@@ -240,6 +315,16 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    currentUserID: {
+      type: String,
+      default: '',
+    },
+
+    findUserByID: {
+      type: Function,
+      default: () => () => undefined,
+    },
   },
 
   data () {
@@ -249,6 +334,7 @@ export default {
         title: '',
         content: '',
       },
+      reactionPickerId: `reaction-picker-${++reactionPickerCounter}`,
     }
   },
 
@@ -312,6 +398,21 @@ export default {
     isValid () {
       return !!this.editValue.title || !!this.editValue.content
     },
+
+    reactions () {
+      if (!this.reactionsField) return {}
+
+      try {
+        const val = this.comment.values[this.reactionsField.name]
+        return JSON.parse(val || '{}') || {}
+      } catch {
+        return {}
+      }
+    },
+
+    hasReactions () {
+      return Object.keys(this.reactions).length > 0
+    },
   },
 
   methods: {
@@ -331,6 +432,31 @@ export default {
         content: this.editValue.content,
       })
       this.isEditing = false
+    },
+
+    reactionTooltip (emoji, userIDs) {
+      const names = userIDs.map(id => {
+        if (id === this.currentUserID) return 'You'
+        const user = this.findUserByID(id)
+        return (user || {}).name || (user || {}).handle || (user || {}).email || 'Unknown'
+      })
+
+      return names.join(', ')
+    },
+
+    onReactionPickerShown () {
+      this.$nextTick(() => {
+        if (this.$refs.reactionPicker) {
+          this.$refs.reactionPicker.reset()
+        }
+      })
+    },
+
+    onReactionSelect (emoji) {
+      if (emoji && emoji.emoji) {
+        this.$emit('react', emoji.emoji)
+      }
+      this.$root.$emit('bv::hide::popover', this.reactionPickerId)
     },
   },
 }
@@ -353,15 +479,20 @@ export default {
   }
 
   .comment-toolbox {
-    position: absolute;
+    position: sticky;
     top: 0;
-    right: 0;
+    align-self: flex-start;
+    margin-left: auto;
     opacity: 0;
     transition: opacity 0.2s ease;
     z-index: 1;
+    flex-shrink: 0;
+    order: 3;
   }
 
   .comment-card {
+    overflow: visible;
+
     .comment-card-body {
       padding: 0.2rem 0.25rem;
     }
@@ -394,6 +525,61 @@ export default {
       opacity: 1;
     }
   }
+}
 
+// Reaction badges
+.comment-reactions {
+  .reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--extra-light, #e0e0e0);
+    border-radius: 1rem;
+    background: var(--white, #fff);
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    transition: background-color 0.15s, border-color 0.15s;
+
+    &:hover {
+      background-color: var(--light, #f5f5f5);
+      border-color: var(--secondary, #ccc);
+    }
+
+    &.reaction-mine {
+      background-color: rgba(var(--primary-rgb, 64, 128, 255), 0.08);
+      border-color: var(--primary, #4080ff);
+    }
+
+    .reaction-emoji {
+      font-size: 0.9rem;
+    }
+
+    .reaction-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--secondary, #888);
+    }
+
+    &.reaction-mine .reaction-count {
+      color: var(--primary, #4080ff);
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+// Unscoped for body-appended popover
+.reaction-emoji-popover {
+  background: var(--white, #fff);
+
+  .popover-body {
+    padding: 0;
+  }
+
+  .arrow::after {
+    border-bottom-color: var(--white, #fff);
+  }
 }
 </style>

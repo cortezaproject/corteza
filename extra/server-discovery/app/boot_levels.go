@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/extra/server-discovery/indexer"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/auth"
+	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/extra/server-discovery/searcher"
 )
@@ -73,12 +75,18 @@ func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
 		return fmt.Errorf("could not set token verifier")
 	}
 
+	//initialize Elastic search client
+	esClient, err := es.Connect(app.Opt.ES)
+	if err != nil {
+		return fmt.Errorf("failed to initialize Elasticsearch client: %s", err.Error())
+	}
+
 	if app.Opt.Indexer.Enabled {
 		err = indexer.Initialize(ctx, app.Log, indexer.Config{
 			Corteza: app.Opt.Corteza,
 			ES:      app.Opt.ES,
 			Indexer: app.Opt.Indexer,
-		})
+		}, esClient)
 		if err != nil {
 			return
 		}
@@ -90,7 +98,7 @@ func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
 			ES:         app.Opt.ES,
 			HttpServer: app.Opt.HTTPServer,
 			Searcher:   app.Opt.Searcher,
-		})
+		}, esClient)
 		if err != nil {
 			return
 		}
@@ -111,7 +119,7 @@ func (app *CortezaDiscoveryApp) Activate(ctx context.Context) (err error) {
 	}
 
 	if app.Opt.Indexer.Enabled {
-		indexer.Watchers(ctx)
+		go indexer.Watchers(ctx)
 	}
 
 	app.lvl = bootLevelActivated

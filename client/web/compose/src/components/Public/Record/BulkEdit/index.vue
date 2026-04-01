@@ -5,7 +5,8 @@
       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.bulkRecord.title'), boundary: 'body' }"
       variant="outline-extra-light"
       size="sm"
-      class="inline-button text-secondary border-0"
+      class="inline-button d-flex align-items-center justify-content-center text-secondary border-0"
+      style="width: 2rem; height: 2rem;"
       @click="showModal = true"
     >
       <font-awesome-icon

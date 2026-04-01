@@ -7,7 +7,7 @@
     v-on="$listeners"
   >
     <div
-      v-if="!tabbedBlocks.length"
+      v-if="!tabbedBlocks.length && editable"
       class="d-flex h-100 align-items-center justify-content-center"
     >
       <p class="mb-0">
@@ -33,6 +33,7 @@
       no-fade
       class="h-100"
       :class="{ 'd-flex flex-column': block.options.style.orientation !== 'vertical' }"
+      @activate-tab="onTabActivated"
     >
       <b-tab
         v-for="(tab, index) in tabbedBlocks"
@@ -41,7 +42,6 @@
         :title-item-class="getTitleItemClass(index)"
         :title-link-class="getTitleItemClass(index)"
         no-body
-        :lazy="isTabLazy(tab)"
       >
         <template #title>
           <span>
@@ -116,7 +116,7 @@
         </template>
 
         <page-block-tab
-          v-if="tab.block"
+          v-if="tab.block && shouldRenderTab(tab, index)"
           v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index }"
           :record="record"
           :module="module"
@@ -162,12 +162,13 @@ export default {
     return {
       tabErrors: [],
       tabErrorKinds: [],
+      visitedTabs: { 0: true },
     }
   },
 
   computed: {
     tabbedBlocks () {
-      return this.block.options.tabs.reduce((acc, { blockID, title }) => {
+      return this.block.options.tabs.reduce((acc, { blockID, title, lazy = true }) => {
         const unparsedBlock = blockID ? this.blocks.find(b => fetchID(b) === blockID) : undefined
 
         if (!unparsedBlock) {
@@ -175,6 +176,10 @@ export default {
             acc.push({ title })
           }
 
+          return acc
+        }
+
+        if (unparsedBlock.meta.invisible && !this.editable) {
           return acc
         }
 
@@ -188,6 +193,7 @@ export default {
         acc.push({
           block,
           title,
+          lazy,
         })
 
         return acc
@@ -274,9 +280,13 @@ export default {
       return title || interpolatedTitle || kind || `${this.$t('tab')} ${tabIndex + 1}`
     },
 
-    isTabLazy ({ block = {} }) {
-      const { kind } = block
-      return ['Calendar', 'Metric', 'Geometry'].includes(kind)
+    onTabActivated (newIndex) {
+      this.$set(this.visitedTabs, newIndex, true)
+    },
+
+    shouldRenderTab ({ lazy = true }, index) {
+      if (!lazy) return true
+      return !!this.visitedTabs[index]
     },
 
     setTabErrors (index, { errors, id }) {

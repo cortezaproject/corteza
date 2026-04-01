@@ -244,7 +244,8 @@ export default {
   },
 
   created () {
-    if ((!this.value || this.value.length === 0) && (this.field.options.presetWithAuthenticated || this.field.name === 'ownedBy')) {
+    const isNewRecord = !this.record || this.record.recordID === NoID
+    if (isNewRecord && (!this.value || this.value.length === 0) && (this.field.options.presetWithAuthenticated || this.field.name === 'ownedBy')) {
       this.updateValue(this.$auth.user)
     }
 
