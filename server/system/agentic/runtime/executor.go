@@ -158,6 +158,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 				if fields := scopeFields(info.Scope); fields != "" {
 					systemPrompt += " inputs: " + fields
 				}
+				if t.Hints != "" {
+					systemPrompt += " hints: " + t.Hints
+				}
 				systemPrompt += "\n"
 			}
 		}
@@ -173,12 +176,15 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 					desc = info.Meta.Description
 				}
 				if desc != "" {
-					systemPrompt += fmt.Sprintf("- id=%d name=%q description=%q", info.ID, info.Handle, desc)
+					systemPrompt += fmt.Sprintf("- name=%q description=%q [internal-id=%d]", info.Handle, desc, info.ID)
 				} else {
 					systemPrompt += fmt.Sprintf("- name=%q [internal-id=%d]", info.Handle, info.ID)
 				}
 				if fields := scopeFields(info.Scope); fields != "" {
 					systemPrompt += " inputs: " + fields
+				}
+				if w.Hints != "" {
+					systemPrompt += " hints: " + w.Hints
 				}
 				systemPrompt += "\n"
 			}

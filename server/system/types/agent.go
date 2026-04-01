@@ -76,11 +76,13 @@ type (
 	AgentAccessTAQ struct {
 		ID     uint64 `json:"id,string"`
 		Handle string `json:"handle,omitempty"`
+		Hints  string `json:"hints,omitempty"`
 	}
 
 	AgentAccessWorkflow struct {
 		ID     uint64 `json:"id,string"`
 		Handle string `json:"handle,omitempty"`
+		Hints  string `json:"hints,omitempty"`
 	}
 
 	AgentAccessContext struct {
