@@ -70,34 +70,6 @@
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.automation.buttonWorkflow') }}</label>
-              <Select
-                v-model="btn.workflowID"
-                :options="workflows"
-                option-label="label"
-                option-value="workflowID"
-                :placeholder="$t('block.automation.pickWorkflow')"
-                class="w-full"
-                filter
-                show-clear
-              />
-            </div>
-
-            <div v-if="btn.workflowID" class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.automation.buttonStep') }}</label>
-              <Select
-                v-model="btn.stepID"
-                :options="getSteps(btn.workflowID)"
-                option-label="label"
-                option-value="stepID"
-                :placeholder="$t('block.automation.pickStep')"
-                class="w-full"
-                filter
-                show-clear
-              />
-            </div>
-
-            <div class="flex flex-col gap-1">
               <label class="text-sm text-muted-color">{{ $t('block.automation.buttonResourceType') }}</label>
               <Select
                 v-model="btn.resourceType"
@@ -139,7 +111,7 @@
         >
           <div class="flex items-center gap-2">
             <span class="font-medium text-sm">{{ trigger.label }}</span>
-            <Tag severity="info" value="workflow" class="text-xs" />
+            <Tag severity="info" :value="trigger.isTAQ ? 'TAQ' : 'workflow'" class="text-xs" />
           </div>
           <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">{{ trigger.description }}</p>
         </div>
@@ -173,6 +145,7 @@ const searchQuery = ref('')
 const loadingTriggers = ref(false)
 const triggerButtons = ref([])
 const workflowData = ref([])
+const taqData = ref([])
 
 const variantOptions = ['primary', 'secondary', 'success', 'danger', 'warning', 'info']
 
@@ -184,7 +157,16 @@ const resourceTypeOptions = [
   { value: 'compose:record', label: 'Record' },
 ]
 
-const buttons = computed(() => props.block.options?.buttons || [])
+const buttons = computed(() => {
+  const btns = props.block.options?.buttons || []
+  // Initialize scriptType for UI binding natively
+  btns.forEach(b => {
+    if (!b.scriptType) {
+      b.scriptType = b.automationID ? 'taq' : 'workflow'
+    }
+  })
+  return btns
+})
 
 const workflows = computed(() => {
   return workflowData.value.map(wf => ({
@@ -204,8 +186,14 @@ function getSteps(workflowID) {
 }
 
 const availableTriggers = computed(() => {
-  const existingKeys = buttons.value.map(b => b.workflowID ? `${b.workflowID}-${b.stepID}` : b.script)
-  return triggerButtons.value.filter(t => !existingKeys.includes(`${t.workflowID}-${t.stepID}`))
+  const existingKeys = buttons.value.map(b => {
+    if (b.automationID) return `taq-${b.automationID}`
+    return b.workflowID ? `${b.workflowID}-${b.stepID}` : b.script
+  })
+  return triggerButtons.value.filter(t => {
+    const key = t.isTAQ ? `taq-${t.automationID}` : `${t.workflowID}-${t.stepID}`
+    return !existingKeys.includes(key)
+  })
 })
 
 const filteredTriggers = computed(() => {
@@ -233,19 +221,29 @@ function addPlaceholder() {
     label: t('block.automation.dummyButtonLabel'),
     variant: 'primary',
     resourceType: 'compose',
+    scriptType: 'workflow',
   }]
   updateButtons(newButtons)
   selectedIndex.value = newButtons.length - 1
 }
 
 function addTriggerButton(trigger) {
-  const newButtons = [...buttons.value, {
+  const newButton = {
     label: trigger.label,
     variant: 'primary',
-    workflowID: trigger.workflowID,
-    stepID: trigger.stepID,
     resourceType: trigger.resourceType || 'compose',
-  }]
+  }
+  
+  if (trigger.isTAQ) {
+    newButton.automationID = trigger.automationID
+    newButton.scriptType = 'taq'
+  } else {
+    newButton.workflowID = trigger.workflowID
+    newButton.stepID = trigger.stepID
+    newButton.scriptType = 'workflow'
+  }
+
+  const newButtons = [...buttons.value, newButton]
   updateButtons(newButtons)
 }
 
@@ -276,7 +274,15 @@ async function fetchTriggers() {
   loadingTriggers.value = true
 
   try {
-    const { set: triggers = [] } = await $AutomationAPI.triggerList({ eventType: 'onManual' })
+    const [workflowsResp, taqsResp] = await Promise.all([
+      $AutomationAPI.triggerList({ eventType: 'onManual' }),
+      $AutomationAPI.ngAutomationListCancellable({ limit: 100 })
+    ])
+    
+    const { set: triggers = [] } = workflowsResp
+    const taqResult = await taqsResp.response()
+    const taqsRaw = Array.isArray(taqResult) ? taqResult : taqResult.set || []
+    taqData.value = taqsRaw
 
     const triggerData = triggers.map(({ triggerID, workflowID, resourceType, stepID }) => ({
       triggerID, workflowID, resourceType, stepID,
@@ -305,6 +311,16 @@ async function fetchTriggers() {
         }
       }).filter(Boolean)
     }
+
+    const taqButtons = taqData.value.map(taq => ({
+      label: taq.meta?.short || taq.handle || taq.automationID,
+      automationID: taq.automationID,
+      resourceType: 'compose', // Assuming compose for now, could be dynamic
+      description: taq.meta?.description,
+      isTAQ: true,
+    }))
+
+    triggerButtons.value = [...(triggerButtons.value || []), ...taqButtons]
   } catch (e) {
     console.error('Failed to fetch triggers:', e)
   } finally {

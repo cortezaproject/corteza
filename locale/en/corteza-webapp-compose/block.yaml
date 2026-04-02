@@ -27,8 +27,8 @@ automation:
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
   stepID: 'Starting step ID: {stepID}'
-  executionSuccess: Workflow executed successfully
-  executionFailed: Workflow execution failed
+  executionSuccess: Automation executed successfully
+  executionFailed: Automation execution failed
   buttonWorkflow: Workflow
   buttonStep: Step
   buttonResourceType: Resource type

@@ -145,7 +145,18 @@ function run() {
         formattedScope[key] = val
       } else {
         // Pack into typed value so the expr engine knows what it is
-        formattedScope[key] = { '@type': propDef.type, '@value': String(val) }
+        let typedVal = String(val)
+        if (propDef.type === 'ComposeNamespace') {
+          typedVal = { namespaceID: String(val) }
+        } else if (propDef.type === 'ComposeModule') {
+          typedVal = { moduleID: String(val) }
+        } else if (propDef.type === 'ComposeRecord') {
+          typedVal = { recordID: String(val) }
+        } else if (propDef.type === 'SystemUser') {
+          typedVal = { userID: String(val) }
+        }
+        
+        formattedScope[key] = { '@type': propDef.type, '@value': typedVal }
       }
     }
   })

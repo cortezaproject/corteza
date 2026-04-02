@@ -4,7 +4,7 @@
       <div
         v-if="visible && hasContent"
         ref="popoverEl"
-        class="absolute z-[9999] bg-surface border-[0.5px] border-surface rounded-xl shadow-lg p-3 max-h-[280px] overflow-auto transition-opacity duration-150"
+        class="absolute z-[9999] bg-surface border-[0.5px] border-surface rounded-xl shadow-lg p-3 transition-opacity duration-150"
         :class="[
           !alwaysShow ? 'pointer-events-none' : '',
           hiddenByHover ? 'opacity-0 pointer-events-none' : '',

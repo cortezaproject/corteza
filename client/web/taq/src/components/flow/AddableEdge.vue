@@ -104,7 +104,7 @@ const edgeLabel = computed(() => {
   }
   if (isIteratorEdge.value) {
     const siblingEdges = getEdges.value.filter(e => e.source === props.source)
-    if (edgeIndex.value === 0) return t('builder.iterator.body')
+    if (edgeIndex.value === 0) return ''
     if (edgeIndex.value === siblingEdges.length - 1) return t('builder.iterator.done')
     return ''
   }

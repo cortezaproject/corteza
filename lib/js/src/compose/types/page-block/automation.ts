@@ -52,6 +52,11 @@ export class PageBlockAutomation extends PageBlock {
         return
       }
 
+      if (b.automationID) {
+        // NG automation defined
+        return
+      }
+
       if (b.script) {
         // script defined
         return

@@ -1,6 +1,18 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ editor.name.value }}</span>
+    <div
+      class="flex items-center gap-2 group/title hover:bg-surface-hover px-2 py-1 rounded-border cursor-pointer -ml-2 transition-colors"
+      @click="showConfigDialog = true"
+    >
+      <span class="font-semibold">{{ editor.name.value }}</span>
+      <Button
+        icon="pi pi-pencil"
+        text
+        rounded
+        size="small"
+        class="opacity-0 group-hover/title:opacity-100 transition-opacity !w-5 !h-5 !p-0 shrink-0"
+      />
+    </div>
   </Teleport>
 
   <!-- Loading state -->
@@ -10,107 +22,119 @@
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
     <!-- Top-left overlay actions -->
-    <div class="absolute top-3 left-3 z-20 flex items-center gap-2">
-      <!-- Main toggle/run card -->
-      <div class="flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm">
-        <div class="flex items-center gap-2">
-          <ToggleSwitch
-            :model-value="editor.enabled.value"
-            @update:model-value="toggleEnabled"
-            input-id="taq-enabled"
-          />
-          <label for="taq-enabled" class="text-sm">{{ $t('builder.enabled') }}</label>
-        </div>
-        <template v-if="editor.automationId.value && !editor.isEmpty.value">
+    <div class="absolute top left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
+      <!-- Optional Description -->
+      <div
+        v-if="editor.automation.value.meta?.description"
+        class="text-sm text-muted-color whitespace-pre-wrap px-1"
+      >
+        {{ editor.automation.value.meta.description }}
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Main toggle/run card -->
+        <div
+          class="flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm"
+        >
+          <div class="flex items-center gap-2">
+            <ToggleSwitch
+              :model-value="editor.enabled.value"
+              @update:model-value="toggleEnabled"
+              input-id="taq-enabled"
+            />
+            <label for="taq-enabled" class="text-sm">{{ $t('builder.enabled') }}</label>
+          </div>
+          <template v-if="editor.automationId.value && !editor.isEmpty.value">
+            <Divider layout="vertical" class="!m-0" />
+            <Button
+              :label="$t('builder.run')"
+              icon="pi pi-play"
+              severity="success"
+              outlined
+              size="small"
+              :loading="editor.running.value"
+              :disabled="!editor.enabled.value || editor.running.value"
+              @click="onRunClick"
+            />
+          </template>
           <Divider layout="vertical" class="!m-0" />
           <Button
-            :label="$t('builder.run')"
-            icon="pi pi-play"
-            severity="success"
-            outlined
+            v-tooltip.bottom="
+              showAllPreviews
+                ? $t('builder.preview.hideConfigurations')
+                : $t('builder.preview.showConfigurations')
+            "
+            :icon="showAllPreviews ? 'pi pi-eye' : 'pi pi-eye-slash'"
+            :severity="showAllPreviews ? 'primary' : 'secondary'"
+            :outlined="!showAllPreviews"
             size="small"
-            :loading="editor.running.value"
-            :disabled="!editor.enabled.value || editor.running.value"
-            @click="onRunClick"
+            @click="togglePreviews"
           />
-        </template>
-        <Divider layout="vertical" class="!m-0" />
-        <Button
-          v-tooltip.bottom="
-            showAllPreviews
-              ? $t('builder.preview.hideConfigurations')
-              : $t('builder.preview.showConfigurations')
-          "
-          :icon="showAllPreviews ? 'pi pi-eye' : 'pi pi-eye-slash'"
-          :severity="showAllPreviews ? 'primary' : 'secondary'"
-          :outlined="!showAllPreviews"
-          size="small"
-          @click="togglePreviews"
-        />
-      </div>
+        </div>
 
-      <!-- Standalone permissions button -->
-      <CPermissionsButton
-        v-if="editor.automationId.value"
-        v-tooltip.bottom="$t('general.label.permissions')"
-        :resource="`corteza::automation:ng-automation/${editor.automationId.value}`"
-        :title="editor.name.value"
-        :target="editor.name.value"
-        severity="secondary"
-        class="bg-surface shadow-sm !border-surface"
-      />
-    </div>
-
-    <!-- Execution result card (below the toolbar card) -->
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="-translate-y-2 opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="translate-y-0 opacity-100"
-      leave-to-class="-translate-y-2 opacity-0"
-    >
-      <div
-        v-if="isTraceActive"
-        class="absolute top-16 left-3 z-20 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm flex items-center gap-2 mt-2"
-      >
-        <Tag
-          :severity="editor.traceStatus.value === 'failed' ? 'danger' : 'success'"
-          :icon="
-            editor.traceStatus.value === 'failed' ? 'pi pi-times-circle' : 'pi pi-check-circle'
-          "
-          :value="
-            editor.traceStatus.value === 'failed'
-              ? $t('builder.trace.failed')
-              : $t('builder.trace.completed')
-          "
-          class="text-xs"
-        />
-        <span
-          v-if="editor.traceExecution.value?.duration"
-          class="text-xs text-muted-color flex items-center gap-1"
-        >
-          <i class="pi pi-clock text-xs" />
-          {{ editor.traceExecution.value.duration }}
-        </span>
-        <span
-          v-if="editor.traceFrames.value.length"
-          class="text-xs text-muted-color flex items-center gap-1"
-        >
-          <i class="pi pi-list text-xs" />
-          {{ editor.traceFrames.value.length }} {{ $t('builder.trace.stepsExecuted') }}
-        </span>
-        <Divider layout="vertical" class="!m-0 !mx-1" />
-        <Button
-          :label="$t('builder.trace.clear')"
-          icon="pi pi-times"
+        <!-- Standalone permissions button -->
+        <CPermissionsButton
+          v-if="editor.automationId.value"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          :resource="`corteza::automation:ng-automation/${editor.automationId.value}`"
+          :title="editor.name.value"
+          :target="editor.name.value"
           severity="secondary"
-          text
-          size="small"
-          @click="editor.clearTrace"
+          class="bg-surface shadow-sm !border-surface"
         />
       </div>
-    </Transition>
+
+      <!-- Execution result card (below the toolbar card) -->
+      <Transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="-translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition-all duration-150 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="-translate-y-2 opacity-0"
+      >
+        <div
+          v-if="isTraceActive"
+          class="bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm flex items-center gap-2 w-fit"
+        >
+          <Tag
+            :severity="editor.traceStatus.value === 'failed' ? 'danger' : 'success'"
+            :icon="
+              editor.traceStatus.value === 'failed' ? 'pi pi-times-circle' : 'pi pi-check-circle'
+            "
+            :value="
+              editor.traceStatus.value === 'failed'
+                ? $t('builder.trace.failed')
+                : $t('builder.trace.completed')
+            "
+            class="text-xs"
+          />
+          <span
+            v-if="editor.traceExecution.value?.duration"
+            class="text-xs text-muted-color flex items-center gap-1"
+          >
+            <i class="pi pi-clock text-xs" />
+            {{ editor.traceExecution.value.duration }}
+          </span>
+          <span
+            v-if="editor.traceFrames.value.length"
+            class="text-xs text-muted-color flex items-center gap-1"
+          >
+            <i class="pi pi-list text-xs" />
+            {{ editor.traceFrames.value.length }} {{ $t('builder.trace.stepsExecuted') }}
+          </span>
+          <Divider layout="vertical" class="!m-0 !mx-1" />
+          <Button
+            :label="$t('builder.trace.clear')"
+            icon="pi pi-times"
+            severity="secondary"
+            text
+            size="small"
+            @click="editor.clearTrace"
+          />
+        </div>
+      </Transition>
+    </div>
 
     <!-- VueFlow Canvas -->
     <div class="flex-1 min-h-0" @auxclick="onMiddleMouseClick">
@@ -186,6 +210,9 @@
         </template>
         <template #node-end="props">
           <EndNode v-bind="props" />
+        </template>
+        <template #node-loop="props">
+          <LoopNode v-bind="props" />
         </template>
 
         <!-- Custom edge with + button -->
@@ -365,7 +392,7 @@
         />
       </div>
     </div>
-    
+
     <!-- Unsaved Changes Dialog -->
     <Dialog
       v-model:visible="showUnsavedDialog"
@@ -374,7 +401,12 @@
       :style="{ width: '40rem' }"
     >
       <div class="mb-4 text-color whitespace-pre-line">
-        {{ $t('builder.unsavedChanges.description', 'You have unsaved changes in this automation.\n\nPlease save your work before executing a run to ensure your latest changes are tested.') }}
+        {{
+          $t(
+            'builder.unsavedChanges.description',
+            'You have unsaved changes in this automation.\n\nPlease save your work before executing a run to ensure your latest changes are tested.',
+          )
+        }}
       </div>
 
       <template #footer>
@@ -398,10 +430,15 @@
     </Dialog>
 
     <!-- Run Modal -->
-    <RunModal
-      v-model:visible="showRunModal"
-      :properties="runProperties"
-      @run="onRunConfirm"
+    <RunModal v-model:visible="showRunModal" :properties="runProperties" @run="onRunConfirm" />
+
+    <!-- General Config Modal -->
+    <TaqConfigModal
+      v-model:visible="showConfigDialog"
+      mode="edit"
+      :initial-name="editor.name.value"
+      :initial-description="editor.automation.value.meta?.description"
+      @saved="handleConfigSave"
     />
   </div>
 </template>
@@ -430,10 +467,12 @@ import TracePanel from '@/components/builder/TracePanel.vue'
 import AddableEdge from '@/components/flow/AddableEdge.vue'
 import BranchNode from '@/components/flow/BranchNode.vue'
 import EndNode from '@/components/flow/EndNode.vue'
+import LoopNode from '@/components/flow/LoopNode.vue'
 import IteratorNode from '@/components/flow/IteratorNode.vue'
 import StepNode from '@/components/flow/StepNode.vue'
 import TriggerNode from '@/components/flow/TriggerNode.vue'
 import RunModal from '@/components/builder/RunModal.vue'
+import TaqConfigModal from '@/components/common/TaqConfigModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -485,6 +524,18 @@ const showTracePanel = ref(true)
 const showRunModal = ref(false)
 const runProperties = ref([])
 const showUnsavedDialog = ref(false)
+
+// Config Modal State
+const showConfigDialog = ref(false)
+
+function handleConfigSave({ name, description }) {
+  editor.name.value = name
+  editor.automation.value.meta = {
+    ...editor.automation.value.meta,
+    description: description,
+  }
+  editor.save()
+}
 
 // Provide active reference argument to descendant components (DynamicInput, CInputFieldValueMap)
 provide('activeReferenceArgument', activeReferenceArgument)
@@ -644,7 +695,7 @@ async function proceedRun(saveFirst) {
   if (saveFirst) {
     await editor.save()
   }
-  
+
   const props = editor.getTriggerProperties()
   if (props && props.length > 0) {
     runProperties.value = props
@@ -965,7 +1016,7 @@ watch(
   [() => route.params.id, () => store.catalogReady],
   async ([id, ready], oldVals) => {
     if (!ready) return
-    
+
     const oldId = oldVals?.[0]
     if (id !== oldId) {
       hasInitiallyFit = false
@@ -973,7 +1024,7 @@ watch(
 
     if (id && id !== 'new') {
       await editor.load(id)
-      
+
       // Ensure we fit view when navigating to an already mounted component
       nextTick(() => {
         setTimeout(() => {

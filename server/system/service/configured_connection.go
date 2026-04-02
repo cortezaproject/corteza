@@ -714,6 +714,7 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 		}
 	}
 	input[0].Input.Options = configOptions
+	input[0].Input.Type = "Select"
 
 	segments[0].Sections[0].Elements = append(input, segments[0].Sections[0].Elements...)
 

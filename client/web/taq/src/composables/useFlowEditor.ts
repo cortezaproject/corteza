@@ -206,7 +206,7 @@ export function useFlowEditor() {
       // Process in order: 1) triggers, 2) terminations, 3) other steps
       nodes.value.filter(n => n.type === 'trigger').forEach(processNode)
       nodes.value.filter(n => n.type === 'end').forEach(processNode)
-      nodes.value.filter(n => n.type !== 'trigger' && n.type !== 'end').forEach(processNode)
+      nodes.value.filter(n => n.type !== 'trigger' && n.type !== 'end' && n.type !== 'loop').forEach(processNode)
 
       // Derive paths from edges (including paths to termination steps)
       // Filter out any invalid or duplicate edges
@@ -250,18 +250,18 @@ export function useFlowEditor() {
         while (current && !visited.has(current)) {
           visited.add(current)
           const currentNode = nodes.value.find(n => n.id === current)
-          // Stop at end nodes - the step BEFORE the end is the body's last real step
-          if (currentNode?.type === 'end') break
+          // Stop at end or loop nodes - the step BEFORE is the body's last real step
+          if (currentNode?.type === 'end' || currentNode?.type === 'loop') break
           const nextEdge = edges.value.find(e => e.source === current)
           if (!nextEdge) break
           current = nextEdge.target
         }
 
-        // Find the last non-end step in the body chain
+        // Find the last non-end, non-loop step in the body chain
         let lastBodyStep: string | null = null
         for (const nodeId of visited) {
           const node = nodes.value.find(n => n.id === nodeId)
-          if (node && node.type !== 'end') {
+          if (node && node.type !== 'end' && node.type !== 'loop') {
             lastBodyStep = nodeId
           }
         }
@@ -368,6 +368,46 @@ export function useFlowEditor() {
 
     let newHandle: string
 
+    const store = useAutomationStore()
+    
+    let defaultArguments: any[] = []
+    let defaultConfig: Record<string, any> = {}
+
+    if (isTrigger) {
+      const dbTrigger = store.triggers.find(
+        t => t.eventType === nodeType.eventType && t.resourceType === nodeType.resourceType,
+      )
+      if (dbTrigger?.segments) {
+        dbTrigger.segments.forEach(seg => {
+          seg.sections?.forEach(sec => {
+            sec.elements?.forEach(el => {
+              if (el.input && el.input.default !== undefined && el.input.argument) {
+                defaultConfig[el.input.argument] = el.input.default
+              }
+            })
+          })
+        })
+      }
+    } else if (!isEnd && !isBranch) {
+      const dbFunction = store.functions.find(f => f.ref === nodeType.ref)
+      if (dbFunction?.segments) {
+        dbFunction.segments.forEach(seg => {
+          seg.sections?.forEach(sec => {
+            sec.elements?.forEach(el => {
+              if (el.input && el.input.default !== undefined && el.input.argument) {
+                const param = dbFunction.parameters?.find(p => p.argumentName === el.input.argument)
+                defaultArguments.push({
+                  argumentName: el.input.argument,
+                  type: param?.types?.[0] || 'Any',
+                  value: el.input.default,
+                })
+              }
+            })
+          })
+        })
+      }
+    }
+
     if (isTrigger) {
       newHandle = `trigger_${newId}`
       automation.value.triggers = automation.value.triggers || []
@@ -382,7 +422,7 @@ export function useFlowEditor() {
           short: nodeType.label,
           description: nodeType.description || '',
         },
-        input: {},
+        input: { ...defaultConfig },
       })
     } else if (!isEnd) {
       newHandle = `step_${newId}`
@@ -396,7 +436,7 @@ export function useFlowEditor() {
           short: nodeType.label,
           description: nodeType.description || '',
         },
-        arguments: [],
+        arguments: [...defaultArguments],
       })
     } else {
       newHandle = `end_${newId}`
@@ -427,8 +467,8 @@ export function useFlowEditor() {
           : isTrigger
             ? nodeType.eventType || nodeType.ref || ''
             : nodeType.ref || (isEnd ? 'end' : ''),
-        config: {},
-        arguments: [],
+        config: { ...defaultConfig },
+        arguments: [...defaultArguments],
         constraints: isTrigger ? [] : undefined,
         resourceType: isTrigger ? nodeType.resourceType || '' : undefined,
         ref: newHandle,
@@ -490,20 +530,20 @@ export function useFlowEditor() {
           }
 
           // First output: body (for iterator) or first branch path
-          // For iterators: body starts with a new end node (user adds steps into it)
+          // For iterators: body starts with a new loop node (user adds steps into it)
           // For branches: connect to original target (leftmost)
           const bodyEndId = String(parseInt(newId) + 1)
-          const bodyEndVueId = `end_${bodyEndId}`
+          const bodyEndVueId = isIterator ? `loop_${bodyEndId}` : `end_${bodyEndId}`
 
           newNodes.push({
             id: bodyEndVueId,
-            type: 'end',
+            type: isIterator ? 'loop' : 'end',
             position: { x: 0, y: 0 },
             selectable: false,
             data: {
-              label: t('builder.nodes.end'),
-              nodeType: 'termination',
-              icon: DEFAULT_ICONS.END,
+              label: isIterator ? 'Loop' : t('builder.nodes.end'),
+              nodeType: isIterator ? 'loop' : 'termination',
+              icon: isIterator ? undefined : DEFAULT_ICONS.END,
               config: {},
               arguments: [],
               ref: bodyEndVueId,
@@ -605,24 +645,25 @@ export function useFlowEditor() {
     nodes.value = nodes.value.filter(n => n.id !== nodeId)
     edges.value = edges.value.filter(e => e.source !== nodeId && e.target !== nodeId)
 
-    // If this was an End node, the parent becomes a leaf - add new termination
-    if (nodeToDelete.type === 'end') {
+    // If this was an End or Loop node, the parent becomes a leaf - add new termination/loop
+    if (nodeToDelete.type === 'end' || nodeToDelete.type === 'loop') {
+      const type = nodeToDelete.type
       incomingEdges.forEach(incoming => {
         const parentNode = nodes.value.find(n => n.id === incoming.source)
         // Check if parent still has other outgoing edges
         const parentHasOtherChildren = edges.value.some(e => e.source === incoming.source)
         if (parentNode && !parentHasOtherChildren) {
-          // Parent is now a leaf, add termination
-          const newEndId = `end_${incoming.source}_${incoming.sourceHandle || 'default'}`
+          // Parent is now a leaf, add termination or loop
+          const newEndId = `${type}_${incoming.source}_${incoming.sourceHandle || 'default'}`
           nodes.value.push({
             id: newEndId,
-            type: 'end',
+            type: type,
             position: { x: 0, y: 0 },
             selectable: false,
             data: {
-              label: t('builder.nodes.end'),
-              nodeType: 'termination',
-              icon: DEFAULT_ICONS.END,
+              label: type === 'loop' ? 'Loop' : t('builder.nodes.end'),
+              nodeType: type === 'loop' ? 'loop' : 'termination',
+              icon: type === 'loop' ? undefined : DEFAULT_ICONS.END,
               config: {},
               arguments: [],
               ref: newEndId,

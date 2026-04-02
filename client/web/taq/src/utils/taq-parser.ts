@@ -45,7 +45,7 @@ export interface FlowNodeData {
 /**
  * VueFlow node types used in the builder
  */
-export type FlowNodeType = 'trigger' | 'step' | 'branch' | 'iterator' | 'end'
+export type FlowNodeType = 'trigger' | 'step' | 'branch' | 'iterator' | 'end' | 'loop'
 
 /**
  * VueFlow state structure
@@ -141,6 +141,8 @@ export function automationToVueFlow(
     })
   })
 
+  const skippedBackEdges = new Set<string>()
+
   // Convert paths to edges (map clean IDs to VueFlow IDs)
   // No sourceHandle needed - edges are ordered by array position
   automation.paths?.forEach(path => {
@@ -163,6 +165,7 @@ export function automationToVueFlow(
       }
       if (isDescendant(targetId, sourceId)) {
         // This is a genuine back-edge (cycle) — skip it for dagre
+        skippedBackEdges.add(sourceId)
         return
       }
     }
@@ -218,16 +221,18 @@ export function automationToVueFlow(
       const currentCount = outgoingEdgeCount.get(node.id) || 0
       const endsNeeded = Math.max(0, 2 - currentCount)
       for (let i = 0; i < endsNeeded; i++) {
-        const endId = `end_${node.id}_${i}`
+        const isBodyEdge = currentCount === 0 && i === 0
+        const endId = isBodyEdge ? `loop_${node.id}_${i}` : `end_${node.id}_${i}`
+        const endType = isBodyEdge ? 'loop' : 'end'
         nodes.push({
           id: endId,
-          type: 'end',
+          type: endType,
           position: { x: 0, y: 0 },
           selectable: false,
           data: {
-            label: 'End',
-            nodeType: 'termination',
-            icon: DEFAULT_ICONS.END,
+            label: isBodyEdge ? 'Loop' : 'End',
+            nodeType: isBodyEdge ? 'loop' : 'termination',
+            icon: isBodyEdge ? undefined : DEFAULT_ICONS.END,
             config: {},
             arguments: [],
             ref: endId,
@@ -240,18 +245,20 @@ export function automationToVueFlow(
           type: 'addable',
         })
       }
-    } else if (!outgoingEdgeCount.has(node.id) && node.type !== 'end') {
-      // Regular leaf nodes get one end node
-      const endId = `end_${node.id}`
+    } else if (!outgoingEdgeCount.has(node.id) && node.type !== 'end' && node.type !== 'loop') {
+      // Regular leaf nodes get one end node, but iterator body tips get a loop node
+      const isBodyTip = skippedBackEdges.has(node.id)
+      const endId = isBodyTip ? `loop_${node.id}` : `end_${node.id}`
+      const type = isBodyTip ? 'loop' : 'end'
       nodes.push({
         id: endId,
-        type: 'end',
+        type: type,
         position: { x: 0, y: 0 },
         selectable: false,
         data: {
-          label: 'End',
-          nodeType: 'termination',
-          icon: DEFAULT_ICONS.END,
+          label: isBodyTip ? 'Loop' : 'End',
+          nodeType: isBodyTip ? 'loop' : 'termination',
+          icon: isBodyTip ? undefined : DEFAULT_ICONS.END,
           config: {},
           ref: endId,
         },
@@ -289,6 +296,8 @@ export function vueFlowToAutomation(
 
   // Convert nodes to triggers/steps
   state.nodes.forEach(node => {
+    if (node.type === 'loop') return
+
     if (node.type === 'trigger') {
       triggerIndex++
       const data = node.data as FlowNodeData

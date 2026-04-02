@@ -135,7 +135,7 @@ export function useSegmentForm(options: {
 
             return {
               key: `input-${sIdx}-${secIdx}-${elIdx}`,
-              type: hasOptions ? 'Select' : element.input.type,
+              type: element.input.type,
               label: element.input.label,
               placeholder: element.input.placeholder,
               disabledPlaceholder,

@@ -74,7 +74,21 @@ async function handleButton(btn, index) {
   processingIDs.value.push(index)
 
   try {
-    if (btn.workflowID && $AutomationAPI) {
+    if (btn.automationID && $AutomationAPI) {
+      // Execute TAQ (NG Automation)
+      const input = {}
+      if (props.namespace?.namespaceID) {
+        input.namespace = { '@type': 'ComposeNamespace', '@value': props.namespace }
+      }
+      if (props.record?.recordID) {
+        input.record = { '@type': 'ComposeRecord', '@value': props.record }
+      }
+
+      await $AutomationAPI.ngAutomationExec({
+        automationID: btn.automationID,
+        input,
+      })
+    } else if (btn.workflowID && $AutomationAPI) {
       // Execute workflow
       const input = []
 
@@ -95,11 +109,8 @@ async function handleButton(btn, index) {
         input,
       })
 
-      $toast?.toastSuccess(t('block.automation.executionSuccess'))
-    } else if (!btn.workflowID) {
+    } else if (!btn.workflowID && !btn.automationID) {
       $toast?.toastInfo(t('block.automation.noScript'))
-    } else {
-      $toast?.toastWarning(t('block.automation.noScript'))
     }
   } catch (e) {
     console.error('Automation execution failed:', e)

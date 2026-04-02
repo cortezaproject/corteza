@@ -132,54 +132,7 @@
     </Popover>
 
     <!-- Create TAQ Dialog -->
-    <Dialog
-      v-model:visible="showCreateDialog"
-      modal
-      :header="$t('list.dialog.create.header')"
-      :style="{ width: '500px' }"
-      @hide="resetCreateForm"
-    >
-      <div class="flex flex-col gap-6">
-        <!-- Name field -->
-        <div class="flex flex-col gap-2">
-          <label for="automation-name" class="font-medium text-primary"
-            >{{ $t('list.dialog.create.name') }} <span class="text-red-500">*</span></label
-          >
-          <InputText
-            id="automation-name"
-            v-model="newAutomationName"
-            :placeholder="$t('list.dialog.create.namePlaceholder')"
-            class="w-full"
-            :invalid="!!nameError"
-            autofocus
-            @keyup.enter="createAutomation"
-          />
-          <small v-if="nameError" class="text-red-500">{{ nameError }}</small>
-        </div>
-
-        <!-- Description field -->
-        <div class="flex flex-col gap-2">
-          <label for="automation-description" class="font-medium text-primary">{{ $t('list.dialog.create.description') }}</label>
-          <Textarea
-            id="automation-description"
-            v-model="newAutomationDescription"
-            :placeholder="$t('list.dialog.create.descriptionPlaceholder')"
-            class="w-full"
-            rows="3"
-          />
-        </div>
-      </div>
-      <template #footer>
-        <Button :label="$t('list.button.cancel')" text @click="showCreateDialog = false" />
-        <Button
-          :label="$t('list.button.create')"
-          icon="pi pi-check"
-          :disabled="!newAutomationName.trim() || creating"
-          :loading="creating"
-          @click="createAutomation"
-        />
-      </template>
-    </Dialog>
+    <TaqConfigModal v-model:visible="showCreateDialog" mode="create" />
   </div>
 </template>
 
@@ -195,6 +148,7 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import TaqConfigModal from '../components/common/TaqConfigModal.vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
@@ -259,58 +213,9 @@ const {
 
 // Create dialog state
 const showCreateDialog = ref(false)
-const newAutomationName = ref('')
-const newAutomationDescription = ref('')
-const creating = ref(false)
-const nameError = ref('')
-
-function resetCreateForm() {
-  newAutomationName.value = ''
-  newAutomationDescription.value = ''
-  nameError.value = ''
-}
 
 function openCreateDialog() {
-  resetCreateForm()
   showCreateDialog.value = true
-}
-
-function validateForm() {
-  nameError.value = ''
-
-  if (!newAutomationName.value.trim()) {
-    nameError.value = t('list.dialog.create.nameRequired')
-    return false
-  }
-
-  return true
-}
-
-async function createAutomation() {
-  if (!validateForm()) return
-
-  creating.value = true
-
-  try {
-    const response = await $AutomationAPI.ngAutomationCreate({
-      meta: {
-        short: newAutomationName.value.trim(),
-        description: newAutomationDescription.value.trim() || undefined,
-      },
-      enabled: false,
-      triggers: [],
-      steps: [],
-      paths: [],
-      ownedBy: $Auth?.user?.userID,
-    })
-
-    showCreateDialog.value = false
-    router.push(`/builder/${response.automationID}`)
-  } catch (e) {
-    console.error('Failed to create automation:', e)
-  } finally {
-    creating.value = false
-  }
 }
 
 // Row click navigation

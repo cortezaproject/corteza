@@ -7,6 +7,9 @@ export class Button {
   // Used when referring to workflow with onManual trigger
   public workflowID?: string = undefined
 
+  // Used when referring to NG automation
+  public automationID?: string = undefined
+
   // Used when referring to a specific step (triggered by onManual trigger)
   public stepID?: string = undefined
 
@@ -24,7 +27,7 @@ export class Button {
   constructor(b: Partial<Button>) {
     Apply(this, b, Boolean, 'enabled')
     Apply(this, b, String, 'label', 'variant', 'script', 'resourceType')
-    Apply(this, b, CortezaID, 'workflowID', 'stepID')
+    Apply(this, b, CortezaID, 'workflowID', 'stepID', 'automationID')
   }
 }
 
