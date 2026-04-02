@@ -235,50 +235,7 @@ export function useFlowEditor() {
         })
         .filter(Boolean)
 
-      // Generate back-edges for iterator nodes
-      // For each iterator, find its body path (first outgoing edge) and
-      // trace down to the last node whose only outgoing edge would be a back-edge.
-      // The last step in the body chain gets a path back to the iterator.
-      nodes.value.filter(n => n.type === 'iterator').forEach(iterNode => {
-        const iterEdges = edges.value.filter(e => e.source === iterNode.id)
-        const bodyEdge = iterEdges[0] // First edge is body
-        if (!bodyEdge) return
 
-        // Walk body chain to find the leaf (node with no outgoing edges, or an end node)
-        let current = bodyEdge.target
-        const visited = new Set<string>()
-        while (current && !visited.has(current)) {
-          visited.add(current)
-          const currentNode = nodes.value.find(n => n.id === current)
-          // Stop at end or loop nodes - the step BEFORE is the body's last real step
-          if (currentNode?.type === 'end' || currentNode?.type === 'loop') break
-          const nextEdge = edges.value.find(e => e.source === current)
-          if (!nextEdge) break
-          current = nextEdge.target
-        }
-
-        // Find the last non-end, non-loop step in the body chain
-        let lastBodyStep: string | null = null
-        for (const nodeId of visited) {
-          const node = nodes.value.find(n => n.id === nodeId)
-          if (node && node.type !== 'end' && node.type !== 'loop') {
-            lastBodyStep = nodeId
-          }
-        }
-
-        if (lastBodyStep) {
-          const iterBackendId = nodeIdToBackendId.get(iterNode.id)
-          const bodyBackendId = nodeIdToBackendId.get(lastBodyStep)
-          if (iterBackendId && bodyBackendId) {
-            paths.push({
-              parentID: bodyBackendId,
-              childID: iterBackendId,
-              handle: `path_${bodyBackendId}_${iterBackendId}`,
-              meta: {},
-            })
-          }
-        }
-      })
 
       const dataToSave = {
         automationID: automation.value.automationID,
