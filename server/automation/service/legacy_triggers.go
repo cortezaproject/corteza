@@ -43,18 +43,6 @@ func recordSegments() []types.ConstructSegment {
 						},
 					},
 				},
-			}, {
-				Input: types.SectionElementInput{
-					Type:     "RecordSelector",
-					Label:    "Record",
-					Argument: "record",
-					Context: types.SectionElementInputContext{
-						DependsOn: map[string]string{
-							"namespaceID": "namespace",
-							"moduleID":    "module",
-						},
-					},
-				},
 			}},
 		}},
 	}}
@@ -149,7 +137,6 @@ func init() {
 							Type:        "DateTime",
 							Label:       "Timestamp (RFC3339)",
 							Argument:    "timestamp",
-							Placeholder: "2026-01-02T15:04:05Z",
 						},
 					}},
 				}},

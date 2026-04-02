@@ -93,7 +93,6 @@ func (h ngLoopHandler) Sequence() atypes.ConstructFunction {
 							Type:        "Number",
 							Label:       "First",
 							Argument:    "first",
-							Placeholder: "0",
 						},
 					},
 					{
@@ -108,7 +107,6 @@ func (h ngLoopHandler) Sequence() atypes.ConstructFunction {
 							Type:        "Number",
 							Label:       "Step",
 							Argument:    "step",
-							Placeholder: "1",
 						},
 					},
 				},
@@ -195,7 +193,6 @@ func (h ngLoopHandler) Do() atypes.ConstructFunction {
 							Type:        "String",
 							Label:       "While",
 							Argument:    "while",
-							Placeholder: "someVar > 0",
 						},
 					},
 				},

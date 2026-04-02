@@ -862,7 +862,7 @@ export function useFlowEditor() {
       const result = await $AutomationAPI.ngAutomationExec({
         automationID: id,
         trace: true,
-        ...(input ? { Input: input } : {}),
+        ...(input ? { input } : {}),
       })
 
       // Extract execution result from response

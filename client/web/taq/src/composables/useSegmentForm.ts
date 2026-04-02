@@ -141,7 +141,7 @@ export function useSegmentForm(options: {
               disabledPlaceholder,
               disabled,
               argument: element.input.argument,
-              required: isRequired(element.input.argument),
+              required: element.input.required || isRequired(element.input.argument),
               contextProps: resolveContextProps(element.input.context),
               value: isAgg
                 ? options.getAggregateValue(element.input.argument)
