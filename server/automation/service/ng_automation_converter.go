@@ -10,7 +10,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/ast"
 	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -163,7 +165,7 @@ func buildExecSteps(
 		}
 
 		// @todo fugly
-		if step.Kind == "function" {
+		if step.Kind == "function" || step.Kind == "iterator" {
 			reg := ConstructLibrary()
 			def, ok := reg.Function(step.Ref)
 			if !ok {
@@ -524,7 +526,7 @@ func stepConv(svc *ngAutomation, step *automationTypes.NgAutomationStep) (out ex
 
 	out, err = func() (out execTypes.StepHandler, err error) {
 		switch step.Kind {
-		case "function":
+		case "function", "iterator":
 			return stepConvFunction(step)
 
 		case "termination":
@@ -614,29 +616,24 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		return nil, errors.Internal("failed to verify result expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
 	}
 
-	// if isIterator {
-	// 	if len(out) != 2 {
-	// 		return nil, fmt.Errorf("expecting exactly 2 outbound paths for iterator")
-	// 	}
-
-	// 	var (
-	// 		next = g.StepByID(out[0].ChildID)
-	// 		exit = g.StepByID(out[1].ChildID)
-	// 	)
-
-	// 	if next == nil || exit == nil {
-	// 		// wait for steps to be resolved
-	// 		return nil, nil
-	// 	}
-
-	// 	return types.IteratorStep(def, step.Arguments, step.Results, next, exit)
-
-	// } else {
-	// }
+	handler := def.Handler
+	kind := types.FunctionKindFunction
+	if isIterator {
+		// For iterators, we create a handler that implements both ExecN
+		// (for the runtime's step execution) and the scheduler's
+		// IteratorHandler interface (Start/More/Next).
+		iterFn := def.Iterator
+		return &ngIteratorStep{
+			def:       &def,
+			iterFn:    iterFn,
+			arguments: step.Arguments,
+			results:   step.Results,
+		}, nil
+	}
 
 	return types.FunctionStep(&automationTypes.Function{
 		Ref:  def.Ref,
-		Kind: def.Kind,
+		Kind: kind,
 		Meta: &automationTypes.FunctionMeta{
 			Short:       def.Meta.Short,
 			Description: def.Meta.Description,
@@ -645,8 +642,7 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		Results:    def.Results,
 
 		ArgsMerger: def.ArgsMerger,
-		Handler:    def.Handler,
-		Iterator:   def.Iterator,
+		Handler:    handler,
 
 		Labels:   def.Labels,
 		Disabled: def.Disabled,
@@ -685,3 +681,94 @@ func stepConvError(step *automationTypes.NgAutomationStep) (out execTypes.StepHa
 
 	return automationTypes.ErrorStep(message, recoverable), nil
 }
+
+// ngIteratorStep implements execTypes.StepHandler and the scheduler's
+// IteratorHandler interface for iterator steps in the ng runtime.
+type ngIteratorStep struct {
+	def       *automationTypes.ConstructFunction
+	iterFn    automationTypes.IteratorHandler
+	arguments automationTypes.ExprSet
+	results   automationTypes.ExprSet
+
+	// Runtime state
+	ih wfexec.IteratorHandler
+}
+
+// ExecN evaluates arguments and initializes the underlying wfexec iterator.
+// The scheduler calls Start/More/Next after this.
+func (s *ngIteratorStep) ExecN(ctx context.Context, r *execTypes.ExecRequest) (execTypes.ExecResponse, error) {
+	var args *expr.Vars
+
+	if len(s.arguments) > 0 {
+		evaled, err := s.arguments.EvalN(ctx, r.Scope)
+		if err != nil {
+			return nil, err
+		}
+
+		if s.def.ArgsMerger == nil {
+			grouped := make(map[string][]expr.TypedValue)
+			for i, e := range s.arguments {
+				grouped[e.ArgumentName] = append(grouped[e.ArgumentName], evaled[i])
+			}
+
+			final := make(map[string]expr.TypedValue)
+			for _, p := range s.def.Parameters {
+				vals, exists := grouped[p.ArgumentName]
+				if !exists {
+					continue
+				}
+				if p.Aggregate {
+					var err error
+					final[p.ArgumentName], err = expr.NewArray(vals)
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					final[p.ArgumentName] = vals[0]
+				}
+			}
+
+			var err error
+			args, err = expr.NewVars(final)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			var err error
+			args, err = s.def.ArgsMerger(ctx, s.arguments, evaled)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	ih, err := s.iterFn(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+	s.ih = ih
+
+	return expr.NewVars(nil)
+}
+
+func (s *ngIteratorStep) Start(ctx context.Context, v *expr.Vars) error {
+	if s.ih == nil {
+		return fmt.Errorf("iterator not initialized")
+	}
+	return s.ih.Start(ctx, v)
+}
+
+func (s *ngIteratorStep) More(ctx context.Context, v *expr.Vars) (bool, error) {
+	if s.ih == nil {
+		return false, nil
+	}
+	return s.ih.More(ctx, v)
+}
+
+func (s *ngIteratorStep) Next(ctx context.Context, v *expr.Vars) (*expr.Vars, error) {
+	if s.ih == nil {
+		return nil, fmt.Errorf("iterator not initialized")
+	}
+	return s.ih.Next(ctx, v)
+}
+

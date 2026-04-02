@@ -142,8 +142,10 @@ func (ss *scheduler) StoreOutputs(stepID id.ID, outputs map[string]expr.TypedVal
 		f := ss.stack[i]
 		if f.stepID.Equal(stepID) {
 			handle := f.handle
-			// Store outputs in completed map for future lookups
-			if handle != "" {
+			// Iterator steps manage live per-iteration outputs on the stack frame;
+			// don't cache the initial empty ExecN output in completedOutputs as it
+			// would shadow the live stack lookup in FindOutput.
+			if handle != "" && (f.step == nil || f.step.Kind != "iterator") {
 				ss.completedOutputs[handle] = outputs
 			}
 			f.outputs = outputs
@@ -316,8 +318,14 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame, globalVars *e
 	// Convert expr.Vars to map for frame outputs
 	iterOutputs := make(map[string]expr.TypedValue)
 	if iterVars != nil {
-		// TODO: implement vars to map conversion based on expr.Vars API
+		for k, v := range iterVars.GetValue() {
+			iterOutputs[k] = v
+		}
 	}
+
+	// Update the iterator frame's own outputs so FindOutput(iteratorHandle)
+	// returns the current iteration's values for body steps referencing this scope.
+	f.outputs = iterOutputs
 
 	// First child is the body path
 	if len(f.step.Children) == 0 {
