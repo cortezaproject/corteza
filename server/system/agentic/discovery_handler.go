@@ -18,6 +18,7 @@ import (
 type (
 	toolRegistrar interface {
 		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
+		RegisterToolWithAvailability(tool mcp.Tool, title string, handler server.ToolHandlerFunc, available func() bool)
 	}
 
 	discoveryTokenSigner interface {
@@ -63,12 +64,23 @@ type (
 
 func DiscoveryHandler(reg toolRegistrar, baseURL string, signer discoveryTokenSigner) *discoveryHandler {
 	h := &discoveryHandler{reg: reg, baseURL: baseURL, signer: signer}
-	h.register()
+	if baseURL != "" {
+		h.register()
+	}
 	return h
 }
 
+func (h *discoveryHandler) isAvailable() bool {
+	resp, err := http.Get(h.baseURL + "/healthcheck")
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return resp.StatusCode < 500
+}
+
 func (h *discoveryHandler) register() {
-	h.reg.RegisterTool(
+	h.reg.RegisterToolWithAvailability(
 		mcp.NewTool("discovery_search",
 			mcp.WithDescription("Full-text search across all indexed records. Use this only when the user explicitly asks to search or find existing records by keyword. Do not use this when creating records or when the user provides a value directly — use it only to look up existing data."),
 			mcp.WithString("query", mcp.Required(), mcp.Description("Natural language or keyword search query")),
@@ -78,6 +90,7 @@ func (h *discoveryHandler) register() {
 		),
 		"Discover Records",
 		h.search,
+		h.isAvailable,
 	)
 }
 
