@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="resolveAttachments(rawAttachments)">
     <div v-if="loading" class="flex items-center justify-center h-full p-3">
       <ProgressSpinner style="width: 2rem; height: 2rem" />
     </div>

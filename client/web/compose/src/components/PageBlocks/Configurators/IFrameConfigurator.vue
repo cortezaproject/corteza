@@ -37,22 +37,7 @@
       <code>${user.name}</code>
     </small>
 
-    <Divider />
 
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.general.refreshRate') }}</label>
-      <InputNumber
-        v-model="refreshRate"
-        :min="0"
-        suffix=" s"
-        class="w-full"
-      />
-    </div>
-
-    <div class="flex items-center gap-2">
-      <Checkbox v-model="showRefresh" binary input-id="showRefreshIframe" />
-      <label for="showRefreshIframe" class="text-sm">{{ $t('block.general.showRefresh') }}</label>
-    </div>
   </div>
 </template>
 
@@ -99,13 +84,5 @@ const srcField = computed({
   set: v => updateOptions('srcField', v),
 })
 
-const refreshRate = computed({
-  get: () => props.block.options?.refreshRate ?? 0,
-  set: v => updateOptions('refreshRate', v),
-})
 
-const showRefresh = computed({
-  get: () => !!props.block.options?.showRefresh,
-  set: v => updateOptions('showRefresh', v),
-})
 </script>

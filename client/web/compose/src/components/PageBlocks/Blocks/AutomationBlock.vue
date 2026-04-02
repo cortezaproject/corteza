@@ -8,6 +8,7 @@
         :severity="mapVariant(btn.variant)"
         :loading="processingIDs.includes(i)"
         :disabled="processingIDs.includes(i)"
+        class="flex-auto min-w-[150px] whitespace-normal"
         @click="handleButton(btn, i)"
       />
     </div>

@@ -996,7 +996,7 @@ export function useFlowEditor() {
           handle: node.data?.ref || ancestorId,
           label: node.data?.label || triggerDef.meta?.short || triggerDef.eventType,
           icon: (triggerDef.meta?.icon || node.data?.icon) as IconDef | undefined,
-          results: triggerDef.properties.map(p => {
+          properties: triggerDef.properties.map(p => {
             const result: any = {
               name: p.meta?.short || p.name,
               sourceName: p.name,

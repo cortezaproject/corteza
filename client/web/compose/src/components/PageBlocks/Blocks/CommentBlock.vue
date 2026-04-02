@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="refresh">
     <!-- Not configured -->
     <div v-if="!isConfigured" class="flex items-center justify-center h-full">
       <p class="text-muted-color m-3">

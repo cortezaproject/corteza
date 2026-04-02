@@ -22,7 +22,7 @@
           </AccordionHeader>
           <AccordionContent>
             <div class="flex flex-col gap-1">
-              <template v-for="result in step.results" :key="result.sourceName">
+              <template v-for="result in (step.properties || step.results)" :key="result.sourceName">
                 <!-- Expandable result (e.g. ComposeRecord) — nested accordion -->
                 <div v-if="result.expandable" class="mt-1">
                   <Accordion
@@ -291,7 +291,8 @@ const filteredResults = computed(() => {
 
   return props.upstreamResults
     .map(step => {
-      const results = step.results.filter(result => {
+      const items = step.properties || step.results || []
+      const filtered = items.filter(result => {
         if (result.expandable) {
           // Show expandable if param accepts the parent type (e.g. ComposeRecord)
           if (typesOverlap(accepted, result.types)) return true
@@ -305,8 +306,15 @@ const filteredResults = computed(() => {
         return typesOverlap(accepted, result.types)
       })
 
-      if (results.length === 0) return null
-      return { ...step, results }
+      if (filtered.length === 0) return null
+      
+      const newStep = { ...step }
+      if (step.properties) {
+        newStep.properties = filtered
+      } else {
+        newStep.results = filtered
+      }
+      return newStep
     })
     .filter(Boolean)
 })
@@ -367,7 +375,8 @@ watch(
   () => props.upstreamResults,
   results => {
     for (const step of results) {
-      for (const result of step.results) {
+      const items = step.properties || step.results || []
+      for (const result of items) {
         if (result.expandable) {
           // Auto-expand sub-panels
           const subKey = step.handle + ':' + result.sourceName

@@ -1,7 +1,8 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="refresh">
     <div v-if="src !== 'about:blank'" class="h-full">
       <iframe
+        :key="refreshKey"
         ref="iframeRef"
         :src="src"
         class="w-full h-full border-0"
@@ -29,6 +30,11 @@ const props = defineProps({
 
 const $auth = inject('$auth', {})
 const iframeRef = ref(null)
+const refreshKey = ref(0)
+
+function refresh() {
+  refreshKey.value++
+}
 
 const src = computed(() => {
   const opts = props.block.options || {}

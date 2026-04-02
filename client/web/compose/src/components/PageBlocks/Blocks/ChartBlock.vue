@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="fetchChart">
     <div class="relative h-full">
       <ChartRenderer v-if="chart" ref="chartRenderer" :chart="chart" :reporter="reporter" :record="record" />
       <div v-else-if="!block.options?.chartID" class="p-3 text-muted-color italic">

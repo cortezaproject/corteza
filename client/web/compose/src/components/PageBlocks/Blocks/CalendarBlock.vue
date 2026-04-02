@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="refresh">
     <div class="flex flex-col h-full p-2 calendar-container">
       <!-- Custom Header -->
       <div v-if="!header.hide">
@@ -345,13 +345,15 @@ onBeforeUnmount(() => {
   offRefetch?.()
 })
 
-const offRefetch = $eventBus?.on('refetch-records', () => {
+function refresh() {
   refreshing.value = true
   const api = calendarApi.value
   if (api) {
     loadEvents(api.view.activeStart, api.view.activeEnd)
   }
-})
+}
+
+const offRefetch = $eventBus?.on('refetch-records', refresh)
 </script>
 
 <style>

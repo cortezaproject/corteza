@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="refresh">
     <div class="flex flex-col h-full">
       <template v-if="processing">
         <ProgressSpinner style="width: 24px; height: 24px" />

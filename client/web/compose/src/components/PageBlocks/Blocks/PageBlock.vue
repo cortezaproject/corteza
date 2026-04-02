@@ -49,7 +49,6 @@
   <Dialog
     v-if="showMagnifyButton"
     v-model:visible="magnified"
-    :header="block.title"
     :modal="true"
     :maximized="magnifyOption === 'fullscreen'"
     class="magnify-dialog"
@@ -69,6 +68,22 @@
       headerActions: { class: 'ml-auto' },
     }"
   >
+    <template #header>
+      <div class="flex items-center flex-1 min-w-0 pr-2">
+        <span class="font-semibold text-lg truncate">{{ block.title }}</span>
+        <Button
+          v-if="block.options?.showRefresh"
+          v-tooltip.bottom="$t('block.general.label.refresh')"
+          icon="pi pi-refresh"
+          text
+          severity="secondary"
+          size="small"
+          class="p-1 border-0 ml-auto"
+          @click="$emit('refreshBlock')"
+        />
+      </div>
+    </template>
+
     <div class="flex flex-col flex-1 overflow-hidden h-full">
       <!-- Block content (toolbar + body, same as Card #content) -->
       <div class="p-0 flex-1 flex flex-col overflow-hidden">
@@ -84,11 +99,11 @@
 </template>
 
 <script setup>
-import { computed, ref, useSlots } from 'vue'
+import { computed, ref, useSlots, watch, onBeforeUnmount } from 'vue'
 
 const $slots = useSlots()
 
-defineEmits(['refreshBlock'])
+const emit = defineEmits(['refreshBlock'])
 
 const props = defineProps({
   block: {
@@ -143,6 +158,26 @@ const cardPt = computed(() => ({
   caption: { class: ['pl-3 py-2 pr-2 border-b border-surface gap-1', headerTextClass.value] },
   content: { class: 'p-0 flex-1 flex flex-col overflow-hidden' },
 }))
+
+const refreshRate = computed(() => props.block.options?.refreshRate || 0)
+let interval = null
+
+watch(
+  refreshRate,
+  (rate) => {
+    if (interval) clearInterval(interval)
+    if (rate > 0) {
+      interval = setInterval(() => {
+        emit('refreshBlock')
+      }, rate * 1000)
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  if (interval) clearInterval(interval)
+})
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" @refreshBlock="pullRecords">
     <div v-if="!isConfigured" class="flex items-center justify-center h-full p-3 text-muted-color italic">
       {{ $t('block.recordOrganizer.notConfigured') }}
     </div>

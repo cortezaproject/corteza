@@ -398,6 +398,7 @@
                           text
                           size="small"
                           class="shrink-0"
+                          @click="removeTool(tool)"
                         />
                       </div>
                     </div>

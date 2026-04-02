@@ -17,6 +17,8 @@ interface Options {
   magnifyOption: string
   clickToView?: boolean
   enableDownload?: boolean
+  refreshRate: number
+  showRefresh: boolean
 }
 
 const PageBlockFileDefaultMode = 'list'
@@ -41,6 +43,8 @@ const defaults: Readonly<Options> = Object.freeze({
   magnifyOption: '',
   clickToView: true,
   enableDownload: true,
+  refreshRate: 0,
+  showRefresh: false,
 })
 
 export class PageBlockFile extends PageBlock {
@@ -60,7 +64,8 @@ export class PageBlockFile extends PageBlock {
       this.options.attachments = o.attachments
     }
 
-    Apply(this.options, o, Boolean, 'hideFileName', 'clickToView', 'enableDownload')
+    Apply(this.options, o, Boolean, 'hideFileName', 'clickToView', 'enableDownload', 'showRefresh')
+    Apply(this.options, o, Number, 'refreshRate')
     Apply(
       this.options,
       o,

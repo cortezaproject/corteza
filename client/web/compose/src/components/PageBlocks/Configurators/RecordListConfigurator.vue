@@ -205,14 +205,6 @@
           <CInputSwitch v-model="showRecordPerPageOption" :label="$t('block.recordList.record.showRecordPerPageOption')" />
 
           <CInputSwitch v-model="showTotalCount" :label="$t('block.recordList.record.showTotalCount')" />
-
-          <CInputSwitch v-model="showRefresh" :label="$t('block.general.refresh.show')" />
-
-          <div v-if="showRefresh" class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.general.refreshRate') }}</label>
-            <InputNumber v-model="refreshRate" :min="0" class="w-full" />
-            <small class="text-muted-color">{{ $t('block.general.refreshRateFootnote') }}</small>
-          </div>
         </div>
       </div>
 
@@ -556,15 +548,7 @@ const recordSelectorDisplayOption = computed({
   set: v => updateOptions('recordSelectorDisplayOption', v),
 })
 
-const showRefresh = computed({
-  get: () => !!props.block.options?.showRefresh,
-  set: v => updateOptions('showRefresh', v),
-})
 
-const refreshRate = computed({
-  get: () => props.block.options?.refreshRate ?? 0,
-  set: v => updateOptions('refreshRate', v),
-})
 
 // --- Field picker ---
 

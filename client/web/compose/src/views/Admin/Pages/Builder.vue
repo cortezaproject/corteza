@@ -503,8 +503,6 @@ watch(
       block.options.magnifyOption === ''
     )
       block.options.magnifyOption = 'disabled'
-    if (block.options.showRefresh === undefined) block.options.showRefresh = false
-    if (block.options.refreshRate === undefined) block.options.refreshRate = 0
   },
   { immediate: true },
 )
