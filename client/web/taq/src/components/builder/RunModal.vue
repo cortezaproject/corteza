@@ -47,7 +47,7 @@
           class="w-full"
         />
         <CInputUser
-          v-else-if="prop.type === 'SystemUser'"
+          v-else-if="prop.type === 'SystemUser' || prop.type === 'User'"
           v-model="scope[prop.name]"
           class="w-full"
         />
@@ -74,6 +74,8 @@
           icon="pi pi-play"
           severity="success"
           size="small"
+          :loading="isFetchingContext"
+          :disabled="isFetchingContext"
           @click="run"
         />
       </div>
@@ -82,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, inject } from 'vue'
 import {
   CInputRecord,
   CInputModule,
@@ -101,11 +103,14 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'run'])
 
+const $ComposeAPI = inject('$ComposeAPI')
+const $SystemAPI = inject('$SystemAPI')
+const $toast = inject('$toast')
+
 const scope = ref({})
+const isFetchingContext = ref(false)
 
-const supportedTypes = ['ComposeRecord', 'ComposeModule', 'ComposeNamespace', 'SystemUser']
-
-import { computed } from 'vue'
+const supportedTypes = ['ComposeRecord', 'ComposeModule', 'ComposeNamespace', 'SystemUser', 'User']
 
 const filteredProperties = computed(() => {
   return props.properties.filter(p => supportedTypes.includes(p.type))
@@ -135,38 +140,54 @@ function close() {
   emit('update:visible', false)
 }
 
-function run() {
+async function run() {
   const formattedScope = {}
-  Object.entries(scope.value).forEach(([key, val]) => {
-    if (val !== undefined && val !== null && val !== '') {
-      const propDef = props.properties.find(p => p.name === key)
-      // If it is a string type or unknown, just pass as is
-      if (!propDef || propDef.type === 'String' || propDef.type === 'Any') {
-        formattedScope[key] = val
-      } else {
-        // Pack into typed value so the expr engine knows what it is
-        let typedVal = val
-        if (propDef.type === 'ComposeNamespace') {
-          typedVal = { namespaceID: String(val) }
-        } else if (propDef.type === 'ComposeModule') {
-          typedVal = { 
-            namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined, 
-            moduleID: String(val) 
+  isFetchingContext.value = true
+
+  try {
+    for (const [key, val] of Object.entries(scope.value)) {
+      if (val !== undefined && val !== null && val !== '') {
+        const propDef = props.properties.find(p => p.name === key)
+        // If it is a string type or unknown, just pass as is
+        if (!propDef || propDef.type === 'String' || propDef.type === 'Any') {
+          formattedScope[key] = val
+        } else {
+          // Fetch full object so the expr engine receives the rich datatype as it expects
+          let typedVal = val
+          switch (propDef.type) {
+            case 'ComposeNamespace':
+              typedVal = await $ComposeAPI.namespaceRead({ namespaceID: String(val) })
+              break
+            case 'ComposeModule':
+              typedVal = await $ComposeAPI.moduleRead({ 
+                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined, 
+                moduleID: String(val) 
+              })
+              break
+            case 'ComposeRecord':
+              typedVal = await $ComposeAPI.recordRead({ 
+                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined, 
+                moduleID: propDef.moduleID || scope.value['module'] || undefined, 
+                recordID: String(val) 
+              })
+              break
+            case 'User':
+            case 'SystemUser':
+              typedVal = await $SystemAPI.userRead({ userID: String(val) })
+              break
           }
-        } else if (propDef.type === 'ComposeRecord') {
-          typedVal = { 
-            namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined, 
-            moduleID: propDef.moduleID || scope.value['module'] || undefined, 
-            recordID: String(val) 
-          }
-        } else if (propDef.type === 'SystemUser') {
-          typedVal = { userID: String(val) }
+          
+          formattedScope[key] = { '@type': propDef.type, '@value': typedVal }
         }
-        
-        formattedScope[key] = { '@type': propDef.type, '@value': typedVal }
       }
     }
-  })
+  } catch (err) {
+    console.error('[RunModal] Error fetching context references:', err)
+    $toast?.toastDanger('Failed to fetch full object scopes for execution. Ensure your selections are valid.')
+    return
+  } finally {
+    isFetchingContext.value = false
+  }
 
   emit('run', formattedScope)
   close()

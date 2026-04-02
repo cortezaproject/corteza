@@ -1283,7 +1283,7 @@ export function useFlowEditor() {
       }
     })
 
-    const propertyOrder = ['namespace', 'module', 'record', 'oldRecord']
+    const propertyOrder = ['namespace', 'module', 'record', 'oldRecord', 'user', 'oldUser']
     return Array.from(allProperties.values()).sort((a, b) => {
       const indexA = propertyOrder.indexOf(a.name)
       const indexB = propertyOrder.indexOf(b.name)
