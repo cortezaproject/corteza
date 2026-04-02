@@ -326,8 +326,19 @@ func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.
 }
 
 func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
+	entryPoint := p.EntryPoint
+	if entryPoint == "" {
+		// In case no entry point, use the first trigger as the parent.
+		// @todo this won't be 100% ok and will need to be specified on a higher level
+		if atm, loadErr := loadNgAutomation(ctx, svc.store, automationID); loadErr == nil {
+			if len(atm.Triggers) > 0 {
+				entryPoint = atm.Triggers[0].Handle
+			}
+		}
+	}
+
 	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
-		EntryPoint: p.EntryPoint,
+		EntryPoint: entryPoint,
 		Input:      p.Input,
 	})
 	if err != nil {
