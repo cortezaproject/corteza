@@ -88,7 +88,7 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ComposeRecord", "ID"}, Required: true,
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
 			},
 		},
 
@@ -826,7 +826,7 @@ func (h ngRecordsHandler) Delete() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ComposeRecord", "ID"}, Required: true,
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
 			},
 		},
 
@@ -1022,13 +1022,13 @@ func (h ngRecordsHandler) Update() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ComposeRecord", "ID"}, Required: true,
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
 			},
 			{
 				ArgumentName: "values",
 				Name:         "",
 				Types:        []string{"KV", "KVV", "Any"}, Required: true,
-				Aggregate:    true,
+				Aggregate: true,
 			},
 		},
 
@@ -1565,7 +1565,7 @@ func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
 			{
 				ArgumentName: "record",
 				Name:         "",
-				Types:        []string{"ComposeRecord", "ID"}, Required: true,
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
 			},
 		},
 
