@@ -244,6 +244,38 @@ const { processedSegments, updateValue } = useSegmentForm({
   upstreamResults: () => props.upstreamResults,
 })
 
+// Automatically seed defaults into arguments on mount if they are missing
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  let changed = false
+  const newArgs = [...props.arguments]
+
+  processedSegments.value.forEach(segment => {
+    segment.sections?.forEach(section => {
+      section.inputs?.forEach(input => {
+        // If argument is missing entirely and it has a default, add it
+        const exists = newArgs.some(a => a.argumentName === input.argument)
+        if (!exists && input.defaultValue !== undefined) {
+          const param = getParam(input.argument)
+          newArgs.push({
+            argumentName: input.argument,
+            type: param?.types?.[0] || 'Any',
+            value: input.defaultValue,
+            scope: undefined,
+            source: undefined,
+          })
+          changed = true
+        }
+      })
+    })
+  })
+
+  if (changed) {
+    emit('update:arguments', newArgs)
+  }
+})
+
 function handleValueUpdate(argumentName, value) {
   updateValue(argumentName, value)
 }

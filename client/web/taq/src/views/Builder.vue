@@ -31,7 +31,7 @@
             size="small"
             :loading="editor.running.value"
             :disabled="!editor.enabled.value || editor.running.value"
-            @click="editor.exec"
+            @click="onRunClick"
           />
         </template>
         <Divider layout="vertical" class="!m-0" />
@@ -279,14 +279,14 @@
       enter-to-class="translate-x-0"
     >
       <div
-        v-if="isTraceActive && selectedNode && selectedTraceFrame"
+        v-if="isTraceActive && selectedNode && selectedTraceFrame && showTracePanel"
         class="right-sidebar"
         :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '300px' }"
       >
         <TracePanel
           :frame="selectedTraceFrame"
           :execution-error="editor.traceExecution.value?.error"
-          @close="clearSelection"
+          @close="showTracePanel = false"
         />
       </div>
     </Transition>
@@ -365,6 +365,44 @@
         />
       </div>
     </div>
+    
+    <!-- Unsaved Changes Dialog -->
+    <Dialog
+      v-model:visible="showUnsavedDialog"
+      modal
+      :header="$t('builder.unsavedChanges.header', 'Unsaved Changes Detected')"
+      :style="{ width: '40rem' }"
+    >
+      <div class="mb-4 text-color whitespace-pre-line">
+        {{ $t('builder.unsavedChanges.description', 'You have unsaved changes in this automation.\n\nPlease save your work before executing a run to ensure your latest changes are tested.') }}
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end w-full h-full items-center gap-2">
+          <Button
+            :label="$t('general.label.cancel', 'Cancel')"
+            text
+            size="small"
+            severity="secondary"
+            @click="showUnsavedDialog = false"
+          />
+          <Button
+            :label="$t('builder.saveAndRun', 'Save & Run')"
+            icon="pi pi-save"
+            severity="success"
+            size="small"
+            @click="proceedRun(true)"
+          />
+        </div>
+      </template>
+    </Dialog>
+
+    <!-- Run Modal -->
+    <RunModal
+      v-model:visible="showRunModal"
+      :properties="runProperties"
+      @run="onRunConfirm"
+    />
   </div>
 </template>
 
@@ -383,7 +421,7 @@ const { CToolbar } = components
 import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import ConfigSidebar from '@/components/builder/ConfigSidebar.vue'
 import NodePicker from '@/components/builder/NodePicker.vue'
@@ -395,8 +433,10 @@ import EndNode from '@/components/flow/EndNode.vue'
 import IteratorNode from '@/components/flow/IteratorNode.vue'
 import StepNode from '@/components/flow/StepNode.vue'
 import TriggerNode from '@/components/flow/TriggerNode.vue'
+import RunModal from '@/components/builder/RunModal.vue'
 
 const route = useRoute()
+const router = useRouter()
 const store = useAutomationStore()
 const editor = useFlowEditor()
 const { confirmDelete } = useConfirmDelete()
@@ -419,7 +459,7 @@ const {
 let hasInitiallyFit = false
 onNodesInitialized(() => {
   if (!hasInitiallyFit) {
-    fitView({ padding: 0.2, maxZoom: 1.5 })
+    fitView({ padding: 0.2, maxZoom: 1.2 })
     hasInitiallyFit = true
   }
 })
@@ -439,6 +479,12 @@ const replaceNodeId = ref(null)
 const showReferencePanel = ref(false)
 const activeReferenceArgument = ref(null)
 const configSidebarRef = ref(null)
+const showTracePanel = ref(true)
+
+// Run Modal State
+const showRunModal = ref(false)
+const runProperties = ref([])
+const showUnsavedDialog = ref(false)
 
 // Provide active reference argument to descendant components (DynamicInput, CInputFieldValueMap)
 provide('activeReferenceArgument', activeReferenceArgument)
@@ -512,6 +558,7 @@ watch(
   () => {
     showReferencePanel.value = false
     activeReferenceArgument.value = null
+    showTracePanel.value = true
   },
 )
 
@@ -564,7 +611,7 @@ function zoomOut() {
 }
 
 function fitToScreen() {
-  fitView({ padding: 0.2, zoom: 1.5 })
+  fitView({ padding: 0.2, maxZoom: 1.2 })
 }
 
 function toggleEnabled(val) {
@@ -582,6 +629,34 @@ function goBack() {
 function closeNodePicker() {
   showNodePicker.value = false
   replaceNodeId.value = null
+}
+
+function onRunClick() {
+  if (editor.isDirty.value) {
+    showUnsavedDialog.value = true
+  } else {
+    proceedRun(false)
+  }
+}
+
+async function proceedRun(saveFirst) {
+  showUnsavedDialog.value = false
+  if (saveFirst) {
+    await editor.save()
+  }
+  
+  const props = editor.getTriggerProperties()
+  if (props && props.length > 0) {
+    runProperties.value = props
+    showRunModal.value = true
+  } else {
+    // If no complex scopes, just execute directly
+    editor.exec()
+  }
+}
+
+function onRunConfirm(scope) {
+  editor.exec(scope)
 }
 
 // Drawer resize handlers
@@ -888,10 +963,26 @@ onUnmounted(() => {
 // Watch route for changes (waits for catalog to be ready)
 watch(
   [() => route.params.id, () => store.catalogReady],
-  async ([id, ready]) => {
+  async ([id, ready], oldVals) => {
     if (!ready) return
+    
+    const oldId = oldVals?.[0]
+    if (id !== oldId) {
+      hasInitiallyFit = false
+    }
+
     if (id && id !== 'new') {
       await editor.load(id)
+      
+      // Ensure we fit view when navigating to an already mounted component
+      nextTick(() => {
+        setTimeout(() => {
+          if (!hasInitiallyFit) {
+            fitView({ padding: 0.2, maxZoom: 1.2 })
+            hasInitiallyFit = true
+          }
+        }, 100)
+      })
     } else {
       editor.reset()
     }

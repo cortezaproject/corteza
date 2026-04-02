@@ -378,7 +378,7 @@
                       <div
                         v-for="tool in selectedTools"
                         :key="tool.name"
-                        class="flex items-start gap-3 p-3 border border-surface rounded-lg"
+                        class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
                       >
                         <div class="flex flex-col gap-1 flex-1 min-w-0">
                           <span class="font-medium text-color text-sm truncate">
@@ -397,7 +397,7 @@
                           severity="danger"
                           text
                           size="small"
-                          class="shrink-0"
+                          class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
                           @click="removeTool(tool)"
                         />
                       </div>
@@ -423,7 +423,7 @@
                       <div
                         v-for="(taq, idx) in agent.access.taqs"
                         :key="taq.id"
-                        class="flex items-start gap-3 p-3 border border-surface rounded-lg"
+                        class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
                       >
                         <div class="flex flex-col gap-1 flex-1 min-w-0">
                           <span class="font-medium text-color text-sm truncate">
@@ -441,7 +441,7 @@
                           severity="danger"
                           text
                           size="small"
-                          class="shrink-0"
+                          class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
                           @click="removeTaq(idx)"
                         />
                       </div>
@@ -467,7 +467,7 @@
                       <div
                         v-for="(workflow, idx) in agent.access.workflows"
                         :key="workflow.id"
-                        class="flex items-start gap-3 p-3 border border-surface rounded-lg"
+                        class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
                       >
                         <div class="flex flex-col gap-1 flex-1 min-w-0">
                           <span class="font-medium text-color text-sm truncate">
@@ -485,7 +485,7 @@
                           severity="danger"
                           text
                           size="small"
-                          class="shrink-0"
+                          class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
                           @click="removeWorkflow(idx)"
                         />
                       </div>

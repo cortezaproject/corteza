@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="inline-flex items-center gap-1 bg-surface border border-surface text-xs px-2 py-1 rounded-border"
-    :title="displayLabel"
-  >
+  <div class="inline-flex items-center gap-1" :title="displayLabel">
     <i class="pi pi-link text-primary text-xs" />
     <span class="text-color truncate">{{ displayLabel }}</span>
   </div>

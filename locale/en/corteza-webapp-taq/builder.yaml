@@ -11,6 +11,17 @@ replaceTrigger: Replace Trigger
 emptyState: Start by adding a trigger
 addTrigger: Add Trigger
 
+triggers:
+  interval:
+    everyMinute: Every minute
+    every5Minutes: Every 5 minutes
+    every15Minutes: Every 15 minutes
+    everyHour: Every hour
+    everyDay: Every day at midnight
+    everyMonday: Every Monday at midnight
+    everyMonth: Every month on the 1st
+    custom: Custom
+
 cards:
   connectors:
     title: Connectors

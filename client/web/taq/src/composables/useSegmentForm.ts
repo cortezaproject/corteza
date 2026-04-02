@@ -145,7 +145,8 @@ export function useSegmentForm(options: {
               contextProps: resolveContextProps(element.input.context),
               value: isAgg
                 ? options.getAggregateValue(element.input.argument)
-                : options.getValue(element.input.argument),
+                : options.getValue(element.input.argument) ?? element.input.default,
+              defaultValue: element.input.default,
               isReference,
               referenceLabel,
               options: inputOptions,

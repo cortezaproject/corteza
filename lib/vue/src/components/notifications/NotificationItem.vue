@@ -87,12 +87,44 @@ async function openRecordNotification() {
       return
     }
 
+    if (recordID && recordID !== '0') {
+      try {
+        const record = await $ComposeAPI.recordRead({ namespaceID, moduleID, recordID })
+        if (!record) {
+          $toast?.toastDanger?.(t('notifications.recordNotFound'))
+          return
+        }
+      } catch {
+        $toast?.toastDanger?.(t('notifications.recordNotFound'))
+        return
+      }
+    }
+
+    const slug = namespace.slug || namespace.namespaceID
+    const pageID = recordPages[0].pageID
+    const recID = !recordID || recordID === '0' ? '0' : recordID
+
+    if (!router.hasRoute('page.record')) {
+      const u = new URL(window.location)
+      let url = `${u.origin}/compose/namespace/${slug}/pages/${pageID}/records/${recID}`
+      if (edit) {
+        url += '?edit=1'
+      }
+
+      if (openMode === 'newTab') {
+        window.open(url, '_blank', 'noopener')
+      } else {
+        window.location = url
+      }
+      return
+    }
+
     const routeLocation = {
       name: 'page.record',
       params: {
-        slug: namespace.slug || namespace.namespaceID,
-        pageID: recordPages[0].pageID,
-        recordID,
+        slug,
+        pageID,
+        recordID: recID,
       },
       query: edit ? { edit: '1' } : {},
     }
@@ -101,10 +133,9 @@ async function openRecordNotification() {
       const resolved = router.resolve(routeLocation)
       window.open(resolved.href, '_blank', 'noopener')
     } else {
-      // Human does not yet support record modal parity here; fall back to route navigation.
       router.push(routeLocation)
     }
-  } catch (error) {
+  } catch {
     $toast?.toastDanger?.(t('notifications.recordRedirectError'))
   }
 }

@@ -61,8 +61,10 @@ export function useFlowEditor() {
   // History for undo/redo
   const history = ref<string[]>([])
   const historyIndex = ref(-1)
-
+  const lastSavedHistoryIndex = ref(0)
+  
   // Computed
+  const isDirty = computed(() => historyIndex.value !== lastSavedHistoryIndex.value)
   const canUndo = computed(() => historyIndex.value > 0)
   const canRedo = computed(() => historyIndex.value < history.value.length - 1)
   const automationId = computed(() => automation.value.automationID)
@@ -122,7 +124,10 @@ export function useFlowEditor() {
       nodes.value = state.nodes
       edges.value = state.edges
 
-      nextTick(() => saveToHistory())
+      nextTick(() => {
+        saveToHistory()
+        lastSavedHistoryIndex.value = historyIndex.value
+      })
     } catch (e) {
       console.error('Failed to load automation:', e)
       $toast?.toastDanger(t('builder.toast.loadError.detail'), t('builder.toast.loadError.summary'))
@@ -311,6 +316,8 @@ export function useFlowEditor() {
       }
 
       $toast?.toastSuccess(t('builder.toast.saved.detail'), t('builder.toast.saved.summary'))
+      lastSavedHistoryIndex.value = historyIndex.value
+      
       return automation.value
     } catch (e) {
       console.error('Failed to save automation:', e)
@@ -328,7 +335,10 @@ export function useFlowEditor() {
     edges.value = []
     history.value = []
     historyIndex.value = -1
-    nextTick(() => saveToHistory())
+    nextTick(() => {
+      saveToHistory()
+      lastSavedHistoryIndex.value = historyIndex.value
+    })
   }
 
   // Add a new node to the flow
@@ -427,15 +437,18 @@ export function useFlowEditor() {
       },
     }
 
+    let nextNodes: typeof nodes.value = [...nodes.value]
+    let nextEdges: typeof edges.value = [...edges.value]
+
     if (insertionPoint?.first) {
       // First node (trigger)
-      nodes.value = [newNode]
+      nextNodes = [newNode]
 
       // Add end node (will be saved as termination step)
       const endId = String(parseInt(newId) + 1)
       const endVueId = `end_${endId}`
 
-      nodes.value.push({
+      nextNodes.push({
         id: endVueId,
         type: 'end',
         position: { x: 0, y: 0 },
@@ -449,7 +462,7 @@ export function useFlowEditor() {
           ref: endVueId,
         },
       })
-      edges.value = [
+      nextEdges = [
         {
           id: `${vueFlowNodeId}_${endVueId}`,
           source: vueFlowNodeId,
@@ -542,20 +555,20 @@ export function useFlowEditor() {
           })
         }
 
-        // Apply changes: NODES FIRST, then edges
-        nodes.value.push(...newNodes)
+        // Prepare new state immutably: NODES FIRST, then edges
+        nextNodes = [...nodes.value, ...newNodes]
 
         // Remove old edge and insert replacement at same position, then add rest
         const filteredEdges = edges.value.filter(e => e.id !== insertionPoint.edgeId)
         if (insertEdge) {
           filteredEdges.splice(edgeIndex, 0, insertEdge)
         }
-        edges.value = [...filteredEdges, ...newEdges]
+        nextEdges = [...filteredEdges, ...newEdges]
       }
     }
 
     // Re-layout nodes
-    const layouted = applyDagreLayout({ nodes: nodes.value, edges: edges.value })
+    const layouted = applyDagreLayout({ nodes: nextNodes, edges: nextEdges })
     nodes.value = layouted.nodes
     edges.value = layouted.edges
 
@@ -757,8 +770,11 @@ export function useFlowEditor() {
     // Generate new end node ID
     const newEndId = `end_${branchNode.id}_${Date.now()}`
 
+    let nextNodes = [...nodes.value]
+    let nextEdges = [...edges.value]
+
     // Add new end node
-    nodes.value.push({
+    nextNodes.push({
       id: newEndId,
       type: 'end',
       position: { x: 0, y: 0 },
@@ -775,8 +791,8 @@ export function useFlowEditor() {
 
     // Find existing edges from this branch to determine insertion position
     // Insert new edge BEFORE the last edge (the "Else" branch)
-    const branchEdges = edges.value.filter(e => e.source === branchNode.id)
-    const lastBranchEdgeIndex = edges.value.findIndex(
+    const branchEdges = nextEdges.filter(e => e.source === branchNode.id)
+    const lastBranchEdgeIndex = nextEdges.findIndex(
       e => e.id === branchEdges[branchEdges.length - 1]?.id,
     )
 
@@ -789,13 +805,13 @@ export function useFlowEditor() {
 
     // Insert before the last branch edge (Else stays last)
     if (lastBranchEdgeIndex !== -1) {
-      edges.value.splice(lastBranchEdgeIndex, 0, newEdge)
+      nextEdges.splice(lastBranchEdgeIndex, 0, newEdge)
     } else {
-      edges.value.push(newEdge)
+      nextEdges.push(newEdge)
     }
 
     // Re-layout
-    const layouted = applyDagreLayout({ nodes: nodes.value, edges: edges.value })
+    const layouted = applyDagreLayout({ nodes: nextNodes, edges: nextEdges })
     nodes.value = layouted.nodes
     edges.value = layouted.edges
 
@@ -834,7 +850,7 @@ export function useFlowEditor() {
     saveToHistory()
   }
 
-  async function exec() {
+  async function exec(input?: Record<string, unknown>) {
     const id = automation.value.automationID
     if (!id || id === '0') return
 
@@ -848,6 +864,7 @@ export function useFlowEditor() {
       const result = await $AutomationAPI.ngAutomationExec({
         automationID: id,
         trace: true,
+        ...(input ? { Input: input } : {}),
       })
 
       // Extract execution result from response
@@ -1226,6 +1243,61 @@ export function useFlowEditor() {
     saveToHistory()
   }
 
+  // Get all expected properties from all triggers in the flow
+  function getTriggerProperties() {
+    const store = useAutomationStore()
+    const allProperties = new Map<string, any>()
+
+    // Helper: resolve a trigger constraint value by property name
+    function getTriggerConstraintValue(nodeData: any, propName: string): string | null {
+      const constraints = nodeData?.constraints || []
+      const c = constraints.find((cc: any) => cc.name === propName)
+      return c?.values?.[0]?.['@value'] ?? null
+    }
+
+    nodes.value.filter(n => n.type === 'trigger').forEach(node => {
+      const eventType = node.data?.nodeType
+      const resourceType = node.data?.resourceType
+      const triggerDef = store.triggers.find(
+        t => t.eventType === eventType && (!resourceType || t.resourceType === resourceType)
+      )
+      
+      if (triggerDef?.properties) {
+        triggerDef.properties.forEach((p: any) => {
+          // Store by name to deduplicate overlapping properties across triggers
+          if (!allProperties.has(p.name)) {
+            const prop: any = {
+              name: p.name,
+              type: p.type || 'String',
+              defaultValue: getTriggerConstraintValue(node.data, p.name),
+              meta: p.meta || {}
+            }
+            
+            // Extract namespace and module if it's a ComposeRecord
+            if (prop.type === 'ComposeRecord') {
+              prop.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
+              prop.moduleID = getTriggerConstraintValue(node.data, 'module')
+            }
+            
+            allProperties.set(p.name, prop)
+          }
+        })
+      }
+    })
+
+    const propertyOrder = ['namespace', 'module', 'record', 'oldRecord']
+    return Array.from(allProperties.values()).sort((a, b) => {
+      const indexA = propertyOrder.indexOf(a.name)
+      const indexB = propertyOrder.indexOf(b.name)
+      
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB
+      if (indexA !== -1) return -1
+      if (indexB !== -1) return 1
+      
+      return a.name.localeCompare(b.name)
+    })
+  }
+
   return {
     // State
     automation,
@@ -1248,6 +1320,7 @@ export function useFlowEditor() {
     isEmpty,
     canUndo,
     canRedo,
+    isDirty,
 
     // Actions
     load,
@@ -1267,5 +1340,6 @@ export function useFlowEditor() {
     updateGatewayType,
     saveToHistory,
     getUpstreamResults,
+    getTriggerProperties,
   }
 }

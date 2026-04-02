@@ -120,7 +120,6 @@ const edgeStyle = computed(() => {
     if (props.traceTraversed) {
       return { stroke: 'var(--p-green-500)', strokeWidth: '2.5px' }
     }
-    return { stroke: 'var(--p-text-muted-color)', strokeWidth: '1px', opacity: 0.3 }
   }
   if (isHighlighted.value) {
     return { stroke: 'var(--p-primary-color)', strokeWidth: '2.5px' }
@@ -159,9 +158,8 @@ function handleAdd() {
       {{ edgeLabel }}
     </span>
 
-    <!-- Add button (centered, hidden during trace) -->
+    <!-- Add button (centered) -->
     <div
-      v-if="!traceActive"
       class="edge-button"
       :style="{
         position: 'absolute',

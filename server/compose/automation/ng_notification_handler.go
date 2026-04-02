@@ -147,15 +147,22 @@ func (h ngNotificationHandler) SendRecord() atypes.ConstructFunction {
 					},
 				}, {
 					Input: atypes.SectionElementInput{
-						Type:     "String",
+						Type:     "Select",
 						Label:    "Open Mode",
 						Argument: "openMode",
+						Options: []atypes.SelectItem{
+							{Label: "Same Tab", Value: "sameTab"},
+							{Label: "New Tab", Value: "newTab"},
+							{Label: "Modal", Value: "modal"},
+						},
+						Default: "sameTab",
 					},
 				}, {
 					Input: atypes.SectionElementInput{
 						Type:     "Boolean",
 						Label:    "Edit",
 						Argument: "edit",
+						Default:  false,
 					},
 				}},
 			}},
