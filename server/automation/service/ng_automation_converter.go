@@ -301,6 +301,12 @@ func wirePaths(
 			continue
 		}
 
+		// Silently drop back-edges to iterator steps — the iterator frame
+		// manages its own loop internally via More()/Next().
+		if childStep, ok := stepIdx[p.ChildID]; ok && childStep.Kind == "iterator" {
+			continue
+		}
+
 		stepsWithParents[p.ChildID] = true
 
 		// Gateway paths are wired below in sorted order.
