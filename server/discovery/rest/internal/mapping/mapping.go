@@ -1,5 +1,7 @@
 package mapping
 
+import "github.com/cortezaproject/corteza/server/pkg/options"
+
 type (
 	Mapping struct {
 		Index   string               `json:"index"`
@@ -17,6 +19,10 @@ type (
 		Analyzer string `json:"analyzer,omitempty"`
 
 		Properties map[string]*property `json:"properties,omitempty"`
+
+		// for vector indexing
+		Dimension int            `json:"dimension,omitempty"`
+		Method    map[string]any `json:"method,omitempty"`
 	}
 
 	Context struct {
@@ -44,6 +50,21 @@ func security() *property {
 		Properties: map[string]*property{
 			"allowedRoles": {Type: "long"},
 			"deniedRoles":  {Type: "long"},
+		},
+	}
+}
+
+func vector(opts options.DiscoveryOpt) *property {
+	return &property{
+		Type:      "knn_vector",
+		Dimension: opts.EmbeddingsDimension,
+		Method: map[string]any{
+			"name":   "hnsw",
+			"engine": "lucene",
+			"parameters": map[string]any{
+				"ef_construction": opts.HnswEfConstruction,
+				"m":               opts.HnswM,
+			},
 		},
 	}
 }

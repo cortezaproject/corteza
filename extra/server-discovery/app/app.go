@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/davecgh/go-spew/spew"

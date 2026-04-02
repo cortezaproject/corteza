@@ -65,10 +65,34 @@ type (
 		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
+	RecordSummary struct {
+		Name string
+
+		Min float64
+		Max float64
+		Avg float64
+		Sum float64
+
+		EmptyCount    int
+		NotEmptyCount int
+		UniqueCount   int
+
+		Earliest time.Time
+		Latest   time.Time
+
+		Count int
+	}
+
+	RecordSummaryReq struct {
+		Name  string `json:"name"`
+		Field string `json:"field"`
+	}
+
 	RecordFilter struct {
-		ModuleID    uint64 `json:"moduleID,string"`
-		NamespaceID uint64 `json:"namespaceID,string"`
-		Query       string `json:"query"`
+		Summaries   []RecordSummaryReq `json:"summaries,omitempty"`
+		ModuleID    uint64             `json:"moduleID,string"`
+		NamespaceID uint64             `json:"namespaceID,string"`
+		Query       string             `json:"query"`
 
 		Meta map[string]any `json:"meta,omitempty"`
 
@@ -146,6 +170,10 @@ loop:
 //
 // Only if not previously set and if matches record specs
 func (r *Record) SetModule(m *Module) {
+	if m == nil {
+		return
+	}
+
 	if (r.module == nil || r.module.ID == m.ID) && r.ModuleID == m.ID {
 		r.module = m
 	}
@@ -168,6 +196,23 @@ func (r *Record) getValue(name string, pos uint) (any, error) {
 
 	if val := r.Values.Get(name, pos); val != nil {
 		return val.Value, nil
+	}
+
+	return nil, nil
+}
+
+func (r *Record) getValues(name string) ([]any, error) {
+	if r.Values == nil {
+		return nil, nil
+	}
+
+	if val := r.Values.GetAll(name); val != nil {
+		aux := make([]any, 0, len(val))
+		for _, v := range val {
+			aux = append(aux, v.Value)
+		}
+
+		return aux, nil
 	}
 
 	return nil, nil
@@ -336,6 +381,37 @@ func (r *Record) UnmarshalJSON(data []byte) error {
 	// calls this function
 	type auxRecord Record
 	return json.Unmarshal(data, &struct{ *auxRecord }{auxRecord: (*auxRecord)(r)})
+}
+
+func (m RecordSummary) MarshalJSON() ([]byte, error) {
+	out := map[string]any{
+		"name": m.Name,
+	}
+
+	switch m.Name {
+	case "min":
+		out["value"] = cast.ToString(m.Min)
+	case "max":
+		out["value"] = cast.ToString(m.Max)
+	case "avg":
+		out["value"] = cast.ToString(m.Avg)
+	case "sum":
+		out["value"] = cast.ToString(m.Sum)
+	case "emptyCount":
+		out["value"] = cast.ToString(m.EmptyCount)
+	case "notEmptyCount":
+		out["value"] = cast.ToString(m.NotEmptyCount)
+	case "count":
+		out["value"] = cast.ToString(m.Count)
+	case "uniqueCount":
+		out["value"] = cast.ToString(m.UniqueCount)
+	case "earliest":
+		out["value"] = cast.ToString(m.Earliest)
+	case "latest":
+		out["value"] = cast.ToString(m.Latest)
+	}
+
+	return json.Marshal(out)
 }
 
 // ToBulkOperations converts BulkRecordSet to a list of BulkRecordOperations

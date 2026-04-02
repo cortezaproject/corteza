@@ -21,6 +21,7 @@ const (
 	QueueResourceType                     = "corteza::system:queue"
 	QueueMessageResourceType              = "corteza::system:queue-message"
 	ReminderResourceType                  = "corteza::system:reminder"
+	NotificationResourceType              = "corteza::system:notification"
 	ReportResourceType                    = "corteza::system:report"
 	ResourceTranslationResourceType       = "corteza::system:resource-translation"
 	RoleResourceType                      = "corteza::system:role"

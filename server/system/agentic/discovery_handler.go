@@ -2,10 +2,12 @@ package agentic
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -26,6 +28,36 @@ type (
 		reg     toolRegistrar
 		baseURL string
 		signer  discoveryTokenSigner
+	}
+
+	discoveryResponse struct {
+		Response struct {
+			Hits []struct {
+				Type  string `json:"type"`
+				Value struct {
+					RecordID     string            `json:"recordID"`
+					CustomValues map[string]string `json:"customValues"`
+					Values       []struct {
+						Name  string   `json:"name"`
+						Label string   `json:"label"`
+						Value []string `json:"value"`
+					} `json:"values"`
+					Module struct {
+						Handle string `json:"handle"`
+						Name   string `json:"name"`
+					} `json:"module"`
+					Namespace struct {
+						Name string `json:"name"`
+					} `json:"namespace"`
+					Created struct {
+						At string `json:"at"`
+						By string `json:"by"`
+					} `json:"created"`
+				} `json:"value"`
+			} `json:"hits"`
+			TotalHits    int `json:"total_hits"`
+			TotalResults int `json:"total_results"`
+		} `json:"response"`
 	}
 )
 
@@ -109,5 +141,42 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 		return nil, fmt.Errorf("discovery search error %d: %s", resp.StatusCode, string(body))
 	}
 
-	return mcp.NewToolResultText(string(body)), nil
+	formatted, err := formatDiscoveryResponse(body)
+	if err != nil {
+		// Fall back to raw JSON if parsing fails
+		return mcp.NewToolResultText(string(body)), nil
+	}
+
+	return mcp.NewToolResultText(formatted), nil
+}
+
+func formatDiscoveryResponse(body []byte) (string, error) {
+	var dr discoveryResponse
+	if err := json.Unmarshal(body, &dr); err != nil {
+		return "", err
+	}
+
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("found %d result(s) (showing %d):\n\n",
+		dr.Response.TotalResults, len(dr.Response.Hits)))
+
+	for i, hit := range dr.Response.Hits {
+		v := hit.Value
+		sb.WriteString(fmt.Sprintf("--- Result %d ---\n", i+1))
+		sb.WriteString(fmt.Sprintf("Record ID : %s\n", v.RecordID))
+		sb.WriteString(fmt.Sprintf("Module    : %s\n", v.Module.Name))
+		sb.WriteString(fmt.Sprintf("Namespace : %s\n", v.Namespace.Name))
+		sb.WriteString(fmt.Sprintf("Created   : %s by %s\n", v.Created.At, v.Created.By))
+
+		if len(v.Values) > 0 {
+			sb.WriteString("Fields    :\n")
+			for _, field := range v.Values {
+				sb.WriteString(fmt.Sprintf("  %s: %s\n", field.Label, strings.Join(field.Value, ", ")))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	return sb.String(), nil
 }

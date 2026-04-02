@@ -4,15 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/api"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
 )
 
 type (
@@ -21,11 +20,6 @@ type (
 		ES         options.EsOpt
 		HttpServer options.HttpServerOpt
 		Searcher   options.SearcherOpt
-	}
-
-	esService interface {
-		Client() (*elasticsearch.Client, error)
-		BulkIndexer() (esutil.BulkIndexer, error)
 	}
 
 	apiClientService interface {
@@ -41,18 +35,15 @@ var (
 	DefaultLogger *zap.Logger
 	DefaultConfig Config
 
-	DefaultEs        esService
+	DefaultEsClient  *elasticsearch.Client
 	DefaultApiClient apiClientService
 )
 
-func Initialize(_ context.Context, log *zap.Logger, c Config) (err error) {
+func Initialize(_ context.Context, log *zap.Logger, c Config, esClient *elasticsearch.Client) (err error) {
 	DefaultLogger = log.Named("service")
 	DefaultConfig = c
 
-	DefaultEs, err = es.ES(log, c.ES)
-	if err != nil {
-		return
-	}
+	DefaultEsClient = esClient
 
 	DefaultApiClient, err = api.Client(c.Corteza, c.Searcher.ClientKey, c.Searcher.ClientSecret)
 	if err != nil {

@@ -1,13 +1,15 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 )
 
 type (
@@ -97,11 +99,15 @@ func (c *client) Authenticate() (err error) {
 		return fmt.Errorf("missing credentials")
 	}
 
-	if c.credentials.expiresAt.Before(time.Now()) {
-		c.credentials, err = c.authToken()
+	tokenNeedsRefresh := c.credentials.expiresAt.IsZero() || time.Now().After(c.credentials.expiresAt.Add(-60*time.Second))
+
+	if tokenNeedsRefresh {
+		newCredentials, err := c.authToken()
 		if err != nil {
-			return
+			return fmt.Errorf("failed to refresh token: %w", err)
 		}
+
+		c.credentials = newCredentials
 	}
 
 	return nil
@@ -163,7 +169,37 @@ func (c *client) authToken() (crd *credentials, err error) {
 		return
 	}
 
-	crd.expiresAt = time.Now().Add(time.Second * time.Duration(crd.ExpiresIn))
+	crd.expiresAt, err = parseJWTExpiry(crd.AccessToken)
+	if err != nil {
+		crd.expiresAt = time.Now().Add(time.Second * time.Duration(crd.ExpiresIn))
+	}
 
 	return
+}
+
+func parseJWTExpiry(tokenString string) (time.Time, error) {
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		return time.Time{}, fmt.Errorf("invalid JWT format: expected 3 parts, got %d", len(parts))
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return time.Time{}, fmt.Errorf("failed to decode JWT payload: %w", err)
+	}
+
+	// Parse exp claim
+	var claims struct {
+		Exp int64 `json:"exp"`
+	}
+
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return time.Time{}, fmt.Errorf("failed to unmarshal JWT claims: %w", err)
+	}
+
+	if claims.Exp == 0 {
+		return time.Time{}, fmt.Errorf("JWT missing exp claim")
+	}
+
+	return time.Unix(claims.Exp, 0), nil
 }

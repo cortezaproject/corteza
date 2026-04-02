@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (
@@ -24,17 +25,19 @@ type (
 	}
 
 	composeMapping struct {
-		ac  composeAccessControl
-		ns  namespaceSearcher
-		mod moduleSearcher
+		ac   composeAccessControl
+		ns   namespaceSearcher
+		mod  moduleSearcher
+		opts options.DiscoveryOpt
 	}
 )
 
-func ComposeMapping() *composeMapping {
+func ComposeMapping(discoveryOpts options.DiscoveryOpt) *composeMapping {
 	return &composeMapping{
-		ac:  service.DefaultAccessControl,
-		ns:  service.DefaultNamespace,
-		mod: service.DefaultModule,
+		ac:   service.DefaultAccessControl,
+		ns:   service.DefaultNamespace,
+		mod:  service.DefaultModule,
+		opts: discoveryOpts,
 	}
 }
 
@@ -220,6 +223,10 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 			"name":        {Type: "text"},
 			"handle":      {Type: "keyword"},
 		},
+	}
+
+	if m.opts.EmbeddingsEnabled {
+		mapping.Mapping["vectorsValue"] = vector(m.opts)
 	}
 
 	return

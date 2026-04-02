@@ -95,6 +95,7 @@ func (a resourceActivity) ResourceActivities(ctx context.Context, limit uint, cu
 
 			return nil
 		})
+
 		if err != nil {
 			return err
 		}
