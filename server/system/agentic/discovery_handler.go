@@ -38,7 +38,7 @@ func DiscoveryHandler(reg toolRegistrar, baseURL string, signer discoveryTokenSi
 func (h *discoveryHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("discovery_search",
-			mcp.WithDescription("Use this tool first when the user asks any question about data, records, or information. It searches across all indexed records and returns relevant results. Prefer this over compose_record_lookup unless you already know the exact record ID or module."),
+			mcp.WithDescription("Full-text search across all indexed records. Use this only when the user explicitly asks to search or find existing records by keyword. Do not use this when creating records or when the user provides a value directly — use it only to look up existing data."),
 			mcp.WithString("query", mcp.Required(), mcp.Description("Natural language or keyword search query")),
 			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
 			mcp.WithString("namespace", mcp.Description("Filter results to a specific namespace slug")),

@@ -116,7 +116,8 @@ func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		return nil, fmt.Errorf("invalid request")
 	}
 
-	taq, err := h.resolve(ctx, args["taq"].(string))
+	taqRef, _ := args["taq"].(string)
+	taq, err := h.resolve(ctx, taqRef)
 	if err != nil {
 		return nil, err
 	}
@@ -127,11 +128,9 @@ func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		params.EntryPoint = ep
 	}
 
-	if inputStr, ok := args["input"].(string); ok && inputStr != "" {
-		var inputMap map[string]interface{}
-		if err := json.Unmarshal([]byte(inputStr), &inputMap); err != nil {
-			return nil, fmt.Errorf("invalid input JSON: %w", err)
-		}
+	if inputMap, err := parseInput(args["input"]); err != nil {
+		return nil, err
+	} else if inputMap != nil {
 		vars, err := expr.NewVars(inputMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build input vars: %w", err)
@@ -156,7 +155,8 @@ func (h *taqHandler) executions(ctx context.Context, req mcp.CallToolRequest) (*
 		return nil, fmt.Errorf("invalid request")
 	}
 
-	taq, err := h.resolve(ctx, args["taq"].(string))
+	taqRef, _ := args["taq"].(string)
+	taq, err := h.resolve(ctx, taqRef)
 	if err != nil {
 		return nil, err
 	}
@@ -178,12 +178,14 @@ func (h *taqHandler) executionTrace(ctx context.Context, req mcp.CallToolRequest
 		return nil, fmt.Errorf("invalid request")
 	}
 
-	taq, err := h.resolve(ctx, args["taq"].(string))
+	taqRef, _ := args["taq"].(string)
+	taq, err := h.resolve(ctx, taqRef)
 	if err != nil {
 		return nil, err
 	}
 
-	execID, err := strconv.ParseUint(args["executionID"].(string), 10, 64)
+	execIDStr, _ := args["executionID"].(string)
+	execID, err := strconv.ParseUint(execIDStr, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid executionID: %w", err)
 	}
@@ -197,6 +199,27 @@ func (h *taqHandler) executionTrace(ctx context.Context, req mcp.CallToolRequest
 		return nil, fmt.Errorf("failed to marshal trace: %w", err)
 	}
 	return mcp.NewToolResultText(string(out)), nil
+}
+
+func parseInput(raw interface{}) (map[string]interface{}, error) {
+	if raw == nil {
+		return nil, nil
+	}
+	switch v := raw.(type) {
+	case string:
+		if v == "" {
+			return nil, nil
+		}
+		var m map[string]interface{}
+		if err := json.Unmarshal([]byte(v), &m); err != nil {
+			return nil, fmt.Errorf("invalid input JSON: %w", err)
+		}
+		return m, nil
+	case map[string]interface{}:
+		return v, nil
+	default:
+		return nil, fmt.Errorf("invalid input: expected JSON string or object")
+	}
 }
 
 func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgAutomation, error) {

@@ -109,7 +109,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
-	systemPrompt := agent.Behavior.SystemPrompt
+	now := time.Now()
+	systemPrompt := fmt.Sprintf("Current date and time: %s\n\n", now.Format("2006-01-02 15:04:05 MST")) + agent.Behavior.SystemPrompt
 	if agent.Behavior.InjectSystemContext {
 		systemPrompt = humanSystemContext + "\n\n" + systemPrompt
 	}

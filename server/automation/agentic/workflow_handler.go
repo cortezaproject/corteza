@@ -98,11 +98,9 @@ func (h *workflowHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*m
 
 	params := autoTypes.WorkflowExecParams{}
 
-	if inputStr, ok := args["input"].(string); ok && inputStr != "" {
-		var inputMap map[string]interface{}
-		if err := json.Unmarshal([]byte(inputStr), &inputMap); err != nil {
-			return nil, fmt.Errorf("invalid input JSON: %w", err)
-		}
+	if inputMap, err := parseInput(args["input"]); err != nil {
+		return nil, err
+	} else if inputMap != nil {
 		vars, err := expr.NewVars(inputMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build input vars: %w", err)

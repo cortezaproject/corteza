@@ -48,7 +48,7 @@ func (h *recordHandler) register() {
 	)
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
-			mcp.WithDescription("Look up a record by ID, or list/filter records in a module. Provide 'recordID' to fetch one record. Omit 'recordID' and use 'filter' to search by field values (e.g. \"name = 'John'\"). Always use this before creating a record to check if it already exists."),
+			mcp.WithDescription("Look up a record by ID, or list/filter records in a module. Provide 'recordID' to fetch one record. Omit 'recordID' and use 'filter' to search by field values (e.g. \"name = 'John'\"). Do NOT call this before creating a record — only use it when the user explicitly asks to search or check for existing records."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, or slug")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name or handle")),
 			mcp.WithString("recordID", mcp.Description("Record ID. Omit to list/filter instead.")),
@@ -117,7 +117,25 @@ func (h *recordHandler) namespaceLookup(ctx context.Context, req mcp.CallToolReq
 
 	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
 	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+		// Namespace not found — return full list so the LLM can pick the correct one
+		set, _, listErr := cmpService.DefaultNamespace.Find(ctx, cmpTypes.NamespaceFilter{})
+		if listErr != nil {
+			return nil, fmt.Errorf("namespace lookup failed: %w", err)
+		}
+		type nsItem struct {
+			ID   uint64 `json:"namespaceID,string"`
+			Name string `json:"name"`
+			Slug string `json:"slug"`
+		}
+		items := make([]nsItem, len(set))
+		for i, n := range set {
+			items[i] = nsItem{ID: n.ID, Name: n.Name, Slug: n.Slug}
+		}
+		out, _ := json.Marshal(map[string]any{
+			"error":      fmt.Sprintf("namespace %q not found", nsRef),
+			"namespaces": items,
+		})
+		return mcp.NewToolResultText(string(out)), nil
 	}
 	out, err := json.Marshal(ns)
 	if err != nil {
@@ -178,6 +196,25 @@ func (h *recordHandler) moduleLookup(ctx context.Context, req mcp.CallToolReques
 		return nil, fmt.Errorf("failed to marshal module: %w", err)
 	}
 	return mcp.NewToolResultText(string(out)), nil
+}
+
+func parseValues(raw interface{}) (map[string]string, error) {
+	switch v := raw.(type) {
+	case string:
+		var m map[string]string
+		if err := json.Unmarshal([]byte(v), &m); err != nil {
+			return nil, fmt.Errorf("invalid values JSON: %w", err)
+		}
+		return m, nil
+	case map[string]interface{}:
+		m := make(map[string]string, len(v))
+		for key, val := range v {
+			m[key] = fmt.Sprintf("%v", val)
+		}
+		return m, nil
+	default:
+		return nil, fmt.Errorf("invalid values: expected JSON string or object")
+	}
 }
 
 func (h *recordHandler) resolveNsMod(ctx context.Context, args map[string]interface{}) (nsID, modID uint64, err error) {
@@ -248,9 +285,9 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	var valuesMap map[string]string
-	if err := json.Unmarshal([]byte(args["values"].(string)), &valuesMap); err != nil {
-		return nil, fmt.Errorf("invalid values JSON: %w", err)
+	valuesMap, err := parseValues(args["values"])
+	if err != nil {
+		return nil, err
 	}
 
 	rec := &cmpTypes.Record{
@@ -289,9 +326,9 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, fmt.Errorf("invalid recordID: %w", err)
 	}
 
-	var valuesMap map[string]string
-	if err := json.Unmarshal([]byte(args["values"].(string)), &valuesMap); err != nil {
-		return nil, fmt.Errorf("invalid values JSON: %w", err)
+	valuesMap, err := parseValues(args["values"])
+	if err != nil {
+		return nil, err
 	}
 
 	rec := &cmpTypes.Record{
