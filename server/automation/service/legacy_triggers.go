@@ -4,8 +4,8 @@ import "github.com/cortezaproject/corteza/server/automation/types"
 
 func recordConstraints() []types.ConstructTriggerConstraint {
 	return []types.ConstructTriggerConstraint{
-		{Name: "namespace", Types: []string{"ID", "Handle", "ComposeNamespace"}},
-		{Name: "module", Types: []string{"ID", "Handle", "ComposeModule"}},
+		{Name: "namespace", Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true},
+		{Name: "module", Types: []string{"ID", "Handle", "ComposeModule"}, Required: true},
 		{Name: "record", Types: []string{"ID", "ComposeRecord"}},
 	}
 }
@@ -29,12 +29,14 @@ func recordSegments() []types.ConstructSegment {
 					Type:     "NamespaceSelector",
 					Label:    "Namespace",
 					Argument: "namespace",
+					Required: true,
 				},
 			}, {
 				Input: types.SectionElementInput{
 					Type:     "ModuleSelector",
 					Label:    "Module",
 					Argument: "module",
+					Required: true,
 					Context: types.SectionElementInputContext{
 						DependsOn: map[string]string{
 							"namespaceID": "namespace",
@@ -60,7 +62,7 @@ func recordSegments() []types.ConstructSegment {
 
 func userConstraints() []types.ConstructTriggerConstraint {
 	return []types.ConstructTriggerConstraint{
-		{Name: "user", Types: []string{"ID", "Handle", "SystemUser"}},
+		// {Name: "user", Types: []string{"ID", "Handle", "SystemUser"}},
 	}
 }
 
@@ -73,15 +75,15 @@ func userProperties() []types.ConstructTriggerProperty {
 
 func userSegments() []types.ConstructSegment {
 	return []types.ConstructSegment{{
-		Sections: []types.ConstructSection{{
-			Elements: []types.SectionElement{{
-				Input: types.SectionElementInput{
-					Type:     "UserSelector",
-					Label:    "User",
-					Argument: "user",
-				},
-			}},
-		}},
+		// Sections: []types.ConstructSection{{
+		// 	Elements: []types.SectionElement{{
+		// 		Input: types.SectionElementInput{
+		// 			Type:     "UserSelector",
+		// 			Label:    "User",
+		// 			Argument: "user",
+		// 		},
+		// 	}},
+		// }},
 	}}
 }
 

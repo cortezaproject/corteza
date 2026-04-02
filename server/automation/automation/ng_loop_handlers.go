@@ -37,8 +37,8 @@ func (h ngLoopHandler) register() {
 	h.reg.AddFunctions(
 		h.Sequence(),
 		h.Do(),
-		h.Each(),
-		h.Lines(),
+		// h.Each(),
+		// h.Lines(),
 	)
 }
 

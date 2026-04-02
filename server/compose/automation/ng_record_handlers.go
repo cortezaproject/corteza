@@ -46,7 +46,7 @@ func NgRecordsHandler(reg constructSvc, tReg typeRegistry, ns namespaceService, 
 
 func (h ngRecordsHandler) register() {
 	h.reg.AddFunctions(
-		h.Lookup(),
+		// h.Lookup(),
 		h.Create(),
 		h.Each(),
 		h.Delete(),
@@ -1516,7 +1516,44 @@ func (h ngRecordsHandler) delete(ctx context.Context, args *recordsDeleteArgs) e
 	}
 }
 
-func (h ngRecordsHandler) clone(ctx context.Context, args *recordsCloneArgs) (*recordsCloneResults, error) {
+type (
+	ngRecordsCloneArgs struct {
+		hasNamespace    bool
+		Namespace       interface{}
+		namespaceID     uint64
+		namespaceHandle string
+		namespaceRes    *types.Namespace
+
+		hasModule    bool
+		Module       interface{}
+		moduleID     uint64
+		moduleHandle string
+		moduleRes    *types.Module
+
+		hasRecord bool
+		Record    interface{}
+		recordID  uint64
+		recordRes *types.Record
+
+		hasValues bool
+		ValuesKV  map[string]string
+		ValuesKVV map[string][]string
+	}
+)
+
+func (a ngRecordsCloneArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
+	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
+}
+
+func (a ngRecordsCloneArgs) GetModule() (bool, uint64, string, *types.Module) {
+	return a.hasModule, a.moduleID, a.moduleHandle, a.moduleRes
+}
+
+func (a ngRecordsCloneArgs) GetRecord() (bool, uint64, *types.Record) {
+	return a.hasRecord, a.recordID, a.recordRes
+}
+
+func (h ngRecordsHandler) clone(ctx context.Context, args *ngRecordsCloneArgs) (*recordsCloneResults, error) {
 	results := &recordsCloneResults{}
 
 	rec, err := h.lookupRecord(ctx, args)
@@ -1524,15 +1561,26 @@ func (h ngRecordsHandler) clone(ctx context.Context, args *recordsCloneArgs) (*r
 		return nil, err
 	}
 
-	results.Record = rec.Clone()
+	cloned := rec.Clone()
+	cloned.ID = 0
+	cloned.CreatedAt = time.Time{}
+	cloned.UpdatedAt = nil
+	cloned.DeletedAt = nil
 
-	results.Record.ID = 0
-	// time is handled by create or something? We'll just set it
-	// wait, need time package imported in ng_record_handlers.go if we use time.Now()
-	// Let's rely on standard Corteza record behaviour, just reset fields
-	results.Record.CreatedAt = time.Now() // types.Now() returns time.Time if exists? NO, we might need time package.
-	// We'll let the user's types handle it or omit. records_handler.got imported "time"
-	return results, nil
+	// Apply value overrides
+	if args.hasValues {
+		for k, v := range args.ValuesKV {
+			cloned.Values.Set(&types.RecordValue{Name: k, Value: v})
+		}
+		for k, vv := range args.ValuesKVV {
+			for i, v := range vv {
+				cloned.Values.Set(&types.RecordValue{Name: k, Place: uint(i), Value: v})
+			}
+		}
+	}
+
+	results.Record, err = wrapRecordValueErrorSet(h.rec.Create(ctx, cloned))
+	return results, err
 }
 
 func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
@@ -1566,6 +1614,12 @@ func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
 				ArgumentName: "record",
 				Name:         "",
 				Types:        []string{"ID", "ComposeRecord"}, Required: true,
+			},
+			{
+				ArgumentName: "values",
+				Name:         "",
+				Types:        []string{"KV", "KVV", "Any"},
+				Aggregate:    true,
 			},
 		},
 
@@ -1610,16 +1664,67 @@ func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
 							},
 						},
 					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "FieldValueMap",
+						Label:    "Override Values",
+						Argument: "values",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
+					},
 				}},
 			}},
 		}},
 
+		ArgsMerger: func(ctx context.Context, args atypes.ExprSet, raw []expr.TypedValue) (out *expr.Vars, err error) {
+			aux := make(map[string]any, 3)
+			aux[args[0].ArgumentName] = raw[0]
+			aux[args[1].ArgumentName] = raw[1]
+			aux[args[2].ArgumentName] = raw[2]
+
+			auxVals := make(map[string][]string)
+			for i := 3; i < len(raw); i++ {
+				rv := raw[i]
+				switch rv.Type() {
+				case h.tReg.Type("KV").Type():
+					for k, v := range rv.Get().(map[string]string) {
+						auxVals[k] = append(auxVals[k], v)
+					}
+				case h.tReg.Type("KVV").Type():
+					for k, v := range rv.Get().(map[string][]string) {
+						auxVals[k] = append(auxVals[k], v...)
+					}
+				default:
+					var s string
+					s, err = expr.CastToString(rv.Get())
+					if err != nil {
+						return
+					}
+					auxVals[args[i].Target] = append(auxVals[args[i].Target], s)
+				}
+			}
+
+			if len(auxVals) > 0 {
+				aux[args[3].ArgumentName], err = expr.NewKVV(auxVals)
+				if err != nil {
+					return
+				}
+			}
+
+			return expr.NewVars(aux)
+		},
+
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
-				args = &recordsCloneArgs{
+				args = &ngRecordsCloneArgs{
 					hasNamespace: in.Has("namespace"),
 					hasModule:    in.Has("module"),
 					hasRecord:    in.Has("record"),
+					hasValues:    in.Has("values"),
 				}
 			)
 
@@ -1661,6 +1766,17 @@ func (h ngRecordsHandler) Clone() atypes.ConstructFunction {
 					args.recordID = aux.Get().(uint64)
 				case h.tReg.Type("ComposeRecord").Type():
 					args.recordRes = aux.Get().(*types.Record)
+				}
+			}
+
+			// Converting Values argument
+			if args.hasValues {
+				aux := expr.Must(expr.Select(in, "values"))
+				switch aux.Type() {
+				case h.tReg.Type("KV").Type():
+					args.ValuesKV = aux.Get().(map[string]string)
+				case h.tReg.Type("KVV").Type():
+					args.ValuesKVV = aux.Get().(map[string][]string)
 				}
 			}
 

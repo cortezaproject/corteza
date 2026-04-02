@@ -32,12 +32,12 @@ func NgUsersHandler(reg constructSvc, tReg typeRegistry, uSvc userService, rSvc 
 
 func (h ngUsersHandler) register() {
 	h.reg.AddFunctions(
-		h.Lookup(),
+		// h.Lookup(),
 		h.Create(),
 		h.Update(),
 		h.Delete(),
 		h.Suspend(),
-		h.Unsuspend(),
+		// h.Unsuspend(),
 	)
 }
 
@@ -129,7 +129,6 @@ func (h ngUsersHandler) Create() atypes.ConstructFunction {
 			{ArgumentName: "name", Types: []string{"String"}},
 			{ArgumentName: "handle", Types: []string{"String"}},
 			{ArgumentName: "username", Types: []string{"String"}},
-			{ArgumentName: "kind", Types: []string{"String"}},
 		},
 
 		Results: []*atypes.Param{
@@ -145,7 +144,6 @@ func (h ngUsersHandler) Create() atypes.ConstructFunction {
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Name", Argument: "name"}},
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Handle", Argument: "handle"}},
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Username", Argument: "username"}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Kind", Argument: "kind"}},
 				},
 			}},
 		}},
@@ -153,7 +151,9 @@ func (h ngUsersHandler) Create() atypes.ConstructFunction {
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var args = &usersCreateArgs{
 				hasUser: true,
-				User:    &types.User{},
+				User: &types.User{
+					Kind: types.NormalUser,
+				},
 			}
 
 			if in.Has("email") {
@@ -171,12 +171,6 @@ func (h ngUsersHandler) Create() atypes.ConstructFunction {
 			if in.Has("username") {
 				aux := expr.Must(expr.Select(in, "username"))
 				args.User.Username, _ = expr.CastToString(aux.Get())
-			}
-			if in.Has("kind") {
-				aux := expr.Must(expr.Select(in, "kind"))
-				if kindStr, castErr := expr.CastToString(aux.Get()); castErr == nil {
-					args.User.Kind = types.UserKind(kindStr)
-				}
 			}
 
 			var results *usersCreateResults
@@ -206,7 +200,11 @@ func (h ngUsersHandler) Update() atypes.ConstructFunction {
 		},
 
 		Parameters: []*atypes.Param{
-			{ArgumentName: "user", Types: []string{"User"}, Required: true},
+			{ArgumentName: "user", Types: []string{"ID", "Handle", "String", "User"}, Required: true},
+			{ArgumentName: "email", Types: []string{"String"}},
+			{ArgumentName: "name", Types: []string{"String"}},
+			{ArgumentName: "handle", Types: []string{"String"}},
+			{ArgumentName: "username", Types: []string{"String"}},
 		},
 
 		Results: []*atypes.Param{
@@ -223,7 +221,12 @@ func (h ngUsersHandler) Update() atypes.ConstructFunction {
 						Label:    "User",
 						Argument: "user",
 					},
-				}},
+				},
+					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Email", Argument: "email"}},
+					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Name", Argument: "name"}},
+					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Handle", Argument: "handle"}},
+					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Username", Argument: "username"}},
+				},
 			}},
 		}},
 
@@ -232,8 +235,42 @@ func (h ngUsersHandler) Update() atypes.ConstructFunction {
 				hasUser: in.Has("user"),
 			}
 
-			if err = in.Decode(args); err != nil {
-				return
+			// Resolve user from ID/Handle/String/User
+			if args.hasUser {
+				aux := expr.Must(expr.Select(in, "user"))
+				switch aux.Type() {
+				case h.tReg.Type("User").Type():
+					args.User = aux.Get().(*types.User)
+				case h.tReg.Type("ID").Type():
+					args.User, err = h.h.uSvc.FindByID(ctx, aux.Get().(uint64))
+				case h.tReg.Type("Handle").Type():
+					args.User, err = h.h.uSvc.FindByHandle(ctx, aux.Get().(string))
+				case h.tReg.Type("String").Type():
+					args.User, err = h.h.uSvc.FindByEmail(ctx, aux.Get().(string))
+				}
+				if err != nil {
+					return
+				}
+			}
+
+			// Apply field overrides
+			if args.User != nil {
+				if in.Has("email") {
+					aux := expr.Must(expr.Select(in, "email"))
+					args.User.Email, _ = expr.CastToString(aux.Get())
+				}
+				if in.Has("name") {
+					aux := expr.Must(expr.Select(in, "name"))
+					args.User.Name, _ = expr.CastToString(aux.Get())
+				}
+				if in.Has("handle") {
+					aux := expr.Must(expr.Select(in, "handle"))
+					args.User.Handle, _ = expr.CastToString(aux.Get())
+				}
+				if in.Has("username") {
+					aux := expr.Must(expr.Select(in, "username"))
+					args.User.Username, _ = expr.CastToString(aux.Get())
+				}
 			}
 
 			var results *usersUpdateResults

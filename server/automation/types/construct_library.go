@@ -31,9 +31,10 @@ type (
 	}
 
 	ConstructTriggerConstraint struct {
-		Name  string                         `json:"name"`
-		Types []string                       `json:"types"`
-		Meta  ConstructTriggerConstraintMeta `json:"meta,omitempty"`
+		Name     string                         `json:"name"`
+		Types    []string                       `json:"types"`
+		Required bool                           `json:"required,omitempty"`
+		Meta     ConstructTriggerConstraintMeta `json:"meta,omitempty"`
 	}
 
 	ConstructTriggerConstraintMeta struct {
@@ -99,6 +100,7 @@ type (
 		Label       string       `json:"label,omitempty"`
 		Placeholder string       `json:"placeholder,omitempty"`
 		Argument    string       `json:"argument,omitempty"`
+		Required    bool         `json:"required,omitempty"`
 		Options     []SelectItem `json:"options,omitempty"`
 
 		// Context defines data dependencies between inputs
