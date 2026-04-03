@@ -34,12 +34,6 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 	stepIdx, stepIssues := indexSteps(a.Steps, triggerIdx)
 	issues = append(issues, stepIssues...)
 
-	if len(stepIdx) == 0 {
-		return execTypes.Executable{}, append(issues,
-			issue("no valid steps defined", nil),
-		)
-	}
-
 	exSteps, idMap, buildIssues := buildExecSteps(svc, stepIdx)
 	issues = append(issues, buildIssues...)
 
@@ -50,6 +44,11 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 
 	wireIssues := wirePaths(a.Paths, stepIdx, triggerIdx, triggerPathCount, idMap, exByID)
 	issues = append(issues, wireIssues...)
+
+	// Auto-inject a synthetic termination step for any leaf steps that have no
+	// children and aren't already a termination step. This makes the termination
+	// step optional in the automation config.
+	exSteps = ensureTermination(exSteps, exByID)
 
 	if !hasEntry(exByID) {
 		issues = append(issues, issue("no entry steps (every step has at least one parent)", nil))
@@ -510,6 +509,43 @@ func issue(desc string, culprit map[string]int) *automationTypes.NgAutomationIss
 		Description: desc,
 		Culprit:     culprit,
 	}
+}
+
+// ensureTermination auto-wires a single synthetic termination step to all leaf
+// steps (steps with no children) that are not already termination steps.
+// This makes the explicit termination step optional in the automation config.
+func ensureTermination(exSteps []execTypes.Step, exByID map[id.ID]*execTypes.Step) []execTypes.Step {
+	var leafIDs []id.ID
+	for _, s := range exSteps {
+		if s.Kind == "termination" {
+			return exSteps // already has one, nothing to do
+		}
+		if len(s.Children) == 0 {
+			leafIDs = append(leafIDs, s.ID)
+		}
+	}
+
+	if len(leafIDs) == 0 {
+		return exSteps
+	}
+
+	termHandler, _ := automationTypes.TerminationStep()
+	termStep := execTypes.Step{
+		ID:      id.MustNumID(id.Next()),
+		Handle:  "_auto_termination",
+		Kind:    "termination",
+		Handler: termHandler,
+	}
+
+	for _, leafID := range leafIDs {
+		if s, ok := exByID[leafID]; ok {
+			s.Children = append(s.Children, termStep)
+			termStep.Parents = append(termStep.Parents, *s)
+		}
+	}
+
+	exByID[termStep.ID] = &termStep
+	return append(exSteps, termStep)
 }
 
 // normalizeExprType maps common type aliases to canonical automation expr registry names.
