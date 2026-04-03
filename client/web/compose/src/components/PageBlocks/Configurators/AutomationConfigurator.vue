@@ -3,7 +3,9 @@
     <!-- Configured buttons -->
     <div class="flex flex-col gap-1">
       <div class="flex items-center justify-between">
-        <label class="text-primary font-medium text-sm">{{ $t('block.automation.configuredButtons') }}</label>
+        <label class="text-primary font-medium text-sm">
+          {{ $t('block.automation.configuredButtons') }}
+        </label>
         <Button
           :label="$t('block.automation.addPlaceholderLabel')"
           icon="pi pi-plus"
@@ -25,52 +27,66 @@
           :class="{ 'border-primary': selectedIndex === i }"
         >
           <div class="flex items-center gap-2">
-            <div class="flex flex-col gap-1">
+            <div class="flex gap-1">
               <Button
                 icon="pi pi-chevron-up"
-                text rounded size="small" severity="secondary"
+                text
+                rounded
+                size="small"
+                severity="secondary"
                 :disabled="i === 0"
                 @click="moveButton(i, -1)"
               />
               <Button
                 icon="pi pi-chevron-down"
-                text rounded size="small" severity="secondary"
+                text
+                rounded
+                size="small"
+                severity="secondary"
                 :disabled="i === buttons.length - 1"
                 @click="moveButton(i, 1)"
               />
             </div>
-            <Tag :severity="mapSeverity(btn.variant)" :value="btn.variant || 'primary'" />
-            <span class="flex-1 font-medium text-sm truncate">{{ btn.label || '-' }}</span>
-            <Button
-              icon="pi pi-pencil"
-              text rounded size="small"
-              @click="selectButton(i)"
+            <Tag
+              v-if="(btn.variant || 'primary') !== 'primary'"
+              :severity="mapSeverity(btn.variant)"
+              :value="btn.variant"
             />
+            <span class="flex-1 font-medium text-sm truncate">{{ btn.label || '-' }}</span>
+            <Button icon="pi pi-pencil" text rounded size="small" @click="selectButton(i)" />
             <Button
               icon="pi pi-trash"
-              text rounded size="small" severity="danger"
+              text
+              rounded
+              size="small"
+              severity="danger"
               @click="removeButton(i)"
             />
           </div>
 
           <!-- Inline editor when selected -->
-          <div v-if="selectedIndex === i" class="mt-3 flex flex-col gap-2 border-t border-surface pt-3">
+          <div
+            v-if="selectedIndex === i"
+            class="mt-3 flex flex-col gap-2 border-t border-surface pt-3"
+          >
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.automation.buttonLabel') }}</label>
+              <label class="text-sm text-muted-color">
+                {{ $t('block.automation.buttonLabel') }}
+              </label>
               <InputText v-model="btn.label" class="w-full" />
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.automation.buttonVariant') }}</label>
-              <Select
-                v-model="btn.variant"
-                :options="variantOptions"
-                class="w-full"
-              />
+              <label class="text-sm text-muted-color">
+                {{ $t('block.automation.buttonVariant') }}
+              </label>
+              <Select v-model="btn.variant" :options="variantOptions" class="w-full" />
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.automation.buttonResourceType') }}</label>
+              <label class="text-sm text-muted-color">
+                {{ $t('block.automation.buttonResourceType') }}
+              </label>
               <Select
                 v-model="btn.resourceType"
                 :options="resourceTypeOptions"
@@ -89,36 +105,93 @@
     <!-- Available workflows/triggers -->
     <div class="flex flex-col gap-1">
       <label class="text-primary font-medium text-sm">
-        {{ $t('block.automation.availableScriptsAndWorkflow', { count: availableTriggers.length }) }}
+        {{
+          $t('block.automation.availableScriptsAndWorkflow', { count: availableTriggers.length })
+        }}
       </label>
 
       <div v-if="loadingTriggers" class="flex justify-center p-3">
         <ProgressSpinner style="width: 24px; height: 24px" />
       </div>
 
-      <div v-else-if="availableTriggers.length" class="flex flex-col gap-1">
+      <div v-else class="flex flex-col gap-1 mt-1">
         <InputText
           v-model="searchQuery"
           :placeholder="$t('block.automation.searchPlaceholder')"
           class="w-full"
         />
 
-        <div
-          v-for="(trigger, i) in filteredTriggers"
-          :key="i"
-          class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
-          @click="addTriggerButton(trigger)"
-        >
-          <div class="flex items-center gap-2">
-            <span class="font-medium text-sm">{{ trigger.label }}</span>
-            <Tag severity="info" :value="trigger.isTAQ ? 'TAQ' : 'workflow'" class="text-xs" />
-          </div>
-          <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">{{ trigger.description }}</p>
-        </div>
-      </div>
+        <Tabs v-model:value="activeTab">
+          <TabList>
+            <Tab value="workflows">{{ $t('block.automation.tabs.workflows') }}</Tab>
+            <Tab value="scripts">{{ $t('block.automation.tabs.scripts') }}</Tab>
+            <Tab value="taqs">{{ $t('block.automation.tabs.taqs') }}</Tab>
+          </TabList>
+          <TabPanels class="px-0 pb-0">
+            <TabPanel value="workflows">
+              <div v-if="filteredWorkflows.length" class="flex flex-col gap-1">
+                <div
+                  v-for="(trigger, i) in filteredWorkflows"
+                  :key="i"
+                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
+                  @click="addTriggerButton(trigger)"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-sm">{{ trigger.label }}</span>
+                  </div>
+                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ trigger.description }}
+                  </p>
+                </div>
+              </div>
+              <div v-else class="text-muted-color text-sm italic p-2">
+                {{ $t('block.automation.noScripts') }}
+              </div>
+            </TabPanel>
 
-      <div v-else class="text-muted-color text-sm italic p-2">
-        {{ $t('block.automation.noScripts') }}
+            <TabPanel value="scripts">
+              <div v-if="filteredScripts.length" class="flex flex-col gap-1">
+                <div
+                  v-for="(trigger, i) in filteredScripts"
+                  :key="i"
+                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
+                  @click="addTriggerButton(trigger)"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-sm">{{ trigger.label }}</span>
+                  </div>
+                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ trigger.description }}
+                  </p>
+                </div>
+              </div>
+              <div v-else class="text-muted-color text-sm italic p-2">
+                {{ $t('block.automation.noScripts') }}
+              </div>
+            </TabPanel>
+
+            <TabPanel value="taqs">
+              <div v-if="filteredTaqs.length" class="flex flex-col gap-1">
+                <div
+                  v-for="(trigger, i) in filteredTaqs"
+                  :key="i"
+                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
+                  @click="addTriggerButton(trigger)"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-sm">{{ trigger.label }}</span>
+                  </div>
+                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ trigger.description }}
+                  </p>
+                </div>
+              </div>
+              <div v-else class="text-muted-color text-sm italic p-2">
+                {{ $t('block.automation.noScripts') }}
+              </div>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </div>
     </div>
   </div>
@@ -140,6 +213,7 @@ const emit = defineEmits(['update:block'])
 
 const $AutomationAPI = inject('$AutomationAPI', null)
 
+const activeTab = ref('workflows')
 const selectedIndex = ref(-1)
 const searchQuery = ref('')
 const loadingTriggers = ref(false)
@@ -196,16 +270,36 @@ const availableTriggers = computed(() => {
   })
 })
 
-const filteredTriggers = computed(() => {
-  if (!searchQuery.value) return availableTriggers.value
+const filteredWorkflows = computed(() => {
+  const triggers = availableTriggers.value.filter(t => !t.isTAQ && !t.script)
+  if (!searchQuery.value) return triggers
   const q = searchQuery.value.toLowerCase()
-  return availableTriggers.value.filter(t =>
-    `${t.label} ${t.description || ''}`.toLowerCase().includes(q),
-  )
+  return triggers.filter(t => `${t.label} ${t.description || ''}`.toLowerCase().includes(q))
+})
+
+const filteredScripts = computed(() => {
+  const triggers = availableTriggers.value.filter(t => t.script)
+  if (!searchQuery.value) return triggers
+  const q = searchQuery.value.toLowerCase()
+  return triggers.filter(t => `${t.label} ${t.description || ''}`.toLowerCase().includes(q))
+})
+
+const filteredTaqs = computed(() => {
+  const triggers = availableTriggers.value.filter(t => t.isTAQ)
+  if (!searchQuery.value) return triggers
+  const q = searchQuery.value.toLowerCase()
+  return triggers.filter(t => `${t.label} ${t.description || ''}`.toLowerCase().includes(q))
 })
 
 function mapSeverity(variant) {
-  const map = { primary: undefined, secondary: 'secondary', success: 'success', danger: 'danger', warning: 'warn', info: 'info' }
+  const map = {
+    primary: undefined,
+    secondary: 'secondary',
+    success: 'success',
+    danger: 'danger',
+    warning: 'warn',
+    info: 'info',
+  }
   return map[variant] || undefined
 }
 
@@ -217,12 +311,15 @@ function updateButtons(newButtons) {
 }
 
 function addPlaceholder() {
-  const newButtons = [...buttons.value, {
-    label: t('block.automation.dummyButtonLabel'),
-    variant: 'primary',
-    resourceType: 'compose',
-    scriptType: 'workflow',
-  }]
+  const newButtons = [
+    ...buttons.value,
+    {
+      label: t('block.automation.dummyButtonLabel'),
+      variant: 'primary',
+      resourceType: 'compose',
+      scriptType: 'workflow',
+    },
+  ]
   updateButtons(newButtons)
   selectedIndex.value = newButtons.length - 1
 }
@@ -233,9 +330,10 @@ function addTriggerButton(trigger) {
     variant: 'primary',
     resourceType: trigger.resourceType || 'compose',
   }
-  
+
   if (trigger.isTAQ) {
     newButton.automationID = trigger.automationID
+    newButton.triggerHandle = trigger.triggerHandle
     newButton.scriptType = 'taq'
   } else {
     newButton.workflowID = trigger.workflowID
@@ -276,16 +374,19 @@ async function fetchTriggers() {
   try {
     const [workflowsResp, taqsResp] = await Promise.all([
       $AutomationAPI.triggerList({ eventType: 'onManual' }),
-      $AutomationAPI.ngAutomationListCancellable({ limit: 100 })
+      $AutomationAPI.ngAutomationListCancellable({ limit: 100 }),
     ])
-    
+
     const { set: triggers = [] } = workflowsResp
     const taqResult = await taqsResp.response()
     const taqsRaw = Array.isArray(taqResult) ? taqResult : taqResult.set || []
     taqData.value = taqsRaw
 
     const triggerData = triggers.map(({ triggerID, workflowID, resourceType, stepID }) => ({
-      triggerID, workflowID, resourceType, stepID,
+      triggerID,
+      workflowID,
+      resourceType,
+      stepID,
     }))
 
     const workflowIDs = [...new Set(triggers.map(t => t.workflowID))]
@@ -294,31 +395,46 @@ async function fetchTriggers() {
       const { set: wfSet = [] } = await $AutomationAPI.workflowList({ workflowID: workflowIDs })
       workflowData.value = wfSet
 
-      triggerButtons.value = triggerData.map(trigger => {
-        const wf = wfSet.find(w => w.workflowID === trigger.workflowID)
-        if (!wf) return null
+      triggerButtons.value = triggerData
+        .map(trigger => {
+          const wf = wfSet.find(w => w.workflowID === trigger.workflowID)
+          if (!wf) return null
 
-        let label = wf.meta?.name || wf.handle || wf.workflowID
-        const step = (wf.steps || []).find(s => s.stepID === trigger.stepID)
-        if (step?.meta?.label) label = `${label} (${step.meta.label})`
+          let label = wf.meta?.name || wf.handle || wf.workflowID
+          const step = (wf.steps || []).find(s => s.stepID === trigger.stepID)
+          if (step?.meta?.label) label = `${label} (${step.meta.label})`
 
-        return {
-          label,
-          workflowID: trigger.workflowID,
-          stepID: trigger.stepID,
-          resourceType: trigger.resourceType,
-          description: wf.meta?.description,
-        }
-      }).filter(Boolean)
+          return {
+            label,
+            workflowID: trigger.workflowID,
+            stepID: trigger.stepID,
+            resourceType: trigger.resourceType,
+            description: wf.meta?.description,
+          }
+        })
+        .filter(Boolean)
     }
 
-    const taqButtons = taqData.value.map(taq => ({
-      label: taq.meta?.short || taq.handle || taq.automationID,
-      automationID: taq.automationID,
-      resourceType: 'compose', // Assuming compose for now, could be dynamic
-      description: taq.meta?.description,
-      isTAQ: true,
-    }))
+    const taqButtons = taqData.value.flatMap(taq => {
+      const triggers = taq.triggers || []
+      const manualTriggers = triggers.filter(t => t.eventType === 'onManual')
+      
+      if (manualTriggers.length === 0) return []
+
+      return manualTriggers.map(t => {
+        let label = taq.meta?.short || taq.handle || taq.automationID
+        if (t.meta?.short) label = `${label} (${t.meta.short})`
+        
+        return {
+          label,
+          automationID: taq.automationID,
+          triggerHandle: t.handle,
+          resourceType: t.resourceType || 'compose',
+          description: taq.meta?.description,
+          isTAQ: true,
+        }
+      })
+    })
 
     triggerButtons.value = [...(triggerButtons.value || []), ...taqButtons]
   } catch (e) {

@@ -79,6 +79,7 @@ async function fetchModules() {
     const { response, cancel } = store.searchModules(props.namespaceID, {
       query: '',
       limit: 100,
+      sort: 'name ASC',
     })
     cancelCurrentRequest = cancel
 

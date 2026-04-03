@@ -25,6 +25,7 @@ editor:
   tabs:
     config: Configuration
     exec: Playground
+    history: History
   panels:
     general: General
     behavior: Behavior
@@ -177,6 +178,17 @@ editor:
     toggleRawJson: 'Toggle raw JSON'
     tokenUsage: '{input} in / {output} out / {total} total tokens'
     thinking: Thinking...
+
+  history:
+    columns:
+      snippet: First Message
+      createdAt: Started
+      tokens: Tokens
+      messages: Messages
+    empty: No conversations recorded yet
+    loadError: Failed to load conversations
+    resourceSingle: conversation
+    resourcePlural: conversations
 
 sidebar:
   title: Human Assistant

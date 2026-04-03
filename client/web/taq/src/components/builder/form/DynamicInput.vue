@@ -28,6 +28,8 @@
           :options="options"
           :complete-on-focus="hasOptions"
           v-bind="$attrs"
+          @focus="onInputFocusOrClick"
+          @click="onInputFocusOrClick"
         />
         <Button
           v-if="showReferenceToggle && !isAggregate"
@@ -146,6 +148,12 @@ const effectivePlaceholder = computed(() => {
 
 function onInputClick() {
   emit('toggleReference', props.argument)
+}
+
+function onInputFocusOrClick() {
+  if (props.showReferenceToggle && !isAggregate.value) {
+    emit('toggleReference', props.argument)
+  }
 }
 
 // Handle per-row reference toggle from aggregate inputs (e.g. FieldValueMap)

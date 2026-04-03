@@ -61,6 +61,7 @@ async function fetchWorkflows() {
   try {
     const { response, cancel } = $AutomationAPI.workflowListCancellable({
       limit: 100,
+      sort: 'handle ASC',
     })
     cancelCurrentRequest = cancel
 

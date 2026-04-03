@@ -113,6 +113,7 @@ async function fetchRoles() {
     const { response, cancel } = $SystemAPI.roleListCancellable({
       query: '',
       limit: 100,
+      sort: 'name ASC',
     })
     cancelCurrentRequest = cancel
 

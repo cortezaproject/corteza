@@ -7,6 +7,8 @@
         class="w-full"
         :size="size === 'small' ? 'small' : undefined"
         @update:model-value="emit('update:label', $event)"
+        @focus="emit('click')"
+        @click="emit('click')"
       />
     </IconField>
     <Button

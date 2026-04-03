@@ -69,6 +69,7 @@ async function fetchUserGroups() {
     const { response, cancel } = $SystemAPI.userGroupListCancellable({
       query: '',
       limit: 100,
+      sort: 'name ASC',
     })
     cancelCurrentRequest = cancel
 

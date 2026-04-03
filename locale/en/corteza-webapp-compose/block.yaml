@@ -7,7 +7,11 @@ selector:
       noRef: Clone without references
 automation:
   addPlaceholderLabel: Add placeholder (dummy button)
-  availableScriptsAndWorkflow: Available scripts and workflows ({count})
+  availableScriptsAndWorkflow: Available automations ({count})
+  tabs:
+    workflows: Workflows
+    scripts: Scripts
+    taqs: TAQs
   badge:
     script: script
     workflow: workflow
@@ -22,10 +26,10 @@ automation:
   label: Automation
   noDescription: No description
   noLabel: Unlabeled
-  noScript: There is no script or workflow configured for this button
-  noScripts: There are no manual scripts compatible with this page block
+  noScript: There is no script, workflow, or TAQ configured for this button
+  noScripts: There are no compatible automations for this block
   removeAll: Remove all
-  searchPlaceholder: Filter available scripts by label, script name and description
+  searchPlaceholder: Filter available automations by name or description
   stepID: 'Starting step ID: {stepID}'
   executionSuccess: Automation executed successfully
   executionFailed: Automation execution failed

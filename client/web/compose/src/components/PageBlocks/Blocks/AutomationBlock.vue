@@ -86,6 +86,7 @@ async function handleButton(btn, index) {
 
       await $AutomationAPI.ngAutomationExec({
         automationID: btn.automationID,
+        entryPoint: btn.triggerHandle || btn.entryPoint,
         input,
       })
     } else if (btn.workflowID && $AutomationAPI) {

@@ -61,6 +61,7 @@ async function fetchAutomations() {
   try {
     const { response, cancel } = $AutomationAPI.ngAutomationListCancellable({
       limit: 100,
+      sort: 'handle ASC',
     })
     cancelCurrentRequest = cancel
 

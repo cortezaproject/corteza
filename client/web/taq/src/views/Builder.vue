@@ -22,7 +22,7 @@
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
     <!-- Top-left overlay actions -->
-    <div class="absolute top left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
+    <div class="absolute top-1 left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
       <!-- Optional Description -->
       <div
         v-if="editor.automation.value.meta?.description"
@@ -107,7 +107,7 @@
                 ? $t('builder.trace.failed')
                 : $t('builder.trace.completed')
             "
-            class="text-xs"
+            class="text-sm"
           />
           <span
             v-if="editor.traceExecution.value?.duration"
@@ -115,13 +115,6 @@
           >
             <i class="pi pi-clock text-xs" />
             {{ editor.traceExecution.value.duration }}
-          </span>
-          <span
-            v-if="editor.traceFrames.value.length"
-            class="text-xs text-muted-color flex items-center gap-1"
-          >
-            <i class="pi pi-list text-xs" />
-            {{ editor.traceFrames.value.length }} {{ $t('builder.trace.stepsExecuted') }}
           </span>
           <Divider layout="vertical" class="!m-0 !mx-1" />
           <Button
@@ -131,6 +124,29 @@
             text
             size="small"
             @click="editor.clearTrace"
+          />
+        </div>
+      </Transition>
+
+      <!-- Trace Step Panel (shows I/O for the selected node, underneath execution banner) -->
+      <Transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="-translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition-all duration-150 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="-translate-y-2 opacity-0"
+      >
+        <div
+          v-if="isTraceActive && selectedNode && selectedTraceFrame && showTracePanel"
+          class="bg-surface border border-surface rounded-lg shadow-sm flex flex-col overflow-hidden pointer-events-auto"
+          :style="{ width: '300px', maxHeight: 'calc(100vh - 10rem)' }"
+        >
+          <TracePanel
+            :frame="selectedTraceFrame"
+            :execution-error="editor.traceExecution.value?.error"
+            :step-name="selectedNode?.data?.label || $t('builder.configSidebar.node')"
+            @close="showTracePanel = false"
           />
         </div>
       </Transition>
@@ -299,35 +315,16 @@
       />
     </Dialog>
 
-    <!-- Trace Step Sidebar (shows I/O for the selected node, positioned like reference panel) -->
+    <!-- Reference Panel (opens on input click, closes via button or sidebar close) -->
     <Transition
       enter-active-class="transition-transform duration-200 ease-out"
       enter-from-class="translate-x-[300px]"
       enter-to-class="translate-x-0"
     >
       <div
-        v-if="isTraceActive && selectedNode && selectedTraceFrame && showTracePanel"
-        class="right-sidebar"
-        :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '300px' }"
-      >
-        <TracePanel
-          :frame="selectedTraceFrame"
-          :execution-error="editor.traceExecution.value?.error"
-          @close="showTracePanel = false"
-        />
-      </div>
-    </Transition>
-
-    <!-- Reference Panel (opens on input click, closes via button or sidebar close) -->
-    <Transition
-      enter-active-class="transition-transform duration-200 ease-out"
-      enter-from-class="translate-x-[280px]"
-      enter-to-class="translate-x-0"
-    >
-      <div
         v-if="selectedNode && showReferencePanel"
         class="right-sidebar"
-        :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '280px' }"
+        :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '300px' }"
       >
         <ReferencePanel
           :upstream-results="upstreamResults"

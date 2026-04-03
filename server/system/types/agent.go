@@ -40,7 +40,7 @@ type (
 	AgentBehavior struct {
 		SystemPrompt        string              `json:"systemPrompt,omitempty"`
 		Guardrails          []string            `json:"guardrails,omitempty"`
-		InjectSystemContext bool                `json:"injectSystemContext,omitempty"`
+		InjectSystemContext bool                `json:"injectSystemContext"`
 		KnowledgeBases      KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
 		TreatyCLEnabled     *bool               `json:"treatyCLEnabled"`          // nil = enabled by default
 		TreatyCLTemperature int                 `json:"tclTemperature,omitempty"` // 1–10, controls citation verbosity
@@ -55,15 +55,15 @@ type (
 	AgentExecutionModel struct {
 		LLMProviderID uint64  `json:"llmProviderID,string,omitempty"`
 		Model         string  `json:"model,omitempty"`
-		Temperature   float64 `json:"temperature,omitempty"`
+		Temperature   float64 `json:"temperature"`
 	}
 
 	AgentExecutionLimits struct {
 		MaxIterations  int     `json:"maxIterations,omitempty"`
-		Timeout        string  `json:"timeout,omitempty"`
+		Timeout        string  `json:"timeout"`
 		SoftLimitRatio float64 `json:"softLimitRatio,omitempty"`
-		ContextWindow  int     `json:"contextWindow,omitempty"`
-		OutputTokens   int     `json:"outputTokens,omitempty"`
+		ContextWindow  int     `json:"contextWindow"`
+		OutputTokens   int     `json:"outputTokens"`
 	}
 
 	AgentAccess struct {

@@ -62,6 +62,7 @@ async function fetchProviders() {
   try {
     const { response, cancel } = $SystemAPI.llmProviderListCancellable({
       status: 'active',
+      sort: 'handle ASC',
     })
     cancelCurrentRequest = cancel
 

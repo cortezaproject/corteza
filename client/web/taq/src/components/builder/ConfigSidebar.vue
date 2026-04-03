@@ -34,7 +34,14 @@
           </h3>
         </div>
       </div>
-      <Button icon="pi pi-times" text rounded size="small" class="shrink-0 mt-1" @click="emit('close')" />
+      <Button
+        icon="pi pi-times"
+        text
+        rounded
+        size="small"
+        class="shrink-0 mt-1"
+        @click="emit('close')"
+      />
     </div>
 
     <!-- Description -->
@@ -50,7 +57,10 @@
         />
       </div>
       <div v-else class="flex items-start gap-2 min-h-6">
-        <div class="text-sm text-muted-color whitespace-pre-wrap" :class="{ 'italic opacity-75': !node.data?.description }">
+        <div
+          class="text-sm text-muted-color whitespace-pre-wrap"
+          :class="{ 'italic opacity-75': !node.data?.description }"
+        >
           {{ node.data?.description || $t('builder.configSidebar.noDescription') }}
         </div>
         <Button
@@ -188,6 +198,7 @@
         :message="$t('builder.confirmDelete.message')"
         :header="node.data?.label || $t('builder.configSidebar.node')"
         outlined
+        size="small"
         class="w-full"
         @confirm="emit('delete')"
       />

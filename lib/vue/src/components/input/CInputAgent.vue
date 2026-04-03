@@ -61,6 +61,7 @@ async function fetchAgents() {
   try {
     const { response, cancel } = $SystemAPI.agentListCancellable({
       limit: 100,
+      sort: 'handle ASC',
     })
     cancelCurrentRequest = cancel
 

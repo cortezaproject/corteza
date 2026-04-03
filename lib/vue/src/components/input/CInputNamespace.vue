@@ -70,6 +70,7 @@ async function fetchNamespaces() {
     const { response, cancel } = store.searchNamespaces({
       query: '',
       limit: 100,
+      sort: 'name ASC',
     })
     cancelCurrentRequest = cancel
 

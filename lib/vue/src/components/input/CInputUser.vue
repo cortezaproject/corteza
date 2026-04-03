@@ -100,6 +100,7 @@ async function fetchUsers(query = '', pageCursor = '') {
     const params = {
       query,
       limit: 15,
+      sort: 'name ASC',
     }
 
     if (pageCursor) {

@@ -276,6 +276,7 @@ async function fetchKnowledgeBases() {
   try {
     const { response, cancel } = $SystemAPI.knowledgeBaseListCancellable({
       limit: 100,
+      sort: 'title ASC',
     })
     cancelCurrentRequest = cancel
 
@@ -499,6 +500,7 @@ async function fetchModulesForNamespace(nsCtx) {
     const result = await $ComposeAPI.moduleList({
       namespaceID: nsCtx.namespaceID,
       limit: 100,
+      sort: 'name ASC',
     })
     nsCtx._moduleOptions = result.set || []
   } catch {

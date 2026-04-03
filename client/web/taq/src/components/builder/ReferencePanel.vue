@@ -12,24 +12,35 @@
         {{ $t('builder.referencePanel.noResults') }}
       </div>
 
-      <Accordion v-else :value="expandedPanels" multiple>
-        <AccordionPanel v-for="step in filteredResults" :key="step.handle" :value="step.handle">
+      <Accordion v-else v-model:value="expandedPanels" multiple class="flex flex-col gap-3 p-3">
+        <AccordionPanel
+          v-for="step in filteredResults"
+          :key="step.handle"
+          :value="step.handle"
+          class="border border-surface rounded-border overflow-hidden bg-surface shadow-sm"
+        >
           <AccordionHeader>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 p-1">
               <i v-if="step.icon?.iconClass" :class="step.icon.iconClass" class="text-sm" />
               <span class="text-sm font-medium">{{ step.label }}</span>
             </div>
           </AccordionHeader>
           <AccordionContent>
             <div class="flex flex-col gap-1">
-              <template v-for="result in (step.properties || step.results)" :key="result.sourceName">
+              <template v-for="result in step.properties || step.results" :key="result.sourceName">
                 <!-- Expandable result (e.g. ComposeRecord) — nested accordion -->
                 <div v-if="result.expandable" class="mt-1">
                   <Accordion
                     :value="expandedSubPanels[step.handle + ':' + result.sourceName] || []"
+                    @update:value="
+                      v => (expandedSubPanels[step.handle + ':' + result.sourceName] = v)
+                    "
                     multiple
                   >
-                    <AccordionPanel :value="result.sourceName">
+                    <AccordionPanel
+                      :value="result.sourceName"
+                      class="border border-surface rounded-border overflow-hidden"
+                    >
                       <AccordionHeader>
                         <div class="flex items-center justify-between w-full gap-2">
                           <div class="flex items-center gap-2">
@@ -63,7 +74,7 @@
                           class="flex items-center gap-2 px-3 py-4 justify-center"
                         >
                           <i class="pi pi-spin pi-spinner text-[--p-text-muted-color]" />
-                          <span class="text-xs text-[--p-text-muted-color]">Loading fields...</span>
+                          <span class="text-xs text-muted">Loading fields...</span>
                         </div>
 
                         <!-- Sub-fields -->
@@ -92,7 +103,7 @@
                             "
                           >
                             <span
-                              class="flex items-center justify-between w-full"
+                              class="flex items-center justify-between w-full text-sm italic"
                               :class="
                                 isActive(
                                   step.handle,
@@ -105,12 +116,6 @@
                               "
                             >
                               <span>{{ field.label || field.name }}</span>
-                              <span
-                                v-if="field.isProperty"
-                                class="text-xs text-[--p-text-muted-color] ml-2 opacity-70"
-                              >
-                                Prop
-                              </span>
                             </span>
                           </button>
                         </template>
@@ -158,7 +163,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, watch, ref } from 'vue'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
 
 const STRUCT_FIELDS = {
@@ -269,8 +274,19 @@ function isActive(scope, source) {
   return props.currentReference.scope === scope && props.currentReference.source === source
 }
 
-// Expand all top-level panels by default
-const expandedPanels = computed(() => filteredResults.value.map(s => s.handle))
+// Track expanded sub-panels
+const expandedSubPanels = reactive({})
+
+// Expand all top-level panels by default but allow collapsing
+const expandedPanels = ref([])
+
+// Cache fetched module fields per step+result key
+const recordFields = reactive({})
+const loadingFields = reactive({})
+
+function fieldKey(step, result) {
+  return `${step.handle}:${result.sourceName}`
+}
 
 // Type compatibility check
 function typesOverlap(acceptedTypes, resultTypes) {
@@ -307,7 +323,7 @@ const filteredResults = computed(() => {
       })
 
       if (filtered.length === 0) return null
-      
+
       const newStep = { ...step }
       if (step.properties) {
         newStep.properties = filtered
@@ -319,16 +335,17 @@ const filteredResults = computed(() => {
     .filter(Boolean)
 })
 
-// Track expanded sub-panels
-const expandedSubPanels = reactive({})
-
-// Cache fetched module fields per step+result key
-const recordFields = reactive({})
-const loadingFields = reactive({})
-
-function fieldKey(step, result) {
-  return `${step.handle}:${result.sourceName}`
-}
+watch(
+  filteredResults,
+  newResults => {
+    const current = new Set(expandedPanels.value)
+    const newHandles = newResults.map(s => s.handle).filter(h => !current.has(h))
+    if (newHandles.length > 0) {
+      expandedPanels.value = [...expandedPanels.value, ...newHandles]
+    }
+  },
+  { immediate: true },
+)
 
 // Fetch module fields for expandable results
 async function fetchFields(step, result) {
@@ -401,9 +418,9 @@ watch(
   padding: 0.25rem 0.25rem 0.25rem 0.5rem;
 }
 :deep(.p-accordion) {
-  gap: 0;
+  /* Let tailwind flex handle gap */
 }
 :deep(.p-accordionpanel) {
-  border: none;
+  /* Allowed standard borders to apply through tailwind */
 }
 </style>

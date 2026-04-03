@@ -174,6 +174,10 @@ async function fetchRecords(searchQuery = '', pageCursor = '') {
       limit: 15,
     }
 
+    if (props.labelField) {
+      params.sort = `${props.labelField} ASC`
+    }
+
     const filter = buildQueryFilter(searchQuery)
     if (filter) {
       params.filter = filter
