@@ -1,7 +1,7 @@
 {
   "name": "@cortezaproject/corteza-js-next",
   "description": "Corteza JavaScript/TypeScript libs",
-  "version": "2026.3.0-dev.7",
+  "version": "2026.3.0-dev.8",
   "license": "Apache-2.0",
   "type": "module",
   "main": "src/index.ts",
