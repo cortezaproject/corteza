@@ -45,7 +45,7 @@ function getParam(argumentName) {
 function getValue(argumentName) {
   const expr = props.arguments.find(a => a.argumentName === argumentName)
   // If this arg has a reference, don't return the value (it's in reference mode)
-  if (expr?.scope && expr?.source) return null
+  if (expr?.scope && (expr?.source || expr?.expr)) return null
   return expr?.value ?? null
 }
 
@@ -71,8 +71,8 @@ function getAggregateValue(argumentName) {
 // Get reference info for an argument (scope + source)
 function getReferenceInfo(argumentName) {
   const expr = props.arguments.find(a => a.argumentName === argumentName)
-  if (expr?.scope && expr?.source) {
-    return { scope: expr.scope, source: expr.source }
+  if (expr?.scope && (expr?.source || expr?.expr)) {
+    return { scope: expr.scope, source: expr.source || expr.expr }
   }
   return null
 }
@@ -111,7 +111,13 @@ function onUpdate(argumentName, value) {
     } else {
       const idx = newArgs.findIndex(a => a.argumentName === argumentName)
       if (idx !== -1) {
-        newArgs[idx] = { ...newArgs[idx], value: null, scope: undefined, source: undefined }
+        newArgs[idx] = {
+          ...newArgs[idx],
+          value: null,
+          scope: undefined,
+          source: undefined,
+          expr: undefined,
+        }
       }
     }
   } else if (isAgg && typeof value === 'object') {
@@ -149,6 +155,7 @@ function onUpdate(argumentName, value) {
       value,
       scope: undefined,
       source: undefined,
+      expr: undefined,
     }
     if (idx !== -1) {
       newArgs[idx] = { ...newArgs[idx], ...expr }
@@ -191,7 +198,7 @@ function onReferenceSelect(argumentName, { scope, source }, target) {
       argumentName,
       type: param?.types?.[0] || 'Any',
       scope,
-      source,
+      expr: source,
       value: undefined,
     }
 
@@ -214,6 +221,7 @@ function handleClearReference(argumentName) {
       ...newArgs[idx],
       scope: undefined,
       source: undefined,
+      expr: undefined,
       value: null,
     }
   }
@@ -225,7 +233,7 @@ function handleReferenceSourceUpdate(argumentName, newSource) {
   let newArgs = [...props.arguments]
   const idx = newArgs.findIndex(a => a.argumentName === argumentName)
   if (idx !== -1 && newArgs[idx].scope) {
-    newArgs[idx] = { ...newArgs[idx], source: newSource }
+    newArgs[idx] = { ...newArgs[idx], expr: newSource, source: undefined }
     emit('update:arguments', newArgs)
   }
 }
