@@ -394,6 +394,19 @@ func (rm *runtimeManager) startQueued(ctx context.Context, entry *RuntimeEntry) 
 
 	close(entry.Started)
 
+	// Record a synthetic trigger frame so the trace includes the entry point.
+	if entry.entryPoint != "" {
+		now := time.Now()
+		_ = rm.ledger.RecordFrame(ctx, entry.executableID, entry.execID, entry.revision, types.StackFrame{
+			ID:        id.MustNumID(id.Next()),
+			Handle:    entry.entryPoint,
+			Kind:      "trigger",
+			Input:     entry.globalState,
+			StartedAt: now,
+			EndedAt:   &now,
+		})
+	}
+
 	rm.running.Add(1)
 	go rm.runRuntime(rctx, entry, entry.globalState)
 	return nil
