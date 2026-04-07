@@ -145,28 +145,50 @@ export function useFlowEditor() {
       const triggers: any[] = []
       const steps: any[] = []
 
-      // Use a SINGLE counter for all IDs to avoid collisions in paths
-      // Triggers and steps share the ID space for path parentID/childID
-      // Start at 0, increment before use so IDs are 1, 2, 3, ...
-      let globalIndex = 0
-
       // Map to track VueFlow node ID -> backend ID for path generation
       const nodeIdToBackendId = new Map<string, string>()
 
-      // Helper to process a node into trigger or step
+      // Compute the highest existing ID across all nodes to use as a baseline
+      // for minting new IDs, so we never collide with existing scope references.
+      let nextNewID = nodes.value.reduce((max, node) => {
+        const data = node.data as FlowNodeData
+        const id = parseInt((node.type === 'trigger' ? data.triggerID : data.stepID) || '0', 10)
+        return isNaN(id) ? max : Math.max(max, id)
+      }, 0)
+
+      // Helper to process a node into trigger or step.
+      // Preserves the existing backend ID for already-saved nodes; only assigns
+      // a fresh ID (above the current max) to nodes that don't have one yet.
+      // This ensures stored scope references (e.g. "step_2") stay valid across saves.
       const processNode = (node: Node<FlowNodeData>) => {
         const data = node.data as FlowNodeData
-        globalIndex++
-        const newID = String(globalIndex)
-        nodeIdToBackendId.set(node.id, newID)
+
+        let backendID: string
+        if (node.type === 'trigger') {
+          if (data.triggerID && data.triggerID !== '0') {
+            backendID = data.triggerID
+          } else {
+            nextNewID++
+            backendID = String(nextNewID)
+          }
+        } else {
+          if (data.stepID && data.stepID !== '0') {
+            backendID = data.stepID
+          } else {
+            nextNewID++
+            backendID = String(nextNewID)
+          }
+        }
+
+        nodeIdToBackendId.set(node.id, backendID)
 
         if (node.type === 'trigger') {
           const existing = automation.value.triggers?.find(
             (t: any) => t.triggerID === data.triggerID,
           )
           triggers.push({
-            triggerID: newID,
-            handle: `trigger_${newID}`,
+            triggerID: backendID,
+            handle: `trigger_${backendID}`,
             enabled: existing?.enabled ?? true,
             resourceType: data.resourceType || existing?.resourceType || '',
             eventType: data.nodeType || existing?.eventType || '',
@@ -190,8 +212,8 @@ export function useFlowEditor() {
           }
 
           steps.push({
-            stepID: newID,
-            handle: `step_${newID}`,
+            stepID: backendID,
+            handle: `step_${backendID}`,
             kind,
             ref: node.type === 'end' ? 'termination' : data.nodeType || existing?.ref || '',
             meta: {
