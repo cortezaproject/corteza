@@ -75,6 +75,15 @@ func selectNested(v expr.TypedValue, path string) (expr.TypedValue, error) {
 			return child, nil
 		}
 		return selectNested(child, parts[1])
+	case expr.FieldSelector:
+		child, err := c.Select(key)
+		if err != nil {
+			return nil, fmt.Errorf("eval: no key %q: %w", key, err)
+		}
+		if len(parts) == 1 {
+			return child, nil
+		}
+		return selectNested(child, parts[1])
 	default:
 		raw := v.Get()
 		if m, ok := raw.(map[string]interface{}); ok {
