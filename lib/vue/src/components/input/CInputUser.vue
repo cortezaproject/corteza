@@ -10,6 +10,7 @@
     :loading="loading"
     class="w-full"
     filter
+    :size="size"
     :filter-fields="['label', 'name', 'handle', 'email', 'username']"
     fluid
     showClear
@@ -17,7 +18,10 @@
     @show="onShow"
   >
     <template #footer>
-      <div v-if="hasNextPage || hasPrevPage" class="flex justify-between items-center px-3 py-2 border-t border-surface">
+      <div
+        v-if="hasNextPage || hasPrevPage"
+        class="flex justify-between items-center px-3 py-2 border-t border-surface"
+      >
         <Button
           icon="pi pi-angle-left"
           text
@@ -64,6 +68,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  size: {
+    type: String,
+    default: '',
+  },
   roleId: {
     // for backwards compatibility
     type: Array,
@@ -85,10 +93,11 @@ const selectedUser = ref(null)
 
 const filteredOptions = computed(() => {
   if (!props.excludeUsers || props.excludeUsers.length === 0) return options.value
-  return options.value.filter(u => 
-    !props.excludeUsers.includes(u.userID) && 
-    !props.excludeUsers.includes(u.handle) && 
-    !props.excludeUsers.includes(u.email)
+  return options.value.filter(
+    u =>
+      !props.excludeUsers.includes(u.userID) &&
+      !props.excludeUsers.includes(u.handle) &&
+      !props.excludeUsers.includes(u.email),
   )
 })
 
@@ -248,4 +257,3 @@ onBeforeUnmount(() => {
   }
 })
 </script>
-

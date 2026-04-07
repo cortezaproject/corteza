@@ -165,8 +165,8 @@ const alignmentOptions = [
 ]
 
 const justifyOptions = [
-  { value: 'justify', label: t('block.navigation.justifyJustify') },
-  { value: 'none', label: t('block.navigation.justifyNone') },
+  { value: 'justify', label: t('block.navigation.justify') },
+  { value: 'none', label: t('block.navigation.none') },
 ]
 
 const navItems = computed(() => props.block.options?.navigationItems || [])

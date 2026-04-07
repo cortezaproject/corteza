@@ -11,10 +11,10 @@
     :disabled="disabled"
     :loading="loading"
     class="w-full"
+    :size="size"
     filter
     fluid
     display="chip"
-    :pt="{ label: { class: 'flex-wrap' } }"
     @show="onShow"
   >
     <template #option="{ option }">
@@ -80,6 +80,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  size: {
+    type: String,
+    default: '',
+  },
   showClear: {
     type: Boolean,
     default: true,
@@ -97,10 +101,11 @@ const options = ref([])
 const filteredOptions = computed(() => {
   let list = options.value
   if (props.excludeRoles && props.excludeRoles.length > 0) {
-    list = list.filter(r => 
-      !props.excludeRoles.includes(r.handle) && 
-      !props.excludeRoles.includes(r.roleID) && 
-      !props.excludeRoles.includes(r.name)
+    list = list.filter(
+      r =>
+        !props.excludeRoles.includes(r.handle) &&
+        !props.excludeRoles.includes(r.roleID) &&
+        !props.excludeRoles.includes(r.name),
     )
   }
   return list
@@ -250,7 +255,10 @@ onMounted(() => {
     if (arr.length) {
       loadRolesByIds(arr)
     }
-  } else if (props.modelValue && (!selectedRole.value || selectedRole.value.roleID !== props.modelValue)) {
+  } else if (
+    props.modelValue &&
+    (!selectedRole.value || selectedRole.value.roleID !== props.modelValue)
+  ) {
     loadRoleById(props.modelValue)
   }
 })

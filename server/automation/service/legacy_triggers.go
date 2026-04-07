@@ -138,7 +138,7 @@ func init() {
 					Elements: []types.SectionElement{{
 						Input: types.SectionElementInput{
 							Type:     "DateTime",
-							Label:    "Timestamp (RFC3339)",
+							Label:    "Timestamp",
 							Argument: "timestamp",
 						},
 					}},

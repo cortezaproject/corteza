@@ -9,6 +9,7 @@
     date-format="yy-mm-dd"
     show-icon
     fluid
+    :size="size"
     @update:model-value="onUpdate"
   />
 </template>
@@ -18,6 +19,10 @@ import { computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
+    type: String,
+    default: '',
+  },
+  size: {
     type: String,
     default: '',
   },
