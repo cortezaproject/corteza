@@ -53,7 +53,7 @@
 
       <template #body-name="{ data }">
         <div class="flex flex-col">
-          <span>{{ data.name || '-' }}</span>
+          <span>{{ data.meta?.short || '-' }}</span>
           <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
             {{ data.meta.description }}
           </span>
@@ -247,7 +247,7 @@ function getActionsMenuItems(userGroup) {
 function onConfirmDelete(userGroup) {
   confirmDelete({
     message: t('general.confirm.delete'),
-    header: userGroup.name || userGroup.handle || t('system.user-groups.list.new'),
+    header: userGroup.meta?.short || userGroup.handle || t('system.user-groups.list.new'),
     onConfirm: () => handleDelete(userGroup),
   })
 }

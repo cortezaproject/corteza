@@ -11,6 +11,7 @@
           class="flex-1"
           :placeholder="$t('system.roles.editor.members.placeholder')"
           clear-on-select
+          :exclude-users="Array.from(memberIDs)"
           @select="onUserSelect"
         />
       </div>
@@ -18,7 +19,7 @@
       <!-- Current Members -->
       <div
         v-if="currentMembers.length === 0"
-        class="text-muted-color p-4 border rounded-lg bg-highlight text-center"
+        class="text-muted-color p-4 border rounded-lg bg-surface text-center"
       >
         {{ $t('system.roles.editor.members.empty') }}
       </div>

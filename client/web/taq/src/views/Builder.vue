@@ -915,7 +915,31 @@ function handleUpdateMetadata(meta) {
 
 // Compute current reference (scope + source) for the active argument
 const currentReference = computed(() => {
-  if (!activeReferenceArgument.value || !selectedNode.value) return null
+  if (!activeReferenceArgument.value) return null
+
+  if (activeReferenceArgument.value.isCondition) {
+    const { edgeId, side, rowIndex } = activeReferenceArgument.value
+    const edge = editor.edges.value.find(e => e.id === edgeId)
+    if (!edge?.data?.condition) return null
+
+    const condition = edge.data.condition
+    let refNode = null
+
+    if (condition.ref === 'and' || condition.ref === 'or') {
+      const row = condition.args?.[rowIndex]
+      if (!row) return null
+      refNode = side === 'variable' ? row.args[0] : row.args[1]
+    } else {
+      refNode = side === 'variable' ? condition.args[0] : condition.args[1]
+    }
+
+    if (refNode?.meta?.scope && refNode.symbol) {
+      return { scope: refNode.meta.scope, source: refNode.symbol }
+    }
+    return null
+  }
+
+  if (!selectedNode.value) return null
   const args = selectedNode.value.data?.arguments || []
   const { name, target } = activeReferenceArgument.value
 

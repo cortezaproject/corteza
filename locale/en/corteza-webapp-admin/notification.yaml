@@ -53,6 +53,10 @@ user:
     success: Avatar deleted
     error: Avatar delete failed
 role:
+  clone:
+    success: Clone successful
+    error: Clone failed
+    notAvailable: Clone API is not available on this server version
   fetch:
     error: Role fetch failed
   create:
@@ -356,6 +360,7 @@ permissions:
   clone:
     success: Permissions cloned
     error: Permissions clone failed
+    notAvailable: Clone API is not available on this server version
   role:
     error: Failed to add role
 connection:

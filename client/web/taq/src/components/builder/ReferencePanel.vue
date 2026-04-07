@@ -21,7 +21,7 @@
         >
           <AccordionHeader>
             <div class="flex items-center gap-2 p-1">
-              <i v-if="step.icon?.iconClass" :class="step.icon.iconClass" class="text-sm" />
+              <TaqIcon v-if="step.icon" :icon="step.icon" class="text-lg text-primary" />
               <span class="text-sm font-medium">{{ step.label }}</span>
             </div>
           </AccordionHeader>
@@ -32,9 +32,7 @@
                 <div v-if="result.expandable" class="mt-1">
                   <Accordion
                     :value="expandedSubPanels[step.handle + ':' + result.sourceName] || []"
-                    @update:value="
-                      v => (expandedSubPanels[step.handle + ':' + result.sourceName] = v)
-                    "
+                    @update:value="v => handleSubPanelUpdate(step.handle, result.sourceName, v)"
                     multiple
                   >
                     <AccordionPanel
@@ -44,80 +42,176 @@
                       <AccordionHeader>
                         <div class="flex items-center justify-between w-full gap-2">
                           <div class="flex items-center gap-2">
-                            <i class="pi pi-database text-xs text-[--p-text-muted-color]" />
-                            <span class="text-sm text-color">{{ result.name }}</span>
+                            <span class="text-sm text-color capitalize">{{ result.name }}</span>
                           </div>
                         </div>
                       </AccordionHeader>
                       <AccordionContent>
-                        <!-- Top-level: select the whole record -->
-                        <button
-                          class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-1"
-                          :class="
-                            isActive(step.handle, result.sourceName)
-                              ? 'bg-highlight !text-primary'
-                              : ''
-                          "
-                          @click="emit('select', { scope: step.handle, source: result.sourceName })"
-                        >
-                          <span
-                            class="text-sm italic"
-                            :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
+                          <!-- Explicit button to select the entire object -->
+                          <button
+                            class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-1"
+                            :class="
+                              isActive(step.handle, result.sourceName)
+                                ? 'bg-highlight !text-primary'
+                                : ''
+                            "
+                            @click="emit('select', { scope: step.handle, source: result.sourceName })"
                           >
-                            {{ result.name }} (whole)
-                          </span>
-                        </button>
+                            <span
+                              class="text-sm italic flex gap-1"
+                              :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
+                            >
+                              <span class="capitalize">{{ result.name }}</span>
+                              <span>(whole)</span>
+                            </span>
+                          </button>
 
                         <!-- Loading state -->
                         <div
                           v-if="loadingFields[fieldKey(step, result)]"
                           class="flex items-center gap-2 px-3 py-4 justify-center"
                         >
-                          <i class="pi pi-spin pi-spinner text-[--p-text-muted-color]" />
+                          <i class="pi pi-spin pi-spinner text-muted" />
                           <span class="text-xs text-muted">Loading fields...</span>
                         </div>
 
                         <!-- Sub-fields -->
                         <template v-else-if="recordFields[fieldKey(step, result)]?.length">
-                          <button
+                          <template
                             v-for="field in recordFields[fieldKey(step, result)]"
                             :key="field.name"
-                            class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full"
-                            :class="
-                              isActive(
-                                step.handle,
-                                field.isProperty
-                                  ? result.sourceName + '.' + field.name
-                                  : result.sourceName + '.values.' + field.name,
-                              )
-                                ? 'bg-highlight !text-primary'
-                                : ''
-                            "
-                            @click="
-                              emit('select', {
-                                scope: step.handle,
-                                source: field.isProperty
-                                  ? result.sourceName + '.' + field.name
-                                  : result.sourceName + '.values.' + field.name,
-                              })
-                            "
                           >
-                            <span
-                              class="flex items-center justify-between w-full text-sm italic"
-                              :class="
-                                isActive(
-                                  step.handle,
-                                  field.isProperty
-                                    ? result.sourceName + '.' + field.name
-                                    : result.sourceName + '.values.' + field.name,
-                                )
-                                  ? ''
-                                  : 'text-color'
-                              "
-                            >
-                              <span>{{ field.label || field.name }}</span>
-                            </span>
-                          </button>
+                            <template v-if="field.isProperty">
+                              <!-- Special Accordion for 'values' to house custom fields -->
+                              <div v-if="field.name === 'values'" class="w-full my-1">
+                                <Accordion
+                                  multiple
+                                  :value="expandedValuesPanels[fieldKey(step, result)] || []"
+                                  @update:value="
+                                    v => (expandedValuesPanels[fieldKey(step, result)] = v)
+                                  "
+                                >
+                                  <AccordionPanel value="values" class="border-0 bg-transparent">
+                                    <AccordionHeader
+                                      class="hover:!bg-emphasis transition-colors !border-0 focus:!shadow-none text-color"
+                                    >
+                                      <span class="text-sm italic">
+                                        Values
+                                      </span>
+                                    </AccordionHeader>
+                                    <AccordionContent class="!p-0 !pt-0 border-none pb-1 mt-1">
+                                      <div class="pl-1.5 flex flex-col gap-0.5 border-l border-surface">
+                                        <!-- Explicit button to select the entire values object -->
+                                        <button
+                                          class="flex items-center justify-between px-1.5 py-1 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-0.5"
+                                          :class="
+                                            isActive(step.handle, result.sourceName + '.values')
+                                              ? 'bg-highlight !text-primary'
+                                              : ''
+                                          "
+                                          @click="
+                                            emit('select', {
+                                              scope: step.handle,
+                                              source: result.sourceName + '.values',
+                                            })
+                                          "
+                                        >
+                                          <span
+                                            class="text-sm italic flex gap-1"
+                                            :class="
+                                              isActive(step.handle, result.sourceName + '.values')
+                                                ? ''
+                                                : 'text-color'
+                                            "
+                                          >
+                                            <span class="capitalize">Values</span>
+                                            <span>(whole)</span>
+                                          </span>
+                                        </button>
+                                        <button
+                                          v-for="modField in recordFields[
+                                            fieldKey(step, result)
+                                          ].filter(f => !f.isProperty)"
+                                          :key="modField.name"
+                                          class="flex items-center justify-between px-1.5 py-1 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full"
+                                          :class="
+                                            isActive(
+                                              step.handle,
+                                              result.sourceName + '.values.' + modField.name,
+                                            )
+                                              ? 'bg-highlight !text-primary'
+                                              : ''
+                                          "
+                                          @click="
+                                            emit('select', {
+                                              scope: step.handle,
+                                              source:
+                                                result.sourceName + '.values.' + modField.name,
+                                            })
+                                          "
+                                        >
+                                          <span
+                                            class="flex items-center justify-between w-full text-sm italic"
+                                            :class="
+                                              isActive(
+                                                step.handle,
+                                                result.sourceName + '.values.' + modField.name,
+                                              )
+                                                ? ''
+                                                : 'text-color'
+                                            "
+                                          >
+                                            <span class="capitalize">
+                                              {{ modField.label || modField.name }}
+                                            </span>
+                                          </span>
+                                        </button>
+
+                                        <div
+                                          v-if="
+                                            recordFields[fieldKey(step, result)].filter(
+                                              f => !f.isProperty,
+                                            ).length === 0
+                                          "
+                                          class="text-xs text-[--p-text-muted-color] px-1.5 py-1"
+                                        >
+                                          No custom fields
+                                        </div>
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionPanel>
+                                </Accordion>
+                              </div>
+
+                              <!-- Regular Struct Fields -->
+                              <button
+                                v-else
+                                class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-0.5"
+                                :class="
+                                  isActive(step.handle, result.sourceName + '.' + field.name)
+                                    ? 'bg-highlight !text-primary'
+                                    : ''
+                                "
+                                @click="
+                                  emit('select', {
+                                    scope: step.handle,
+                                    source: result.sourceName + '.' + field.name,
+                                  })
+                                "
+                              >
+                                <span
+                                  class="flex items-center justify-between w-full text-sm italic"
+                                  :class="
+                                    isActive(step.handle, result.sourceName + '.' + field.name)
+                                      ? ''
+                                      : 'text-color'
+                                  "
+                                >
+                                  <span class="capitalize">{{ field.label || field.name }}</span>
+                                </span>
+                              </button>
+                            </template>
+                          </template>
                         </template>
 
                         <!-- No module configured for custom fields -->
@@ -147,7 +241,7 @@
                   @click="emit('select', { scope: step.handle, source: result.sourceName })"
                 >
                   <span
-                    class="text-sm"
+                    class="text-sm capitalize"
                     :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
                   >
                     {{ result.name }}
@@ -165,17 +259,21 @@
 <script setup>
 import { computed, reactive, watch, ref } from 'vue'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import TaqIcon from '@/components/common/TaqIcon.vue'
 
 const STRUCT_FIELDS = {
   ComposeRecord: [
+    { name: 'values', label: 'Values', kind: 'Object', isProperty: true },
     { name: 'recordID', label: 'Record ID', kind: 'ID', isProperty: true },
     { name: 'moduleID', label: 'Module ID', kind: 'ID', isProperty: true },
     { name: 'namespaceID', label: 'Namespace ID', kind: 'ID', isProperty: true },
-    { name: 'values', label: 'Values', kind: 'Object', isProperty: true },
     { name: 'ownedBy', label: 'Owned By', kind: 'ID', isProperty: true },
     { name: 'createdAt', label: 'Created At', kind: 'DateTime', isProperty: true },
+    { name: 'createdBy', label: 'Created By', kind: 'ID', isProperty: true },
     { name: 'updatedAt', label: 'Updated At', kind: 'DateTime', isProperty: true },
+    { name: 'updatedBy', label: 'Updated By', kind: 'ID', isProperty: true },
     { name: 'deletedAt', label: 'Deleted At', kind: 'DateTime', isProperty: true },
+    { name: 'deletedBy', label: 'Deleted By', kind: 'ID', isProperty: true },
   ],
   SystemUser: [
     { name: 'userID', label: 'User ID', kind: 'ID', isProperty: true },
@@ -276,6 +374,22 @@ function isActive(scope, source) {
 
 // Track expanded sub-panels
 const expandedSubPanels = reactive({})
+const expandedValuesPanels = reactive({})
+
+function handleSubPanelUpdate(handle, sourceName, v) {
+  const subKey = `${handle}:${sourceName}`
+  const wasExpanded = (expandedSubPanels[subKey] || []).includes(sourceName)
+  const isExpanded = v.includes(sourceName)
+
+  expandedSubPanels[subKey] = v
+
+  // Custom behavior: When they manually expand a complex sub-panel (e.g. record), automatically expand its nested values object too
+  if (!wasExpanded && isExpanded) {
+    if (!expandedValuesPanels[subKey] || !expandedValuesPanels[subKey].includes('values')) {
+      expandedValuesPanels[subKey] = ['values']
+    }
+  }
+}
 
 // Expand all top-level panels by default but allow collapsing
 const expandedPanels = ref([])
@@ -335,17 +449,7 @@ const filteredResults = computed(() => {
     .filter(Boolean)
 })
 
-watch(
-  filteredResults,
-  newResults => {
-    const current = new Set(expandedPanels.value)
-    const newHandles = newResults.map(s => s.handle).filter(h => !current.has(h))
-    if (newHandles.length > 0) {
-      expandedPanels.value = [...expandedPanels.value, ...newHandles]
-    }
-  },
-  { immediate: true },
-)
+// Removed watch on filteredResults that auto-expanded all panels by default
 
 // Fetch module fields for expandable results
 async function fetchFields(step, result) {
@@ -395,14 +499,43 @@ watch(
       const items = step.properties || step.results || []
       for (const result of items) {
         if (result.expandable) {
-          // Auto-expand sub-panels
-          const subKey = step.handle + ':' + result.sourceName
-          if (!expandedSubPanels[subKey]) {
-            expandedSubPanels[subKey] = [result.sourceName]
-          }
           fetchFields(step, result)
         }
       }
+    }
+  },
+  { immediate: true },
+)
+
+// Handle automatic expansion and collapsing based on the active selection
+watch(
+  () => props.currentReference,
+  ref => {
+    if (!ref) {
+      // 1. Collapse all if no reference is selected
+      expandedPanels.value = []
+      for (const key in expandedSubPanels) delete expandedSubPanels[key]
+      for (const key in expandedValuesPanels) delete expandedValuesPanels[key]
+      return
+    }
+
+    // 2. Expand only the selected reference and collapse others
+    expandedPanels.value = [ref.scope]
+
+    for (const key in expandedSubPanels) delete expandedSubPanels[key]
+    for (const key in expandedValuesPanels) delete expandedValuesPanels[key]
+
+    // Determine the base result name and nested path
+    const parts = ref.source.split('.')
+    const topLevelName = parts[0]
+    const subKey = `${ref.scope}:${topLevelName}`
+
+    // Expand the main nested struct panel
+    expandedSubPanels[subKey] = [topLevelName]
+
+    // If the reference is deep inside `values`, expand the values accordion too
+    if (parts.length > 2 && parts[1] === 'values') {
+      expandedValuesPanels[subKey] = ['values']
     }
   },
   { immediate: true },

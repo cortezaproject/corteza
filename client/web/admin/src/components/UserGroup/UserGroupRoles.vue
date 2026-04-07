@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex items-center gap-2">
-      <CInputRole class="flex-1" :placeholder="$t('system.user-groups.editor.roles.placeholder')" clear-on-select @select="addRole" />
+      <CInputRole class="flex-1" :placeholder="$t('system.user-groups.editor.roles.placeholder')" :exclude-roles="roles.map(r => r.roleID)" clear-on-select filter-context-roles @select="addRole" />
     </div>
     <!-- Roles list -->
     <div v-if="roles.length === 0" class="text-muted-color p-4 border rounded-lg bg-highlight text-center">
@@ -38,32 +38,32 @@ const roles = ref([])
 
 async function loadRoles() {
   try {
-    const result = await $SystemAPI.userGroupRoleList({ userGroupID: props.userGroupID })
+    const result = await $SystemAPI.roleList({ userGroupID: props.userGroupID })
     roles.value = result?.set || result || []
   } catch (e) {
-    $toast.toastErrorHandler(t('system.user-groups.editor.roles.fetchError', 'Failed to load roles'))(e)
+    $toast.toastErrorHandler(t('system.user-groups.editor.roles.fetchError'))(e)
   }
 }
 
 async function addRole(role) {
   if (!role) return
   try {
-    await $SystemAPI.userGroupRoleAdd({ userGroupID: props.userGroupID, roleID: role.roleID })
+    await $SystemAPI.roleMemberAddGroup({ userGroupID: props.userGroupID, roleID: role.roleID })
     if (!roles.value.find(r => r.roleID === role.roleID)) {
       roles.value.push(role)
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('system.user-groups.editor.roles.addError', 'Failed to add role'))(e)
+    $toast.toastErrorHandler(t('system.user-groups.editor.roles.addError'))(e)
   }
 }
 
 async function removeRole(role) {
   try {
-    await $SystemAPI.userGroupRoleRemove({ userGroupID: props.userGroupID, roleID: role.roleID })
+    await $SystemAPI.roleMemberRemoveGroup({ userGroupID: props.userGroupID, roleID: role.roleID })
     const idx = roles.value.findIndex(r => r.roleID === role.roleID)
     if (idx !== -1) roles.value.splice(idx, 1)
   } catch (e) {
-    $toast.toastErrorHandler(t('system.user-groups.editor.roles.removeError', 'Failed to remove role'))(e)
+    $toast.toastErrorHandler(t('system.user-groups.editor.roles.removeError'))(e)
   }
 }
 

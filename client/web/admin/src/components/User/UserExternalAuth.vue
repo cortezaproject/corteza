@@ -6,7 +6,7 @@
 
     <div
       v-else-if="credentials.length === 0"
-      class="text-muted-color p-4 border rounded-lg bg-highlight text-center"
+      class="text-muted-color p-4 border rounded-lg bg-surface text-center"
     >
       {{ $t('system.users.editor.externalAuth.empty') }}
     </div>
@@ -18,14 +18,16 @@
         class="flex items-center justify-between p-3"
       >
         <div class="flex flex-col gap-1">
-          <span class="font-medium">{{ item.label || item.credentialsID }}</span>
-          <span class="text-xs text-muted-color">{{ item.kind }}</span>
+          <span class="font-medium">{{ item.label || item.kind }}</span>
+          <span v-if="item.label && item.kind" class="text-xs text-muted-color">
+            {{ item.kind }}
+          </span>
         </div>
         <Button
           icon="pi pi-trash"
           severity="danger"
           text
-          rounded
+          size="small"
           :aria-label="$t('system.users.editor.externalAuth.remove')"
           :title="$t('system.users.editor.externalAuth.remove')"
           :loading="removingID === item.credentialsID"

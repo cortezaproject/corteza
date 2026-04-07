@@ -13,6 +13,7 @@
           :placeholder="$t('system.users.editor.roles.placeholder')"
           clear-on-select
           filter-context-roles
+          :exclude-roles="Array.from(membershipIDs)"
           @select="onRoleSelect"
         />
       </div>
@@ -20,7 +21,7 @@
       <!-- Current Roles -->
       <div
         v-if="currentRoles.length === 0"
-        class="text-muted-color p-4 border rounded-lg bg-highlight text-center"
+        class="text-muted-color p-4 border rounded-lg bg-surface text-center"
       >
         {{ $t('system.users.editor.roles.empty') }}
       </div>

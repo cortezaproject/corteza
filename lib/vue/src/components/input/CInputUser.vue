@@ -1,8 +1,8 @@
 <template>
   <Select
-    :model-value="modelValue"
+    :model-value="selectedUser"
     @update:model-value="onSelect"
-    :options="options"
+    :options="filteredOptions"
     option-label="label"
     option-value="userID"
     :placeholder="placeholder"
@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch, nextTick, computed } from 'vue'
 import { useUserResolver } from '../../composables/useUserResolver'
 
 defineOptions({ inheritAttrs: false })
@@ -69,6 +69,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  excludeUsers: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'select'])
@@ -77,6 +81,17 @@ const $SystemAPI = inject('$SystemAPI')
 const { formatUser, resolveUser, cacheUsers } = useUserResolver()
 
 const options = ref([])
+const selectedUser = ref(null)
+
+const filteredOptions = computed(() => {
+  if (!props.excludeUsers || props.excludeUsers.length === 0) return options.value
+  return options.value.filter(u => 
+    !props.excludeUsers.includes(u.userID) && 
+    !props.excludeUsers.includes(u.handle) && 
+    !props.excludeUsers.includes(u.email)
+  )
+})
+
 const loading = ref(false)
 
 let cancelCurrentRequest = null
@@ -117,7 +132,7 @@ async function fetchUsers(query = '', pageCursor = '') {
 
     const result = await response()
     const users = result.set || []
-    
+
     // Add an explicit string label property for PrimeVue to easily render/filter
     options.value = users.map(u => ({ ...u, label: formatUser(u) }))
 
@@ -165,17 +180,20 @@ function goToPage(next) {
 }
 
 function onSelect(userID) {
-  emit('update:modelValue', userID || null)
-
   const selectedNode = options.value.find(u => u.userID === userID)
-  if (selectedNode) {
-    emit('select', selectedNode)
-  }
 
-  if (props.clearOnSelect && userID) {
-    setTimeout(() => {
+  if (props.clearOnSelect) {
+    selectedUser.value = userID
+    if (selectedNode) emit('select', selectedNode)
+
+    nextTick(() => {
+      selectedUser.value = null
       emit('update:modelValue', null)
-    }, 0)
+    })
+  } else {
+    selectedUser.value = userID
+    emit('update:modelValue', userID || null)
+    if (selectedNode) emit('select', selectedNode)
   }
 }
 
@@ -202,7 +220,12 @@ watch(
   () => props.modelValue,
   newVal => {
     if (newVal) {
-      loadUserById(newVal)
+      if (newVal !== selectedUser.value) {
+        selectedUser.value = newVal
+        loadUserById(newVal)
+      }
+    } else {
+      selectedUser.value = null
     }
   },
   { immediate: true },
@@ -210,7 +233,8 @@ watch(
 
 onMounted(() => {
   fetchUsers()
-  if (props.modelValue) {
+  if (props.modelValue && props.modelValue !== selectedUser.value) {
+    selectedUser.value = props.modelValue
     loadUserById(props.modelValue)
   }
 })

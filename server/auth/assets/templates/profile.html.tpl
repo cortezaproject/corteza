@@ -127,25 +127,7 @@
             </div>
         </div>
 
-        {{ if not .isAvatar }}
-        <div class="row mb-3">
-            <div class="col">
-                <label for="initialColor">{{ tr "profile.template.form.avatar-initial.color" }}</label>
-                <div class="color-picker-wrapper">
-                    <input type="color" id="initialColor" class="color-picker-input" value="{{ if .form.initialTextColor }}{{ .form.initialTextColor }}{{ else }}#3f3f46{{ end }}" name="initial-color">
-                    <span class="color-picker-value" data-color-for="initialColor">{{ .form.initialTextColor }}</span>
-                </div>
-            </div>
 
-            <div class="col">
-                <label for="customColor">{{ tr "profile.template.form.avatar-initial.background-color" }}</label>
-                <div class="color-picker-wrapper">
-                    <input type="color" id="customColor" class="color-picker-input" value="{{ if .form.initialBgColor }}{{ .form.initialBgColor }}{{ else }}#e4e4e7{{ end }}" name="initial-bg">
-                    <span class="color-picker-value" data-color-for="customColor">{{ .form.initialBgColor }}</span>
-                </div>
-            </div>
-        </div>
-        {{ end }}
         {{ end }}
 
         <div>

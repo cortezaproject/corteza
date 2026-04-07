@@ -106,22 +106,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  document.querySelectorAll('.color-picker-input').forEach(function (input) {
-    input.addEventListener('input', function () {
-      // Update hex label
-      var label = document.querySelector('[data-color-for="' + input.id + '"]');
-      if (label) {
-        label.textContent = input.value;
-      }
 
-      // Live-update avatar initials preview colors
-      if (avatarEl) {
-        if (input.id === 'initialColor') {
-          avatarEl.style.color = input.value;
-        } else if (input.id === 'customColor') {
-          avatarEl.style.backgroundColor = input.value;
-        }
-      }
-    });
-  });
 });

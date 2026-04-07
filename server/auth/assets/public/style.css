@@ -361,54 +361,7 @@ select.form-control {
 }
 
 
-/* ============================================================
-   Color Picker (PrimeVue-like swatch + hex value)
-   ============================================================ */
-.color-picker-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
 
-.color-picker-input {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid var(--auth-border-color);
-  border-radius: 0.375rem;
-  padding: 0;
-  cursor: pointer;
-  background: none;
-  flex-shrink: 0;
-}
-
-.color-picker-input::-webkit-color-swatch-wrapper {
-  padding: 2px;
-}
-
-.color-picker-input::-webkit-color-swatch {
-  border: none;
-  border-radius: 0.25rem;
-}
-
-.color-picker-input::-moz-color-swatch {
-  border: none;
-  border-radius: 0.25rem;
-}
-
-.color-picker-input:focus {
-  border-color: var(--auth-input-focus-ring);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--auth-input-focus-ring) 25%, transparent);
-  outline: none;
-}
-
-.color-picker-value {
-  font-family: monospace;
-  font-size: 0.8rem;
-  color: var(--auth-text-muted);
-  text-transform: uppercase;
-}
 
 
 /* ============================================================

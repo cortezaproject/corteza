@@ -1,6 +1,12 @@
 <template>
-  <Panel :header="$t('system.roles.editor.clone.title')" toggleable class="shadow">
-    <div class="flex flex-col gap-4">
+  <Dialog
+    :visible="visible"
+    @update:visible="$emit('update:visible', $event)"
+    :header="$t('system.roles.editor.clone.title')"
+    modal
+    class="w-[30rem]"
+  >
+    <div class="flex flex-col gap-4 py-2">
       <p class="text-sm text-muted-color">{{ $t('system.roles.editor.clone.description') }}</p>
       <div class="flex items-center gap-2">
         <CInputRole
@@ -8,7 +14,6 @@
           v-model="sourceRoleID"
           :placeholder="$t('system.roles.editor.clone.placeholder')"
           @select="onRoleSelect"
-          clear-on-select
         />
         <Button
           :label="$t('system.roles.editor.clone.button')"
@@ -18,11 +23,8 @@
           @click="handleClone"
         />
       </div>
-      <p v-if="selectedRole" class="text-sm">
-        {{ $t('system.roles.editor.clone.selected') }}: {{ selectedRole.name || selectedRole.handle }}
-      </p>
     </div>
-  </Panel>
+  </Dialog>
 </template>
 
 <script setup>
@@ -33,11 +35,17 @@ import { components } from '@cortezaproject/corteza-vue-next'
 const { CInputRole } = components
 
 const props = defineProps({
+  visible: {
+    type: Boolean,
+    default: false,
+  },
   roleID: {
     type: String,
     required: true,
   },
 })
+
+const emit = defineEmits(['update:visible', 'cloned'])
 
 const { t } = useI18n()
 const $toast = inject('$toast')
@@ -48,7 +56,11 @@ const selectedRole = ref(null)
 const cloning = ref(false)
 
 function onRoleSelect(role) {
-  if (!role) return
+  if (!role) {
+    selectedRole.value = null
+    sourceRoleID.value = ''
+    return
+  }
   selectedRole.value = role
   sourceRoleID.value = role.roleID
 }
@@ -58,15 +70,10 @@ async function handleClone() {
 
   cloning.value = true
   try {
-    if (typeof $SystemAPI.roleClone === 'function') {
-      await $SystemAPI.roleClone({
-        roleID: sourceRoleID.value,
-        cloneToRoleID: props.roleID,
-      })
-    } else if (typeof $SystemAPI.permissionsClone === 'function') {
-      await $SystemAPI.permissionsClone({
-        roleID: sourceRoleID.value,
-        cloneToRoleID: props.roleID,
+    if (typeof $SystemAPI.roleCloneRules === 'function') {
+      await $SystemAPI.roleCloneRules({
+        roleID: props.roleID,
+        cloneToRoleID: [sourceRoleID.value],
       })
     } else {
       throw new Error('not-available')
@@ -74,9 +81,11 @@ async function handleClone() {
     $toast.toastSuccess(t('notification.role.clone.success'))
     selectedRole.value = null
     sourceRoleID.value = ''
+    emit('cloned')
+    emit('update:visible', false)
   } catch (e) {
     if (e?.message === 'not-available') {
-      $toast.toastError(t('notification.role.clone.notAvailable'))
+      $toast.toastWarning(t('notification.role.clone.notAvailable'))
     } else {
       $toast.toastErrorHandler(t('notification.role.clone.error'))(e)
     }

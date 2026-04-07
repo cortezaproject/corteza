@@ -4,7 +4,7 @@
     v-if="multiple"
     :model-value="selectedRoles"
     @update:model-value="onMultiSelect"
-    :options="options"
+    :options="filteredOptions"
     :option-label="getOptionLabel"
     option-value="roleID"
     :placeholder="placeholder"
@@ -29,7 +29,7 @@
     v-else
     :model-value="selectedRole"
     @update:model-value="onSelect"
-    :options="options"
+    :options="filteredOptions"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch, nextTick, computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -90,9 +90,22 @@ const emit = defineEmits(['update:modelValue', 'select'])
 
 const $SystemAPI = inject('$SystemAPI')
 
-const options = ref([])
 const selectedRole = ref(null)
 const selectedRoles = ref([])
+const options = ref([])
+
+const filteredOptions = computed(() => {
+  let list = options.value
+  if (props.excludeRoles && props.excludeRoles.length > 0) {
+    list = list.filter(r => 
+      !props.excludeRoles.includes(r.handle) && 
+      !props.excludeRoles.includes(r.roleID) && 
+      !props.excludeRoles.includes(r.name)
+    )
+  }
+  return list
+})
+
 const loading = ref(false)
 
 let cancelCurrentRequest = null
@@ -118,16 +131,7 @@ async function fetchRoles() {
     cancelCurrentRequest = cancel
 
     const result = await response()
-
     let fetchedOptions = result.set || []
-
-    if (props.excludeRoles && props.excludeRoles.length > 0) {
-      fetchedOptions = fetchedOptions.filter(r => 
-        !props.excludeRoles.includes(r.handle) && 
-        !props.excludeRoles.includes(r.roleID) && 
-        !props.excludeRoles.includes(r.name)
-      )
-    }
 
     if (props.filterContextRoles) {
       options.value = fetchedOptions.filter(r => {
@@ -158,18 +162,18 @@ function onShow() {
 
 // --- Single-select handlers ---
 function onSelect(value) {
-  selectedRole.value = value
-  emit('update:modelValue', value?.roleID || null)
+  if (props.clearOnSelect) {
+    selectedRole.value = value
+    if (value) emit('select', value)
 
-  if (value) {
-    emit('select', value)
-  }
-
-  if (props.clearOnSelect && value) {
-    setTimeout(() => {
+    nextTick(() => {
       selectedRole.value = null
       emit('update:modelValue', null)
-    }, 0)
+    })
+  } else {
+    selectedRole.value = value
+    emit('update:modelValue', value?.roleID || null)
+    if (value) emit('select', value)
   }
 }
 

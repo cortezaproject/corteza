@@ -71,9 +71,14 @@
               {{ $t('system.user-groups.editor.info.parents.empty') }}
             </div>
             <div v-else class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 px-1 mb-1">
+                <label class="flex-1 text-xs text-muted-color font-semibold uppercase">{{ $t('system.user-groups.editor.info.parents.parent.label') }}</label>
+                <label class="flex-1 text-xs text-muted-color font-semibold uppercase">{{ $t('system.user-groups.editor.info.parents.name.label') }}</label>
+                <div v-if="userGroup.config.path.length > 1" class="w-8"></div>
+              </div>
               <div v-for="(parent, i) in userGroup.config.path" :key="i" class="flex items-center gap-2">
-                <CInputUserGroup v-model="parent.selfID" class="flex-1" :placeholder="$t('system.user-groups.editor.info.parents.placeholder')" />
-                <InputText v-model="parent.name" :placeholder="$t('system.user-groups.editor.info.parents.namePlaceholder')" class="flex-1" />
+                <CInputUserGroup v-model="parent.selfID" class="flex-1" :placeholder="$t('system.user-groups.editor.info.parents.parent.placeholder')" />
+                <InputText v-model="parent.name" :placeholder="$t('system.user-groups.editor.info.parents.name.placeholder')" class="flex-1" />
                 <Button v-if="userGroup.config.path.length > 1" icon="pi pi-trash" severity="danger" text rounded size="small" @click="removeParent(i)" />
               </div>
             </div>
@@ -129,7 +134,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
@@ -281,6 +286,15 @@ async function handleUndelete() {
     saving.value = false
   }
 }
+
+watch(
+  () => route.params.userGroupID,
+  (newID, oldID) => {
+    if (newID !== oldID) {
+      loadUserGroup()
+    }
+  }
+)
 
 onMounted(() => {
   loadUserGroup()

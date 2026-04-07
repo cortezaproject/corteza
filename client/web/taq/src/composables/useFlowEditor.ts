@@ -360,8 +360,9 @@ export function useFlowEditor() {
         dbTrigger.segments.forEach(seg => {
           seg.sections?.forEach(sec => {
             sec.elements?.forEach(el => {
-              if (el.input && el.input.default !== undefined && el.input.argument) {
-                defaultConfig[el.input.argument] = el.input.default
+              const elInput = el.input as any
+              if (elInput && elInput.default !== undefined && elInput.argument) {
+                defaultConfig[elInput.argument] = elInput.default
               }
             })
           })
@@ -373,12 +374,13 @@ export function useFlowEditor() {
         dbFunction.segments.forEach(seg => {
           seg.sections?.forEach(sec => {
             sec.elements?.forEach(el => {
-              if (el.input && el.input.default !== undefined && el.input.argument) {
-                const param = dbFunction.parameters?.find(p => p.argumentName === el.input.argument)
+              const elInput = el.input as any
+              if (elInput && elInput.default !== undefined && elInput.argument) {
+                const param = dbFunction.parameters?.find(p => p.argumentName === elInput.argument)
                 defaultArguments.push({
-                  argumentName: el.input.argument,
+                  argumentName: elInput.argument,
                   type: param?.types?.[0] || 'Any',
-                  value: el.input.default,
+                  value: elInput.default,
                 })
               }
             })
@@ -956,7 +958,15 @@ export function useFlowEditor() {
       handle: string
       label: string
       icon?: IconDef
-      results: Array<{
+      results?: Array<{
+        name: string
+        sourceName: string
+        types: string[]
+        expandable?: boolean
+        namespaceID?: string
+        moduleID?: string
+      }>
+      properties?: Array<{
         name: string
         sourceName: string
         types: string[]
@@ -1012,7 +1022,7 @@ export function useFlowEditor() {
       if (a.expr && typeof a.expr === 'string' && a.expr.startsWith('"') && a.expr.endsWith('"')) {
         return a.expr.slice(1, -1)
       }
-      return a.expr || a.source || null
+      return a.expr || a.source || a.value || null
     }
 
     // For each ancestor node, look up results (functions) or properties (triggers)

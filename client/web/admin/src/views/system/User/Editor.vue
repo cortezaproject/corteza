@@ -92,7 +92,7 @@
             <label for="userGroupID" class="font-medium text-primary">
               {{ $t('system.users.editor.info.userGroup.label') }}
             </label>
-            <CInputUserGroup id="userGroupID" v-model="user.userGroupID" class="w-full" />
+            <CInputUserGroup id="userGroupID" v-model="user.userGroupID" :clearable="false" class="w-full" />
           </FormField>
         </div>
       </Panel>
@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
@@ -235,6 +235,13 @@ async function loadUser() {
   if (!userID) {
     // Create new
     user.value = new system.User({})
+    initialMembershipIDs.value = new Set()
+    membershipIDs.value = new Set()
+    passwords.value = { password: '', confirmPassword: '' }
+
+    // Preselect the default user group
+    await fetchDefaultUserGroup()
+
     return
   }
 
@@ -242,6 +249,11 @@ async function loadUser() {
   try {
     const raw = await $SystemAPI.userRead({ userID })
     user.value = new system.User(raw)
+
+    // Preselect the default user group if none is currently selected
+    if (!user.value.userGroupID || user.value.userGroupID === '0') {
+      await fetchDefaultUserGroup()
+    }
 
     // Load initial roles if editing
     const memRes = await $SystemAPI.userMembershipList({ userID })
@@ -254,6 +266,26 @@ async function loadUser() {
     router.push({ name: 'system.users' })
   } finally {
     loading.value = false
+  }
+}
+
+async function fetchDefaultUserGroup() {
+  try {
+    const result = await $SystemAPI.userGroupList({ limit: 100 })
+    if (result?.set?.length > 0) {
+      // Find 'default-root', 'users', or anything with 'Default' in name, otherwise fallback to the first available group
+      const defaultGroup = result.set.find(g => 
+        g.handle === 'default-root' || 
+        g.handle === 'users' || 
+        g.meta?.short?.includes('Default')
+      ) || result.set[0]
+      
+      if (defaultGroup) {
+        user.value.userGroupID = defaultGroup.userGroupID
+      }
+    }
+  } catch (e) {
+    console.warn('Silent fail fetching default user group', e)
   }
 }
 
@@ -303,6 +335,10 @@ async function handleSubmit({ valid }) {
       $toast.toastSuccess(t('notification.user.update.success'))
     } else {
       const created = await $SystemAPI.userCreate(payload)
+      // Set the user instance to the newly created user to immediately populate the userID 
+      // preventing components like UserExternalAuth from fetching with an invalid ID
+      // during the router transition.
+      user.value = new system.User(created)
       $toast.toastSuccess(t('notification.user.create.success'))
       router.push({
         name: 'system.users.edit',
@@ -408,6 +444,15 @@ function confirmUnsuspend(event) {
     },
   })
 }
+
+watch(
+  () => route.params.userID,
+  (newID, oldID) => {
+    if (newID !== oldID) {
+      loadUser()
+    }
+  }
+)
 
 onMounted(() => {
   loadUser()

@@ -850,6 +850,12 @@ roles:
       empty: No members in this role
       placeholder: Search and add users...
       remove: Remove member
+    clone:
+      title: Clone permissions
+      description: This will clone all the permissions of the current role and apply them to the selected role.
+      placeholder: Select role
+      button: Clone
+      selected: Selected role
     new: New Role
     permissions: Permissions
     title:
@@ -1225,6 +1231,11 @@ user-groups:
     roles:
       add: Add
       count: roles
+      empty: No roles assigned to this user group yet.
+      placeholder: Select a role to add
+      fetchError: Failed to load roles
+      addError: Failed to add role
+      removeError: Failed to remove role
       remove: Remove
       title: Role Membership
       unnamed: Unnamed role
@@ -1303,10 +1314,14 @@ users:
         label: User group
         placeholder: User group
     avatar:
-      title: Profile avatar
-      preview:
-        label: Avatar
-        title: Avatar
+      title: Avatar
+      preview: Preview
+      hasAvatar: Current avatar
+      noAvatar: No avatar
+      upload: Upload avatar
+      color: Text color
+      bgColor: Background color
+      remove: Remove avatar
       initial:
         color: Text color
         backgroundColor: Background color
@@ -1314,6 +1329,10 @@ users:
         instructions: Upload avatar
         uploading: Uploading user avatar
       colorPicker: Choose a color
+    externalAuth:
+      title: External authentication
+      empty: No external authenticators found
+      remove: Remove
     security:
       title: Security
     mfa:

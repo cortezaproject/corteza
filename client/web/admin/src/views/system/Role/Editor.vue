@@ -19,6 +19,15 @@
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
       <div v-if="isEdit" class="flex justify-end gap-2">
+        <Button
+          v-if="role.canGrant"
+          :label="$t('system.roles.editor.clone.title')"
+          icon="pi pi-copy"
+          severity="secondary"
+          size="small"
+          outlined
+          @click="showCloneDialog = true"
+        />
         <CPermissionsButton
           v-if="role.canGrant"
           v-tooltip.bottom="$t('general.label.permissions')"
@@ -71,16 +80,27 @@
           </div>
 
           <!-- Contextual section (shown when isContextual) -->
-          <div v-if="isContextual" class="md:col-span-2 flex flex-col gap-4 p-4 border rounded-lg bg-surface-50">
+          <div
+            v-if="isContextual"
+            class="md:col-span-2 flex flex-col gap-4 p-4 border rounded-lg bg-surface"
+          >
             <div class="flex flex-col gap-2">
-              <label class="font-medium text-primary">{{ $t('system.roles.editor.info.context.expression-label') }}</label>
+              <label class="font-medium text-primary">
+                {{ $t('system.roles.editor.info.context.expression-label') }}
+              </label>
               <InputText v-model="role.meta.context.expr" />
             </div>
             <div class="flex flex-col gap-2">
-              <label class="font-medium text-primary">{{ $t('system.roles.editor.info.context.resource-types-label') }}</label>
+              <label class="font-medium text-primary">
+                {{ $t('system.roles.editor.info.context.resource-types-label') }}
+              </label>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div v-for="rt in resourceTypes" :key="rt.value" class="flex items-center gap-2">
-                  <Checkbox :inputId="rt.value" v-model="role.meta.context.resourceTypes" :value="rt.value" />
+                  <Checkbox
+                    :inputId="rt.value"
+                    v-model="role.meta.context.resourceTypes"
+                    :value="rt.value"
+                  />
                   <label :for="rt.value" class="cursor-pointer text-sm">{{ rt.label }}</label>
                 </div>
               </div>
@@ -90,7 +110,7 @@
       </Panel>
 
       <Panel
-        v-if="isEdit"
+        v-if="isEdit && !isContextual"
         :header="$t('system.roles.editor.members.title')"
         toggleable
         :collapsed="false"
@@ -101,11 +121,6 @@
           v-model:memberIDs="memberIDs"
         />
       </Panel>
-
-      <RolePermissionClone
-        v-if="isEdit"
-        :roleID="role.roleID"
-      />
     </div>
 
     <!-- Bottom Actions Toolbar -->
@@ -163,6 +178,13 @@
       </div>
     </div>
   </Form>
+
+  <!-- Clone Permissions Dialog -->
+  <RolePermissionClone
+    v-if="isEdit && role"
+    v-model:visible="showCloneDialog"
+    :roleID="role.roleID"
+  />
 </template>
 
 <script setup>
@@ -190,18 +212,20 @@ const deleting = ref(false)
 const role = ref(null)
 const memberIDs = ref(new Set())
 const initialMemberIDs = ref(new Set())
+const showCloneDialog = ref(false)
 
 // Computed
 const isEdit = computed(() => !!route.params.roleID)
 
-const isContextual = computed({
-  get: () => !!(role.value?.meta?.context?.expr || role.value?.meta?.context?.resourceTypes?.length),
-  set: (val) => {
-    if (!val) {
-      role.value.meta.context.expr = ''
-      role.value.meta.context.resourceTypes = []
-    }
-  },
+const isContextual = ref(false)
+
+watch(isContextual, val => {
+  if (val) {
+    memberIDs.value = new Set()
+  } else if (role.value?.meta?.context) {
+    role.value.meta.context.expr = ''
+    role.value.meta.context.resourceTypes = []
+  }
 })
 
 const resourceTypes = [
@@ -246,6 +270,8 @@ async function loadRole() {
   if (!roleID) {
     // Create new
     role.value = new system.Role({ meta: { context: { expr: '', resourceTypes: [] } } })
+    memberIDs.value = new Set()
+    initialMemberIDs.value = new Set()
     return
   }
 
@@ -258,11 +284,20 @@ async function loadRole() {
       role.value.meta.context = { expr: '', resourceTypes: [] }
     }
 
-    // Load member IDs
-    const membersResult = await $SystemAPI.roleMemberList({ roleID })
-    const ids = new Set((membersResult?.set || membersResult || []).map(u => u.userID || u))
-    memberIDs.value = ids
-    initialMemberIDs.value = new Set(ids)
+    isContextual.value = !!(
+      role.value.meta.context.expr || role.value.meta.context.resourceTypes?.length
+    )
+
+    if (!isContextual.value) {
+      // Load member IDs
+      const membersResult = await $SystemAPI.roleMemberList({ roleID })
+      const ids = new Set((membersResult?.set || membersResult || []).map(u => u.userID || u))
+      memberIDs.value = ids
+      initialMemberIDs.value = new Set(ids)
+    } else {
+      memberIDs.value = new Set()
+      initialMemberIDs.value = new Set()
+    }
   } catch (e) {
     console.error('Failed to load role:', e)
     $toast.toastErrorHandler(t('notification.role.fetch.error'))(e)
@@ -291,15 +326,24 @@ async function handleSubmit({ valid }) {
       role.value = new system.Role(raw)
 
       // Sync member changes
-      const added = [...memberIDs.value].filter(id => !initialMemberIDs.value.has(id))
-      const removed = [...initialMemberIDs.value].filter(id => !memberIDs.value.has(id))
-      await Promise.all([
-        ...added.map(userID => $SystemAPI.roleMemberAdd({ roleID: role.value.roleID, userID })),
-        ...removed.map(userID =>
-          $SystemAPI.roleMemberRemove({ roleID: role.value.roleID, userID }),
-        ),
-      ])
-      initialMemberIDs.value = new Set(memberIDs.value)
+      if (!isContextual.value) {
+        const added = [...memberIDs.value].filter(id => !initialMemberIDs.value.has(id))
+        const removed = [...initialMemberIDs.value].filter(id => !memberIDs.value.has(id))
+        await Promise.all([
+          ...added.map(userID => $SystemAPI.roleMemberAdd({ roleID: role.value.roleID, userID })),
+          ...removed.map(userID =>
+            $SystemAPI.roleMemberRemove({ roleID: role.value.roleID, userID }),
+          ),
+        ])
+        initialMemberIDs.value = new Set(memberIDs.value)
+      } else if (initialMemberIDs.value.size > 0) {
+        // Roles that are contextual shouldn't retain explicit members
+        const removed = [...initialMemberIDs.value]
+        await Promise.all(
+          removed.map(userID => $SystemAPI.roleMemberRemove({ roleID: role.value.roleID, userID })),
+        )
+        initialMemberIDs.value = new Set()
+      }
 
       $toast.toastSuccess(t('notification.role.update.success'))
     } else {
@@ -376,6 +420,15 @@ async function handleUnarchive() {
     saving.value = false
   }
 }
+
+watch(
+  () => route.params.roleID,
+  (newID, oldID) => {
+    if (newID !== oldID) {
+      loadRole()
+    }
+  },
+)
 
 onMounted(() => {
   loadRole()

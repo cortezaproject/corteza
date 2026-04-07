@@ -10,7 +10,7 @@
     class="w-full"
     filter
     fluid
-    showClear
+    :showClear="clearable"
     @show="onShow"
   >
     <template #option="{ option }">
@@ -38,6 +38,10 @@ const props = defineProps({
     default: false,
   },
   clearOnSelect: {
+    type: Boolean,
+    default: false,
+  },
+  clearable: {
     type: Boolean,
     default: false,
   },

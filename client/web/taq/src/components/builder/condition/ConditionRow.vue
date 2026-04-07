@@ -56,8 +56,9 @@
           @update:label="onValueRefEdit"
         />
         <div v-else class="flex items-center gap-1">
-          <InputText
-            :model-value="valueStr"
+          <component
+            :is="dynamicInputComponent"
+            :model-value="valueVal"
             :placeholder="$t('builder.condition.enterValue')"
             class="flex-1 min-w-0"
             size="small"
@@ -90,11 +91,14 @@
 </template>
 
 <script setup>
-import { computed, inject, ref as vueRef } from 'vue'
+import { computed, inject, ref as vueRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../form/CReferenceChip.vue'
+import { resolveInputComponent } from '../form/inputs/registry'
+import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
 
 const { t } = useI18n()
+const store = useComposeResourceStore()
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -167,6 +171,70 @@ const variableRefLabel = computed(() => {
 
 const symbolStr = computed(() => leftArg.value?.symbol || '')
 
+const resolvedVariableType = vueRef('String')
+
+watchEffect(async () => {
+  const left = leftArg.value
+  if (!left?.symbol || !left?.meta?.scope) {
+    resolvedVariableType.value = 'String'
+    return
+  }
+  const scope = left.meta.scope
+  const symbol = left.symbol
+  
+  const step = upstreamResults.value.find(s => s.handle === scope)
+  if (!step) {
+    resolvedVariableType.value = 'String'
+    return
+  }
+
+  const topLevelName = symbol.split('.')[0]
+  const topLevel = (step.properties || step.results || []).find(r => r.sourceName === topLevelName)
+  if (!topLevel) {
+    resolvedVariableType.value = 'String'
+    return
+  }
+
+  if (symbol === topLevelName) {
+    resolvedVariableType.value = topLevel.types?.[0] || 'String'
+    return
+  }
+
+  if (topLevel.types?.includes('ComposeRecord') && symbol.startsWith(`${topLevelName}.`)) {
+    const fieldPath = symbol.substring(topLevelName.length + 1)
+    
+    if (fieldPath === 'recordID' || fieldPath === 'moduleID' || fieldPath === 'namespaceID') {
+       resolvedVariableType.value = 'ID'
+       return
+    }
+    if (fieldPath === 'ownedBy' || fieldPath === 'createdBy' || fieldPath === 'updatedBy' || fieldPath === 'deletedBy') {
+       resolvedVariableType.value = 'UserSelector'
+       return
+    }
+    if (fieldPath === 'createdAt' || fieldPath === 'updatedAt' || fieldPath === 'deletedAt') {
+       resolvedVariableType.value = 'DateTime'
+       return
+    }
+    if (fieldPath.startsWith('values.')) {
+      const customFieldName = fieldPath.substring(7)
+      if (topLevel.namespaceID && topLevel.moduleID) {
+        try {
+          const mod = await store.resolveModule(topLevel.namespaceID, topLevel.moduleID)
+          const field = mod.fields?.find(f => f.name === customFieldName)
+          if (field) {
+            resolvedVariableType.value = field.kind
+            return
+          }
+        } catch(e) {}
+      }
+    }
+  }
+
+  resolvedVariableType.value = 'String'
+})
+
+const dynamicInputComponent = computed(() => resolveInputComponent(resolvedVariableType.value))
+
 // --- Value (right side) ---
 
 const rightArg = computed(() => props.node.args?.[1])
@@ -184,12 +252,12 @@ const valueRefLabel = computed(() => {
   return scope ? resolveLabel(scope, symbol) : symbol
 })
 
-const valueStr = computed(() => {
+const valueVal = computed(() => {
   const right = rightArg.value
   if (!right) return ''
   if (right.symbol) return right.symbol
   if (right.value && typeof right.value === 'object') {
-    return String(right.value['@value'] ?? '')
+    return right.value['@value'] ?? ''
   }
   return ''
 })
@@ -260,19 +328,26 @@ function onValueChange(val) {
   const newNode = cloneNode(props.node)
   if (!newNode.args) newNode.args = [{ symbol: '', meta: {} }]
 
-  // Detect type: boolean > number > string
   let typedVal
-  const lower = val.toLowerCase().trim()
-  if (lower === 'true' || lower === 'false') {
-    typedVal = { '@type': 'Boolean', '@value': lower === 'true' }
-  } else if (val !== '' && !isNaN(Number(val)) && val.trim() !== '') {
-    if (Number.isInteger(Number(val))) {
-      typedVal = { '@type': 'Integer', '@value': Number(val) }
-    } else {
-      typedVal = { '@type': 'Float', '@value': Number(val) }
-    }
+  
+  if (resolvedVariableType.value === 'Boolean' || resolvedVariableType.value === 'Bool') {
+    typedVal = { '@type': 'Boolean', '@value': Boolean(val) }
+  } else if (resolvedVariableType.value === 'DateTime' || resolvedVariableType.value === 'UserSelector' || resolvedVariableType.value === 'ID' || resolvedVariableType.value === 'String') {
+    typedVal = { '@type': 'String', '@value': String(val || '') } 
   } else {
-    typedVal = { '@type': 'String', '@value': val }
+    // Detect type: boolean > number > string
+    const lower = String(val).toLowerCase().trim()
+    if (lower === 'true' || lower === 'false') {
+      typedVal = { '@type': 'Boolean', '@value': lower === 'true' }
+    } else if (val !== '' && !isNaN(Number(val)) && String(val).trim() !== '') {
+      if (Number.isInteger(Number(val))) {
+        typedVal = { '@type': 'Integer', '@value': Number(val) }
+      } else {
+        typedVal = { '@type': 'Float', '@value': Number(val) }
+      }
+    } else {
+      typedVal = { '@type': 'String', '@value': val }
+    }
   }
 
   newNode.args[1] = { value: typedVal }

@@ -1,30 +1,26 @@
 <template>
   <div class="flex flex-col gap-4">
     <!-- Avatar Preview -->
-    <div class="flex items-center gap-4">
-      <div class="relative">
-        <img
-          v-if="user.meta?.avatarID && user.meta.avatarID !== '0'"
-          :src="avatarURL"
-          alt="Avatar"
-          class="w-24 h-24 rounded-full object-cover border border-surface"
-        />
-        <div
-          v-else
-          class="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold border border-surface"
-          :style="{ backgroundColor: user.meta?.avatarBgColor || '#e5e7eb', color: user.meta?.avatarColor || '#374151' }"
+    <div class="flex flex-col gap-2">
+      <label class="font-medium text-primary">{{ $t('system.users.editor.avatar.preview') }}</label>
+      <div class="relative pointer-events-none">
+        <Button
+          rounded
+          variant="outlined"
+          severity="secondary"
+          size="large"
+          class="text-color !p-0 !w-[2.5rem] !h-[2.5rem]"
         >
-          {{ initials }}
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <span class="font-medium text-primary">{{ $t('system.users.editor.avatar.preview') }}</span>
-        <span class="text-sm text-muted-color">
-          {{ user.meta?.avatarID && user.meta.avatarID !== '0'
-            ? $t('system.users.editor.avatar.hasAvatar')
-            : $t('system.users.editor.avatar.noAvatar') }}
-        </span>
+          <template #default>
+            <Avatar
+              :image="avatarURL || undefined"
+              :label="!avatarURL ? initials : undefined"
+              :icon="!avatarURL && !initials ? 'pi pi-user' : undefined"
+              shape="circle"
+              class="!w-full !h-full !text-sm"
+            />
+          </template>
+        </Button>
       </div>
     </div>
 
@@ -38,41 +34,6 @@
         class="block w-full text-sm text-muted-color file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-contrast hover:file:opacity-90 cursor-pointer"
         @change="handleFileChange"
       />
-    </div>
-
-    <!-- Color pickers -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-2">
-        <label for="avatarColor" class="font-medium text-primary">
-          {{ $t('system.users.editor.avatar.color') }}
-        </label>
-        <div class="flex items-center gap-2">
-          <input
-            id="avatarColor"
-            type="color"
-            :value="user.meta?.avatarColor || '#374151'"
-            class="w-10 h-10 rounded cursor-pointer border border-surface p-0.5"
-            @input="updateColor('avatarColor', $event.target.value)"
-          />
-          <span class="text-sm text-muted-color">{{ user.meta?.avatarColor || '#374151' }}</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label for="avatarBgColor" class="font-medium text-primary">
-          {{ $t('system.users.editor.avatar.bgColor') }}
-        </label>
-        <div class="flex items-center gap-2">
-          <input
-            id="avatarBgColor"
-            type="color"
-            :value="user.meta?.avatarBgColor || '#e5e7eb'"
-            class="w-10 h-10 rounded cursor-pointer border border-surface p-0.5"
-            @input="updateColor('avatarBgColor', $event.target.value)"
-          />
-          <span class="text-sm text-muted-color">{{ user.meta?.avatarBgColor || '#e5e7eb' }}</span>
-        </div>
-      </div>
     </div>
 
     <!-- Remove avatar button -->
@@ -118,8 +79,20 @@ const avatarURL = computed(() => {
 })
 
 const initials = computed(() => {
-  const name = props.user?.name || props.user?.email || props.user?.handle || ''
-  return name.charAt(0).toUpperCase() || '?'
+  const name = props.user?.name
+  if (name) {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+  const email = props.user?.email
+  if (email) return email[0].toUpperCase()
+  const handle = props.user?.handle
+  if (handle) return handle[0].toUpperCase()
+  return ''
 })
 
 function updateColor(field, value) {

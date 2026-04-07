@@ -93,7 +93,7 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 	// process avatar initial generation
 	bgColor := req.Request.PostFormValue("initial-bg")
 	initialColor := req.Request.PostFormValue("initial-color")
-	if bgColor != u.Meta.AvatarBgColor || initialColor != u.Meta.AvatarColor {
+	if bgColor != "" && initialColor != "" && (bgColor != u.Meta.AvatarBgColor || initialColor != u.Meta.AvatarColor) {
 		err = h.UserService.GenerateAvatar(
 			req.Context(),
 			u.ID,
