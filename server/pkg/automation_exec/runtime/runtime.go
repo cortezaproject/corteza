@@ -438,6 +438,19 @@ func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error)
 		// Get entire output map from the scope handle
 		outputs, err := r.scheduler.FindOutput(arg.Scope)
 		if err != nil {
+			keys := ""
+			for k := range r.scheduler.completedOutputs {
+				keys += k + ","
+			}
+			for i := len(r.scheduler.stack) - 1; i >= 0; i-- {
+				f := r.scheduler.stack[i]
+				keys += fmt.Sprintf("stack:%v[%v],", f.handle, f.stepID)
+			}
+			r.log.Debug("scheduler output not found for scope",
+				zap.String("scope", arg.Scope),
+				zap.String("available_keys", keys),
+				zap.Any("arg", arg),
+			)
 			return nil, fmt.Errorf("resolve %s from scope %s: %w", arg.Target, arg.Scope, err)
 		}
 
