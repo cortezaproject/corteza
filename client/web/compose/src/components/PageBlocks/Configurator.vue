@@ -184,6 +184,17 @@
             >
               {{ $t('general.border.show') }}
             </b-form-checkbox>
+
+            <b-form-checkbox
+              v-if="block.kind !== 'Tabs'"
+              :checked="block.meta.namespaceID"
+              :value="namespace.namespaceID"
+              switch
+              class="mb-2"
+              @change="updateGlobalState"
+            >
+              {{ $t('general.globalBlock.label') }}
+            </b-form-checkbox>
           </b-form-group>
         </b-col>
 
@@ -405,6 +416,8 @@ export default {
         options: [],
       },
       abortableRequests: [],
+      initialBlockState: undefined,
+      initialBlockID: undefined,
     }
   },
 
@@ -476,6 +489,8 @@ export default {
   },
 
   created () {
+    this.initialBlockState = this.block.meta.namespaceID
+    this.initialBlockID = this.block.blockID
     this.fetchRoles()
   },
 
@@ -518,6 +533,16 @@ export default {
         options: [],
       }
       this.abortableRequests = []
+    },
+
+    updateGlobalState (value) {
+      this.block.blockID = this.initialBlockState === value ? this.initialBlockID : NoID
+
+      if (value) {
+        this.block.meta.namespaceID = value
+      } else {
+        this.block.meta.namespaceID = undefined
+      }
     },
   },
 }
