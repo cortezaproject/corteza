@@ -138,11 +138,14 @@
       <b-row class="mt-2">
         <b-col
           cols="12"
+          lg="6"
         >
-          <b-form-group>
+          <b-form-group
+            :label="$t('record.parentFields.enable')"
+            label-class="text-primary"
+          >
             <c-input-checkbox
               v-model="options.includeParentFields"
-              :label="$t('record.parentFields.enable')"
               switch
               :labels="checkboxLabel"
             />

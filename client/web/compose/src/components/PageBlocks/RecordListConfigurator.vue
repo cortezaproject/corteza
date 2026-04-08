@@ -95,11 +95,14 @@
             <b-col
               v-if="onRecordPage"
               cols="12"
+              lg="6"
             >
-              <b-form-group>
+              <b-form-group
+                :label="$t('recordList.parentFields.enable')"
+                label-class="text-primary"
+              >
                 <c-input-checkbox
                   v-model="options.includeParentFields"
-                  :label="$t('recordList.parentFields.enable')"
                   switch
                   :labels="checkboxLabel"
                 />

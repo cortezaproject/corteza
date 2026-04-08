@@ -768,6 +768,17 @@ recordRevisions:
       invalid-module-id: Field does not contain a valid module ID.
     fields:
       label: Fields to display in record revisions changes
+      show-all:
+        label: Show changes for all fields
+      columns:
+        label:
+          label: Label
+        kind:
+          label: Type
+        displayed-fields:
+          label: Show
+        expanded-references:
+          label: Expand references
 
 socialFeed:
   label: Twitter feed

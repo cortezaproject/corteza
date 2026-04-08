@@ -228,6 +228,12 @@ export default {
 
     logo () {
       const ns = this.currentNamespace
+
+      // Namespace is on a route but hasn't loaded yet — don't flash the default logo
+      if (!ns && this.$route.params.slug) {
+        return ''
+      }
+
       if (ns && ns.meta && ns.meta.logoEnabled && ns.meta.logo) {
         return ns.meta.logo
       }
