@@ -10,3 +10,5 @@
 .run
 node_modules
 ignore
+.claude*
+.kilo*
