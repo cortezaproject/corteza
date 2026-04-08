@@ -34,7 +34,7 @@
         <div class="collapsible-titles">
           <!-- Title with inline alignment OR regular alignment -->
           <template v-if="useInlineTitleAlignment">
-            <div class="collapsible-title-inline d-flex justify-content-between w-100">
+            <div class="collapsible-title d-flex justify-content-between w-100">
               <span
                 v-if="titleAlignmentData.left"
                 class="text-left"
@@ -67,7 +67,7 @@
           <!-- Subtitle (shown below title) -->
           <template v-if="displaySubtitle">
             <template v-if="useInlineSubtitleAlignment">
-              <div class="collapsible-subtitle-inline d-flex justify-content-between w-100 mt-1">
+              <div class="collapsible-subtitle d-flex justify-content-between w-100 mt-1">
                 <span
                   v-if="subtitleAlignmentData.left"
                   class="text-left"
@@ -119,7 +119,7 @@
       >
         <!-- Other Fields Section - Above Body -->
         <div
-          v-if="options.otherFieldsPosition === 'above'"
+          v-if="options.otherFieldsPosition === 'above' && otherFields.length"
           class="other-fields-section px-3 pb-3"
         >
           <div
@@ -195,7 +195,7 @@
 
         <!-- Default Position (after body) -->
         <div
-          v-if="options.otherFieldsPosition === 'default' || !options.otherFieldsPosition"
+          v-if="(options.otherFieldsPosition === 'default' || !options.otherFieldsPosition) && otherFields.length"
           class="other-fields-section px-3 pb-3"
         >
           <div
@@ -253,7 +253,7 @@
 
         <!-- Below Body -->
         <div
-          v-if="options.otherFieldsPosition === 'below'"
+          v-if="options.otherFieldsPosition === 'below' && otherFields.length"
           class="other-fields-section px-3 pb-3"
         >
           <div
@@ -314,7 +314,7 @@
 </template>
 
 <script>
-import { NoID } from '@cortezaproject/corteza-js'
+import { NoID, compose } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
@@ -323,6 +323,7 @@ import records from 'corteza-webapp-compose/src/mixins/records'
 import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
 import recordLayout from 'corteza-webapp-compose/src/mixins/recordLayout'
 import alignment from 'corteza-webapp-compose/src/mixins/alignment'
+import { mapGetters } from 'vuex'
 
 export default {
   i18nOptions: {
@@ -358,12 +359,38 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      getModuleByID: 'module/getByID',
+      findRecordByID: 'record/findByID',
+    }),
+
+    resolvedRecord () {
+      if (!this.record || !this.module) return this.record
+
+      const resolvedValues = { ...this.record.values }
+
+      this.module.fields
+        .filter(f => f.kind === 'Record' && f.options && f.options.labelField)
+        .forEach(field => {
+          const rawValue = resolvedValues[field.name]
+          if (!rawValue) return
+          const rawResolved = this.findRecordByID(rawValue)
+          if (!rawResolved) return
+          const refModule = this.getModuleByID(field.options.moduleID)
+          if (!refModule) return
+          const refRecord = new compose.Record(refModule, rawResolved)
+          resolvedValues[field.name] = refRecord.values[field.options.labelField] || rawValue
+        })
+
+      return { ...this.record, values: resolvedValues }
+    },
+
     titleAlignmentData () {
-      return this.parseAlignmentExpression(this.options.titleExpression || '', this.record)
+      return this.parseAlignmentExpression(this.options.titleExpression || '', this.resolvedRecord)
     },
 
     subtitleAlignmentData () {
-      return this.parseAlignmentExpression(this.options.subtitleExpression || '', this.record)
+      return this.parseAlignmentExpression(this.options.subtitleExpression || '', this.resolvedRecord)
     },
 
     useInlineTitleAlignment () {
@@ -382,10 +409,10 @@ export default {
 
       try {
         return evaluatePrefilter(this.options.titleExpression || '', {
-          record: this.record,
+          record: this.resolvedRecord,
           user: this.$auth.user || {},
-          recordID: (this.record || {}).recordID || NoID,
-          ownerID: (this.record || {}).ownedBy || NoID,
+          recordID: (this.resolvedRecord || {}).recordID || NoID,
+          ownerID: (this.resolvedRecord || {}).ownedBy || NoID,
           userID: (this.$auth.user || {}).userID || NoID,
         })
       } catch (e) {
@@ -401,10 +428,10 @@ export default {
 
       try {
         return evaluatePrefilter(this.options.subtitleExpression || '', {
-          record: this.record,
+          record: this.resolvedRecord,
           user: this.$auth.user || {},
-          recordID: (this.record || {}).recordID || NoID,
-          ownerID: (this.record || {}).ownedBy || NoID,
+          recordID: (this.resolvedRecord || {}).recordID || NoID,
+          ownerID: (this.resolvedRecord || {}).ownedBy || NoID,
           userID: (this.$auth.user || {}).userID || NoID,
         })
       } catch (e) {
@@ -475,18 +502,14 @@ export default {
         return []
       }
 
-      const bodyFieldName = this.options.bodyField
       const selectedFields = this.options.fields || []
 
-      let fields = []
-
       if (selectedFields.length === 0) {
-        // No fields selected, show all except body field
-        fields = this.module.fields.filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
-      } else {
-        // Show selected fields except body field
-        fields = this.module.filterFields(selectedFields).filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
+        return []
       }
+
+      const bodyFieldName = this.options.bodyField
+      const fields = this.module.filterFields(selectedFields).filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
 
       return fields.map(f => {
         f.label = f.isSystem ? this.$t(`field:system.${f.name}`) : f.label || f.name
@@ -564,6 +587,11 @@ export default {
         this.evaluateExpressions().finally(() => {
           this.evaluating = false
         })
+
+        // Fetch related records so Record-type field labels resolve in title/subtitle expressions
+        if (this.module && this.namespace) {
+          this.fetchRecords(this.namespace.namespaceID, this.module.fields, [this.record])
+        }
       },
     },
 

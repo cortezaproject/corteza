@@ -40,7 +40,7 @@
           <div class="collapsible-titles">
             <!-- Title with inline alignment OR regular alignment -->
             <template v-if="useInlineTitleAlignment(item.r)">
-              <div class="collapsible-title-inline d-flex justify-content-between w-100">
+              <div class="collapsible-title d-flex justify-content-between w-100">
                 <span
                   v-if="getTitleAlignmentData(item.r).left"
                   class="text-left"
@@ -73,7 +73,7 @@
             <!-- Subtitle -->
             <template v-if="displaySubtitle(item.r)">
               <template v-if="useInlineSubtitleAlignment(item.r)">
-                <div class="collapsible-subtitle-inline d-flex justify-content-between w-100 mt-1">
+                <div class="collapsible-subtitle d-flex justify-content-between w-100 mt-1">
                   <span
                     v-if="getSubtitleAlignmentData(item.r).left"
                     class="text-left"
@@ -122,7 +122,7 @@
         >
           <!-- Other Fields Section - Above Body -->
           <div
-            v-if="options.otherFieldsPosition === 'above'"
+            v-if="options.otherFieldsPosition === 'above' && otherFields.length"
             class="other-fields-section px-3 pb-3"
           >
             <div :class="fieldLayoutClass">
@@ -195,7 +195,7 @@
 
           <!-- Default Position (after body) -->
           <div
-            v-if="options.otherFieldsPosition === 'default' || !options.otherFieldsPosition"
+            v-if="(options.otherFieldsPosition === 'default' || !options.otherFieldsPosition) && otherFields.length"
             class="other-fields-section px-3 pb-3"
           >
             <div :class="fieldLayoutClass">
@@ -250,7 +250,7 @@
 
           <!-- Below Body -->
           <div
-            v-if="options.otherFieldsPosition === 'below'"
+            v-if="options.otherFieldsPosition === 'below' && otherFields.length"
             class="other-fields-section px-3 pb-3"
           >
             <div :class="fieldLayoutClass">
@@ -428,6 +428,7 @@ export default {
   computed: {
     ...mapGetters({
       getModuleByID: 'module/getByID',
+      findRecordByID: 'record/findByID',
     }),
 
     // Returns the module configured for this record list
@@ -486,18 +487,14 @@ export default {
         return []
       }
 
-      const bodyFieldName = this.options.bodyField
       const selectedFields = this.options.fields || []
 
-      let fields = []
-
       if (selectedFields.length === 0) {
-        // No fields selected, show all except body field
-        fields = this.recordListModule.fields.filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
-      } else {
-        // Show selected fields except body field
-        fields = this.recordListModule.filterFields(selectedFields).filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
+        return []
       }
+
+      const bodyFieldName = this.options.bodyField
+      const fields = this.recordListModule.filterFields(selectedFields).filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
 
       return fields.map(f => {
         f.label = f.isSystem ? this.$t(`field:system.${f.name}`) : f.label || f.name
@@ -581,9 +578,16 @@ export default {
         // Initialize collapse state for each record
         this.items.forEach(item => {
           if (this.collapsedRecords[item.r.recordID] === undefined) {
-            this.$set(this.collapsedRecords, item.r.recordID, true)
+            this.$set(this.collapsedRecords, item.r.recordID, this.options.defaultCollapsed)
           }
         })
+
+        // Fetch related records so Record-type field labels resolve in title/subtitle expressions
+        await this.fetchRecords(
+          this.recordListModule.namespaceID,
+          this.recordListModule.fields,
+          this.items.map(i => i.r),
+        )
       } catch (e) {
         console.error('Failed to load records:', e)
       } finally {
@@ -657,17 +661,38 @@ export default {
       return this.collapsedRecords[recordID] !== false
     },
 
-    getHeaderClass (record) {
+    getHeaderClass () {
       return 'cursor-pointer'
+    },
+
+    getResolvedRecord (record) {
+      if (!record || !this.recordListModule) return record
+
+      const resolvedValues = { ...record.values }
+
+      this.recordListModule.fields
+        .filter(f => f.kind === 'Record' && f.options && f.options.labelField)
+        .forEach(field => {
+          const rawValue = resolvedValues[field.name]
+          if (!rawValue) return
+          const rawResolved = this.findRecordByID(rawValue)
+          if (!rawResolved) return
+          const refModule = this.getModuleByID(field.options.moduleID)
+          if (!refModule) return
+          const refRecord = new compose.Record(refModule, rawResolved)
+          resolvedValues[field.name] = refRecord.values[field.options.labelField] || rawValue
+        })
+
+      return { ...record, values: resolvedValues }
     },
 
     // Per-record title/subtitle methods
     getTitleAlignmentData (record) {
-      return this.parseAlignmentExpression(this.options.titleExpression || '', record)
+      return this.parseAlignmentExpression(this.options.titleExpression || '', this.getResolvedRecord(record))
     },
 
     getSubtitleAlignmentData (record) {
-      return this.parseAlignmentExpression(this.options.subtitleExpression || '', record)
+      return this.parseAlignmentExpression(this.options.subtitleExpression || '', this.getResolvedRecord(record))
     },
 
     useInlineTitleAlignment (record) {
@@ -683,12 +708,13 @@ export default {
         return ''
       }
 
+      const r = this.getResolvedRecord(record)
       try {
         return evaluatePrefilter(this.options.titleExpression || '', {
-          record,
+          record: r,
           user: this.$auth.user || {},
-          recordID: record.recordID || NoID,
-          ownerID: record.ownedBy || NoID,
+          recordID: r.recordID || NoID,
+          ownerID: r.ownedBy || NoID,
           userID: (this.$auth.user || {}).userID || NoID,
         })
       } catch (e) {
@@ -701,12 +727,13 @@ export default {
         return ''
       }
 
+      const r = this.getResolvedRecord(record)
       try {
         return evaluatePrefilter(this.options.subtitleExpression || '', {
-          record,
+          record: r,
           user: this.$auth.user || {},
-          recordID: record.recordID || NoID,
-          ownerID: record.ownedBy || NoID,
+          recordID: r.recordID || NoID,
+          ownerID: r.ownedBy || NoID,
           userID: (this.$auth.user || {}).userID || NoID,
         })
       } catch (e) {

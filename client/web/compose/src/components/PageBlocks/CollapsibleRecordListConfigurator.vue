@@ -125,7 +125,7 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('collapsibleRecord.horizontalFieldLayout')"
+            :label="$t('record.horizontalFormLayout')"
             label-class="text-primary"
           >
             <c-input-checkbox
@@ -143,7 +143,7 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('collapsibleRecord.fieldsLayoutMode')"
+            :label="$t('record.fieldsLayoutMode.label')"
             label-class="text-primary"
           >
             <c-input-select
