@@ -101,6 +101,9 @@ export interface Options {
   textStyles: {
     wrappedFields: Array<string>
   }
+
+  // Parent fields feature
+  includeParentFields: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -168,6 +171,9 @@ const defaults: Readonly<Options> = Object.freeze({
   textStyles: {
     wrappedFields: [],
   },
+
+  // Parent fields feature
+  includeParentFields: false,
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -256,6 +262,7 @@ export class PageBlockRecordList extends PageBlock {
       'showRecordPerPageOption',
       'openRecordInEditMode',
       'customSummaries',
+      'includeParentFields',
     )
 
     if (o.selectionButtons) {

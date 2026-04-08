@@ -19,7 +19,7 @@
       <template v-for="field in fields">
         <b-form-group
           v-if="canDisplay(field)"
-          :key="`${field.fieldID}-${field.name}`"
+          :key="`${field.fieldID || field.originalName}-${field.name}`"
           :data-test-id="getFieldCypressId(field.label || field.name)"
           :label-cols-md="options.horizontalFieldLayoutEnabled && '6'"
           :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
@@ -43,7 +43,7 @@
               <c-hint :tooltip="((field.options.hint || {}).view || '')" />
 
               <div
-                v-if="!record.deletedAt && options.inlineRecordEditEnabled && isFieldEditable(field)"
+                v-if="!field.isParentField && !record.deletedAt && options.inlineRecordEditEnabled && isFieldEditable(field)"
                 class="inline-actions ml-1"
               >
                 <b-button
@@ -70,7 +70,27 @@
           </template>
 
           <div
-            v-if="field.canReadRecordValue"
+            v-if="field.isParentField"
+            class="value align-self-center"
+          >
+            <template v-if="resolvedParentRecord">
+              <field-viewer
+                :field="field"
+                :record="resolvedParentRecord"
+                :module="getModuleByID(field.parentModuleID)"
+                :namespace="namespace"
+                :extra-options="options"
+                value-only
+              />
+            </template>
+            <span
+              v-else
+              class="text-muted"
+            >&mdash;</span>
+          </div>
+
+          <div
+            v-else-if="field.canReadRecordValue"
             class="value align-self-center"
           >
             <field-viewer
@@ -108,7 +128,7 @@
 </template>
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import axios from 'axios'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
@@ -141,6 +161,7 @@ export default {
     return {
       referenceRecord: undefined,
       referenceModule: undefined,
+      resolvedParentRecord: null,
       inlineEdit: {
         fields: [],
         recordIDs: [],
@@ -152,22 +173,74 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      getModuleByID: 'module/getByID',
+    }),
+
     fields () {
       if (!this.fieldModule) {
-        // No module, no fields
         return []
       }
 
       if (!this.options.fields || this.options.fields.length === 0) {
-        // No fields defined in the options, show all (buy system)
         return this.fieldModule.fields
       }
 
-      // Show filtered & ordered list of fields
-      return this.fieldModule.filterFields(this.options.fields).map(f => {
+      const childFieldConfigs = (this.options.fields || []).filter(f => !f.isParentField)
+      const parentFieldConfigs = (this.options.fields || []).filter(f => f.isParentField)
+
+      let moduleFields = []
+      if (childFieldConfigs.length > 0) {
+        moduleFields = this.fieldModule.filterFields(childFieldConfigs)
+      } else {
+        moduleFields = this.fieldModule.fields
+      }
+
+      const configured = moduleFields.map(f => {
         f.label = f.isSystem ? this.$t(`field:system.${f.name}`) : f.label || f.name
+        f.isParentField = false
         return f
       })
+
+      const parentModule = this.parentModule
+      const parentConfigured = parentFieldConfigs
+        .map(pf => {
+          const actualField = parentModule ? parentModule.fields.find(f => f.name === pf.originalName) : null
+          if (!actualField) return null
+          return {
+            ...actualField,
+            isParentField: true,
+            parentModuleID: pf.parentModuleID,
+            originalName: pf.originalName,
+            label: actualField.label || actualField.name,
+          }
+        })
+        .filter(Boolean)
+
+      if (parentFieldConfigs.length > 0 && this.options.fields.length > 0) {
+        const allConfigured = [...configured, ...parentConfigured]
+        const orderedFields = []
+
+        this.options.fields.forEach(configField => {
+          const match = allConfigured.find(c => {
+            if (configField.isParentField) {
+              return c.isParentField && c.originalName === configField.originalName && c.parentModuleID === configField.parentModuleID
+            }
+            return !c.isParentField && (c.name === configField.name || c.fieldID === configField.name)
+          })
+          if (match) orderedFields.push(match)
+        })
+
+        allConfigured.forEach(c => {
+          if (!orderedFields.find(o => o === c)) {
+            orderedFields.push(c)
+          }
+        })
+
+        return orderedFields
+      }
+
+      return [...configured, ...parentConfigured]
     },
 
     fieldLayoutClass () {
@@ -186,6 +259,30 @@ export default {
 
     fieldRecord () {
       return this.options.referenceField ? this.referenceRecord : this.record
+    },
+
+    parentFieldConfigs () {
+      if (!this.options.fields || !this.options.fields.length) {
+        return []
+      }
+      return this.options.fields.filter(f => f.isParentField && f.parentModuleID)
+    },
+
+    parentModule () {
+      if (!this.options.includeParentFields || !this.options.parentField) {
+        return null
+      }
+
+      const linkField = this.module.fields.find(f => f.name === this.options.parentField)
+      if (!linkField || linkField.kind !== 'Record' || !linkField.options || !linkField.options.moduleID) {
+        return null
+      }
+
+      return this.getModuleByID(linkField.options.moduleID) || null
+    },
+
+    parentLinkFieldName () {
+      return this.options.parentField || null
     },
 
     isProcessing () {
@@ -229,6 +326,10 @@ export default {
 
         if (this.options.referenceModuleID) {
           this.fetchReferenceModule(this.options.referenceModuleID)
+        }
+
+        if (this.options.includeParentFields) {
+          this.fetchParentRecord()
         }
       },
     },
@@ -376,8 +477,60 @@ export default {
     setDefaultValues () {
       this.referenceRecord = undefined
       this.referenceModule = undefined
+      this.resolvedParentRecord = null
       this.inlineEdit = {}
       this.abortableRequests = []
+    },
+
+    async fetchParentRecord () {
+      if (!this.options.includeParentFields || !this.parentLinkFieldName || !this.parentFieldConfigs.length) {
+        return
+      }
+
+      if (!this.record || !this.record.recordID || this.record.recordID === NoID) {
+        return
+      }
+
+      const linkField = this.module.fields.find(f => f.name === this.parentLinkFieldName)
+      if (!linkField || linkField.kind !== 'Record' || !linkField.options || !linkField.options.moduleID) {
+        return
+      }
+
+      const parentModuleID = linkField.options.moduleID
+      const parentRecordID = this.record.values[this.parentLinkFieldName]
+
+      if (!parentRecordID || parentRecordID === '0') {
+        this.resolvedParentRecord = null
+        return
+      }
+
+      const parentModule = this.getModuleByID(parentModuleID)
+      if (!parentModule) return
+
+      try {
+        const { response } = this.$ComposeAPI.recordReadCancellable({
+          namespaceID: this.namespace.namespaceID,
+          moduleID: parentModuleID,
+          recordID: parentRecordID,
+        })
+
+        const record = await response()
+        this.resolvedParentRecord = new compose.Record(parentModule, { ...record })
+
+        const selectedParentFields = this.parentFieldConfigs
+          .map(pf => parentModule.fields.find(f => f.name === pf.originalName))
+          .filter(Boolean)
+
+        await Promise.all([
+          this.fetchRecords(this.namespace.namespaceID, selectedParentFields, [this.resolvedParentRecord]),
+          this.fetchUsers(selectedParentFields, [this.resolvedParentRecord]),
+        ])
+      } catch (e) {
+        if (!axios.isCancel(e)) {
+          console.warn('[RecordBlock] Failed to fetch parent record:', e)
+          this.resolvedParentRecord = null
+        }
+      }
     },
 
     abortRequests () {

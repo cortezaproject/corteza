@@ -26,7 +26,7 @@ automation:
   noScripts: There are no manual scripts compatible with this page block
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
-  stepID: "Starting step ID: {{stepID}}"
+  stepID: 'Starting step ID: {{stepID}}'
   variants:
     primary: Primary
     secondary: Secondary
@@ -140,12 +140,6 @@ content:
   ok: Ok
   label: Content
   urlPlaceholder: https://example.tld
-  emojiPicker:
-    search: Search
-    searchResults: Search Results
-    frequentlyUsed: Frequently Used
-    noResults: No emojis found
-    quickReactions: Quick Reactions
 file:
   label: File
   preview:
@@ -292,7 +286,7 @@ record:
   invalidRecordVar: Can not use ${record...} variable in non-record pages
   label: Record
   listLoadFailed: Could not load record list
-  moduleOrPageNotSet: "RecordList block error: module or page option not set"
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
   horizontalFormLayout: Horizontal form layout
   inlineEdit:
@@ -331,6 +325,9 @@ record:
       performance: Using conditional fields will impact performance
   recordSelectorCanAddRecord: Can add records via record selector
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
+  parentFields:
+    enable: Include parent fields
+    field: Parent link field
 recordList:
   noModule: No module selected
   addRecord: Add
@@ -365,8 +362,6 @@ recordList:
     filter:
       label: Drill down filter
   tooltip:
-    saveChanges: Save changes
-    discardChanges: Discard changes
     deleteSelected: Delete selected records
     performance:
       impact: Using this feature will impact performance
@@ -414,15 +409,13 @@ recordList:
     inRange: Date range
     includeQuery: Filter by search query
     json: JSON Export
-    limitations: "CSV export limitation: only the first value in the multi value fields will be exported"
+    limitations: 'CSV export limitation: only the first value in the multi value fields will be exported'
     rangeBy: Set range by
-    recordCount: "{{count}} records ready for export"
-    selectFields: "Select fields you want to export:"
+    recordCount: '{{count}} records ready for export'
+    selectFields: 'Select fields you want to export:'
     selection: Selected records
     specifyTimezone: Export to timezone
     timezonePlaceholder: Select timezone
-    resolveRefs: Include record selector values
-    resolveRefsNote: When include record selector values is checked, all record fields include the record label next to the identifier.
     datePresetUndefined: Unknown date preset
   federated: Federated
   fields: Module fields
@@ -430,7 +423,7 @@ recordList:
     addField: Add new filter field
     byValue: Filter records based on field value
     addFilterToPreset: Save as preset
-    nil: "NULL"
+    nil: 'NULL'
     conditions:
       and: AND
       or: OR
@@ -453,7 +446,7 @@ recordList:
     fieldValuePlaceholder: Input field filter
     including: Including
     label: Filter
-    note: "Note: If Field value is undefined, the filter will look for records where that field value is undefined."
+    note: 'Note: If Field value is undefined, the filter will look for records where that field value is undefined.'
     only: Only
     operators:
       like: Like
@@ -474,7 +467,7 @@ recordList:
     reset: Reset Filter
     filters:
       label: Filters
-      active: "Active filters:"
+      active: 'Active filters:'
     name:
       label: Name
       placeholder: Filter name
@@ -486,17 +479,16 @@ recordList:
   hideRecordPermissionsButton: Hide record permissions button
   hideRecordReminderButton: Hide record reminder button
   hideRecordViewButton: Hide view record button
-  hideRecordDeleteButton: Hide delete record button
   hideConfigureFieldsButton: Users will be able to configure which fields to display
   enableRecordPageNavigation: Users will be able to navigate to previous/next record
   import:
-    dropzoneFileAdded: "{{name}} was uploaded and is ready for import ({{count}} record)"
-    dropzoneFileAdded_plural: "{{name}} was uploaded and is ready for import ({{count}} records)"
+    dropzoneFileAdded: '{{name}} was uploaded and is ready for import ({{count}} record)'
+    dropzoneFileAdded_plural: '{{name}} was uploaded and is ready for import ({{count}} records)'
     dropzoneLabel: Click or drop file here to upload (.csv or JSON)
-    failed: "Something went wrong during the import. Please try again: {{failReason}}"
+    failed: 'Something went wrong during the import. Please try again: {{failReason}}'
     fileColumns: File columns
-    hasRequiredFileFields: "This module has required file upload fields"
-    matchFields: "Match imported columns with existing ones"
+    hasRequiredFileFields: 'This module has required file upload fields'
+    matchFields: 'Match imported columns with existing ones'
     moduleFields: Module fields
     onError: If any record fails to import
     onErrorFail: Cancel import
@@ -538,14 +530,14 @@ recordList:
   label: Record list
   modulePlaceholder: Select a module
   moduleFootnote: Modules without a {{0}} can only be used in a record list as an inline editor
-  moduleFieldsFootnote: If no fields are selected, the default fields will be shown
+  moduleFieldsFootnote : If no fields are selected, the default fields will be shown
   noRecords: There are no records matching your request
   pagination:
     next: Next
     prev: Previous
-    showing: "{{from}} - {{to}} of {{count}} records"
+    showing: '{{from}} - {{to}} of {{count}} records'
     single_one: One record
-    single_other: "{{count}} records"
+    single_other: '{{count}} records'
     recordsPerPage: Per page
     selectLabel: Select an option
   positionField:
@@ -554,17 +546,17 @@ recordList:
     label: Record sort field
   preview:
     addRecordButton: Add record button
-    bePaged: "{{0}} be paged."
-    isDisabled: "{{0}} is disabled."
-    isEnabled: "{{0}} is enabled."
-    isHidden: "{{0}} is hidden."
-    isShown: "{{0}} is shown"
+    bePaged: '{{0}} be paged.'
+    isDisabled: '{{0}} is disabled.'
+    isEnabled: '{{0}} is enabled.'
+    isHidden: '{{0}} is hidden.'
+    isShown: '{{0}} is shown'
     moduleNotSelected: Block with table of records, module not selected.
-    recordFromModule: "Showing records from {{0}} module with columns: {{1}}"
-    recordsPerPage: "{{0}} records are shown per page."
+    recordFromModule: 'Showing records from {{0}} module with columns: {{1}}'
+    recordsPerPage: '{{0}} records are shown per page.'
     resultsCan: Results can
     resultsCant: Results can not
-    resultsPrefiltered: "Results are prefiltered:"
+    resultsPrefiltered: 'Results are prefiltered:'
     searchInput: Search inputbox
     sorting: Sorting
     tableHeader: Table header
@@ -603,13 +595,9 @@ recordList:
     showRecordPerPageOption: User will be able to select records per page
     showDeletedRecordsOption: Show option to see deleted records
     setCustomFilterPresets: User will be able to set custom filter presets
-    searchableFields: Searchable fields
-    searchableFieldsFootnote: If no fields are selected, the search will be performed on all available visible fields
-    configureSearchableFields: Select fields that will be used for search
     openInSameTab: Open record in the same tab
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal
-    doNothing: Do nothing
     createInSameTab: Create record in the same tab
     createInNewTab: Create record in a new tab
     createInModal: Create record in a modal
@@ -632,9 +620,16 @@ recordList:
   refField:
     footnote: Field that links records with the parent record
     label: Parent field
+    commonField: Common
+  parentFields:
+    enable: Include parent fields
+    field: Parent link field
+    footnote: Select which parent field links to this record list
+    parentIndicator: Parent
+    hideModuleLabel: Hide parent module label
   selectable: Users will be able to select records
-  selected: "{{count}} of {{total}} records selected"
-  selectedFromAllPages: "All {{count}} records from all pages selected"
+  selected: '{{count}} of {{total}} records selected'
+  selectedFromAllPages: 'All {{count}} records from all pages selected'
   selectAllRecords: Select all records on all pages
   unselectAllRecords: Clear selection
   sort:
@@ -705,7 +700,7 @@ recordOrganizer:
     placeholder: Field that will hold the record position
     label: Record sort field
   preview:
-    label: "Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}."
+    label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'
     moduleNotSelected: Record Organizer module not selected
   addNewRecord: + Add
 
@@ -748,15 +743,21 @@ recordRevisions:
   configurator:
     label: Record revisions
     preload: Preload record revisions
-    sortDirection:
-      label: Sort direction
-      footnote: Sort revisions by when they were created
-      desc: Newest first
-      asc: Oldest first
     errors:
       invalid-module-id: Field does not contain a valid module ID.
     fields:
-      label: Fields to display in record revisions changes
+      label: Configure fields to display in record revisions changes
+      show-all:
+        label: Show changes for all fields
+      columns:
+        label:
+          label: Label
+        kind:
+          label: Type
+        displayed-fields:
+          label: Show
+        expanded-references:
+          label: Expand references
 
 socialFeed:
   label: Twitter feed
@@ -787,7 +788,7 @@ comment:
   title:
     placeholder: Title
   content:
-    placeholder: Write your message here...
+    placeholder: Comment here...
   submit: Submit
   noComments: No comments yet
   load:
@@ -801,24 +802,8 @@ comment:
   referenceField:
     label: Reference field
     footnote: Field that links comments with the parent record
-  attachmentField:
-    label: Attachment field
-    footnote: Field used to store comment attachments
-  reactionsField:
-    label: Reactions field
-    footnote: Field used to store comment reactions
   today: Today
   yesterday: Yesterday
-  tooltip:
-    reply: Reply
-    edit: Edit
-    attach: Attach file
-  emojiPicker:
-    search: Search
-    searchResults: Search Results
-    frequentlyUsed: Frequently Used
-    noResults: No emojis found
-    quickReactions: Quick Reactions
 navigation:
   chart: Charts
   colorPicker: Choose a color
@@ -968,7 +953,7 @@ geometry:
     topLeft: Bounds top left
     lowerRight: Bounds lower right
   tooltip:
-    goToCurrentLocation: Go to current location
+      goToCurrentLocation: Go to current location
 
 tabs:
   label: Tabs
@@ -1012,9 +997,6 @@ tabs:
         label: Title
       block:
         label: Block
-      lazy:
-        label: Lazy load
-        tooltip: When enabled, the tab content will only be rendered when the tab is first activated
   tooltip:
     edit: Edit block
     clone: Clone block & tab

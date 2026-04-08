@@ -21,12 +21,15 @@
           <template
             v-if="field.label"
           >
-            {{ field.label }} ({{ field.name }})
+            {{ field.label }}
+            <template v-if="field.originalName">
+              ({{ field.originalName }})
+            </template>
           </template>
           <template
             v-else
           >
-            {{ field.name }}
+            {{ field.originalName || field.name }}
           </template>
           <template
             v-if="field.isRequired"
@@ -39,6 +42,12 @@
           class="cursor-default ml-1 text-truncate"
         >
           {{ $t('selector.systemField') }}
+        </small>
+        <small
+          v-if="field.isParentField"
+          class="cursor-default ml-1 text-truncate text-primary"
+        >
+          {{ field.parentModuleName }}
         </small>
       </template>
     </c-item-picker>
@@ -94,6 +103,18 @@ export default {
     fieldSubset: {
       type: Array,
       default: null,
+    },
+
+    // NEW: optional parent module object
+    extraModule: {
+      type: Object,
+      default: null,
+    },
+
+    // NEW: array of field objects from the parent module
+    extraModuleFields: {
+      type: Array,
+      default: () => [],
     },
   },
 
@@ -153,8 +174,10 @@ export default {
         mFields.sort((a, b) => a.label.localeCompare(b.label))
       }
 
+      // Build base options from child module fields
+      let baseOptions = []
       if (mFields && sysFields) {
-        return [
+        baseOptions = [
           ...[...mFields],
           ...sysFields,
         ].map(field => ({
@@ -169,7 +192,7 @@ export default {
           field,
         }))
       } else {
-        return Object.keys(this.module).map(key => {
+        baseOptions = Object.keys(this.module).map(key => {
           return this.module[key]
         }).map(f => ({
           ...f,
@@ -178,6 +201,32 @@ export default {
           },
         }))
       }
+
+      // Build parent module field options (if extraModule and extraModuleFields are provided)
+      const extraFieldOptions = (this.extraModule && this.extraModuleFields.length > 0)
+        ? this.extraModuleFields.map(field => {
+          // Use moduleID::fieldName as the unique key to avoid name collisions
+          const uniqueName = `${this.extraModule.moduleID}::${field.name}`
+          return {
+            value: uniqueName,
+            text: [field.name, field.label, field.kind, this.extraModule.name].join(' '),
+            field: {
+              ...field,
+              // Override name with the namespaced version for storage/lookup
+              name: uniqueName,
+              label: field.label || field.name,
+              // Flags and metadata for downstream use
+              isParentField: true,
+              parentModuleID: this.extraModule.moduleID,
+              parentModuleName: this.extraModule.name,
+              originalName: field.name,
+            },
+          }
+        })
+        : []
+
+      // Concat extra options after the base options
+      return [...baseOptions, ...extraFieldOptions]
     },
   },
 }

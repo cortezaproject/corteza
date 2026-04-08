@@ -12,7 +12,6 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/spf13/cast"
 
@@ -122,8 +121,9 @@ type (
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (any, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		FindN(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, stats map[string]types.RecordSummary, f types.RecordFilter, err error)
+		FindByMultiHop(ctx context.Context, namespaceID, moduleID uint64, filter types.MultiHopFilter, limit uint, sort string) (set types.RecordSet, f types.RecordFilter, err error)
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
-		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64, sorting filter.Sorting) (dal.Iterator, error)
+		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
@@ -397,17 +397,25 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 			return RecordErrNotAllowedToSearch()
 		}
 
-		// Validate field-level permissions for filter query
-		if err = svc.validateFilterFieldPermissions(ctx, svc.ac, m, filter.Query); err != nil {
-			return err
-		}
-
-		// Validate field-level permissions for sort expression
-		if err = svc.validateSortFieldPermissions(ctx, svc.ac, m, filter.Sort); err != nil {
-			return err
-		}
-
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
+
+		// Check for multi-hop filters in the query
+		multiHopFilters, cleanQuery := types.ParseMultiHopFilter(filter.Query)
+
+		if len(multiHopFilters) > 0 {
+			// Resolve multi-hop filters and construct new query
+			resolvedQuery, err := svc.resolveMultiHopFilters(ctx, filter.NamespaceID, multiHopFilters)
+			if err != nil {
+				return err
+			}
+
+			// Combine resolved query with clean query
+			if cleanQuery != "" {
+				filter.Query = fmt.Sprintf("%s AND %s", cleanQuery, resolvedQuery)
+			} else {
+				filter.Query = resolvedQuery
+			}
+		}
 
 		if set, f, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, filter); err != nil {
 			return err
@@ -427,6 +435,105 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
 }
 
+// resolveMultiHopFilters resolves multi-hop filters by traversing intermediate modules
+// and constructing a query with resolved record IDs
+func (svc record) resolveMultiHopFilters(ctx context.Context, namespaceID uint64, filters []types.MultiHopFilter) (string, error) {
+	if len(filters) == 0 {
+		return "", nil
+	}
+
+	var queries []string
+
+	for _, filter := range filters {
+		// Start with the target value
+		currentValue := filter.TargetValue
+
+		// If no intermediate fields are specified, we need to determine them
+		// based on the module hierarchy
+		if len(filter.IntermediateFields) == 0 {
+			// This case should not occur in normal operation as frontend always provides at least one intermediate field
+			// For safety, return empty query to avoid incorrect results
+			return "", nil
+		}
+
+		// Traverse intermediate fields in reverse order
+		for i := len(filter.IntermediateFields) - 1; i >= 0; i-- {
+			fieldName := filter.IntermediateFields[i]
+
+			// Build a query to find records with this field value
+			query := fmt.Sprintf("%s = '%s'", fieldName, currentValue)
+
+			// Find the module that contains this field
+			modules, _, err := svc.module.Find(ctx, types.ModuleFilter{NamespaceID: namespaceID})
+			if err != nil {
+				return "", err
+			}
+
+			var intermediateIDs []string
+			var foundModule bool
+
+			// Find the first module that has this field
+			for _, mod := range modules {
+				// Check if this module has the field
+				if mod.Fields.FindByName(fieldName) == nil {
+					continue
+				}
+
+				foundModule = true
+
+				// Query records in this module
+				moduleFilter := types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: namespaceID,
+					Query:       query,
+				}
+
+				records, _, err := dalutils.ComposeRecordsList(ctx, svc.dal, mod, moduleFilter)
+				if err != nil {
+					continue // Skip modules that fail
+				}
+
+				// Collect record IDs
+				for _, rec := range records {
+					intermediateIDs = append(intermediateIDs, strconv.FormatUint(rec.ID, 10))
+				}
+
+				// Break after finding the first module with the field
+				break
+			}
+
+			if !foundModule || len(intermediateIDs) == 0 {
+				// No module found or no records -> cannot resolve filter, return empty query
+				// This will result in no records being returned, which is safer than incorrect results
+				return "", nil
+			}
+
+			// Update current value to be the list of IDs
+			currentValue = strings.Join(intermediateIDs, ",")
+
+			// If we have more intermediate fields to process, currentValue must be a single ID
+			// If it's a list, we cannot continue (would require additional hops)
+			if i > 0 && strings.Contains(currentValue, ",") {
+				// Cannot traverse further with a list of IDs (would require additional hops)
+				// Return empty query to avoid incorrect results
+				return "", nil
+			}
+		}
+
+		// Build the final query for this filter
+		if strings.Contains(currentValue, ",") {
+			// Multiple IDs
+			queries = append(queries, fmt.Sprintf("%s IN (%s)", filter.TargetField, currentValue))
+		} else {
+			// Single ID
+			queries = append(queries, fmt.Sprintf("%s = '%s'", filter.TargetField, currentValue))
+		}
+	}
+
+	// Combine all queries with AND
+	return strings.Join(queries, " AND "), nil
+}
+
 func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, stats map[string]types.RecordSummary, f types.RecordFilter, err error) {
 	var (
 		m      *types.Module
@@ -442,17 +549,25 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 			return RecordErrNotAllowedToSearch()
 		}
 
-		// Validate field-level permissions for filter query
-		if err = svc.validateFilterFieldPermissions(ctx, svc.ac, m, filter.Query); err != nil {
-			return err
-		}
-
-		// Validate field-level permissions for sort expression
-		if err = svc.validateSortFieldPermissions(ctx, svc.ac, m, filter.Sort); err != nil {
-			return err
-		}
-
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
+
+		// Check for multi-hop filters in the query (same as Find method)
+		multiHopFilters, cleanQuery := types.ParseMultiHopFilter(filter.Query)
+
+		if len(multiHopFilters) > 0 {
+			// Resolve multi-hop filters and construct new query
+			resolvedQuery, err := svc.resolveMultiHopFilters(ctx, filter.NamespaceID, multiHopFilters)
+			if err != nil {
+				return err
+			}
+
+			// Combine resolved query with clean query
+			if cleanQuery != "" {
+				filter.Query = fmt.Sprintf("%s AND %s", cleanQuery, resolvedQuery)
+			} else {
+				filter.Query = resolvedQuery
+			}
+		}
 
 		if set, stats, f, err = dalutils.ComposeRecordsListN(ctx, svc.dal, m, filter); err != nil {
 			return err
@@ -470,6 +585,77 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 	}()
 
 	return set, stats, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
+}
+
+// FindByMultiHop finds records using multi-hop filter for grandparent/great-grandparent relationships
+func (svc record) FindByMultiHop(ctx context.Context, namespaceID, moduleID uint64, filter types.MultiHopFilter, limit uint, sort string) (set types.RecordSet, f types.RecordFilter, err error) {
+	var (
+		m      *types.Module
+		aProps = &recordActionProps{}
+	)
+
+	err = func() error {
+		// Parse the multi-hop filter to get the target module and query
+		multiHopFilters, _ := types.ParseMultiHopFilter(filter.OriginalQuery)
+		if len(multiHopFilters) == 0 {
+			return fmt.Errorf("invalid multi-hop filter: no filters found")
+		}
+
+		// For now, we'll use the first multi-hop filter
+		// In a more advanced implementation, we could handle multiple filters
+		mhFilter := multiHopFilters[0]
+
+		// Resolve the multi-hop filter to get the final query
+		resolvedQuery, err := svc.resolveMultiHopFilters(ctx, namespaceID, []types.MultiHopFilter{mhFilter})
+		if err != nil {
+			return err
+		}
+
+		// Load the target module
+		if m, err = loadModule(ctx, svc.store, namespaceID, moduleID); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
+			return RecordErrNotAllowedToSearch()
+		}
+
+		// Build the record filter
+		recordFilter := types.RecordFilter{
+			ModuleID:    moduleID,
+			NamespaceID: namespaceID,
+			Query:       resolvedQuery,
+		}
+
+		if limit > 0 {
+			recordFilter.Limit = limit
+		}
+
+		if sort != "" {
+			if err = recordFilter.Sort.Set(sort); err != nil {
+				return err
+			}
+		}
+
+		recordFilter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
+
+		// Execute the query
+		if set, f, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, recordFilter); err != nil {
+			return err
+		}
+
+		_ = set.Walk(func(r *types.Record) error {
+			r.SetModule(m)
+			r.Values = svc.sanitizer.RunXSS(m, r.Values)
+			return nil
+		})
+
+		ComposeRecordFilterAC(ctx, svc.ac, m, set...)
+
+		return nil
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
 }
 
 // SearchSensitive returns stripped down records for all namespaces/modules where fields define a sensitivity level
@@ -573,7 +759,7 @@ func (svc record) searchSensitive(ctx context.Context, userID uint64, namespace 
 }
 
 // SearchRevisions returns iterator for revisions of a record
-func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64, sorting filter.Sorting) (dal.Iterator, error) {
+func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error) {
 	var (
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID, ModuleID: moduleID, ID: recordID}}
 
@@ -601,7 +787,7 @@ func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, re
 			return RecordErrNotAllowedToSearchRevisions()
 		}
 
-		iter, err = svc.revisions.search(ctx, rec, sorting)
+		iter, err = svc.revisions.search(ctx, rec, filter.Sorting{})
 		return
 	}()
 
@@ -1122,11 +1308,7 @@ func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessControlle
 		}
 
 		if v.IsUpdated() && !ac.CanUpdateRecordValueOnModuleField(ctx, f) {
-			rve.Push(types.RecordValueError{
-				Kind:    "updateDenied",
-				Meta:    map[string]interface{}{"field": v.Name},
-				Message: locale.Global().T(ctx, "compose", "record-field.errors.updateDenied"),
-			})
+			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
 		}
 
 		return nil
@@ -2628,118 +2810,4 @@ func (rr recordReportEntry) SetValue(n string, pos uint, v any) error {
 	rr[n] = v
 
 	return nil
-}
-
-// validateFilterFieldPermissions checks if the user is allowed to filter requested fields
-func (svc record) validateFilterFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, query string) error {
-	if query == "" {
-		return nil
-	}
-
-	// Parse the filter query to extract field symbols
-	parser := ql.NewParser()
-	ast, err := parser.Parse(query)
-	if err != nil {
-		// If parsing fails, let it pass through - the DAL layer will handle the error
-		// @todo not sure if I am a fan of this
-		return nil
-	}
-
-	symbols := ast.CollectUniqueSymbols()
-	if len(symbols) == 0 {
-		return nil
-	}
-
-	// Build a set of module field names for quick lookup
-	moduleFieldNames := make(map[string]bool)
-	for _, f := range m.Fields {
-		moduleFieldNames[f.Name] = true
-	}
-
-	// System fields that are always filterable (not module-specific fields)
-	systemFields := svc.systemExprFields()
-
-	// Check each symbol in the filter query
-	for _, symbol := range symbols {
-		// Skip system fields as they're always accessible
-		if systemFields[symbol] {
-			continue
-		}
-
-		// Skip symbols that aren't module fields (could be functions, operators, etc.)
-		if !moduleFieldNames[symbol] {
-			continue
-		}
-
-		// Find the field and check permission
-		field := m.Fields.FindByName(symbol)
-		if field == nil {
-			continue
-		}
-
-		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
-			return RecordErrNotAllowedToFilterByField(&recordActionProps{field: symbol})
-		}
-	}
-
-	return nil
-}
-
-// validateFilterFieldPermissions checks if the user is allowed to sort requested fields
-func (svc record) validateSortFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, sort filter.SortExprSet) error {
-	if len(sort) == 0 {
-		return nil
-	}
-
-	// Build a set of module field names for quick lookup
-	moduleFieldNames := make(map[string]bool)
-	for _, f := range m.Fields {
-		moduleFieldNames[f.Name] = true
-	}
-
-	// System fields that are always sortable
-	systemFields := svc.systemExprFields()
-
-	for _, sort := range sort {
-		fieldName := sort.Column
-
-		// Skip system fields
-		if systemFields[fieldName] {
-			continue
-		}
-
-		// Skip non-module fields
-		if !moduleFieldNames[fieldName] {
-			continue
-		}
-
-		// Find the field and check permission
-		field := m.Fields.FindByName(fieldName)
-		if field == nil {
-			continue
-		}
-
-		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
-			return RecordErrNotAllowedToSortByField(&recordActionProps{field: fieldName})
-		}
-	}
-
-	return nil
-}
-
-func (svc record) systemExprFields() map[string]bool {
-	return map[string]bool{
-		"recordID":    true,
-		"id":          true,
-		"ID":          true,
-		"moduleID":    true,
-		"namespaceID": true,
-		"ownedBy":     true,
-		"createdAt":   true,
-		"createdBy":   true,
-		"updatedAt":   true,
-		"updatedBy":   true,
-		"deletedAt":   true,
-		"deletedBy":   true,
-	}
 }

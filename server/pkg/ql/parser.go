@@ -190,12 +190,15 @@ func (p *Parser) parseIdent(t Token) (list parserNode, err error) {
 
 	i := Ident{Value: t.literal}
 
-	if p.peekToken(1).Is(DOT) {
+	// Handle nested field paths of any depth: field1.field2.field3...
+	for p.peekToken(1).Is(DOT) {
 		p.nextToken()
 		i.Value += "."
 		l2 := p.nextToken()
 		if l2.Is(IDENT) {
 			i.Value += l2.literal
+		} else {
+			return nil, fmt.Errorf("unexpected token after '.' in identifier: %v", l2)
 		}
 	}
 

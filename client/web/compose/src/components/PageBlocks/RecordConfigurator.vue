@@ -127,9 +127,45 @@
         <b-col cols="12">
           <field-picker
             :module="fieldModule"
+            :extra-module="parentModuleConfig.extraModule"
+            :extra-module-fields="parentModuleConfig.extraModuleFields"
             :fields.sync="options.fields"
             style="height: 52vh;"
           />
+        </b-col>
+      </b-row>
+
+      <b-row class="mt-2">
+        <b-col
+          cols="12"
+        >
+          <b-form-group>
+            <c-input-checkbox
+              v-model="options.includeParentFields"
+              :label="$t('record.parentFields.enable')"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="options.includeParentFields"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.parentFields.field')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.parentField"
+              :options="availableParentFields"
+              label="label"
+              :reduce="f => f.name"
+              :placeholder="$t('general.label.none')"
+            />
+          </b-form-group>
         </b-col>
       </b-row>
 
@@ -343,7 +379,7 @@
 <script>
 import base from './base'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import { NoID, compose } from '@cortezaproject/corteza-js'
 import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
 import { components } from '@cortezaproject/corteza-vue'
@@ -377,6 +413,10 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      getModuleByID: 'module/getByID',
+    }),
+
     visibilityDocumentationURL () {
       // eslint-disable-next-line no-undef
       const [year, month] = VERSION.split('.')
@@ -421,6 +461,91 @@ export default {
         return this.module.fields.some(f => f.kind === 'Record')
       } else {
         return this.options.fields.some(f => f.kind === 'Record')
+      }
+    },
+
+    availableParentFields () {
+      if (!this.module) {
+        return []
+      }
+
+      return this.module.fields
+        .filter(field => {
+          if (field.kind !== 'Record') return false
+          if (field.isMulti) return false
+          if (!field.options || !field.options.moduleID) return false
+          return true
+        })
+        .map(field => {
+          const linkedModule = this.getModuleByID(field.options.moduleID)
+          return {
+            ...field,
+            label: linkedModule
+              ? `${field.label || field.name} → ${linkedModule.name}`
+              : field.label || field.name,
+          }
+        })
+    },
+
+    parentModuleConfig () {
+      if (!this.options.includeParentFields || !this.options.parentField) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      if (!this.module) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      const linkField = this.module.fields.find(f => f.name === this.options.parentField)
+      if (!linkField || linkField.kind !== 'Record' || !linkField.options || !linkField.options.moduleID) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      const parentModule = this.getModuleByID(linkField.options.moduleID)
+      if (!parentModule) {
+        return {
+          extraModule: null,
+          extraModuleFields: [],
+        }
+      }
+
+      return {
+        extraModule: {
+          moduleID: parentModule.moduleID,
+          name: parentModule.name,
+        },
+        extraModuleFields: parentModule.fields.map(f => ({
+          ...f,
+          originalName: f.name,
+        })),
+      }
+    },
+  },
+
+  watch: {
+    'options.parentField' (newVal, oldVal) {
+      if (newVal !== oldVal) {
+        if (this.options.fields && this.options.fields.length > 0) {
+          this.options.fields = this.options.fields.filter(f => !f.isParentField)
+        }
+      }
+    },
+
+    'options.includeParentFields' (newVal) {
+      if (!newVal) {
+        if (this.options.fields && this.options.fields.length) {
+          this.options.fields = this.options.fields.filter(f => !f.isParentField)
+        }
+        this.options.parentField = null
       }
     },
   },

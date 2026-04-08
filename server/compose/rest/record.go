@@ -720,7 +720,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 	return func(w http.ResponseWriter, req *http.Request) {
 		if len(r.Fields) == 0 {
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
-			return
 		}
 
 		fx := make(map[string]bool)
@@ -755,13 +754,15 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			return
 		}
 
+		w.Header().Add("Content-Type", contentType)
+		w.Header().Add("Content-Disposition", "attachment"+filename)
+
 		var nodes envoyx.NodeSet
 		nodes, _, err = envoySvc.Decode(ctx, envoyx.DecodeParams{
 			Type: envoyx.DecodeTypeStore,
 			Params: map[string]any{
-				"storer":      service.DefaultStore,
-				"dal":         dal.Service(),
-				"resolveRefs": r.GetResolveRefs(),
+				"storer": service.DefaultStore,
+				"dal":    dal.Service(),
 			},
 			Filter: map[string]envoyx.ResourceFilter{
 				composeEnvoy.ComposeRecordDatasourceAuxType: {
@@ -791,7 +792,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			},
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -804,12 +804,8 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			},
 		}, nil, nodes...)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Add("Content-Type", contentType)
-		w.Header().Add("Content-Disposition", "attachment"+filename)
 
 		mapping := make([]envoyx.MapEntry, 0, len(r.Fields))
 		for _, f := range r.Fields {
@@ -829,13 +825,10 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			FieldMapping: mapping,
 		}, gg)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if err = ctrl.record.RecordExport(ctx, *rf); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		err = ctrl.record.RecordExport(ctx, *rf)
 	}, err
 }
 
@@ -890,15 +883,9 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (interface{}, error) {
 	var (
 		makeRev = func() dal.ValueSetter { return &revisions.Revision{} }
-		sorting filter.Sorting
-		err     error
 	)
 
-	if sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
-	}
-
-	iter, err := ctrl.record.SearchRevisions(ctx, r.NamespaceID, r.ModuleID, r.RecordID, sorting)
+	iter, err := ctrl.record.SearchRevisions(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
 	if err != nil {
 		return nil, err
 	}
@@ -921,6 +908,30 @@ func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (
 
 		return
 	}, err
+}
+
+func (ctrl *Record) MultiHopQuery(ctx context.Context, r *request.RecordMultiHopQuery) (interface{}, error) {
+	var (
+		m   *types.Module
+		err error
+	)
+
+	if m, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
+		return nil, err
+	}
+
+	// Build the multi-hop filter
+	// Note: IntermediateFields will be determined by the backend based on the module hierarchy
+	filter := types.MultiHopFilter{
+		TargetField:   r.RefField,
+		TargetValue:   r.RefValue,
+		OriginalQuery: r.Query,
+	}
+
+	// Execute the multi-hop query
+	rr, f, err := ctrl.record.FindByMultiHop(ctx, r.NamespaceID, r.ModuleID, filter, r.Limit, r.Sort)
+
+	return ctrl.makeFilterPayloadN(ctx, m, rr, nil, &f, err)
 }
 
 func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, dd *types.RecordValueErrorSet, err error, rr ...*types.Record) (*recordPayload, error) {

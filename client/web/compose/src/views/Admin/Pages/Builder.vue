@@ -56,6 +56,13 @@
           />
         </b-button>
 
+        <page-translator
+          :page.sync="trPage"
+          :page-layout.sync="layout"
+          button-variant="primary"
+          style="margin-left:2px;"
+        />
+
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), boundary: 'body' }"
           variant="primary"
@@ -67,13 +74,6 @@
             :icon="['far', 'edit']"
           />
         </b-button>
-
-        <page-translator
-          :page.sync="trPage"
-          :page-layout.sync="layout"
-          button-variant="primary"
-          style="margin-left:2px;"
-        />
       </b-button-group>
     </portal>
 
@@ -91,7 +91,7 @@
       @item-updated="onBlockUpdated"
     >
       <template
-        slot-scope="{ blockIndex, block, resizing }"
+        slot-scope="{ index, block, resizing }"
       >
         <div
           :data-test-id="`block-${block.kind}`"
@@ -118,7 +118,7 @@
                 data-test-id="button-edit"
                 variant="outline-light"
                 class="border-0"
-                @click="editBlock(blockIndex)"
+                @click="editBlock(index)"
               >
                 <font-awesome-icon
                   :icon="['far', 'edit']"
@@ -129,7 +129,7 @@
                 v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone.block'), boundary: 'body' }"
                 variant="outline-light"
                 class="border-0"
-                @click="cloneBlock(blockIndex)"
+                @click="cloneBlock(index)"
               >
                 <font-awesome-icon
                   :icon="['far', 'clone']"
@@ -140,7 +140,7 @@
                 v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy.block'), boundary: 'body' }"
                 variant="outline-light"
                 class="border-0"
-                @click="copyBlock(blockIndex)"
+                @click="copyBlock(index)"
               >
                 <font-awesome-icon
                   :icon="['far', 'copy']"
@@ -154,7 +154,7 @@
               link
               size="md"
               class="ml-1"
-              @confirmed="deleteBlock(blockIndex)"
+              @confirmed="deleteBlock(index)"
             />
           </div>
 
@@ -165,7 +165,7 @@
             }"
             :page="page"
             :blocks="usedBlocks"
-            :block-index="blockIndex"
+            :block-index="index"
             :block="block"
             :module="module"
             :record="record"
@@ -912,26 +912,26 @@ export default {
       }
 
       // Inline record lists
-      const hasInvalidRecordList = this.usedBlocks.some(b => {
+      this.usedBlocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
           const recordListModule = this.getModuleByID(b.options.moduleID)
-          if (!recordListModule) return false
           const req = new Set(recordListModule.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
+
+          // If refField is configured, exclude it from required fields check
+          if (b.options.refField) {
+            req.delete(b.options.refField)
+          }
 
           // Check if all required fields are there
           for (const f of b.options.editFields) {
             req.delete(f.name)
           }
 
-          return req.size > 0
+          if (req.size) {
+            this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
+          }
         }
-        return false
       })
-
-      if (hasInvalidRecordList) {
-        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
-        return
-      }
 
       this.processing = true
 
