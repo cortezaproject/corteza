@@ -22,6 +22,7 @@ type (
 		obs               *observability.Bus
 		taqService        TAQService
 		workflowService   WorkflowService
+		nsModResolver     NsModResolver
 	}
 
 	// Registry interface for fetching agent definitions
@@ -117,6 +118,23 @@ type (
 		LookupByID(ctx context.Context, ID uint64) (*autoTypes.Workflow, error)
 	}
 
+	NsModResolver interface {
+		Resolve(ctx context.Context, namespace, module string) (nsID, modID uint64, err error)
+		LookupNamespace(ctx context.Context, id uint64) (NsHandle, error)
+		LookupModule(ctx context.Context, nsID, modID uint64) (ModHandle, error)
+	}
+
+	NsHandle struct {
+		ID     uint64
+		Handle string
+	}
+
+	ModHandle struct {
+		ID          uint64
+		NamespaceID uint64
+		Handle      string
+	}
+
 	// MCPClient abstracts the Model Context Protocol tools.
 	MCPClient interface {
 		// GetTools returns tools filtered to the agent's allowed tool list.
@@ -158,5 +176,9 @@ func (r *runtime) SetTAQService(s TAQService) {
 
 func (r *runtime) SetWorkflowService(s WorkflowService) {
 	r.workflowService = s
+}
+
+func (r *runtime) SetNsModResolver(s NsModResolver) {
+	r.nsModResolver = s
 }
 

@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/sql"
@@ -69,21 +70,18 @@ type (
 	AgentAccess struct {
 		Context   AgentAccessContext    `json:"context"`
 		Tools     []AgentAccessTool     `json:"tools,omitempty"`
-		Allow     []AgentAccessAllow    `json:"allow,omitempty"`
 		TAQs      []AgentAccessTAQ      `json:"taqs,omitempty"`
 		Workflows []AgentAccessWorkflow `json:"workflows,omitempty"`
 	}
 
 	AgentAccessTAQ struct {
-		ID     uint64 `json:"id,string"`
-		Handle string `json:"handle,omitempty"`
-		Hints  string `json:"hints,omitempty"`
+		ID          uint64 `json:"id,string"`
+		Description string `json:"description,omitempty"`
 	}
 
 	AgentAccessWorkflow struct {
-		ID     uint64 `json:"id,string"`
-		Handle string `json:"handle,omitempty"`
-		Hints  string `json:"hints,omitempty"`
+		ID          uint64 `json:"id,string"`
+		Description string `json:"description,omitempty"`
 	}
 
 	AgentAccessContext struct {
@@ -95,6 +93,7 @@ type (
 	AgentAccessTool struct {
 		Name    string                 `json:"name"`
 		Hints   string                 `json:"hints,omitempty"`
+		Allow   []AgentAccessAllow     `json:"allow,omitempty"`
 		Context AgentAccessToolContext `json:"context,omitempty"`
 	}
 
@@ -104,15 +103,12 @@ type (
 	}
 
 	AgentAccessAllow struct {
-		Resource   string                     `json:"resource"`
-		Filter     string                     `json:"filter,omitempty"`
-		Properties []AgentAccessAllowProperty `json:"properties,omitempty"`
+		NamespaceID uint64            `json:"namespaceID,string"`
+		ModuleIDs   AgentAccessIDList `json:"moduleIDs,omitempty"`
 	}
 
-	AgentAccessAllowProperty struct {
-		Name   string `json:"name"`
-		Access string `json:"access"`
-	}
+	// AgentAccessIDList is a []uint64 that serializes each element as a JSON string.
+	AgentAccessIDList []uint64
 
 	AgentInvocation struct {
 		User   AgentInvocationUser   `json:"user"`
@@ -197,4 +193,28 @@ func ParseAgentInvocation(ss []string) (p AgentInvocation, err error) {
 		return
 	}
 	return p, json.Unmarshal([]byte(ss[0]), &p)
+}
+
+func (ll AgentAccessIDList) MarshalJSON() ([]byte, error) {
+	strs := make([]string, len(ll))
+	for i, id := range ll {
+		strs[i] = strconv.FormatUint(id, 10)
+	}
+	return json.Marshal(strs)
+}
+
+func (ll *AgentAccessIDList) UnmarshalJSON(data []byte) error {
+	var strs []string
+	if err := json.Unmarshal(data, &strs); err != nil {
+		return err
+	}
+	*ll = make(AgentAccessIDList, len(strs))
+	for i, s := range strs {
+		id, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return err
+		}
+		(*ll)[i] = id
+	}
+	return nil
 }

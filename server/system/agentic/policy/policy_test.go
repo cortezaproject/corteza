@@ -1,7 +1,6 @@
 package policy
 
 import (
-	"context"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -93,75 +92,55 @@ func TestEvaluate(t *testing.T) {
 		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "user-ns"})
 		assert.Equal(t, "forced-ns", d.SanitizedArgs["namespaceID"])
 	})
+
+	t.Run("denied when namespaceID does not match allow entry", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{
+					{
+						Name:  "compose_record_create",
+						Allow: []types.AgentAccessAllow{{NamespaceID: 100, ModuleIDs: types.AgentAccessIDList{200}}},
+					},
+				},
+			},
+		}
+		d := Evaluate(agent, "compose_record_create", MapValues{"namespaceID": "999", "moduleID": "200"})
+		assert.False(t, d.Allowed)
+	})
+
+	t.Run("allowed when namespace-level allow covers module tool", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{
+					{
+						Name:  "compose_module_lookup",
+						Allow: []types.AgentAccessAllow{{NamespaceID: 100}},
+					},
+				},
+			},
+		}
+		d := Evaluate(agent, "compose_module_lookup", MapValues{"namespaceID": "100", "moduleID": "999"})
+		assert.True(t, d.Allowed)
+	})
+
+	t.Run("taq denied when id not in list", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				TAQs: []types.AgentAccessTAQ{{ID: 111}},
+			},
+		}
+		d := Evaluate(agent, "automation_taq_exec", MapValues{"taq": "999"})
+		assert.False(t, d.Allowed)
+	})
+
+	t.Run("taq allowed when id matches", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				TAQs: []types.AgentAccessTAQ{{ID: 111}},
+			},
+		}
+		d := Evaluate(agent, "automation_taq_exec", MapValues{"taq": "111"})
+		assert.True(t, d.Allowed)
+	})
 }
 
-func TestFilterResponse(t *testing.T) {
-	ctx := context.Background()
-
-	t.Run("no matching allow entry returns empty map", func(t *testing.T) {
-		agent := &types.Agent{}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"recordID": "123", "values": "data"})
-		assert.Empty(t, result)
-	})
-
-	t.Run("matching entry with no properties returns all fields", func(t *testing.T) {
-		agent := &types.Agent{
-			Access: types.AgentAccess{
-				Allow: []types.AgentAccessAllow{
-					{Resource: "compose_record_lookup"},
-				},
-			},
-		}
-		data := MapValues{"recordID": "123", "values": "data"}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", data)
-		assert.Equal(t, map[string]any{"recordID": "123", "values": "data"}, result)
-	})
-
-	t.Run("only allowed properties are returned", func(t *testing.T) {
-		agent := &types.Agent{
-			Access: types.AgentAccess{
-				Allow: []types.AgentAccessAllow{
-					{
-						Resource: "compose_record_lookup",
-						Properties: []types.AgentAccessAllowProperty{
-							{Name: "recordID", Access: "allow"},
-						},
-					},
-				},
-			},
-		}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"recordID": "123", "secret": "hidden"})
-		assert.Equal(t, "123", result["recordID"])
-		assert.NotContains(t, result, "secret")
-	})
-
-	t.Run("row-level filter match returns data", func(t *testing.T) {
-		agent := &types.Agent{
-			Access: types.AgentAccess{
-				Allow: []types.AgentAccessAllow{
-					{
-						Resource: "compose_record_lookup",
-						Filter:   "status == \"active\"",
-					},
-				},
-			},
-		}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"status": "active", "recordID": "123"})
-		assert.Equal(t, "123", result["recordID"])
-	})
-
-	t.Run("row-level filter mismatch returns empty map", func(t *testing.T) {
-		agent := &types.Agent{
-			Access: types.AgentAccess{
-				Allow: []types.AgentAccessAllow{
-					{
-						Resource: "compose_record_lookup",
-						Filter:   "status == \"active\"",
-					},
-				},
-			},
-		}
-		result := FilterResponse(ctx, agent, "compose_record_lookup", MapValues{"status": "inactive", "recordID": "123"})
-		assert.Empty(t, result)
-	})
-}

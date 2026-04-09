@@ -468,6 +468,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	sysService.DefaultAgenticRuntime.SetLookups(cmpService.DefaultNamespace, cmpService.DefaultModule)
 	sysService.DefaultAgenticRuntime.SetTAQService(autService.DefaultNgAutomation)
 	sysService.DefaultAgenticRuntime.SetWorkflowService(autService.DefaultWorkflow)
+	sysService.DefaultAgenticRuntime.SetNsModResolver(cmpAgentic.NsModResolver())
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)

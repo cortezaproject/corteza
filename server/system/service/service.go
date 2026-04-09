@@ -67,6 +67,7 @@ type (
 		SetLookups(ns agenticKnowledge.NamespaceLookup, mod agenticKnowledge.ModuleLookup)
 		SetTAQService(s agenticRuntime.TAQService)
 		SetWorkflowService(s agenticRuntime.WorkflowService)
+		SetNsModResolver(s agenticRuntime.NsModResolver)
 	}
 )
 

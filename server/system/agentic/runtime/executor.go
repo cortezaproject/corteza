@@ -51,25 +51,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		if taqTools, taqErr := r.mcp.GetTools(ctx, []string{"automation_taq_exec", "automation_taq_lookup"}); taqErr == nil {
 			tools = append(tools, taqTools...)
 		}
-		for i, t := range agent.Access.TAQs {
-			if t.Handle == "" {
-				if info, err := r.taqService.LookupByID(ctx, t.ID); err == nil {
-					agent.Access.TAQs[i].Handle = info.Handle
-				}
-			}
-		}
 	}
 
 	if len(agent.Access.Workflows) > 0 {
 		if wfTools, wfErr := r.mcp.GetTools(ctx, []string{"automation_workflow_exec", "automation_workflow_lookup"}); wfErr == nil {
 			tools = append(tools, wfTools...)
-		}
-		for i, w := range agent.Access.Workflows {
-			if w.Handle == "" {
-				if info, err := r.workflowService.LookupByID(ctx, w.ID); err == nil {
-					agent.Access.Workflows[i].Handle = info.Handle
-				}
-			}
 		}
 	}
 
@@ -116,7 +102,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	}
 	for _, t := range agent.Access.Tools {
 		if t.Hints != "" {
-			systemPrompt += "\n\n" + t.Hints
+			systemPrompt += "\n\n" + sanitizePromptInput(t.Hints)
 		}
 	}
 	if len(agent.Behavior.KnowledgeBases) > 0 {
@@ -143,6 +129,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		if len(agent.Access.TAQs) > 0 {
 			systemPrompt += "\n### TAQs:\n"
 			for _, t := range agent.Access.TAQs {
+				if t.ID == 0 {
+					continue
+				}
 				info, err := r.taqService.LookupByID(ctx, t.ID)
 				if err != nil {
 					continue
@@ -159,8 +148,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 				if fields := scopeFields(info.Scope); fields != "" {
 					systemPrompt += " inputs: " + fields
 				}
-				if t.Hints != "" {
-					systemPrompt += " hints: " + t.Hints
+				if t.Description != "" {
+					systemPrompt += " description: " + sanitizePromptInput(t.Description)
 				}
 				systemPrompt += "\n"
 			}
@@ -168,6 +157,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		if len(agent.Access.Workflows) > 0 {
 			systemPrompt += "\n### Workflows:\n"
 			for _, w := range agent.Access.Workflows {
+				if w.ID == 0 {
+					continue
+				}
 				info, err := r.workflowService.LookupByID(ctx, w.ID)
 				if err != nil {
 					continue
@@ -184,12 +176,16 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 				if fields := scopeFields(info.Scope); fields != "" {
 					systemPrompt += " inputs: " + fields
 				}
-				if w.Hints != "" {
-					systemPrompt += " hints: " + w.Hints
+				if w.Description != "" {
+					systemPrompt += " description: " + sanitizePromptInput(w.Description)
 				}
 				systemPrompt += "\n"
 			}
 		}
+	}
+
+	if r.nsModResolver != nil {
+		systemPrompt += buildComposeContext(ctx, agent, r.nsModResolver)
 	}
 
 	r.emitSpan(observability.AgentSpan{
@@ -514,7 +510,16 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		start := time.Now()
 
 		policyStart := time.Now()
-		decision := policy.Evaluate(agent, tc.Name, policy.MapValues(tc.Args))
+		policyArgs := policy.MapValues(tc.Args)
+		if strings.HasPrefix(tc.Name, "compose_") && r.nsModResolver != nil {
+			ns, _ := tc.Args["namespace"].(string)
+			mod, _ := tc.Args["module"].(string)
+			if nsID, modID, err := r.nsModResolver.Resolve(ctx, ns, mod); err == nil {
+				policyArgs["namespaceID"] = strconv.FormatUint(nsID, 10)
+				policyArgs["moduleID"] = strconv.FormatUint(modID, 10)
+			}
+		}
+		decision := policy.Evaluate(agent, tc.Name, policyArgs)
 		policySpan := observability.AgentSpan{
 			ID:             sid(),
 			ParentID:       parentSpanID,
@@ -608,11 +613,6 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		})
 
 		resultData, _ := json.Marshal(result)
-		var resultMap map[string]any
-		if json.Unmarshal(resultData, &resultMap) == nil {
-			result = policy.FilterResponse(ctx, agent, tc.Name, policy.MapValues(resultMap))
-			resultData, _ = json.Marshal(result)
-		}
 
 		toolResult := types.AiConversationToolResult{
 			CallID: tc.ID,
@@ -695,4 +695,65 @@ func scopeFields(scope *expr.Vars) string {
 		return ""
 	}
 	return "{" + strings.Join(parts, ", ") + "}"
+}
+
+// sanitizePromptInput strips characters and patterns commonly used for prompt injection.
+func sanitizePromptInput(s string) string {
+	// Remove null bytes
+	s = strings.ReplaceAll(s, "\x00", "")
+	// Collapse repeated newlines to prevent section injection
+	for strings.Contains(s, "\n\n\n") {
+		s = strings.ReplaceAll(s, "\n\n\n", "\n\n")
+	}
+	// Strip common injection markers
+	for _, marker := range []string{"<|", "|>", "###", "---", "SYSTEM:", "ASSISTANT:", "USER:"} {
+		s = strings.ReplaceAll(s, marker, "")
+	}
+	return strings.TrimSpace(s)
+}
+
+func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsModResolver) string {
+	// Collect unique namespace/module ID pairs from tool allow lists
+	type modKey struct{ nsID, modID uint64 }
+	seen := make(map[modKey]bool)
+	nsIDs := make(map[uint64]bool)
+
+	for _, tool := range agent.Access.Tools {
+		for _, a := range tool.Allow {
+			if a.NamespaceID == 0 {
+				continue
+			}
+			nsIDs[a.NamespaceID] = true
+			for _, mid := range a.ModuleIDs {
+				seen[modKey{a.NamespaceID, mid}] = true
+			}
+		}
+	}
+
+	if len(nsIDs) == 0 {
+		return ""
+	}
+
+	out := "\n\n## ACCESSIBLE NAMESPACES AND MODULES\n\nUse these handle/ID pairs directly in tool calls — no need to look them up.\n"
+
+	for nsID := range nsIDs {
+		ns, err := resolver.LookupNamespace(ctx, nsID)
+		if err != nil {
+			continue
+		}
+		out += fmt.Sprintf("\n- namespace handle=%q id=%d\n", ns.Handle, ns.ID)
+
+		for key := range seen {
+			if key.nsID != nsID {
+				continue
+			}
+			mod, err := resolver.LookupModule(ctx, key.nsID, key.modID)
+			if err != nil {
+				continue
+			}
+			out += fmt.Sprintf("  - module handle=%q id=%d\n", mod.Handle, mod.ID)
+		}
+	}
+
+	return out
 }

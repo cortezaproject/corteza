@@ -1,10 +1,9 @@
 package policy
 
 import (
-	"context"
 	"fmt"
+	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -48,14 +47,14 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 	// TAQ and workflow tools are auto-injected — validate against the agent's allowlist
 	if tool == "automation_taq_exec" {
 		ref, _ := args.Get("taq")
-		if !agentAllowsTAQ(agent, fmt.Sprintf("%v", ref)) {
+		if findTAQ(agent, fmt.Sprintf("%v", ref)) == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute TAQ %q", ref)}
 		}
 		return allowedDecision(agent, nil, args)
 	}
 	if tool == "automation_workflow_exec" {
 		ref, _ := args.Get("workflow")
-		if !agentAllowsWorkflow(agent, fmt.Sprintf("%v", ref)) {
+		if findWorkflow(agent, fmt.Sprintf("%v", ref)) == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute workflow %q", ref)}
 		}
 		return allowedDecision(agent, nil, args)
@@ -84,6 +83,10 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 			Allowed: false,
 			Reason:  fmt.Sprintf("tool %q is not in the agent's allow-list", tool),
 		}
+	}
+
+	if d := checkAllow(entry.Allow, buildResource(tool, args)); !d.Allowed {
+		return d
 	}
 
 	return allowedDecision(agent, entry, args)
@@ -121,87 +124,106 @@ func allowedDecision(agent *types.Agent, entry *types.AgentAccessTool, args Valu
 	}
 }
 
-func agentAllowsTAQ(agent *types.Agent, ref string) bool {
-	for _, t := range agent.Access.TAQs {
-		if fmt.Sprintf("%d", t.ID) == ref || t.Handle == ref {
-			return true
+func findTAQ(agent *types.Agent, ref string) *types.AgentAccessTAQ {
+	for i := range agent.Access.TAQs {
+		t := &agent.Access.TAQs[i]
+		if fmt.Sprintf("%d", t.ID) == ref {
+			return t
 		}
 	}
-	return false
+	return nil
 }
 
-func agentAllowsWorkflow(agent *types.Agent, ref string) bool {
-	for _, w := range agent.Access.Workflows {
-		if fmt.Sprintf("%d", w.ID) == ref || w.Handle == ref {
-			return true
+func findWorkflow(agent *types.Agent, ref string) *types.AgentAccessWorkflow {
+	for i := range agent.Access.Workflows {
+		w := &agent.Access.Workflows[i]
+		if fmt.Sprintf("%d", w.ID) == ref {
+			return w
 		}
 	}
-	return false
+	return nil
 }
 
-func FilterResponse(ctx context.Context, agent *types.Agent, resource string, data ValueGetter) map[string]any {
-	var entry *types.AgentAccessAllow
-	for i := range agent.Access.Allow {
-		if agent.Access.Allow[i].Resource == resource {
-			entry = &agent.Access.Allow[i]
-			break
+// buildResource constructs a Corteza resource identifier from the tool name and args.
+// Missing or zero-value segments are replaced with "*".
+func buildResource(tool string, args ValueGetter) string {
+	seg := func(key string) string {
+		v, ok := args.Get(key)
+		if !ok {
+			return "*"
 		}
+		s := fmt.Sprintf("%v", v)
+		if s == "" || s == "0" {
+			return "*"
+		}
+		return s
 	}
 
-	if entry == nil {
-		return map[string]any{}
+	switch {
+	case strings.HasPrefix(tool, "compose_record_"):
+		return fmt.Sprintf("corteza::compose:record/%s/%s/%s", seg("namespaceID"), seg("moduleID"), seg("recordID"))
+	case strings.HasPrefix(tool, "compose_module_"):
+		return fmt.Sprintf("corteza::compose:module/%s/%s", seg("namespaceID"), seg("moduleID"))
+	case strings.HasPrefix(tool, "compose_namespace_"):
+		return fmt.Sprintf("corteza::compose:namespace/%s", seg("namespaceID"))
+	case tool == "automation_taq_exec":
+		return fmt.Sprintf("corteza::automation:ng-automation/%s", seg("taq"))
+	case tool == "automation_workflow_exec":
+		return fmt.Sprintf("corteza::automation:workflow/%s", seg("workflow"))
+	default:
+		return ""
 	}
-
-	if entry.Filter != "" {
-		match, err := evalFilter(ctx, entry.Filter, data)
-		if err != nil || !match {
-			return map[string]any{}
-		}
-	}
-
-	if len(entry.Properties) == 0 {
-		result := make(map[string]any)
-		for _, k := range data.Keys() {
-			v, _ := data.Get(k)
-			result[k] = v
-		}
-		return result
-	}
-
-	allowed := make(map[string]bool, len(entry.Properties))
-	for _, p := range entry.Properties {
-		if p.Access == "allow" || p.Access == "" {
-			allowed[p.Name] = true
-		}
-	}
-
-	result := make(map[string]any, len(allowed))
-	for _, k := range data.Keys() {
-		if allowed[k] {
-			v, _ := data.Get(k)
-			result[k] = v
-		}
-	}
-	return result
 }
 
-func evalFilter(ctx context.Context, filter string, data ValueGetter) (bool, error) {
-	parser := expr.NewParser()
-	evaluable, err := parser.Parse(filter)
-	if err != nil {
-		return false, fmt.Errorf("invalid filter expression %q: %w", filter, err)
+// checkAllow returns denied if allow is non-empty and no entry covers the resource.
+// Each allow entry covers a namespace; if ModuleIDs is empty it covers all modules in that namespace.
+func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
+	if len(allow) == 0 || resource == "" {
+		return Decision{Allowed: true}
 	}
 
-	dataMap := make(map[string]any)
-	for _, k := range data.Keys() {
-		v, _ := data.Get(k)
-		dataMap[k] = v
+	if !strings.HasPrefix(resource, "corteza::compose:") {
+		return Decision{Allowed: true}
 	}
 
-	vars, err := expr.NewVars(dataMap)
-	if err != nil {
-		return false, fmt.Errorf("failed to build filter vars: %w", err)
+	parts := strings.Split(resource, "/")
+	if len(parts) < 2 {
+		return Decision{Allowed: true}
+	}
+	nsStr := parts[1]
+	modStr := ""
+	if len(parts) > 2 {
+		modStr = parts[2]
 	}
 
-	return evaluable.Test(ctx, vars)
+	for _, a := range allow {
+		if fmt.Sprintf("%d", a.NamespaceID) != nsStr {
+			continue
+		}
+		if len(a.ModuleIDs) == 0 {
+			return Decision{Allowed: true}
+		}
+		if modStr == "" || modStr == "*" {
+			return Decision{Allowed: true}
+		}
+		for _, mid := range a.ModuleIDs {
+			if fmt.Sprintf("%d", mid) == modStr {
+				return Decision{Allowed: true}
+			}
+		}
+	}
+
+	return Decision{Allowed: false, Reason: "resource not in allow-list"}
+}
+
+func matchResource(pattern, actual []string) bool {
+	for i, p := range pattern {
+		if i >= len(actual) {
+			return false
+		}
+		if p != "*" && p != actual[i] {
+			return false
+		}
+	}
+	return true
 }
