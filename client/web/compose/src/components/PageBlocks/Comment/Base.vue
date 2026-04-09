@@ -68,14 +68,19 @@
                 :title-field="titleField"
                 :content-field="contentField"
                 :attachment-field="attachmentField"
+                :reactions-field="reactionsField"
+                :emoji-data="emojiData"
                 :namespace="namespace"
                 :show-header="ci === 0"
                 :show-title="showTitle(comment)"
                 :show-content="showContent(comment)"
                 :highlighted="highlightedCommentId === comment.recordID"
+                :current-user-i-d="currentUserID"
+                :find-user-by-i-d="findUserByID"
                 class="mb-1"
                 @reply="replyToComment(comment)"
                 @edit="onEditComment(comment, $event)"
+                @react="onReact(comment, $event)"
                 @reply-click="handleReplyClick"
                 @mouseleave="resetHighlightedComment(comment.recordID)"
               />
@@ -153,6 +158,13 @@
             :labels="{
               urlPlaceholder: $t('content.urlPlaceholder'),
               ok: $t('content.ok'),
+              emojiPicker: {
+                search: $t('content.emojiPicker.search'),
+                searchResults: $t('content.emojiPicker.searchResults'),
+                frequentlyUsed: $t('content.emojiPicker.frequentlyUsed'),
+                noResults: $t('content.emojiPicker.noResults'),
+                quickReactions: $t('content.emojiPicker.quickReactions'),
+              },
             }"
             min-body-height="4rem"
             max-body-height="10rem"
@@ -263,7 +275,7 @@ import base from '../base'
 import CommentItem from './Item.vue'
 import CommentReply from './Reply.vue'
 import ListLoader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/ListLoader'
-const { CRichTextInput, CUploader } = components
+const { CRichTextInput, CUploader, emojiData } = components
 
 export default {
   i18nOptions: {
@@ -318,6 +330,8 @@ export default {
 
       commentRefreshInterval: null,
       autoFetching: false,
+
+      emojiData,
     }
   },
 
@@ -408,6 +422,20 @@ export default {
       const af = compose.ModuleFieldMaker(f)
       af.options.mode = 'list'
       return af
+    },
+
+    reactionsField () {
+      const { reactionsField } = this.options
+
+      if (!reactionsField) {
+        return undefined
+      }
+
+      return this.roModule.fields.find(f => f.name === reactionsField)
+    },
+
+    currentUserID () {
+      return (this.$auth.user || {}).userID || ''
     },
 
     fileUploadEndpoint () {
@@ -561,7 +589,10 @@ export default {
 
         this.autoFetching = true
 
-        this.loadNewComments().finally(() => {
+        Promise.all([
+          this.loadNewComments(),
+          this.loadUpdatedComments(),
+        ]).finally(() => {
           this.autoFetching = false
         })
       }, 5000)
@@ -620,6 +651,65 @@ export default {
             this.scrollToLatest()
           })
         }
+      })
+    },
+
+    loadUpdatedComments () {
+      if (!this.reactionsField) return Promise.resolve()
+
+      // Collect all record IDs currently displayed
+      const recordIDs = []
+      this.comments.forEach(dateGroup => {
+        (dateGroup.messages || []).forEach(messageGroup => {
+          (messageGroup.comments || []).forEach(comment => {
+            recordIDs.push(comment.recordID)
+          })
+        })
+      })
+
+      if (!recordIDs.length) return Promise.resolve()
+
+      // Re-fetch these specific records by ID
+      const idFilter = recordIDs.map(id => `recordID = '${id}'`).join(' OR ')
+      const filter = `(${idFilter})`
+
+      return this.fetchCommentRecords(this.roModule, filter, false).then(updatedGroups => {
+        this.updateExistingComments(updatedGroups)
+      })
+    },
+
+    updateExistingComments (updatedGroups) {
+      if (!updatedGroups || !updatedGroups.length) return
+
+      const reactionsFieldName = this.reactionsField.name
+
+      // Collect all updated comments into a map for fast lookup
+      const updatedMap = {}
+      updatedGroups.forEach(dateGroup => {
+        (dateGroup.messages || []).forEach(messageGroup => {
+          (messageGroup.comments || []).forEach(comment => {
+            updatedMap[comment.recordID] = comment
+          })
+        })
+      })
+
+      // Walk through existing comments and replace only those whose reactions changed
+      this.comments.forEach(dateGroup => {
+        dateGroup.messages.forEach(messageGroup => {
+          messageGroup.comments.forEach((comment, index) => {
+            const updated = updatedMap[comment.recordID]
+            if (!updated) return
+
+            const oldReactions = comment.values[reactionsFieldName]
+            const newReactions = updated.values[reactionsFieldName]
+            if (oldReactions === newReactions) return
+
+            // Preserve author and reply that were already resolved
+            updated.author = updated.author || comment.author
+            updated.reply = updated.reply || comment.reply
+            messageGroup.comments.splice(index, 1, updated)
+          })
+        })
       })
     },
 
@@ -887,6 +977,73 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:record.updateFailed')))
     },
 
+    onReact (comment, emoji) {
+      if (!this.reactionsField) return
+
+      const record = new compose.Record(this.roModule, { ...comment })
+      const fieldName = this.reactionsField.name
+      let reactions = {}
+
+      try {
+        reactions = JSON.parse(record.values[fieldName] || '{}') || {}
+      } catch {
+        reactions = {}
+      }
+
+      const userID = this.currentUserID
+      if (!userID) return
+
+      // Toggle: add or remove current user
+      if (!reactions[emoji]) {
+        reactions[emoji] = []
+      }
+
+      const idx = reactions[emoji].indexOf(userID)
+      if (idx > -1) {
+        reactions[emoji].splice(idx, 1)
+        if (reactions[emoji].length === 0) {
+          delete reactions[emoji]
+        }
+      } else {
+        reactions[emoji].push(userID)
+      }
+
+      record.values[fieldName] = JSON.stringify(reactions)
+
+      return this.$ComposeAPI.recordUpdate(record).then(rec => {
+        const updatedRecord = new compose.Record(this.roModule, rec)
+        updatedRecord.author = comment.author
+        updatedRecord.reply = comment.reply
+
+        // Resolve any new user IDs from reactions
+        this.resolveReactionUsers(updatedRecord)
+
+        this.comments.forEach(dateGroup => {
+          dateGroup.messages.forEach(messageGroup => {
+            const index = messageGroup.comments.findIndex(c => c.recordID === updatedRecord.recordID)
+            if (index > -1) {
+              messageGroup.comments.splice(index, 1, updatedRecord)
+            }
+          })
+        })
+      })
+        .catch(this.toastErrorHandler(this.$t('notification:record.updateFailed')))
+    },
+
+    resolveReactionUsers (record) {
+      if (!this.reactionsField) return
+
+      try {
+        const reactions = JSON.parse(record.values[this.reactionsField.name] || '{}') || {}
+        const userIDs = [...new Set(Object.values(reactions).flat())].filter(Boolean)
+        if (userIDs.length) {
+          this.$store.dispatch('user/resolveUsers', userIDs)
+        }
+      } catch {
+        // ignore
+      }
+    },
+
     expandFilter () {
       /* eslint-disable no-template-curly-in-string */
       if (!this.record) {
@@ -961,6 +1118,8 @@ export default {
           this.fetchUsers([{ name: 'createdBy', kind: 'User', isSystem: true, isMulti: false }], comments),
           this.fetchReplyRecords(comments),
         ]).then(() => {
+          // Resolve user IDs from reactions
+          comments.forEach(c => this.resolveReactionUsers(c))
           const groups = {}
 
           if (this.showNewestFirst) {

@@ -792,10 +792,10 @@
     "@babel/helper-string-parser" "^7.25.9"
     "@babel/helper-validator-identifier" "^7.25.9"
 
-"@cortezaproject/corteza-js@^2024.9.7":
-  version "2024.9.7"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.7.tgz#4eb73c98bba1db6f983412c332c4a2d05c434c64"
-  integrity sha512-DBo+dQa0sGzeSoPjrPXS6zMSVS01JRO5UQGCfr3Fvx3EMnWvzpEL2bHVFvd/mJ8Gm2rfVjw7Dr1HWItVnk8Q7w==
+"@cortezaproject/corteza-js@^2024.9.8":
+  version "2024.9.8"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.8.tgz#a51e2717ea55c5956eb0db23541e5c50815bfd23"
+  integrity sha512-cS5VbUdlxsVhmMvivBeTEle9nmGl7mIPClSUqiA7ccbACHMcDxB5oERRwaY5teBMA4dz5lH/URfHIvdV1b9/Tg==
   dependencies:
     axios "^1.8.3"
     hex-rgb "^5.0.0"
@@ -1566,6 +1566,15 @@
   version "3.4.2"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-dropcursor/-/extension-dropcursor-3.4.2.tgz#15a6a49361def6610dac794069117ecccda24324"
   integrity sha512-BHjfpusRvxsa8aV1C0O0mNNjBGWfa1uwolHflCOb4PNkh9nGU0htuaPYTS4fGEVVKOhOC9qsp0hUHSejWL1E6g==
+
+"@tiptap/extension-emoji@^3.4.2":
+  version "3.20.1"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-emoji/-/extension-emoji-3.20.1.tgz#85f3b8354e0385c1005c19c3c583ca33fd44cd33"
+  integrity sha512-nA1DbxHlEzc84KumFd1cLoUUGJA0gf4RKeCO5KHTjylIteBCuOLkdeZqPTzxbygMwvsSyW6tPBKyzUktyRtIng==
+  dependencies:
+    emoji-regex "^10.4.0"
+    emojibase-data "^15"
+    is-emoji-supported "^0.0.5"
 
 "@tiptap/extension-floating-menu@^3.4.2":
   version "3.4.2"
@@ -3051,6 +3060,11 @@ electron-to-chromium@^1.5.73:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.132.tgz#081b8086d7cecc58732f7cc1f1c19306c5510c5f"
   integrity sha512-QgX9EBvWGmvSRa74zqfnG7+Eno0Ak0vftBll0Pt2/z5b3bEGYL6OUXLgKPtvx73dn3dvwrlyVkjPKRRlhLYTEg==
 
+emoji-regex@^10.4.0:
+  version "10.6.0"
+  resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-10.6.0.tgz#bf3d6e8f7f8fd22a65d9703475bc0147357a6b0d"
+  integrity sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==
+
 emoji-regex@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-8.0.0.tgz#e818fd69ce5ccfcb404594f842963bf53164cc37"
@@ -3060,6 +3074,11 @@ emoji-regex@^9.2.2:
   version "9.2.2"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-9.2.2.tgz#840c8803b0d8047f4ff0cf963176b32d4ef3ed72"
   integrity sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==
+
+emojibase-data@^15:
+  version "15.3.2"
+  resolved "https://registry.yarnpkg.com/emojibase-data/-/emojibase-data-15.3.2.tgz#2742246bfe14f16a7829b42ca156dec09934cf85"
+  integrity sha512-TpDyTDDTdqWIJixV5sTA6OQ0P0JfIIeK2tFRR3q56G9LK65ylAZ7z3KyBXokpvTTJ+mLUXQXbLNyVkjvnTLE+A==
 
 entities@^2.0.0:
   version "2.2.0"
@@ -4111,6 +4130,11 @@ is-date-object@^1.0.5, is-date-object@^1.1.0:
   dependencies:
     call-bound "^1.0.2"
     has-tostringtag "^1.0.2"
+
+is-emoji-supported@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/is-emoji-supported/-/is-emoji-supported-0.0.5.tgz#f22301b22c63d6322935e829f39dfa59d03a7fe2"
+  integrity sha512-WOlXUhDDHxYqcSmFZis+xWhhqXiK2SU0iYiqmth5Ip0FHLZQAt9rKL5ahnilE8/86WH8tZ3bmNNNC+bTzamqlw==
 
 is-expression@^4.0.0:
   version "4.0.0"

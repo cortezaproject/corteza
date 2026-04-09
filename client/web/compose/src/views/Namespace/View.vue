@@ -92,11 +92,13 @@ export default {
         if (!namespace) {
           this.$store.dispatch('namespace/load', { force: true }).then(() => {
             namespace = this.$store.getters['namespace/getByUrlPart'](slug)
+            this.namespace = namespace
+            this.prepareNamespace()
           }).catch(this.errHandler)
+        } else {
+          this.namespace = namespace
+          this.prepareNamespace()
         }
-
-        this.namespace = namespace
-        this.prepareNamespace()
       },
     },
   },

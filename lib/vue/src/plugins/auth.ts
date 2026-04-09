@@ -146,6 +146,7 @@ export class Auth {
    */
   private refreshTimeout?: number
   private expiresIn: number
+  private listenersBound = false
 
   private $emit?: (event: string, ...args: unknown[]) => unknown
 
@@ -228,8 +229,7 @@ export class Auth {
     // State management
     const dup = this.handleStateManagement()
     if (dup) {
-      this.log.debug('duplicate tab: unauthorized')
-      throw new Error('Unauthenticated')
+      this.log.debug('duplicate tab detected, will attempt to re-authenticate using refresh token')
     }
 
     // Handle auth callback requests
@@ -270,6 +270,9 @@ export class Auth {
   }
 
   bindListeners (): void {
+    if (this.listenersBound) return
+    this.listenersBound = true
+
     // binding multiple listeners for cases where some browser refuser
     // to emit one of them.
     this.registerEventListener('pagehide', () => {
@@ -302,6 +305,7 @@ export class Auth {
       const key = this.sessionStorage.key(i)
       if (key !== null && stateKey.test(key)) {
         this.sessionStorage.removeItem(key)
+        i-- // compensate for shifted indices after removal
       }
     }
   }
@@ -383,7 +387,10 @@ export class Auth {
         this[user] = authUser
 
         this.bindListeners()
-        return data
+        return {
+          accessTokenFn: this.accessTokenFn,
+          user: authUser,
+        }
       }).catch((error) => {
         this.log.error('data fetch form info endpoint failed', { oauth2InfoURL, headers, error })
         // assume invalid JWT and remove it
@@ -397,10 +404,9 @@ export class Auth {
       this.log.debug('refresh token found', { refreshToken })
 
       /**
-       * Only exchange refresh token if this is the final state (see startFinalState function for more details)
-       *
-       * If this is a duplicated-session, an error will be thrown and authentication will be (probably)
-       * restarted by the caller.
+       * Refresh token found in the storage,
+       * exchange it for a new access token.
+       * Duplicate tabs will also use this path with the cloned refresh token.
        */
       this.log.info('refreshing token', refreshToken)
 

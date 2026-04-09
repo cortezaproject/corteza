@@ -1,0 +1,36 @@
+nohup: ignoring input
+: watch] Killed
+/home/fajfa/go/bin/gin --laddr localhost --port 3200 --appPort 3201 --immediate --bin build/gin-bin -- serve
+[gin] Listening at localhost:3200
+[gin] Building...
+[gin] [97;32;1mBuild finished[0m
+13:22:44.631	[35mDEBUG[0m	http.waiting	version route enabled: /version
+13:22:44.631	[35mDEBUG[0m	http.waiting	health check route enabled: /healthcheck
+13:22:44.631	[34mINFO[0m	http	starting HTTP server	{"path-prefix": "/", "address": ":3201"}
+13:22:44.637	[34mINFO[0m	Configuration index exist
+13:22:44.742	[34mINFO[0m	index exists	{"name": "corteza-private-system-users", "health": "yellow", "status": "open", "size": "6.7kb", "documents": "2"}
+13:22:44.742	[34mINFO[0m	index exists	{"name": "corteza-private-compose-namespaces", "health": "yellow", "status": "open", "size": "7.2kb", "documents": "6"}
+13:22:44.743	[34mINFO[0m	index exists	{"name": "corteza-private-compose-modules", "health": "yellow", "status": "open", "size": "9.5kb", "documents": "13"}
+13:22:44.743	[34mINFO[0m	index exists	{"name": "corteza-private-compose-records-480293021645275137-480293021646127105", "health": "yellow", "status": "open", "size": "277.2kb", "documents": "32"}
+13:22:44.743	[34mINFO[0m	index exists	{"name": "corteza-private-compose-records-480293021645275137-480300063720538113", "health": "yellow", "status": "open", "size": "61kb", "documents": "8"}
+13:22:44.743	[34mINFO[0m	index exists	{"name": "corteza-private-compose-records-480311255777869825-480311255779049473", "health": "yellow", "status": "open", "size": "60.9kb", "documents": "8"}
+returning
+13:22:44.789	[35mDEBUG[0m	reindexing	{"docs": 1, "index": "corteza-private-system-users"}
+13:22:44.823	[35mDEBUG[0m	reindexing	{"docs": 2, "index": "corteza-private-compose-namespaces"}
+13:22:44.851	[35mDEBUG[0m	reindexing	{"docs": 1, "index": "corteza-private-compose-modules"}
+13:22:44.881	[35mDEBUG[0m	reindexing	{"docs": 2, "index": "corteza-private-compose-modules"}
+13:22:44.925	[35mDEBUG[0m	reindexing	{"docs": 1, "index": "corteza-private-compose-records-480311255777869825-480311255779049473"}
+13:22:45.228	[35mDEBUG[0m	reindexing	{"docs": 4, "index": "corteza-private-compose-records-480293021645275137-480293021646127105"}
+13:22:45.928	[35mDEBUG[0m	reindexing	{"docs": 1, "index": "corteza-private-compose-records-480293021645275137-480300063720538113"}
+13:22:46.070	[35mDEBUG[0m	batch indexing stats	{"added": 12, "created": 0, "updated": 0, "deleted": 0, "flushed": 0, "failed": 0, "indexed": 0, "requests": 0, "queue length": 0}
+13:22:46.745	[35mDEBUG[0m	batch indexing stats	{"added": 12, "created": 0, "updated": 0, "deleted": 0, "flushed": 0, "failed": 0, "indexed": 0, "requests": 0, "queue length": 0}
+13:22:47.745	[35mDEBUG[0m	batch indexing stats	{"added": 12, "created": 0, "updated": 0, "deleted": 0, "flushed": 0, "failed": 0, "indexed": 0, "requests": 0, "queue length": 0}
+13:22:48.745	[34mINFO[0m	idle
+13:22:48.797	[34mINFO[0m	continuing reindexing from current time
+13:22:48.797	[34mINFO[0m	JSON REST API enabled	{"baseUrl": "/"}
+13:22:48.797	[35mDEBUG[0m	http	version route enabled: /version
+13:22:48.797	[35mDEBUG[0m	http	health check route enabled: /healthcheck
+13:22:48.797	[35mDEBUG[0m	http	entering active state
+13:23:44.891	[35mDEBUG[0m	no feed changes since 2026-01-28 12:22:48.797151932 +0000 UTC; current time: 2026-01-28 12:23:44.891076917 +0000 UTC
+13:24:40.871	[35mDEBUG[0m	no feed changes since 2026-01-28 12:23:44.858656232 +0000 UTC; current time: 2026-01-28 12:24:40.871870789 +0000 UTC
+make: *** [Makefile:56: watch] Killed

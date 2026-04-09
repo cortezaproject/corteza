@@ -42,6 +42,11 @@ export default {
   },
 
   computed: {
+    isSvg () {
+      return this.mime === 'image/svg+xml' ||
+        (this.name && this.name.toLowerCase().endsWith('.svg'))
+    },
+
     getClass () {
       const rtr = [...this.previewClass]
       if (this.$listeners.click) {
@@ -54,9 +59,11 @@ export default {
     },
 
     getWidth () {
+      if (this.isSvg) return undefined
       return this.meta.preview.image.width
     },
     getHeight () {
+      if (this.isSvg) return undefined
       return this.meta.preview.image.height
     },
   },

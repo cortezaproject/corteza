@@ -50,6 +50,7 @@ export const prompts = Object.freeze([
       { name: 'module', types: ['ID', 'Handle', 'ComposeModule'] },
       { name: 'namespace', types: ['ID', 'Handle', 'ComposeNamespace'] },
       { name: 'record', types: ['ID', 'ComposeRecord'] },
+      { name: 'values', types: ['KV'], meta: { description: 'Prefilled record values for new records' } },
       { name: 'edit', types: ['Boolean'] },
       { name: 'delay', types: ['Integer'], meta: { description: 'Redirection delay in seconds' } },
       { name: 'openMode', types: ['String'], meta: { visual: { input: { type: 'select', properties: { options: [...openModeVariants, { value: 'modal', text: 'Open in a modal' }] }, default: 'modal' } } } },

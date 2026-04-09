@@ -6,6 +6,7 @@ editor:
       page: Page attachments
       record: Record attachments
       icon: Icon attachments
+      namespace: Namespace attachments
       type:
         description: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
         whitelist: File type whitelist

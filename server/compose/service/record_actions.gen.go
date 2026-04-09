@@ -1038,6 +1038,74 @@ func RecordErrStaleData(mm ...*recordActionProps) *errors.Error {
 	return e
 }
 
+// RecordErrNotAllowedToFilterByField returns "compose:record.notAllowedToFilterByField" as *errors.Error
+//
+// This function is auto-generated.
+func RecordErrNotAllowedToFilterByField(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to filter by field {{field}}; you do not have permission to read its values", nil),
+
+		errors.Meta("type", "notAllowedToFilterByField"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to filter by field {{field}}; insufficient permissions to read field values"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToFilterByField"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrNotAllowedToSortByField returns "compose:record.notAllowedToSortByField" as *errors.Error
+//
+// This function is auto-generated.
+func RecordErrNotAllowedToSortByField(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to sort by field {{field}}; you do not have permission to read its values", nil),
+
+		errors.Meta("type", "notAllowedToSortByField"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to sort by field {{field}}; insufficient permissions to read field values"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToSortByField"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // RecordErrNotAllowedToRead returns "compose:record.notAllowedToRead" as *errors.Error
 //
 // This function is auto-generated.

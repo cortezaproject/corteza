@@ -66,6 +66,9 @@ editor:
     title: Topbar
     general: General
 
+    search:
+      hide: Hide search
+
     app-selector:
       hide: Hide app selector
     help:

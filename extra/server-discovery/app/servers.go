@@ -1,11 +1,12 @@
 package app
 
 import (
+	"strings"
+
 	searcherRest "github.com/cortezaproject/corteza/extra/server-discovery/searcher/rest"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
-	"strings"
 )
 
 func (app *CortezaDiscoveryApp) MountHttpRoutes(r chi.Router) {
@@ -27,7 +28,7 @@ func (app *CortezaDiscoveryApp) MountHttpRoutes(r chi.Router) {
 				zap.String("baseUrl", fullPathAPI),
 			)
 
-			r.Route("/", searcherRest.MountRoutes())
+			r.Route("/", searcherRest.MountRoutes(app.Log))
 		})
 	}()
 

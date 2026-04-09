@@ -22,6 +22,11 @@ type (
 	EsSearchAggrTerms       map[string]esSearchAggr
 	EsSearchNestedAggrTerms map[string]esSearchNestedAggr
 
+	EsSearchHighlight struct {
+		RequireFieldMatch bool                        `json:"require_field_match"`
+		Fields            map[string]highlightSetting `json:"fields"`
+	}
+
 	esSearchParamsIndex struct {
 		Prefix struct {
 			Index struct {
@@ -64,11 +69,18 @@ type (
 		} `json:"multi_match"`
 	}
 
+	VectorValue struct {
+		Vector []float32     `json:"vector"`
+		K      int           `json:"k"`
+		Filter []interface{} `json:"filter,omitempty"`
+	}
+
 	esSearchParams struct {
 		Query struct {
-			Bool struct {
+			Bool *struct {
 				// query context
-				Must []interface{} `json:"must,omitempty"`
+				Must   []interface{} `json:"must,omitempty"`
+				Should []interface{} `json:"should,omitempty"`
 
 				// filter context
 				Filter  []interface{} `json:"filter,omitempty"`
@@ -77,6 +89,9 @@ type (
 		} `json:"query"`
 
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
+		Source       SourceFilter            `json:"_source,omitempty"`
+		MinScore     float32                 `json:"min_score,omitempty"`
+		Highlight    EsSearchHighlight       `json:"highlight,omitempty"`
 	}
 
 	esSearchAggrTerm struct {
@@ -87,6 +102,10 @@ type (
 	esSearchAggrComposite struct {
 		Sources interface{} `json:"sources"` // it can be esSearchAggrTerm,.. (Histogram, Date histogram, GeoTile grid)
 		Size    int         `json:"size,omitempty"`
+	}
+
+	SourceFilter struct {
+		Excludes []string `json:"excludes"` //columns to exclude on the query response
 	}
 
 	esSearchNestedAggs struct {
@@ -127,9 +146,10 @@ type (
 	}
 
 	esSearchHit struct {
-		Index  string          `json:"_index"`
-		ID     string          `json:"_id"`
-		Source json.RawMessage `json:"_source"`
+		Index     string          `json:"_index"`
+		ID        string          `json:"_id"`
+		Source    json.RawMessage `json:"_source"`
+		Highlight map[string]any  `json:"highlight,omitempty"`
 	}
 
 	esSearchAggregations struct {
@@ -205,6 +225,13 @@ type (
 		mAggOnly bool
 
 		allowedRoles map[interface{}]bool
+		searchMode   string
+	}
+
+	highlightSetting struct {
+		PreTags           []string `json:"pre_tags"`
+		PostTags          []string `json:"post_tags"`
+		NumberOfFragments int      `json:"number_of_fragments"`
 	}
 )
 
@@ -251,8 +278,17 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 	sqs := esSimpleQueryString{}
 	sqs.Wrap.Query = strings.TrimSpace(strings.ToLower(p.query))
 
-	query := esSearchParams{}
+	query := &esSearchParams{}
 	index := esSearchParamsIndex{}
+
+	if query.Query.Bool == nil {
+		query.Query.Bool = &struct {
+			Must    []interface{} `json:"must,omitempty"`
+			Should  []interface{} `json:"should,omitempty"`
+			Filter  []interface{} `json:"filter,omitempty"`
+			MustNot []interface{} `json:"must_not,omitempty"`
+		}{}
+	}
 
 	// Decide what indexes we can use
 	if userID == 0 {
@@ -275,9 +311,6 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		}
 	}
 
-	// Query MUST filter
-	query.Query.Bool.Must = []interface{}{index}
-
 	// Aggregations V1.0
 	// if len(p.aggregations) > 0 {
 	//	query.Aggregations = make(map[string]esSearchAggr)
@@ -289,13 +322,19 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// Search string filter
 	if !noQ {
-		query.Query.Bool.Must = append(query.Query.Bool.Must, map[string]interface{}{
-			"wildcard": map[string]interface{}{
-				"catch_all": map[string]interface{}{
-					"value": fmt.Sprintf("*%s*", sqs.Wrap.Query),
-				},
-			}})
-		// query.Query.DisMax.Queries = append(query.Query.DisMax.Queries, sqs)
+		applyTraditionalSearch(query, index, sqs.Wrap.Query)
+	}
+
+	// add the highlight for the matched fields.
+	query.Highlight = EsSearchHighlight{
+		RequireFieldMatch: false,
+		Fields: map[string]highlightSetting{
+			"values.*": {
+				PreTags:           []string{"*"},
+				PostTags:          []string{"*"},
+				NumberOfFragments: 0,
+			},
+		},
 	}
 
 	var (
@@ -376,6 +415,10 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				},
 			},
 		},
+	}
+
+	query.Source = SourceFilter{
+		Excludes: []string{"vectorsValue"},
 	}
 
 	if !noQ || !noNSFilter {
@@ -563,4 +606,40 @@ func extractFromSubClaim(sub string) (userID uint64, rr []uint64) {
 	}
 
 	return
+}
+
+func applyTraditionalSearch(query *esSearchParams, index interface{}, searchQuery string) {
+	query.Query.Bool.Must = []interface{}{index}
+	query.Query.Bool.Must = append(query.Query.Bool.Must, buildWildcardQuery(searchQuery))
+}
+
+func buildWildcardQuery(searchQuery string) map[string]interface{} {
+	return map[string]interface{}{
+		"wildcard": map[string]interface{}{
+			"catch_all": map[string]interface{}{
+				"value": fmt.Sprintf("*%s*", searchQuery),
+			},
+		},
+	}
+}
+
+func buildKNNQuery(vector interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"knn": map[string]interface{}{
+			"vectorsValue": map[string]interface{}{
+				"vector": vector,
+				"k":      10,
+			},
+		},
+	}
+}
+
+func buildMultiMatchQuery(searchQuery string) map[string]interface{} {
+	return map[string]interface{}{
+		"multi_match": map[string]interface{}{
+			"query":  searchQuery,
+			"fields": []string{"catch_all"},
+			"boost":  1.0,
+		},
+	}
 }

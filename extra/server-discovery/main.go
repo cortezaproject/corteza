@@ -1,18 +1,21 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/cortezaproject/corteza/extra/server-discovery/app"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/api/server"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
-	"sync"
+	"github.com/joho/godotenv"
 )
 
 var _ *spew.ConfigState = nil
 var _ esutil.BulkIndexer
 
 func main() {
+	_ = godotenv.Load()
 	ctx := cli.Context()
 
 	a, err := app.New()

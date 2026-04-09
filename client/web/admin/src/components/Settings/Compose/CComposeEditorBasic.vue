@@ -14,6 +14,43 @@
       @submit.prevent="$emit('submit', basic)"
     >
       <div class="pb-3">
+        <h5>{{ $t('attachments.namespace') }}</h5>
+
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('attachments.max-size')"
+              label-class="text-primary"
+            >
+              <b-form-input
+                v-model="basic['compose.namespace.attachments.max-size']"
+                type="number"
+                number
+                placeholder="0"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('attachments.type.whitelist')"
+              :description="$t('attachments.type.description')"
+              label-class="text-primary"
+              class="mb-0"
+            >
+              <b-form-input v-model="namespaceAttachmentWhitelist" />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
+
+      <div class="pb-3">
         <h5>{{ $t('attachments.page') }}</h5>
 
         <b-row>
@@ -195,6 +232,16 @@ export default {
 
       set (value) {
         this.basic['compose.icon.attachments.mimetypes'] = this.convertToExternal(value)
+      },
+    },
+
+    namespaceAttachmentWhitelist: {
+      get () {
+        return (this.basic['compose.namespace.attachments.mimetypes'] || []).join(',')
+      },
+
+      set (value) {
+        this.basic['compose.namespace.attachments.mimetypes'] = this.convertToExternal(value)
       },
     },
   },

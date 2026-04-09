@@ -145,6 +145,7 @@ export default {
         case 'toggleHeaderCell': e.toggleHeaderCell().run(); break
         case 'toggleHeaderColumn': e.toggleHeaderColumn().run(); break
         case 'deleteTable': e.deleteTable().run(); break
+        case 'emoji': e.setEmoji({ name: a.name }).run(); break
         default:
           break
       }

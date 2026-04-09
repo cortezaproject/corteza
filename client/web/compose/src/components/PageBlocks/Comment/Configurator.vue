@@ -153,6 +153,25 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('comment.reactionsField.label')"
+            label-class="text-primary"
+            :description="$t('comment.reactionsField.footnote')"
+          >
+            <c-input-select
+              v-model="options.reactionsField"
+              :options="selectedModuleFieldsByType('String')"
+              :get-option-label="f => `${f.label || f.name} (${f.kind})`"
+              :reduce="f => f.name"
+              :placeholder="$t('general.label.none')"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </div>
   </b-tab>

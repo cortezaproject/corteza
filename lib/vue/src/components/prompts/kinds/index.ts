@@ -108,6 +108,7 @@ const definitions: Record<string, PromptDefinition> = {
       const module = pVal(v, 'module')
       const namespace = pVal(v, 'namespace')
       const record = pVal(v, 'record')
+      const values = pVal(v, 'values') as KV || {}
       const edit = !!pVal(v, 'edit')
       const delay = (pVal(v, 'delay') || 0) as number
       const openMode = pVal(v, 'openMode')
@@ -169,7 +170,7 @@ const definitions: Record<string, PromptDefinition> = {
       if (!slug) {
         // @ts-ignore
         const ns = await this.$ComposeAPI.namespaceRead({ namespaceID })
-        slug = ns.slug
+        slug = ns.slug || namespaceID
       }
 
       // Resolve record page
@@ -185,8 +186,9 @@ const definitions: Record<string, PromptDefinition> = {
       // @ts-ignore
       if (this.$root.$options.name === 'compose') {
         let name = 'page.record'
+        const isNew = !recordID || recordID === NoID
 
-        if (!recordID || recordID === NoID) {
+        if (isNew) {
           name += '.create'
         } else if (edit) {
           name += '.edit'
@@ -199,15 +201,25 @@ const definitions: Record<string, PromptDefinition> = {
         setTimeout(() => {
           console.debug('reroute to %s via prompt in %d sec', name, delay, { namespaceID, slug, moduleID, recordID })
 
-          const routeParams = { name, params: { recordID, pageID, slug, edit } }
-          if (reloadPage) {
+          const hasValues = isNew && Object.keys(values).length > 0
+          const routeParams = { name, params: { recordID, pageID, slug, edit, ...(hasValues ? { values } : {}) } }
+          if (reloadPage && !hasValues) {
             window.location.reload()
+          } else if (reloadPage && hasValues) {
+            // Can't use window.location.reload() as it loses in-memory values
+            // Force re-render by navigating away and back
+            // @ts-ignore
+            this.$router.replace({ name: 'pages', params: { slug } }).then(() => {
+              // @ts-ignore
+              this.$router.replace(routeParams)
+            })
           } else if (openMode === 'modal') {
             // @ts-ignore
             this.$root.$emit('show-record-modal', {
               recordID: !recordID ? NoID : recordID,
               recordPageID: pageID,
               edit,
+              ...(hasValues ? { values } : {}),
             })
           } else if (openMode === 'newTab') {
             // @ts-ignore

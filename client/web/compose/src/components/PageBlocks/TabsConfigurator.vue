@@ -142,6 +142,17 @@
               {{ $t('tabs.table.columns.block.label') }}
             </th>
 
+            <th
+              class="d-flex align-items-center text-primary"
+              scope="col"
+            >
+              {{ $t('tabs.table.columns.lazy.label') }}
+              <c-hint
+                :tooltip="$t('tabs.table.columns.lazy.tooltip')"
+                class="d-block"
+              />
+            </th>
+
             <th scope="col" />
           </tr>
         </b-thead>
@@ -217,6 +228,14 @@
                   </b-button>
                 </b-input-group-append>
               </b-input-group>
+            </b-td>
+
+            <b-td class="text-center align-middle">
+              <b-form-checkbox
+                v-model="tab.lazy"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tabs.table.columns.lazy.tooltip'), boundary: 'body' }"
+                switch
+              />
             </b-td>
 
             <td
@@ -334,6 +353,7 @@ export default {
       this.block.options.tabs.push({
         blockID: null,
         title: undefined,
+        lazy: true,
       })
     },
 

@@ -35,6 +35,12 @@
         </template>
 
         <template #right-tools>
+          <c-search-button
+            v-if="$Settings.get('discovery.enabled', false) && $Settings.get('ui.topbar.showSearch', false)"
+            :labels="{
+              search: $t('general:label.search'),
+            }"
+          />
           <c-draft-button
             v-if="$Settings.get('ui.topbar.showDrafts', false)"
           />
@@ -97,6 +103,7 @@
           description: $t('permissions:ui.edit.description'),
         },
         evaluate: {
+          title: $t('permissions:ui.evaluate.title'),
           description: $t('permissions:ui.evaluate.description'),
         },
         add: {
@@ -129,6 +136,20 @@
     <c-notification-sidebar v-if="!$Settings.get('ui.topbar.hideNotifications', false)" />
 
     <c-draft-sidebar v-if="$Settings.get('ui.topbar.showDrafts', false)" />
+
+    <c-topbar-search
+      :labels="{
+        placeholder: $t('search.placeholder'),
+        noResults: () => $t('search.noResults'),
+        notFoundNamespace: $t('search.notFoundNamespace'),
+        notFoundPage: $t('search.notFoundPage'),
+        recordRedirectError: $t('search.recordRedirectError'),
+        recentSearches: $t('search.recentSearches'),
+        clearHistory: $t('search.clearHistory'),
+        openInNewTab: $t('search.openInNewTab'),
+        numberOfResults: (count) => $t('search.numberOfResults', { count }),
+      }"
+    />
   </div>
 </template>
 
@@ -145,7 +166,7 @@ import CDraftButton from '../components/Drafts/CDraftButton'
 
 library.add(faFile)
 
-const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
+const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar, CTopbarSearch, CSearchButton } = components
 
 export default {
   i18nOptions: {
@@ -163,6 +184,8 @@ export default {
     CNotificationSidebar,
     CDraftSidebar,
     CDraftButton,
+    CSearchButton,
+    CTopbarSearch,
   },
 
   data () {
@@ -198,7 +221,22 @@ export default {
       return this.$Settings.attachment('ui.iconLogo')
     },
 
+    currentNamespace () {
+      const { slug } = this.$route.params
+      return slug ? this.$store.getters['namespace/getByUrlPart'](slug) : undefined
+    },
+
     logo () {
+      const ns = this.currentNamespace
+
+      // Namespace is on a route but hasn't loaded yet — don't flash the default logo
+      if (!ns && this.$route.params.slug) {
+        return ''
+      }
+
+      if (ns && ns.meta && ns.meta.logoEnabled && ns.meta.logo) {
+        return ns.meta.logo
+      }
       return this.$Settings.attachment('ui.mainLogo')
     },
 

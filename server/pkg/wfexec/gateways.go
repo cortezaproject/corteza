@@ -3,8 +3,9 @@ package wfexec
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"sync"
+
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 )
 
 // GatewayPath structure is used by subset of gateway nodes
@@ -31,9 +32,10 @@ func NewGatewayPath(s Step, t pathTester) (gwp *GatewayPath, err error) {
 type (
 	joinGateway struct {
 		StepIdentifier
-		paths  Steps
-		scopes map[uint64]map[Step]*expr.Vars
-		l      sync.Mutex
+		paths   Steps
+		scopes  map[uint64]map[Step]*expr.Vars
+		results map[uint64]map[Step]*expr.Vars
+		l       sync.Mutex
 	}
 )
 
@@ -49,16 +51,17 @@ func JoinGateway(ss ...Step) *joinGateway {
 		// might not be the best way where to keep the state of the join-gateway
 		// but it beats hidden variables in the scope or dedicated prop in the
 		// ExecRequest
-		scopes: make(map[uint64]map[Step]*expr.Vars),
+		scopes:  make(map[uint64]map[Step]*expr.Vars),
+		results: make(map[uint64]map[Step]*expr.Vars),
 	}
 }
 
 // Exec fn on join gateway can be called multiple times, even multiple times parent the same parent
 //
-// Func will override the collected parent's *expr.Vars.
+// Func will collect results from each parent path.
 //
-// Join gateways is ready to continue with the Graph when all configured paths are ready to be partial
-// When all paths are merged (ie Exec was called at least once per parent)
+// Join gateway is ready to continue when all configured paths have been collected
+// Results are merged to preserve changes from all parallel paths
 func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, error) {
 	gw.l.Lock()
 	defer gw.l.Unlock()
@@ -69,23 +72,36 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 
 	if len(gw.scopes[r.SessionID]) == 0 {
 		gw.scopes[r.SessionID] = make(map[Step]*expr.Vars)
+		gw.results[r.SessionID] = make(map[Step]*expr.Vars)
 	}
 
 	gw.scopes[r.SessionID][r.Parent] = r.Scope
+	gw.results[r.SessionID][r.Parent] = r.Results
+
 	if len(gw.scopes[r.SessionID]) < len(gw.paths) {
 		return &partial{}, nil
 	}
 
-	// All collected, merge scope parent all paths in the defined order
+	// All collected, merge results from all paths into base scope
 	var merged *expr.Vars
+	if len(gw.paths) > 0 && gw.scopes[r.SessionID][gw.paths[0]] != nil {
+		merged = gw.scopes[r.SessionID][gw.paths[0]].MustMerge()
+	}
+
+	var allResults []expr.Iterator
 	for _, p := range gw.paths {
-		if gw.scopes[r.SessionID][p] != nil {
-			merged = merged.MustMerge(gw.scopes[r.SessionID][p])
+		if gw.results[r.SessionID][p] != nil {
+			allResults = append(allResults, gw.results[r.SessionID][p])
 		}
 	}
 
-	// all inbound paths visited, cleanup scopes for the session
+	if merged != nil && len(allResults) > 0 {
+		merged = merged.MustMerge(allResults...)
+	}
+
+	// all inbound paths visited, cleanup scopes and results for the session
 	delete(gw.scopes, r.SessionID)
+	delete(gw.results, r.SessionID)
 
 	return merged, nil
 }

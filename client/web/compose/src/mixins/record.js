@@ -384,7 +384,16 @@ export default {
         }
 
         return true
-      }).map(d => d.meta.field))
+      }).map(d => {
+        const fieldName = d.meta.field
+        // Try to resolve field label from module
+        const mod = (d.meta.moduleID && this.getModuleByID(d.meta.moduleID)) || this.module
+        if (mod) {
+          const f = mod.fields.find(f => f.name === fieldName)
+          if (f?.label) return f.label
+        }
+        return fieldName
+      }))
 
       return Array.from(fields).join(', ')
     },

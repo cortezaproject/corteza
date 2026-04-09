@@ -129,6 +129,9 @@ type (
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
 		Module    docPartialComposeModule    `json:"module"`
+
+		// Vectors content field
+		VectorsValue []float32 `json:"vectorsValue,omitempty"`
 	}
 
 	docSecurity struct {

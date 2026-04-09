@@ -135,6 +135,15 @@ errors:
     message: "record was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version"
     severity: warning
 
+  - error: notAllowedToFilterByField
+    message: "not allowed to filter by field {{field}}; you do not have permission to read its values"
+    log: "failed to filter by field {{field}}; insufficient permissions to read field values"
+
+  - error: notAllowedToSortByField
+    message: "not allowed to sort by field {{field}}; you do not have permission to read its values"
+    log: "failed to sort by field {{field}}; insufficient permissions to read field values"
+
+
   - error: notAllowedToRead
     message: "not allowed to read this record"
     log: "failed to read {{record}}; insufficient permissions"

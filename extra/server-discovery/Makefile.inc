@@ -11,7 +11,7 @@ GIN        = $(GOPATH)/bin/gin
 GIN_ARG_PORT  ?= 3200
 GIN_ARG_APORT ?= 3201
 GIN_ARG_LADDR ?= localhost
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --appPort $(GIN_ARG_APORT) --immediate
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --appPort $(GIN_ARG_APORT) --immediate --bin build/gin-bin
 
 CGO_ENABLED = 1
 

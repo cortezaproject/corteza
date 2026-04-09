@@ -90,6 +90,7 @@
           description: $t('permissions:ui.edit.description'),
         },
         evaluate: {
+          title: $t('permissions:ui.evaluate.title'),
           description: $t('permissions:ui.evaluate.description'),
         },
         add: {

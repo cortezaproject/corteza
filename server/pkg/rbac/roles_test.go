@@ -97,7 +97,99 @@ func Test_getContextRoles(t *testing.T) {
 				req = require.New(t)
 			)
 
-			req.Equal(partitionRoles(tc.output...), getSessionRoles(&session{rr: tc.sessionRoles}, tc.res, tc.preloadRoles))
+			req.Equal(partitionRoles(tc.output...), getSessionRoles(&session{rr: tc.sessionRoles}, tc.res, tc.preloadRoles, nil))
 		})
 	}
+}
+
+func Test_getContextRolesWithUserResolver(t *testing.T) {
+	var (
+		tres = NewResource("corteza::compose:record/123/456")
+
+		// A check function that verifies user labels are accessible in scope
+		labelCheck = func(scope map[string]interface{}) bool {
+			user, ok := scope["user"].(map[string]interface{})
+			if !ok {
+				return false
+			}
+			labels, ok := user["labels"].(map[string]interface{})
+			if !ok {
+				return false
+			}
+			client, ok := labels["client"].(string)
+			if !ok {
+				return false
+			}
+			return client == "acme"
+		}
+
+		// A check function that verifies user email is accessible
+		emailCheck = func(scope map[string]interface{}) bool {
+			user, ok := scope["user"].(map[string]interface{})
+			if !ok {
+				return false
+			}
+			email, ok := user["email"].(string)
+			if !ok {
+				return false
+			}
+			return email == "test@example.com"
+		}
+
+		// Mock user resolver that returns user data
+		mockResolver = func(userID uint64) map[string]interface{} {
+			if userID == 42 {
+				return map[string]interface{}{
+					"email":    "test@example.com",
+					"username": "testuser",
+					"handle":   "test-handle",
+					"name":     "Test User",
+					"labels": map[string]interface{}{
+						"client": "acme",
+						"region": "eu",
+					},
+				}
+			}
+			return nil
+		}
+	)
+
+	t.Run("context role with matching user labels", func(t *testing.T) {
+		req := require.New(t)
+		roles := []*Role{
+			{id: 1, kind: ContextRole, check: labelCheck, crtypes: map[string]bool{"corteza::compose:record": true}},
+		}
+		result := getSessionRoles(&session{id: 42, rr: []uint64{1}}, tres, roles, mockResolver)
+		req.NotNil(result[ContextRole])
+		req.True(result[ContextRole][1], "context role should be active when user labels match")
+	})
+
+	t.Run("context role with non-matching user (no resolver data)", func(t *testing.T) {
+		req := require.New(t)
+		roles := []*Role{
+			{id: 1, kind: ContextRole, check: labelCheck, crtypes: map[string]bool{"corteza::compose:record": true}},
+		}
+		// User 999 has no data from the resolver
+		result := getSessionRoles(&session{id: 999, rr: []uint64{1}}, tres, roles, mockResolver)
+		req.Nil(result[ContextRole], "context role should not be active when user has no resolver data")
+	})
+
+	t.Run("context role checking user email", func(t *testing.T) {
+		req := require.New(t)
+		roles := []*Role{
+			{id: 1, kind: ContextRole, check: emailCheck, crtypes: map[string]bool{"corteza::compose:record": true}},
+		}
+		result := getSessionRoles(&session{id: 42, rr: []uint64{1}}, tres, roles, mockResolver)
+		req.NotNil(result[ContextRole])
+		req.True(result[ContextRole][1], "context role should be active when user email matches")
+	})
+
+	t.Run("nil resolver falls back to no user data", func(t *testing.T) {
+		req := require.New(t)
+		roles := []*Role{
+			{id: 1, kind: ContextRole, check: labelCheck, crtypes: map[string]bool{"corteza::compose:record": true}},
+		}
+		result := getSessionRoles(&session{id: 42, rr: []uint64{1}}, tres, roles, nil)
+		req.Nil(result[ContextRole], "context role should not be active when no resolver is provided")
+	})
 }

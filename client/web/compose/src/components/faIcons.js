@@ -101,6 +101,7 @@ import {
   faTrashAlt,
   faUser,
   faEnvelopeOpen,
+  faFaceSmile,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -203,4 +204,5 @@ library.add(
   faLocationCrosshairs,
   faPaperclip,
   faReply,
+  faFaceSmile,
 )

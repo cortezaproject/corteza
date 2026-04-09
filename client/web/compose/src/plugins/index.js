@@ -29,6 +29,7 @@ Vue.use(plugins.CortezaAPI('compose'))
 Vue.use(plugins.CortezaAPI('system'))
 Vue.use(plugins.CortezaAPI('federation'))
 Vue.use(plugins.CortezaAPI('automation'))
+Vue.use(plugins.DiscoveryAPI())
 
 Vue.use(plugins.EventBus(), {
   strict: notProduction,

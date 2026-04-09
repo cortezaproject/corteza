@@ -1,6 +1,16 @@
 <template>
   <div class="popup-img-preview">
+    <div
+      v-if="isSvg"
+      class="svg-preview"
+    >
+      <img
+        :src="src"
+        class="svg-lightbox-img"
+      >
+    </div>
     <photo-swipe
+      v-else
       :is-open="true"
       :items="items"
       :options="options"
@@ -46,6 +56,11 @@ export default {
   },
 
   computed: {
+    isSvg () {
+      return this.mime === 'image/svg+xml' ||
+        (this.name && this.name.toLowerCase().endsWith('.svg'))
+    },
+
     items () {
       const { original, preview } = this.meta
       const image = (original || preview || {}).image
@@ -84,6 +99,20 @@ export default {
   }
   .pswp__top-bar {
     display: none!important;
+  }
+
+  .svg-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+
+    .svg-lightbox-img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
   }
 }
 </style>

@@ -22,7 +22,7 @@ type (
 		Name      string     `json:"name"`
 		Value     string     `json:"value,omitempty"`
 		Ref       uint64     `json:"-"`
-		Place     uint       `json:"-"`
+		Place     uint       `json:"place,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
 		Updated  bool   `json:"-"`
@@ -97,6 +97,7 @@ func (v RecordValue) Cast(f *ModuleField) (interface{}, error) {
 		return expr.CastToBoolean(v.Value)
 
 	case f.IsNumeric():
+		// @todo !! This is temporary; precision and scale require a rework
 		if f.Options.Precision() == 0 {
 			return cast.ToInt64E(v.Value)
 		}
@@ -194,6 +195,18 @@ func (set RecordValueSet) Get(name string, place uint) *RecordValue {
 	}
 
 	return nil
+}
+
+func (set RecordValueSet) GetAll(name string) (out []*RecordValue) {
+	for i := range set {
+		if set[i].Name != name {
+			continue
+		}
+
+		out = append(out, set[i])
+	}
+
+	return
 }
 
 // Has value set?

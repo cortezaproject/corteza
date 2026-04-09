@@ -147,7 +147,7 @@
     <b-modal
       v-model="map.show"
       :title="field.label || field.name"
-      size="lg"
+      size="xl"
       body-class="p-0"
       footer-class="flex align-items-center"
     >
@@ -189,6 +189,7 @@
 </template>
 <script>
 import base from './base'
+import { NoID } from '@cortezaproject/corteza-js'
 import { components } from '@cortezaproject/corteza-vue'
 import { isNumber } from 'lodash'
 const { CMap } = components
@@ -240,7 +241,9 @@ export default {
     localValue: {
       deep: true,
       handler (value) {
-        this.value = this.field.isMulti ? value.filter(v => (v || {}).coordinates).map(v => JSON.stringify(v)) : JSON.stringify(value)
+        const newValue = this.field.isMulti ? value.filter(v => (v || {}).coordinates).map(v => JSON.stringify(v)) : JSON.stringify(value)
+        if (JSON.stringify(newValue) === JSON.stringify(this.value)) return
+        this.value = newValue
       },
     },
 
@@ -260,7 +263,7 @@ export default {
     'field.options.prefillWithCurrentLocation': {
       immediate: true,
       handler (value) {
-        if (value) {
+        if (value && (!this.record || this.record.recordID === NoID)) {
           this.useCurrentLocation()
         }
       },

@@ -8,6 +8,7 @@
     }"
   >
     <grid-layout
+      :key="gridKey"
       :layout.sync="layout"
       :col-num="48"
       :row-height="10"
@@ -25,7 +26,7 @@
         v-for="(item, index) in layout"
       >
         <grid-item
-          v-if="blocks[item.i] && !blocks[item.i].meta.hidden"
+          v-if="blocks[item.i] && !blocks[item.i].meta.hidden && (!blocks[item.i].meta.invisible || editable)"
           :key="item.i"
           ref="items"
           :i="item.i"
@@ -105,7 +106,7 @@ export default {
 
   computed: {
     oneBlockLayout () {
-      return this.blocks.filter(({ meta }) => !meta.hidden).length === 1
+      return this.blocks.filter(({ meta }) => !meta.hidden && (!meta.invisible || this.editable)).length === 1
     },
 
     isStretchable () {
@@ -118,6 +119,11 @@ export default {
       }
       return { lg: 48, md: 48, sm: 1, xs: 1, xxs: 1 }
     },
+
+    gridKey () {
+      // Force rerender when visible blocks change
+      return this.layout.map(b => b.i).join(',')
+    },
   },
 
   watch: {
@@ -125,13 +131,19 @@ export default {
       immediate: true,
       deep: true,
       handler (blocks) {
-        blocks = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
-          // To avoid collision with hidden elements
-          return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
-        })
+        const layout = blocks.map(({ meta = {}, xywh = [] }, i) => {
+          const [x = 0, y = 0, w = 48, h = 15] = (xywh || []).map(v => Number(v) || 0)
 
+          // To avoid collision with hidden elements
+          if (meta.hidden || (meta.invisible && !this.editable)) {
+            return null
+          }
+
+          return { i, x, y, w, h }
+        }).filter(b => b)
+
+        this.$set(this, 'layout', layout)
         this.$nextTick(() => {
-          this.$set(this, 'layout', blocks)
           this.forceRerender()
         })
       },
@@ -148,14 +160,14 @@ export default {
 
       this.resizing = false
 
-      this.blocks.forEach(({ xywh = [] }, idx) => {
-        const { x, y, w, h } = this.layout[idx]
+      this.layout.forEach(({ i, x, y, w, h }) => {
         const layoutXYWH = [x, y, w, h]
+        const { xywh = [] } = this.blocks[i] || {}
 
         if (xywh.toString() === layoutXYWH.toString()) return
 
-        this.$emit('item-updated', idx)
-        this.blocks[idx].xywh = layoutXYWH
+        this.$emit('item-updated', i)
+        this.$set(this.blocks[i], 'xywh', layoutXYWH)
       })
     },
 

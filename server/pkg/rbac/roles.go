@@ -116,7 +116,7 @@ func statRoles(rr ...*Role) (stats map[roleKind]int) {
 }
 
 // compare list of session roles (ids) with preloaded roles and calculate the final list
-func getSessionRoles(s Session, res Resource, preloadedRoles []*Role) (out partRoles) {
+func getSessionRoles(s Session, res Resource, preloadedRoles []*Role, resolveUser UserResolver) (out partRoles) {
 	var (
 		mm    = slice.ToUint64BoolMap(s.Roles())
 		scope = make(map[string]interface{})
@@ -157,6 +157,14 @@ func getSessionRoles(s Session, res Resource, preloadedRoles []*Role) (out partR
 	}
 
 	scope["userID"] = s.Identity()
+
+	// Resolve user properties (email, username, handle, name, labels)
+	// and inject them into the expression scope as "user"
+	if resolveUser != nil {
+		if userData := resolveUser(s.Identity()); userData != nil {
+			scope["user"] = userData
+		}
+	}
 
 	for _, r := range preloadedRoles {
 		if r.kind == ContextRole {

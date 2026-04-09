@@ -44,6 +44,8 @@
 </template>
 <script lang="js">
 import { getDate, setDate, getTime, setTime } from './lib/index.ts'
+import { shared } from '@cortezaproject/corteza-js'
+const { getWeekStartDay } = shared
 
 export default {
   props: {
@@ -118,13 +120,7 @@ export default {
     },
 
     weekStartDay () {
-      const locale = new Intl.Locale(this.browserLocale)
-
-      if (locale.weekInfo && locale.weekInfo.firstDay !== undefined) {
-        return (locale.weekInfo.firstDay % 7)
-      }
-
-      return 0
+      return getWeekStartDay(this.browserLocale)
     },
   },
 }

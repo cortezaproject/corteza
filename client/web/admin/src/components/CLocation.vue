@@ -21,7 +21,7 @@
 
     <b-modal
       v-model="map.show"
-      size="lg"
+      size="xl"
       title="Map"
       body-class="p-0"
       hide-header

@@ -720,6 +720,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 	return func(w http.ResponseWriter, req *http.Request) {
 		if len(r.Fields) == 0 {
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
+			return
 		}
 
 		fx := make(map[string]bool)
@@ -753,9 +754,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
 			return
 		}
-
-		w.Header().Add("Content-Type", contentType)
-		w.Header().Add("Content-Disposition", "attachment"+filename)
 
 		var nodes envoyx.NodeSet
 		nodes, _, err = envoySvc.Decode(ctx, envoyx.DecodeParams{
@@ -793,6 +791,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			},
 		})
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -805,8 +804,12 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			},
 		}, nil, nodes...)
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		w.Header().Add("Content-Type", contentType)
+		w.Header().Add("Content-Disposition", "attachment"+filename)
 
 		mapping := make([]envoyx.MapEntry, 0, len(r.Fields))
 		for _, f := range r.Fields {
@@ -826,10 +829,13 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			FieldMapping: mapping,
 		}, gg)
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		err = ctrl.record.RecordExport(ctx, *rf)
+		if err = ctrl.record.RecordExport(ctx, *rf); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}, err
 }
 
