@@ -1,4 +1,4 @@
-.PHONY: dev dev-all test lint fresh audit codegen
+.PHONY: dev dev-all test lint fresh audit codegen tag ftag
 
 WEB_APPS := admin agentic compose one taq
 
@@ -39,5 +39,35 @@ fresh:
 audit:
 	@echo "---Audit dependencies---"
 	@pnpm audit
+
+
+# Usage: make tag <version>       — tag and push
+#        make ftag <version>      — force tag and force push
+ifeq (tag,$(firstword $(MAKECMDGOALS)))
+  TAG_NAME := $(wordlist 2,2,$(MAKECMDGOALS))
+  $(eval $(TAG_NAME):;@:)
+endif
+ifeq (ftag,$(firstword $(MAKECMDGOALS)))
+  TAG_NAME := $(wordlist 2,2,$(MAKECMDGOALS))
+  $(eval $(TAG_NAME):;@:)
+endif
+
+tag:
+ifeq ($(TAG_NAME),)
+	$(error Usage: make tag <version>, e.g. make tag 2026.3.1)
+endif
+	@echo "---Tagging $(TAG_NAME)---"
+	git commit -m "$(TAG_NAME)"
+	git push
+	git tag $(TAG_NAME)
+	git push origin $(TAG_NAME)
+
+ftag:
+ifeq ($(TAG_NAME),)
+	$(error Usage: make ftag <version>, e.g. make ftag 2026.3.1)
+endif
+	@echo "---Force tagging $(TAG_NAME)---"
+	git tag -f $(TAG_NAME)
+	git push origin $(TAG_NAME) --force
 
 .DEFAULT_GOAL := dev

@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-agentic",
-  "version": "2026.3.0-dev.9",
+  "version": "2026.3.0-dev.10",
   "private": true,
   "type": "module",
   "scripts": {
