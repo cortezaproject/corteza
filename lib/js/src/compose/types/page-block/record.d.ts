@@ -15,7 +15,6 @@ interface Options {
   inlineRecordEditEnabled: boolean
   horizontalFieldLayoutEnabled: boolean
   recordFieldLayoutOption: string
-  inlineRecordEditAllowAddField: boolean
 }
 export declare class PageBlockRecord extends PageBlock {
   readonly kind = 'Record'

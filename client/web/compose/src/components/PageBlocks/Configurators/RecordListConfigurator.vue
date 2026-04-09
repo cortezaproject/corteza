@@ -425,12 +425,6 @@
           />
 
           <CInputSwitch
-            v-model="inlineRecordEditAllowAddField"
-            :label="$t('block.recordList.record.inlineRecordEditAllowAddField')"
-            :disabled="!inlineRecordEditEnabled"
-          />
-
-          <CInputSwitch
             v-model="bulkRecordEditEnabled"
             :label="$t('block.recordList.record.bulkRecordEditEnabled')"
           />
@@ -789,10 +783,6 @@ const hideRecordDeleteButton = computed({
 const inlineRecordEditEnabled = computed({
   get: () => !!props.block.options?.inlineRecordEditEnabled,
   set: v => updateOptions('inlineRecordEditEnabled', v),
-})
-const inlineRecordEditAllowAddField = computed({
-  get: () => !!props.block.options?.inlineRecordEditAllowAddField,
-  set: v => updateOptions('inlineRecordEditAllowAddField', v),
 })
 const bulkRecordEditEnabled = computed({
   get: () => props.block.options?.bulkRecordEditEnabled !== false,

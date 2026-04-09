@@ -28,6 +28,17 @@
         @click="$refs.presetMenuRef?.toggle($event)"
       />
 
+      <!-- Show deleted records toggle -->
+      <Button
+        v-if="options.showDeletedRecordsOption"
+        :label="showingDeletedRecords ? $t('block.recordList.showRecords.existing') : $t('block.recordList.showRecords.deleted')"
+        :icon="showingDeletedRecords ? 'pi pi-eye' : 'pi pi-trash'"
+        :severity="showingDeletedRecords ? 'warn' : 'secondary'"
+        :outlined="!showingDeletedRecords"
+        size="small"
+        @click="toggleDeletedRecords"
+      />
+
       <!-- Spacer -->
       <div class="flex-1" />
 
@@ -39,9 +50,12 @@
           :namespace="namespace"
           :model-value="recordListFilter"
           :allow-preset-save="!!options.customFilterPresets"
+          :presets="allPresets"
           @update:model-value="onFilterChange"
           @reset="onFilterReset"
           @save-preset="onSaveFilterPreset"
+          @delete-preset="onDeleteFilterPreset"
+          @load-preset="onLoadFilterPreset"
         />
         <CInputSearch
           v-if="!options.hideSearch"
@@ -433,6 +447,7 @@ const sortOrder = ref(null)
 // Record list filter state
 const recordListFilter = ref([])
 const presetMenuRef = ref(null)
+const showingDeletedRecords = ref(false)
 const selectedRecords = ref([])
 
 // Pagination state — cursor based
@@ -658,7 +673,8 @@ function shouldShowEditor(data, col) {
 
 function canInlineEdit(data, col) {
   if (data.canUpdateRecord === false) return false
-  if (data.deletedAt) return false
+  if (data.deletedAt && !showingDeletedRecords.value) return false
+  if (showingDeletedRecords.value) return false
   return isInlineEditField(col)
 }
 
@@ -955,6 +971,8 @@ async function fetchRecords(resetCursor = false) {
       sort,
       limit: currentPerPage.value,
       pageCursor,
+      // deleted: 0 = only existing, 2 = only deleted
+      deleted: showingDeletedRecords.value ? 2 : 0,
       // incTotal is only supported on the first page (no cursor); sending it with a
       // cursor causes a server error. Keep the total from the first page on subsequent pages.
       incTotal: !pageCursor,
@@ -1339,6 +1357,12 @@ function onFilterReset() {
   fetchRecords(true)
 }
 
+// --- Deleted records toggle ---
+function toggleDeletedRecords() {
+  showingDeletedRecords.value = !showingDeletedRecords.value
+  fetchRecords(true)
+}
+
 // --- Inline value filtering ---
 
 function showInlineActions(col, data) {
@@ -1406,33 +1430,35 @@ function loadStoredFilter() {
 
 // --- Filter presets ---
 
-const visiblePresets = computed(() => {
-  const presets = options.value.filterPresets || []
-  // Also merge user-saved presets from localStorage
-  try {
-    const stored = localStorage.getItem(`recordListFilterPresets-${props.block.blockID}`)
-    if (stored) {
-      const userPresets = JSON.parse(stored)
-      return [...presets, ...userPresets].filter(p => p.name)
-    }
-  } catch (e) {
-    // ignore
-  }
-  return presets.filter(p => p.name)
+const userPresetsKey = computed(() => `recordListFilterPresets-${props.block.blockID}`)
+const userPresets = ref([])
+
+// Load user presets from localStorage on init
+try {
+  const stored = localStorage.getItem(`recordListFilterPresets-${props.block.blockID}`)
+  if (stored) userPresets.value = JSON.parse(stored)
+} catch (e) {
+  // ignore
+}
+
+const allPresets = computed(() => {
+  const adminPresets = (options.value.filterPresets || []).filter(p => p.name)
+  return [...adminPresets, ...userPresets.value.filter(p => p.name)]
 })
+
+const visiblePresets = computed(() => allPresets.value)
 
 const presetMenuItems = computed(() => {
   return visiblePresets.value.map(preset => ({
     label: preset.name,
-    command: () => applyPreset(preset),
+    command: () => onLoadFilterPreset(preset),
   }))
 })
 
-function applyPreset(preset) {
+function onLoadFilterPreset(preset) {
   if (!preset.filter) return
-  // Preset filter can be a structured array (user-saved) or empty
   if (Array.isArray(preset.filter)) {
-    recordListFilter.value = preset.filter
+    recordListFilter.value = JSON.parse(JSON.stringify(preset.filter))
   } else {
     recordListFilter.value = []
   }
@@ -1440,16 +1466,31 @@ function applyPreset(preset) {
   fetchRecords(true)
 }
 
-function onSaveFilterPreset(filterData) {
-  const name = prompt(t('block.recordList.filterPresets.filterName'))
+function onSaveFilterPreset({ name, filter }) {
   if (!name) return
+  userPresets.value = [...userPresets.value, { name, filter }]
+  persistUserPresets()
+}
 
+function onDeleteFilterPreset(index) {
+  // Admin presets come first in the combined list, so offset for user presets
+  const adminCount = (options.value.filterPresets || []).filter(p => p.name).length
+  const userIndex = index - adminCount
+  if (userIndex >= 0 && userIndex < userPresets.value.length) {
+    const updated = [...userPresets.value]
+    updated.splice(userIndex, 1)
+    userPresets.value = updated
+    persistUserPresets()
+  }
+}
+
+function persistUserPresets() {
   try {
-    const key = `recordListFilterPresets-${props.block.blockID}`
-    const stored = localStorage.getItem(key)
-    const presets = stored ? JSON.parse(stored) : []
-    presets.push({ name, filter: filterData })
-    localStorage.setItem(key, JSON.stringify(presets))
+    if (userPresets.value.length) {
+      localStorage.setItem(userPresetsKey.value, JSON.stringify(userPresets.value))
+    } else {
+      localStorage.removeItem(userPresetsKey.value)
+    }
   } catch (e) {
     // localStorage not available
   }

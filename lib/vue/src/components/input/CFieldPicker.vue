@@ -20,7 +20,7 @@
         <CInputSearch v-model="availableSearch" :placeholder="searchPlaceholder" size="small" />
       </div>
       <div
-        class="flex-1 overflow-y-auto p-1.5 flex flex-col gap-1 max-h-80"
+        class="flex-1 overflow-y-auto p-1.5 flex flex-col gap-2 max-h-80"
         @dragover.prevent
         @drop="onDropToAvailable"
       >
@@ -30,7 +30,7 @@
           class="flex items-center gap-2 py-1.5 px-2.5 border border-surface rounded-border cursor-pointer select-none text-sm text-color transition-colors hover:bg-emphasis"
           draggable="true"
           @dragstart="onDragStart($event, field, 'available')"
-          @dblclick="selectField(field)"
+          @click.prevent="selectField(field)"
         >
           <span class="overflow-hidden text-ellipsis whitespace-nowrap">
             {{ field.label || field.name }}
@@ -65,7 +65,7 @@
         <CInputSearch v-model="selectedSearch" :placeholder="searchPlaceholder" size="small" />
       </div>
       <div
-        class="flex-1 overflow-y-auto p-1.5 flex flex-col gap-1 max-h-80"
+        class="flex-1 overflow-y-auto p-1.5 flex flex-col gap-2 max-h-80"
         @dragover.prevent
         @dragenter.prevent
         @drop="onDropToSelected($event)"
@@ -80,7 +80,7 @@
           @dragover.prevent="onDragOverSelectedItem($event, index)"
           @dragleave="onDragLeaveSelectedItem"
           @drop.stop="onDropToSelectedAt($event, index)"
-          @dblclick="deselectField(field)"
+          @click.prevent="deselectField(field)"
         >
           <span class="overflow-hidden text-ellipsis whitespace-nowrap">
             {{ field.label || field.name }}

@@ -67,7 +67,6 @@ export interface Options {
   selectionButtons: Array<Button>
   bulkRecordEditEnabled: boolean
   inlineRecordEditEnabled: boolean
-  inlineRecordEditAllowAddField: boolean
   inlineValueFiltering: boolean
   filterPresets: FilterPreset[]
   showRecordPerPageOption: boolean

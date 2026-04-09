@@ -18,6 +18,38 @@
       }"
     >
       <div class="flex flex-col" style="width: min(90vw, 850px); max-height: 60vh">
+        <!-- Presets dropdown -->
+        <div
+          v-if="presets.length"
+          class="flex items-center gap-2 p-3 border-b"
+        >
+          <i class="pi pi-bookmark text-muted-color" />
+          <Select
+            :model-value="null"
+            :options="presetsWithDelete"
+            option-label="name"
+            :placeholder="$t('block.recordList.filter.presets')"
+            size="small"
+            class="flex-1"
+            @change="onPresetSelect($event.value)"
+          >
+            <template #option="{ option }">
+              <div class="flex items-center justify-between w-full gap-2">
+                <span>{{ option.name }}</span>
+                <Button
+                  v-if="option.deletable"
+                  icon="pi pi-trash"
+                  text
+                  rounded
+                  severity="danger"
+                  class="w-6 h-6 p-0 shrink-0"
+                  @click.stop="deletePreset(option.index)"
+                />
+              </div>
+            </template>
+          </Select>
+        </div>
+
         <!-- Filter rows -->
         <div class="flex-1 overflow-auto p-3">
           <template v-for="(group, gi) in internalFilter" :key="gi">
@@ -151,12 +183,13 @@
           />
           <div class="flex items-center gap-2">
             <Button
-              v-if="allowPresetSave"
-              :label="$t('block.recordList.filter.addFilterToPreset')"
+              v-if="allowPresetSave && hasValidFilters"
+              :label="$t('block.recordList.filterPresets.saveFilterAsPreset')"
+              icon="pi pi-bookmark"
               severity="secondary"
               outlined
               size="small"
-              @click="onSavePreset"
+              @click="showSaveDialog = true"
             />
             <Button
               :label="$t('block.recordList.filter.update')"
@@ -168,8 +201,45 @@
         </div>
       </div>
     </Popover>
+
+    <!-- Save preset dialog -->
+    <Dialog
+      v-model:visible="showSaveDialog"
+      :header="$t('block.recordList.filterPresets.saveFilterAsPreset')"
+      modal
+      :style="{ width: '400px' }"
+    >
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-color">
+            {{ $t('block.recordList.filter.name.label') }}
+          </label>
+          <InputText
+            v-model="presetName"
+            :placeholder="$t('block.recordList.filter.name.placeholder')"
+            autofocus
+            @keyup.enter="confirmSavePreset"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          text
+          @click="showSaveDialog = false"
+        />
+        <Button
+          :label="$t('general.label.save')"
+          severity="primary"
+          :disabled="!presetName.trim()"
+          @click="confirmSavePreset"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
+
 
 <script setup>
 import { computed, ref, watch } from 'vue'
@@ -185,12 +255,26 @@ const props = defineProps({
   namespace: { type: Object, required: true },
   modelValue: { type: Array, default: () => [] },
   allowPresetSave: { type: Boolean, default: false },
+  presets: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:modelValue', 'reset', 'save-preset'])
+const emit = defineEmits(['update:modelValue', 'reset', 'save-preset', 'delete-preset', 'load-preset'])
 
 const popoverRef = ref(null)
 const filterBtnRef = ref(null)
+
+// --- Preset state ---
+const showSaveDialog = ref(false)
+const presetName = ref('')
+
+// Presets with index for dropdown option template
+const presetsWithDelete = computed(() => {
+  return props.presets.map((p, i) => ({
+    ...p,
+    index: i,
+    deletable: true,
+  }))
+})
 
 // --- Internal filter state (editable copy) ---
 const internalFilter = ref([])
@@ -258,6 +342,10 @@ function makeBetweenField(name, suffix) {
 
 // --- Active filter tracking ---
 const hasActiveFilters = computed(() => props.modelValue?.some(g => g.filter?.some(f => f.name)))
+
+const hasValidFilters = computed(() =>
+  internalFilter.value?.some(g => g.filter?.some(f => f.name)),
+)
 
 const activeFilterCount = computed(() =>
   (props.modelValue || []).reduce(
@@ -367,27 +455,17 @@ function toggle(event) {
   popoverRef.value?.toggle(event)
 }
 
-function onSave() {
-  const cleaned = internalFilter.value
+function cleanedFilter() {
+  return internalFilter.value
     .map(g => ({
       ...g,
       filter: g.filter.filter(f => f.name),
     }))
     .filter(g => g.filter.length)
-
-  emit('update:modelValue', cleaned)
-  popoverRef.value?.hide()
 }
 
-function onSavePreset() {
-  const cleaned = internalFilter.value
-    .map(g => ({
-      ...g,
-      filter: g.filter.filter(f => f.name),
-    }))
-    .filter(g => g.filter.length)
-
-  emit('save-preset', cleaned)
+function onSave() {
+  emit('update:modelValue', cleanedFilter())
   popoverRef.value?.hide()
 }
 
@@ -396,6 +474,33 @@ function resetFilter() {
   emit('update:modelValue', [])
   emit('reset')
   popoverRef.value?.hide()
+}
+
+// --- Preset methods ---
+function onPresetSelect(preset) {
+  if (!preset) return
+  if (Array.isArray(preset.filter)) {
+    internalFilter.value = JSON.parse(JSON.stringify(preset.filter))
+  }
+  emit('load-preset', preset)
+}
+
+function loadPreset(preset) {
+  onPresetSelect(preset)
+}
+
+function deletePreset(index) {
+  emit('delete-preset', index)
+}
+
+function confirmSavePreset() {
+  const name = presetName.value.trim()
+  if (!name) return
+
+  const filter = cleanedFilter()
+  emit('save-preset', { name, filter })
+  showSaveDialog.value = false
+  presetName.value = ''
 }
 </script>
 

@@ -351,8 +351,8 @@ record:
   confirmDelete: Are you sure you want to delete this record?
   deleteFailed: Could not delete record
   deleteRecord: Delete record
-  invalidOwnerVar: "Can not use ${ownerID} variable in non-record pages"
-  invalidRecordVar: "Can not use ${record...} variable in non-record pages"
+  invalidOwnerVar: 'Can not use ${ownerID} variable in non-record pages'
+  invalidRecordVar: 'Can not use ${record...} variable in non-record pages'
   label: Record
   listLoadFailed: Could not load record list
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
@@ -360,7 +360,6 @@ record:
   horizontalFormLayout: Horizontal form layout
   inlineEdit:
     enabled: Inline value editing enabled
-    allowAddField: Allow adding fields to inline edit
     button:
       title: Edit value
     modal:
@@ -397,7 +396,6 @@ record:
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
   addRecordDisplayOption: Add record display option
   clearConditionalFieldsOnHide: Clear all conditional fields when hidden
-  inlineRecordEditAllowAddField: Allow adding fields to inline edit
   recordDisplay:
     label: Record display
   recordSelectorDisplayOption: When clicking on record field value
@@ -419,7 +417,6 @@ recordList:
     enabled: Enable inline value filtering
   inlineEdit:
     enabled: Inline value editing enabled
-    allowAddField: Allow adding fields to inline edit
     fields:
       configure:
         tooltip: Configure the fields for inline editing
@@ -674,7 +671,7 @@ recordList:
     presortInputLabel: Presort
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
-    showRecordPerPageOption: User will be able to select records per page
+    showRecordPerPageOption: User will be able to select number of records per page
     showDeletedRecordsOption: Show option to see deleted records
     setCustomFilterPresets: User will be able to set custom filter presets
     searchableFields: Searchable fields
@@ -716,7 +713,6 @@ recordList:
     hideReminderButton: Hide reminder button
     hideViewButton: Hide view button
     inlineEditLabel: Inline editing
-    inlineRecordEditAllowAddField: Allow adding fields to inline edit
     inlineRecordEditEnabled: Inline record editing
     inlineValueFiltering: Enable inline value filtering
     openRecordInEditMode: Open record in edit mode by default
@@ -883,8 +879,8 @@ field:
     systemField: (system field)
 comment:
   label: Comments
-  invalidOwnerVar: "Can not use ${ownerID} variable in non-record pages"
-  invalidRecordVar: "Can not use ${record...} variable in non-record pages"
+  invalidOwnerVar: 'Can not use ${ownerID} variable in non-record pages'
+  invalidRecordVar: 'Can not use ${record...} variable in non-record pages'
   module:
     placeholder: Select a module
   titleField:

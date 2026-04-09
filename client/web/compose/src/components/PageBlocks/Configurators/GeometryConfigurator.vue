@@ -1,9 +1,5 @@
 <template>
   <div class="flex flex-col gap-5">
-    <Message severity="info" variant="simple">
-      {{ $t('block.geometry.feedLabel') }}
-    </Message>
-
     <!-- Map Settings -->
     <div class="flex flex-col gap-3">
       <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.geometry.mapSettings') }}</h5>
@@ -14,7 +10,9 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.geometry.displayOption.label') }}</label>
+        <label class="text-primary font-medium text-sm">
+          {{ $t('block.geometry.displayOption.label') }}
+        </label>
         <Select
           v-model="displayOption"
           :options="displayOptions"
@@ -30,11 +28,23 @@
         <div class="grid grid-cols-2 gap-2">
           <div class="flex flex-col gap-1">
             <label class="text-sm text-muted-color">{{ $t('block.geometry.centerLat') }}</label>
-            <InputNumber v-model="centerLat" :min="-90" :max="90" :max-fraction-digits="6" class="w-full" />
+            <InputNumber
+              v-model="centerLat"
+              :min="-90"
+              :max="90"
+              :max-fraction-digits="6"
+              class="w-full"
+            />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm text-muted-color">{{ $t('block.geometry.centerLng') }}</label>
-            <InputNumber v-model="centerLng" :min="-180" :max="180" :max-fraction-digits="6" class="w-full" />
+            <InputNumber
+              v-model="centerLng"
+              :min="-180"
+              :max="180"
+              :max-fraction-digits="6"
+              class="w-full"
+            />
           </div>
         </div>
       </div>
@@ -68,20 +78,52 @@
         <template v-if="lockBounds">
           <div class="grid grid-cols-2 gap-2">
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.geometry.boundsMinLat') }}</label>
-              <InputNumber v-model="boundsMinLat" :min="-90" :max="90" :max-fraction-digits="6" class="w-full" />
+              <label class="text-sm text-muted-color">
+                {{ $t('block.geometry.boundsMinLat') }}
+              </label>
+              <InputNumber
+                v-model="boundsMinLat"
+                :min="-90"
+                :max="90"
+                :max-fraction-digits="6"
+                class="w-full"
+              />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.geometry.boundsMaxLat') }}</label>
-              <InputNumber v-model="boundsMaxLat" :min="-90" :max="90" :max-fraction-digits="6" class="w-full" />
+              <label class="text-sm text-muted-color">
+                {{ $t('block.geometry.boundsMaxLat') }}
+              </label>
+              <InputNumber
+                v-model="boundsMaxLat"
+                :min="-90"
+                :max="90"
+                :max-fraction-digits="6"
+                class="w-full"
+              />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.geometry.boundsMinLng') }}</label>
-              <InputNumber v-model="boundsMinLng" :min="-180" :max="180" :max-fraction-digits="6" class="w-full" />
+              <label class="text-sm text-muted-color">
+                {{ $t('block.geometry.boundsMinLng') }}
+              </label>
+              <InputNumber
+                v-model="boundsMinLng"
+                :min="-180"
+                :max="180"
+                :max-fraction-digits="6"
+                class="w-full"
+              />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.geometry.boundsMaxLng') }}</label>
-              <InputNumber v-model="boundsMaxLng" :min="-180" :max="180" :max-fraction-digits="6" class="w-full" />
+              <label class="text-sm text-muted-color">
+                {{ $t('block.geometry.boundsMaxLng') }}
+              </label>
+              <InputNumber
+                v-model="boundsMaxLng"
+                :min="-180"
+                :max="180"
+                :max-fraction-digits="6"
+                class="w-full"
+              />
             </div>
           </div>
         </template>
@@ -103,16 +145,14 @@
         />
       </div>
 
-      <div v-for="(feed, i) in feeds" :key="i" class="flex flex-col gap-3 p-3 border border-surface rounded-border">
+      <div
+        v-for="(feed, i) in feeds"
+        :key="i"
+        class="flex flex-col gap-3 p-3 border border-surface rounded-border"
+      >
         <div class="flex items-center justify-between">
           <span class="font-semibold text-sm">{{ $t('block.geometry.feed') }} {{ i + 1 }}</span>
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
-            @click="removeFeed(i)"
-          />
+          <Button icon="pi pi-trash" severity="danger" text size="small" @click="removeFeed(i)" />
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -134,7 +174,9 @@
 
           <!-- Geometry field -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.feedGeometryField') }}</label>
+            <label class="text-sm text-muted-color">
+              {{ $t('block.geometry.feedGeometryField') }}
+            </label>
             <Select
               :model-value="feed.geometryField || ''"
               :options="getAllFields(feed.moduleID)"
@@ -149,7 +191,9 @@
 
           <!-- Title field -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.feedTitleField') }}</label>
+            <label class="text-sm text-muted-color">
+              {{ $t('block.geometry.feedTitleField') }}
+            </label>
             <Select
               :model-value="feed.titleField || ''"
               :options="getStringFields(feed.moduleID)"
@@ -194,7 +238,9 @@
               :input-id="`marker-${i}`"
               @update:model-value="updateFeed(i, 'displayMarker', $event)"
             />
-            <label :for="`marker-${i}`" class="text-sm">{{ $t('block.geometry.displayMarker') }}</label>
+            <label :for="`marker-${i}`" class="text-sm">
+              {{ $t('block.geometry.displayMarker') }}
+            </label>
           </div>
           <div class="flex items-center gap-2">
             <Checkbox
@@ -203,7 +249,9 @@
               :input-id="`polygon-${i}`"
               @update:model-value="updateFeed(i, 'displayPolygon', $event)"
             />
-            <label :for="`polygon-${i}`" class="text-sm">{{ $t('block.geometry.displayPolygon') }}</label>
+            <label :for="`polygon-${i}`" class="text-sm">
+              {{ $t('block.geometry.displayPolygon') }}
+            </label>
           </div>
         </div>
       </div>
@@ -354,15 +402,18 @@ const boundsMaxLng = computed({
 const feeds = computed(() => props.block.options?.feeds || [])
 
 function addFeed() {
-  updateOptions('feeds', [...feeds.value, {
-    moduleID: '',
-    geometryField: '',
-    titleField: '',
-    color: '#09344E',
-    prefilter: '',
-    displayMarker: true,
-    displayPolygon: false,
-  }])
+  updateOptions('feeds', [
+    ...feeds.value,
+    {
+      moduleID: '',
+      geometryField: '',
+      titleField: '',
+      color: '#09344E',
+      prefilter: '',
+      displayMarker: true,
+      displayPolygon: false,
+    },
+  ])
 }
 
 function removeFeed(i) {

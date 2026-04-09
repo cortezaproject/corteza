@@ -596,7 +596,7 @@ recordList:
     presortInputLabel: Presort
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
-    showRecordPerPageOption: User will be able to select records per page
+    showRecordPerPageOption: User will be able to select number of records per page
     showDeletedRecordsOption: Show option to see deleted records
     setCustomFilterPresets: User will be able to set custom filter presets
     searchableFields: Searchable fields
