@@ -9,7 +9,7 @@ help:
   feedback: Send feedback
   forum: Help
   version: 'Version:'
-  buyHuman: 'Buy @Human'
+  buyHuman: 'Buy'
   manageSubscription: 'Manage Subscription'
   packageDetails: 'Package Details'
 module: Modules

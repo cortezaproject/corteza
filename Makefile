@@ -68,6 +68,6 @@ ifeq ($(TAG_NAME),)
 endif
 	@echo "---Force tagging $(TAG_NAME)---"
 	git tag -f $(TAG_NAME)
-	git push origin $(TAG_NAME) --force
+	git push -f origin $(TAG_NAME)
 
 .DEFAULT_GOAL := dev
