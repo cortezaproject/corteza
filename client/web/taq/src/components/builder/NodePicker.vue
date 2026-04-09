@@ -82,7 +82,11 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TaqIcon from '../common/TaqIcon.vue'
 import { useAutomationStore } from '../../stores/automation'
-import { DEFAULT_ACTION_ICON, DEFAULT_TRIGGER_ICON, getTriggerMeta } from '../../utils/flow-constants'
+import {
+  DEFAULT_ACTION_ICON,
+  DEFAULT_TRIGGER_ICON,
+  getTriggerMeta,
+} from '../../utils/flow-constants'
 
 const { t } = useI18n()
 const store = useAutomationStore()
@@ -121,7 +125,7 @@ const GROUP_ICONS = {
   templates: { type: 'name', value: 'file' },
   email: { type: 'name', value: 'envelope' },
   http: { type: 'name', value: 'link' },
-  agents: { type: 'name', value: 'microchip-ai' },
+  agents: { type: 'name', value: 'sparkles' },
   logging: { type: 'name', value: 'list' },
 
   // Trigger categories
@@ -231,8 +235,7 @@ const availableCategories = computed(() => {
       })
   }
 
-  return Object.values(groupsMap)
-    .sort((a, b) => a.label.localeCompare(b.label))
+  return Object.values(groupsMap).sort((a, b) => a.label.localeCompare(b.label))
 })
 
 const filteredCategories = computed(() => {

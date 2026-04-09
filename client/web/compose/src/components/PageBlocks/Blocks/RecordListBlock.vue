@@ -11,16 +11,91 @@
         @click="options.editable ? addInlineRecord() : handleAddRecord()"
       />
 
+      <!-- Filter presets dropdown -->
+      <Menu
+        v-if="visiblePresets.length"
+        ref="presetMenuRef"
+        :model="presetMenuItems"
+        :popup="true"
+      />
+      <Button
+        v-if="visiblePresets.length"
+        :label="$t('block.recordList.filter.filters.label')"
+        icon="pi pi-sliders-h"
+        severity="secondary"
+        outlined
+        size="small"
+        @click="$refs.presetMenuRef?.toggle($event)"
+      />
+
       <!-- Spacer -->
       <div class="flex-1" />
 
-      <!-- Search -->
-      <CInputSearch
-        v-if="!options.hideSearch"
-        v-model="searchQuery"
-        :placeholder="$t('general.label.search')"
+      <!-- Filter button + Search -->
+      <div class="flex items-center gap-1 flex-1 max-w-xl">
+        <RecordListFilter
+          v-if="showFilterButton"
+          :module="recordListModule"
+          :namespace="namespace"
+          :model-value="recordListFilter"
+          :allow-preset-save="!!options.customFilterPresets"
+          @update:model-value="onFilterChange"
+          @reset="onFilterReset"
+          @save-preset="onSaveFilterPreset"
+        />
+        <CInputSearch
+          v-if="!options.hideSearch"
+          v-model="searchQuery"
+          :placeholder="$t('general.label.search')"
+          size="small"
+          class="flex-1"
+        />
+      </div>
+    </div>
+
+    <!-- Active filters bar -->
+    <div
+      v-if="activeFilterDisplay.length"
+      class="flex items-center flex-wrap gap-2 px-3 py-2 border-b"
+    >
+      <template v-for="(segment, si) in groupedActiveFilters" :key="si">
+        <div class="flex items-center flex-wrap gap-1 border border-surface rounded-border p-1">
+          <template v-for="(fg, fgi) in segment.groups" :key="fg.originalIndex">
+            <Chip
+              v-for="(f, fi) in fg.filter"
+              :key="fi"
+              removable
+              class="text-sm"
+              @remove="removeFilter(fg.originalIndex, fi)"
+            >
+              <span class="font-medium">{{ f.label || f.name }}</span>
+              <span class="mx-1 text-muted-color">{{ getOperatorLabel(f.operator) }}</span>
+              <span v-if="f.value != null" class="font-semibold text-primary">{{ formatFilterValue(f) }}</span>
+              <span v-else class="text-muted-color italic">{{ $t('block.recordList.filter.nil') }}</span>
+            </Chip>
+            <span
+              v-if="fgi < segment.groups.length - 1"
+              class="text-xs text-muted-color uppercase font-medium"
+            >
+              {{ $t('block.recordList.filter.conditions.and') }}
+            </span>
+          </template>
+        </div>
+        <span
+          v-if="segment.connector"
+          class="text-xs text-muted-color uppercase font-medium"
+        >
+          {{ $t('block.recordList.filter.conditions.or') }}
+        </span>
+      </template>
+
+      <Button
+        :label="$t('block.recordList.filter.reset')"
+        severity="secondary"
+        text
         size="small"
-        class="flex-1 max-w-xl"
+        class="ml-auto"
+        @click="onFilterReset"
       />
     </div>
 
@@ -127,11 +202,11 @@
           :key="col.name"
           :field="col.name"
           :header="col.label"
-          :sortable="!options.hideSorting && !options.editable"
+          :sortable="!options.hideSorting && !options.editable && !col.isMulti"
         >
           <template #body="{ data, index }">
             <CFieldEditor
-              v-if="options.editable && isInlineEditField(col) && (!data.recordID || data.recordID === '0' || data.canUpdateRecord !== false)"
+              v-if="shouldShowEditor(data, col)"
               :field="col"
               :namespace="namespace"
               :model-value="data.values[col.name]"
@@ -139,18 +214,46 @@
               @update:model-value="data.values[col.name] = $event; onInlineFieldChange(data)"
               @click.stop
             />
-            <CFieldViewer
-              v-else
-              :field="col"
-              :record="data"
-              :namespace="namespace"
-            />
+            <div v-else class="group flex items-start gap-1 min-w-0">
+              <CFieldViewer
+                :field="col"
+                :record="data"
+                :namespace="namespace"
+              />
+              <div
+                v-if="showInlineActions(col, data)"
+                class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+              >
+                <Button
+                  v-if="options.inlineRecordEditEnabled && canInlineEdit(data, col)"
+                  v-tooltip.top="$t('block.recordList.record.tooltip.edit')"
+                  icon="pi pi-pencil"
+                  text
+                  rounded
+                  size="small"
+                  severity="secondary"
+                  class="w-6 h-6 p-0 mt-0.5"
+                  @click.stop="startInlineEdit(data, col)"
+                />
+                <Button
+                  v-if="showInlineFilter(col)"
+                  v-tooltip.top="$t('block.recordList.filterByValue')"
+                  icon="pi pi-filter"
+                  text
+                  rounded
+                  size="small"
+                  severity="secondary"
+                  class="w-6 h-6 p-0 mt-0.5"
+                  @click.stop="filterByValue(data, col)"
+                />
+              </div>
+            </div>
           </template>
         </Column>
 
         <!-- Actions column: save/discard when dirty, ellipsis menu otherwise -->
         <Column
-          v-if="options.editable || hasRowActions"
+          v-if="options.editable || options.inlineRecordEditEnabled || hasRowActions"
           header-style="width: 5rem"
           :pt="{
             headerCell: { class: 'border-l-0' },
@@ -162,7 +265,7 @@
           <template #body="{ data, index }">
             <div class="flex items-center justify-end gap-1">
               <!-- Inline save/discard (only when row is dirty) -->
-              <template v-if="options.editable && showSaveAction(data)">
+              <template v-if="(options.editable || options.inlineRecordEditEnabled) && showSaveAction(data)">
                 <Button
                   v-tooltip.top="$t('block.recordList.tooltip.saveChanges')"
                   icon="pi pi-check"
@@ -270,7 +373,7 @@
 <script setup>
 import axios from 'axios'
 import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { components, useConfirmDelete, usePermissions } from '@cortezaproject/corteza-vue-next'
@@ -280,7 +383,8 @@ import { useRecordStore } from '@/stores/record'
 import { useReminderStore } from '@/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@/stores/page'
-import { evaluatePrefilter, queryToFilter, getFieldFilter } from '../../../lib/record-filter'
+import RecordListFilter from '../../Common/RecordListFilter.vue'
+import { evaluatePrefilter, queryToFilter, getFieldFilter, convertRecordListFilter, formatActiveFilterOperator, isBetweenOperator } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: {
@@ -302,12 +406,14 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
 const $ComposeAPI = inject('$ComposeAPI')
 const $auth = inject('$auth', {})
 const $eventBus = inject('$eventBus', null)
+const $toast = inject('$toast')
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 const pageStore = usePageStore()
@@ -323,6 +429,10 @@ const totalRecords = ref(0)
 const searchQuery = ref('')
 const sortField = ref(null)
 const sortOrder = ref(null)
+
+// Record list filter state
+const recordListFilter = ref([])
+const presetMenuRef = ref(null)
 const selectedRecords = ref([])
 
 // Pagination state — cursor based
@@ -330,9 +440,14 @@ const pageCursors = ref([]) // stack of previous page cursors
 const nextPageCursor = ref(null)
 const currentPageIndex = ref(0) // 0-based page index for display
 
-// Page size
-const pageSizeOptions = [10, 20, 50, 100]
-const currentPerPage = ref(20)
+// Page size — always includes the configured perPage, deduped and sorted
+const pageSizeOptions = computed(() => {
+  const configured = props.block.options?.perPage
+  const base = [10, 20, 50, 100]
+  const set = configured ? [...new Set([...base, configured])] : base
+  return set.sort((a, b) => a - b)
+})
+const currentPerPage = ref(props.block.options?.perPage || 20)
 
 // Row action menu
 const rowMenuRef = ref(null)
@@ -341,6 +456,7 @@ const activeRowRecord = ref(null)
 
 // Inline editing — Corteza-style dirty tracking
 const dirtyRecords = reactive({})
+const activeInlineEdits = ref(new Map())
 const processingRecords = reactive({})
 const processingDirtyRecords = ref('')
 
@@ -352,15 +468,12 @@ function getRecordKey(record) {
 
 const options = computed(() => props.block.options || {})
 
-// Initialize perPage from block options
+// Sync perPage from block options (e.g. configurator changes)
 watch(
   () => options.value.perPage,
   val => {
-    if (val && pageSizeOptions.includes(val)) {
-      currentPerPage.value = val
-    }
+    if (val) currentPerPage.value = val
   },
-  { immediate: true },
 )
 
 // Resolve the module for this block
@@ -417,7 +530,14 @@ const paginationRangeText = computed(() => {
 const canSelectRecords = computed(() => options.value.selectable !== false)
 const canDeleteSelected = computed(() => selectedRecords.value.some(r => r.canDeleteRecord))
 const hasRowActions = computed(() => {
-  return recordPageID.value || recordListModule.value?.canCreateRecord
+  if (!recordPageID.value && !recordListModule.value?.canCreateRecord) return false
+  const o = options.value
+  return !o.hideRecordViewButton
+    || !o.hideRecordEditButton
+    || !o.hideRecordCloneButton
+    || !o.hideRecordReminderButton
+    || !o.hideRecordPermissionsButton
+    || !o.hideRecordDeleteButton
 })
 
 // Row action menu items — filtered by per-record permissions and configurator hide options
@@ -455,6 +575,7 @@ const rowMenuItems = computed(() => {
               pageID: recordPageID.value,
               recordID: record.recordID,
             },
+            query: { edit: '1' },
           },
     })
   }
@@ -526,6 +647,36 @@ function isInlineEditField(col) {
   return editFields.some(f => (f.name ?? f) === col.name)
 }
 
+function shouldShowEditor(data, col) {
+  if (options.value.editable && isInlineEditField(col)) {
+    return !data.recordID || data.recordID === '0' || data.canUpdateRecord !== false
+  }
+  const key = getRecordKey(data)
+  const fields = activeInlineEdits.value.get(key)
+  return fields && fields.has(col.name)
+}
+
+function canInlineEdit(data, col) {
+  if (data.canUpdateRecord === false) return false
+  if (data.deletedAt) return false
+  return isInlineEditField(col)
+}
+
+function startInlineEdit(data, col) {
+  const key = getRecordKey(data)
+  let fields = activeInlineEdits.value.get(key)
+  if (!fields) {
+    fields = new Set()
+    activeInlineEdits.value.set(key, fields)
+  }
+  fields.add(col.name)
+}
+
+function clearInlineEdits(record) {
+  const key = getRecordKey(record)
+  activeInlineEdits.value.delete(key)
+}
+
 function onInlineFieldChange(record) {
   const key = getRecordKey(record)
   if (!dirtyRecords[key]) {
@@ -570,6 +721,7 @@ async function handleSaveInline(record, index) {
     const isNew = !record.recordID || record.recordID === '0'
     const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
     delete dirtyRecords[key]
+    clearInlineEdits(record)
     const newRecord = new compose.Record(recordListModule.value, saved)
     records.value.splice(index, 1, newRecord)
   } catch (e) {
@@ -584,6 +736,7 @@ async function handleDenyInline(record, index) {
   const key = getRecordKey(record)
   processingRecords[key] = 'deny'
   delete dirtyRecords[key]
+  clearInlineEdits(record)
   const isNew = !record.recordID || record.recordID === '0'
   if (isNew) {
     records.value.splice(index, 1)
@@ -628,6 +781,7 @@ async function handleSaveDirtyRecords() {
     try {
       const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
       delete dirtyRecords[key]
+      clearInlineEdits(record)
       const newRecord = new compose.Record(recordListModule.value, saved)
       records.value.splice(index, 1, newRecord)
     } catch (e) {
@@ -658,6 +812,7 @@ async function handleDenyDirtyRecords() {
     const index = records.value.findIndex(r => getRecordKey(r) === key)
     if (index === -1) continue
     delete dirtyRecords[key]
+    clearInlineEdits(record)
     const isNew = !record.recordID || record.recordID === '0'
     if (isNew) {
       records.value.splice(index, 1)
@@ -725,6 +880,10 @@ function buildPrefilter() {
     }
   }
 
+  if (drillDownPrefilter.value) {
+    filterParts.push(`(${drillDownPrefilter.value})`)
+  }
+
   return filterParts.filter(Boolean).join(' AND ')
 }
 
@@ -742,6 +901,7 @@ async function fetchRecords(resetCursor = false) {
     selectedRecords.value = []
     // Clear inline editing state on full refresh
     Object.keys(dirtyRecords).forEach(k => delete dirtyRecords[k])
+    activeInlineEdits.value.clear()
     Object.keys(processingRecords).forEach(k => delete processingRecords[k])
   }
 
@@ -765,11 +925,17 @@ async function fetchRecords(resetCursor = false) {
       searchFields = columns.value
     }
 
+    // Prepare filter groups exactly like old Corteza RecordListBase
+    const filterGroups = recordListFilter.value.map(g => {
+      const filter = convertRecordListFilter(g.filter || [])
+      return { ...g, filter }
+    }).filter(g => g.filter?.length)
+
     const query = queryToFilter(
       searchQuery.value || '',
       evaluatedPrefilter,
       searchFields,
-      [], // recordListFilter groups — not yet implemented in new UI
+      filterGroups,
     )
 
     // Determine page cursor for API call
@@ -789,7 +955,9 @@ async function fetchRecords(resetCursor = false) {
       sort,
       limit: currentPerPage.value,
       pageCursor,
-      incTotal: true,
+      // incTotal is only supported on the first page (no cursor); sending it with a
+      // cursor causes a server error. Keep the total from the first page on subsequent pages.
+      incTotal: !pageCursor,
     })
 
     cancelPendingRequest = cancel
@@ -800,7 +968,11 @@ async function fetchRecords(resetCursor = false) {
     const set = (result.set || []).map(r => new compose.Record(mod, r))
 
     records.value = set
-    totalRecords.value = result.filter?.total || set.length
+    if (result.filter?.total !== undefined) {
+      totalRecords.value = result.filter.total
+    } else if (!pageCursor) {
+      totalRecords.value = set.length
+    }
 
     // Store next page cursor
     nextPageCursor.value = result.filter?.nextPage || null
@@ -808,6 +980,7 @@ async function fetchRecords(resetCursor = false) {
   } catch (error) {
     if (!axios.isCancel(error)) {
       console.error('Failed to fetch records for RecordList block:', error)
+      $toast?.toastDanger(error?.message || t('notification.record.loadFailed'))
       records.value = []
       totalRecords.value = 0
       loading.value = false
@@ -824,11 +997,18 @@ watch(searchQuery, () => {
   }, 300)
 })
 
+// Drill down event listener
+const drillDownPrefilter = ref(null)
+const offDrillDown = $eventBus?.on(`drill-down-recordList:${props.block.blockID}`, payload => {
+  drillDownPrefilter.value = payload?.prefilter
+  fetchRecords(true)
+})
+
 // Cleanup on unmount
 onBeforeUnmount(() => {
   abortPendingRequest()
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  offRefetch?.()
+  offDrillDown?.()
 })
 
 function onSort(event) {
@@ -868,25 +1048,52 @@ function onRowClick(event) {
 
   if (!recordPageID.value) return
 
-  const route = $recordRoutes
-    ? $recordRoutes.view(recordListModule.value.moduleID, record.recordID)
-    : {
-        name: 'page.record',
-        params: {
-          pageID: recordPageID.value,
-          recordID: record.recordID,
-        },
-      }
-
   const displayOption = options.value.recordDisplayOption || 'sameTab'
-
   if (displayOption === 'doNothing') return
 
+  const isEditMode = options.value.openRecordInEditMode && record.canUpdateRecord
+
+  if (displayOption === 'modal' && !$recordRoutes) {
+    const query = {
+      ...route.query,
+      recordPageID: recordPageID.value,
+      recordID: record.recordID,
+    }
+    if (isEditMode) {
+      query.edit = '1'
+    }
+    router.push({ query })
+    return
+  }
+
+  let routeObj
+  if ($recordRoutes) {
+    if (isEditMode && $recordRoutes.edit) {
+      routeObj = $recordRoutes.edit(recordListModule.value.moduleID, record.recordID)
+    } else {
+      routeObj = $recordRoutes.view(recordListModule.value.moduleID, record.recordID)
+      if (isEditMode) {
+        routeObj.query = { ...(routeObj.query || {}), edit: '1' }
+      }
+    }
+  } else {
+    routeObj = {
+      name: 'page.record',
+      params: {
+        pageID: recordPageID.value,
+        recordID: record.recordID,
+      },
+    }
+    if (isEditMode) {
+      routeObj.query = { edit: '1' }
+    }
+  }
+
   if (displayOption === 'newTab') {
-    const resolved = router.resolve(route)
+    const resolved = router.resolve(routeObj)
     window.open(resolved.href, '_blank')
   } else {
-    router.push(route)
+    router.push(routeObj)
   }
 }
 
@@ -902,8 +1109,20 @@ function openRowMenu(event, record) {
 function handleAddRecord() {
   if (!recordPageID.value) return
 
-  router.push(
-    $recordRoutes
+  const displayOption = options.value.addRecordDisplayOption || 'sameTab'
+
+  if (displayOption === 'modal' && !$recordRoutes) {
+    router.push({
+      query: {
+        ...route.query,
+        recordPageID: recordPageID.value,
+        recordID: '0',
+      }
+    })
+    return
+  }
+
+  const routeObj = $recordRoutes
       ? $recordRoutes.create(recordListModule.value.moduleID)
       : {
           name: 'page.record',
@@ -911,15 +1130,34 @@ function handleAddRecord() {
             pageID: recordPageID.value,
             recordID: '0',
           },
-        },
-  )
+        }
+
+  if (displayOption === 'newTab') {
+    const resolved = router.resolve(routeObj)
+    window.open(resolved.href, '_blank')
+  } else {
+    router.push(routeObj)
+  }
 }
 
 function handleCloneRecord(record) {
   if (!record || !recordPageID.value) return
 
-  router.push(
-    $recordRoutes
+  const displayOption = options.value.addRecordDisplayOption || 'sameTab'
+
+  if (displayOption === 'modal' && !$recordRoutes) {
+    router.push({
+      query: {
+        ...route.query,
+        recordPageID: recordPageID.value,
+        recordID: '0',
+        cloneFromID: record.recordID,
+      }
+    })
+    return
+  }
+
+  const routeObj = $recordRoutes
       ? $recordRoutes.create(recordListModule.value.moduleID, record.recordID)
       : {
           name: 'page.record',
@@ -928,8 +1166,14 @@ function handleCloneRecord(record) {
             recordID: '0',
           },
           query: { cloneFromID: record.recordID },
-        },
-  )
+        }
+
+  if (displayOption === 'newTab') {
+    const resolved = router.resolve(routeObj)
+    window.open(resolved.href, '_blank')
+  } else {
+    router.push(routeObj)
+  }
 }
 
 function createReminder (record) {
@@ -1007,9 +1251,209 @@ const offRefetch = $eventBus?.on('refetch-records', () => fetchRecords(true))
 // Reload when module changes
 watch(
   () => recordListModule.value?.moduleID,
-  () => fetchRecords(true),
+  (newID) => {
+    // Load persisted filters when module changes
+    loadStoredFilter()
+    fetchRecords(true)
+  },
   { immediate: true },
 )
+
+// --- Filter logic ---
+
+const showFilterButton = computed(() => {
+  if (options.value.hideFiltering) return false
+  if (!recordListModule.value) return false
+  return filterableFields.value.length > 0
+})
+
+const filterableFields = computed(() => {
+  if (!recordListModule.value) return []
+  return (recordListModule.value.fields || []).filter(
+    f => f.isFilterable && f.canReadRecordValue !== false,
+  )
+})
+
+// Active filters display
+const activeFilterDisplay = computed(() => {
+  return (recordListFilter.value || []).filter(
+    g => g.filter?.some(f => f.name),
+  )
+})
+
+const groupedActiveFilters = computed(() => {
+  const groups = activeFilterDisplay.value.map((g, idx) => ({
+    ...g,
+    originalIndex: idx,
+  }))
+
+  // Segment groups by OR/AND connectors for display
+  const segments = []
+  let current = { groups: [], connector: null }
+  for (let i = 0; i < groups.length; i++) {
+    const g = groups[i]
+    if (i > 0 && g.groupCondition === 'OR') {
+      current.connector = 'OR'
+      segments.push(current)
+      current = { groups: [], connector: null }
+    }
+    current.groups.push(g)
+  }
+  if (current.groups.length) segments.push(current)
+  return segments
+})
+
+function getOperatorLabel(op) {
+  const key = formatActiveFilterOperator(op)
+  return t(`block.recordList.filter.operatorLabels.${key}`)
+}
+
+function formatFilterValue(f) {
+  if (isBetweenOperator(f.operator) && f.value) {
+    return `${f.value.start || '?'} – ${f.value.end || '?'}`
+  }
+  if (Array.isArray(f.value)) return f.value.join(', ')
+  return String(f.value ?? '')
+}
+
+function removeFilter(groupIndex, filterIndex) {
+  const updated = JSON.parse(JSON.stringify(recordListFilter.value))
+  updated[groupIndex].filter.splice(filterIndex, 1)
+  if (!updated[groupIndex].filter.length) {
+    updated.splice(groupIndex, 1)
+  }
+  recordListFilter.value = updated
+  persistFilter()
+  fetchRecords(true)
+}
+
+function onFilterChange(newFilter) {
+  recordListFilter.value = newFilter
+  persistFilter()
+  fetchRecords(true)
+}
+
+function onFilterReset() {
+  recordListFilter.value = []
+  persistFilter()
+  fetchRecords(true)
+}
+
+// --- Inline value filtering ---
+
+function showInlineActions(col, data) {
+  return (options.value.inlineRecordEditEnabled && canInlineEdit(data, col)) || showInlineFilter(col)
+}
+
+function showInlineFilter(col) {
+  if (options.value.hideFiltering) return false
+  if (!options.value.inlineValueFiltering) return false
+  return col.isFilterable !== false
+}
+
+function filterByValue(record, col) {
+  const value = record.values?.[col.name]
+  const newFilter = {
+    name: col.name,
+    kind: col.kind,
+    operator: col.isMulti ? 'IN' : '=',
+    value: Array.isArray(value) ? value[0] : value,
+    condition: '',
+  }
+
+  // Add to existing filter or create a new group
+  const updated = JSON.parse(JSON.stringify(recordListFilter.value))
+  if (updated.length) {
+    updated[0].filter.push(newFilter)
+  } else {
+    updated.push({ filter: [newFilter], groupCondition: 'OR' })
+  }
+  recordListFilter.value = updated
+  persistFilter()
+  fetchRecords(true)
+}
+
+// --- Filter persistence (localStorage) ---
+
+function filterStorageKey() {
+  return `recordListFilter-${props.block.blockID}`
+}
+
+function persistFilter() {
+  try {
+    const key = filterStorageKey()
+    if (recordListFilter.value.length) {
+      localStorage.setItem(key, JSON.stringify(recordListFilter.value))
+    } else {
+      localStorage.removeItem(key)
+    }
+  } catch (e) {
+    // localStorage not available
+  }
+}
+
+function loadStoredFilter() {
+  try {
+    const key = filterStorageKey()
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      recordListFilter.value = JSON.parse(stored)
+    }
+  } catch (e) {
+    // localStorage not available or invalid data
+  }
+}
+
+// --- Filter presets ---
+
+const visiblePresets = computed(() => {
+  const presets = options.value.filterPresets || []
+  // Also merge user-saved presets from localStorage
+  try {
+    const stored = localStorage.getItem(`recordListFilterPresets-${props.block.blockID}`)
+    if (stored) {
+      const userPresets = JSON.parse(stored)
+      return [...presets, ...userPresets].filter(p => p.name)
+    }
+  } catch (e) {
+    // ignore
+  }
+  return presets.filter(p => p.name)
+})
+
+const presetMenuItems = computed(() => {
+  return visiblePresets.value.map(preset => ({
+    label: preset.name,
+    command: () => applyPreset(preset),
+  }))
+})
+
+function applyPreset(preset) {
+  if (!preset.filter) return
+  // Preset filter can be a structured array (user-saved) or empty
+  if (Array.isArray(preset.filter)) {
+    recordListFilter.value = preset.filter
+  } else {
+    recordListFilter.value = []
+  }
+  persistFilter()
+  fetchRecords(true)
+}
+
+function onSaveFilterPreset(filterData) {
+  const name = prompt(t('block.recordList.filterPresets.filterName'))
+  if (!name) return
+
+  try {
+    const key = `recordListFilterPresets-${props.block.blockID}`
+    const stored = localStorage.getItem(key)
+    const presets = stored ? JSON.parse(stored) : []
+    presets.push({ name, filter: filterData })
+    localStorage.setItem(key, JSON.stringify(presets))
+  } catch (e) {
+    // localStorage not available
+  }
+}
 </script>
 
 <style scoped>

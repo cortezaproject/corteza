@@ -641,13 +641,17 @@ watch(
   { immediate: true, deep: true },
 )
 
-// Trigger VueFlow resize when sidebar opens/closes
-watch(selectedNode, () => {
-  nextTick(() => {
-    // Dispatch resize event to trigger VueFlow's internal ResizeObserver
-    window.dispatchEvent(new Event('resize'))
-  })
-})
+// Trigger VueFlow resize when sidebar opens/closes (watch ID only,
+// not the full object reference which changes on every data update)
+watch(
+  () => selectedNode.value?.id,
+  () => {
+    nextTick(() => {
+      // Dispatch resize event to trigger VueFlow's internal ResizeObserver
+      window.dispatchEvent(new Event('resize'))
+    })
+  },
+)
 
 // Zoom controls
 function zoomIn() {

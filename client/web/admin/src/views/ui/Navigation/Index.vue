@@ -42,12 +42,7 @@
               {{ $t('ui.settings.editor.topbar.notifications.hide') }}
             </label>
           </div>
-          <div class="flex items-center gap-2">
-            <Checkbox v-model="topbar.hideHelp" :binary="true" inputId="hideHelp" />
-            <label for="hideHelp">
-              {{ $t('ui.settings.editor.topbar.help.hide') }}
-            </label>
-          </div>
+
           <div class="flex items-center gap-2">
             <Checkbox v-model="topbar.hideProfile" :binary="true" inputId="hideProfile" />
             <label for="hideProfile">
@@ -58,98 +53,7 @@
 
         <Divider />
 
-        <!-- Help sub-section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
-          <div>
-            <h5 class="text-sm font-semibold mb-3">
-              {{ $t('ui.settings.editor.topbar.help.title') }}
-            </h5>
-            <div class="flex flex-col gap-3">
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="topbar.hideForumLink" :binary="true" inputId="hideForumLink" />
-                <label for="hideForumLink">
-                  {{ $t('ui.settings.editor.topbar.help.hide-forum-link') }}
-                </label>
-              </div>
-              <div class="flex items-center gap-2">
-                <Checkbox
-                  v-model="topbar.hideDocumentationLink"
-                  :binary="true"
-                  inputId="hideDocLink"
-                />
-                <label for="hideDocLink">
-                  {{ $t('ui.settings.editor.topbar.help.hide-documentation-link') }}
-                </label>
-              </div>
-              <div class="flex items-center gap-2">
-                <Checkbox
-                  v-model="topbar.hideFeedbackLink"
-                  :binary="true"
-                  inputId="hideFeedbackLink"
-                />
-                <label for="hideFeedbackLink">
-                  {{ $t('ui.settings.editor.topbar.help.hide-feedback-link') }}
-                </label>
-              </div>
-            </div>
-          </div>
 
-          <div class="lg:col-span-2">
-            <div class="flex flex-col gap-2">
-              <label class="font-medium text-sm text-primary">
-                {{ $t('ui.settings.editor.topbar.links.title') }}
-              </label>
-              <div v-if="topbar.helpLinks.length" class="flex flex-col gap-2">
-                <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 px-3 pt-2">
-                  <span class="text-xs font-semibold text-muted-color uppercase">
-                    {{ $t('ui.settings.editor.topbar.links.handle') }}
-                  </span>
-                  <span class="text-xs font-semibold text-muted-color uppercase">
-                    {{ $t('ui.settings.editor.topbar.links.url') }}
-                  </span>
-                  <span class="text-xs font-semibold text-muted-color uppercase text-center w-16">
-                    {{ $t('ui.settings.editor.topbar.links.new-tab') }}
-                  </span>
-                  <span class="w-10" />
-                </div>
-                <div
-                  v-for="(link, index) in topbar.helpLinks"
-                  :key="index"
-                  class="border border-surface rounded-border p-3"
-                >
-                  <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 items-center">
-                    <InputText v-model="link.handle" size="small" class="w-full" />
-                    <InputText v-model="link.url" size="small" class="w-full" />
-                    <div class="flex items-center justify-center w-16">
-                      <Checkbox v-model="link.newTab" :binary="true" />
-                    </div>
-                    <div class="w-10 flex justify-end">
-                      <Button
-                        icon="pi pi-trash"
-                        severity="danger"
-                        text
-                        rounded
-                        size="small"
-                        @click="topbar.helpLinks.splice(index, 1)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <Button
-                  :label="$t('general.label.add')"
-                  icon="pi pi-plus"
-                  size="small"
-                  severity="secondary"
-                  @click="topbar.helpLinks.push({ handle: '', url: '', newTab: true })"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Divider />
 
         <!-- Profile sub-section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -366,17 +270,10 @@ const saving = ref(false)
 const topbar = reactive({
   hideAppSelector: false,
   hideNotifications: false,
-  hideHelp: false,
-  hideProfile: false,
-  showDrafts: true,
   showSearch: true,
-  hideForumLink: false,
-  hideDocumentationLink: false,
-  hideFeedbackLink: false,
   hideProfileLink: false,
   hideChangePasswordLink: false,
   hideThemeSelector: false,
-  helpLinks: [],
   profileLinks: [],
   pageButtons: [],
 })
@@ -400,7 +297,6 @@ async function loadSettings() {
       if (s.name === 'ui.topbar' && s.value) {
         Object.assign(topbar, {
           ...s.value,
-          helpLinks: s.value.helpLinks || [],
           profileLinks: s.value.profileLinks || [],
           pageButtons: s.value.pageButtons || [],
         })

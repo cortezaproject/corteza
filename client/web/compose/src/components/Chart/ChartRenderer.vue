@@ -8,7 +8,7 @@
       {{ error }}
     </div>
 
-    <CChart v-else-if="renderer" :chart="renderer" class="absolute inset-0 p-1" />
+    <CChart v-else-if="renderer" :chart="renderer" class="absolute inset-0 p-1" @click="handleChartClick" />
   </div>
 </template>
 
@@ -37,7 +37,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['updated'])
+const emit = defineEmits(['updated', 'drill-down'])
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
@@ -45,6 +45,7 @@ const moduleStore = useModuleStore()
 const error = ref(undefined)
 const processing = ref(false)
 const renderer = ref(undefined)
+const valueMap = ref(new Map())
 
 async function updateChart() {
   error.value = undefined
@@ -80,15 +81,19 @@ async function updateChart() {
           if (fieldObj.kind === 'Bool') {
             const { trueLabel, falseLabel } = fieldObj.options || {}
             data.labels = data.labels.map(value => {
-              return value === '1'
+              const label = value === '1'
                 ? trueLabel || t('general.label.yes')
                 : falseLabel || t('general.label.no')
+              valueMap.value.set(label, value)
+              return label
             })
           } else if (fieldObj.kind === 'Select') {
             data.labels = data.labels.map(value => {
               const found = (fieldObj.options?.options || []).find(o => o.value === value)
               const text = found?.text
-              return text || value
+              const label = text || value
+              valueMap.value.set(label, value)
+              return label
             })
           }
         }
@@ -131,6 +136,11 @@ async function updateChart() {
   }, 300)
 }
 
+function handleChartClick(e) {
+  const trueName = valueMap.value.get(e.name) ?? e.name
+  emit('drill-down', { ...e, trueName })
+}
+
 function getThemeVariables() {
   const getCssVariable = variableName => {
     return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim()
@@ -154,6 +164,7 @@ function getThemeVariables() {
 function setDefaultValues() {
   processing.value = false
   renderer.value = undefined
+  valueMap.value.clear()
 }
 
 // Watch chart itself for changes (immediate to trigger first render)

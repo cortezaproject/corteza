@@ -21,9 +21,9 @@
           :settings="$Settings.get('ui.topbar', {})"
           :labels="{
             appMenu: $t('navigation.appMenu'),
-            helpForum: $t('navigation.help.forum'),
-            helpDocumentation: $t('navigation.help.documentation'),
-            helpFeedback: $t('navigation.help.feedback'),
+            helpBuyHuman: $t('navigation.help.buyHuman'),
+            helpManageSubscription: $t('navigation.help.manageSubscription'),
+            helpPackageDetails: $t('navigation.help.packageDetails'),
             helpVersion: $t('navigation.help.version'),
             userSettingsProfile: $t('navigation.userSettings.profile'),
             userSettingsChangePassword: $t('navigation.userSettings.changePassword'),
@@ -48,6 +48,7 @@
               top: 'var(--topbar-height)',
             },
           },
+          messageIcon: { class: 'hidden' },
         }"
       />
 
@@ -74,10 +75,27 @@
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import { useWorkflowStore } from '@/stores/workflow'
-import { components, providePermissions, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import {
+  components,
+  providePermissions,
+  useApplicationsStore,
+  useNotificationsStore,
+  useRBACStore,
+  useWorkflowPromptsStore,
+  websocket,
+} from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog, CAgentSidebar } = components
+const {
+  CTopbar,
+  CLoaderLogo,
+  CSidebar,
+  CAppListSidebar,
+  CPrompts,
+  CNotificationSidebar,
+  CPermissionsDialog,
+  CAgentSidebar,
+} = components
 
 // Provide permissions dialog context for the entire app
 providePermissions()

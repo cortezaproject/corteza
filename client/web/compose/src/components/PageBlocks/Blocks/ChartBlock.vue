@@ -1,7 +1,7 @@
 <template>
   <PageBlock :block="block" @refreshBlock="fetchChart">
     <div class="relative h-full">
-      <ChartRenderer v-if="chart" ref="chartRenderer" :chart="chart" :reporter="reporter" :record="record" />
+      <ChartRenderer v-if="chart" ref="chartRenderer" :chart="chart" :reporter="reporter" :record="record" @drill-down="drillDown" />
       <div v-else-if="!block.options?.chartID" class="p-3 text-muted-color italic">
         {{ $t('block.chart.noChart') }}
       </div>
@@ -21,6 +21,27 @@
         @click="showFilterModal = true"
       />
     </div>
+
+    <!-- Drill down modal -->
+    <Dialog
+      v-if="drillDownTargetBlock"
+      v-model:visible="drillDownModalVisible"
+      :header="drillDownModalTitle"
+      modal
+      dismissableMask
+      :style="{ width: '90vw', height: '90vh' }"
+      :pt="{
+        content: { class: 'flex-1 flex flex-col overflow-hidden p-0 bg-surface h-full' }
+      }"
+    >
+      <RecordListBlock
+        :block="drillDownTargetBlock"
+        :namespace="namespace"
+        :page="page"
+        :record="record"
+        class="h-full rounded-none border-0 shadow-none border-t"
+      />
+    </Dialog>
 
     <!-- Live filter modal -->
     <Dialog
@@ -102,11 +123,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, inject, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
 import PageBlock from './PageBlock.vue'
 import ChartRenderer from '../../Chart/ChartRenderer.vue'
+const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 import { useChartStore } from '../../../stores/chart'
 import { evaluatePrefilter } from '../../../lib/record-filter'
 
@@ -140,6 +162,7 @@ const chart = ref(null)
 const chartRenderer = ref(null)
 
 // Live filter state
+const reportRequest = ref(null)
 const showFilterModal = ref(false)
 const originalFilter = ref(undefined)
 const liveFilterValue = ref(undefined)
@@ -214,6 +237,10 @@ function reporter(r = {}) {
   let { filter } = r
 
   // Capture original filter for the live filter modal
+  if (!reportRequest.value) {
+    reportRequest.value = r
+  }
+
   if (originalFilter.value === undefined && filter) {
     originalFilter.value = filter
   }
@@ -258,6 +285,72 @@ watch(
 )
 
 const offRefetch = $eventBus?.on('refetch-records', () => fetchChart())
+
+const drillDownModalVisible = ref(false)
+const drillDownTargetBlock = ref(null)
+const drillDownModalTitle = ref('')
+
+function drillDown({ trueName, value }) {
+  const drillDownOpts = props.block.options?.drillDown || {}
+
+  if (!drillDownOpts.enabled) {
+    return
+  }
+
+  const report = chart.value?.config?.reports?.[0] || {}
+  const { yAxis = {} } = report
+
+  let drillDownValue = trueName
+  if (!trueName) {
+    drillDownValue = yAxis.horizontal ? value[1] : value[0]
+  }
+
+  const { moduleID, dimensions, filter } = reportRequest.value || {}
+
+  // Construct filter
+  const dimensionFilter = dimensions ? `(${dimensions} = '${drillDownValue}')` : ''
+
+  if (drillDownOpts.blockID) {
+    $eventBus.emit(`drill-down-recordList:${drillDownOpts.blockID}`, {
+      prefilter: dimensionFilter,
+      name: trueName || dimensions,
+      value: drillDownValue
+    })
+  } else {
+    let mergedFilter = filter ? `(${filter})` : ''
+    const prefilter = [dimensionFilter, mergedFilter].filter(f => f).join(' AND ')
+
+    const title = props.block.title
+    drillDownModalTitle.value = title ? `${title} - "${drillDownValue}"` : drillDownValue
+
+    const fields = drillDownOpts.recordListOptions?.fields || []
+
+    drillDownTargetBlock.value = new compose.PageBlockRecordList({
+      blockID: `drillDown-${props.block.options?.chartID}`,
+      options: {
+        moduleID,
+        fields,
+        prefilter,
+        presort: 'createdAt DESC',
+        hideRecordReminderButton: true,
+        hideRecordViewButton: false,
+        hideConfigureFieldsButton: false,
+        hideImportButton: true,
+        enableRecordPageNavigation: true,
+        selectable: true,
+        allowExport: true,
+        perPage: 14,
+        showTotalCount: true,
+        recordDisplayOption: 'modal',
+      },
+      style: {
+        wrap: { kind: 'plain' }
+      }
+    })
+
+    drillDownModalVisible.value = true
+  }
+}
 
 onBeforeUnmount(() => {
   offRefetch?.()

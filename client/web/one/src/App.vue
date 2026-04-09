@@ -7,9 +7,9 @@
         :settings="$Settings.get('ui.topbar', {})"
         :labels="{
           appMenu: $t('navigation.appMenu'),
-          helpForum: $t('navigation.help.forum'),
-          helpDocumentation: $t('navigation.help.documentation'),
-          helpFeedback: $t('navigation.help.feedback'),
+          helpBuyHuman: $t('navigation.help.buyHuman'),
+          helpManageSubscription: $t('navigation.help.manageSubscription'),
+          helpPackageDetails: $t('navigation.help.packageDetails'),
           helpVersion: $t('navigation.help.version'),
           userSettingsProfile: $t('navigation.userSettings.profile'),
           userSettingsChangePassword: $t('navigation.userSettings.changePassword'),
@@ -36,6 +36,7 @@
             top: 'var(--topbar-height)',
           },
         },
+        messageIcon: { class: 'hidden' },
       }"
     />
 
@@ -47,7 +48,12 @@
 
 <script setup>
 import { useApplicationsStore } from '@/stores/applications'
-import { components, useNotificationsStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import {
+  components,
+  useNotificationsStore,
+  useWorkflowPromptsStore,
+  websocket,
+} from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 const { CTopbar, CLoaderLogo, CPrompts, CNotificationSidebar, CAgentSidebar } = components

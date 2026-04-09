@@ -226,7 +226,7 @@ const fieldModule = computed(() => {
   return pageModule.value
 })
 
-// The active record: use reference record (if reference field), context record (if editing), builder record, or local record
+// The active record: use reference record (if reference field), context record (if ctx available), builder record, or local record
 const activeRecord = computed(() => {
   if (options.value.referenceField && referenceRecord.value) {
     return referenceRecord.value
@@ -234,7 +234,9 @@ const activeRecord = computed(() => {
   if (isBuilder.value) {
     return builderRecord.value
   }
-  if (isEditing.value) {
+  // When a record view context is present (record page or modal), always use its record.
+  // This covers both edit and view modes, including modal where route.params.recordID is absent.
+  if (ctx) {
     return ctx.record.value
   }
   return localRecord.value
@@ -499,8 +501,9 @@ async function loadReferenceRecord() {
 
 // --- Record loading (view mode) ---
 async function loadRecord() {
-  // In edit/create mode, record comes from context — no need to load
-  if (isEditing.value) return
+  // When a record view context is injected (record page or modal), the record is managed
+  // by RecordView — no need to load it here.
+  if (ctx) return
   if (!pageModule.value) return
 
   const recordID = route.params?.recordID

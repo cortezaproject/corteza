@@ -76,7 +76,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
@@ -95,6 +95,7 @@ const props = defineProps({
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $eventBus = inject('$eventBus', null)
+const route = useRoute()
 const router = useRouter()
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
@@ -238,12 +239,24 @@ function handleEventClick ({ event }) {
   if (!recordPage) return
 
   const displayOption = options.value.eventDisplayOption || 'sameTab'
-  const route = { name: 'page.record', params: { recordID, pageID: recordPage.pageID } }
+
+  if (displayOption === 'modal') {
+    router.push({
+      query: {
+        ...route.query,
+        recordPageID: recordPage.pageID,
+        recordID: recordID,
+      }
+    })
+    return
+  }
+
+  const routeObj = { name: 'page.record', params: { recordID, pageID: recordPage.pageID } }
 
   if (displayOption === 'newTab') {
-    window.open(router.resolve(route).href)
+    window.open(router.resolve(routeObj).href)
   } else {
-    router.push(route)
+    router.push(routeObj)
   }
 }
 
@@ -298,18 +311,21 @@ onMounted(() => {
   // FullCalendar renders before the page grid layout is complete.
   // Poll updateSize until the container has stable dimensions.
   let lastWidth = 0
+  let lastHeight = 0
   let stableCount = 0
   sizeCheckInterval = setInterval(() => {
     const el = containerRef.value
     if (!el) return
 
     const w = el.clientWidth
+    const h = el.clientHeight
     updateCalendarHeight()
     calendarApi.value?.updateSize()
 
-    if (w > 0 && w === lastWidth) {
+    // Only count stable when the container actually has dimensions
+    if (w > 0 && h > 0 && w === lastWidth && h === lastHeight) {
       stableCount++
-      if (stableCount >= 3) {
+      if (stableCount >= 5) {
         clearInterval(sizeCheckInterval)
         sizeCheckInterval = null
       }
@@ -317,18 +333,22 @@ onMounted(() => {
       stableCount = 0
     }
     lastWidth = w
+    lastHeight = h
   }, 100)
 
   // Watch container size changes (route switch, builder→view, window resize)
-  if (containerRef.value) {
-    resizeObserver = new ResizeObserver(() => {
-      nextTick(() => {
-        updateCalendarHeight()
-        calendarApi.value?.updateSize()
+  // Deferred to nextTick to ensure containerRef is rendered
+  nextTick(() => {
+    if (containerRef.value) {
+      resizeObserver = new ResizeObserver(() => {
+        nextTick(() => {
+          updateCalendarHeight()
+          calendarApi.value?.updateSize()
+        })
       })
-    })
-    resizeObserver.observe(containerRef.value)
-  }
+      resizeObserver.observe(containerRef.value)
+    }
+  })
 })
 
 onBeforeUnmount(() => {

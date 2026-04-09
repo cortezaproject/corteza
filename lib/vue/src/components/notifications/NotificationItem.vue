@@ -40,7 +40,7 @@
 <script setup>
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps({
   notification: {
@@ -52,6 +52,7 @@ const props = defineProps({
 const emit = defineEmits(['mark-read', 'mark-unread', 'delete'])
 
 const menu = ref()
+const route = useRoute()
 const router = useRouter()
 const $ComposeAPI = inject('$ComposeAPI', null)
 const $toast = inject('$toast', null)
@@ -104,37 +105,52 @@ async function openRecordNotification() {
     const pageID = recordPages[0].pageID
     const recID = !recordID || recordID === '0' ? '0' : recordID
 
-    if (!router.hasRoute('page.record')) {
-      const u = new URL(window.location)
-      let url = `${u.origin}/compose/namespace/${slug}/pages/${pageID}/records/${recID}`
-      if (edit) {
-        url += '?edit=1'
-      }
-
-      if (openMode === 'newTab') {
-        window.open(url, '_blank', 'noopener')
-      } else {
-        window.location = url
-      }
-      return
+    const hasComposeRoute = router.hasRoute('page.record')
+    const u = new URL(window.location)
+    let externalUrl = `${u.origin}/compose/namespace/${slug}/pages/${pageID}/records/${recID}`
+    if (edit) {
+      externalUrl += '?edit=1'
     }
 
     const routeLocation = {
       name: 'page.record',
-      params: {
-        slug,
-        pageID,
-        recordID: recID,
-      },
+      params: { slug, pageID, recordID: recID },
       query: edit ? { edit: '1' } : {},
     }
 
-    if (openMode === 'newTab') {
-      const resolved = router.resolve(routeLocation)
-      window.open(resolved.href, '_blank', 'noopener')
-    } else {
-      router.push(routeLocation)
+    // Modal
+    if (openMode === 'modal') {
+      if (hasComposeRoute) {
+        return router.push({
+          query: {
+            ...route.query,
+            recordPageID: pageID,
+            recordID: recID,
+            ...(edit ? { edit: '1' } : {}),
+          },
+        })
+      }
+
+      // Outside Compose — redirect to namespace root with modal query params
+      const u = new URL(window.location)
+      const modalUrl = new URL(`${u.origin}/compose/namespace/${slug}`)
+      modalUrl.searchParams.set('recordPageID', pageID)
+      modalUrl.searchParams.set('recordID', recID)
+      if (edit) modalUrl.searchParams.set('edit', '1')
+      return (window.location = modalUrl.toString())
     }
+
+    // New tab
+    if (openMode === 'newTab') {
+      return hasComposeRoute
+        ? window.open(router.resolve(routeLocation).href, '_blank', 'noopener')
+        : window.open(externalUrl, '_blank', 'noopener')
+    }
+
+    // Same tab (default) or modal fallback outside Compose
+    return hasComposeRoute
+      ? router.push(routeLocation)
+      : (window.location = externalUrl)
   } catch {
     $toast?.toastDanger?.(t('notifications.recordRedirectError'))
   }

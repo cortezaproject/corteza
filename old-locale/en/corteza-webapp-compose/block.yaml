@@ -101,6 +101,10 @@ chart:
     description: If a record list is selected, it will be used to display the drill down data. If no record list is selected, the drill down data will be shown in a modal.
     openInModal: Open in modal
     configureColumns: Choose the default fields
+    enabled: Enable drill down
+    blockID: Record list block
+    blockIDFootnote: Select a record list block to display the drill down data
+    blockIDPlaceholder: Select a record list block
   edit:
     label: Edit chart
     dimension:

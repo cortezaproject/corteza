@@ -96,7 +96,7 @@ const navItems = computed(() => [
     _id: 'llm-providers',
     _parentId: 'system',
     _label: t('navigation.system.items.llm-providers'),
-    _icon: 'pi pi-microchip-ai',
+    _icon: 'pi pi-sparkles',
     _route: { name: 'system.llmProviders' },
   },
 
@@ -228,28 +228,30 @@ const navItems = computed(() => [
   },
 
   // ── Federation ───────────────────────────────────────────
-  ...(federationEnabled.value ? [
-    {
-      _id: 'federation',
-      _parentId: '0',
-      _label: t('navigation.federation.group'),
-      _icon: 'pi pi-share-alt',
-    },
-    {
-      _id: 'federation-nodes',
-      _parentId: 'federation',
-      _label: t('navigation.federation.items.nodes'),
-      _icon: 'pi pi-sitemap',
-      _route: { name: 'federation.nodes' },
-    },
-    {
-      _id: 'federation-permissions',
-      _parentId: 'federation',
-      _label: t('navigation.federation.items.permissions'),
-      _icon: 'pi pi-lock',
-      _route: { name: 'federation.permissions' },
-    },
-  ] : []),
+  ...(federationEnabled.value
+    ? [
+        {
+          _id: 'federation',
+          _parentId: '0',
+          _label: t('navigation.federation.group'),
+          _icon: 'pi pi-share-alt',
+        },
+        {
+          _id: 'federation-nodes',
+          _parentId: 'federation',
+          _label: t('navigation.federation.items.nodes'),
+          _icon: 'pi pi-sitemap',
+          _route: { name: 'federation.nodes' },
+        },
+        {
+          _id: 'federation-permissions',
+          _parentId: 'federation',
+          _label: t('navigation.federation.items.permissions'),
+          _icon: 'pi pi-lock',
+          _route: { name: 'federation.permissions' },
+        },
+      ]
+    : []),
 
   // ── UI ───────────────────────────────────────────────────
   {

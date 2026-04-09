@@ -22,7 +22,11 @@
         </div>
 
         <!-- Inline editing (when module selected) -->
-        <CInputSwitch v-if="recordListModule" v-model="editable" :label="$t('block.recordList.record.inlineEditorAllow')" />
+        <CInputSwitch
+          v-if="recordListModule"
+          v-model="editable"
+          :label="$t('block.recordList.record.inlineEditorAllow')"
+        />
       </div>
     </div>
 
@@ -59,7 +63,9 @@
           </h5>
 
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.recordList.editFields') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.recordList.editFields') }}
+            </label>
             <CFieldPicker
               :all-fields="editableFieldSubset"
               :model-value="selectedEditFieldNames"
@@ -75,7 +81,9 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">{{ $t('block.recordList.positionField.label') }}</label>
+              <label class="text-primary font-medium text-sm">
+                {{ $t('block.recordList.positionField.label') }}
+              </label>
               <Select
                 v-model="positionField"
                 :options="positionFields"
@@ -85,10 +93,16 @@
                 class="w-full"
                 show-clear
               />
-              <small class="text-muted-color">{{ $t('block.recordList.positionField.footnote') }}</small>
+              <small class="text-muted-color">
+                {{ $t('block.recordList.positionField.footnote') }}
+              </small>
             </div>
 
-            <CInputSwitch v-if="positionField" v-model="draggable" :label="$t('block.recordList.record.draggable')" />
+            <CInputSwitch
+              v-if="positionField"
+              v-model="draggable"
+              :label="$t('block.recordList.record.draggable')"
+            />
           </div>
         </div>
       </template>
@@ -102,14 +116,24 @@
         </h5>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <CInputSwitch v-model="showSearch" :label="$t('block.recordList.record.prefilterHideSearch')" />
+          <CInputSwitch
+            v-model="showSearch"
+            :label="$t('block.recordList.record.prefilterHideSearch')"
+          />
 
           <CInputSwitch v-model="showFiltering" :label="$t('block.recordList.record.filterHide')" />
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.prefilterLabel') }}</label>
-          <Textarea v-model="prefilter" rows="3" class="w-full" :placeholder="$t('block.recordList.record.prefilterPlaceholder')" />
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.recordList.record.prefilterLabel') }}
+          </label>
+          <Textarea
+            v-model="prefilter"
+            rows="3"
+            class="w-full"
+            :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
+          />
           <small class="text-muted-color">
             {{ $t('block.recordList.record.prefilterFootnote') }}
           </small>
@@ -117,7 +141,10 @@
 
         <!-- Filter Presets -->
         <div class="flex flex-col gap-3">
-          <CInputSwitch v-model="customFilterPresets" :label="$t('block.recordList.record.enableFilterPresets')" />
+          <CInputSwitch
+            v-model="customFilterPresets"
+            :label="$t('block.recordList.record.enableFilterPresets')"
+          />
 
           <template v-if="customFilterPresets">
             <div
@@ -126,8 +153,16 @@
               class="flex flex-col gap-2 p-3 border border-surface rounded-border"
             >
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium">{{ $t('block.recordList.record.preset') }} {{ i + 1 }}</span>
-                <Button icon="pi pi-trash" severity="danger" text size="small" @click="removeFilterPreset(i)" />
+                <span class="text-sm font-medium">
+                  {{ $t('block.recordList.record.preset') }} {{ i + 1 }}
+                </span>
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  size="small"
+                  @click="removeFilterPreset(i)"
+                />
               </div>
               <InputText
                 :model-value="preset.name || ''"
@@ -143,7 +178,9 @@
                 @update:model-value="updateFilterPreset(i, 'filter', $event)"
               />
               <div class="flex flex-col gap-1">
-                <label class="text-sm text-muted-color">{{ $t('block.recordList.record.presetRoles') }}</label>
+                <label class="text-sm text-muted-color">
+                  {{ $t('block.recordList.record.presetRoles') }}
+                </label>
                 <CInputRole
                   :model-value="preset.roles || []"
                   multiple
@@ -173,11 +210,20 @@
           {{ $t('block.recordList.record.presortLabel') }}
         </h5>
 
-        <CInputSwitch v-model="showSorting" :label="$t('block.recordList.record.presortHideSort')" />
+        <CInputSwitch
+          v-model="showSorting"
+          :label="$t('block.recordList.record.presortHideSort')"
+        />
 
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.presortInputLabel') }}</label>
-          <InputText v-model="presort" class="w-full" :placeholder="$t('block.recordList.record.presortPlaceholder')" />
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.recordList.record.presortInputLabel') }}
+          </label>
+          <InputText
+            v-model="presort"
+            class="w-full"
+            :placeholder="$t('block.recordList.record.presortPlaceholder')"
+          />
           <small class="text-muted-color">
             {{ $t('block.recordList.record.presortFootnote') }}
           </small>
@@ -195,16 +241,27 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <CInputSwitch v-model="showPaging" :label="$t('block.recordList.record.hidePaging')" />
 
-          <CInputSwitch v-model="fullPageNavigation" :label="$t('block.recordList.record.fullPageNavigation')" />
+          <CInputSwitch
+            v-model="fullPageNavigation"
+            :label="$t('block.recordList.record.fullPageNavigation')"
+          />
 
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.perPage') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.recordList.record.perPage') }}
+            </label>
             <InputNumber v-model="perPage" :min="1" :max="1000" class="w-full" />
           </div>
 
-          <CInputSwitch v-model="showRecordPerPageOption" :label="$t('block.recordList.record.showRecordPerPageOption')" />
+          <CInputSwitch
+            v-model="showRecordPerPageOption"
+            :label="$t('block.recordList.record.showRecordPerPageOption')"
+          />
 
-          <CInputSwitch v-model="showTotalCount" :label="$t('block.recordList.record.showTotalCount')" />
+          <CInputSwitch
+            v-model="showTotalCount"
+            :label="$t('block.recordList.record.showTotalCount')"
+          />
         </div>
       </div>
 
@@ -216,7 +273,10 @@
           {{ $t('block.recordList.record.summaries') }}
         </h5>
 
-        <CInputSwitch v-model="customSummaries" :label="$t('block.recordList.record.enableSummaries')" />
+        <CInputSwitch
+          v-model="customSummaries"
+          :label="$t('block.recordList.record.enableSummaries')"
+        />
 
         <template v-if="customSummaries">
           <div
@@ -225,8 +285,16 @@
             class="flex flex-col gap-2 p-3 border border-surface rounded-border"
           >
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium">{{ $t('block.recordList.record.summary') }} {{ i + 1 }}</span>
-              <Button icon="pi pi-trash" severity="danger" text size="small" @click="removeSummary(i)" />
+              <span class="text-sm font-medium">
+                {{ $t('block.recordList.record.summary') }} {{ i + 1 }}
+              </span>
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                size="small"
+                @click="removeSummary(i)"
+              />
             </div>
             <InputText
               :model-value="summary.label || ''"
@@ -255,7 +323,9 @@
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">{{ $t('block.recordList.record.summaryRoles') }}</label>
+              <label class="text-sm text-muted-color">
+                {{ $t('block.recordList.record.summaryRoles') }}
+              </label>
               <CInputRole
                 :model-value="summary.roles || []"
                 multiple
@@ -286,7 +356,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.recordDisplayOptions') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.recordList.record.recordDisplayOptions') }}
+            </label>
             <Select
               v-model="recordDisplayOption"
               :options="recordDisplayOptions"
@@ -297,7 +369,9 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.recordSelectorDisplayOptions') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.recordList.record.recordSelectorDisplayOptions') }}
+            </label>
             <Select
               v-model="recordSelectorDisplayOption"
               :options="recordDisplayOptions"
@@ -307,10 +381,15 @@
             />
           </div>
 
-          <CInputSwitch v-model="showAddButton" :label="$t('block.recordList.record.hideAddButton')" />
+          <CInputSwitch
+            v-model="showAddButton"
+            :label="$t('block.recordList.record.hideAddButton')"
+          />
 
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.addRecordDisplayOption') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.recordList.record.addRecordDisplayOption') }}
+            </label>
             <Select
               v-model="addRecordDisplayOption"
               :options="recordCreateOptions"
@@ -321,56 +400,106 @@
             />
           </div>
 
-          <CInputSwitch v-model="openRecordInEditMode" :label="$t('block.recordList.record.openRecordInEditMode')" />
+          <CInputSwitch
+            v-model="openRecordInEditMode"
+            :label="$t('block.recordList.record.openRecordInEditMode')"
+          />
 
           <CInputSwitch v-model="selectable" :label="$t('block.recordList.selectable')" />
 
-          <CInputSwitch v-model="showImport" :label="$t('block.recordList.record.hideImportButton')" />
+          <CInputSwitch
+            v-model="showImport"
+            :label="$t('block.recordList.record.hideImportButton')"
+          />
 
           <CInputSwitch v-model="allowExport" :label="$t('block.recordList.export.allow')" />
 
-          <CInputSwitch v-model="showConfigureFieldsButton" :label="$t('block.recordList.hideConfigureFieldsButton')" />
+          <CInputSwitch
+            v-model="showConfigureFieldsButton"
+            :label="$t('block.recordList.hideConfigureFieldsButton')"
+          />
 
-          <CInputSwitch v-model="inlineRecordEditEnabled" :label="$t('block.recordList.record.inlineRecordEditEnabled')" />
+          <CInputSwitch
+            v-model="inlineRecordEditEnabled"
+            :label="$t('block.recordList.record.inlineRecordEditEnabled')"
+          />
 
-          <CInputSwitch v-model="inlineRecordEditAllowAddField" :label="$t('block.recordList.record.inlineRecordEditAllowAddField')" :disabled="!inlineRecordEditEnabled" />
+          <CInputSwitch
+            v-model="inlineRecordEditAllowAddField"
+            :label="$t('block.recordList.record.inlineRecordEditAllowAddField')"
+            :disabled="!inlineRecordEditEnabled"
+          />
 
-          <CInputSwitch v-model="bulkRecordEditEnabled" :label="$t('block.recordList.record.bulkRecordEditEnabled')" />
+          <CInputSwitch
+            v-model="bulkRecordEditEnabled"
+            :label="$t('block.recordList.record.bulkRecordEditEnabled')"
+          />
 
-          <CInputSwitch v-model="inlineValueFiltering" :label="$t('block.recordList.record.inlineValueFiltering')" />
+          <CInputSwitch
+            v-model="inlineValueFiltering"
+            :label="$t('block.recordList.record.inlineValueFiltering')"
+          />
 
-          <CInputSwitch v-model="enableRecordPageNavigation" :label="$t('block.recordList.record.enableRecordPageNavigation')" />
+          <CInputSwitch
+            v-model="enableRecordPageNavigation"
+            :label="$t('block.recordList.record.enableRecordPageNavigation')"
+          />
 
-          <CInputSwitch v-model="showDeletedRecordsOption" :label="$t('block.recordList.record.showDeletedRecordsOption')" />
+          <CInputSwitch
+            v-model="showDeletedRecordsOption"
+            :label="$t('block.recordList.record.showDeletedRecordsOption')"
+          />
         </div>
 
         <!-- Row Action Buttons -->
         <div class="flex flex-col gap-2">
-          <label class="text-primary font-medium text-sm">{{ $t('block.recordList.record.rowActionButtons') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.recordList.record.rowActionButtons') }}
+          </label>
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
               <Checkbox v-model="hideRecordViewButton" binary input-id="hideRecordViewButton" />
-              <label for="hideRecordViewButton" class="text-sm">{{ $t('block.recordList.hideRecordViewButton') }}</label>
+              <label for="hideRecordViewButton" class="text-sm">
+                {{ $t('block.recordList.hideRecordViewButton') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
               <Checkbox v-model="hideRecordEditButton" binary input-id="hideRecordEditButton" />
-              <label for="hideRecordEditButton" class="text-sm">{{ $t('block.recordList.hideRecordEditButton') }}</label>
+              <label for="hideRecordEditButton" class="text-sm">
+                {{ $t('block.recordList.hideRecordEditButton') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
               <Checkbox v-model="hideRecordCloneButton" binary input-id="hideRecordCloneButton" />
-              <label for="hideRecordCloneButton" class="text-sm">{{ $t('block.recordList.hideRecordCloneButton') }}</label>
+              <label for="hideRecordCloneButton" class="text-sm">
+                {{ $t('block.recordList.hideRecordCloneButton') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox v-model="hideRecordReminderButton" binary input-id="hideRecordReminderButton" />
-              <label for="hideRecordReminderButton" class="text-sm">{{ $t('block.recordList.hideRecordReminderButton') }}</label>
+              <Checkbox
+                v-model="hideRecordReminderButton"
+                binary
+                input-id="hideRecordReminderButton"
+              />
+              <label for="hideRecordReminderButton" class="text-sm">
+                {{ $t('block.recordList.hideRecordReminderButton') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox v-model="hideRecordPermissionsButton" binary input-id="hideRecordPermissionsButton" />
-              <label for="hideRecordPermissionsButton" class="text-sm">{{ $t('block.recordList.hideRecordPermissionsButton') }}</label>
+              <Checkbox
+                v-model="hideRecordPermissionsButton"
+                binary
+                input-id="hideRecordPermissionsButton"
+              />
+              <label for="hideRecordPermissionsButton" class="text-sm">
+                {{ $t('block.recordList.hideRecordPermissionsButton') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
               <Checkbox v-model="hideRecordDeleteButton" binary input-id="hideRecordDeleteButton" />
-              <label for="hideRecordDeleteButton" class="text-sm">{{ $t('block.recordList.hideRecordDeleteButton') }}</label>
+              <label for="hideRecordDeleteButton" class="text-sm">
+                {{ $t('block.recordList.hideRecordDeleteButton') }}
+              </label>
             </div>
           </div>
         </div>
@@ -548,25 +677,31 @@ const recordSelectorDisplayOption = computed({
   set: v => updateOptions('recordSelectorDisplayOption', v),
 })
 
-
-
 // --- Field picker ---
 
 const selectedFieldNames = ref([])
 const selectedEditFieldNames = ref([])
 
 // Initialize field name refs from block options
-watch(() => props.block.options?.fields, (fields) => {
-  if (fields?.length) {
-    selectedFieldNames.value = fields.map(f => f.name ?? f)
-  }
-}, { immediate: true })
+watch(
+  () => props.block.options?.fields,
+  fields => {
+    if (fields?.length) {
+      selectedFieldNames.value = fields.map(f => f.name ?? f)
+    }
+  },
+  { immediate: true },
+)
 
-watch(() => props.block.options?.editFields, (fields) => {
-  if (fields?.length) {
-    selectedEditFieldNames.value = fields.map(f => f.name ?? f)
-  }
-}, { immediate: true })
+watch(
+  () => props.block.options?.editFields,
+  fields => {
+    if (fields?.length) {
+      selectedEditFieldNames.value = fields.map(f => f.name ?? f)
+    }
+  },
+  { immediate: true },
+)
 
 // All fields: regular + system with translated labels
 const allModuleFields = computed(() => {
@@ -598,11 +733,14 @@ function onEditFieldPickerUpdate(names) {
 }
 
 // When module changes: reset fields + editable, auto-enable editable if module has no record page
-watch(() => props.block.options?.moduleID, (newID, oldID) => {
-  if (!oldID || newID === oldID) return
-  updateOptions('fields', [])
-  updateOptions('editable', false)
-})
+watch(
+  () => props.block.options?.moduleID,
+  (newID, oldID) => {
+    if (!oldID || newID === oldID) return
+    updateOptions('fields', [])
+    updateOptions('editable', false)
+  },
+)
 
 const summaryMetrics = [
   { value: 'sum', label: t('block.recordList.summaries.metrics.sum.label') },

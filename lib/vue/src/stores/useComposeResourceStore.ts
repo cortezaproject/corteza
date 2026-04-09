@@ -8,6 +8,7 @@ export const useComposeResourceStore = defineStore(
 
     const namespaces = ref(new Map<string, any>())
     const modules = ref(new Map<string, any>())
+    const charts = ref(new Map<string, any>())
 
     function cacheNamespace(ns: any) {
       if (ns?.namespaceID) {
@@ -21,12 +22,22 @@ export const useComposeResourceStore = defineStore(
       }
     }
 
+    function cacheChart(chart: any) {
+      if (chart?.chartID && chart?.namespaceID) {
+        charts.value.set(`${chart.namespaceID}:${chart.chartID}`, chart)
+      }
+    }
+
     function getNamespace(id: string) {
       return namespaces.value.get(id)
     }
 
     function getModule(nsID: string, modID: string) {
       return modules.value.get(`${nsID}:${modID}`)
+    }
+
+    function getChart(nsID: string, chartID: string) {
+      return charts.value.get(`${nsID}:${chartID}`)
     }
 
     async function resolveNamespace(id: string) {
@@ -53,6 +64,21 @@ export const useComposeResourceStore = defineStore(
       })
       cacheModule(mod)
       return mod
+    }
+
+    async function resolveChart(nsID: string, chartID: string) {
+      if (!nsID || !chartID || !$ComposeAPI) return undefined
+
+      const key = `${nsID}:${chartID}`
+      const cached = charts.value.get(key)
+      if (cached) return cached
+
+      const chart = await $ComposeAPI.chartRead({
+        namespaceID: nsID,
+        chartID,
+      })
+      cacheChart(chart)
+      return chart
     }
 
     function searchNamespaces(params: Record<string, any> = {}) {
@@ -103,15 +129,46 @@ export const useComposeResourceStore = defineStore(
       }
     }
 
+    function searchCharts(
+      nsID: string,
+      params: Record<string, any> = {},
+    ) {
+      if (!nsID || !$ComposeAPI) {
+        return {
+          response: () => Promise.resolve({ set: [] }),
+          cancel: () => {},
+        }
+      }
+
+      const { response, cancel } = $ComposeAPI.chartListCancellable({
+        namespaceID: nsID,
+        ...params,
+      })
+
+      return {
+        response: async () => {
+          const result = await response()
+          const set = result.set || []
+          set.forEach(cacheChart)
+          return result
+        },
+        cancel,
+      }
+    }
+
     return {
       namespaces,
       modules,
+      charts,
       getNamespace,
       getModule,
+      getChart,
       resolveNamespace,
       resolveModule,
+      resolveChart,
       searchNamespaces,
       searchModules,
+      searchCharts,
     }
   },
 )

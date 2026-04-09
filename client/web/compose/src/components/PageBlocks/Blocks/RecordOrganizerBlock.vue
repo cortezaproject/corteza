@@ -119,6 +119,18 @@ async function pullRecords() {
 
 function handleRecordClick(record) {
   const { displayOption } = options.value
+
+  if (displayOption === 'modal') {
+    router.push({
+      query: {
+        ...route.query,
+        recordPageID: props.page.pageID,
+        recordID: record.recordID,
+      }
+    })
+    return
+  }
+
   const recordRoute = {
     name: 'page.record',
     params: { pageID: props.page.pageID, recordID: record.recordID },
@@ -132,11 +144,30 @@ function handleRecordClick(record) {
 }
 
 function createNewRecord() {
-  const recordRoute = {
-    name: 'page.record.create',
-    params: { pageID: props.page.pageID },
+  const { addRecordDisplayOption, displayOption } = options.value
+  const displayMode = addRecordDisplayOption || displayOption || 'sameTab'
+
+  if (displayMode === 'modal') {
+    router.push({
+      query: {
+        ...route.query,
+        recordPageID: props.page.pageID,
+        recordID: '0',
+      }
+    })
+    return
   }
-  router.push(recordRoute)
+
+  const recordRoute = {
+    name: 'page.record',
+    params: { pageID: props.page.pageID, recordID: '0' },
+  }
+
+  if (displayMode === 'newTab') {
+    window.open(router.resolve(recordRoute).href)
+  } else {
+    router.push(recordRoute)
+  }
 }
 
 onMounted(() => pullRecords())

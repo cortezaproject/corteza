@@ -21,9 +21,9 @@
           :settings="$Settings.get('ui.topbar', {})"
           :labels="{
             appMenu: $t('navigation.appMenu'),
-            helpForum: $t('navigation.help.forum'),
-            helpDocumentation: $t('navigation.help.documentation'),
-            helpFeedback: $t('navigation.help.feedback'),
+            helpBuyHuman: $t('navigation.help.buyHuman'),
+            helpManageSubscription: $t('navigation.help.manageSubscription'),
+            helpPackageDetails: $t('navigation.help.packageDetails'),
             helpVersion: $t('navigation.help.version'),
             userSettingsProfile: $t('navigation.userSettings.profile'),
             userSettingsChangePassword: $t('navigation.userSettings.changePassword'),
@@ -48,6 +48,7 @@
               top: 'var(--topbar-height)',
             },
           },
+          messageIcon: { class: 'hidden' },
         }"
       />
 
@@ -73,11 +74,29 @@
 
 <script setup>
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
-import { components, providePermissions, withMinDuration, useApplicationsStore, useNotificationsStore, useRBACStore, useWorkflowPromptsStore, websocket } from '@cortezaproject/corteza-vue-next'
+import {
+  components,
+  providePermissions,
+  withMinDuration,
+  useApplicationsStore,
+  useNotificationsStore,
+  useRBACStore,
+  useWorkflowPromptsStore,
+  websocket,
+} from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useAutomationStore } from '@/stores/automation'
-const { CTopbar, CLoaderLogo, CSidebar, CAppListSidebar, CPrompts, CNotificationSidebar, CPermissionsDialog, CAgentSidebar } = components
+const {
+  CTopbar,
+  CLoaderLogo,
+  CSidebar,
+  CAppListSidebar,
+  CPrompts,
+  CNotificationSidebar,
+  CPermissionsDialog,
+  CAgentSidebar,
+} = components
 
 providePermissions()
 
@@ -171,7 +190,6 @@ const disabledRoutes = ['list'] // "disable it on taq list"
 const sidebarDisabled = computed(() => {
   return disabledRoutes.includes(route.name?.toString() || '')
 })
-
 
 const contentMargin = computed(() => {
   return !isMobile.value && expanded.value && !sidebarDisabled.value ? 'var(--sidebar-width)' : '0'

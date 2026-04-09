@@ -78,6 +78,10 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  allowEmpty: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -108,9 +112,9 @@ function valuesToEntries(vals) {
 }
 
 function getValuesArray() {
-  if (Array.isArray(props.modelValue)) return props.modelValue
+  if (Array.isArray(props.modelValue)) return props.modelValue.length ? props.modelValue : (props.allowEmpty ? [] : [''])
   if (props.modelValue) return [props.modelValue]
-  return ['']
+  return props.allowEmpty ? [] : ['']
 }
 
 // Sync entries when modelValue changes externally
@@ -141,7 +145,7 @@ function removeValue(id) {
   const index = entries.value.findIndex(e => e.id === id)
   if (index === -1) return
   entries.value.splice(index, 1)
-  if (!entries.value.length) {
+  if (!entries.value.length && !props.allowEmpty) {
     entries.value = [{ id: nextId++, value: '' }]
   }
   emit('update:modelValue', entries.value.map(e => e.value))

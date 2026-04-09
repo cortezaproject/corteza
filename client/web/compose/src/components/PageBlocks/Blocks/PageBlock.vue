@@ -50,14 +50,8 @@
     v-if="showMagnifyButton"
     v-model:visible="magnified"
     :modal="true"
-    :maximized="magnifyOption === 'fullscreen'"
     class="magnify-dialog"
-    :style="{
-      width: magnifyOption === 'fullscreen' ? '100vw' : '80vw',
-      height: magnifyOption === 'fullscreen' ? '100vh' : '90vh',
-      maxHeight: magnifyOption === 'fullscreen' ? '100%' : '',
-      borderRadius: magnifyOption === 'fullscreen' ? '0px' : '',
-    }"
+    :style="{ width: '90vw', height: '90vh' }"
     :pt="{
       content: { class: 'flex-1 flex flex-col overflow-hidden p-0' },
       header: { class: 'pl-3 py-2 pr-2 border-b border-surface gap-1' },

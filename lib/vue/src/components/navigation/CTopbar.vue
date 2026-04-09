@@ -67,8 +67,8 @@
         <Button
           ref="helpMenuRef"
           data-test-id="dropdown-helper"
-          icon="pi pi-question-circle"
-          severity="secondary"
+          icon="pi pi-dollar"
+          severity="success"
           variant="text"
           rounded
           @click="toggleHelpMenu"
@@ -253,41 +253,25 @@ const themes = computed(() => [
 const helpMenuItems = computed(() => {
   const items = []
 
-  helpLinks.value.forEach(helpLink => {
-    items.push({
-      label: helpLink.handle,
-      url: helpLink.url,
-      target: helpLink.newTab ? '_blank' : '',
-    })
+  items.push({
+    label: props.labels.helpBuyHuman,
+    url: 'https://buy.polar.sh/polar_cl_MKycmV54KogEiCMy7Oqf4zXIwWZ7wOPhtf5xg3dTn21',
+    target: '_blank',
   })
 
-  if (!settings.value?.hideForumLink) {
-    items.push({
-      label: props.labels.helpForum,
-      url: 'https://forum.cortezaproject.org/',
-      target: '_blank',
-    })
-  }
+  items.push({
+    label: props.labels.helpManageSubscription,
+    url: 'https://polar.sh/planet-crust/portal/',
+    target: '_blank',
+  })
 
-  if (!settings.value?.hideDocumentationLink) {
-    items.push({
-      label: props.labels.helpDocumentation,
-      url: documentationURL.value,
-      target: '_blank',
-    })
-  }
+  items.push({
+    label: props.labels.helpPackageDetails,
+    url: 'https://docs.planetcrust.com/price-and-terms',
+    target: '_blank',
+  })
 
-  if (!settings.value?.hideFeedbackLink) {
-    items.push({
-      label: props.labels.helpFeedback,
-      url: 'mailto:info@cortezaproject.org',
-      target: '_blank',
-    })
-  }
-
-  if (items.length > 0) {
-    items.push({ separator: true })
-  }
+  items.push({ separator: true })
 
   items.push({
     label: buildVersion.value,

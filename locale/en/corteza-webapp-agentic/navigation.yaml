@@ -9,6 +9,9 @@ help:
   feedback: Send feedback
   forum: Help
   version: 'Version:'
+  buyHuman: 'Buy @Human'
+  manageSubscription: 'Manage Subscription'
+  packageDetails: 'Package Details'
 module: Modules
 more: More
 namespace: Namespaces

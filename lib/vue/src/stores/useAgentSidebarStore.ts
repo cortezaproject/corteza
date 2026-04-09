@@ -28,7 +28,7 @@ export const useAgentSidebarStore = defineStore('agentSidebar', () => {
   }
 
   function initConversation(agentID: string) {
-    if (!conversations.value[agentID]) {
+    if (!conversations.value[agentID] || conversations.value[agentID].length === 0) {
       conversations.value[agentID] = [{
         id: 1,
         messages: [],

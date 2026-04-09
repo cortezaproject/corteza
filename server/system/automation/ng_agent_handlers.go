@@ -82,7 +82,7 @@ func (h ngAgentHandler) Prompt() atypes.ConstructFunction {
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Prompt Agent",
 			Description: "Send a prompt to an agent",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "microchip-ai"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "sparkles"},
 			Weight:      1,
 		},
 
@@ -183,7 +183,7 @@ func (h ngAgentHandler) Continue() atypes.ConstructFunction {
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Continue Conversation",
 			Description: "Continue an existing agent conversation",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "microchip-ai"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "sparkles"},
 			Weight:      2,
 		},
 

@@ -5,6 +5,9 @@ help:
   feedback: Send feedback
   forum: Help
   version: 'Version:'
+  buyHuman: 'Buy @Human'
+  manageSubscription: 'Manage Subscription'
+  packageDetails: 'Package Details'
 appMenu: Menu
 automations: Automations
 appList:

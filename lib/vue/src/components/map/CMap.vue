@@ -1,5 +1,5 @@
 <template>
-  <div class="c-map relative">
+  <div ref="rootRef" class="c-map relative">
     <!-- Geo Search -->
     <div v-if="!hideGeoSearch" class="geo-search-container">
       <InputText
@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import 'leaflet/dist/leaflet.css'
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
@@ -95,12 +95,14 @@ const props = defineProps({
 const emit = defineEmits(['map-click', 'marker-click', 'location-found'])
 
 const mapRef = ref(null)
+const rootRef = ref(null)
 
 // Geo search state
 const geoSearchQuery = ref('')
 const geoSearchResults = ref([])
 const geoSearchMarker = ref(null)
 let searchTimeout = null
+let resizeObserver = null
 
 const provider = new OpenStreetMapProvider()
 
@@ -198,6 +200,26 @@ function invalidateSize() {
 }
 
 defineExpose({ invalidateSize })
+
+// Auto-detect visibility/size changes via ResizeObserver.
+// When a map is inside a hidden container (tab, dialog, modal) and becomes
+// visible, the container resizes from 0×0 → actual size. We catch that and
+// call invalidateSize() so Leaflet recalculates its viewport.
+onMounted(() => {
+  if (rootRef.value && typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      nextTick(() => invalidateSize())
+    })
+    resizeObserver.observe(rootRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+})
 
 // Watch center changes to re-center the map
 watch(

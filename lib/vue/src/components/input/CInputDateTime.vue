@@ -10,6 +10,7 @@
     show-icon
     fluid
     :size="size"
+    show-button-bar
     @update:model-value="onUpdate"
   />
 </template>

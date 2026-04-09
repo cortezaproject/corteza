@@ -16,7 +16,7 @@
 
 <script setup>
 import { computed, inject, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps({
   field: {
@@ -46,6 +46,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const route = useRoute()
 const $recordStore = inject('$recordStore', null)
 const $recordRoutes = inject('$recordRoutes', null)
 const $pageStore = inject('$pageStore', null)
@@ -124,10 +125,26 @@ function navigateToRecord(rec) {
     const pages = $pageStore.set || []
     const page = pages.find(p => p.moduleID === moduleID)
     if (page) {
-      router.push({
-        name: 'page.record',
-        params: { pageID: page.pageID, recordID },
-      })
+      const displayOption = props.extraOptions?.recordSelectorDisplayOption || 'sameTab'
+
+      if (displayOption === 'modal') {
+        router.push({
+          query: {
+            ...route.query,
+            recordPageID: page.pageID,
+            recordID: recordID,
+          }
+        })
+        return
+      }
+
+      const routeObj = { name: 'page.record', params: { pageID: page.pageID, recordID } }
+
+      if (displayOption === 'newTab') {
+        window.open(router.resolve(routeObj).href)
+      } else {
+        router.push(routeObj)
+      }
       return
     }
   }

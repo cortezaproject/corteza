@@ -4,6 +4,9 @@ help:
   feedback: Send feedback
   forum: Help
   version: 'Version:'
+  buyHuman: 'Buy @Human'
+  manageSubscription: 'Manage Subscription'
+  packageDetails: 'Package Details'
 userSettings:
   changePassword: Change password
   logout: Logout

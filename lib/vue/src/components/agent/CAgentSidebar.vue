@@ -57,7 +57,7 @@
 
         <!-- Conversations Tabs Bar -->
         <div
-          v-if="conversations && conversations.length > 0"
+          v-if="hasStartedConversations"
           class="flex items-center gap-0 border-b border-surface shrink-0 bg-surface-ground"
         >
           <div class="flex items-center gap-0 flex-1 overflow-x-auto no-scrollbar">
@@ -81,7 +81,7 @@
               />
             </button>
           </div>
-          <div class="px-1 border-l border-surface shrink-0">
+          <div class="flex items-center px-1 border-l border-surface shrink-0">
             <Button
               icon="pi pi-plus"
               severity="secondary"
@@ -91,6 +91,17 @@
               class="!w-7 !h-7"
               v-tooltip.bottom="$t('agent.sidebar.newChat')"
               @click="agentStore.startNewConversation(agentStore.activeAgentID!)"
+            />
+            <Button
+              v-if="conversations.length > 1"
+              icon="pi pi-trash"
+              severity="danger"
+              variant="text"
+              rounded
+              size="small"
+              class="!w-7 !h-7"
+              v-tooltip.bottom="$t('agent.sidebar.clearAllChats')"
+              @click="agentStore.clearConversation(agentStore.activeAgentID!)"
             />
           </div>
         </div>
@@ -236,6 +247,10 @@ const scrollToBottom = async () => {
     chatContainer.value.scrollTop = chatContainer.value.scrollHeight
   }
 }
+
+const hasStartedConversations = computed(() => {
+  return conversations.value.some((c: any) => c.messages.length > 0)
+})
 
 watch(activeConversationIndex, () => {
   scrollToBottom()

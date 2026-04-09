@@ -10,12 +10,14 @@
     </div>
   </div>
 
-  <!-- Loaded content -->
   <div v-else-if="namespace" class="flex h-full">
     <!-- Main content area -->
     <div class="flex-1 overflow-auto">
       <RouterView :namespace="namespace" />
     </div>
+
+    <!-- Global Modals -->
+    <RecordModal :namespace="namespace" />
   </div>
 
   <!-- Error state -->
@@ -37,6 +39,7 @@ import { useMinDuration } from '@cortezaproject/corteza-vue-next'
 import { inject, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import RecordModal from '@/components/Record/RecordModal.vue'
 
 const props = defineProps({
   slug: {

@@ -1,11 +1,11 @@
 <template>
   <!-- Page title in topbar -->
-  <Teleport to="#topbar-title" :defer="true">
+  <Teleport v-if="!inModal" to="#topbar-title" :defer="true">
     <span v-if="page">{{ page.title }}</span>
   </Teleport>
 
   <!-- Admin tools in topbar -->
-  <Teleport to="#topbar-tools" :defer="true">
+  <Teleport v-if="!inModal" to="#topbar-tools" :defer="true">
     <ButtonGroup v-if="page?.canUpdatePage" class="gap-1">
       <Button
         v-if="page.isRecordPage"
@@ -56,7 +56,7 @@
             :label="$t('general.label.back')"
             icon="pi pi-arrow-left"
             severity="secondary"
-            @click="$router.back()"
+            @click="handleCancel"
           />
           <Button
             v-else-if="mode !== 'view'"
@@ -152,7 +152,21 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  inModal: {
+    type: Boolean,
+    default: false,
+  },
+  modalPageID: {
+    type: String,
+    default: null,
+  },
+  modalRecordID: {
+    type: String,
+    default: null,
+  },
 })
+
+const emit = defineEmits(['close'])
 
 const route = useRoute()
 const router = useRouter()
@@ -178,9 +192,9 @@ const record = ref(null)
 const pristineRecord = ref(null)
 const navigatingAfterSave = ref(false)
 
-// Mode derived from route
+// Mode derived from route or props
 const mode = computed(() => {
-  const recordID = route.params.recordID
+  const recordID = props.inModal ? props.modalRecordID : route.params.recordID
   if (recordID === '0') return 'create'
   if (route.query.edit === '1') return 'edit'
   return 'view'
@@ -249,8 +263,8 @@ const positionedBlocks = computed(() => {
 })
 
 async function loadPage() {
-  const pageID = route.params.pageID
-  const recordID = route.params.recordID
+  const pageID = props.inModal ? props.modalPageID : route.params.pageID
+  const recordID = props.inModal ? props.modalRecordID : route.params.recordID
   if (!pageID) return
 
   loading.value = true
@@ -395,16 +409,32 @@ async function handleSave({ valid }) {
     )
 
     pristineRecord.value = saved
-    // Set flag so leave guard allows this programmatic navigation
-    navigatingAfterSave.value = true
-    router.replace({
-      name: 'page.record',
-      params: {
-        slug: route.params.slug,
-        pageID: route.params.pageID,
-        recordID: saved.recordID,
-      },
-    })
+
+    if (props.inModal) {
+      if (isNew.value) {
+        // Update query to new recordID instead of '0'
+        router.replace({
+          query: {
+            ...route.query,
+            recordID: saved.recordID,
+            edit: undefined,
+          }
+        })
+      } else {
+        router.replace({ query: { ...route.query, edit: undefined } })
+      }
+    } else {
+      // Set flag so leave guard allows this programmatic navigation
+      navigatingAfterSave.value = true
+      router.replace({
+        name: 'page.record',
+        params: {
+          slug: route.params.slug,
+          pageID: route.params.pageID,
+          recordID: saved.recordID,
+        },
+      })
+    }
   } catch (e) {
     console.error('Failed to save record:', e)
     const details = e?.details ?? []
@@ -429,25 +459,59 @@ async function handleSave({ valid }) {
 }
 
 function handleEdit() {
-  router.push({ query: { edit: '1' } })
+  router.push({ query: { ...route.query, edit: '1' } })
 }
 
 function handleClone() {
-  router.push({
-    name: 'page.record',
-    params: { slug: route.params.slug, pageID: route.params.pageID, recordID: '0' },
-    query: { cloneFromID: record.value.recordID },
-  })
+  if (props.inModal) {
+    router.push({
+      query: {
+        ...route.query,
+        recordID: '0',
+        cloneFromID: record.value.recordID,
+      }
+    })
+  } else {
+    router.push({
+      name: 'page.record',
+      params: { slug: route.params.slug, pageID: props.inModal ? props.modalPageID : route.params.pageID, recordID: '0' },
+      query: { cloneFromID: record.value.recordID },
+    })
+  }
 }
 
 function handleNew() {
-  router.push({
-    name: 'page.record',
-    params: { slug: route.params.slug, pageID: route.params.pageID, recordID: '0' },
-  })
+  if (props.inModal) {
+    router.push({
+      query: {
+        ...route.query,
+        recordID: '0',
+      }
+    })
+  } else {
+    router.push({
+      name: 'page.record',
+      params: { slug: route.params.slug, pageID: route.params.pageID, recordID: '0' },
+    })
+  }
 }
 
 function handleCancel() {
+  if (props.inModal) {
+    if (mode.value === 'view') {
+      emit('close')
+    } else {
+      const q = { ...route.query }
+      delete q.edit
+      if (isNew.value) {
+        emit('close')
+      } else {
+        router.replace({ query: q })
+      }
+    }
+    return
+  }
+
   if (mode.value === 'create') {
     router.back()
   } else {
@@ -467,7 +531,11 @@ async function handleDelete() {
       recordID: record.value.recordID,
     })
     $toast.toastSuccess(t('notification.record.deleteSuccess'))
-    router.back()
+    if (props.inModal) {
+      emit('close')
+    } else {
+      router.back()
+    }
   } catch (e) {
     console.error('Failed to delete record:', e)
     $toast.toastDanger(t('notification.record.deleteFailed'))
@@ -540,7 +608,11 @@ watch(
 
 // Load on mount and when pageID, recordID, or cloneFromID changes (not on edit-query toggle)
 watch(
-  () => [route.params.pageID, route.params.recordID, route.query.cloneFromID],
+  () => [
+    props.inModal ? props.modalPageID : route.params.pageID,
+    props.inModal ? props.modalRecordID : route.params.recordID,
+    route.query.cloneFromID
+  ],
   () => loadPage(),
   { immediate: true },
 )

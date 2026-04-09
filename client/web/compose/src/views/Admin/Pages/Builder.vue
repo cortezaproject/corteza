@@ -106,15 +106,17 @@
     :style="{ width: '600px' }"
   >
     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-      <div
-        v-for="bt in addableBlockTypes"
-        :key="bt.kind"
-        class="flex flex-col items-center gap-2 p-4 border border-surface rounded cursor-pointer hover:bg-highlight transition-colors"
-        @click="addBlock(bt.kind)"
-      >
-        <i :class="bt.icon" class="text-2xl text-primary" />
-        <span class="text-sm font-medium text-center">{{ bt.label }}</span>
-      </div>
+      <template v-for="bt in addableBlockTypes" :key="bt.kind">
+        <Divider v-if="bt.kind === 'divider'" class="col-span-2 md:col-span-3 my-0" />
+        <div
+          v-else
+          class="flex flex-col items-center gap-2 p-4 border border-surface rounded cursor-pointer hover:bg-highlight transition-colors"
+          @click="addBlock(bt.kind)"
+        >
+          <i :class="bt.icon" class="text-2xl text-primary" />
+          <span class="text-sm font-medium text-center">{{ bt.label }}</span>
+        </div>
+      </template>
     </div>
   </Dialog>
 
@@ -438,6 +440,7 @@ const showAddBlock = ref(false)
 const showConfigurator = ref(false)
 const editingBlock = ref(null)
 const editingBlockIndex = ref(-1)
+const isNewBlock = ref(false)
 const gridRef = ref(null)
 const configuratorTab = ref('block')
 const pendingTabBlockIndex = ref(null)
@@ -513,6 +516,15 @@ watch(showAddBlock, visible => {
   }
 })
 
+watch(showConfigurator, visible => {
+  if (!visible && isNewBlock.value) {
+    blocks.value.splice(editingBlockIndex.value, 1)
+    syncTabbedBlockVisibility()
+    gridRef.value?.rebuildLayout()
+    isNewBlock.value = false
+  }
+})
+
 // Label for the block-specific tab
 const editingBlockTypeLabel = computed(() => {
   if (!editingBlock.value) return ''
@@ -523,40 +535,39 @@ const editingBlockTypeLabel = computed(() => {
 // Available block types for the "add block" dialog
 const availableBlockTypes = computed(() => {
   const isRecordPage = page.value?.isRecordPage
-  return [
-    { kind: 'Content', label: t('block.content.label'), icon: 'pi pi-align-left' },
+
+  const recordBlocks = [
     { kind: 'RecordList', label: t('block.recordList.label'), icon: 'pi pi-list' },
-    ...(isRecordPage
-      ? [{ kind: 'Record', label: t('block.record.label'), icon: 'pi pi-objects-column' }]
-      : []),
-    { kind: 'Chart', label: t('block.chart.label'), icon: 'pi pi-chart-bar' },
-    { kind: 'Metric', label: t('block.metric.label'), icon: 'pi pi-hashtag' },
-    { kind: 'File', label: t('block.file.label'), icon: 'pi pi-paperclip' },
-    { kind: 'IFrame', label: t('block.iframe.label'), icon: 'pi pi-globe' },
-    { kind: 'Automation', label: t('block.automation.label'), icon: 'pi pi-bolt' },
-    { kind: 'Calendar', label: t('block.calendar.label'), icon: 'pi pi-calendar' },
-    { kind: 'Comment', label: t('block.comment.label'), icon: 'pi pi-comments' },
-    { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
-    { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-objects-column' },
-    { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'RecordOrganizer', label: t('block.recordOrganizer.label'), icon: 'pi pi-th-large' },
     ...(isRecordPage
       ? [
-          {
-            kind: 'RecordRevisions',
-            label: t('block.recordRevisions.label'),
-            icon: 'pi pi-history',
-          },
+          { kind: 'Record', label: t('block.record.label'), icon: 'pi pi-objects-column' },
+          { kind: 'RecordRevisions', label: t('block.recordRevisions.label'), icon: 'pi pi-history' },
         ]
       : []),
-    { kind: 'Geometry', label: t('block.geometry.label'), icon: 'pi pi-map' },
+  ].sort((a, b) => a.label.localeCompare(b.label))
 
-  ]
+  const otherBlocks = [
+    { kind: 'Automation', label: t('block.automation.label'), icon: 'pi pi-bolt' },
+    { kind: 'Calendar', label: t('block.calendar.label'), icon: 'pi pi-calendar' },
+    { kind: 'Chart', label: t('block.chart.label'), icon: 'pi pi-chart-bar' },
+    { kind: 'Comment', label: t('block.comment.label'), icon: 'pi pi-comments' },
+    { kind: 'Content', label: t('block.content.label'), icon: 'pi pi-align-left' },
+    { kind: 'File', label: t('block.file.label'), icon: 'pi pi-paperclip' },
+    { kind: 'Geometry', label: t('block.geometry.label'), icon: 'pi pi-map' },
+    { kind: 'IFrame', label: t('block.iframe.label'), icon: 'pi pi-globe' },
+    { kind: 'Metric', label: t('block.metric.label'), icon: 'pi pi-hashtag' },
+    { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
+    { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
+    { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-credit-card' },
+  ].sort((a, b) => a.label.localeCompare(b.label))
+
+  return [...recordBlocks, { kind: 'divider' }, ...otherBlocks]
 })
 
 const addableBlockTypes = computed(() =>
   pendingTabBlockIndex.value !== null
-    ? availableBlockTypes.value.filter(({ kind }) => kind !== 'Tabs')
+    ? availableBlockTypes.value.filter(({ kind }) => kind !== 'Tabs' && kind !== 'divider')
     : availableBlockTypes.value,
 )
 
@@ -689,6 +700,7 @@ function addBlock(kind) {
     editingBlock.value = JSON.parse(JSON.stringify(block))
     editingBlockIndex.value = index
     configuratorTab.value = 'block'
+    isNewBlock.value = true
     showConfigurator.value = true
   } catch (e) {
     console.error('Failed to create block:', e)
@@ -757,6 +769,7 @@ function onBlockConfigUpdate(updatedBlock) {
 }
 
 function saveBlockConfig() {
+  isNewBlock.value = false
   commitEditingBlock()
   showConfigurator.value = false
   editingBlock.value = null
