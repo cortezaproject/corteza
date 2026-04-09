@@ -75,6 +75,7 @@ export default {
   data () {
     return {
       layout: [],
+      resizeObserver: null,
     }
   },
 
@@ -107,6 +108,22 @@ export default {
       immediate: true,
       deep: true,
     },
+  },
+
+  mounted () {
+    // vue-grid-layout only listens to window resize, not parent container resize.
+    // When the Group block is resized in the page builder grid, we need to
+    // trigger a recalculation so inner blocks reflow accordingly.
+    this.resizeObserver = new ResizeObserver(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+    this.resizeObserver.observe(this.$el)
+  },
+
+  beforeDestroy () {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+    }
   },
 
   methods: {

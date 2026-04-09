@@ -168,6 +168,7 @@ export default {
 
     deleteBlock (index) {
       this.block.options.blocks.splice(index, 1)
+      this.$root.$emit('groupBlockRemoved')
     },
 
     getBlockLabel ({ title, kind }) {
