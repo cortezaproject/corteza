@@ -46,6 +46,15 @@ attachment: {
 				omitSetter: true
 				omitGetter: true
 			}
+			hash: {
+				dal: { type: "Text", nullable: true }
+			}
+			rel_module: {
+				ident: "moduleID"
+				goType: "uint64"
+				storeIdent: "rel_module"
+				dal: { type: "ID" }
+			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
@@ -54,6 +63,9 @@ attachment: {
 		indexes: {
 			"primary": { attribute: "id" }
 			"namespace": { attribute: "namespace_id" },
+			"hash_module": {
+				fields: [{ attribute: "hash" }, { attribute: "rel_module" }]
+			}
 		}
 	}
 
@@ -65,6 +77,7 @@ attachment: {
 			record_id: { goType: "uint64", ident: "recordID" }
 			module_id: { goType: "uint64", ident: "moduleID" }
 			field_name: { }
+			hash: { }
 		}
 
 		byValue: ["kind", "namespace_id"]

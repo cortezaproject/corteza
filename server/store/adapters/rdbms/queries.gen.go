@@ -1429,6 +1429,8 @@ var (
 			"preview_url",
 			"name",
 			"meta",
+			"hash",
+			"rel_module",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -1439,6 +1441,10 @@ var (
 	//
 	// This function is auto-generated
 	composeAttachmentInsertQuery = func(d goqu.DialectWrapper, res *composeType.Attachment) *goqu.InsertDataset {
+		var hash interface{}
+		if res.Hash != "" {
+			hash = res.Hash
+		}
 		return d.Insert(composeAttachmentTable).
 			Rows(goqu.Record{
 				"id":            res.ID,
@@ -1449,6 +1455,8 @@ var (
 				"preview_url":   res.PreviewUrl,
 				"name":          res.Name,
 				"meta":          res.Meta,
+				"hash":          hash,
+				"rel_module":    res.ModuleID,
 				"created_at":    res.CreatedAt,
 				"updated_at":    res.UpdatedAt,
 				"deleted_at":    res.DeletedAt,
@@ -1460,6 +1468,10 @@ var (
 	// This function is auto-generated
 	composeAttachmentUpsertQuery = func(d goqu.DialectWrapper, res *composeType.Attachment) *goqu.InsertDataset {
 		var target = `,id`
+		var hash interface{}
+		if res.Hash != "" {
+			hash = res.Hash
+		}
 
 		return composeAttachmentInsertQuery(d, res).
 			OnConflict(
@@ -1472,6 +1484,8 @@ var (
 						"preview_url":   res.PreviewUrl,
 						"name":          res.Name,
 						"meta":          res.Meta,
+						"hash":          hash,
+						"rel_module":    res.ModuleID,
 						"created_at":    res.CreatedAt,
 						"updated_at":    res.UpdatedAt,
 						"deleted_at":    res.DeletedAt,
@@ -1484,6 +1498,10 @@ var (
 	//
 	// This function is auto-generated
 	composeAttachmentUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Attachment) *goqu.UpdateDataset {
+		var hash interface{}
+		if res.Hash != "" {
+			hash = res.Hash
+		}
 		return d.Update(composeAttachmentTable).
 			Set(goqu.Record{
 				"rel_namespace": res.NamespaceID,
@@ -1493,6 +1511,8 @@ var (
 				"preview_url":   res.PreviewUrl,
 				"name":          res.Name,
 				"meta":          res.Meta,
+				"hash":          hash,
+				"rel_module":    res.ModuleID,
 				"created_at":    res.CreatedAt,
 				"updated_at":    res.UpdatedAt,
 				"deleted_at":    res.DeletedAt,

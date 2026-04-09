@@ -20,6 +20,8 @@ type (
 		Meta       AttachmentMeta `json:"meta"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
+		ModuleID    uint64 `json:"moduleID,string,omitempty"`
+		Hash        string `json:"hash,omitempty"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -34,6 +36,7 @@ type (
 		RecordID    uint64 `json:"recordID,string,omitempty"`
 		ModuleID    uint64 `json:"moduleID,string,omitempty"`
 		FieldName   string `json:"fieldName,omitempty"`
+		Hash        string `json:"hash,omitempty"`
 		Filter      string `json:"filter"`
 
 		Deleted filter.State `json:"deleted"`

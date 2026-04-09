@@ -20,6 +20,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/cortezaproject/corteza/server/store"
@@ -28,6 +29,17 @@ import (
 )
 
 type (
+	duplicateAttachmentPayload struct {
+		Duplicate            bool   `json:"duplicate"`
+		ExistingAttachmentID string `json:"existingAttachmentID"`
+		ExistingRecordID     string `json:"existingRecordID"`
+		ModuleID             string `json:"moduleID"`
+		NamespaceID          string `json:"namespaceID"`
+		ConflictAction       string `json:"conflictAction"`
+		RecordPageID         string `json:"recordPageID"`
+		NamespaceSlug        string `json:"namespaceSlug"`
+	}
+
 	recordBulkPatchRecord struct {
 		Record      *types.Record              `json:"record"`
 		Error       error                      `json:"error,omitempty"`
@@ -384,6 +396,22 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 		r.FieldName,
 	)
 
+	if err != nil {
+		var dup *service.DuplicateAttachmentError
+		if errors.As(err, &dup) {
+			return &duplicateAttachmentPayload{
+				Duplicate:            true,
+				ExistingAttachmentID: strconv.FormatUint(dup.ExistingAttachmentID, 10),
+				ExistingRecordID:     strconv.FormatUint(dup.ExistingRecordID, 10),
+				ModuleID:             strconv.FormatUint(dup.ModuleID, 10),
+				NamespaceID:          strconv.FormatUint(dup.NamespaceID, 10),
+				ConflictAction:       dup.ConflictAction,
+				RecordPageID:         strconv.FormatUint(dup.RecordPageID, 10),
+				NamespaceSlug:        dup.NamespaceSlug,
+			}, nil
+		}
+	}
+
 	return makeAttachmentPayload(ctx, a, err)
 }
 
@@ -720,7 +748,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 	return func(w http.ResponseWriter, req *http.Request) {
 		if len(r.Fields) == 0 {
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
-			return
 		}
 
 		fx := make(map[string]bool)
@@ -754,6 +781,9 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
 			return
 		}
+
+		w.Header().Add("Content-Type", contentType)
+		w.Header().Add("Content-Disposition", "attachment"+filename)
 
 		var nodes envoyx.NodeSet
 		nodes, _, err = envoySvc.Decode(ctx, envoyx.DecodeParams{
@@ -791,7 +821,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			},
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -804,12 +833,8 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			},
 		}, nil, nodes...)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Add("Content-Type", contentType)
-		w.Header().Add("Content-Disposition", "attachment"+filename)
 
 		mapping := make([]envoyx.MapEntry, 0, len(r.Fields))
 		for _, f := range r.Fields {
@@ -829,13 +854,10 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			FieldMapping: mapping,
 		}, gg)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if err = ctrl.record.RecordExport(ctx, *rf); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		err = ctrl.record.RecordExport(ctx, *rf)
 	}, err
 }
 

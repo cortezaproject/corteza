@@ -38,6 +38,8 @@ field:
   missingRequired: Missing value on required field
   unknownFieldKind: 'Error: Unknown field kind "{{kind}}", no viewer component found.'
   unsupportedKind: Unsupported field kind {{kind}}
+  duplicateAlert: 'Duplicate file: this file already exists in record #{{recordID}}.'
+  openRecord: Open record
 field-datetime:
   valueNotFuture: Past value on future only field
   valueNotPast: Future value on past only field
