@@ -10,10 +10,12 @@ interface GroupBlock {
 
 interface Options {
   blocks: GroupBlock[];
+  padding: number;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   blocks: [],
+  padding: 0,
 })
 
 export class PageBlockGroup extends PageBlock {
@@ -31,6 +33,10 @@ export class PageBlockGroup extends PageBlock {
 
     if (o.blocks) {
       this.options.blocks = o.blocks
+    }
+
+    if (o.padding !== undefined) {
+      this.options.padding = o.padding
     }
   }
 }

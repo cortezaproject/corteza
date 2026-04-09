@@ -26,7 +26,7 @@
         vertical-compact
         :is-resizable="editable"
         :is-draggable="editable"
-        :margin="[0, 0]"
+        :margin="gridMargin"
         :use-css-transforms="false"
         class="w-100 h-100"
         @layout-updated="onLayoutUpdated"
@@ -76,6 +76,8 @@ export default {
     return {
       layout: [],
       resizeObserver: null,
+      updatingLayout: false,
+      lastWidth: 0,
     }
   },
 
@@ -86,17 +88,24 @@ export default {
         if (!unparsedBlock) return undefined
 
         const block = JSON.parse(JSON.stringify(unparsedBlock))
-        // Set some default styling for nested blocks
-        block.style.wrap.kind = 'Plain'
-        block.style.border.enabled = false
         return compose.PageBlockMaker(block)
       }).filter(b => !!b)
+    },
+
+    gridMargin () {
+      const p = this.block.options.padding || 0
+      return [p, p]
     },
   },
 
   watch: {
     'block.options.blocks': {
       handler (blocks) {
+        // Guard against infinite loop: onLayoutUpdated modifies xywh which
+        // triggers this deep watcher, which rebuilds layout, which triggers
+        // vue-grid-layout to re-layout, which fires layout-updated again.
+        if (this.updatingLayout) return
+
         this.layout = blocks.map(({ blockID, xywh: [x, y, w, h] }, i) => ({
           i: blockID || `temp-${i}`,
           x,
@@ -114,8 +123,14 @@ export default {
     // vue-grid-layout only listens to window resize, not parent container resize.
     // When the Group block is resized in the page builder grid, we need to
     // trigger a recalculation so inner blocks reflow accordingly.
-    this.resizeObserver = new ResizeObserver(() => {
-      window.dispatchEvent(new Event('resize'))
+    // Track width to avoid infinite loop (resize dispatch → grid recalc → size change → observer fires).
+    this.lastWidth = this.$el.clientWidth
+    this.resizeObserver = new ResizeObserver((entries) => {
+      const width = entries[0].contentRect.width
+      if (Math.abs(width - this.lastWidth) > 1) {
+        this.lastWidth = width
+        window.dispatchEvent(new Event('resize'))
+      }
     })
     this.resizeObserver.observe(this.$el)
   },
@@ -130,9 +145,21 @@ export default {
     onLayoutUpdated (layout) {
       if (!this.editable) return
 
-      this.block.options.blocks.forEach((b, idx) => {
+      this.updatingLayout = true
+
+      // When rendered inside a Tab, this.block is a deep clone — changes to it
+      // are discarded on save. Find the original block in this.blocks to persist xywh.
+      const originalBlock = this.blocks.find(b => fetchID(b) === fetchID(this.block))
+      const targetBlocks = originalBlock ? originalBlock.options.blocks : this.block.options.blocks
+
+      targetBlocks.forEach((b, idx) => {
+        if (!layout[idx]) return
         const { x, y, w, h } = layout[idx]
         b.xywh = [x, y, w, h]
+      })
+
+      this.$nextTick(() => {
+        this.updatingLayout = false
       })
     },
   },

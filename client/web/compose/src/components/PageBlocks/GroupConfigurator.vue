@@ -8,6 +8,19 @@
       </h5>
     </div>
 
+    <b-form-group
+      :label="$t('group.padding')"
+      label-class="text-primary"
+      class="mb-3"
+    >
+      <b-form-select
+        v-model="block.options.padding"
+        :options="paddingOptions"
+        size="sm"
+        style="max-width: 200px;"
+      />
+    </b-form-group>
+
     <c-form-table-wrapper
       :labels="{
         addButton: $t('general:label.add')
@@ -126,6 +139,17 @@ export default {
   },
 
   extends: base,
+
+  data () {
+    return {
+      paddingOptions: [
+        { value: 0, text: this.$t('group.paddingOptions.none') },
+        { value: 4, text: this.$t('group.paddingOptions.small') },
+        { value: 8, text: this.$t('group.paddingOptions.medium') },
+        { value: 12, text: this.$t('group.paddingOptions.large') },
+      ],
+    }
+  },
 
   computed: {
     blockOptions () {

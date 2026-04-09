@@ -1026,6 +1026,12 @@ tabs:
 group:
   label: Group
   noBlocks: No blocks configured
+  padding: Padding between blocks
+  paddingOptions:
+    none: None (0px)
+    small: Small (4px)
+    medium: Medium (8px)
+    large: Large (12px)
   blocks:
     title: Group Blocks
   table:
