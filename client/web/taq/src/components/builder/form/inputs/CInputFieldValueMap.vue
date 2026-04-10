@@ -41,12 +41,7 @@
           :disabled="disabled || !row.field"
           :add-label="t('builder.fieldValueMap.addValue')"
           class="w-full"
-          @update:model-value="
-            val => {
-              row.value = val
-              onRowChange()
-            }
-          "
+          @update:model-value="onFieldValueUpdate(row, $event)"
         />
         <Button
           v-if="row.field"
@@ -203,6 +198,11 @@ function addRow() {
 function removeRow(index) {
   rows.value.splice(index, 1)
   emitValue()
+}
+
+function onFieldValueUpdate(row, val) {
+  row.value = val
+  onRowChange()
 }
 
 function onRowChange() {

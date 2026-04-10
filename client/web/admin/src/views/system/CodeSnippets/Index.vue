@@ -73,12 +73,7 @@
             :label="$t('general.label.delete')"
             severity="danger"
             text
-            @click="
-              () => {
-                deleteSnippet(modal.index)
-                modal.open = false
-              }
-            "
+            @click="confirmDeleteSnippet"
           />
           <div class="flex-1" />
           <Button
@@ -146,6 +141,11 @@ function saveSnippet() {
 function deleteSnippet(index) {
   codeSnippets.value.splice(index, 1)
   persistSnippets('delete')
+}
+
+function confirmDeleteSnippet() {
+  deleteSnippet(modal.index)
+  modal.open = false
 }
 
 const snippetFields = [

@@ -17,3 +17,5 @@ If you ever encounter something in the project that surprises you, please alert 
 - A lot of components are already importer in primevue-components.ts so no need to re import them
 
 - Use pnpm for the package manager
+
+- Do not use inline JavaScript in Vue templates. If an event handler needs more than a single function call, extract it into a named function in the script section.

@@ -234,10 +234,7 @@
               :namespace="namespace"
               :model-value="data.values[col.name]"
               style="min-width: 200px"
-              @update:model-value="
-                data.values[col.name] = $event
-                onInlineFieldChange(data)
-              "
+              @update:model-value="onInlineFieldUpdate(data, col.name, $event)"
               @click.stop
             />
             <div v-else class="group flex items-start gap-1 min-w-0">
@@ -724,6 +721,11 @@ function startInlineEdit(data, col) {
 function clearInlineEdits(record) {
   const key = getRecordKey(record)
   activeInlineEdits.value.delete(key)
+}
+
+function onInlineFieldUpdate(record, fieldName, value) {
+  record.values[fieldName] = value
+  onInlineFieldChange(record)
 }
 
 function onInlineFieldChange(record) {

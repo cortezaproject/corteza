@@ -182,11 +182,7 @@
           <CInputSwitch
             v-model="settings['auth.multi-factor.email-otp.enabled']"
             :label="$t('system.settings.editor.auth.mfa.emailOTP.enabled')"
-            @update:modelValue="
-              v => {
-                if (!v) settings['auth.multi-factor.email-otp.enforced'] = false
-              }
-            "
+            @update:modelValue="onEmailOtpToggle"
           />
 
           <div class="flex flex-col gap-1">
@@ -218,11 +214,7 @@
           <CInputSwitch
             v-model="settings['auth.multi-factor.totp.enabled']"
             :label="$t('system.settings.editor.auth.mfa.TOTP.enabled')"
-            @update:modelValue="
-              v => {
-                if (!v) settings['auth.multi-factor.totp.enforced'] = false
-              }
-            "
+            @update:modelValue="onTotpToggle"
           />
 
           <div class="flex flex-col gap-1">
@@ -443,6 +435,14 @@ const loading = ref(false)
 const saving = ref(false)
 const settings = reactive({})
 const passwordSecurityEnabled = ref(true)
+
+function onEmailOtpToggle(v) {
+  if (!v) settings['auth.multi-factor.email-otp.enforced'] = false
+}
+
+function onTotpToggle(v) {
+  if (!v) settings['auth.multi-factor.totp.enforced'] = false
+}
 
 // External auth state
 const external = reactive({
