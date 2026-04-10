@@ -1,5 +1,29 @@
 <template>
+  <!-- Multi-select mode -->
+  <MultiSelect
+    v-if="multiple"
+    :model-value="selectedModules"
+    @update:model-value="onMultiSelect"
+    :options="options"
+    :option-label="getOptionLabel"
+    :placeholder="placeholder"
+    :disabled="disabled || !namespaceID"
+    :loading="loading"
+    class="w-full"
+    display="chip"
+    filter
+    :filter-fields="['name', 'handle', 'moduleID']"
+    fluid
+    @show="onShow"
+  >
+    <template #option="{ option }">
+      <span>{{ option.name }}</span>
+    </template>
+  </MultiSelect>
+
+  <!-- Single-select mode -->
   <Select
+    v-else
     :model-value="selectedModule"
     @update:model-value="onSelect"
     :options="options"
@@ -29,7 +53,7 @@ defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
-    type: [String, Number],
+    type: [String, Number, Array],
     default: null,
   },
   namespaceID: {
@@ -44,6 +68,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  multiple: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -52,6 +80,7 @@ const store = useComposeResourceStore()
 
 const options = ref([])
 const selectedModule = ref(null)
+const selectedModules = ref([])
 const loading = ref(false)
 
 // Store cancel function for current request
@@ -102,6 +131,8 @@ function onShow() {
   }
 }
 
+// --- Single-select ---
+
 function onSelect(value) {
   selectedModule.value = value
   emit('update:modelValue', value?.moduleID || null)
@@ -134,14 +165,49 @@ async function loadModuleById(moduleID) {
   }
 }
 
+// --- Multi-select ---
+
+function onMultiSelect(modules) {
+  selectedModules.value = modules
+  emit('update:modelValue', modules.map(m => m.moduleID))
+}
+
+async function loadModulesById(moduleIDs) {
+  if (!moduleIDs?.length || !props.namespaceID) return
+
+  const resolved = []
+  for (const id of moduleIDs) {
+    // Check in options first
+    let mod = options.value.find(m =>
+      m.moduleID === id || m.moduleID === String(id),
+    )
+    if (!mod) {
+      // Resolve through store
+      try {
+        mod = await store.resolveModule(props.namespaceID, id)
+        if (mod && !options.value.find(m => m.moduleID === mod.moduleID)) {
+          options.value = [...options.value, mod]
+        }
+      } catch (_e) {
+        // skip
+      }
+    }
+    if (mod) resolved.push(mod)
+  }
+  selectedModules.value = resolved
+}
+
+// --- Watchers ---
+
 // Watch for namespace changes - clear selection and reload
 watch(
   () => props.namespaceID,
   (newVal, oldVal) => {
     if (oldVal && newVal !== oldVal) {
       selectedModule.value = null
+      selectedModules.value = []
       options.value = []
-      emit('update:modelValue', null)
+      emit('update:modelValue', props.multiple ? [] : null)
     }
     if (newVal) {
       fetchModules()
@@ -152,20 +218,54 @@ watch(
 watch(
   () => props.modelValue,
   newVal => {
-    if (newVal && (!selectedModule.value || selectedModule.value.moduleID !== newVal)) {
-      loadModuleById(newVal)
-    } else if (!newVal) {
-      selectedModule.value = null
+    if (props.multiple) {
+      const ids = newVal || []
+      if (ids.length && options.value.length) {
+        syncMultiSelection(ids)
+      } else if (!ids.length) {
+        selectedModules.value = []
+      }
+    } else {
+      if (newVal && (!selectedModule.value || selectedModule.value.moduleID !== newVal)) {
+        loadModuleById(newVal)
+      } else if (!newVal) {
+        selectedModule.value = null
+      }
     }
   },
   { immediate: true },
 )
 
+// When options load, sync multi-selection
+watch(
+  () => options.value.length,
+  () => {
+    if (props.multiple && props.modelValue?.length && options.value.length) {
+      syncMultiSelection(props.modelValue)
+    }
+  },
+)
+
+function syncMultiSelection(ids) {
+  selectedModules.value = options.value.filter(m =>
+    ids.includes(m.moduleID) || ids.includes(String(m.moduleID)),
+  )
+  // Resolve any missing modules
+  const missing = ids.filter(id =>
+    !selectedModules.value.find(m => m.moduleID === id || m.moduleID === String(id)),
+  )
+  if (missing.length) {
+    loadModulesById(missing)
+  }
+}
+
 onMounted(() => {
   if (props.namespaceID) {
     fetchModules()
   }
-  if (props.modelValue && props.namespaceID) {
+  if (props.multiple && props.modelValue?.length && props.namespaceID) {
+    loadModulesById(props.modelValue)
+  } else if (!props.multiple && props.modelValue && props.namespaceID) {
     loadModuleById(props.modelValue)
   }
 })

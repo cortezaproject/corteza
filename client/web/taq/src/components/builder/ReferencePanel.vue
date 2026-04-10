@@ -47,32 +47,32 @@
                         </div>
                       </AccordionHeader>
                       <AccordionContent>
-                          <!-- Explicit button to select the entire object -->
-                          <button
-                            class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-1"
-                            :class="
-                              isActive(step.handle, result.sourceName)
-                                ? 'bg-highlight !text-primary'
-                                : ''
-                            "
-                            @click="emit('select', { scope: step.handle, source: result.sourceName })"
+                        <!-- Explicit button to select the entire object -->
+                        <button
+                          class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-1"
+                          :class="
+                            isActive(step.handle, result.sourceName)
+                              ? 'bg-highlight !text-primary'
+                              : ''
+                          "
+                          @click="emit('select', { scope: step.handle, source: result.sourceName })"
+                        >
+                          <span
+                            class="text-sm italic flex gap-1"
+                            :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
                           >
-                            <span
-                              class="text-sm italic flex gap-1"
-                              :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
-                            >
-                              <span class="capitalize">{{ result.name }}</span>
-                              <span>(whole)</span>
-                            </span>
-                          </button>
+                            <span class="capitalize">{{ result.name }}</span>
+                            <span>(whole)</span>
+                          </span>
+                        </button>
 
                         <!-- Loading state -->
                         <div
                           v-if="loadingFields[fieldKey(step, result)]"
                           class="flex items-center gap-2 px-3 py-4 justify-center"
                         >
-                          <i class="pi pi-spin pi-spinner text-muted" />
-                          <span class="text-xs text-muted">Loading fields...</span>
+                          <i class="pi pi-spin pi-spinner text-muted-color" />
+                          <span class="text-xs text-muted-color">Loading fields...</span>
                         </div>
 
                         <!-- Sub-fields -->
@@ -95,12 +95,12 @@
                                     <AccordionHeader
                                       class="hover:!bg-emphasis transition-colors !border-0 focus:!shadow-none text-color"
                                     >
-                                      <span class="text-sm italic">
-                                        Values
-                                      </span>
+                                      <span class="text-sm italic">Values</span>
                                     </AccordionHeader>
                                     <AccordionContent class="!p-0 !pt-0 border-none pb-1 mt-1">
-                                      <div class="pl-1.5 flex flex-col gap-0.5 border-l border-surface">
+                                      <div
+                                        class="pl-1.5 flex flex-col gap-0.5 border-l border-surface"
+                                      >
                                         <!-- Explicit button to select the entire values object -->
                                         <button
                                           class="flex items-center justify-between px-1.5 py-1 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-0.5"

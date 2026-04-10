@@ -304,6 +304,7 @@
                           :label="article.label"
                           :description="article.interpretation"
                           :disabled="article.hardwired"
+                          dimWhenOff
                           @update:modelValue="toggleTclArticle(article.id, $event)"
                         />
                       </div>
@@ -345,7 +346,6 @@
                       v-model="agent.behavior.injectSystemContext"
                       :label="$t('agent.editor.injectSystemContext.label')"
                       :description="$t('agent.editor.injectSystemContext.help')"
-                      dimWhenOff
                     />
                   </div>
                 </Panel>
@@ -377,30 +377,69 @@
 
                     <div v-if="selectedTools.length" class="flex flex-col gap-2">
                       <div
-                        v-for="tool in selectedTools"
+                        v-for="(tool, toolIdx) in selectedTools"
                         :key="tool.name"
-                        class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
+                        class="flex items-center gap-3 p-3 border border-surface rounded-lg"
                       >
-                        <div class="flex flex-col gap-1 flex-1 min-w-0">
+                        <div class="flex flex-col gap-0.5 flex-1 min-w-0">
                           <span class="font-medium text-color text-sm truncate">
                             {{ tool.title }}
                           </span>
-                          <InputText
-                            :modelValue="getToolHints(tool.name)"
-                            @update:modelValue="setToolHints(tool.name, $event)"
-                            class="w-full mt-1"
+                          <small
+                            v-if="getToolHints(tool.name)"
+                            class="text-muted-color text-xs truncate"
+                          >
+                            {{ getToolHints(tool.name) }}
+                          </small>
+                          <!-- Access info -->
+                          <div
+                            v-if="!hasToolAllowFromName(tool.name)"
+                            class="flex items-center gap-1.5"
+                          >
+                            <i class="pi pi-lock-open text-xs text-muted-color" />
+                            <span class="text-xs text-muted-color">
+                              {{ $t('agent.editor.tools.unrestricted') }}
+                            </span>
+                          </div>
+                          <div v-else class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                            <i class="pi pi-lock text-xs text-muted-color" />
+                            <template
+                              v-for="detail in getToolAllowDetails(tool.name)"
+                              :key="detail.namespaceID"
+                            >
+                              <Tag severity="secondary" rounded>
+                                <template #default>
+                                  <span class="text-xs">
+                                    {{ detail.namespaceName }}
+                                    <span v-if="detail.modules.length" class="text-muted-color">
+                                      · {{ detail.modules.join(', ') }}
+                                    </span>
+                                    <span v-else class="text-muted-color">
+                                      · {{ $t('agent.editor.tools.allModules') }}
+                                    </span>
+                                  </span>
+                                </template>
+                              </Tag>
+                            </template>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0">
+                          <Button
+                            icon="pi pi-pencil"
+                            severity="secondary"
+                            text
                             size="small"
-                            :placeholder="$t('agent.editor.tools.hintPlaceholder')"
+                            @click="openToolDialog(toolIdx)"
+                          />
+                          <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            size="small"
+                            @click="removeTool(tool)"
                           />
                         </div>
-                        <Button
-                          icon="pi pi-trash"
-                          severity="danger"
-                          text
-                          size="small"
-                          class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                          @click="removeTool(tool)"
-                        />
                       </div>
                     </div>
 
@@ -431,10 +470,10 @@
                             {{ loadedTaqNames[taq.id] || $t('general.label.loading') }}
                           </span>
                           <InputText
-                            v-model="agent.access.taqs[idx].hints"
+                            v-model="agent.access.taqs[idx].description"
                             class="w-full mt-1"
                             size="small"
-                            :placeholder="$t('agent.editor.taqs.hintPlaceholder')"
+                            :placeholder="$t('agent.editor.taqs.descriptionPlaceholder')"
                           />
                         </div>
                         <Button
@@ -455,7 +494,9 @@
                       <label class="font-medium text-primary">
                         {{ $t('agent.editor.workflows.label') }}
                       </label>
-                      <small class="text-muted-color">{{ $t('agent.editor.workflows.help') }}</small>
+                      <small class="text-muted-color">
+                        {{ $t('agent.editor.workflows.help') }}
+                      </small>
                     </div>
 
                     <CInputWorkflow
@@ -475,10 +516,10 @@
                             {{ loadedWorkflowNames[workflow.id] || $t('general.label.loading') }}
                           </span>
                           <InputText
-                            v-model="agent.access.workflows[idx].hints"
+                            v-model="agent.access.workflows[idx].description"
                             class="w-full mt-1"
                             size="small"
-                            :placeholder="$t('agent.editor.workflows.hintPlaceholder')"
+                            :placeholder="$t('agent.editor.workflows.descriptionPlaceholder')"
                           />
                         </div>
                         <Button
@@ -503,8 +544,13 @@
                         :label="$t('agent.editor.userEnabled.label')"
                         :description="$t('agent.editor.userEnabled.help')"
                       />
-                      
-                      <div class="flex flex-col gap-1" :class="{ 'opacity-50 pointer-events-none': !agent.invocation.user.enabled }">
+
+                      <div
+                        class="flex flex-col gap-1"
+                        :class="{
+                          'opacity-50 pointer-events-none': !agent.invocation.user.enabled,
+                        }"
+                      >
                         <label for="sidebarRoles" class="font-medium text-primary">
                           {{ $t('agent.editor.sidebarRoles.label') }}
                         </label>
@@ -528,7 +574,12 @@
                         :description="$t('agent.editor.systemEnabled.help')"
                       />
 
-                      <div class="flex flex-col gap-1" :class="{ 'opacity-50 pointer-events-none': !agent.invocation.system.enabled }">
+                      <div
+                        class="flex flex-col gap-1"
+                        :class="{
+                          'opacity-50 pointer-events-none': !agent.invocation.system.enabled,
+                        }"
+                      >
                         <label for="serviceAccount" class="font-medium text-primary">
                           {{ $t('agent.editor.serviceAccount.label') }}
                         </label>
@@ -547,7 +598,12 @@
               </TabPanel>
 
               <TabPanel value="exec" class="h-full p-0 flex flex-row overflow-hidden">
-                <AiChat :key="activeConvIndex" :agent="agent" :conversation="activeConversation" :isCreate="isCreate">
+                <AiChat
+                  :key="activeConvIndex"
+                  :agent="agent"
+                  :conversation="activeConversation"
+                  :isCreate="isCreate"
+                >
                   <template #header>
                     <div
                       class="flex items-center gap-0 border-b border-surface shrink-0 bg-surface-ground px-2"
@@ -655,6 +711,100 @@
       />
     </Dialog>
 
+    <!-- Tool Configuration Dialog -->
+    <Dialog
+      v-model:visible="toolDialogVisible"
+      :header="
+        editingToolMeta?.title || editingToolForm?.name || $t('agent.editor.tools.configure')
+      "
+      modal
+      :style="{ width: '40rem' }"
+    >
+      <div v-if="editingToolForm" class="flex flex-col gap-4">
+        <!-- Hints -->
+        <div class="flex flex-col gap-1">
+          <label class="font-medium text-primary text-sm">
+            {{ $t('agent.editor.tools.toolDescription') }}
+          </label>
+          <InputText
+            v-model="editingToolForm.hints"
+            :placeholder="$t('agent.editor.tools.descriptionPlaceholder')"
+          />
+        </div>
+
+        <!-- Restrict access toggle -->
+        <div class="flex flex-col gap-3">
+          <CInputToggleCard
+            :modelValue="hasToolAllow(editingToolForm)"
+            :label="$t('agent.editor.tools.restrictAccess')"
+            :description="$t('agent.editor.tools.restrictAccessHelp')"
+            @update:modelValue="toggleToolAllow(editingToolForm, $event)"
+          />
+
+          <!-- Namespace / Module rows -->
+          <template v-if="hasToolAllow(editingToolForm)">
+            <div class="flex flex-col gap-3">
+              <div
+                v-for="(rule, ruleIdx) in editingToolForm.allow"
+                :key="ruleIdx"
+                class="flex items-start gap-2 border border-surface rounded-lg p-3"
+              >
+                <div class="flex flex-col gap-2 flex-1">
+                  <CInputNamespace
+                    :model-value="rule.namespaceID"
+                    @update:model-value="onToolAllowNamespaceChange(rule, $event)"
+                    :placeholder="$t('agent.editor.tools.namespacePlaceholder')"
+                  />
+                  <CInputModule
+                    v-if="rule.namespaceID"
+                    :model-value="rule.moduleIDs || []"
+                    @update:model-value="rule.moduleIDs = $event"
+                    :namespace-i-d="rule.namespaceID"
+                    :placeholder="$t('agent.editor.tools.modulesPlaceholder')"
+                    :multiple="true"
+                  />
+                </div>
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  size="small"
+                  @click="removeToolAllowEntry(editingToolForm, ruleIdx)"
+                />
+              </div>
+
+              <Button
+                :label="$t('agent.editor.tools.addNamespace')"
+                icon="pi pi-plus"
+                severity="secondary"
+                outlined
+                size="small"
+                @click="addToolAllowEntry(editingToolForm)"
+              />
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="toolDialogVisible = false"
+          />
+          <Button
+            :label="$t('general.label.save')"
+            severity="primary"
+            size="small"
+            @click="saveToolDialog"
+          />
+        </div>
+      </template>
+    </Dialog>
+
     <div class="shrink-0 border-t border-surface bg-surface">
       <div class="flex items-center justify-between p-3">
         <Button
@@ -689,13 +839,26 @@ import { useI18n } from 'vue-i18n'
 
 import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
+import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
 
 // Components (not globally registered)
 import { components } from '@cortezaproject/corteza-vue-next'
 import AiChat from '@/components/AiChat.vue'
 
-const { CInputLLM, CInputModel, CInputDelete, CInputUser, CInputKnowledgeBase, CInputToggleCard, CInputRole, CInputTAQ, CInputWorkflow, CResourceList } =
-  components
+const {
+  CInputLLM,
+  CInputModel,
+  CInputDelete,
+  CInputUser,
+  CInputKnowledgeBase,
+  CInputToggleCard,
+  CInputRole,
+  CInputTAQ,
+  CInputWorkflow,
+  CResourceList,
+  CInputNamespace,
+  CInputModule,
+} = components
 
 const route = useRoute()
 const router = useRouter()
@@ -705,6 +868,7 @@ const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const $AutomationAPI = inject('$AutomationAPI')
 const agentStore = useAgentStore()
+const composeStore = useComposeResourceStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -728,14 +892,18 @@ const loadingHistoryChat = ref(false)
 const selectedHistoryConversation = ref(null)
 
 const historyTableFields = computed(() => [
-  { key: 'snippet', header: t('agent.editor.history.columns.snippet') || 'First Message', style: 'width: 60%' },
-  { key: 'createdAt', header: t('agent.editor.history.columns.createdAt') }
+  {
+    key: 'snippet',
+    header: t('agent.editor.history.columns.snippet') || 'First Message',
+    style: 'width: 60%',
+  },
+  { key: 'createdAt', header: t('agent.editor.history.columns.createdAt') },
 ])
 
 function getWarningSnippet(messages) {
   if (!messages || messages.length === 0) return '—'
   const firstUserMsg = messages.find(m => m.role === 'user')
-  const content = firstUserMsg ? firstUserMsg.content : (messages[0].content || '—')
+  const content = firstUserMsg ? firstUserMsg.content : messages[0].content || '—'
   return content.replace(/\n/g, ' ').substring(0, 80) + (content.length > 80 ? '...' : '')
 }
 
@@ -745,14 +913,18 @@ async function openHistoryChat(event) {
   showHistoryDialog.value = true
   loadingHistoryChat.value = true
   selectedHistoryConversation.value = null
-  
+
   try {
     const res = await $SystemAPI.aiConversationRead({ aiConversationID: rowData.aiConversationID })
     if (res && res.messages) {
       if (!res.traceHistory) res.traceHistory = []
       selectedHistoryConversation.value = res
     } else {
-      selectedHistoryConversation.value = { ...rowData, messages: rowData.messages || [], traceHistory: [] }
+      selectedHistoryConversation.value = {
+        ...rowData,
+        messages: rowData.messages || [],
+        traceHistory: [],
+      }
     }
   } catch (e) {
     if (e.message !== 'canceled') {
@@ -773,6 +945,15 @@ const availableTools = ref([])
 const loadingTools = ref(false)
 const toolPickerSelection = ref(null)
 const selectedTools = ref([])
+
+// Tool configuration dialog
+const toolDialogVisible = ref(false)
+const editingToolIndex = ref(-1)
+const editingToolForm = ref(null)
+const editingToolMeta = computed(() => {
+  if (!editingToolForm.value) return null
+  return availableTools.value.find(t => t.name === editingToolForm.value.name)
+})
 
 // TCL
 const tclMasterList = ref(null)
@@ -944,14 +1125,22 @@ async function handleSubmit() {
 
   saving.value = true
   try {
+    // Clean internal helper properties from tool allow entries before saving
+    const payload = JSON.parse(
+      JSON.stringify(agent.value, (key, value) => {
+        if (key === '_moduleOptions' || key === '_loadingModules') return undefined
+        return value
+      }),
+    )
+
     if (isCreate.value) {
-      const created = await $SystemAPI.agentCreate(agent.value)
+      const created = await $SystemAPI.agentCreate(payload)
       $toast.toastSuccess(t('notification.agent.created'))
       router.push({ name: 'agent.edit', params: { agentID: created.agentID } })
     } else {
       const updated = await $SystemAPI.agentUpdate({
         agentID: route.params.agentID,
-        ...agent.value,
+        ...payload,
       })
       applyAgentData(updated)
       $toast.toastSuccess(t('notification.agent.saved'))
@@ -974,7 +1163,6 @@ async function handleDelete() {
     $toast.toastDanger(t('notification.agent.deleteFailed'))
   }
 }
-
 
 // Guardrails helpers
 function addConversation() {
@@ -1041,14 +1229,14 @@ async function loadConversations() {
   if (!agent.value || !agent.value.agentID) return
   loadingConversations.value = true
   try {
-    const res = await $SystemAPI.aiConversationList({ 
-      agentID: agent.value.agentID, 
+    const res = await $SystemAPI.aiConversationList({
+      agentID: agent.value.agentID,
       sort: `${sortingConversations.value.sortBy} ${sortingConversations.value.sortDesc ? 'DESC' : 'ASC'}`,
       limit: pagingConversations.value.limit,
       pageCursor: pagingConversations.value.pageCursor,
     })
     agentConversations.value = res.set || []
-    
+
     pagingConversations.value = {
       ...pagingConversations.value,
       nextPage: res.filter?.nextPage || '',
@@ -1080,8 +1268,7 @@ function onConversationsSort(event) {
   loadConversations()
 }
 
-
-watch(activeTab, (val) => {
+watch(activeTab, val => {
   if (val === 'history') {
     loadConversations()
   }
@@ -1155,10 +1342,14 @@ async function resolveTaqName(id) {
   }
 }
 
-watch(() => agent.value?.access?.taqs, (taqs) => {
-  if (!taqs) return
-  taqs.forEach(t => resolveTaqName(t.id))
-}, { deep: true, immediate: true })
+watch(
+  () => agent.value?.access?.taqs,
+  taqs => {
+    if (!taqs) return
+    taqs.forEach(t => resolveTaqName(t.id))
+  },
+  { deep: true, immediate: true },
+)
 
 const loadedWorkflowNames = ref({})
 const loadingWorkflowNames = ref({})
@@ -1174,10 +1365,14 @@ async function resolveWorkflowName(id) {
   }
 }
 
-watch(() => agent.value?.access?.workflows, (workflows) => {
-  if (!workflows) return
-  workflows.forEach(w => resolveWorkflowName(w.id))
-}, { deep: true, immediate: true })
+watch(
+  () => agent.value?.access?.workflows,
+  workflows => {
+    if (!workflows) return
+    workflows.forEach(w => resolveWorkflowName(w.id))
+  },
+  { deep: true, immediate: true },
+)
 
 function removeTool(tool) {
   selectedTools.value = selectedTools.value.filter(t => t.name !== tool.name)
@@ -1193,7 +1388,7 @@ function onTaqPickerSelect(id) {
     agent.value.access.taqs = []
   }
   if (!agent.value.access.taqs.some(t => t.id === id)) {
-    agent.value.access.taqs.push({ id, hints: '' })
+    agent.value.access.taqs.push({ id, description: '' })
   }
   nextTick(() => {
     taqPickerSelection.value = null
@@ -1210,7 +1405,7 @@ function onWorkflowPickerSelect(id) {
     agent.value.access.workflows = []
   }
   if (!agent.value.access.workflows.some(w => w.id === id)) {
-    agent.value.access.workflows.push({ id, hints: '' })
+    agent.value.access.workflows.push({ id, description: '' })
   }
   nextTick(() => {
     workflowPickerSelection.value = null
@@ -1229,5 +1424,123 @@ function getToolHints(name) {
 function setToolHints(name, value) {
   const tool = agent.value.access.tools.find(t => t.name === name)
   if (tool) tool.hints = value
+}
+
+// --- Tool configuration dialog helpers ---
+
+function openToolDialog(toolIdx) {
+  const tool = selectedTools.value[toolIdx]
+  if (!tool) return
+  const accessIdx = agent.value.access.tools.findIndex(t => t.name === tool.name)
+  if (accessIdx < 0) return
+
+  // Deep copy so edits don't leak until Save
+  editingToolIndex.value = accessIdx
+  editingToolForm.value = JSON.parse(JSON.stringify(agent.value.access.tools[accessIdx]))
+  toolDialogVisible.value = true
+}
+
+function saveToolDialog() {
+  if (editingToolIndex.value < 0 || !editingToolForm.value) return
+  agent.value.access.tools[editingToolIndex.value] = editingToolForm.value
+  toolDialogVisible.value = false
+}
+
+// Resolved namespace and module names for tool allow summaries
+const resolvedNsNames = ref({})
+const resolvedModNames = ref({})
+
+function resolveToolAllowResources() {
+  const tools = agent.value?.access?.tools || []
+  for (const tool of tools) {
+    if (!tool.allow) continue
+    for (const rule of tool.allow) {
+      if (rule.namespaceID && !resolvedNsNames.value[rule.namespaceID]) {
+        composeStore
+          .resolveNamespace(String(rule.namespaceID))
+          .then(ns => {
+            if (ns) {
+              resolvedNsNames.value = {
+                ...resolvedNsNames.value,
+                [rule.namespaceID]: ns.name || ns.slug || rule.namespaceID,
+              }
+            }
+          })
+          .catch(() => {})
+      }
+      if (rule.namespaceID && rule.moduleIDs?.length) {
+        for (const modID of rule.moduleIDs) {
+          if (!resolvedModNames.value[modID]) {
+            composeStore
+              .resolveModule(String(rule.namespaceID), String(modID))
+              .then(mod => {
+                if (mod) {
+                  resolvedModNames.value = {
+                    ...resolvedModNames.value,
+                    [modID]: mod.name || mod.handle || modID,
+                  }
+                }
+              })
+              .catch(() => {})
+          }
+        }
+      }
+    }
+  }
+}
+
+watch(
+  () => agent.value?.access?.tools,
+  () => {
+    resolveToolAllowResources()
+  },
+  { deep: true, immediate: true },
+)
+
+function hasToolAllowFromName(toolName) {
+  const tool = agent.value.access.tools.find(t => t.name === toolName)
+  return Array.isArray(tool?.allow)
+}
+
+function getToolAllowDetails(toolName) {
+  const tool = agent.value.access.tools.find(t => t.name === toolName)
+  if (!tool?.allow?.length) return []
+
+  return tool.allow.map(r => ({
+    namespaceID: r.namespaceID,
+    namespaceName: resolvedNsNames.value[r.namespaceID] || r.namespaceID,
+    modules: (r.moduleIDs || []).map(id => resolvedModNames.value[id] || id),
+  }))
+}
+
+function hasToolAllow(toolData) {
+  return Array.isArray(toolData?.allow)
+}
+
+function toggleToolAllow(toolData, enabled) {
+  if (!toolData) return
+  if (enabled) {
+    toolData.allow = []
+  } else {
+    toolData.allow = null
+  }
+}
+
+function addToolAllowEntry(toolData) {
+  if (!toolData || !Array.isArray(toolData.allow)) return
+  toolData.allow.push({
+    namespaceID: null,
+    moduleIDs: [],
+  })
+}
+
+function removeToolAllowEntry(toolData, idx) {
+  if (!toolData?.allow) return
+  toolData.allow.splice(idx, 1)
+}
+
+function onToolAllowNamespaceChange(rule, namespaceID) {
+  rule.namespaceID = namespaceID
+  rule.moduleIDs = []
 }
 </script>

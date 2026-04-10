@@ -176,6 +176,14 @@
             @confirm="handleDelete"
           />
           <Button
+            v-if="isEdit"
+            :label="$t('namespace.clone')"
+            icon="pi pi-copy"
+            severity="secondary"
+            :loading="cloning"
+            @click="handleClone"
+          />
+          <Button
             type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
@@ -209,6 +217,7 @@ const namespaceStore = useNamespaceStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const cloning = ref(false)
 const namespace = ref(null)
 
 // Logo upload
@@ -329,6 +338,27 @@ async function handleSubmit({ valid }) {
     $toast.toastDanger(t('notification.namespace.saveFailed'))
   } finally {
     saving.value = false
+  }
+}
+
+async function handleClone() {
+  cloning.value = true
+  try {
+    const cloned = await namespaceStore.clone({
+      ...namespace.value,
+      name: `${namespace.value.name} (${t('namespace.cloneSuffix')})`,
+      slug: '',
+    })
+    $toast.toastSuccess(t('notification.namespace.cloned'))
+    router.push({
+      name: 'namespace.edit',
+      params: { slug: cloned.slug || cloned.namespaceID },
+    })
+  } catch (e) {
+    console.error('Failed to clone namespace:', e)
+    $toast.toastDanger(t('notification.namespace.cloneFailed'))
+  } finally {
+    cloning.value = false
   }
 }
 

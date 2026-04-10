@@ -54,7 +54,6 @@
             icon="pi pi-pencil"
             severity="secondary"
             text
-            rounded
             size="small"
             @click="openEditDialog(entry.kb)"
           />
@@ -62,7 +61,6 @@
             icon="pi pi-trash"
             severity="danger"
             text
-            rounded
             size="small"
             @click="removeEntry(entry)"
           />
@@ -92,12 +90,7 @@
           <label for="kb-description" class="font-medium text-primary text-sm">
             {{ descriptionLabel }}
           </label>
-          <Textarea
-            id="kb-description"
-            v-model="dialogForm.description"
-            rows="4"
-            autoResize
-          />
+          <Textarea id="kb-description" v-model="dialogForm.description" rows="4" autoResize />
           <small class="text-muted-color">
             {{ descriptionHelp }}
           </small>
@@ -117,7 +110,7 @@
               <div class="flex flex-col gap-2 flex-1">
                 <CInputNamespace
                   :model-value="nsCtx.namespaceID"
-                  @update:model-value="nsCtx.namespaceID = $event; nsCtx.moduleIDs = []"
+                  @update:model-value="onNamespaceChange(nsCtx, $event)"
                   :placeholder="namespacePlaceholder"
                 />
                 <MultiSelect
@@ -158,14 +151,14 @@
 
       <template #footer>
         <div class="flex items-center justify-between w-full">
-          <Button
+          <CInputDelete
             v-if="editingKB && editingKB.canDeleteKnowledgeBase !== false"
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
+            :label="deleteLabel"
+            :message="deleteMessage"
+            :header="editingKB?.title || editingKB?.handle || deleteLabel"
             :disabled="saving"
-            @click="deleteKnowledgeBase"
+            size="small"
+            @confirm="deleteKnowledgeBase"
           />
           <span v-else />
           <div class="flex gap-2">
@@ -192,8 +185,9 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CInputNamespace from './CInputNamespace.vue'
+import CInputDelete from './CInputDelete.vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -216,13 +210,19 @@ const props = defineProps({
   editLabel: { type: String, default: 'Edit Knowledge Base' },
   titleLabel: { type: String, default: 'Title' },
   descriptionLabel: { type: String, default: 'Description' },
-  descriptionHelp: { type: String, default: 'Free-text knowledge the agent should know about. Supports any text — policies, domain context, instructions, etc.' },
+  descriptionHelp: {
+    type: String,
+    default:
+      'Free-text knowledge the agent should know about. Supports any text — policies, domain context, instructions, etc.',
+  },
   composeContextLabel: { type: String, default: 'Compose Context' },
   namespacePlaceholder: { type: String, default: 'Select namespace...' },
   modulesPlaceholder: { type: String, default: 'Select modules...' },
   addNamespaceLabel: { type: String, default: 'Add namespace' },
   saveLabel: { type: String, default: 'Save' },
   cancelLabel: { type: String, default: 'Cancel' },
+  deleteLabel: { type: String, default: 'Delete' },
+  deleteMessage: { type: String, default: 'Are you sure you want to permanently delete this knowledge base?' },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -310,12 +310,14 @@ function onPickerSelect(kb) {
   pickerSelection.value = null
 }
 
-
 function removeEntry(entry) {
   selectedEntries.value = selectedEntries.value.filter(
     e => e.kb.knowledgeBaseID !== entry.kb.knowledgeBaseID,
   )
   emitValue()
+  nextTick(() => {
+    pickerSelection.value = null
+  })
 }
 
 function emitValue() {
@@ -390,9 +392,7 @@ function openEditDialog(kb) {
   dialogForm.value = {
     title: kb.title || '',
     description: kb.description || '',
-    context: kb.context
-      ? JSON.parse(JSON.stringify(kb.context))
-      : { namespaces: [] },
+    context: kb.context ? JSON.parse(JSON.stringify(kb.context)) : { namespaces: [] },
   }
   // Pre-fetch modules for each namespace context
   dialogForm.value.context.namespaces.forEach(nsCtx => {
@@ -512,9 +512,14 @@ async function fetchModulesForNamespace(nsCtx) {
 
 function getModuleObjects(nsCtx) {
   if (!nsCtx.moduleIDs?.length || !nsCtx._moduleOptions?.length) return []
-  return nsCtx._moduleOptions.filter(m =>
-    nsCtx.moduleIDs.includes(m.moduleID) || nsCtx.moduleIDs.includes(String(m.moduleID)),
+  return nsCtx._moduleOptions.filter(
+    m => nsCtx.moduleIDs.includes(m.moduleID) || nsCtx.moduleIDs.includes(String(m.moduleID)),
   )
+}
+
+function onNamespaceChange(nsCtx, namespaceID) {
+  nsCtx.namespaceID = namespaceID
+  nsCtx.moduleIDs = []
 }
 
 function onModuleSelect(nsCtx, modules) {

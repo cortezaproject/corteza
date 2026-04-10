@@ -4,7 +4,11 @@
     <div v-if="recordListModule" class="flex items-center gap-2 p-3 border-b">
       <!-- Add Record button (inline mode: prepend new row; otherwise: navigate) -->
       <Button
-        v-if="!options.hideAddButton && recordListModule?.canCreateRecord && (options.editable || recordPageID)"
+        v-if="
+          !options.hideAddButton &&
+          recordListModule?.canCreateRecord &&
+          (options.editable || recordPageID)
+        "
         :label="$t('block.recordList.addRecord')"
         icon="pi pi-plus"
         size="small"
@@ -31,7 +35,11 @@
       <!-- Show deleted records toggle -->
       <Button
         v-if="options.showDeletedRecordsOption"
-        :label="showingDeletedRecords ? $t('block.recordList.showRecords.existing') : $t('block.recordList.showRecords.deleted')"
+        :label="
+          showingDeletedRecords
+            ? $t('block.recordList.showRecords.existing')
+            : $t('block.recordList.showRecords.deleted')
+        "
         :icon="showingDeletedRecords ? 'pi pi-eye' : 'pi pi-trash'"
         :severity="showingDeletedRecords ? 'warn' : 'secondary'"
         :outlined="!showingDeletedRecords"
@@ -84,8 +92,12 @@
             >
               <span class="font-medium">{{ f.label || f.name }}</span>
               <span class="mx-1 text-muted-color">{{ getOperatorLabel(f.operator) }}</span>
-              <span v-if="f.value != null" class="font-semibold text-primary">{{ formatFilterValue(f) }}</span>
-              <span v-else class="text-muted-color italic">{{ $t('block.recordList.filter.nil') }}</span>
+              <span v-if="f.value != null" class="font-semibold text-primary">
+                {{ formatFilterValue(f) }}
+              </span>
+              <span v-else class="text-muted-color italic">
+                {{ $t('block.recordList.filter.nil') }}
+              </span>
             </Chip>
             <span
               v-if="fgi < segment.groups.length - 1"
@@ -95,10 +107,7 @@
             </span>
           </template>
         </div>
-        <span
-          v-if="segment.connector"
-          class="text-xs text-muted-color uppercase font-medium"
-        >
+        <span v-if="segment.connector" class="text-xs text-muted-color uppercase font-medium">
           {{ $t('block.recordList.filter.conditions.or') }}
         </span>
       </template>
@@ -197,7 +206,7 @@
         }"
       >
         <template #empty>
-          <div class="flex items-center justify-center p-4 text-muted">
+          <div class="flex items-center justify-center p-4 text-muted-color">
             {{ $t('block.recordList.noRecords') }}
           </div>
         </template>
@@ -224,16 +233,15 @@
               :field="col"
               :namespace="namespace"
               :model-value="data.values[col.name]"
-              style="min-width: 200px;"
-              @update:model-value="data.values[col.name] = $event; onInlineFieldChange(data)"
+              style="min-width: 200px"
+              @update:model-value="
+                data.values[col.name] = $event
+                onInlineFieldChange(data)
+              "
               @click.stop
             />
             <div v-else class="group flex items-start gap-1 min-w-0">
-              <CFieldViewer
-                :field="col"
-                :record="data"
-                :namespace="namespace"
-              />
+              <CFieldViewer :field="col" :record="data" :namespace="namespace" />
               <div
                 v-if="showInlineActions(col, data)"
                 class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
@@ -279,7 +287,9 @@
           <template #body="{ data, index }">
             <div class="flex items-center justify-end gap-1">
               <!-- Inline save/discard (only when row is dirty) -->
-              <template v-if="(options.editable || options.inlineRecordEditEnabled) && showSaveAction(data)">
+              <template
+                v-if="(options.editable || options.inlineRecordEditEnabled) && showSaveAction(data)"
+              >
                 <Button
                   v-tooltip.top="$t('block.recordList.tooltip.saveChanges')"
                   icon="pi pi-check"
@@ -323,15 +333,21 @@
     <template v-if="recordListModule && !options.hidePaging && totalRecords > 0" #footer>
       <div class="flex items-center flex-wrap gap-2 px-3 py-2">
         <div class="flex items-center text-sm">
-          <span v-if="options.showTotalCount !== false" class="whitespace-nowrap text-muted">
+          <span v-if="options.showTotalCount !== false" class="whitespace-nowrap text-muted-color">
             {{ paginationRangeText }}
           </span>
 
-          <Divider v-if="options.showRecordPerPageOption && options.showTotalCount !== false" layout="vertical" />
+          <Divider
+            v-if="options.showRecordPerPageOption && options.showTotalCount !== false"
+            layout="vertical"
+          />
 
           <!-- Page size selector -->
-          <div v-if="options.showRecordPerPageOption" class="flex items-center gap-2 whitespace-nowrap">
-            <span class="text-muted">
+          <div
+            v-if="options.showRecordPerPageOption"
+            class="flex items-center gap-2 whitespace-nowrap"
+          >
+            <span class="text-muted-color">
               {{ $t('block.recordList.pagination.recordsPerPage') }}
             </span>
             <Select
@@ -398,7 +414,14 @@ import { useReminderStore } from '@/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@/stores/page'
 import RecordListFilter from '../../Common/RecordListFilter.vue'
-import { evaluatePrefilter, queryToFilter, getFieldFilter, convertRecordListFilter, formatActiveFilterOperator, isBetweenOperator } from '../../../lib/record-filter'
+import {
+  evaluatePrefilter,
+  queryToFilter,
+  getFieldFilter,
+  convertRecordListFilter,
+  formatActiveFilterOperator,
+  isBetweenOperator,
+} from '../../../lib/record-filter'
 
 const props = defineProps({
   block: {
@@ -547,12 +570,14 @@ const canDeleteSelected = computed(() => selectedRecords.value.some(r => r.canDe
 const hasRowActions = computed(() => {
   if (!recordPageID.value && !recordListModule.value?.canCreateRecord) return false
   const o = options.value
-  return !o.hideRecordViewButton
-    || !o.hideRecordEditButton
-    || !o.hideRecordCloneButton
-    || !o.hideRecordReminderButton
-    || !o.hideRecordPermissionsButton
-    || !o.hideRecordDeleteButton
+  return (
+    !o.hideRecordViewButton ||
+    !o.hideRecordEditButton ||
+    !o.hideRecordCloneButton ||
+    !o.hideRecordReminderButton ||
+    !o.hideRecordPermissionsButton ||
+    !o.hideRecordDeleteButton
+  )
 })
 
 // Row action menu items — filtered by per-record permissions and configurator hide options
@@ -595,7 +620,11 @@ const rowMenuItems = computed(() => {
     })
   }
 
-  if (recordPageID.value && recordListModule.value?.canCreateRecord && !options.value.hideRecordCloneButton) {
+  if (
+    recordPageID.value &&
+    recordListModule.value?.canCreateRecord &&
+    !options.value.hideRecordCloneButton
+  ) {
     items.push({
       label: t('block.recordList.record.tooltip.clone'),
       icon: 'pi pi-copy',
@@ -611,7 +640,11 @@ const rowMenuItems = computed(() => {
     })
   }
 
-  if (record?.recordID && (record.canGrant ?? recordListModule.value?.canGrant) && !options.value.hideRecordPermissionsButton) {
+  if (
+    record?.recordID &&
+    (record.canGrant ?? recordListModule.value?.canGrant) &&
+    !options.value.hideRecordPermissionsButton
+  ) {
     items.push({
       label: t('general.label.permissions'),
       icon: 'pi pi-lock',
@@ -942,10 +975,12 @@ async function fetchRecords(resetCursor = false) {
     }
 
     // Prepare filter groups exactly like old Corteza RecordListBase
-    const filterGroups = recordListFilter.value.map(g => {
-      const filter = convertRecordListFilter(g.filter || [])
-      return { ...g, filter }
-    }).filter(g => g.filter?.length)
+    const filterGroups = recordListFilter.value
+      .map(g => {
+        const filter = convertRecordListFilter(g.filter || [])
+        return { ...g, filter }
+      })
+      .filter(g => g.filter?.length)
 
     const query = queryToFilter(
       searchQuery.value || '',
@@ -1135,20 +1170,20 @@ function handleAddRecord() {
         ...route.query,
         recordPageID: recordPageID.value,
         recordID: '0',
-      }
+      },
     })
     return
   }
 
   const routeObj = $recordRoutes
-      ? $recordRoutes.create(recordListModule.value.moduleID)
-      : {
-          name: 'page.record',
-          params: {
-            pageID: recordPageID.value,
-            recordID: '0',
-          },
-        }
+    ? $recordRoutes.create(recordListModule.value.moduleID)
+    : {
+        name: 'page.record',
+        params: {
+          pageID: recordPageID.value,
+          recordID: '0',
+        },
+      }
 
   if (displayOption === 'newTab') {
     const resolved = router.resolve(routeObj)
@@ -1170,21 +1205,21 @@ function handleCloneRecord(record) {
         recordPageID: recordPageID.value,
         recordID: '0',
         cloneFromID: record.recordID,
-      }
+      },
     })
     return
   }
 
   const routeObj = $recordRoutes
-      ? $recordRoutes.create(recordListModule.value.moduleID, record.recordID)
-      : {
-          name: 'page.record',
-          params: {
-            pageID: recordPageID.value,
-            recordID: '0',
-          },
-          query: { cloneFromID: record.recordID },
-        }
+    ? $recordRoutes.create(recordListModule.value.moduleID, record.recordID)
+    : {
+        name: 'page.record',
+        params: {
+          pageID: recordPageID.value,
+          recordID: '0',
+        },
+        query: { cloneFromID: record.recordID },
+      }
 
   if (displayOption === 'newTab') {
     const resolved = router.resolve(routeObj)
@@ -1194,7 +1229,7 @@ function handleCloneRecord(record) {
   }
 }
 
-function createReminder (record) {
+function createReminder(record) {
   if (!record?.recordID) return
 
   const sourceField = (options.value.fields || []).find(({ name }) => {
@@ -1203,7 +1238,7 @@ function createReminder (record) {
   })
 
   const fieldValue = sourceField ? record.values?.[sourceField.name] : null
-  const title = Array.isArray(fieldValue) ? fieldValue.join(', ') : (fieldValue || '')
+  const title = Array.isArray(fieldValue) ? fieldValue.join(', ') : fieldValue || ''
   const payload = {
     title,
   }
@@ -1269,7 +1304,7 @@ const offRefetch = $eventBus?.on('refetch-records', () => fetchRecords(true))
 // Reload when module changes
 watch(
   () => recordListModule.value?.moduleID,
-  (newID) => {
+  newID => {
     // Load persisted filters when module changes
     loadStoredFilter()
     fetchRecords(true)
@@ -1294,9 +1329,7 @@ const filterableFields = computed(() => {
 
 // Active filters display
 const activeFilterDisplay = computed(() => {
-  return (recordListFilter.value || []).filter(
-    g => g.filter?.some(f => f.name),
-  )
+  return (recordListFilter.value || []).filter(g => g.filter?.some(f => f.name))
 })
 
 const groupedActiveFilters = computed(() => {
@@ -1366,7 +1399,9 @@ function toggleDeletedRecords() {
 // --- Inline value filtering ---
 
 function showInlineActions(col, data) {
-  return (options.value.inlineRecordEditEnabled && canInlineEdit(data, col)) || showInlineFilter(col)
+  return (
+    (options.value.inlineRecordEditEnabled && canInlineEdit(data, col)) || showInlineFilter(col)
+  )
 }
 
 function showInlineFilter(col) {

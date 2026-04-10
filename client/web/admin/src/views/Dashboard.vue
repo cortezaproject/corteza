@@ -9,8 +9,8 @@
       <div
         v-for="card in statCards"
         :key="card.key"
-        class="stat-card flex flex-col gap-2 p-4 sm:p-5 rounded-border border border-surface bg-surface cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 min-w-0"
-        :class="{ 'ring-2 ring-primary': activeCard === card.key }"
+        class="flex flex-col gap-2 p-4 sm:p-5 rounded-border border border-surface bg-surface cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary min-w-0"
+        :class="{ '!border-primary': activeCard === card.key }"
         @click="switchCard(card.key)"
       >
         <div class="flex items-center justify-between">
@@ -81,8 +81,6 @@ const deletedUsers = ref(0)
 const archivedRoles = ref(0)
 const deletedRoles = ref(0)
 const activeRoles = ref(0)
-
-
 
 // Workflow status breakdown
 const disabledWorkflows = ref(0)
@@ -506,7 +504,6 @@ async function fetchAllData() {
     deletedRoles.value = rolesDeleted
     totalRoles.value = rolesTotal + rolesArchived + rolesDeleted
 
-
     enabledWorkflows.value = workflowsTotal
     disabledWorkflows.value = workflowsDisabled
     deletedWorkflows.value = workflowsDeleted
@@ -528,9 +525,3 @@ onMounted(() => {
   fetchAllData()
 })
 </script>
-
-<style scoped>
-.stat-card:hover {
-  border-color: var(--p-primary-color);
-}
-</style>

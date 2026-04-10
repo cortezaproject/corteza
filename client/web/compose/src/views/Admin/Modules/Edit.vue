@@ -305,6 +305,15 @@
             @confirm="handleDelete"
           />
           <Button
+            v-if="isEdit"
+            :label="$t('general.label.saveAsCopy')"
+            icon="pi pi-copy"
+            severity="secondary"
+            :loading="cloning"
+            :disabled="!canSave"
+            @click="handleClone"
+          />
+          <Button
             type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
@@ -368,6 +377,7 @@ const pageStore = usePageStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const cloning = ref(false)
 const module = ref(null)
 const activeTab = ref('fields')
 const creatingRecordPage = ref(false)
@@ -696,6 +706,30 @@ async function handleSubmit({ valid }) {
     $toast.toastDanger(t('notification.module.saveFailed'))
   } finally {
     saving.value = false
+  }
+}
+
+async function handleClone() {
+  cloning.value = true
+  try {
+    const payload = {
+      namespaceID: props.namespace.namespaceID,
+      name: `${module.value.name} (${t('general.label.clone').toLowerCase()})`,
+      handle: '',
+      fields: module.value.fields,
+    }
+
+    const created = await moduleStore.create(payload)
+    $toast.toastSuccess(t('notification.module.created'))
+    router.push({
+      name: 'admin.modules.edit',
+      params: { moduleID: created.moduleID },
+    })
+  } catch (e) {
+    console.error('Failed to clone module:', e)
+    $toast.toastDanger(t('notification.module.createFailed'))
+  } finally {
+    cloning.value = false
   }
 }
 

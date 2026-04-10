@@ -57,7 +57,7 @@
           @row-click="$emit('row-click', $event)"
         >
           <template #empty>
-            <div class="flex items-center justify-center p-4 text-muted">
+            <div class="flex items-center justify-center p-4 text-muted-color">
               {{ translations.noItems || t('general.resourceList.noItems') }}
             </div>
           </template>
@@ -166,7 +166,13 @@
       </div>
 
       <!-- Centralized TieredMenu for row actions -->
-      <TieredMenu v-if="actionItems" ref="actionsMenuRef" :key="menuKey" :model="currentMenuItems" popup>
+      <TieredMenu
+        v-if="actionItems"
+        ref="actionsMenuRef"
+        :key="menuKey"
+        :model="currentMenuItems"
+        popup
+      >
         <template #item="{ item, props: menuProps }">
           <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
             <a v-ripple :href="href" v-bind="menuProps.action" @click="navigate">

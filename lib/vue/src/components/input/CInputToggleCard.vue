@@ -8,7 +8,7 @@
     @click="!disabled && $emit('update:modelValue', !modelValue)"
   >
     <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-      <span class="font-medium text-color text-sm">
+      <span class="font-medium text-primary text-sm">
         <slot name="label">{{ label }}</slot>
       </span>
       <small v-if="description || $slots.description" class="text-muted-color text-xs">

@@ -203,6 +203,15 @@
             @confirm="handleDelete"
           />
           <Button
+            v-if="isEdit"
+            :label="$t('general.label.saveAsCopy')"
+            icon="pi pi-copy"
+            severity="secondary"
+            :loading="processingClone"
+            :disabled="disableSave"
+            @click="handleClone"
+          />
+          <Button
             v-if="!hideSave"
             :label="$t('general.label.save')"
             icon="pi pi-save"
@@ -253,6 +262,7 @@ const chart = ref(null)
 const loading = ref(false)
 const processing = ref(false)
 const processingSave = ref(false)
+const processingClone = ref(false)
 const processingDelete = ref(false)
 const editReportIndex = ref(0)
 const previewKey = ref(0)
@@ -453,6 +463,34 @@ async function handleSave() {
   } finally {
     processing.value = false
     processingSave.value = false
+  }
+}
+
+async function handleClone() {
+  if (disableSave.value) return
+
+  processingClone.value = true
+  processing.value = true
+
+  try {
+    const c = toRaw(chart.value)
+    const cloned = {
+      ...c,
+      chartID: '0',
+      name: `${c.name} (${t('general.label.clone').toLowerCase()})`,
+      handle: '',
+    }
+
+    const created = await chartStore.create(cloned)
+    chart.value = chartConstructor(created)
+    $toast.toastSuccess(t('chart.notification.saved'))
+    router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
+  } catch (e) {
+    console.error('Failed to clone chart:', e)
+    $toast.toastDanger(t('chart.notification.saveFailed'))
+  } finally {
+    processing.value = false
+    processingClone.value = false
   }
 }
 

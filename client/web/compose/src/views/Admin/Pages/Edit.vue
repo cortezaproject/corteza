@@ -254,6 +254,16 @@
           </template>
 
           <Button
+            v-if="isEdit && !isRecordPage"
+            :label="$t('general.label.saveAsCopy')"
+            icon="pi pi-copy"
+            severity="secondary"
+            :loading="cloning"
+            :disabled="!canSave"
+            @click="handleClone"
+          />
+
+          <Button
             type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
@@ -558,6 +568,7 @@ const pageLayoutStore = usePageLayoutStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const cloning = ref(false)
 const page = ref(null)
 
 // Page layouts state
@@ -1056,6 +1067,35 @@ async function saveLayouts() {
 
 function toggleDeleteMenu(event) {
   deleteMenu.value.toggle(event)
+}
+
+async function handleClone() {
+  cloning.value = true
+  try {
+    const payload = {
+      namespaceID: props.namespace.namespaceID,
+      title: `${page.value.title} (${t('general.label.clone').toLowerCase()})`,
+      handle: '',
+      description: page.value.description,
+      visible: page.value.visible,
+      selfID: page.value.selfID || '0',
+      blocks: page.value.blocks || [],
+      config: page.value.config || {},
+      meta: page.value.meta || {},
+    }
+
+    const created = await pageStore.create(payload)
+    $toast.toastSuccess(t('notification.page.created'))
+    router.push({
+      name: 'admin.pages.edit',
+      params: { pageID: created.pageID },
+    })
+  } catch (e) {
+    console.error('Failed to clone page:', e)
+    $toast.toastDanger(t('notification.page.cloneFailed'))
+  } finally {
+    cloning.value = false
+  }
 }
 
 async function handleDelete(strategy = 'abort') {
