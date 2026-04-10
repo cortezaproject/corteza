@@ -361,7 +361,7 @@ func (rm *runtimeManager) processQueue(ctx context.Context) {
 
 		err := rm.startQueued(execCtx, entry)
 		if err != nil {
-			panic(err)
+			rm.onExit(execCtx, entry, err)
 		}
 	}
 }

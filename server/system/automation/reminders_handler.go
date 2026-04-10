@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
@@ -12,20 +13,19 @@ import (
 	sqlxtypes "github.com/jmoiron/sqlx/types"
 )
 
-
-type(
+type (
 	reminderService interface {
-		FindByID(ctx context.Context,ID uint64) (*types.Reminder, error)
-		Find(ctx context.Context, filter types.ReminderFilter) (types.ReminderSet,types.ReminderFilter,error)
-		Create(ctx context.Context, reminder *types.Reminder) (*types.Reminder,error)
-		Update(ctx context.Context, reminder *types.Reminder) (*types.Reminder,error)
+		FindByID(ctx context.Context, ID uint64) (*types.Reminder, error)
+		Find(ctx context.Context, filter types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error)
+		Create(ctx context.Context, reminder *types.Reminder) (*types.Reminder, error)
+		Update(ctx context.Context, reminder *types.Reminder) (*types.Reminder, error)
 		Delete(ctx context.Context, ID uint64) error
 		Dismiss(ctx context.Context, ID uint64) error
-		Snooze(ctx context.Context, ID uint64,remindAt *time.Time) error
+		Snooze(ctx context.Context, ID uint64, remindAt *time.Time) error
 	}
 
 	remindersHandler struct {
-		reg remindersHandlerRegistry
+		reg  remindersHandlerRegistry
 		rSvc reminderService
 	}
 
@@ -46,11 +46,11 @@ type(
 	reminderLookup interface {
 		GetLookup() (bool, uint64, *types.Reminder)
 	}
-
 )
-func  RemindersHandler(reg remindersHandlerRegistry,rSvc reminderService) *remindersHandler {
+
+func RemindersHandler(reg remindersHandlerRegistry, rSvc reminderService) *remindersHandler {
 	h := &remindersHandler{
-		reg : reg,
+		reg:  reg,
 		rSvc: rSvc,
 	}
 	h.register()
@@ -58,20 +58,20 @@ func  RemindersHandler(reg remindersHandlerRegistry,rSvc reminderService) *remin
 
 }
 
-func (h remindersHandler) lookup(ctx context.Context, args *remindersLookupArgs) (results *remindersLookupResults, err error){
+func (h remindersHandler) lookup(ctx context.Context, args *remindersLookupArgs) (results *remindersLookupResults, err error) {
 	results = &remindersLookupResults{}
 	results.Reminder, err = lookupReminder(ctx, h.rSvc, args)
 	return
 }
 
-func (h remindersHandler) search(ctx context.Context,args *remindersSearchArgs) (results *remindersSearchResults,err error){
+func (h remindersHandler) search(ctx context.Context, args *remindersSearchArgs) (results *remindersSearchResults, err error) {
 	results = &remindersSearchResults{}
 	var (
-		f=types.ReminderFilter{
-			Resource: args.Resource,
-			AssignedTo: args.AssignedTo,
+		f = types.ReminderFilter{
+			Resource:         args.Resource,
+			AssignedTo:       args.AssignedTo,
 			ExcludeDismissed: args.ExcludeDismissed,
-			ScheduledOnly: args.ScheduledOnly,
+			ScheduledOnly:    args.ScheduledOnly,
 		}
 	)
 
@@ -86,23 +86,23 @@ func (h remindersHandler) search(ctx context.Context,args *remindersSearchArgs) 
 			return
 		}
 	}
-	
+
 	if args.hasLimit {
 		f.Limit = uint(args.Limit)
 	}
 	var auxf types.ReminderFilter
 	results.Reminders, auxf, err = h.rSvc.Find(ctx, f)
-	results.Total=uint64(auxf.Total)
+	results.Total = uint64(auxf.Total)
 	return
 }
-func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (out wfexec.IteratorHandler, err error){
-	var(
+func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (out wfexec.IteratorHandler, err error) {
+	var (
 		i = &reminderSetIterator{}
-		f=types.ReminderFilter{
-			Resource: args.Resource,
-			AssignedTo: args.AssignedTo,
+		f = types.ReminderFilter{
+			Resource:         args.Resource,
+			AssignedTo:       args.AssignedTo,
 			ExcludeDismissed: args.ExcludeDismissed,
-			ScheduledOnly: args.ScheduledOnly,
+			ScheduledOnly:    args.ScheduledOnly,
 		}
 	)
 	if args.hasSort {
@@ -114,7 +114,7 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
 			return
 		}
-	}   
+	}
 	if args.hasLimit {
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
@@ -141,17 +141,17 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 	return i, i.loader()
 }
 
- func (h remindersHandler) create(ctx context.Context, args *remindersCreateArgs) (results *remindersCreateResults, err error) {
-	
-  	results = &remindersCreateResults{}
+func (h remindersHandler) create(ctx context.Context, args *remindersCreateArgs) (results *remindersCreateResults, err error) {
+
+	results = &remindersCreateResults{}
 	currentUser := intAuth.GetIdentityFromContext(ctx).Identity()
 
 	reminder := &types.Reminder{
-		Resource:args.Resource,
+		Resource:   args.Resource,
 		AssignedTo: args.AssignedTo,
 		AssignedBy: args.AssignedBy,
-		RemindAt: args.RemindAt,
-		Payload: args.Payload,
+		RemindAt:   args.RemindAt,
+		Payload:    args.Payload,
 	}
 	if reminder.AssignedTo == 0 {
 		reminder.AssignedTo = currentUser
@@ -160,17 +160,17 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 		reminder.AssignedBy = currentUser
 	}
 	if len(reminder.Payload) == 0 {
-      reminder.Payload = sqlxtypes.JSONText(`{"title": "", "note": ""}`)
-  	}
+		reminder.Payload = sqlxtypes.JSONText(`{"title": "", "note": ""}`)
+	}
 	if reminder.RemindAt == nil {
-      return nil, fmt.Errorf("remindAt is required")
-  	}
-  	results.Reminder, err = h.rSvc.Create(ctx, reminder)
-  	return
-  }
+		return nil, fmt.Errorf("remindAt is required")
+	}
+	results.Reminder, err = h.rSvc.Create(ctx, reminder)
+	return
+}
 
-  func (h remindersHandler) update(ctx context.Context, args *remindersUpdateArgs) (results *remindersUpdateResults, err error) {
-  	results = &remindersUpdateResults{}
+func (h remindersHandler) update(ctx context.Context, args *remindersUpdateArgs) (results *remindersUpdateResults, err error) {
+	results = &remindersUpdateResults{}
 	reminder, err := lookupReminder(ctx, h.rSvc, args)
 	if err != nil {
 		return nil, err
@@ -190,31 +190,31 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 	if args.hasPayload {
 		reminder.Payload = args.Payload
 	}
-  	results.Reminder, err = h.rSvc.Update(ctx, reminder)
-  	return
-  }
-  func (h remindersHandler) dismiss(ctx context.Context, args *remindersDismissArgs) error {
-  	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
-  		return err
-  	} else {
-  		return h.rSvc.Dismiss(ctx, id)
-  	}
-  }
-  func (h remindersHandler) snooze(ctx context.Context, args *remindersSnoozeArgs) error {
-  	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
-  		return err
-  	} else {
-  		return h.rSvc.Snooze(ctx, id, args.RemindAt)
-  	}
-  }
-  func (h remindersHandler) delete(ctx context.Context, args *remindersDeleteArgs) error {
-  	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
-  		return err
-  	} else {
-  		return h.rSvc.Delete(ctx, id)
-  	}
-  }
-  func getReminderID(ctx context.Context, svc reminderService, args reminderLookup) (uint64, error) {
+	results.Reminder, err = h.rSvc.Update(ctx, reminder)
+	return
+}
+func (h remindersHandler) dismiss(ctx context.Context, args *remindersDismissArgs) error {
+	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
+		return err
+	} else {
+		return h.rSvc.Dismiss(ctx, id)
+	}
+}
+func (h remindersHandler) snooze(ctx context.Context, args *remindersSnoozeArgs) error {
+	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
+		return err
+	} else {
+		return h.rSvc.Snooze(ctx, id, args.RemindAt)
+	}
+}
+func (h remindersHandler) delete(ctx context.Context, args *remindersDeleteArgs) error {
+	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
+		return err
+	} else {
+		return h.rSvc.Delete(ctx, id)
+	}
+}
+func getReminderID(ctx context.Context, svc reminderService, args reminderLookup) (uint64, error) {
 	_, ID, reminder := args.GetLookup()
 
 	switch {
@@ -253,14 +253,18 @@ func (i *reminderSetIterator) Start(context.Context, *expr.Vars) error {
 func (i *reminderSetIterator) Next(context.Context, *expr.Vars) (out *expr.Vars, err error) {
 	if len(i.buffer)-int(i.ptr) <= 0 {
 		if err = i.loader(); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
+	if len(i.buffer)-int(i.ptr) <= 0 {
+		return nil, fmt.Errorf("iterator EOF")
+	}
+
 	out = &expr.Vars{}
-	reminder := *i.buffer[i.ptr]  // Make a copy
-  	reminder.Payload = sqlxtypes.JSONText(string(i.buffer[i.ptr].Payload))
-  	out.Set("reminder", Must(NewReminder(&reminder)))
+	reminder := *i.buffer[i.ptr] // Make a copy
+	reminder.Payload = sqlxtypes.JSONText(string(i.buffer[i.ptr].Payload))
+	out.Set("reminder", Must(NewReminder(&reminder)))
 
 	i.ptr++
 	return out, nil

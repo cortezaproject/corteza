@@ -182,11 +182,24 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 		top = ss.stack[len(ss.stack)-1]
 	}
 
-	// Check if the current frame was inside an iterator loop
-	// (Note: frameTypeIterator doesn't represent the step itself, but the loop management)
-	if top != nil && top.typ == frameTypeIterator && top.stepID == stepID {
-		// Iterator frame handles its own continuation
-		return nil
+	// Check if the completed step was the body of an iterator loop.
+	// After popping its frame, if the new top is an iterator frame, we need to
+	// decide whether to push its children or let the iterator handle continuation.
+	// - If the step has non-termination children, push them (more body to run).
+	// - If all children are termination (end-of-iteration marker) or no children,
+	//   return early and let the iterator frame drive the next iteration via More/Next.
+	// Exception: iterator-kind steps always fall through to register their own frame.
+	if top != nil && top.typ == frameTypeIterator && step.Kind != "iterator" {
+		hasBodyChildren := false
+		for _, child := range step.Children {
+			if child.Kind != "termination" {
+				hasBodyChildren = true
+				break
+			}
+		}
+		if !hasBodyChildren {
+			return nil
+		}
 	}
 
 	// If we don't have a current frame (already popped or somehow missing),
@@ -199,9 +212,21 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 
 	switch step.Kind {
 	case "iterator":
-		handler, ok := step.Handler.(IteratorHandler)
-		if !ok {
-			return fmt.Errorf("step %v: handler is not IteratorHandler", stepID)
+		var handler IteratorHandler
+		if currentFrame != nil && currentFrame.outputs != nil {
+			if v, ok := currentFrame.outputs["_iter_handler"]; ok {
+				if anyVal, ok := v.Get().(IteratorHandler); ok {
+					handler = anyVal
+				}
+			}
+		}
+
+		if handler == nil {
+			var ok bool
+			handler, ok = step.Handler.(IteratorHandler)
+			if !ok {
+				return fmt.Errorf("step %v: handler is not IteratorHandler", stepID)
+			}
 		}
 
 		var parentID id.ID
@@ -209,6 +234,9 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 		if top != nil {
 			parentID = top.id
 			bid = top.branchID
+		} else if currentFrame != nil {
+			// Iterator is the root step; inherit branchID from the step frame we just popped.
+			bid = currentFrame.branchID
 		}
 
 		ss.stack = append(ss.stack, &frame{

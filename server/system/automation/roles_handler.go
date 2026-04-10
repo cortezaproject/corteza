@@ -403,8 +403,12 @@ func (i *roleSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; retur
 func (i *roleSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
 	if len(i.buffer)-int(i.ptr) <= 0 {
 		if err = i.loader(); err != nil {
-			panic(err)
+			return nil, err
 		}
+	}
+
+	if len(i.buffer)-int(i.ptr) <= 0 {
+		return nil, fmt.Errorf("iterator EOF")
 	}
 
 	out = &Vars{}

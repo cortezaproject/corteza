@@ -392,8 +392,12 @@ func (i *recordSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; ret
 func (i *recordSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
 	if len(i.buffer)-int(i.ptr) <= 0 {
 		if err = i.loader(); err != nil {
-			panic(err)
+			return nil, err
 		}
+	}
+
+	if len(i.buffer)-int(i.ptr) <= 0 {
+		return nil, fmt.Errorf("iterator EOF")
 	}
 
 	out = &Vars{}

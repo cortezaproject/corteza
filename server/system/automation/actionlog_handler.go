@@ -2,6 +2,7 @@ package automation
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
@@ -141,8 +142,12 @@ func (i *actionSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; ret
 func (i *actionSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
 	if len(i.buffer)-int(i.ptr) <= 0 {
 		if err = i.loader(); err != nil {
-			panic(err)
+			return nil, err
 		}
+	}
+
+	if len(i.buffer)-int(i.ptr) <= 0 {
+		return nil, fmt.Errorf("iterator EOF")
 	}
 
 	out = &Vars{}

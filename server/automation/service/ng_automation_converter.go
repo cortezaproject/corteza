@@ -12,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -300,16 +299,11 @@ func wirePaths(
 			continue
 		}
 
-		// Silently drop back-edges to iterator steps — the iterator frame
-		// manages its own loop internally via More()/Next().
-		if childStep, ok := stepIdx[p.ChildID]; ok && childStep.Kind == "iterator" {
-			continue
-		}
-
 		stepsWithParents[p.ChildID] = true
 
 		// Gateway paths are wired below in sorted order.
-		if isGatewayKind(stepIdx[p.ParentID].Kind) {
+		parentKind := stepIdx[p.ParentID].Kind
+		if isGatewayKind(parentKind) {
 			continue
 		}
 
@@ -323,7 +317,8 @@ func wirePaths(
 			}
 		}
 
-		if pos == 1 {
+		// Iterators must map their multiple out-paths to Children sequence (try/exit), not ErrHandlers.
+		if pos == 1 && parentKind != "iterator" {
 			// Second outbound path is the catch handler.
 			parent.ErrHandlerStepID = childExecID
 		} else {
@@ -731,9 +726,6 @@ type ngIteratorStep struct {
 	iterFn    automationTypes.IteratorHandler
 	arguments automationTypes.ExprSet
 	results   automationTypes.ExprSet
-
-	// Runtime state
-	ih wfexec.IteratorHandler
 }
 
 // ExecN evaluates arguments and initializes the underlying wfexec iterator.
@@ -788,29 +780,12 @@ func (s *ngIteratorStep) ExecN(ctx context.Context, r *execTypes.ExecRequest) (e
 	if err != nil {
 		return nil, err
 	}
-	s.ih = ih
 
-	return expr.NewVars(nil)
-}
-
-func (s *ngIteratorStep) Start(ctx context.Context, v *expr.Vars) error {
-	if s.ih == nil {
-		return fmt.Errorf("iterator not initialized")
+	out := &expr.Vars{}
+	err = out.Set("_iter_handler", expr.Must(expr.NewAny(ih)))
+	if err != nil {
+		return nil, err
 	}
-	return s.ih.Start(ctx, v)
-}
 
-func (s *ngIteratorStep) More(ctx context.Context, v *expr.Vars) (bool, error) {
-	if s.ih == nil {
-		return false, nil
-	}
-	return s.ih.More(ctx, v)
+	return out, nil
 }
-
-func (s *ngIteratorStep) Next(ctx context.Context, v *expr.Vars) (*expr.Vars, error) {
-	if s.ih == nil {
-		return nil, fmt.Errorf("iterator not initialized")
-	}
-	return s.ih.Next(ctx, v)
-}
-

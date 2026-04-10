@@ -124,7 +124,8 @@ func (l *ledger) RecordFrame(ctx context.Context, executableID, executionID id.I
 		return fmt.Errorf("execution not found")
 	}
 
-	// Truncation logic: Per-iterator truncation
+	// Truncation: keep the last MaxIteratorFrames siblings per parent (sliding window).
+	// When the cap is reached, drop the oldest sibling so the count stays stable.
 	if !frame.ParentID.IsZero() {
 		siblingIndices := make([]int, 0)
 		for i, f := range ex.Trace {
@@ -134,9 +135,7 @@ func (l *ledger) RecordFrame(ctx context.Context, executableID, executionID id.I
 		}
 
 		if len(siblingIndices) >= types.MaxIteratorFrames {
-			// Keep first 100 iterations, truncate from the 101st
-			// removeIndex is the index in the global Trace slice
-			removeIndex := siblingIndices[100]
+			removeIndex := siblingIndices[0] // drop the oldest
 			ex.Trace = append(ex.Trace[:removeIndex], ex.Trace[removeIndex+1:]...)
 		}
 	}

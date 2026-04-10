@@ -329,6 +329,11 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 					outputMap[rst.ArgumentName] = v
 				}
 			}
+
+			// Preserve internal iterator bindings.
+			if iterHandler, ok := vars.GetValue()["_iter_handler"]; ok {
+				outputMap["_iter_handler"] = iterHandler
+			}
 		}
 	}
 
