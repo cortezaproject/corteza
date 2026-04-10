@@ -73,8 +73,8 @@
         <Button
           icon="pi pi-filter"
           severity="secondary"
-          outlined
           size="small"
+          text
           @click="toggleFilterMenu"
         />
       </template>

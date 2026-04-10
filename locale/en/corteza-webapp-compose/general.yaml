@@ -208,3 +208,8 @@ extendSession:
 
 changes_one: '{count} change'
 changes_other: '{count} changes'
+
+appDisabled:
+  title: Application Disabled
+  message: Please contact your system administrator for more information.
+  backToHome: Back to Home

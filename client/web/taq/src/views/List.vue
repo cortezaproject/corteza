@@ -72,8 +72,8 @@
         <Button
           icon="pi pi-filter"
           severity="secondary"
-          outlined
           size="small"
+          text
           @click="toggleFilterMenu"
         />
       </template>
@@ -196,20 +196,12 @@ const listFields = [
 ]
 
 // Resource list composable
-const {
-  items,
-  loading,
-  filter,
-  sorting,
-  pagination,
-  handleSort,
-  handlePageChange,
-  filterList,
-} = useResourceList(params => $AutomationAPI.ngAutomationListCancellable(params), {
-  filter: { query: '', deleted: '0', disabled: '1' },
-  sorting: { sortBy: 'createdAt', sortDesc: true },
-  pagination: { limit: 50 },
-})
+const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
+  useResourceList(params => $AutomationAPI.ngAutomationListCancellable(params), {
+    filter: { query: '', deleted: '0', disabled: '1' },
+    sorting: { sortBy: 'createdAt', sortDesc: true },
+    pagination: { limit: 50 },
+  })
 
 // Create dialog state
 const showCreateDialog = ref(false)

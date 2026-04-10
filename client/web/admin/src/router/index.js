@@ -65,6 +65,23 @@ const router = createRouter({
       component: () => import('../views/system/SensitivityLevel/Editor.vue'),
     },
 
+    // Labels
+    {
+      path: '/system/labels',
+      name: 'system.labels',
+      component: () => import('../views/system/Label/List.vue'),
+    },
+    {
+      path: '/system/labels/new',
+      name: 'system.labels.create',
+      component: () => import('../views/system/Label/Editor.vue'),
+    },
+    {
+      path: '/system/labels/:labelID',
+      name: 'system.labels.edit',
+      component: () => import('../views/system/Label/Editor.vue'),
+    },
+
     // Users
     {
       path: '/system/users',

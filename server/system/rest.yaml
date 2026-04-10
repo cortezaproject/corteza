@@ -1672,7 +1672,7 @@ endpoints:
     authentication: []
     apis:
       - name: list
-        method: Get
+        method: GET
         title: List labels
         path: '/label/'
         parameters:

@@ -67,7 +67,8 @@ async function fetchProviders() {
     cancelCurrentRequest = cancel
 
     const result = await response()
-    options.value = Array.isArray(result) ? result : result.set || []
+    const all = Array.isArray(result) ? result : result.set || []
+    options.value = all.filter(p => !p.deletedAt && p.status === 'active')
   } catch (e) {
     if (e?.message !== 'canceled') {
       options.value = []

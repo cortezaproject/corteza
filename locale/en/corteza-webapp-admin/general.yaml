@@ -96,3 +96,8 @@ extendSession:
   labels:
     extend: Extend Session
     warning: You will be logged out in { countdownTime } seconds
+
+appDisabled:
+  title: Application Disabled
+  message: Please contact your system administrator for more information.
+  backToHome: Back to Home

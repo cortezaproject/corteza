@@ -12,9 +12,15 @@ type (
 	Label struct {
 		label service.LabelService
 	}
+
+	LabelListEntry struct {
+		Name          string `json:"name"`
+		ResourceCount int    `json:"resourceCount"`
+	}
+
 	LabelSetPayload struct {
 		Filter types.LabelFilter `json:"filter"`
-		Set types.LabelSet `json:"set"`
+		Set    []LabelListEntry  `json:"set"`
 	}
 )
 
@@ -28,8 +34,8 @@ func (ctrl Label) List(ctx context.Context, r *request.LabelList) (interface{}, 
 	var (
 		err error
 		set types.LabelSet
-		f = types.LabelFilter{
-			Kind: r.Kind,
+		f   = types.LabelFilter{
+			Kind:  r.Kind,
 			Limit: uint(r.Limit),
 		}
 	)
@@ -43,9 +49,26 @@ func (ctrl Label) List(ctx context.Context, r *request.LabelList) (interface{}, 
 		return nil, err
 	}
 
+	// Deduplicate by label name and count resources per label
+	counts := make(map[string]int)
+	order := make([]string, 0)
+	for _, label := range set {
+		if counts[label.Name] == 0 {
+			order = append(order, label.Name)
+		}
+		counts[label.Name]++
+	}
+
+	unique := make([]LabelListEntry, 0, len(order))
+	for _, name := range order {
+		unique = append(unique, LabelListEntry{
+			Name:          name,
+			ResourceCount: counts[name],
+		})
+	}
+
 	return &LabelSetPayload{
 		Filter: f,
-		Set: set,
+		Set:    unique,
 	}, nil
 }
-

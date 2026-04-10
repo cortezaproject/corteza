@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { useApplicationsStore } from '@/stores/applications'
+import { useApplicationsStore } from '@cortezaproject/corteza-vue-next'
 import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, ref } from 'vue'
 const { CInputSearch } = components

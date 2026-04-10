@@ -45,7 +45,6 @@
             size="small"
             @click="$router.push({ name: 'system.dataSources.create' })"
           />
-
         </div>
       </template>
 
@@ -70,8 +69,8 @@
         <Button
           icon="pi pi-filter"
           severity="secondary"
-          outlined
           size="small"
+          text
           @click="toggleFilterMenu"
         />
       </template>

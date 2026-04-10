@@ -3936,7 +3936,7 @@ export default class System {
   }
 
   labelListEndpoint(): string {
-    return 'undefined/label/'
+    return '/label/'
   }
 
   // Retrieve defined permissions

@@ -47,9 +47,9 @@
 </template>
 
 <script setup>
-import { useApplicationsStore } from '@/stores/applications'
 import {
   components,
+  useApplicationsStore,
   useNotificationsStore,
   useWorkflowPromptsStore,
   websocket,

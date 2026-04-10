@@ -435,6 +435,7 @@
       mode="edit"
       :initial-name="editor.name.value"
       :initial-description="editor.automation.value.meta?.description"
+      :initial-labels="editor.automation.value.labels"
       @saved="handleConfigSave"
     />
   </div>
@@ -525,12 +526,13 @@ const showUnsavedDialog = ref(false)
 // Config Modal State
 const showConfigDialog = ref(false)
 
-function handleConfigSave({ name, description }) {
+function handleConfigSave({ name, description, labels }) {
   editor.name.value = name
   editor.automation.value.meta = {
     ...editor.automation.value.meta,
     description: description,
   }
+  editor.automation.value.labels = labels || {}
   editor.save()
 }
 

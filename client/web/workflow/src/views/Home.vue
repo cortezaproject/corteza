@@ -115,8 +115,8 @@
         <Button
           icon="pi pi-filter"
           severity="secondary"
-          outlined
           size="small"
+          text
           @click="toggleFilterMenu"
         />
       </template>
@@ -128,11 +128,7 @@
       :style="{ width: '450px' }"
       modal
     >
-      <Import
-        :key="showImportDialog"
-        :disabled="importProcessing"
-        @import="importJSON"
-      />
+      <Import :key="showImportDialog" :disabled="importProcessing" @import="importJSON" />
     </Dialog>
 
     <Popover ref="filterMenu">
@@ -154,7 +150,11 @@
         <!-- Disabled filter -->
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">{{ $t('general.disabled') }}</span>
-          <div v-for="opt in radioOptions" :key="'dis-' + opt.value" class="flex items-center gap-2">
+          <div
+            v-for="opt in radioOptions"
+            :key="'dis-' + opt.value"
+            class="flex items-center gap-2"
+          >
             <RadioButton
               v-model="filter.disabled"
               :inputId="'dis' + opt.value"
@@ -168,7 +168,11 @@
         <!-- Deleted filter -->
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">{{ $t('general.deleted') }}</span>
-          <div v-for="opt in radioOptions" :key="'del-' + opt.value" class="flex items-center gap-2">
+          <div
+            v-for="opt in radioOptions"
+            :key="'del-' + opt.value"
+            class="flex items-center gap-2"
+          >
             <RadioButton
               v-model="filter.deleted"
               :inputId="'del' + opt.value"
@@ -189,8 +193,6 @@
         />
       </div>
     </Popover>
-
-
   </div>
 </template>
 
@@ -305,7 +307,7 @@ const {
 const workflowIDs = computed(() => workflowList.value.map(w => w.workflowID))
 
 // Resolve namespace/module names whenever the list changes
-watch(workflowList, (workflows) => {
+watch(workflowList, workflows => {
   if (!workflows?.length) return
 
   const namespaceIDs = new Set()
@@ -342,17 +344,23 @@ function getWorkflowLabels(workflow) {
   const nsIDs = []
   const modsByNs = {}
 
-  ;[workflow.labels.ref_namespace].flat().filter(Boolean).forEach(l => {
-    const id = l.split('/')[1]
-    if (id && !nsIDs.includes(id)) nsIDs.push(id)
-  })
-  ;[workflow.labels.ref_module].flat().filter(Boolean).forEach(l => {
-    const [, nsID, modID] = l.split('/')
-    if (!nsID || !modID) return
-    if (!nsIDs.includes(nsID)) nsIDs.push(nsID)
-    if (!modsByNs[nsID]) modsByNs[nsID] = []
-    modsByNs[nsID].push({ id: modID, name: labelsStore.getModule(modID) || modID })
-  })
+  ;[workflow.labels.ref_namespace]
+    .flat()
+    .filter(Boolean)
+    .forEach(l => {
+      const id = l.split('/')[1]
+      if (id && !nsIDs.includes(id)) nsIDs.push(id)
+    })
+  ;[workflow.labels.ref_module]
+    .flat()
+    .filter(Boolean)
+    .forEach(l => {
+      const [, nsID, modID] = l.split('/')
+      if (!nsID || !modID) return
+      if (!nsIDs.includes(nsID)) nsIDs.push(nsID)
+      if (!modsByNs[nsID]) modsByNs[nsID] = []
+      modsByNs[nsID].push({ id: modID, name: labelsStore.getModule(modID) || modID })
+    })
 
   return nsIDs.map(id => ({
     namespaceID: id,
@@ -424,7 +432,10 @@ async function handleExportWorkflow(workflow) {
     }))
 
     const blob = new Blob([JSON.stringify({ workflows }, null, 2)], { type: 'application/json' })
-    const filename = (workflow.meta?.name || workflow.handle || 'workflow').replace(/[/\\?%*:|"<>]/g, '')
+    const filename = (workflow.meta?.name || workflow.handle || 'workflow').replace(
+      /[/\\?%*:|"<>]/g,
+      '',
+    )
     saveAs(blob, `${filename}.json`)
   } catch {
     toast.add({ severity: 'error', summary: t('notification.failed-fetch-workflows'), life: 5000 })
@@ -458,9 +469,18 @@ async function importJSON(workflows = []) {
   )
 
   if (skipped.length) {
-    toast.add({ severity: 'warn', summary: t('notification.import.skipped-workflows'), detail: skipped.join('; '), life: 5000 })
+    toast.add({
+      severity: 'warn',
+      summary: t('notification.import.skipped-workflows'),
+      detail: skipped.join('; '),
+      life: 5000,
+    })
   } else {
-    toast.add({ severity: 'success', summary: t('notification.import.imported-workflows'), life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: t('notification.import.imported-workflows'),
+      life: 3000,
+    })
   }
 
   showImportDialog.value = false

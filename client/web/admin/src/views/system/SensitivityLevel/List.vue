@@ -45,7 +45,6 @@
             size="small"
             @click="$router.push({ name: 'system.sensitivityLevels.create' })"
           />
-
         </div>
       </template>
 
@@ -57,8 +56,8 @@
         <Button
           icon="pi pi-filter"
           severity="secondary"
-          outlined
           size="small"
+          text
           @click="toggleFilterMenu"
         />
       </template>

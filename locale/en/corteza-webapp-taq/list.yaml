@@ -32,6 +32,14 @@ dialog:
     namePlaceholder: Enter TAQ name...
     descriptionPlaceholder: What does this automation do? (optional)
     nameRequired: Name is required
+    labels: Labels
+    labelsPlaceholder: Select label to add...
+    labelsCreateNew: Create new
+    labelsDialogCreate: Create Label
+    labelsDialogEdit: Edit Label
+    labelsName: Name
+    labelsValue: Value
+    labelsValueHelp: Optional value for this label
     createError: Failed to create TAQ. Please try again.
 
 button:

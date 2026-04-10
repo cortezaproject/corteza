@@ -146,6 +146,13 @@ const navItems = computed(() => [
     _route: { name: 'system.sensitivityLevels' },
   },
   {
+    _id: 'labels',
+    _parentId: 'system',
+    _label: t('navigation.system.items.labels'),
+    _icon: 'pi pi-tags',
+    _route: { name: 'system.labels' },
+  },
+  {
     _id: 'action-log',
     _parentId: 'system',
     _label: t('navigation.system.items.actionlog'),

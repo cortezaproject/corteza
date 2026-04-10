@@ -41,6 +41,7 @@ system:
     stats: Stats
     templates: Templates
     llm-providers: LLM Providers
+    labels: Labels
 
 compose:
   group: Compose

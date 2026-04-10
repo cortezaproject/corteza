@@ -17,3 +17,8 @@ resourceList:
     showing: '{from} - {to} of {count} {data}'
     single: 'No {data} | One {data} | {count} {data}'
     recordsPerPage: Per Page
+
+appDisabled:
+  title: Application Disabled
+  message: Please contact your system administrator for more information.
+  backToHome: Back to Home

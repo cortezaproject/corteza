@@ -44,6 +44,16 @@ editor:
   description:
     label: Description
     help: Explain what this agent does — visible to users who interact with it
+  labels:
+    label: Labels
+    placeholder: Select label to add...
+    help: Labels used to group and categorize this agent
+    createNew: Create new
+    dialogCreate: Create Label
+    dialogEdit: Edit Label
+    name: Name
+    value: Value
+    valueHelp: Optional value for this label
   status:
     label: Status
     help: Only active agents can be invoked

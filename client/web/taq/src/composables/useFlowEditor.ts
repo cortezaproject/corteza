@@ -262,6 +262,7 @@ export function useFlowEditor() {
       const dataToSave = {
         automationID: automation.value.automationID,
         handle: automation.value.handle,
+        labels: automation.value.labels,
         meta: automation.value.meta,
         enabled: automation.value.enabled,
         triggers,

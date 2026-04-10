@@ -19,3 +19,8 @@ resourceList:
     prev: Previous
     next: Next
     recordsPerPage: Records per page
+
+appDisabled:
+  title: Application Disabled
+  message: Please contact your system administrator for more information.
+  backToHome: Back to Home

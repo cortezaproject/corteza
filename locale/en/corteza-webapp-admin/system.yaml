@@ -255,6 +255,7 @@ applications:
       delete: Delete
       deletedAt: Deleted at
       enabled: Enabled
+      enabledDescription: When disabled, users cannot access this application and it will not appear in the app selector
       id: ID
       name: Name
       title: Basic information
@@ -271,6 +272,7 @@ applications:
         description: Application configuration (JSON)
         label: Configuration
       listed: Listed
+      listedDescription: When listed, this application will be visible in the app selector for users to access
       logo:
         label: Logo
         description: Logo used in the application selector
@@ -757,6 +759,55 @@ email:
 
       testSmtpConfigs:
         button: Test SMTP Server
+
+labels:
+  list:
+    title: Labels
+    resourceSingle: label
+    columns:
+      name: Name
+      resources: Resources
+    filterForm:
+      query:
+        placeholder: Filter labels by name
+  editor:
+    title: Label Details
+    info:
+      title: Label Information
+      name: Label Name
+    namespaces:
+      title: Namespaces
+      empty: No namespaces with this label
+      add: Add Namespace
+      addDialog: Add Namespace to Label
+      selectLabel: Select a namespace
+      selectPlaceholder: Choose a namespace...
+      columns:
+        name: Name
+        enabled: Status
+    agents:
+      title: Agents
+      empty: No agents with this label
+      add: Add Agent
+      addDialog: Add Agent to Label
+      selectLabel: Select an agent
+      selectPlaceholder: Choose an agent...
+      columns:
+        name: Name
+        status: Status
+    automations:
+      title: TAQ Automations
+      empty: No automations with this label
+      add: Add Automation
+      addDialog: Add Automation to Label
+      selectLabel: Select an automation
+      selectPlaceholder: Choose an automation...
+      columns:
+        name: Name
+        enabled: Status
+    toast:
+      added: Label assigned successfully
+      addError: Failed to assign label
 
 queues:
   editor:

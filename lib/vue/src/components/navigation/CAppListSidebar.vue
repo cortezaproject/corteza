@@ -76,29 +76,7 @@ import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
-import defaultAppIcon from '../../assets/default-app.png'
-import adminAreaIcon from '../../assets/admin-area.png'
-import discoveryIcon from '../../assets/discovery.png'
-import lowCodeCrmIcon from '../../assets/low-code-crm-app.png'
-import lowCodePlatformIcon from '../../assets/low-code-platform.png'
-import lowCodeServiceIcon from '../../assets/low-code-service-solution-app.png'
-import privacyIcon from '../../assets/privacy.png'
-import reporterIcon from '../../assets/reporter.png'
-import videoConferenceIcon from '../../assets/video-conference.png'
-import workflowsIcon from '../../assets/workflows.png'
-
-const appIconMap = {
-  'applications/default-app.png': defaultAppIcon,
-  'applications/admin-area.png': adminAreaIcon,
-  'applications/discovery.png': discoveryIcon,
-  'applications/low-code-crm-app.png': lowCodeCrmIcon,
-  'applications/low-code-platform.png': lowCodePlatformIcon,
-  'applications/low-code-service-solution-app.png': lowCodeServiceIcon,
-  'applications/privacy.png': privacyIcon,
-  'applications/reporter.png': reporterIcon,
-  'applications/video-conference.png': videoConferenceIcon,
-  'applications/workflows.png': workflowsIcon,
-}
+import { resolveAppLogoUrl } from '../../utils/appIcons'
 
 const visible = defineModel('visible', {
   type: Boolean,
@@ -134,25 +112,7 @@ const isAppVisible = app => {
 
 const areAppsVisible = computed(() => apps.value.some(isAppVisible))
 
-const getAppLogoUrl = app => {
-  if (!app.unify?.logo) {
-    return defaultAppIcon
-  }
-
-  // Check if it's a known bundled app icon
-  if (appIconMap[app.unify.logo]) {
-    return appIconMap[app.unify.logo]
-  }
-
-  const apiSystem = '/api/system'
-  const apiBaseUrl = new URL($SystemAPI.baseURL, window.location.origin).toString()
-
-  if (app.unify.logo.startsWith(apiSystem)) {
-    return apiBaseUrl.substring(0, apiBaseUrl.length - apiSystem.length) + app.unify.logo
-  }
-
-  return app.unify.logo
-}
+const getAppLogoUrl = app => resolveAppLogoUrl(app, $SystemAPI.baseURL)
 
 const getAppUrl = app => {
   const url = app.unify?.url || ''

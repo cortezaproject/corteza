@@ -1,0 +1,27 @@
+<template>
+  <div class="flex items-center justify-center h-screen">
+    <div class="flex flex-col items-center gap-4 text-center max-w-md p-8">
+      <i class="pi pi-ban text-6xl text-muted-color" />
+      <h1 class="text-2xl font-semibold text-color">
+        {{ t('appDisabled.title') }}
+      </h1>
+      <p class="text-muted-color">
+        {{ t('appDisabled.message') }}
+      </p>
+      <a href="/" class="mt-2">
+        <Button
+          :label="t('appDisabled.backToHome')"
+          icon="pi pi-home"
+          severity="secondary"
+          outlined
+        />
+      </a>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+</script>

@@ -271,6 +271,18 @@ sensitivityLevel:
   update:
     success: Sensitivity level updated
     error: Sensitivity level update failed
+label:
+  fetch:
+    error: Label fetch failed
+  create:
+    success: Label created
+    error: Label create failed
+  update:
+    success: Label updated
+    error: Label update failed
+  delete:
+    success: Label deleted
+    error: Label delete failed
 data-source:
   fetch:
     error: Data source fetch failed

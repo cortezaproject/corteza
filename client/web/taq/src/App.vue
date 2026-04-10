@@ -1,7 +1,9 @@
 <template>
   <CLoaderLogo :show="loading" :logo-url="logoUrl" />
 
-  <div class="h-screen flex">
+  <CAppDisabled v-if="!loading && !appEnabled" />
+
+  <div v-else class="h-screen flex">
     <!-- Sidebar: fixed position via Drawer -->
     <CSidebar v-model="expanded">
       <template #body>
@@ -96,6 +98,7 @@ const {
   CNotificationSidebar,
   CPermissionsDialog,
   CAgentSidebar,
+  CAppDisabled,
 } = components
 
 providePermissions()
@@ -111,6 +114,7 @@ const workflowPromptsStore = useWorkflowPromptsStore()
 const rbacStore = useRBACStore()
 
 const appListVisible = ref(false)
+const appEnabled = computed(() => applicationsStore.isCurrentAppEnabled())
 let realtimeClient
 
 const logoUrl = computed(() => {

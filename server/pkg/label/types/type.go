@@ -15,22 +15,22 @@ type (
 	}
 	Label struct {
 		// Kind of the labeled resource
-		Kind string
+		Kind string `json:"kind"`
 
 		// ID of the labeled resource
-		ResourceID uint64
+		ResourceID uint64 `json:"resourceID,string"`
 
-		Name  string
-		Value LabelValue
+		Name  string     `json:"name"`
+		Value LabelValue `json:"value"`
 	}
 
 	LabelFilter struct {
-		Kind       string
-		ResourceID []uint64
-		Filter     map[string][]string
-		Limit      uint
-		Name       string
-		Value      []string
+		Kind       string              `json:"kind"`
+		ResourceID []uint64            `json:"resourceID"`
+		Filter     map[string][]string `json:"filter"`
+		Limit      uint                `json:"limit"`
+		Name       string              `json:"name"`
+		Value      []string            `json:"value"`
 	}
 )
 

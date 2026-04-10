@@ -34,6 +34,19 @@
           rows="3"
         />
       </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-primary">{{ $t('list.dialog.create.labels') }}</label>
+        <CInputLabel
+          v-model="form.labels"
+          :placeholder="$t('list.dialog.create.labelsPlaceholder')"
+          :create-label="$t('list.dialog.create.labelsCreateNew')"
+          :create-dialog-label="$t('list.dialog.create.labelsDialogCreate')"
+          :name-label="$t('list.dialog.create.labelsName')"
+          :save-btn-label="$t('list.button.create')"
+          :cancel-btn-label="$t('list.button.cancel')"
+        />
+      </div>
     </div>
     <template #footer>
       <div class="flex justify-end w-full h-full items-center gap-2">
@@ -61,12 +74,16 @@
 import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { components } from '@cortezaproject/corteza-vue-next'
+
+const { CInputLabel } = components
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   mode: { type: String, default: 'create' }, // 'create' or 'edit'
   initialName: { type: String, default: '' },
   initialDescription: { type: String, default: '' },
+  initialLabels: { type: Object, default: () => ({}) },
 })
 
 const emit = defineEmits(['update:visible', 'saved'])
@@ -79,6 +96,7 @@ const $Auth = inject('$Auth')
 const form = ref({
   name: props.initialName,
   description: props.initialDescription,
+  labels: {},
 })
 
 const nameError = ref('')
@@ -88,6 +106,7 @@ watch(() => props.visible, (val) => {
   if (val) {
     form.value.name = props.initialName
     form.value.description = props.initialDescription || ''
+    form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
   }
 })
 
@@ -98,6 +117,7 @@ function resetForm() {
   } else {
     form.value.name = props.initialName
     form.value.description = props.initialDescription || ''
+    form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
   }
   nameError.value = ''
 }
@@ -123,6 +143,7 @@ async function handleSubmit() {
           short: form.value.name.trim(),
           description: form.value.description.trim() || undefined,
         },
+        labels: form.value.labels || {},
         enabled: false,
         triggers: [],
         steps: [],
@@ -137,6 +158,7 @@ async function handleSubmit() {
       emit('saved', {
         name: form.value.name.trim(),
         description: form.value.description.trim() || undefined,
+        labels: form.value.labels || {},
       })
       emit('update:visible', false)
     }

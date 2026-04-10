@@ -1,7 +1,9 @@
 <template>
   <CLoaderLogo :show="loading" :logo-url="logoUrl" />
 
-  <div class="h-screen flex">
+  <CAppDisabled v-if="!loading && !appEnabled" />
+
+  <div v-else class="h-screen flex">
     <!-- Sidebar -->
     <CSidebar v-model="expanded">
       <template #body>
@@ -95,6 +97,7 @@ const {
   CNotificationSidebar,
   CPermissionsDialog,
   CAgentSidebar,
+  CAppDisabled,
 } = components
 
 // Provide permissions dialog context for the entire app
@@ -112,6 +115,7 @@ const workflowPromptsStore = useWorkflowPromptsStore()
 let realtimeClient
 
 const appListVisible = ref(false)
+const appEnabled = computed(() => applicationsStore.isCurrentAppEnabled())
 
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')

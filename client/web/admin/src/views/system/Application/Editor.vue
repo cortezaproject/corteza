@@ -37,19 +37,11 @@
             </Message>
           </FormField>
 
-          <div class="flex flex-col gap-2">
-            <label for="weight" class="font-medium text-primary">
-              {{ $t('system.applications.editor.info.weight') }}
-            </label>
-            <InputNumber id="weight" v-model="application.weight" :min="0" />
-          </div>
-
-          <div class="flex items-center gap-3">
-            <ToggleSwitch id="enabled" v-model="application.enabled" />
-            <label for="enabled" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.applications.editor.info.enabled') }}
-            </label>
-          </div>
+          <CInputToggleCard
+            v-model="application.enabled"
+            :label="$t('system.applications.editor.info.enabled')"
+            :description="$t('system.applications.editor.info.enabledDescription')"
+          />
         </div>
       </Panel>
 
@@ -69,11 +61,28 @@
             <InputText id="unifyUrl" v-model="application.unify.url" />
           </div>
 
-          <div class="flex items-center gap-3">
-            <ToggleSwitch id="unifyListed" v-model="application.unify.listed" />
-            <label for="unifyListed" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.applications.editor.unify.listed') }}
-            </label>
+          <CInputToggleCard
+            v-model="application.unify.listed"
+            :label="$t('system.applications.editor.unify.listed')"
+            :description="$t('system.applications.editor.unify.listedDescription')"
+            class="self-start"
+          />
+
+          <div class="flex flex-col gap-2">
+            <CFileDropZone
+              accept="image/*"
+              :uploading="logoUploading"
+              :error="logoError"
+              :preview-url="logoPreviewUrl"
+              :clearable="isCustomLogo"
+              :drop-label="$t('system.applications.editor.unify.logo.placeholder')"
+              :label="$t('system.applications.editor.unify.logo.label')"
+              compact
+              preview-max-width="100%"
+              preview-max-height="200px"
+              @select="onLogoSelect"
+              @clear="onLogoClear"
+            />
           </div>
         </div>
       </Panel>
@@ -113,9 +122,14 @@ import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import {
+  components,
+  useFileUpload,
+  resolveAppLogoUrl,
+  appIconMap,
+} from '@cortezaproject/corteza-vue-next'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputToggleCard, CFileDropZone } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -128,6 +142,28 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const application = ref(null)
+
+// Logo upload
+const {
+  uploading: logoUploading,
+  uploadError: logoUploadError,
+  uploadFiles: uploadLogoFiles,
+  reset: resetLogoUpload,
+} = useFileUpload()
+
+const logoError = computed(() => logoUploadError.value)
+
+const logoPreviewUrl = computed(() => {
+  if (!application.value) return ''
+  return resolveAppLogoUrl(application.value, $SystemAPI.baseURL)
+})
+
+const isCustomLogo = computed(() => {
+  const logo = application.value?.unify?.logo || application.value?.unify?.icon || ''
+  if (!logo) return false
+  // Built-in default icons should not be clearable
+  return !appIconMap[logo]
+})
 
 const isEdit = computed(() => !!route.params.applicationID)
 
@@ -218,6 +254,32 @@ async function handleDelete() {
   } finally {
     deleting.value = false
   }
+}
+
+async function onLogoSelect(files) {
+  const file = files[0]
+  if (!file) return
+
+  try {
+    const results = await uploadLogoFiles([file], {
+      api: $SystemAPI,
+      endpoint: $SystemAPI.applicationUploadEndpoint(),
+    })
+
+    const rsp = results[0]
+    if (rsp) {
+      application.value.unify.logo = $SystemAPI.baseURL + rsp.url
+      application.value.unify.logoID = rsp.attachmentID
+    }
+  } catch {
+    // error is set by composable
+  }
+}
+
+function onLogoClear() {
+  application.value.unify.logo = ''
+  application.value.unify.logoID = '0'
+  resetLogoUpload()
 }
 
 onMounted(() => loadApplication())
