@@ -233,12 +233,15 @@ function getActionsMenuItems(automation) {
     })
   }
 
-  items.push({
-    label: t('general.label.delete'),
-    icon: 'pi pi-trash',
-    class: 'text-red-500',
-    command: () => onConfirmDelete(automation),
-  })
+  if (automation.canDeleteNgAutomation) {
+    if (items.length > 0) items.push({ separator: true })
+    items.push({
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => onConfirmDelete(automation),
+    })
+  }
 
   return items
 }

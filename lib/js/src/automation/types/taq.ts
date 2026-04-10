@@ -151,6 +151,14 @@ export class NgAutomation {
   public deletedAt?: Date = undefined
   public deletedBy = NoID
 
+  public canGrant = false
+  public canUpdateNgAutomation = false
+  public canDeleteNgAutomation = false
+  public canUndeleteNgAutomation = false
+  public canExecuteNgAutomation = false
+  public canManageNgAutomationSessions = false
+  public canManageNgAutomationTriggers = false
+
   constructor(t?: PartialNgAutomation) {
     this.apply(t)
   }
@@ -167,6 +175,19 @@ export class NgAutomation {
 
     Apply(this, t, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, t, CortezaID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
+
+    Apply(
+      this,
+      t,
+      Boolean,
+      'canGrant',
+      'canUpdateNgAutomation',
+      'canDeleteNgAutomation',
+      'canUndeleteNgAutomation',
+      'canExecuteNgAutomation',
+      'canManageNgAutomationSessions',
+      'canManageNgAutomationTriggers',
+    )
 
     if (IsOf(t, 'meta')) {
       this.meta = { short: '', ...t.meta }

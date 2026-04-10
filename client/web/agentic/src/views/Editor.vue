@@ -815,7 +815,7 @@
         />
         <div class="flex gap-2">
           <CInputDelete
-            v-if="!isCreate && agent.canDeleteAgent !== false"
+            v-if="!isCreate && agent.canDeleteAgent"
             :label="$t('general.label.delete')"
             :message="$t('agent.list.delete')"
             :header="agent?.meta?.short || agent?.handle || $t('general.label.delete')"

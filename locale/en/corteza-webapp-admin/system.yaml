@@ -778,36 +778,40 @@ labels:
     namespaces:
       title: Namespaces
       empty: No namespaces with this label
-      add: Add Namespace
-      addDialog: Add Namespace to Label
-      selectLabel: Select a namespace
-      selectPlaceholder: Choose a namespace...
+      create: New Namespace
+      createDialog: Create Namespace
+      nameLabel: Name
+      namePlaceholder: Namespace name...
+      slugLabel: Slug
+      slugPlaceholder: slug
       columns:
         name: Name
         enabled: Status
     agents:
       title: Agents
       empty: No agents with this label
-      add: Add Agent
-      addDialog: Add Agent to Label
-      selectLabel: Select an agent
-      selectPlaceholder: Choose an agent...
+      create: New Agent
+      createDialog: Create Agent
+      nameLabel: Name
+      namePlaceholder: Agent name...
       columns:
         name: Name
-        status: Status
     automations:
       title: TAQ Automations
       empty: No automations with this label
-      add: Add Automation
-      addDialog: Add Automation to Label
-      selectLabel: Select an automation
-      selectPlaceholder: Choose an automation...
+      create: New Automation
+      createDialog: Create Automation
+      nameLabel: Name
+      namePlaceholder: Automation name...
       columns:
         name: Name
         enabled: Status
     toast:
-      added: Label assigned successfully
-      addError: Failed to assign label
+      created: Resource created successfully
+      createError: Failed to create resource
+      deleted: Resource deleted successfully
+      deleteError: Failed to delete resource
+    openNewTab: Open in new tab
 
 queues:
   editor:

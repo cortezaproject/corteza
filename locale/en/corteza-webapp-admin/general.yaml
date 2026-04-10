@@ -57,6 +57,7 @@ label:
   loading: Loading
   saveAndClose: Save and close
   save: Save
+  create: Create
   cancel: Cancel
   back: Back
   submit: Submit

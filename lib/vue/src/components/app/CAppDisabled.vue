@@ -3,14 +3,14 @@
     <div class="flex flex-col items-center gap-4 text-center max-w-md p-8">
       <i class="pi pi-ban text-6xl text-muted-color" />
       <h1 class="text-2xl font-semibold text-color">
-        {{ t('appDisabled.title') }}
+        {{ t('general.appDisabled.title') }}
       </h1>
       <p class="text-muted-color">
-        {{ t('appDisabled.message') }}
+        {{ t('general.appDisabled.message') }}
       </p>
       <a href="/" class="mt-2">
         <Button
-          :label="t('appDisabled.backToHome')"
+          :label="t('general.appDisabled.backToHome')"
           icon="pi pi-home"
           severity="secondary"
           outlined

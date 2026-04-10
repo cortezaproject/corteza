@@ -145,7 +145,7 @@ const {
 
 // Methods
 function handleRowClick({ data }) {
-  if (data.canUpdateAgent === false && data.canDeleteAgent === false) {
+  if (!data.canUpdateAgent && !data.canDeleteAgent) {
     return
   }
   router.push({
@@ -172,7 +172,7 @@ function getActionsMenuItems(agent) {
     })
   }
 
-  if (agent.canUpdateAgent !== false) {
+  if (agent.canUpdateAgent) {
     items.push({
       label: t('general.label.edit'),
       icon: 'pi pi-pencil',
@@ -184,7 +184,7 @@ function getActionsMenuItems(agent) {
   }
 
   // Duplicate action
-  if (agent.canUpdateAgent !== false) {
+  if (agent.canUpdateAgent) {
     items.push({
       label: t('agent.list.actions.duplicate'),
       icon: 'pi pi-copy',
@@ -199,7 +199,7 @@ function getActionsMenuItems(agent) {
       icon: 'pi pi-undo',
       command: () => handleUndelete(agent),
     })
-  } else if (agent.canDeleteAgent !== false) {
+  } else if (agent.canDeleteAgent) {
     if (items.length > 0) {
       items.push({ separator: true })
     }

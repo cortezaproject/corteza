@@ -3,206 +3,235 @@
     <span>{{ $t('system.labels.editor.title') }} — {{ labelName }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-auto flex flex-col gap-4">
-    <!-- Basic Info Panel -->
-    <Panel :header="$t('system.labels.editor.info.title')">
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary text-sm">
-          {{ $t('system.labels.editor.info.name') }}
-        </label>
-        <InputText :model-value="labelName" disabled />
-      </div>
-    </Panel>
+  <div class="flex flex-col h-full">
+    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <!-- Basic Info Panel -->
+      <Panel :header="$t('system.labels.editor.info.title')" toggleable :collapsed="false">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-primary text-sm">
+            {{ $t('system.labels.editor.info.name') }}
+          </label>
+          <InputText :model-value="labelName" disabled />
+        </div>
+      </Panel>
 
-    <!-- Namespaces with this label -->
-    <Panel :header="$t('system.labels.editor.namespaces.title')" toggleable>
-      <CResourceTable
-        primary-key="namespaceID"
-        :fields="nsFields"
-        :items="nsItems"
-        :loading="nsLoading"
-        :empty-message="$t('system.labels.editor.namespaces.empty')"
-      >
-        <template #header>
-          <Button
-            :label="$t('system.labels.editor.namespaces.add')"
-            icon="pi pi-plus"
-            size="small"
-            @click="showNsDialog = true"
-          />
-        </template>
-        <template #body-name="{ data }">
-          <a :href="buildNamespaceLink(data)" class="text-primary hover:underline" @click.prevent="navigateTo(buildNamespaceLink(data))">
-            {{ data.name || '—' }}
-          </a>
-        </template>
-        <template #body-enabled="{ data }">
-          <Tag
-            :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
-            :severity="data.enabled ? 'success' : 'secondary'"
-          />
-        </template>
-      </CResourceTable>
-    </Panel>
+      <!-- Namespaces with this label -->
+      <Panel :header="$t('system.labels.editor.namespaces.title')" toggleable>
+        <CResourceTable
+          primary-key="namespaceID"
+          :fields="nsFields"
+          :items="nsItems"
+          :loading="nsLoading"
+          :empty-message="$t('system.labels.editor.namespaces.empty')"
+          :action-items="getNsActions"
+        >
+          <template #header>
+            <Button
+              :label="$t('system.labels.editor.namespaces.create')"
+              icon="pi pi-plus"
+              size="small"
+              @click="showNsDialog = true"
+            />
+          </template>
+          <template #body-enabled="{ data }">
+            <Tag
+              :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
+              :severity="data.enabled ? 'success' : 'secondary'"
+            />
+          </template>
+        </CResourceTable>
+      </Panel>
 
-    <!-- Agents with this label -->
-    <Panel :header="$t('system.labels.editor.agents.title')" toggleable>
-      <CResourceTable
-        primary-key="agentID"
-        :fields="agentFields"
-        :items="agentItems"
-        :loading="agentLoading"
-        :empty-message="$t('system.labels.editor.agents.empty')"
-      >
-        <template #header>
-          <Button
-            :label="$t('system.labels.editor.agents.add')"
-            icon="pi pi-plus"
-            size="small"
-            @click="showAgentDialog = true"
-          />
-        </template>
-        <template #body-name="{ data }">
-          <a :href="buildAgentLink(data)" class="text-primary hover:underline" @click.prevent="navigateTo(buildAgentLink(data))">
+      <!-- Agents with this label -->
+      <Panel :header="$t('system.labels.editor.agents.title')" toggleable>
+        <CResourceTable
+          primary-key="agentID"
+          :fields="agentFields"
+          :items="agentItems"
+          :loading="agentLoading"
+          :empty-message="$t('system.labels.editor.agents.empty')"
+          :action-items="getAgentActions"
+        >
+          <template #header>
+            <Button
+              :label="$t('system.labels.editor.agents.create')"
+              icon="pi pi-plus"
+              size="small"
+              @click="showAgentDialog = true"
+            />
+          </template>
+          <template #body-name="{ data }">
             {{ data.meta?.short || data.handle || '—' }}
-          </a>
-        </template>
-        <template #body-status="{ data }">
-          <Tag
-            :value="data.status || '—'"
-            :severity="data.status === 'active' ? 'success' : 'secondary'"
-          />
-        </template>
-      </CResourceTable>
-    </Panel>
+          </template>
+        </CResourceTable>
+      </Panel>
 
-    <!-- TAQ Automations with this label -->
-    <Panel :header="$t('system.labels.editor.automations.title')" toggleable>
-      <CResourceTable
-        primary-key="automationID"
-        :fields="taqFields"
-        :items="taqItems"
-        :loading="taqLoading"
-        :empty-message="$t('system.labels.editor.automations.empty')"
-      >
-        <template #header>
-          <Button
-            :label="$t('system.labels.editor.automations.add')"
-            icon="pi pi-plus"
-            size="small"
-            @click="showTaqDialog = true"
-          />
-        </template>
-        <template #body-name="{ data }">
-          <a :href="buildTaqLink(data)" class="text-primary hover:underline" @click.prevent="navigateTo(buildTaqLink(data))">
+      <!-- TAQ Automations with this label -->
+      <Panel :header="$t('system.labels.editor.automations.title')" toggleable>
+        <CResourceTable
+          primary-key="automationID"
+          :fields="taqFields"
+          :items="taqItems"
+          :loading="taqLoading"
+          :empty-message="$t('system.labels.editor.automations.empty')"
+          :action-items="getTaqActions"
+        >
+          <template #header>
+            <Button
+              :label="$t('system.labels.editor.automations.create')"
+              icon="pi pi-plus"
+              size="small"
+              @click="showTaqDialog = true"
+            />
+          </template>
+          <template #body-name="{ data }">
             {{ data.meta?.short || data.handle || '—' }}
-          </a>
-        </template>
-        <template #body-enabled="{ data }">
-          <Tag
-            :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
-            :severity="data.enabled ? 'success' : 'secondary'"
-          />
-        </template>
-      </CResourceTable>
-    </Panel>
-
-    <!-- Back button -->
-    <div>
-      <Button
-        :label="$t('general.label.back')"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        @click="$router.push({ name: 'system.labels' })"
-      />
+          </template>
+          <template #body-enabled="{ data }">
+            <Tag
+              :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
+              :severity="data.enabled ? 'success' : 'secondary'"
+            />
+          </template>
+        </CResourceTable>
+      </Panel>
     </div>
 
-    <!-- Add Namespace Dialog -->
+    <!-- Bottom toolbar -->
+    <div class="shrink-0 border-t border-surface bg-surface">
+      <div class="p-3 flex items-center justify-between">
+        <Button
+          :label="$t('general.label.back')"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          @click="$router.push({ name: 'system.labels' })"
+        />
+      </div>
+    </div>
+
+    <!-- Create Namespace Dialog -->
     <Dialog
       v-model:visible="showNsDialog"
-      :header="$t('system.labels.editor.namespaces.addDialog')"
+      :header="$t('system.labels.editor.namespaces.createDialog')"
       modal
       :style="{ width: '32rem' }"
     >
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary text-sm">
-          {{ $t('system.labels.editor.namespaces.selectLabel') }}
-        </label>
-        <Select
-          v-model="selectedNamespace"
-          :options="availableNamespaces"
-          option-label="name"
-          :placeholder="$t('system.labels.editor.namespaces.selectPlaceholder')"
-          :loading="nsDialogLoading"
-          filter
-          fluid
-          @show="fetchAvailableNamespaces"
-        />
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-primary text-sm">
+            {{ $t('system.labels.editor.namespaces.nameLabel') }}
+          </label>
+          <InputText
+            v-model="nsForm.name"
+            :placeholder="$t('system.labels.editor.namespaces.namePlaceholder')"
+            fluid
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-primary text-sm">
+            {{ $t('system.labels.editor.namespaces.slugLabel') }}
+          </label>
+          <InputText
+            v-model="nsForm.slug"
+            :placeholder="$t('system.labels.editor.namespaces.slugPlaceholder')"
+            fluid
+          />
+        </div>
       </div>
       <template #footer>
         <div class="flex items-center justify-end gap-2">
-          <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="showNsDialog = false" />
-          <Button :label="$t('general.label.save')" size="small" :disabled="!selectedNamespace" @click="addNamespaceLabel" />
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="showNsDialog = false"
+          />
+          <Button
+            :label="$t('general.label.create')"
+            size="small"
+            :disabled="!nsForm.name.trim()"
+            :loading="nsCreating"
+            @click="createNamespace"
+          />
         </div>
       </template>
     </Dialog>
 
-    <!-- Add Agent Dialog -->
+    <!-- Create Agent Dialog -->
     <Dialog
       v-model:visible="showAgentDialog"
-      :header="$t('system.labels.editor.agents.addDialog')"
+      :header="$t('system.labels.editor.agents.createDialog')"
       modal
       :style="{ width: '32rem' }"
     >
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary text-sm">
-          {{ $t('system.labels.editor.agents.selectLabel') }}
-        </label>
-        <Select
-          v-model="selectedAgent"
-          :options="availableAgents"
-          :option-label="agentOptionLabel"
-          :placeholder="$t('system.labels.editor.agents.selectPlaceholder')"
-          :loading="agentDialogLoading"
-          filter
-          fluid
-          @show="fetchAvailableAgents"
-        />
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-primary text-sm">
+            {{ $t('system.labels.editor.agents.nameLabel') }}
+          </label>
+          <InputText
+            v-model="agentForm.name"
+            :placeholder="$t('system.labels.editor.agents.namePlaceholder')"
+            fluid
+          />
+        </div>
       </div>
       <template #footer>
         <div class="flex items-center justify-end gap-2">
-          <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="showAgentDialog = false" />
-          <Button :label="$t('general.label.save')" size="small" :disabled="!selectedAgent" @click="addAgentLabel" />
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="showAgentDialog = false"
+          />
+          <Button
+            :label="$t('general.label.create')"
+            size="small"
+            :disabled="!agentForm.name.trim()"
+            :loading="agentCreating"
+            @click="createAgent"
+          />
         </div>
       </template>
     </Dialog>
 
-    <!-- Add TAQ Dialog -->
+    <!-- Create TAQ Dialog -->
     <Dialog
       v-model:visible="showTaqDialog"
-      :header="$t('system.labels.editor.automations.addDialog')"
+      :header="$t('system.labels.editor.automations.createDialog')"
       modal
       :style="{ width: '32rem' }"
     >
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary text-sm">
-          {{ $t('system.labels.editor.automations.selectLabel') }}
-        </label>
-        <Select
-          v-model="selectedTaq"
-          :options="availableTaqs"
-          :option-label="taqOptionLabel"
-          :placeholder="$t('system.labels.editor.automations.selectPlaceholder')"
-          :loading="taqDialogLoading"
-          filter
-          fluid
-          @show="fetchAvailableTaqs"
-        />
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-primary text-sm">
+            {{ $t('system.labels.editor.automations.nameLabel') }}
+          </label>
+          <InputText
+            v-model="taqForm.name"
+            :placeholder="$t('system.labels.editor.automations.namePlaceholder')"
+            fluid
+          />
+        </div>
       </div>
       <template #footer>
         <div class="flex items-center justify-end gap-2">
-          <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="showTaqDialog = false" />
-          <Button :label="$t('general.label.save')" size="small" :disabled="!selectedTaq" @click="addTaqLabel" />
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="showTaqDialog = false"
+          />
+          <Button
+            :label="$t('general.label.create')"
+            size="small"
+            :disabled="!taqForm.name.trim()"
+            :loading="taqCreating"
+            @click="createAutomation"
+          />
         </div>
       </template>
     </Dialog>
@@ -210,15 +239,16 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 
 const { CResourceTable } = components
 
 const { t } = useI18n()
 const route = useRoute()
+const { confirmDelete } = useConfirmDelete()
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $AutomationAPI = inject('$AutomationAPI')
@@ -227,31 +257,130 @@ const $toast = inject('$toast')
 
 const labelName = computed(() => decodeURIComponent(route.params.labelID || ''))
 
-// ──────────────────────────────────────────────
-// Cross-app link helpers
-// ──────────────────────────────────────────────
-function getAppBase(app) {
+function buildCrossAppUrl(appBase, path) {
   const u = new URL(window.location)
-  // In production: /compose/, /agentic/, /taq/
-  // In dev: different ports, same origin with /
-  return `${u.origin}/${app}/`
+  return `${u.origin}/${appBase}/${path}`
 }
 
-function buildNamespaceLink(ns) {
-  const slug = ns.slug || ns.namespaceID
-  return `${getAppBase('compose')}namespace/${slug}`
+function openInNewTab(appBase, path) {
+  window.open(buildCrossAppUrl(appBase, path), '_blank', 'noopener')
 }
 
-function buildAgentLink(agent) {
-  return `${getAppBase('agentic')}${agent.agentID}`
+function getNsActions(data) {
+  const items = [{
+    label: t('system.labels.editor.openNewTab'),
+    icon: 'pi pi-external-link',
+    command: () => openInNewTab('compose', `namespace/${data.slug || data.namespaceID}`),
+  }]
+
+  if (data.canDeleteNamespace) {
+    items.push({ separator: true })
+    items.push({
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => onDeleteNamespace(data),
+    })
+  }
+
+  return items
 }
 
-function buildTaqLink(taq) {
-  return `${getAppBase('taq')}builder/${taq.automationID}`
+function getAgentActions(data) {
+  const items = [{
+    label: t('system.labels.editor.openNewTab'),
+    icon: 'pi pi-external-link',
+    command: () => openInNewTab('agentic', data.agentID),
+  }]
+
+  if (data.canDeleteAgent) {
+    items.push({ separator: true })
+    items.push({
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => onDeleteAgent(data),
+    })
+  }
+
+  return items
 }
 
-function navigateTo(url) {
-  window.location = url
+function getTaqActions(data) {
+  const items = [{
+    label: t('system.labels.editor.openNewTab'),
+    icon: 'pi pi-external-link',
+    command: () => openInNewTab('taq', `builder/${data.automationID}`),
+  }]
+
+  if (data.canDeleteNgAutomation) {
+    items.push({ separator: true })
+    items.push({
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => onDeleteAutomation(data),
+    })
+  }
+
+  return items
+}
+
+function onDeleteNamespace(data) {
+  confirmDelete({
+    message: t('general.confirm.delete'),
+    header: data.name || data.namespaceID,
+    onConfirm: () => handleDeleteNamespace(data),
+  })
+}
+
+function onDeleteAgent(data) {
+  confirmDelete({
+    message: t('general.confirm.delete'),
+    header: data.meta?.short || data.handle || data.agentID,
+    onConfirm: () => handleDeleteAgent(data),
+  })
+}
+
+function onDeleteAutomation(data) {
+  confirmDelete({
+    message: t('general.confirm.delete'),
+    header: data.meta?.short || data.handle || data.automationID,
+    onConfirm: () => handleDeleteAutomation(data),
+  })
+}
+
+async function handleDeleteNamespace(data) {
+  try {
+    await $ComposeAPI.namespaceDelete({ namespaceID: data.namespaceID })
+    $toast?.toastSuccess(t('system.labels.editor.toast.deleted'))
+    fetchNamespaces()
+  } catch (e) {
+    console.error('Failed to delete namespace:', e)
+    $toast?.toastDanger(t('system.labels.editor.toast.deleteError'))
+  }
+}
+
+async function handleDeleteAgent(data) {
+  try {
+    await $SystemAPI.agentDelete({ agentID: data.agentID })
+    $toast?.toastSuccess(t('system.labels.editor.toast.deleted'))
+    fetchAgents()
+  } catch (e) {
+    console.error('Failed to delete agent:', e)
+    $toast?.toastDanger(t('system.labels.editor.toast.deleteError'))
+  }
+}
+
+async function handleDeleteAutomation(data) {
+  try {
+    await $AutomationAPI.ngAutomationDelete({ automationID: data.automationID })
+    $toast?.toastSuccess(t('system.labels.editor.toast.deleted'))
+    fetchAutomations()
+  } catch (e) {
+    console.error('Failed to delete automation:', e)
+    $toast?.toastDanger(t('system.labels.editor.toast.deleteError'))
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -280,48 +409,34 @@ async function fetchNamespaces() {
   }
 }
 
-// Add namespace dialog
+// Create namespace
 const showNsDialog = ref(false)
-const selectedNamespace = ref(null)
-const availableNamespaces = ref([])
-const nsDialogLoading = ref(false)
+const nsCreating = ref(false)
+const nsForm = reactive({ name: '', slug: '' })
 
-async function fetchAvailableNamespaces() {
-  nsDialogLoading.value = true
+async function createNamespace() {
+  if (!nsForm.name.trim()) return
+  nsCreating.value = true
   try {
-    const result = await $ComposeAPI.namespaceList({ limit: 200 })
-    const set = result.set || []
-    // Exclude already-assigned
-    const assignedIds = new Set(nsItems.value.map(n => n.namespaceID))
-    availableNamespaces.value = set.filter(n => !assignedIds.has(n.namespaceID))
-  } catch (e) {
-    availableNamespaces.value = []
-  } finally {
-    nsDialogLoading.value = false
-  }
-}
-
-async function addNamespaceLabel() {
-  if (!selectedNamespace.value) return
-  try {
-    const ns = selectedNamespace.value
-    const labels = { ...(ns.labels || {}) }
+    const labels = {}
     labels[labelName.value] = ''
-    await $ComposeAPI.namespaceUpdate({
-      namespaceID: ns.namespaceID,
-      name: ns.name,
-      slug: ns.slug,
-      enabled: ns.enabled,
-      meta: ns.meta,
+    await $ComposeAPI.namespaceCreate({
+      name: nsForm.name.trim(),
+      slug: nsForm.slug.trim() || undefined,
+      enabled: false,
+      meta: {},
       labels,
     })
     showNsDialog.value = false
-    selectedNamespace.value = null
-    $toast?.toastSuccess(t('system.labels.editor.toast.added'))
+    nsForm.name = ''
+    nsForm.slug = ''
+    $toast?.toastSuccess(t('system.labels.editor.toast.created'))
     fetchNamespaces()
   } catch (e) {
-    console.error('Failed to add label to namespace:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.addError'))
+    console.error('Failed to create namespace:', e)
+    $toast?.toastDanger(t('system.labels.editor.toast.createError'))
+  } finally {
+    nsCreating.value = false
   }
 }
 
@@ -331,14 +446,7 @@ async function addNamespaceLabel() {
 const agentItems = ref([])
 const agentLoading = ref(false)
 
-const agentFields = [
-  { key: 'name', header: t('system.labels.editor.agents.columns.name') },
-  { key: 'status', header: t('system.labels.editor.agents.columns.status') },
-]
-
-function agentOptionLabel(agent) {
-  return agent.meta?.short || agent.handle || agent.agentID
-}
+const agentFields = [{ key: 'name', header: t('system.labels.editor.agents.columns.name') }]
 
 async function fetchAgents() {
   agentLoading.value = true
@@ -358,50 +466,30 @@ async function fetchAgents() {
   }
 }
 
-// Add agent dialog
+// Create agent
 const showAgentDialog = ref(false)
-const selectedAgent = ref(null)
-const availableAgents = ref([])
-const agentDialogLoading = ref(false)
+const agentCreating = ref(false)
+const agentForm = reactive({ name: '' })
 
-async function fetchAvailableAgents() {
-  agentDialogLoading.value = true
+async function createAgent() {
+  if (!agentForm.name.trim()) return
+  agentCreating.value = true
   try {
-    const result = await $SystemAPI.agentList({ limit: 200 })
-    const set = result.set || []
-    const assignedIds = new Set(agentItems.value.map(a => a.agentID))
-    availableAgents.value = set.filter(a => !assignedIds.has(a.agentID))
-  } catch (e) {
-    availableAgents.value = []
-  } finally {
-    agentDialogLoading.value = false
-  }
-}
-
-async function addAgentLabel() {
-  if (!selectedAgent.value) return
-  try {
-    const agent = selectedAgent.value
-    const labels = { ...(agent.labels || {}) }
+    const labels = {}
     labels[labelName.value] = ''
-    await $SystemAPI.agentUpdate({
-      agentID: agent.agentID,
-      handle: agent.handle,
-      status: agent.status,
-      meta: agent.meta,
-      behavior: agent.behavior,
-      execution: agent.execution,
-      access: agent.access,
-      invocation: agent.invocation,
+    await $SystemAPI.agentCreate({
+      meta: { short: agentForm.name.trim() },
       labels,
     })
     showAgentDialog.value = false
-    selectedAgent.value = null
-    $toast?.toastSuccess(t('system.labels.editor.toast.added'))
+    agentForm.name = ''
+    $toast?.toastSuccess(t('system.labels.editor.toast.created'))
     fetchAgents()
   } catch (e) {
-    console.error('Failed to add label to agent:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.addError'))
+    console.error('Failed to create agent:', e)
+    $toast?.toastDanger(t('system.labels.editor.toast.createError'))
+  } finally {
+    agentCreating.value = false
   }
 }
 
@@ -415,10 +503,6 @@ const taqFields = [
   { key: 'name', header: t('system.labels.editor.automations.columns.name') },
   { key: 'enabled', header: t('system.labels.editor.automations.columns.enabled') },
 ]
-
-function taqOptionLabel(taq) {
-  return taq.meta?.short || taq.handle || taq.automationID
-}
 
 async function fetchAutomations() {
   taqLoading.value = true
@@ -435,51 +519,34 @@ async function fetchAutomations() {
   }
 }
 
-// Add TAQ dialog
+// Create TAQ automation
 const showTaqDialog = ref(false)
-const selectedTaq = ref(null)
-const availableTaqs = ref([])
-const taqDialogLoading = ref(false)
+const taqCreating = ref(false)
+const taqForm = reactive({ name: '' })
 
-async function fetchAvailableTaqs() {
-  taqDialogLoading.value = true
+async function createAutomation() {
+  if (!taqForm.name.trim()) return
+  taqCreating.value = true
   try {
-    const result = await $AutomationAPI.ngAutomationList({ limit: 200 })
-    const set = result.set || []
-    const assignedIds = new Set(taqItems.value.map(a => a.automationID))
-    availableTaqs.value = set.filter(a => !assignedIds.has(a.automationID))
-  } catch (e) {
-    availableTaqs.value = []
-  } finally {
-    taqDialogLoading.value = false
-  }
-}
-
-async function addTaqLabel() {
-  if (!selectedTaq.value) return
-  try {
-    const taq = selectedTaq.value
-    const labels = { ...(taq.labels || {}) }
+    const labels = {}
     labels[labelName.value] = ''
-    await $AutomationAPI.ngAutomationUpdate({
-      automationID: taq.automationID,
-      handle: taq.handle,
+    await $AutomationAPI.ngAutomationCreate({
+      meta: { short: taqForm.name.trim() },
+      enabled: false,
       labels,
-      meta: taq.meta,
-      enabled: taq.enabled,
-      triggers: taq.triggers,
-      steps: taq.steps,
-      paths: taq.paths,
-      runAs: taq.runAs,
-      ownedBy: taq.ownedBy,
+      triggers: [],
+      steps: [],
+      paths: [],
     })
     showTaqDialog.value = false
-    selectedTaq.value = null
-    $toast?.toastSuccess(t('system.labels.editor.toast.added'))
+    taqForm.name = ''
+    $toast?.toastSuccess(t('system.labels.editor.toast.created'))
     fetchAutomations()
   } catch (e) {
-    console.error('Failed to add label to automation:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.addError'))
+    console.error('Failed to create automation:', e)
+    $toast?.toastDanger(t('system.labels.editor.toast.createError'))
+  } finally {
+    taqCreating.value = false
   }
 }
 
