@@ -150,6 +150,32 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 		}
 	}
 
+	// Backfill join gateway parents that weren't resolved at the time the
+	// join gateway itself was created. This is necessary because join gateways
+	// are now created eagerly (with whatever parents are available) so that
+	// circular dependencies (e.g. iterator -> join -> iterator) can be broken.
+	for _, step := range ss {
+		if step.Kind != types.WorkflowStepKindGateway || step.Ref != "join" {
+			continue
+		}
+		resolved := g.StepByID(step.ID)
+		if resolved == nil {
+			continue
+		}
+		pa, ok := resolved.(wfexec.PathAdder)
+		if !ok {
+			continue
+		}
+		for _, path := range def.Paths {
+			if path.ChildID != step.ID {
+				continue
+			}
+			if parent := g.StepByID(path.ParentID); parent != nil {
+				pa.AddPath(parent)
+			}
+		}
+	}
+
 	for pos, path := range def.Paths {
 		if g.StepByID(path.ChildID) == nil {
 			wfii = wfii.Append(fmt.Errorf("failed to resolve step with ID %d", path.ChildID), map[string]int{"path": pos})
@@ -259,12 +285,13 @@ func (svc workflowConverter) convGateway(g *wfexec.Graph, s *types.WorkflowStep,
 		var (
 			ss []wfexec.Step
 		)
+		// Collect whatever parents are already resolved. Missing parents will
+		// be backfilled after the main resolution loop via AddPath. This avoids
+		// circular dependencies where a parent (e.g. an iterator) needs this
+		// join gateway to exist in the graph before it itself can resolve.
 		for _, p := range in {
 			if parent := g.StepByID(p.ParentID); parent != nil {
 				ss = append(ss, parent)
-			} else {
-				// unresolved parent, come back later.
-				return nil, nil
 			}
 		}
 

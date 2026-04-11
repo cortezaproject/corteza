@@ -27,6 +27,13 @@ func NewGatewayPath(s Step, t pathTester) (gwp *GatewayPath, err error) {
 	return &GatewayPath{to: s, test: t}, nil
 }
 
+// PathAdder is implemented by gateways that support lazy parent registration.
+// This allows resolving circular dependencies during graph construction where
+// parent steps aren't yet in the graph when the gateway is created.
+type PathAdder interface {
+	AddPath(Step)
+}
+
 // joinGateway handles merging/joining of multiple paths into
 // a single path forward
 type (
@@ -38,6 +45,17 @@ type (
 		l       sync.Mutex
 	}
 )
+
+// AddPath adds a parent path to the join gateway after initial creation.
+// This allows resolving circular dependencies where parent steps aren't yet
+// in the graph at the time the join gateway is constructed.
+func (gw *joinGateway) AddPath(s Step) {
+	gw.l.Lock()
+	defer gw.l.Unlock()
+	if !gw.paths.Contains(s) {
+		gw.paths = append(gw.paths, s)
+	}
+}
 
 // JoinGateway fn initializes join gateway with all paths that are expected to be partial
 func JoinGateway(ss ...Step) *joinGateway {
