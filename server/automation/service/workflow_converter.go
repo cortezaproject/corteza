@@ -44,10 +44,9 @@ func Convert(wfService *workflow, wf *types.Workflow) (*wfexec.Graph, types.Work
 // Converts workflow definition to wf execution graph
 func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, types.WorkflowIssueSet) {
 	var (
-		g           = wfexec.NewGraph()
-		wfii        = types.WorkflowIssueSet{}
-		IDs         = make(map[uint64]int)
-		lastResStep *types.WorkflowStep
+		g    = wfexec.NewGraph()
+		wfii = types.WorkflowIssueSet{}
+		IDs  = make(map[uint64]int)
 	)
 
 	// Basic step verification
@@ -80,10 +79,8 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 
 	for g.Len() < len(ss) {
 		progress := false
-		lastResStep = nil
 
 		for _, step := range ss {
-			lastResStep = step
 			if g.StepByID(step.ID) != nil {
 				// resolved
 				continue
@@ -118,13 +115,37 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 		}
 
 		if !progress {
-			var culprit = make(map[string]int)
-			if lastResStep != nil {
-				culprit = map[string]int{"step": IDs[lastResStep.ID]}
-			}
+			// nothing resolved for 1 cycle — report every unresolved step
+			// individually with details about what it is waiting for.
+			for _, step := range def.Steps {
+				if g.StepByID(step.ID) != nil {
+					continue
+				}
 
-			// nothing resolved for 1 cycle
-			wfii = wfii.Append(fmt.Errorf("failed to resolve workflow step dependencies"), culprit)
+				var (
+					unresolvedChildren []uint64
+					unresolvedParents  []uint64
+				)
+
+				for _, path := range def.Paths {
+					if path.ParentID == step.ID && g.StepByID(path.ChildID) == nil {
+						unresolvedChildren = append(unresolvedChildren, path.ChildID)
+					}
+					if path.ChildID == step.ID && g.StepByID(path.ParentID) == nil {
+						unresolvedParents = append(unresolvedParents, path.ParentID)
+					}
+				}
+
+				culprit := map[string]int{"step": IDs[step.ID]}
+				wfii = wfii.Append(fmt.Errorf(
+					"failed to resolve workflow step dependencies for %s step (ref: %q, ID: %d): waiting for unresolved child step(s) [IDs: %v] and/or unresolved parent step(s) [IDs: %v]",
+					step.Kind,
+					step.Ref,
+					step.ID,
+					unresolvedChildren,
+					unresolvedParents,
+				), culprit)
+			}
 			break
 		}
 	}
