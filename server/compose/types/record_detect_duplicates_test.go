@@ -482,6 +482,16 @@ func TestDeDupRule_checkCompositeConstraintDuplication(t *testing.T) {
 				expectErr: false,
 			},
 			{
+				name: "composite cross-field value swap - new(2,1) vs existing(1,2)",
+				rule: compositeRule,
+				rec:  makeRecord(1, "2", "1"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "1"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "2"},
+				},
+				expectErr: false,
+			},
+			{
 				name: "composite with missing field - new record has no email",
 				rule: compositeRule,
 				rec: Record{
