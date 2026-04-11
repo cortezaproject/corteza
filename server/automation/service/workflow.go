@@ -676,6 +676,11 @@ func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (
 
 	g, wf.Issues = Convert(svc, wf)
 
+	// Non-fatal static analysis. Produces wf.Warnings so the editor
+	// can surface design-time problems (e.g. variable conflicts at
+	// parallel joins) without blocking save or run.
+	wf.Warnings = analyzeWorkflow(wf)
+
 	tt, _, err = store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
 		WorkflowID: id.Strings(types.WorkflowSet{wf}.IDs()...),
 		Deleted:    filter.StateExcluded,
