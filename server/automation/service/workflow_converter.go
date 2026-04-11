@@ -183,12 +183,12 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 //
 // if this func returns nil for step and error, assume unresolved dependencies
 func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, def *types.Workflow, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
-	if err := svc.parseExpressions(s.Arguments...); err != nil {
-		return false, errors.Internal("failed to parse step arguments expressions for %s: %s", s.Kind, err).Wrap(err)
+	if err := svc.parseExpressionsAs("argument", s.Arguments...); err != nil {
+		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err).Wrap(err)
 	}
 
-	if err := svc.parseExpressions(s.Results...); err != nil {
-		return false, errors.Internal("failed to parse step results expressions for %s: %s", s.Kind, err).Wrap(err)
+	if err := svc.parseExpressionsAs("result", s.Results...); err != nil {
+		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err).Wrap(err)
 	}
 
 	conv, err := func() (wfexec.Step, error) {
@@ -685,26 +685,67 @@ func (svc workflowConverter) convExecWorkflowStep(wf *types.Workflow, s *types.W
 }
 
 func (svc workflowConverter) parseExpressions(ee ...*types.Expr) (err error) {
-	for _, e := range ee {
+	return svc.parseExpressionsAs("", ee...)
+}
 
+// parseExpressionsAs is parseExpressions with a human-readable category
+// (e.g. "argument" or "result") used to enrich error messages so failures
+// say which target failed and why instead of leaking a bare parser error.
+//
+// Issue #1725: previously a parse error returned bare "syntax error near
+// X" with no indication of which step argument it referred to. Now the
+// error includes the target name, the failing expression (truncated)
+// and which lifecycle stage failed (parse / type / test parse).
+func (svc workflowConverter) parseExpressionsAs(category string, ee ...*types.Expr) (err error) {
+	wrap := func(target, stage string, inner error) error {
+		excerpt := exprExcerpt(ee, target)
+		if category == "" {
+			return fmt.Errorf("%s %q (%s): %w", stage, target, excerpt, inner)
+		}
+		return fmt.Errorf("%s %q %s (%s): %w", category, target, stage, excerpt, inner)
+	}
+
+	for _, e := range ee {
 		if len(strings.TrimSpace(e.Expr)) > 0 {
 			if err = svc.parser.ParseEvaluators(e); err != nil {
-				return
+				return wrap(e.Target, "failed to parse expression", err)
 			}
 		}
 
 		if err = e.SetType(exprTypeSetter(svc.reg, e)); err != nil {
-			return err
+			return wrap(e.Target, "failed to resolve type", err)
 		}
 
-		for _, t := range e.Tests {
+		for ti, t := range e.Tests {
 			if err = svc.parser.ParseEvaluators(t); err != nil {
-				return
+				return wrap(e.Target, fmt.Sprintf("failed to parse test #%d expression", ti+1), err)
 			}
 		}
 	}
 
 	return nil
+}
+
+// exprExcerpt returns a short, single-line snippet of the expression for
+// the named target, suitable for embedding in an error message. Long
+// expressions are truncated with an ellipsis to keep messages readable.
+func exprExcerpt(ee []*types.Expr, target string) string {
+	for _, e := range ee {
+		if e.Target != target {
+			continue
+		}
+		s := strings.TrimSpace(e.Expr)
+		s = strings.ReplaceAll(s, "\n", " ")
+		const max = 80
+		if len(s) > max {
+			s = s[:max] + "…"
+		}
+		if s == "" {
+			return "<empty>"
+		}
+		return s
+	}
+	return "<missing>"
 }
 
 func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.WorkflowIssueSet {
@@ -805,7 +846,14 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 					}
 				}
 
-				return errors.Internal("unexpected type %q for argument %q on step type %q", msgArg.Type, argName, s.Kind)
+				accepted := make([]string, 0, len(tt))
+				for _, typ := range tt {
+					accepted = append(accepted, typ.Type())
+				}
+				return errors.Internal(
+					"%s step argument %q has unexpected type %q (accepted: %s)",
+					s.Kind, argName, msgArg.Type, strings.Join(accepted, ", "),
+				)
 			}
 		}
 
@@ -813,7 +861,17 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 		requiredArg = func(argName string, tt ...expr.Type) func() error {
 			return func() error {
 				if msgArg := types.ExprSet(s.Arguments).GetByTarget(argName); msgArg == nil {
-					return errors.Internal("%s step expects to have '%s' argument", s.Kind, argName)
+					accepted := make([]string, 0, len(tt))
+					for _, typ := range tt {
+						accepted = append(accepted, typ.Type())
+					}
+					if len(accepted) > 0 {
+						return errors.Internal(
+							"%s step is missing required argument %q (expected type: %s)",
+							s.Kind, argName, strings.Join(accepted, " or "),
+						)
+					}
+					return errors.Internal("%s step is missing required argument %q", s.Kind, argName)
 				}
 
 				return checkArg(argName, tt...)()
