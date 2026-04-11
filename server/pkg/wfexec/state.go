@@ -70,6 +70,13 @@ type (
 		loops []Iterator
 
 		action string
+
+		// warnings accumulated during the current step's execution.
+		// Set by the session when a step returns a responseWithWarnings
+		// wrapper and surfaced via MakeFrame into Frame.Warnings so the
+		// editor test panel can render them alongside the existing
+		// action/error info.
+		warnings []string
 	}
 )
 
@@ -170,6 +177,7 @@ func (s State) MakeFrame() *Frame {
 		StateID:   s.stateId,
 		NextSteps: s.next.IDs(),
 		Action:    s.action,
+		Warnings:  append([]string(nil), s.warnings...),
 	}
 
 	var wg sync.WaitGroup

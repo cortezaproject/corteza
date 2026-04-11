@@ -88,6 +88,13 @@ type (
 
 		Action string `json:"action,omitempty"`
 		Error  string `json:"error,omitempty"`
+
+		// Warnings are non-fatal messages produced during step execution.
+		// Populated from State.warnings by MakeFrame. Used today by the
+		// join gateway to surface cross-branch variable conflicts but
+		// intended as a general channel for any step that wants to report
+		// a soft problem without failing the workflow.
+		Warnings []string `json:"warnings,omitempty"`
 	}
 
 	// ExecRequest is passed to Exec() functions and contains all information
@@ -758,6 +765,22 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 		}
 
 		log.Debug("step executed", zap.String("resultType", fmt.Sprintf("%T", result)))
+
+		// Unwrap a responseWithWarnings wrapper. The inner scope is
+		// treated exactly like a plain *expr.Vars return by the switch
+		// below; the warnings are attached to state so MakeFrame picks
+		// them up on the next frame emission, and mirrored into the
+		// server log so ops can grep for them without the editor.
+		if rw, isRW := result.(*responseWithWarnings); isRW {
+			if len(rw.warnings) > 0 {
+				st.warnings = append(st.warnings, rw.warnings...)
+				for _, w := range rw.warnings {
+					log.Warn("workflow step warning", zap.String("warning", w))
+				}
+			}
+			result = rw.scope
+		}
+
 		switch result := result.(type) {
 		case *expr.Vars:
 			// most common (successful) result

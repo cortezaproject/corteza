@@ -3,6 +3,7 @@ package wfexec
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -118,6 +119,14 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 		return &partial{}, nil
 	}
 
+	// Detect cross-branch variable conflicts before merging. For each
+	// key, collect the set of (pathIndex -> serialised value) entries
+	// across both scopes and results. If a key has more than one
+	// distinct value across the branches it is a conflict and we emit
+	// a warning. The merge still proceeds (paths[0] wins) — the
+	// warnings are advisory, not fatal.
+	warnings := gw.detectConflicts(r.SessionID)
+
 	// Merge scopes first, in reverse path order so paths[0] wins on conflict.
 	merged := &expr.Vars{}
 	for i := len(gw.paths) - 1; i >= 0; i-- {
@@ -137,7 +146,92 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 	delete(gw.scopes, r.SessionID)
 	delete(gw.results, r.SessionID)
 
+	if len(warnings) > 0 {
+		return ResponseWithWarnings(merged, warnings), nil
+	}
 	return merged, nil
+}
+
+// detectConflicts walks every (scope, results) bag from every parent
+// branch and returns a human-readable warning for every key that has
+// more than one distinct value across branches.
+//
+// The per-value dedup uses the expr iterator's string rendering as a
+// stable fingerprint. Not perfect for complex types but good enough to
+// catch the common case of "branch A set x to 1, branch B set x to 2".
+// False positives (same logical value, different formatting) are
+// acceptable — this is an advisory warning, not a hard error.
+func (gw *joinGateway) detectConflicts(sessionID uint64) []string {
+	type contributor struct {
+		pathIdx int
+		origin  string // "scope" or "results"
+		value   string
+	}
+
+	perKey := make(map[string][]contributor)
+
+	collect := func(origin string, bag map[Step]*expr.Vars) {
+		for i, p := range gw.paths {
+			v := bag[p]
+			if v == nil {
+				continue
+			}
+			_ = v.Each(func(k string, tv expr.TypedValue) error {
+				val := "<unprintable>"
+				if tv != nil {
+					val = fmt.Sprintf("%v", tv.Get())
+				}
+				perKey[k] = append(perKey[k], contributor{pathIdx: i, origin: origin, value: val})
+				return nil
+			})
+		}
+	}
+
+	collect("scope", gw.scopes[sessionID])
+	collect("results", gw.results[sessionID])
+
+	var warnings []string
+	for key, cc := range perKey {
+		if len(cc) < 2 {
+			continue
+		}
+		// detect whether all contributors share the same value
+		same := true
+		for i := 1; i < len(cc); i++ {
+			if cc[i].value != cc[0].value {
+				same = false
+				break
+			}
+		}
+		if same {
+			continue
+		}
+
+		// build a list of contributing branches for the warning
+		branchDescs := make([]string, 0, len(cc))
+		for _, c := range cc {
+			branchDescs = append(branchDescs,
+				fmt.Sprintf("paths[%d].%s=%s", c.pathIdx, c.origin, truncateForWarning(c.value)),
+			)
+		}
+		warnings = append(warnings, fmt.Sprintf(
+			"variable %q has conflicting values at parallel join (%s); paths[0] wins",
+			key,
+			strings.Join(branchDescs, ", "),
+		))
+	}
+
+	return warnings
+}
+
+// truncateForWarning clips long values so a warning listing 8 branches
+// doesn't explode into an unreadable wall of text.
+func truncateForWarning(s string) string {
+	const max = 40
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "…"
 }
 
 // forkGateway handles forking to multiple paths
