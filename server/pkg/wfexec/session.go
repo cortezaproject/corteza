@@ -721,15 +721,19 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 				zap.Error(st.err),
 			)
 
-			err = setErrorHandlerResultsToScope(scope, st.results, st.err, st.step.ID())
+			err = setErrorHandlerResultsToScope(scope, st.errHandlerResults, st.err, st.step.ID())
 			if err != nil {
 				return nil, err
 			}
 
 			// copy error handler & disable it on state to prevent inf. loop
-			// in case of another error in the error-handling branch
+			// in case of another error in the error-handling branch.
+			// errHandlerResults is cleared alongside errHandler so the two
+			// stay in lockstep — a disabled handler must not leave its name
+			// mapping behind for a later handler to accidentally reuse.
 			eh := st.errHandler
 			st.errHandler = nil
+			st.errHandlerResults = nil
 			st.errHandled = true
 			return []*State{st.Next(eh, scope)}, nil
 		}
@@ -764,9 +768,17 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 		case *errHandler:
 			st.action = "error handler initialized"
 			// this step sets error handling step on current state
-			// and continues on the current path
+			// and continues on the current path.
+			//
+			// The error-var name mapping (error / errorMessage /
+			// errorStepID -> author-chosen variable names) is stored
+			// in its own field so it survives across later normal
+			// steps — previously it was merged into st.results and
+			// got clobbered the moment any downstream step returned
+			// its own outputs, making errorMessage etc. disappear
+			// from scope on any subsequent error.
 			st.errHandler = result.handler
-			st.results = st.results.MustMerge(result.results)
+			st.errHandlerResults = result.results
 
 			// find step that's not error handler and
 			// use it for the next step
