@@ -116,7 +116,13 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 
 		if !progress {
 			// nothing resolved for 1 cycle — report every unresolved step
-			// individually with details about what it is waiting for.
+			// that is genuinely waiting on a dependency. If a step has no
+			// unresolved neighbours in either direction, it is failing to
+			// convert for its own reasons (bad ref, missing required
+			// arg, unknown function, ...) — verifyStep and the converter
+			// error path have already added those issues to wfii, so
+			// adding a "waiting for [] and/or []" message on top would
+			// just be misleading noise.
 			for _, step := range def.Steps {
 				if g.StepByID(step.ID) != nil {
 					continue
@@ -134,6 +140,12 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 					if path.ChildID == step.ID && g.StepByID(path.ParentID) == nil {
 						unresolvedParents = append(unresolvedParents, path.ParentID)
 					}
+				}
+
+				if len(unresolvedChildren) == 0 && len(unresolvedParents) == 0 {
+					// not a dependency problem — let the other issues on
+					// this step speak for themselves.
+					continue
 				}
 
 				culprit := map[string]int{"step": IDs[step.ID]}
