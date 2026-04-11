@@ -502,11 +502,13 @@ func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, 
 			flat = "ERROR"
 		}
 
-		e := errors.Automation("%s", flat)
+		// Tag the error as a user-authored workflow error step so that
+		// errors.ServeHTTPWithCode preserves its full payload (message +
+		// meta) across the wire even under production masking. This is
+		// a narrow, opt-in bypass — generic KindAutomation errors from
+		// elsewhere are not affected.
+		e := errors.Automation("%s", flat).Apply(errors.Meta(errors.MetaWorkflowErrorSafe, true))
 
-		// only attach meta when at least one rich field is set; this
-		// keeps the wire format identical to the legacy behaviour for
-		// workflows that only configure `message`.
 		if title != "" {
 			e = e.Apply(errors.Meta(metaTitle, title))
 		}
@@ -684,18 +686,13 @@ func (svc workflowConverter) convExecWorkflowStep(wf *types.Workflow, s *types.W
 	}), nil
 }
 
-func (svc workflowConverter) parseExpressions(ee ...*types.Expr) (err error) {
-	return svc.parseExpressionsAs("", ee...)
-}
-
-// parseExpressionsAs is parseExpressions with a human-readable category
-// (e.g. "argument" or "result") used to enrich error messages so failures
-// say which target failed and why instead of leaking a bare parser error.
+// parseExpressionsAs parses argument/result expressions and enriches any
+// failure with a human-readable category (e.g. "argument" or "result"),
+// the target name, the failing expression excerpt, and which lifecycle
+// stage (parse / type / test parse) produced the error.
 //
-// Issue #1725: previously a parse error returned bare "syntax error near
-// X" with no indication of which step argument it referred to. Now the
-// error includes the target name, the failing expression (truncated)
-// and which lifecycle stage failed (parse / type / test parse).
+// Issue #1725: previously failures leaked bare parser output with no
+// indication of which step field was at fault.
 func (svc workflowConverter) parseExpressionsAs(category string, ee ...*types.Expr) (err error) {
 	wrap := func(target, stage string, inner error) error {
 		excerpt := exprExcerpt(ee, target)
@@ -729,19 +726,23 @@ func (svc workflowConverter) parseExpressionsAs(category string, ee ...*types.Ex
 // exprExcerpt returns a short, single-line snippet of the expression for
 // the named target, suitable for embedding in an error message. Long
 // expressions are truncated with an ellipsis to keep messages readable.
+//
+// Truncation is rune-aware so that non-ASCII identifiers and string
+// literals are never split mid-codepoint.
 func exprExcerpt(ee []*types.Expr, target string) string {
+	const maxRunes = 80
 	for _, e := range ee {
 		if e.Target != target {
 			continue
 		}
 		s := strings.TrimSpace(e.Expr)
 		s = strings.ReplaceAll(s, "\n", " ")
-		const max = 80
-		if len(s) > max {
-			s = s[:max] + "…"
-		}
 		if s == "" {
 			return "<empty>"
+		}
+		runes := []rune(s)
+		if len(runes) > maxRunes {
+			return string(runes[:maxRunes]) + "…"
 		}
 		return s
 	}

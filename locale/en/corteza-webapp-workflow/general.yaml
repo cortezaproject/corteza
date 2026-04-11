@@ -18,6 +18,7 @@ error-step:
   severity:
     label: Severity
     description: Controls the toast variant and icon in the end-user UI.
+    reset-to-literal: Reset to a literal value (error, warning, info)
     options:
       error: Error
       warning: Warning

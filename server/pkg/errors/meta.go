@@ -12,6 +12,15 @@ type (
 	meta map[interface{}]interface{}
 )
 
+// Well-known meta keys recognised by the errors package itself.
+//
+// MetaWorkflowErrorSafe is set on KindAutomation errors that originate
+// from a user-authored workflow error step. When present and truthy,
+// ServeHTTPWithCode preserves the full error (message + meta) in the
+// HTTP response even in masked/production mode, so that structured
+// fields like workflow.error.title/body/severity reach the frontend.
+const MetaWorkflowErrorSafe = "workflow.error.safe"
+
 // StringKeys returns max length of (string) keys and slice of all strings
 func (m meta) StringKeys() (int, []string) {
 	var (

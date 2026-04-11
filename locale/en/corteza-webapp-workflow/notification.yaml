@@ -1,4 +1,3 @@
-'configure-triggers': Make sure all trigger steps are properly configured
 'confirm-unsaved-changes': You have unsaved changes, are you sure you want to exit?
 error: " - ERROR: "
 'event-type-not-found': Event type not found

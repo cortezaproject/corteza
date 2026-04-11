@@ -52,10 +52,32 @@
         label-class="text-primary"
       >
         <b-form-select
+          v-if="severityIsLiteral"
           v-model="severityValue"
           :options="severityOptions"
           @change="onSeverityChange"
         />
+        <div
+          v-else
+          class="d-flex align-items-center"
+        >
+          <b-form-input
+            v-model="severityArg.expr"
+            class="flex-grow-1"
+            :placeholder="$t('general:error-step.severity.label')"
+            @input="onFieldInput"
+          />
+          <b-button
+            v-b-tooltip.hover
+            variant="link"
+            size="sm"
+            :title="$t('general:error-step.severity.reset-to-literal')"
+            class="ml-2 p-0"
+            @click="resetSeverityToLiteral"
+          >
+            <font-awesome-icon :icon="['fas', 'undo']" />
+          </b-button>
+        </div>
       </b-form-group>
 
       <!-- Legacy Message -->
@@ -142,9 +164,19 @@ export default {
       return this.findOrCreateArg('severity')
     },
 
+    // severityIsLiteral: true when the severity expression is either
+    // empty or a plain quoted literal we can round-trip through the
+    // dropdown. When it's a real expression (e.g. `vars.level`), the
+    // configurator falls back to a raw text input so we never clobber
+    // the author's work.
+    severityIsLiteral () {
+      const raw = (this.severityArg.expr || '').trim()
+      if (!raw) return true
+      return /^["'](error|warning|info)["']$/.test(raw)
+    },
+
     severityValue: {
       get () {
-        // severity is stored as a quoted string expression; parse it back
         const raw = (this.severityArg.expr || '').trim()
         if (!raw) return 'error'
         const m = raw.match(/^["'](error|warning|info)["']$/)
@@ -196,8 +228,19 @@ export default {
       return arg
     },
 
+    // stripLiteralQuotes returns the unquoted content of a simple
+    // quoted string expression (e.g. "foo" -> foo) so the canvas node
+    // label preview reads cleanly. Non-literal expressions are passed
+    // through unchanged.
+    stripLiteralQuotes (s) {
+      const t = (s || '').trim()
+      const m = t.match(/^(["'])((?:[^\\]|\\.)*)\1$/)
+      return m ? m[2] : t
+    },
+
     onFieldInput () {
-      const preview = (this.titleArg.expr || this.bodyArg.expr || this.messageArg.expr || '').trim()
+      const pick = this.titleArg.expr || this.bodyArg.expr || this.messageArg.expr || ''
+      const preview = this.stripLiteralQuotes(pick)
       this.$emit('update-default-value', {
         value: preview ? `Stop workflow with error: ${preview}` : 'Stop workflow with error',
         force: !this.item.node.value,
@@ -206,6 +249,11 @@ export default {
     },
 
     onSeverityChange () {
+      this.$root.$emit('change-detected')
+    },
+
+    resetSeverityToLiteral () {
+      this.$set(this.severityArg, 'expr', '"error"')
       this.$root.$emit('change-detected')
     },
 

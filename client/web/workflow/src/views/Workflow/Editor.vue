@@ -129,17 +129,22 @@ export default {
       // underlying error to the user.
       this.processingSave = true
 
+      // isNetworkError requires *positive* evidence of a transport-layer
+      // failure. A plain JS error thrown from inside a .then() handler
+      // must not be misreported as "server unreachable", so we only
+      // match on known axios/fetch signals:
+      //   - axios error code indicates network/timeout (ECONNREFUSED,
+      //     ETIMEDOUT, ENETUNREACH, ENOTFOUND)
+      //   - axios marks the request as sent but with no response
+      //     (err.request set, err.response absent) which is the
+      //     canonical "server did not reply" case
+      //   - the error message explicitly says so
+      // Anything else falls through as a generic error.
       const isNetworkError = e => {
-        if (!e) return false
-        // axios populates `code` for network errors and leaves
-        // `response` undefined; corteza API client rejects with the
-        // raw response.data.error string for backend-returned errors,
-        // so the absence of any backend payload is the signal.
-        if (typeof e === 'string') return false
-        if (e.response) return false
-        if (e.message && /Network Error|ECONN|ETIMEDOUT|Failed to fetch/i.test(e.message)) return true
-        // axios timeout / connection refused has no response field
-        if (e.code && /ECONN|ETIMEDOUT|ENETUNREACH|ENOTFOUND/.test(e.code)) return true
+        if (!e || typeof e === 'string') return false
+        if (e.code && /^E(CONN|TIMED|NETUN|NOTFO)/i.test(e.code)) return true
+        if (e.request && !e.response) return true
+        if (typeof e.message === 'string' && /Network Error|Failed to fetch/i.test(e.message)) return true
         return false
       }
 
@@ -191,7 +196,6 @@ export default {
           // Surface the actual trigger error instead of the generic
           // "configure triggers" message that used to mask it.
           reportSaveError(e)
-          this.processingSave = false
           return
         }
 
@@ -203,7 +207,6 @@ export default {
             : await this.$AutomationAPI.workflowUpdate(wf)
         } catch (e) {
           reportSaveError(e)
-          this.processingSave = false
           return
         }
 
@@ -214,7 +217,6 @@ export default {
             this.$t('notification:failed-save-unexpected-response'),
             this.$t('notification:failed-save'),
           )
-          this.processingSave = false
           return
         }
 
@@ -233,9 +235,11 @@ export default {
         }
       } catch (e) {
         reportSaveError(e)
+      } finally {
+        // Guarantee the processing flag is cleared even if an unexpected
+        // synchronous error escapes the try block above.
+        this.processingSave = false
       }
-
-      this.processingSave = false
     }, 500),
 
     deleteWorkflow () {
