@@ -30,21 +30,6 @@
         />
       </b-form-group>
 
-      <!-- Body -->
-      <b-form-group
-        :label="$t('general:error-step.body.label')"
-        :description="$t('general:error-step.body.description')"
-        label-class="text-primary"
-      >
-        <expression-editor
-          v-model="bodyArg.expr"
-          font-size="16px"
-          show-line-numbers
-          @open="openInEditor('body')"
-          @input="onFieldInput"
-        />
-      </b-form-group>
-
       <!-- Severity -->
       <b-form-group
         :label="$t('general:error-step.severity.label')"
@@ -80,7 +65,7 @@
         </div>
       </b-form-group>
 
-      <!-- Legacy Message -->
+      <!-- Message -->
       <b-form-group
         :label="$t('general:error-step.message.label')"
         :description="$t('general:error-step.message.description')"
@@ -127,7 +112,7 @@
 import base from './base'
 import ExpressionEditor from '../ExpressionEditor.vue'
 
-const ALLOWED_TARGETS = ['message', 'title', 'body', 'severity']
+const ALLOWED_TARGETS = ['message', 'title', 'severity']
 const SEVERITY_VALUES = ['error', 'warning', 'info']
 
 function makeArg (target, expr = '') {
@@ -156,9 +141,6 @@ export default {
     },
     titleArg () {
       return this.findOrCreateArg('title')
-    },
-    bodyArg () {
-      return this.findOrCreateArg('body')
     },
     severityArg () {
       return this.findOrCreateArg('severity')
@@ -199,8 +181,8 @@ export default {
   },
 
   created () {
-    // Normalise config.arguments: keep only allowed targets, ensure all four
-    // exist (even if empty) so v-model bindings are stable.
+    // Normalise config.arguments: keep only allowed targets, ensure all of
+    // them exist (even if empty) so v-model bindings are stable.
     const existing = Array.isArray(this.item.config.arguments) ? this.item.config.arguments : []
     const byTarget = {}
     existing.forEach(({ target, type, value, expr }) => {
@@ -239,7 +221,7 @@ export default {
     },
 
     onFieldInput () {
-      const pick = this.titleArg.expr || this.bodyArg.expr || this.messageArg.expr || ''
+      const pick = this.titleArg.expr || this.messageArg.expr || ''
       const preview = this.stripLiteralQuotes(pick)
       this.$emit('update-default-value', {
         value: preview ? `Stop workflow with error: ${preview}` : 'Stop workflow with error',

@@ -425,25 +425,24 @@ func (svc workflowConverter) convFunctionStep(g *wfexec.Graph, s *types.Workflow
 // Expects ZERO outgoing paths.
 //
 // Supported arguments:
-//   - message  (required, string) backwards-compatible flat error message
+//   - message  (required, string) the error text. Rendered as the flat
+//     error string and also as the body of the rich toast when title or
+//     severity are set.
 //   - title    (optional, string) short headline for rich toast rendering
-//   - body     (optional, string) long-form body, overrides message for display
 //   - severity (optional, string) one of "error" (default), "warning", "info"
 //
-// title/body/severity are attached to the resulting error's meta under
-// the "workflow.error.*" namespace and surfaced to the frontend via the
-// errors package's JSON marshaller. The error's flat message stays
-// equal to body (or message as fallback) so older clients still render
-// a sensible string.
+// title/severity are attached to the resulting error's meta under the
+// "workflow.error.*" namespace and surfaced to the frontend via the
+// errors package's JSON marshaller. The error's flat message is always
+// equal to the evaluated message argument, so older clients that do
+// not understand the meta fields still render a sensible string.
 func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, error) {
 	const (
 		argMessage  = "message"
 		argTitle    = "title"
-		argBody     = "body"
 		argSeverity = "severity"
 
 		metaTitle    = "workflow.error.title"
-		metaBody     = "workflow.error.body"
 		metaSeverity = "workflow.error.severity"
 
 		severityError   = "error"
@@ -480,7 +479,6 @@ func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, 
 		var (
 			message  = resolveStr(result, argMessage)
 			title    = resolveStr(result, argTitle)
-			body     = resolveStr(result, argBody)
 			severity = resolveStr(result, argSeverity)
 		)
 
@@ -492,14 +490,9 @@ func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, 
 			severity = severityError
 		}
 
-		// pick the flat message: prefer body, fall back to message,
 		// fall back to a literal "ERROR" so we never emit an empty error
-		flat := body
-		if flat == "" {
-			flat = message
-		}
-		if flat == "" {
-			flat = "ERROR"
+		if message == "" {
+			message = "ERROR"
 		}
 
 		// Tag the error as a user-authored workflow error step so that
@@ -507,15 +500,12 @@ func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, 
 		// meta) across the wire even under production masking. This is
 		// a narrow, opt-in bypass — generic KindAutomation errors from
 		// elsewhere are not affected.
-		e := errors.Automation("%s", flat).Apply(errors.Meta(errors.MetaWorkflowErrorSafe, true))
+		e := errors.Automation("%s", message).Apply(errors.Meta(errors.MetaWorkflowErrorSafe, true))
 
 		if title != "" {
 			e = e.Apply(errors.Meta(metaTitle, title))
 		}
-		if body != "" {
-			e = e.Apply(errors.Meta(metaBody, body))
-		}
-		if title != "" || body != "" || severity != severityError {
+		if title != "" || severity != severityError {
 			e = e.Apply(errors.Meta(metaSeverity, severity))
 		}
 
@@ -934,22 +924,21 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 		checks = append(checks, gatewayCheck(zero(arguments), zero(results))...)
 
 	case types.WorkflowStepKindError:
-		// Error step supports four optional string arguments:
-		//   message  (legacy, still required for backwards compatibility)
-		//   title    (optional, rich toast headline)
-		//   body     (optional, rich toast body — overrides message for display)
-		//   severity (optional, "error"|"warning"|"info")
+		// Error step supports three string arguments:
+		//   message  (required) the error text. Doubles as the rich
+		//            toast body and the flat error string.
+		//   title    (optional) rich toast headline
+		//   severity (optional) "error"|"warning"|"info"
 		checks = append(checks,
 			requiredArg("message", expr.String{}),
 			checkArg("title", expr.String{}),
-			checkArg("body", expr.String{}),
 			checkArg("severity", expr.String{}),
-			count(1, 4, arguments),
+			count(1, 3, arguments),
 			func() error {
-				allowed := map[string]bool{"message": true, "title": true, "body": true, "severity": true}
+				allowed := map[string]bool{"message": true, "title": true, "severity": true}
 				for _, a := range s.Arguments {
 					if !allowed[a.Target] {
-						return errors.Internal("%s step does not accept argument %q (allowed: message, title, body, severity)", s.Kind, a.Target)
+						return errors.Internal("%s step does not accept argument %q (allowed: message, title, severity)", s.Kind, a.Target)
 					}
 				}
 				return nil
