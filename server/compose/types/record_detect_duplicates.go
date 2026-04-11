@@ -148,23 +148,38 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 
     out = &RecordValueErrorSet{}
 
+    // For composite rules (multiple constraints), ALL constraints must match
+    // for the rule to trigger. Collect per-constraint results first.
+    type constraintResult struct {
+        matched bool
+        errors  []RecordValueError
+    }
+
+    results := make([]constraintResult, 0, len(rule.ConstraintSet))
+
     for _, c := range rule.ConstraintSet {
         rvv := recVal.FilterByName(c.Attribute)
         if rvv.Len() == 0 {
+            // New record has no value for this constraint field,
+            // so this constraint cannot match — composite rule cannot trigger.
+            results = append(results, constraintResult{matched: false})
             continue
         }
 
-        var (
-            valErr = &RecordValueErrorSet{}
-        )
+        cr := constraintResult{}
 
         existingVv := vv.FilterByName(c.Attribute)
         moduleField := rec.module.Fields.FindByName(c.Attribute)
 
         if moduleField.Multi && c.IsAllEqual() {
             multiValErr := rule.multiValueAllEqual(ctx, ls, c, rvv, existingVv)
-            out.Push(multiValErr)
+            if multiValErr.Kind != "" {
+                cr.matched = true
+                cr.errors = append(cr.errors, multiValErr)
+            }
         } else {
+            valErr := &RecordValueErrorSet{}
+
             rvvValueMap := make(map[string]*RecordValue)
             _ = rvv.Walk(func(rv *RecordValue) error {
                 if len(rv.Value) > 0 {
@@ -196,11 +211,30 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
                 // 2. multiValue is oneOf, then one or more value needs to be a match then return error/warning
                 // 3. multiValue is equal, then all value needs to be a match then return error/warning
                 if (!valErr.IsValid() && (!c.HasMultiValue() || c.IsAllEqual()) && valErr.Len() == rvv.Len()) || (c.IsOneOf() && valErr.Len() > 0) {
-                    out.Push(valErr.Set...)
+                    cr.matched = true
+                    cr.errors = valErr.Set
                 }
 
                 return nil
             })
+        }
+
+        results = append(results, cr)
+    }
+
+    // Only emit errors if ALL constraints in the rule matched (composite AND logic).
+    // For single-constraint rules this is trivially equivalent to the old behavior.
+    allMatched := len(results) > 0
+    for _, r := range results {
+        if !r.matched {
+            allMatched = false
+            break
+        }
+    }
+
+    if allMatched {
+        for _, r := range results {
+            out.Push(r.errors...)
         }
     }
 
