@@ -9,6 +9,8 @@ error: " - ERROR: "
 'failed-fetch-workflows': Failed to fetch workflows
 'failed-load-file': Failed to load file
 'failed-save': Save failed
+'failed-save-network': Unable to reach the server. Check your connection and try again.
+'failed-save-unexpected-response': The server returned an unexpected response. The workflow may not have been saved.
 'failed-test': Test failed
 'fetch-types-failed': Failed to fetch types
 general:

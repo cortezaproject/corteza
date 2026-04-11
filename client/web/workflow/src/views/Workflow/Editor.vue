@@ -121,21 +121,55 @@ export default {
     },
 
     saveWorkflow: throttle(async function (wf) {
-      try {
-        this.processingSave = true
+      // Issue #687: previously this handler would swallow trigger-update
+      // failures behind a misleading "configure triggers" message and
+      // could crash on `undefined.workflowID` if the workflow API call
+      // rejected (e.g. backend unreachable). It now distinguishes
+      // network failures from validation errors and surfaces the real
+      // underlying error to the user.
+      this.processingSave = true
 
+      const isNetworkError = e => {
+        if (!e) return false
+        // axios populates `code` for network errors and leaves
+        // `response` undefined; corteza API client rejects with the
+        // raw response.data.error string for backend-returned errors,
+        // so the absence of any backend payload is the signal.
+        if (typeof e === 'string') return false
+        if (e.response) return false
+        if (e.message && /Network Error|ECONN|ETIMEDOUT|Failed to fetch/i.test(e.message)) return true
+        // axios timeout / connection refused has no response field
+        if (e.code && /ECONN|ETIMEDOUT|ENETUNREACH|ENOTFOUND/.test(e.code)) return true
+        return false
+      }
+
+      const reportSaveError = e => {
+        if (isNetworkError(e)) {
+          this.toastDanger(
+            this.$t('notification:failed-save-network'),
+            this.$t('notification:failed-save'),
+          )
+          return
+        }
+        // Defer to the shared handler — it knows how to render workflow
+        // error step rich payloads and falls back to plain toasts.
+        this.toastErrorHandler(this.$t('notification:failed-save'))(e)
+      }
+
+      try {
         const isNew = wf.workflowID === '0'
 
         const { triggers = [] } = wf
 
         // Firstly handle trigger updates
         // Delete triggers of steps that were deleted
-        await Promise.all(this.triggers.filter(({ triggerID }) => {
-          return !triggers.find(t => triggerID === t.triggerID)
-        }).map(({ triggerID }) => {
-          return this.$AutomationAPI.triggerDelete({ triggerID })
-        }),
-        ).then(async () => {
+        try {
+          await Promise.all(this.triggers.filter(({ triggerID }) => {
+            return !triggers.find(t => triggerID === t.triggerID)
+          }).map(({ triggerID }) => {
+            return this.$AutomationAPI.triggerDelete({ triggerID })
+          }))
+
           await Promise.all(triggers.map(t => {
             // Update triggers that already have an ID
             if (t.triggerID) {
@@ -152,25 +186,45 @@ export default {
                 ownedBy: this.userID,
               })
             }
-          })).catch(() => {
-            throw new Error(this.$t('notification:configure-triggers'))
-          })
-        })
+          }))
+        } catch (e) {
+          // Surface the actual trigger error instead of the generic
+          // "configure triggers" message that used to mask it.
+          reportSaveError(e)
+          this.processingSave = false
+          return
+        }
 
         // Secondly handle workflow updates
-        if (isNew) {
-          wf = await this.$AutomationAPI.workflowCreate(wf)
-        } else {
-          wf = await this.$AutomationAPI.workflowUpdate(wf)
+        let saved
+        try {
+          saved = isNew
+            ? await this.$AutomationAPI.workflowCreate(wf)
+            : await this.$AutomationAPI.workflowUpdate(wf)
+        } catch (e) {
+          reportSaveError(e)
+          this.processingSave = false
+          return
+        }
+
+        if (!saved || !saved.workflowID) {
+          // Defensive: API returned an unexpected shape. Don't crash on
+          // saved.workflowID later down the chain.
+          this.toastDanger(
+            this.$t('notification:failed-save-unexpected-response'),
+            this.$t('notification:failed-save'),
+          )
+          this.processingSave = false
+          return
         }
 
         // Lastly update all of the bits
-        await this.fetchTriggers(wf.workflowID)
+        await this.fetchTriggers(saved.workflowID)
 
         this.changeDetected = false
         window.onbeforeunload = null
 
-        this.workflow = new automation.Workflow(wf)
+        this.workflow = new automation.Workflow(saved)
         this.toastSuccess(this.$t('notification:update.success'))
 
         if (isNew) {
@@ -178,7 +232,7 @@ export default {
           this.$router.push({ name: 'workflow.edit', params: { workflowID: this.workflow.workflowID } })
         }
       } catch (e) {
-        this.toastErrorHandler(this.$t('notification:failed-save'))(e)
+        reportSaveError(e)
       }
 
       this.processingSave = false
