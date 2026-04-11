@@ -74,12 +74,30 @@ func JoinGateway(ss ...Step) *joinGateway {
 	}
 }
 
-// Exec fn on join gateway can be called multiple times, even multiple times parent the same parent
+// Exec fn on join gateway can be called multiple times, even multiple times for the same parent.
 //
-// Func will collect results from each parent path.
+// It collects scope and results from every parent path and merges them when
+// all configured paths have reported in.
 //
-// Join gateway is ready to continue when all configured paths have been collected
-// Results are merged to preserve changes from all parallel paths
+// Merge rules:
+//   - Every parent's full scope is merged in (previously only paths[0]'s
+//     scope was kept, so variables set mid-branch in any other path were
+//     silently dropped — this is the "variables lost at parallel join"
+//     class of bug).
+//   - Every parent's immediate step results are merged on top of the
+//     combined scope, mirroring the intra-branch rule that a step's
+//     results overwrite earlier scope values on conflict.
+//   - Within each tier (scopes, then results), lower path index wins on
+//     key conflicts. paths[0] is the preferred branch. This is
+//     implemented by iterating paths in REVERSE order and relying on
+//     MustMerge's last-writer-wins semantics: the last iterator passed
+//     to MustMerge wins, so the earliest path ends up applied last and
+//     takes precedence.
+//
+// Final precedence, high to low:
+//
+//	paths[0].results > paths[1].results > ... > paths[N].results >
+//	paths[0].scope   > paths[1].scope   > ... > paths[N].scope
 func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, error) {
 	gw.l.Lock()
 	defer gw.l.Unlock()
@@ -100,21 +118,19 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 		return &partial{}, nil
 	}
 
-	// All collected, merge results from all paths into base scope
-	var merged *expr.Vars
-	if len(gw.paths) > 0 && gw.scopes[r.SessionID][gw.paths[0]] != nil {
-		merged = gw.scopes[r.SessionID][gw.paths[0]].MustMerge()
-	}
-
-	var allResults []expr.Iterator
-	for _, p := range gw.paths {
-		if gw.results[r.SessionID][p] != nil {
-			allResults = append(allResults, gw.results[r.SessionID][p])
+	// Merge scopes first, in reverse path order so paths[0] wins on conflict.
+	merged := &expr.Vars{}
+	for i := len(gw.paths) - 1; i >= 0; i-- {
+		if s := gw.scopes[r.SessionID][gw.paths[i]]; s != nil {
+			merged = merged.MustMerge(s)
 		}
 	}
 
-	if merged != nil && len(allResults) > 0 {
-		merged = merged.MustMerge(allResults...)
+	// Then merge results on top, also in reverse path order.
+	for i := len(gw.paths) - 1; i >= 0; i-- {
+		if res := gw.results[r.SessionID][gw.paths[i]]; res != nil {
+			merged = merged.MustMerge(res)
+		}
 	}
 
 	// all inbound paths visited, cleanup scopes and results for the session
