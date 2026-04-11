@@ -7,6 +7,7 @@ delete: Delete
 deleted: Deleted
 'detected-changes': "Changes detected "
 'detected-issues': Issues detected
+'detected-warnings': Warnings detected
 disabled: Disabled
 help: Help
 handle: (Handle)
@@ -15,6 +16,7 @@ id: "ID:"
 'initial-scope': Initial scope
 'input-ids-or-handles': The initial scope gets injected into the workflow at execution. To load available variables, input the related IDs/Handles below
 issues: Issues
+warnings: Warnings
 'load-and-configure': Load and Configure
 'modify-initial-scope-if-no-variables-are-loaded': If you do not wish to load any variables, click "Configure" to modify the initial scope before running workflow
 'open-webapp-on-prompt-use' : "WARNING: If prompts are used in the workflow, make sure that the related webapp is also opened. Otherwise workflow will timeout"

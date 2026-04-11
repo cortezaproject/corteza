@@ -148,6 +148,17 @@
           </h5>
 
           <h5
+            v-if="hasWarnings"
+            class="mb-0 mr-1"
+          >
+            <b-badge
+              variant="warning"
+            >
+              {{ $t('editor:detected-warnings') }}
+            </b-badge>
+          </h5>
+
+          <h5
             v-if="workflow.meta.subWorkflow"
             class="mb-0 mr-1"
           >
@@ -353,12 +364,36 @@
       no-fade
     >
       <div
-        v-for="(issue, index) in issuesModal.issues"
-        :key="index"
+        v-if="issuesModal.issues && issuesModal.issues.length"
       >
-        <p>
-          <code>{{ issue[0].toUpperCase() + issue.slice(1) }}</code>
-        </p>
+        <h6 class="text-danger mb-2">
+          {{ $t('editor:issues') }}
+        </h6>
+        <div
+          v-for="(issue, index) in issuesModal.issues"
+          :key="`issue-${index}`"
+        >
+          <p>
+            <code>{{ issue[0].toUpperCase() + issue.slice(1) }}</code>
+          </p>
+        </div>
+      </div>
+
+      <div
+        v-if="issuesModal.warnings && issuesModal.warnings.length"
+        :class="{ 'mt-3': issuesModal.issues && issuesModal.issues.length }"
+      >
+        <h6 class="text-warning mb-2">
+          {{ $t('editor:warnings') }}
+        </h6>
+        <div
+          v-for="(warning, index) in issuesModal.warnings"
+          :key="`warning-${index}`"
+        >
+          <p>
+            <code>{{ warning[0].toUpperCase() + warning.slice(1) }}</code>
+          </p>
+        </div>
       </div>
     </b-modal>
 
@@ -527,6 +562,7 @@ export default {
       vertices: {},
       edges: {},
       issues: {},
+      warnings: {},
 
       highlights: [],
 
@@ -547,6 +583,7 @@ export default {
       issuesModal: {
         show: false,
         issues: [],
+        warnings: [],
       },
 
       dryRun: {
@@ -689,6 +726,10 @@ export default {
 
     hasIssues () {
       return (this.workflow.issues || []).length
+    },
+
+    hasWarnings () {
+      return (this.workflow.warnings || []).length
     },
 
     getRunAs () {
@@ -972,15 +1013,19 @@ export default {
             const isSelected = this.selection.includes(cell.mxObjectId)
             const shadow = isSelected ? 'shadow' : 'shadow-sm'
             const issue = this.getIcon('issue')
+            const warningIcon = this.getIcon('warning')
             const playIcon = this.getIcon('play')
             const stopIcon = this.getIcon('stop')
             const opacity = kind === 'trigger' && !vertex.triggers.enabled ? 'opacity: 0.7;' : ''
 
             let test = ''
             let issues = ''
+            let warnings = ''
             let id = ''
             if (this.issues[cell.id]) {
               issues = `<img id="openIssues" src="${issue}" class="ml-2 pointer" style="width: 20px;"/>`
+            } else if (this.warnings[cell.id]) {
+              warnings = `<img id="openIssues" src="${warningIcon}" class="ml-2 pointer" style="width: 20px;"/>`
             } else {
               id = `<span class="show id-label">${cell.id}</span>`
             }
@@ -1130,6 +1175,7 @@ export default {
                             test +
                             id +
                             issues +
+                            warnings +
                           '</div>' +
                         '</div>' +
                         `<div class="label d-flex flex-grow-1 align-items-stretch bg-white border-top ${values ? 'wide-label' : ''}" style="max-width: 200px; min-height: 36px;">` +
@@ -1800,7 +1846,8 @@ export default {
               const itemType = cell.edge ? 'edge' : item.config.kind
 
               if (event.target.id === 'openIssues') {
-                this.issuesModal.issues = this.issues[cell.id]
+                this.issuesModal.issues = this.issues[cell.id] || []
+                this.issuesModal.warnings = this.warnings[cell.id] || []
                 this.issuesModal.show = true
               } else if (event.target.id === 'testWorkflow') {
                 this.dryRun.cellID = cell.id
@@ -2454,6 +2501,29 @@ export default {
 
             if (stepID) {
               this.issues[stepID] ? this.issues[stepID].push(description) : this.issues[stepID] = [description]
+            }
+          }
+        })
+      }
+
+      // Assemble warnings (same shape as issues, non-fatal). Rendered
+      // with a yellow badge on affected steps so authors can see them
+      // without the editor refusing to save or run the workflow.
+      this.warnings = {}
+      if (this.workflow.warnings) {
+        this.workflow.warnings.forEach(({ culprit, description }) => {
+          if (culprit) {
+            const { step = -1, trigger = -1 } = culprit
+            let stepID = ''
+
+            if (step >= 0) {
+              stepID = (this.workflow.steps[step] || {}).stepID
+            } else if (trigger >= 0) {
+              stepID = (this.triggers[trigger] || {}).meta?.visual?.id || ''
+            }
+
+            if (stepID) {
+              this.warnings[stepID] ? this.warnings[stepID].push(description) : this.warnings[stepID] = [description]
             }
           }
         })
