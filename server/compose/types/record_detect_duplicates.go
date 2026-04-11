@@ -188,7 +188,7 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
                 return nil
             })
 
-            _ = vv.Walk(func(v *RecordValue) error {
+            _ = existingVv.Walk(func(v *RecordValue) error {
                 if v.RecordID == rec.ID {
                     return nil
                 }
