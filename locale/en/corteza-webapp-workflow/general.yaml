@@ -5,6 +5,23 @@ enable: Enable
 disable: Disable
 error: Error
 error-expression: Error message (expression)
+error-step:
+  message:
+    label: Message (legacy, required)
+    description: Plain fallback message shown by older clients and as the flat error string.
+  title:
+    label: Title
+    description: Short headline shown in rich toast notifications. Optional.
+  body:
+    label: Body
+    description: Longer body text shown to the end user. Overrides message for display when set. Optional.
+  severity:
+    label: Severity
+    description: Controls the toast variant and icon in the end-user UI.
+    options:
+      error: Error
+      warning: Warning
+      info: Info
 export: Export
 general: General
 handle: Handle
