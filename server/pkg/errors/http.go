@@ -139,7 +139,14 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 		return
 	}
 
-	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
+	// Automation (workflow) errors are user-authored via workflow error
+	// steps and are explicitly safe to surface in full (message + meta)
+	// to clients regardless of mask state. This allows the workflow error
+	// step to carry structured fields (title, body, severity, ...) through
+	// to the frontend.
+	if e, isAutomationErr := err.(*Error); isAutomationErr && e.kind == KindAutomation {
+		// preserve full error
+	} else if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
 		// trim error details when not debugging or error is not safe or maske
 		err = errors.New(err.Error())
 	}
