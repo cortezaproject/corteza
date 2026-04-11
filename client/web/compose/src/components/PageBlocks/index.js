@@ -13,6 +13,7 @@ import ContentBase from './ContentBase'
 import ContentConfigurator from './ContentConfigurator'
 import CollapsibleRecordBase from './CollapsibleRecordBase'
 import CollapsibleRecordConfigurator from './CollapsibleRecordConfigurator'
+import CollapsibleRecordEditor from './CollapsibleRecordEditor'
 import CollapsibleRecordListBase from './CollapsibleRecordListBase'
 import CollapsibleRecordListConfigurator from './CollapsibleRecordListConfigurator'
 import FileBase from './FileBase'
@@ -79,6 +80,7 @@ const Registry = {
   CommentConfigurator,
   CollapsibleRecordBase,
   CollapsibleRecordConfigurator,
+  CollapsibleRecordEditor,
   CollapsibleRecordListBase,
   CollapsibleRecordListConfigurator,
   ProgressBase,

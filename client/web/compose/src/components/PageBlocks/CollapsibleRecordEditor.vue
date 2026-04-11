@@ -30,9 +30,7 @@
         @keydown.enter="toggleCollapse"
         @keydown.space.prevent="toggleCollapse"
       >
-        <!-- Title and Subtitle Row - stacked vertically -->
         <div class="collapsible-titles">
-          <!-- Title with inline alignment OR regular alignment -->
           <template v-if="useInlineTitleAlignment">
             <div class="collapsible-title d-flex justify-content-between w-100">
               <span
@@ -64,7 +62,6 @@
             </div>
           </template>
 
-          <!-- Subtitle (shown below title) -->
           <template v-if="displaySubtitle">
             <template v-if="useInlineSubtitleAlignment">
               <div class="collapsible-subtitle d-flex justify-content-between w-100 mt-1">
@@ -99,7 +96,6 @@
           </template>
         </div>
 
-        <!-- Chevron -->
         <div class="collapsible-chevron ml-2">
           <font-awesome-icon
             :icon="collapsed ? ['fas', 'chevron-down'] : ['fas', 'chevron-up']"
@@ -113,52 +109,43 @@
         :id="`collapsible-body-${blockIndex}`"
         :visible="!collapsed"
         class="collapsible-content"
-        :style="collapseMaxHeightStyle"
-        @shown="handleCollapseShown"
-        @hidden="handleCollapseHidden"
       >
-        <!-- Other Fields Section - Above Body -->
+        <!-- Other Fields - Above Body -->
         <div
           v-if="showOtherFieldsAbove && otherFields.length"
-          class="other-fields-section px-3 pb-3"
+          ref="fieldContainerAbove"
+          class="other-fields-section px-3 pt-3 pb-3"
+          :class="fieldLayoutClass"
         >
-          <div :class="fieldLayoutClass">
-            <template v-for="field in otherFields">
+          <template v-for="field in otherFields">
+            <div
+              v-if="canDisplay(field)"
+              :key="`${field.fieldID}-${field.name}-above`"
+              :class="`field-container ${columnWrapClass}`"
+              :style="fieldWidth"
+            >
+              <field-editor
+                v-if="isFieldEditable(field)"
+                v-bind="{ ...$props, errors: fieldErrors(field.name) }"
+                :horizontal="horizontal"
+                :field="field"
+                :extra-options="options"
+                @change="onFieldChange(field)"
+              />
+
               <b-form-group
-                v-if="canDisplay(field)"
-                :key="`${field.fieldID}-${field.name}`"
-                :label-cols-md="options.horizontalFieldLayoutEnabled && '6'"
-                :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
-                :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
-                :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
-                :class="columnWrapClass"
-                :style="fieldWidth"
-                class="field-container"
+                v-else
+                :label-cols-md="horizontal && '5'"
+                :label-cols-xl="horizontal && '4'"
+                :content-cols-md="horizontal && '7'"
+                :content-cols-xl="horizontal && '8'"
               >
                 <template #label>
                   <div class="d-flex align-items-center text-primary mb-0">
-                    <span
-                      class="d-flex"
-                      style="margin-top: 0.1rem;"
-                    >
+                    <span class="d-flex">
                       {{ field.label || field.name }}
                     </span>
                     <c-hint :tooltip="((field.options.hint || {}).view || '')" />
-                    <div
-                      v-if="!record.deletedAt && options.inlineRecordEditEnabled && isFieldEditable(field)"
-                      class="inline-actions ml-1"
-                    >
-                      <b-button
-                        v-b-tooltip.noninteractive.hover="{ title: $t('record.inlineEdit.button.title'), boundary: 'body' }"
-                        variant="outline-extra-light"
-                        :disabled="editable"
-                        size="sm"
-                        class="text-secondary border-0"
-                        @click.stop="editInlineField(field)"
-                      >
-                        <font-awesome-icon :icon="['fas', 'pen']" />
-                      </b-button>
-                    </div>
                   </div>
                   <div
                     class="small text-muted"
@@ -173,8 +160,9 @@
                   class="value align-self-center"
                 >
                   <field-viewer
-                    v-bind="{ ...$props, field }"
-                    :extra-options="options"
+                    :field="field"
+                    v-bind="{ ...$props, errors: fieldErrors(field.name) }"
+                    value-only
                   />
                 </div>
                 <i
@@ -184,17 +172,25 @@
                   {{ $t('field.noPermission') }}
                 </i>
               </b-form-group>
-            </template>
-          </div>
+            </div>
+          </template>
         </div>
 
-        <!-- Body Field (Full Width - Rich Text) -->
+        <!-- Body Field (Full Width) -->
         <div
-          v-if="bodyField && bodyFieldConfig"
-          class="body-field-container p-3"
+          v-if="bodyFieldConfig"
+          class="body-field-container px-3 pt-3 pb-3"
         >
+          <field-editor
+            v-if="isFieldEditable(bodyFieldConfig)"
+            v-bind="{ ...$props, errors: fieldErrors(bodyFieldConfig.name) }"
+            :horizontal="horizontal"
+            :field="bodyFieldConfig"
+            :extra-options="options"
+            @change="onFieldChange(bodyFieldConfig)"
+          />
           <div
-            v-if="bodyFieldConfig.canReadRecordValue"
+            v-else-if="bodyFieldConfig.canReadRecordValue"
             class="body-field-content"
             v-html="bodyFieldValue"
           />
@@ -209,45 +205,39 @@
         <!-- Other Fields - Default or Below Body -->
         <div
           v-if="showOtherFieldsAfter && otherFields.length"
+          ref="fieldContainerAfter"
           class="other-fields-section px-3 pb-3"
+          :class="fieldLayoutClass"
         >
-          <div :class="fieldLayoutClass">
-            <template v-for="field in otherFields">
+          <template v-for="field in otherFields">
+            <div
+              v-if="canDisplay(field)"
+              :key="`${field.fieldID}-${field.name}-after`"
+              :class="`field-container ${columnWrapClass}`"
+              :style="fieldWidth"
+            >
+              <field-editor
+                v-if="isFieldEditable(field)"
+                v-bind="{ ...$props, errors: fieldErrors(field.name) }"
+                :horizontal="horizontal"
+                :field="field"
+                :extra-options="options"
+                @change="onFieldChange(field)"
+              />
+
               <b-form-group
-                v-if="canDisplay(field)"
-                :key="`${field.fieldID}-${field.name}`"
-                :label-cols-md="options.horizontalFieldLayoutEnabled && '6'"
-                :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
-                :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
-                :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
-                :class="columnWrapClass"
-                :style="fieldWidth"
-                class="field-container"
+                v-else
+                :label-cols-md="horizontal && '5'"
+                :label-cols-xl="horizontal && '4'"
+                :content-cols-md="horizontal && '7'"
+                :content-cols-xl="horizontal && '8'"
               >
                 <template #label>
                   <div class="d-flex align-items-center text-primary mb-0">
-                    <span
-                      class="d-flex"
-                      style="margin-top: 0.1rem;"
-                    >
+                    <span class="d-flex">
                       {{ field.label || field.name }}
                     </span>
                     <c-hint :tooltip="((field.options.hint || {}).view || '')" />
-                    <div
-                      v-if="!record.deletedAt && options.inlineRecordEditEnabled && isFieldEditable(field)"
-                      class="inline-actions ml-1"
-                    >
-                      <b-button
-                        v-b-tooltip.noninteractive.hover="{ title: $t('record.inlineEdit.button.title'), boundary: 'body' }"
-                        variant="outline-extra-light"
-                        :disabled="editable"
-                        size="sm"
-                        class="text-secondary border-0"
-                        @click.stop="editInlineField(field)"
-                      >
-                        <font-awesome-icon :icon="['fas', 'pen']" />
-                      </b-button>
-                    </div>
                   </div>
                   <div
                     class="small text-muted"
@@ -262,8 +252,9 @@
                   class="value align-self-center"
                 >
                   <field-viewer
-                    v-bind="{ ...$props, field }"
-                    :extra-options="options"
+                    :field="field"
+                    v-bind="{ ...$props, errors: fieldErrors(field.name) }"
+                    value-only
                   />
                 </div>
                 <i
@@ -273,27 +264,11 @@
                   {{ $t('field.noPermission') }}
                 </i>
               </b-form-group>
-            </template>
-          </div>
+            </div>
+          </template>
         </div>
       </b-collapse>
     </div>
-
-    <!-- Modal for inline editing -->
-    <bulk-edit-modal
-      v-if="options.inlineRecordEditEnabled && module"
-      :modal-title="$t('record.inlineEdit.modal.title')"
-      :namespace="namespace"
-      :module="module"
-      :selected-records="inlineEdit.recordIDs"
-      :selected-fields="inlineEdit.fields"
-      :initial-record="inlineEdit.record"
-      :query="inlineEdit.query"
-      :allow-add-field="options.inlineRecordEditAllowAddField"
-      open-on-select
-      @save="onInlineEdit()"
-      @close="onInlineEditClose()"
-    />
   </wrap>
 </template>
 
@@ -301,14 +276,15 @@
 import { NoID, compose } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from './base'
+import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
-import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/BulkEdit'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
 import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
 import recordLayout from 'corteza-webapp-compose/src/mixins/recordLayout'
 import alignment from 'corteza-webapp-compose/src/mixins/alignment'
 import { mapGetters } from 'vuex'
+import { debounce } from 'lodash'
 
 export default {
   i18nOptions: {
@@ -316,8 +292,8 @@ export default {
   },
 
   components: {
+    FieldEditor,
     FieldViewer,
-    BulkEditModal,
   },
 
   extends: base,
@@ -330,23 +306,9 @@ export default {
     alignment,
   ],
 
-  props: {
-    onBlockHeightChange: {
-      type: Function,
-      default: null,
-    },
-  },
-
   data () {
     return {
       collapsed: false,
-      originalHeight: null,
-      inlineEdit: {
-        fields: [],
-        recordIDs: [],
-        record: {},
-        query: '',
-      },
     }
   },
 
@@ -394,10 +356,7 @@ export default {
     },
 
     titleText () {
-      // If using inline alignment, don't return plain text
-      if (this.useInlineTitleAlignment) {
-        return ''
-      }
+      if (this.useInlineTitleAlignment) return ''
 
       try {
         return evaluatePrefilter(this.options.titleExpression || '', {
@@ -413,10 +372,7 @@ export default {
     },
 
     subtitleText () {
-      // If using inline alignment, don't return plain text
-      if (this.useInlineSubtitleAlignment) {
-        return ''
-      }
+      if (this.useInlineSubtitleAlignment) return ''
 
       try {
         return evaluatePrefilter(this.options.subtitleExpression || '', {
@@ -432,11 +388,9 @@ export default {
     },
 
     displaySubtitle () {
-      // If option to show when collapsed is NOT checked (false) and block is collapsed, hide subtitle
       if (!this.options.subtitleShowWhenCollapsed && this.collapsed) {
         return false
       }
-      // Check both regular text and inline alignment data
       if (this.useInlineSubtitleAlignment) {
         return !!(this.subtitleAlignmentData.left || this.subtitleAlignmentData.center || this.subtitleAlignmentData.right)
       }
@@ -444,7 +398,6 @@ export default {
     },
 
     titleAlignmentClass () {
-      // Default to left alignment when no inline markers are present
       return {
         'text-left': !this.useInlineTitleAlignment || this.options.titleAlignment === 'left',
         'text-center': this.options.titleAlignment === 'center' && !this.useInlineTitleAlignment,
@@ -453,7 +406,6 @@ export default {
     },
 
     subtitleAlignmentClass () {
-      // Default to left alignment when no inline markers are present
       return {
         'text-left': !this.useInlineSubtitleAlignment || this.options.subtitleAlignment === 'left',
         'text-center': this.options.subtitleAlignment === 'center' && !this.useInlineSubtitleAlignment,
@@ -466,39 +418,22 @@ export default {
     },
 
     bodyFieldConfig () {
-      if (!this.options.bodyField || !this.module) {
-        return null
-      }
+      if (!this.options.bodyField || !this.module) return null
       const field = this.module.fields.find(f => f.name === this.options.bodyField || f.fieldID === this.options.bodyField)
-      if (!field) {
-        return null
-      }
-      return field
-    },
-
-    bodyField () {
-      return this.options.bodyField
+      return field || null
     },
 
     bodyFieldValue () {
-      if (!this.bodyFieldConfig || !this.record) {
-        return ''
-      }
-      // Use field name to look up value in record.values (record.values uses field names as keys)
+      if (!this.bodyFieldConfig || !this.record) return ''
       const fieldName = this.bodyFieldConfig.name
       return this.record.values[fieldName] || ''
     },
 
     otherFields () {
-      if (!this.module) {
-        return []
-      }
+      if (!this.module) return []
 
       const selectedFields = this.options.fields || []
-
-      if (selectedFields.length === 0) {
-        return []
-      }
+      if (selectedFields.length === 0) return []
 
       const bodyFieldName = this.options.bodyField
       const fields = this.module.filterFields(selectedFields).filter(f => f.name !== bodyFieldName && f.fieldID !== bodyFieldName)
@@ -528,37 +463,25 @@ export default {
     },
 
     columnWrapClass () {
-      if (this.options.recordFieldLayoutOption !== 'wrap') {
-        return ''
-      }
+      if (this.options.recordFieldLayoutOption !== 'wrap') return ''
       return 'field-col'
     },
 
     fieldWidth () {
-      if (this.options.recordFieldLayoutOption !== 'noWrap') {
-        return {}
-      }
-      return { 'min-width': '13rem' }
+      if (this.options.recordFieldLayoutOption !== 'noWrap') return {}
+      return { 'min-width': '20rem' }
     },
 
     isProcessing () {
-      return this.loadingRecord || this.evaluating
+      return this.loadingRecord || !this.record || this.evaluating
     },
 
-    collapsedMinHeight () {
-      // Simple fixed values: 7 for title only, 9 for title + subtitle
-      if (this.displaySubtitle) {
-        return 9.3
-      }
-      return 7.3
+    horizontal () {
+      return this.block.options.horizontalFieldLayoutEnabled
     },
 
-    collapseMaxHeightStyle () {
-      // When collapsed, set max-height to 0 to ensure content is fully hidden
-      if (this.collapsed) {
-        return { maxHeight: '0px', overflow: 'hidden' }
-      }
-      return { maxHeight: 'none', overflow: 'visible' }
+    isNew () {
+      return this.record && this.record.recordID === NoID
     },
   },
 
@@ -566,13 +489,7 @@ export default {
     'options.defaultCollapsed': {
       immediate: true,
       handler (collapsed) {
-        this.collapsed = collapsed
-        // Set initial height if collapsed on load
-        if (collapsed && !this.editable) {
-          this.$nextTick(() => {
-            this.notifyHeightChange(true)
-          })
-        }
+        this.collapsed = !!collapsed
       },
     },
 
@@ -583,31 +500,33 @@ export default {
 
         if (!recordID || loadingRecord) return
 
+        let resolutions = []
+
+        if (recordID !== NoID) {
+          resolutions = [
+            this.fetchUsers(this.module.fields, [this.record]),
+            this.fetchRecords(this.namespace.namespaceID, this.module.fields, [this.record]),
+          ]
+        }
+
         this.evaluating = true
 
-        this.evaluateExpressions().finally(() => {
+        Promise.all([
+          ...resolutions,
+          this.evaluateExpressions(),
+        ]).finally(() => {
           this.evaluating = false
         })
-
-        // Fetch related records so Record-type field labels resolve in title/subtitle expressions
-        if (this.module && this.namespace) {
-          this.fetchRecords(this.namespace.namespaceID, this.module.fields, [this.record])
-        }
-      },
-    },
-
-    collapsed: {
-      immediate: true,
-      handler (collapsed) {
-        this.$emit('collapse-change', collapsed)
       },
     },
   },
 
   mounted () {
-    if (this.block && this.block.xywh) {
-      this.originalHeight = this.block.xywh[3]
-    }
+    this.createEvents()
+  },
+
+  beforeDestroy () {
+    this.destroyEvents()
   },
 
   methods: {
@@ -615,59 +534,18 @@ export default {
       this.collapsed = !this.collapsed
     },
 
-    handleCollapseShown () {
-      // Animation complete - content is now visible (expanded)
-      this.$emit('collapse-change', false)
-      this.notifyHeightChange(false)
-    },
-
-    handleCollapseHidden () {
-      // Animation complete - content is now hidden (collapsed)
-      this.$emit('collapse-change', true)
-      this.notifyHeightChange(true)
-    },
-
-    editInlineField (field) {
-      if (!this.record) return
-      this.inlineEdit.fields = [field.name]
-      this.inlineEdit.record = this.record.clone()
-      this.inlineEdit.recordIDs = [this.record.recordID]
-      this.inlineEdit.query = `recordID = ${this.record.recordID}`
-    },
-
-    onInlineEdit () {
-      this.inlineEdit.fields = []
-      this.inlineEdit.recordIDs = []
-      this.inlineEdit.record = {}
-      this.inlineEdit.query = ''
-    },
-
-    onInlineEditClose () {
-      this.inlineEdit.fields = []
-      this.inlineEdit.record = {}
-      this.inlineEdit.query = ''
-    },
-
-    notifyHeightChange (isCollapsed) {
-      // Only notify in view mode (not in page builder/editor)
-      if (this.editable) return
-      if (!this.block || !this.block.xywh) return
-
-      // Use originalHeight if available, otherwise get current height from block
-      let currentHeight = this.originalHeight
-      if (!currentHeight) {
-        currentHeight = this.block.xywh[3]
-      }
-      if (!currentHeight) return
-
-      // When collapsed (content hidden), use collapsedMinHeight
-      // When expanded (content visible), use currentHeight
-      const newHeight = isCollapsed ? this.collapsedMinHeight : currentHeight
-
-      this.onBlockHeightChange({
-        blockIndex: this.blockIndex,
-        newHeight,
+    onFieldChange: debounce(function (field) {
+      this.$root.$emit('record-field-change', {
+        fieldName: field.name,
       })
+    }, 500),
+
+    createEvents () {
+      this.$root.$on('record-field-change', this.evaluateExpressions)
+    },
+
+    destroyEvents () {
+      this.$root.$off('record-field-change', this.evaluateExpressions)
     },
   },
 }
@@ -675,7 +553,6 @@ export default {
 
 <style scoped>
 .collapsible-record-wrap {
-  transition: height 0.3s ease;
   overflow: hidden;
 }
 
@@ -714,10 +591,6 @@ export default {
   flex-shrink: 0;
 }
 
-.collapsible-content {
-  transition: height 0.3s ease;
-}
-
 .body-field-container {
   border-bottom: 1px solid #dee2e6;
 }
@@ -727,3 +600,5 @@ export default {
   margin-right: 1rem;
 }
 </style>
+</content>
+</invoke>

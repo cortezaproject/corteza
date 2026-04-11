@@ -846,9 +846,11 @@ collapsibleRecord:
       default: Default
       above: Above body
       below: Below body
-  collapseSection: 
+  collapseSection:
     label: Collapse Options
     defaultCollapsed: Collapsed by default
+  recordDisplayOption:
+    label: Record open mode
 collapsibleRecordList:
   label: Collapsible List
 navigation:

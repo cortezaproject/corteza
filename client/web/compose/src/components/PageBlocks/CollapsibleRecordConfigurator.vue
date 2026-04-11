@@ -190,6 +190,39 @@
             />
           </b-form-group>
         </b-col>
+
+        <!-- Inline Edit -->
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.inlineEdit.enabled')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.inlineRecordEditEnabled"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.inlineEdit.allowAddField')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.inlineRecordEditAllowAddField"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </div>
 

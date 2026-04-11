@@ -102,6 +102,9 @@ label:
   urlPlaceholder: https://example.tld
   validation: Validation
   view: View
+  open: Open
+  expand: Expand
+  collapse: Collapse
   yes: Yes
   chart:
     single: Chart

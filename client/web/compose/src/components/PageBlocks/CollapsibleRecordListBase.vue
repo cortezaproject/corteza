@@ -25,88 +25,99 @@
         class="collapsible-record-item"
       >
         <!-- Collapsible Header -->
-        <div
-          class="collapsible-header d-flex align-items-center p-3"
-          :class="getHeaderClass(item.r)"
-          role="button"
-          :aria-expanded="!isCollapsed(item.r.recordID)"
-          :aria-controls="`collapsible-body-${blockIndex}-${item.r.recordID}`"
-          tabindex="0"
-          @click="toggleCollapse(item.r.recordID)"
-          @keydown.enter="toggleCollapse(item.r.recordID)"
-          @keydown.space.prevent="toggleCollapse(item.r.recordID)"
-        >
-          <!-- Title and Subtitle Row -->
-          <div class="collapsible-titles">
-            <!-- Title with inline alignment OR regular alignment -->
-            <template v-if="useInlineTitleAlignment(item.r)">
-              <div class="collapsible-title d-flex justify-content-between w-100">
-                <span
-                  v-if="getTitleAlignmentData(item.r).left"
-                  class="text-left"
-                  style="flex: 1;"
-                  v-html="getTitleAlignmentData(item.r).left"
-                />
-                <span
-                  v-if="getTitleAlignmentData(item.r).center"
-                  class="text-center"
-                  style="flex: 1;"
-                  v-html="getTitleAlignmentData(item.r).center"
-                />
-                <span
-                  v-if="getTitleAlignmentData(item.r).right"
-                  class="text-right"
-                  style="flex: 1;"
-                  v-html="getTitleAlignmentData(item.r).right"
-                />
-              </div>
-            </template>
-            <template v-else>
-              <div
-                class="collapsible-title"
-                :class="getTitleAlignmentClass(item.r)"
-              >
-                {{ getTitleText(item.r) || options.titleExpression || 'Untitled' }}
-              </div>
-            </template>
-
-            <!-- Subtitle -->
-            <template v-if="displaySubtitle(item.r)">
-              <template v-if="useInlineSubtitleAlignment(item.r)">
-                <div class="collapsible-subtitle d-flex justify-content-between w-100 mt-1">
+        <div class="collapsible-header d-flex align-items-stretch">
+          <!-- Title area — click to open record -->
+          <div
+            class="collapsible-title-area d-flex align-items-center flex-grow-1 p-3"
+            :class="{ 'is-clickable': recordPageID }"
+            :role="recordPageID ? 'button' : undefined"
+            :tabindex="recordPageID ? 0 : undefined"
+            :title="recordPageID ? $t('general:label.open') : undefined"
+            @click="recordPageID && handleRecordOpen(item.r)"
+            @keydown.enter="recordPageID && handleRecordOpen(item.r)"
+            @keydown.space.prevent="recordPageID && handleRecordOpen(item.r)"
+          >
+            <div class="collapsible-titles">
+              <!-- Title with inline alignment OR regular alignment -->
+              <template v-if="useInlineTitleAlignment(item.r)">
+                <div class="collapsible-title d-flex justify-content-between w-100">
                   <span
-                    v-if="getSubtitleAlignmentData(item.r).left"
+                    v-if="getTitleAlignmentData(item.r).left"
                     class="text-left"
                     style="flex: 1;"
-                    v-html="getSubtitleAlignmentData(item.r).left"
+                    v-html="getTitleAlignmentData(item.r).left"
                   />
                   <span
-                    v-if="getSubtitleAlignmentData(item.r).center"
+                    v-if="getTitleAlignmentData(item.r).center"
                     class="text-center"
                     style="flex: 1;"
-                    v-html="getSubtitleAlignmentData(item.r).center"
+                    v-html="getTitleAlignmentData(item.r).center"
                   />
                   <span
-                    v-if="getSubtitleAlignmentData(item.r).right"
+                    v-if="getTitleAlignmentData(item.r).right"
                     class="text-right"
                     style="flex: 1;"
-                    v-html="getSubtitleAlignmentData(item.r).right"
+                    v-html="getTitleAlignmentData(item.r).right"
                   />
                 </div>
               </template>
               <template v-else>
                 <div
-                  class="collapsible-subtitle"
-                  :class="getSubtitleAlignmentClass(item.r)"
+                  class="collapsible-title"
+                  :class="getTitleAlignmentClass(item.r)"
                 >
-                  {{ getSubtitleText(item.r) || options.subtitleExpression || '' }}
+                  {{ getTitleText(item.r) || options.titleExpression || 'Untitled' }}
                 </div>
               </template>
-            </template>
+
+              <!-- Subtitle -->
+              <template v-if="displaySubtitle(item.r)">
+                <template v-if="useInlineSubtitleAlignment(item.r)">
+                  <div class="collapsible-subtitle d-flex justify-content-between w-100 mt-1">
+                    <span
+                      v-if="getSubtitleAlignmentData(item.r).left"
+                      class="text-left"
+                      style="flex: 1;"
+                      v-html="getSubtitleAlignmentData(item.r).left"
+                    />
+                    <span
+                      v-if="getSubtitleAlignmentData(item.r).center"
+                      class="text-center"
+                      style="flex: 1;"
+                      v-html="getSubtitleAlignmentData(item.r).center"
+                    />
+                    <span
+                      v-if="getSubtitleAlignmentData(item.r).right"
+                      class="text-right"
+                      style="flex: 1;"
+                      v-html="getSubtitleAlignmentData(item.r).right"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <div
+                    class="collapsible-subtitle"
+                    :class="getSubtitleAlignmentClass(item.r)"
+                  >
+                    {{ getSubtitleText(item.r) || options.subtitleExpression || '' }}
+                  </div>
+                </template>
+              </template>
+            </div>
           </div>
 
-          <!-- Chevron -->
-          <div class="collapsible-chevron ml-2">
+          <!-- Chevron — click to toggle collapse -->
+          <div
+            class="collapsible-chevron d-flex align-items-center justify-content-center px-3"
+            role="button"
+            :aria-expanded="!isCollapsed(item.r.recordID)"
+            :aria-controls="`collapsible-body-${blockIndex}-${item.r.recordID}`"
+            tabindex="0"
+            :title="isCollapsed(item.r.recordID) ? $t('general:label.expand') : $t('general:label.collapse')"
+            @click.stop="toggleCollapse(item.r.recordID)"
+            @keydown.enter.stop="toggleCollapse(item.r.recordID)"
+            @keydown.space.stop.prevent="toggleCollapse(item.r.recordID)"
+          >
             <font-awesome-icon
               :icon="isCollapsed(item.r.recordID) ? ['fas', 'chevron-down'] : ['fas', 'chevron-up']"
               class="text-muted"
@@ -122,7 +133,7 @@
         >
           <!-- Other Fields Section - Above Body -->
           <div
-            v-if="options.otherFieldsPosition === 'above' && otherFields.length"
+            v-if="showOtherFieldsAbove && otherFields.length"
             class="other-fields-section px-3 pb-3"
           >
             <div :class="fieldLayoutClass">
@@ -193,64 +204,9 @@
             </i>
           </div>
 
-          <!-- Default Position (after body) -->
+          <!-- Other Fields - Default or Below Body -->
           <div
-            v-if="(options.otherFieldsPosition === 'default' || !options.otherFieldsPosition) && otherFields.length"
-            class="other-fields-section px-3 pb-3"
-          >
-            <div :class="fieldLayoutClass">
-              <template v-for="field in otherFields">
-                <b-form-group
-                  v-if="canDisplay(field, item.r)"
-                  :key="`${field.fieldID}-${field.name}-${item.r.recordID}`"
-                  :label-cols-md="options.horizontalFieldLayoutEnabled && '6'"
-                  :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
-                  :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
-                  :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
-                  :class="columnWrapClass"
-                  :style="fieldWidth"
-                  class="field-container"
-                >
-                  <template #label>
-                    <div class="d-flex align-items-center text-primary mb-0">
-                      <span
-                        class="d-flex"
-                        style="margin-top: 0.1rem;"
-                      >
-                        {{ field.label || field.name }}
-                      </span>
-                      <c-hint :tooltip="((field.options.hint || {}).view || '')" />
-                    </div>
-                    <div
-                      class="small text-muted"
-                      :class="{ 'mb-1': !!(field.options.description || {}).view }"
-                    >
-                      {{ (field.options.description || {}).view }}
-                    </div>
-                  </template>
-                  <div
-                    v-if="field.canReadRecordValue"
-                    class="value align-self-center"
-                  >
-                    <field-viewer
-                      v-bind="{ ...$props, record: item.r }"
-                      :module="recordListModule"
-                      :field="field"
-                      :extra-options="options"
-                    />
-                  </div>
-                  <i
-                    v-else
-                    class="text-muted"
-                  >{{ $t('field.noPermission') }}</i>
-                </b-form-group>
-              </template>
-            </div>
-          </div>
-
-          <!-- Below Body -->
-          <div
-            v-if="options.otherFieldsPosition === 'below' && otherFields.length"
+            v-if="showOtherFieldsAfter && otherFields.length"
             class="other-fields-section px-3 pb-3"
           >
             <div :class="fieldLayoutClass">
@@ -369,7 +325,7 @@
 
 <script>
 import { NoID, compose } from '@cortezaproject/corteza-js'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, getFieldFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import users from 'corteza-webapp-compose/src/mixins/users'
@@ -429,6 +385,7 @@ export default {
     ...mapGetters({
       getModuleByID: 'module/getByID',
       findRecordByID: 'record/findByID',
+      pages: 'page/set',
     }),
 
     // Returns the module configured for this record list
@@ -440,8 +397,24 @@ export default {
       }
     },
 
+    recordPageID () {
+      const { moduleID } = this.recordListModule || {}
+      if (!moduleID) return undefined
+      const { pageID } = this.pages.find(p => p.moduleID === moduleID) || {}
+      return pageID
+    },
+
     isProcessing () {
       return this.processing
+    },
+
+    showOtherFieldsAbove () {
+      return this.options.otherFieldsPosition === 'above'
+    },
+
+    showOtherFieldsAfter () {
+      const pos = this.options.otherFieldsPosition
+      return pos === 'below' || pos === 'default' || !pos
     },
 
     fieldLayoutClass () {
@@ -523,17 +496,12 @@ export default {
     'options.moduleID': {
       immediate: true,
       handler () {
-        if (this.options.moduleID && !this.recordsLoaded) {
+        if (this.options.moduleID) {
+          this.recordsLoaded = false
           this.loadRecords()
         }
       },
     },
-  },
-
-  created () {
-    if (this.options.moduleID) {
-      this.loadRecords()
-    }
   },
 
   beforeDestroy () {
@@ -558,8 +526,11 @@ export default {
         const { set: records, filter: responseFilter } = await this.$ComposeAPI.recordList({
           moduleID,
           namespaceID,
-          ...filter,
+          query: filter.query,
+          sort: filter.sort,
+          limit: filter.limit,
           pageCursor: this.filter.pageCursor,
+          incTotal: !!this.options.showTotalCount,
         })
 
         // Store pagination cursors
@@ -582,12 +553,16 @@ export default {
           }
         })
 
-        // Fetch related records so Record-type field labels resolve in title/subtitle expressions
-        await this.fetchRecords(
-          this.recordListModule.namespaceID,
-          this.recordListModule.fields,
-          this.items.map(i => i.r),
-        )
+        // Fetch related records and users so field labels resolve in title/subtitle expressions
+        const loadedRecords = this.items.map(i => i.r)
+        await Promise.all([
+          this.fetchRecords(
+            this.recordListModule.namespaceID,
+            this.recordListModule.fields,
+            loadedRecords,
+          ),
+          this.fetchUsers(this.recordListModule.fields, loadedRecords),
+        ])
       } catch (e) {
         console.error('Failed to load records:', e)
       } finally {
@@ -621,16 +596,16 @@ export default {
       if (refField && this.record && this.record.recordID && this.record.recordID !== NoID) {
         const refFieldObj = this.recordListModule.fields.find(f => f.name === refField)
         if (refFieldObj && refFieldObj.isMulti) {
-          filterExpressions.push(`${refField} IN ('${this.record.recordID}')`)
+          filterExpressions.push(getFieldFilter(refField, 'Record', this.record.recordID, 'IN'))
         } else {
-          filterExpressions.push(`${refField} = '${this.record.recordID}'`)
+          filterExpressions.push(getFieldFilter(refField, 'Record', this.record.recordID, '='))
         }
       }
 
       return {
         sort,
         limit: perPage || 10,
-        filter: filterExpressions.join(' AND '),
+        query: filterExpressions.join(' AND '),
       }
     },
 
@@ -658,7 +633,40 @@ export default {
     },
 
     isCollapsed (recordID) {
-      return this.collapsedRecords[recordID] !== false
+      if (this.collapsedRecords[recordID] === undefined) {
+        return !!this.options.defaultCollapsed
+      }
+      return !!this.collapsedRecords[recordID]
+    },
+
+    handleRecordOpen (record) {
+      if (!this.recordPageID) return
+
+      const recordID = record.recordID
+      const displayOption = this.options.recordDisplayOption || 'modal'
+
+      if (displayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          recordID,
+          recordPageID: this.recordPageID,
+        })
+        return
+      }
+
+      const route = {
+        name: 'page.record',
+        params: {
+          pageID: this.recordPageID,
+          recordID,
+        },
+        query: null,
+      }
+
+      if (displayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
+      } else {
+        this.$router.push(route)
+      }
     },
 
     getHeaderClass () {
@@ -784,7 +792,9 @@ export default {
         return true
       }
 
-      const conditions = this.options.fieldConditions.filter(c => c.field === field.name)
+      // Match by fieldID or name, consistent with how the configurator stores conditions
+      const fieldKey = field.fieldID !== NoID ? field.fieldID : field.name
+      const conditions = this.options.fieldConditions.filter(c => c.field === fieldKey || c.field === field.name)
       if (!conditions.length) {
         return true
       }
@@ -824,16 +834,31 @@ export default {
 .collapsible-header {
   background-color: #f8f9fa;
   border-bottom: 1px solid #dee2e6;
-  cursor: pointer;
   user-select: none;
 }
 
-.collapsible-header:hover {
+.collapsible-title-area {
+  min-width: 0;
+}
+
+.collapsible-title-area.is-clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.collapsible-title-area.is-clickable:hover {
   background-color: #e9ecef;
+}
+
+.collapsible-title-area.is-clickable:focus {
+  outline: none;
+  background-color: #e9ecef;
+  box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.25);
 }
 
 .collapsible-titles {
   flex-grow: 1;
+  min-width: 0;
 }
 
 .collapsible-title {
@@ -848,6 +873,19 @@ export default {
 
 .collapsible-chevron {
   flex-shrink: 0;
+  cursor: pointer;
+  border-left: 1px solid #dee2e6;
+  transition: background-color 0.15s ease;
+}
+
+.collapsible-chevron:hover {
+  background-color: #e9ecef;
+}
+
+.collapsible-chevron:focus {
+  outline: none;
+  background-color: #e9ecef;
+  box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.25);
 }
 
 .body-field-container {

@@ -221,6 +221,22 @@
             </b-form-text>
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('collapsibleRecord.recordDisplayOption.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.recordDisplayOption"
+              :options="recordDisplayOptions"
+              :reduce="option => option.value"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </div>
 
@@ -702,6 +718,14 @@ export default {
       // eslint-disable-next-line no-undef
       const [year, month] = VERSION.split('.')
       return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/compose-configuration/page-layouts.html#visibility-condition`
+    },
+
+    recordDisplayOptions () {
+      return [
+        { value: 'modal', label: this.$t('record.openInModal') },
+        { value: 'sameTab', label: this.$t('record.openInSameTab') },
+        { value: 'newTab', label: this.$t('record.openInNewTab') },
+      ]
     },
 
     positionOptions () {

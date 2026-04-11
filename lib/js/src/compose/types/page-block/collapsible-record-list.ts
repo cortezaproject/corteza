@@ -17,6 +17,7 @@ interface Options {
   prefilter: string
   presort: string
   perPage: number
+  refField?: string
 
   // Header section - title
   titleExpression: string
@@ -30,9 +31,6 @@ interface Options {
   // Body section - full-width field
   bodyField: string
 
-  // Inline editing for body field
-  inlineEditEnabled: boolean
-
   // Other fields section
   fields: unknown[]
   fieldConditions: FieldCondition[]
@@ -40,6 +38,7 @@ interface Options {
   otherFieldsPosition: 'above' | 'below' | 'default'
   horizontalFieldLayoutEnabled: boolean
   recordFieldLayoutOption: string
+  searchableFields: string[]
 
   // Collapse state per record (stored locally)
   defaultCollapsed: boolean
@@ -49,14 +48,20 @@ interface Options {
   hidePaging: boolean
   hideSorting: boolean
   hideSearch: boolean
+  hideFiltering: boolean
 
   // Navigation
   enableRecordPageNavigation: boolean
+  fullPageNavigation: boolean
+  showRecordPerPageOption: boolean
 
   // Actions
   hideRecordViewButton: boolean
   hideRecordEditButton: boolean
   hideRecordDeleteButton: boolean
+
+  // Record display
+  recordDisplayOption: string
 
   // Show total count
   showTotalCount: boolean
@@ -68,6 +73,7 @@ const defaults: Readonly<Options> = Object.freeze({
   prefilter: '',
   presort: 'createdAt DESC',
   perPage: 10,
+  refField: undefined,
 
   // Header section - title
   titleExpression: '',
@@ -80,7 +86,6 @@ const defaults: Readonly<Options> = Object.freeze({
 
   // Body section
   bodyField: '',
-  inlineEditEnabled: false,
 
   // Other fields section
   fields: [],
@@ -89,6 +94,7 @@ const defaults: Readonly<Options> = Object.freeze({
   otherFieldsPosition: 'default',
   horizontalFieldLayoutEnabled: false,
   recordFieldLayoutOption: 'default',
+  searchableFields: [],
 
   // Collapse state
   defaultCollapsed: false,
@@ -98,14 +104,20 @@ const defaults: Readonly<Options> = Object.freeze({
   hidePaging: false,
   hideSorting: false,
   hideSearch: false,
+  hideFiltering: false,
 
   // Navigation
   enableRecordPageNavigation: true,
+  fullPageNavigation: false,
+  showRecordPerPageOption: false,
 
   // Actions
   hideRecordViewButton: false,
   hideRecordEditButton: false,
   hideRecordDeleteButton: false,
+
+  // Record display
+  recordDisplayOption: 'modal',
 
   // Show total count
   showTotalCount: true,
@@ -136,13 +148,14 @@ export class PageBlockCollapsibleRecordList extends PageBlock {
       'recordFieldLayoutOption',
       'prefilter',
       'presort',
+      'refField',
+      'recordDisplayOption',
     )
 
     Apply(this.options, o, Number, 'perPage')
 
     Apply(this.options, o, Boolean,
       'subtitleShowWhenCollapsed',
-      'inlineEditEnabled',
       'horizontalFieldLayoutEnabled',
       'clearConditionalFieldsOnHide',
       'defaultCollapsed',
@@ -150,7 +163,10 @@ export class PageBlockCollapsibleRecordList extends PageBlock {
       'hidePaging',
       'hideSorting',
       'hideSearch',
+      'hideFiltering',
       'enableRecordPageNavigation',
+      'fullPageNavigation',
+      'showRecordPerPageOption',
       'hideRecordViewButton',
       'hideRecordEditButton',
       'hideRecordDeleteButton',
@@ -163,6 +179,10 @@ export class PageBlockCollapsibleRecordList extends PageBlock {
 
     if (o.fieldConditions) {
       this.options.fieldConditions = o.fieldConditions
+    }
+
+    if (o.searchableFields) {
+      this.options.searchableFields = o.searchableFields
     }
   }
 

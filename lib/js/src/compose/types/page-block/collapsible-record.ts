@@ -22,8 +22,9 @@ interface Options {
   // Body section - full-width field
   bodyField: string
 
-  // Inline editing for body field
-  inlineEditEnabled: boolean
+  // Inline editing
+  inlineRecordEditEnabled: boolean
+  inlineRecordEditAllowAddField: boolean
 
   // Other fields section
   fields: unknown[]
@@ -44,7 +45,8 @@ const defaults: Readonly<Options> = Object.freeze({
   subtitleAlignment: 'left',
   subtitleShowWhenCollapsed: false,
   bodyField: '',
-  inlineEditEnabled: false,
+  inlineRecordEditEnabled: false,
+  inlineRecordEditAllowAddField: false,
   fields: [],
   fieldConditions: [],
   clearConditionalFieldsOnHide: false,
@@ -68,7 +70,7 @@ export class PageBlockCollapsibleRecord extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, String, 'titleExpression', 'titleAlignment', 'subtitleExpression', 'subtitleAlignment', 'bodyField', 'otherFieldsPosition', 'recordFieldLayoutOption')
-    Apply(this.options, o, Boolean, 'subtitleShowWhenCollapsed', 'inlineEditEnabled', 'horizontalFieldLayoutEnabled', 'clearConditionalFieldsOnHide', 'defaultCollapsed')
+    Apply(this.options, o, Boolean, 'subtitleShowWhenCollapsed', 'inlineRecordEditEnabled', 'inlineRecordEditAllowAddField', 'horizontalFieldLayoutEnabled', 'clearConditionalFieldsOnHide', 'defaultCollapsed')
 
     if (o.fields) {
       this.options.fields = o.fields
