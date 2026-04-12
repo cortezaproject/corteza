@@ -10,10 +10,11 @@ package handlers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/go-chi/chi/v5"
-	"net/http"
 )
 
 type (
@@ -38,6 +39,7 @@ type (
 		TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
 		TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
 		Revisions(context.Context, *request.RecordRevisions) (interface{}, error)
+		MultiHopQuery(context.Context, *request.RecordMultiHopQuery) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -61,6 +63,7 @@ type (
 		TriggerScript       func(http.ResponseWriter, *http.Request)
 		TriggerScriptOnList func(http.ResponseWriter, *http.Request)
 		Revisions           func(http.ResponseWriter, *http.Request)
+		MultiHopQuery       func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -370,6 +373,22 @@ func NewRecord(h RecordAPI) *Record {
 
 			api.Send(w, r, value)
 		},
+		MultiHopQuery: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordMultiHopQuery()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.MultiHopQuery(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -395,5 +414,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.TriggerScript)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/trigger", h.TriggerScriptOnList)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/revisions", h.Revisions)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/multi-hop-query", h.MultiHopQuery)
 	})
 }

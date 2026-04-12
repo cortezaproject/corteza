@@ -23,6 +23,8 @@ interface Options {
   horizontalFieldLayoutEnabled: boolean;
   recordFieldLayoutOption: string;
   inlineRecordEditAllowAddField: boolean;
+  includeParentFields: boolean;
+  parentField: string | null;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -39,6 +41,8 @@ const defaults: Readonly<Options> = Object.freeze({
   inlineRecordEditAllowAddField: false,
   horizontalFieldLayoutEnabled: false,
   recordFieldLayoutOption: 'default',
+  includeParentFields: false,
+  parentField: null,
 })
 
 export class PageBlockRecord extends PageBlock {
@@ -54,8 +58,8 @@ export class PageBlockRecord extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'recordSelectorAddRecordDisplayOption', 'referenceField', 'referenceModuleID', 'recordFieldLayoutOption')
-    Apply(this.options, o, Boolean, 'recordSelectorShowAddRecordButton', 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled', 'inlineRecordEditAllowAddField', 'clearConditionalFieldsOnHide')
+    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'recordSelectorAddRecordDisplayOption', 'referenceField', 'referenceModuleID', 'recordFieldLayoutOption', 'parentField')
+    Apply(this.options, o, Boolean, 'recordSelectorShowAddRecordButton', 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled', 'inlineRecordEditAllowAddField', 'clearConditionalFieldsOnHide', 'includeParentFields')
 
     if (o.fields) {
       this.options.fields = o.fields

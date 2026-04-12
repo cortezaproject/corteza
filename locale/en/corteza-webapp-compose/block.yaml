@@ -331,6 +331,9 @@ record:
       performance: Using conditional fields will impact performance
   recordSelectorCanAddRecord: Can add records via record selector
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
+  parentFields:
+    enable: Include parent fields
+    field: Parent link field
 recordList:
   noModule: No module selected
   addRecord: Add
@@ -632,6 +635,14 @@ recordList:
   refField:
     footnote: Field that links records with the parent record
     label: Parent field
+    commonField: Common
+    grandparent: Grandparent
+  parentFields:
+    enable: Include parent fields
+    field: Parent link field
+    footnote: Select which parent field links to this record list
+    parentIndicator: Parent
+    hideModuleLabel: Hide parent module label
   selectable: Users will be able to select records
   selected: "{{count}} of {{total}} records selected"
   selectedFromAllPages: "All {{count}} records from all pages selected"
@@ -757,6 +768,17 @@ recordRevisions:
       invalid-module-id: Field does not contain a valid module ID.
     fields:
       label: Fields to display in record revisions changes
+      show-all:
+        label: Show changes for all fields
+      columns:
+        label:
+          label: Label
+        kind:
+          label: Type
+        displayed-fields:
+          label: Show
+        expanded-references:
+          label: Expand references
 
 socialFeed:
   label: Twitter feed

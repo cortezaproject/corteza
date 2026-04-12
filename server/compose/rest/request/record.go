@@ -11,14 +11,15 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/go-chi/chi/v5"
 )
 
 // dummy vars to prevent
@@ -230,11 +231,6 @@ type (
 		//
 		// Wrap multi value fields in brachets
 		WrapMultiValue string
-
-		// ResolveRefs GET parameter
-		//
-		//
-		ResolveRefs bool
 	}
 
 	RecordExec struct {
@@ -536,10 +532,47 @@ type (
 		//
 		// ID
 		RecordID uint64 `json:",string"`
+	}
 
-		// Sort GET parameter
+	RecordMultiHopQuery struct {
+		// NamespaceID PATH parameter
 		//
-		// Sort order
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// RefField POST parameter
+		//
+		// Reference field name (e.g., "clientJobID")
+		RefField string
+
+		// RefValue POST parameter
+		//
+		// Reference field value (e.g., "12345")
+		RefValue string
+
+		// Hops POST parameter
+		//
+		// Number of hops (1 = grandparent, 2 = great-grandparent, etc.)
+		Hops uint
+
+		// Query POST parameter
+		//
+		// Additional filter query
+		Query string
+
+		// Limit POST parameter
+		//
+		// Limit
+		Limit uint
+
+		// Sort POST parameter
+		//
+		// Sort items
 		Sort string
 	}
 )
@@ -1110,7 +1143,6 @@ func (r RecordExport) Auditable() map[string]interface{} {
 		"timezone":            r.Timezone,
 		"multiValueDelimiter": r.MultiValueDelimiter,
 		"wrapMultiValue":      r.WrapMultiValue,
-		"resolveRefs":         r.ResolveRefs,
 	}
 }
 
@@ -1159,11 +1191,6 @@ func (r RecordExport) GetWrapMultiValue() string {
 	return r.WrapMultiValue
 }
 
-// Auditable returns all auditable/loggable parameters
-func (r RecordExport) GetResolveRefs() bool {
-	return r.ResolveRefs
-}
-
 // Fill processes request and fills internal variables
 func (r *RecordExport) Fill(req *http.Request) (err error) {
 
@@ -1202,12 +1229,6 @@ func (r *RecordExport) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["wrapMultiValue"]; ok && len(val) > 0 {
 			r.WrapMultiValue, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["resolveRefs"]; ok && len(val) > 0 {
-			r.ResolveRefs, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -2562,7 +2583,6 @@ func (r RecordRevisions) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
 		"recordID":    r.RecordID,
-		"sort":        r.Sort,
 	}
 }
 
@@ -2581,25 +2601,8 @@ func (r RecordRevisions) GetRecordID() uint64 {
 	return r.RecordID
 }
 
-// Auditable returns all auditable/loggable parameters
-func (r RecordRevisions) GetSort() string {
-	return r.Sort
-}
-
 // Fill processes request and fills internal variables
 func (r *RecordRevisions) Fill(req *http.Request) (err error) {
-
-	{
-		// GET params
-		tmp := req.URL.Query()
-
-		if val, ok := tmp["sort"]; ok && len(val) > 0 {
-			r.Sort, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-	}
 
 	{
 		var val string
@@ -2619,6 +2622,201 @@ func (r *RecordRevisions) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "recordID")
 		r.RecordID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewRecordMultiHopQuery request
+func NewRecordMultiHopQuery() *RecordMultiHopQuery {
+	return &RecordMultiHopQuery{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordMultiHopQuery) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"moduleID":    r.ModuleID,
+		"refField":    r.RefField,
+		"refValue":    r.RefValue,
+		"hops":        r.Hops,
+		"query":       r.Query,
+		"limit":       r.Limit,
+		"sort":        r.Sort,
+	}
+}
+
+// GetNamespaceID returns NamespaceID parameter
+func (r RecordMultiHopQuery) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// GetModuleID returns ModuleID parameter
+func (r RecordMultiHopQuery) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// GetRefField returns RefField parameter
+func (r RecordMultiHopQuery) GetRefField() string {
+	return r.RefField
+}
+
+// GetRefValue returns RefValue parameter
+func (r RecordMultiHopQuery) GetRefValue() string {
+	return r.RefValue
+}
+
+// GetHops returns Hops parameter
+func (r RecordMultiHopQuery) GetHops() uint {
+	return r.Hops
+}
+
+// GetQuery returns Query parameter
+func (r RecordMultiHopQuery) GetQuery() string {
+	return r.Query
+}
+
+// GetLimit returns Limit parameter
+func (r RecordMultiHopQuery) GetLimit() uint {
+	return r.Limit
+}
+
+// GetSort returns Sort parameter
+func (r RecordMultiHopQuery) GetSort() string {
+	return r.Sort
+}
+
+// Fill processes request and fills internal variables
+func (r *RecordMultiHopQuery) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["refField"]; ok && len(val) > 0 {
+				r.RefField, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["refValue"]; ok && len(val) > 0 {
+				r.RefValue, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["hops"]; ok && len(val) > 0 {
+				r.Hops, err = payload.ParseUint(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["query"]; ok && len(val) > 0 {
+				r.Query, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["limit"]; ok && len(val) > 0 {
+				r.Limit, err = payload.ParseUint(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["sort"]; ok && len(val) > 0 {
+				r.Sort, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["refField"]; ok && len(val) > 0 {
+			r.RefField, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["refValue"]; ok && len(val) > 0 {
+			r.RefValue, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["hops"]; ok && len(val) > 0 {
+			r.Hops, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

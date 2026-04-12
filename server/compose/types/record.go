@@ -3,7 +3,9 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -122,6 +124,23 @@ type (
 
 		Records []SensitiveRecord
 	}
+
+	// MultiHopFilter represents a parsed multi-hop filter expression
+	// Used for grandparent/great-grandparent reference field queries
+	// Syntax: @multi-hop(field1, field2, ..., targetValue)
+	// Example: @multi-hop(clientJobID, clientID, 12345)
+	// This means: find all records where clientJobID is in the set of IDs
+	// where clientID = 12345 (from the intermediate module)
+	MultiHopFilter struct {
+		// TargetField is the field in the target module (e.g., "clientJobID")
+		TargetField string
+		// IntermediateFields are the fields to traverse (e.g., ["clientID"])
+		IntermediateFields []string
+		// TargetValue is the value to match at the end of the chain (e.g., "12345")
+		TargetValue string
+		// OriginalQuery is the original query string for reference
+		OriginalQuery string
+	}
 )
 
 const (
@@ -134,6 +153,80 @@ const (
 	DateOnlyLayout = "2006-01-02"
 	TimeOnlyLayout = "15:04:05"
 )
+
+// ParseMultiHopFilter parses a query string to extract multi-hop filter expressions
+// Returns a slice of MultiHopFilter and the remaining query string with multi-hop filters removed
+// Syntax: @multi-hop(field1, field2, ..., targetValue)
+// Example: @multi-hop(clientJobID, clientID, 12345)
+func ParseMultiHopFilter(query string) (filters []MultiHopFilter, cleanQuery string) {
+	filters = make([]MultiHopFilter, 0)
+	cleanQuery = query
+
+	// Regex to match @multi-hop(field1, field2, ..., targetValue)
+	// Matches: @multi-hop(field1, field2, ..., value)
+	// where value can be quoted or unquoted
+	re := regexp.MustCompile(`@multi-hop\(([^)]+)\)`)
+	matches := re.FindAllStringSubmatch(query, -1)
+
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+
+		// Extract the content inside parentheses
+		content := match[1]
+		parts := strings.Split(content, ",")
+
+		if len(parts) < 2 {
+			// Need at least one field and one value
+			continue
+		}
+
+		// Last part is the target value
+		targetValue := strings.TrimSpace(parts[len(parts)-1])
+		// Remove quotes if present
+		if len(targetValue) >= 2 && targetValue[0] == '"' && targetValue[len(targetValue)-1] == '"' {
+			targetValue = targetValue[1 : len(targetValue)-1]
+		}
+
+		// First part is the target field
+		targetField := strings.TrimSpace(parts[0])
+
+		// Middle parts are intermediate fields
+		intermediateFields := make([]string, 0)
+		for i := 1; i < len(parts)-1; i++ {
+			field := strings.TrimSpace(parts[i])
+			if field != "" {
+				intermediateFields = append(intermediateFields, field)
+			}
+		}
+
+		filter := MultiHopFilter{
+			TargetField:        targetField,
+			IntermediateFields: intermediateFields,
+			TargetValue:        targetValue,
+			OriginalQuery:      match[0],
+		}
+
+		filters = append(filters, filter)
+
+		// Remove the multi-hop filter from the clean query
+		cleanQuery = strings.Replace(cleanQuery, match[0], "", 1)
+	}
+
+	// Clean up orphaned operators that may be left after removing @multi-hop tokens
+	// This handles cases like "(name = 'test') AND @multi-hop(...)" becoming "(name = 'test') AND "
+	orphanedOpPattern := regexp.MustCompile(`\s+(AND|OR)\s*$`)
+	cleanQuery = orphanedOpPattern.ReplaceAllString(cleanQuery, "")
+
+	orphanedOpPatternStart := regexp.MustCompile(`^\s*(AND|OR)\s+`)
+	cleanQuery = orphanedOpPatternStart.ReplaceAllString(cleanQuery, "")
+
+	// Clean up extra whitespace
+	cleanQuery = strings.TrimSpace(cleanQuery)
+
+	return
+}
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
 	return filter.Generic(
