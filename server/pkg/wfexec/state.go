@@ -62,6 +62,19 @@ type (
 		// `errorMessage` etc. disappear from scope on any later error.
 		// Carried alongside `errHandler` in State.Next() with the same
 		// lifecycle — set together, replaced together, cleared together.
+		//
+		// Intentional non-propagation to the running scope: these
+		// variables are NOT merged into the happy-path scope. An
+		// Expressions step downstream of the error handler that
+		// references, say, `myErrorMessage` will not see it until an
+		// error actually fires and the error-injection path writes
+		// the real value under that name. This is by design — silently
+		// seeding author-chosen variable names into scope as empty/nil
+		// would pollute the scope namespace and make debugging harder
+		// (expression referencing `myErrorMessage` returning nil would
+		// not be distinguishable from a typo). Authors who want a
+		// default value should initialise it explicitly in an
+		// Expressions step before the error handler.
 		errHandlerResults *expr.Vars
 
 		// error handled flag, this gets restarted on every new state!
