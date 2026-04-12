@@ -69,9 +69,13 @@ func analyzeWorkflow(wf *types.Workflow) types.WorkflowIssueSet {
 		// branch can write. A "branch" is defined as the set of steps
 		// strictly between a fork (or entry) and the join, following
 		// parent edges backwards from each direct parent of the join.
+		// The home join ID is passed in so the walker can stop at any
+		// *other* join it encounters — otherwise, in nested parallels,
+		// the outer branch's writes get unioned into every inner
+		// branch and produce spurious inner-join conflicts.
 		branchWrites := make([]map[string]bool, 0, len(parents[s.ID]))
 		for _, parentID := range parents[s.ID] {
-			writes := collectBranchWrites(parentID, stepByID, parents)
+			writes := collectBranchWrites(parentID, s.ID, stepByID, parents)
 			if len(writes) > 0 {
 				branchWrites = append(branchWrites, writes)
 			}
@@ -103,7 +107,7 @@ func analyzeWorkflow(wf *types.Workflow) types.WorkflowIssueSet {
 		for _, name := range conflicts {
 			warnings = warnings.Append(
 				fmt.Errorf(
-					"variable %q is written by more than one parallel branch joining here; paths[0] wins at runtime, other branches' values are discarded. Rename the conflicting outputs (e.g. %s_a, %s_b) if you need them all.",
+					"variable %q is written by more than one parallel branch joining here; the value from the first-configured parent wins at runtime and the others are discarded. Rename the conflicting outputs (e.g. %s_a, %s_b) if you need them all.",
 					name, name, name,
 				),
 				map[string]int{"step": stepIdx[s.ID]},
@@ -116,15 +120,25 @@ func analyzeWorkflow(wf *types.Workflow) types.WorkflowIssueSet {
 
 // collectBranchWrites walks parent edges backwards from the given
 // starting step, collecting the set of variable names that any step
-// on the branch can write. Walking stops at a fork gateway (that's
-// where the branch began) or when no more parents exist (workflow
-// entry). The starting step itself is included.
+// on the branch can write. Walking stops when it hits:
+//
+//   - A fork gateway (upstream boundary of the branch).
+//   - Any join gateway other than `homeJoinID`. In nested parallels,
+//     an inner branch's upstream chain passes through the inner join,
+//     then the inner fork, then the outer branch — walking through
+//     the inner join would pull the outer branch's writes into every
+//     inner branch and produce spurious inner-join conflicts. Stopping
+//     at any *other* join cuts that bleed.
+//   - No more parent edges (workflow entry).
+//
+// The starting step itself is included.
 //
 // Cycles are possible if the workflow has iterators (loop-back edges).
 // A visited set prevents infinite walks; iterator bodies still get
 // their writes collected on the first visit.
 func collectBranchWrites(
 	startID uint64,
+	homeJoinID uint64,
 	stepByID map[uint64]*types.WorkflowStep,
 	parents map[uint64][]uint64,
 ) map[string]bool {
@@ -146,6 +160,13 @@ func collectBranchWrites(
 		// Stop at a fork — that's the upstream boundary of the branch.
 		// Do not collect the fork's writes; it doesn't produce any.
 		if s.Kind == types.WorkflowStepKindGateway && s.Ref == "fork" {
+			return
+		}
+
+		// Stop at any join other than the one we're analyzing. The
+		// inner join's own analysis will handle its incoming branches
+		// independently; we must not cross it.
+		if s.Kind == types.WorkflowStepKindGateway && s.Ref == "join" && id != homeJoinID {
 			return
 		}
 
@@ -184,17 +205,26 @@ func stepWrites(s *types.WorkflowStep) map[string]bool {
 		}
 
 	case types.WorkflowStepKindFunction,
-		types.WorkflowStepKindIterator,
 		types.WorkflowStepKindExecWorkflow:
-		// Function / iterator / subworkflow call: step results are
-		// the declared outputs. For ExecWorkflow specifically, the
-		// runtime evaluates s.Results against the subworkflow's
-		// return value, so the declared targets ARE the contract.
+		// Function / subworkflow call: step results are the declared
+		// outputs. For ExecWorkflow specifically, the runtime evaluates
+		// s.Results against the subworkflow's return value, so the
+		// declared targets ARE the contract.
 		for _, r := range s.Results {
 			if r != nil && r.Target != "" {
 				out[r.Target] = true
 			}
 		}
+
+	case types.WorkflowStepKindIterator:
+		// Iterator step results (item, counter, isFirst, ...) are
+		// loop-local: they're injected into the body scope on each
+		// iteration and do NOT persist past the iterator's exit path.
+		// Treating them as branch writes produces false positives
+		// (two parallel iterators both called "item" are not actually
+		// in conflict at the downstream join). Steps inside the
+		// iterator body still get their writes collected through the
+		// normal parent-edge walk.
 
 	case types.WorkflowStepKindErrHandler:
 		// Error handler declares author-chosen variable names for

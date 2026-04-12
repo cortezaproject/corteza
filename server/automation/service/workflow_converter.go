@@ -222,11 +222,16 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 // if this func returns nil for step and error, assume unresolved dependencies
 func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, def *types.Workflow, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
 	if err := svc.parseExpressionsAs("argument", s.Arguments...); err != nil {
-		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err).Wrap(err)
+		// parseExpressionsAs already wraps its inner error with a
+		// descriptive message via fmt.Errorf("%w"), so the returned
+		// error's .Error() text already includes the full chain.
+		// Don't add another .Wrap(err) on top — that would double
+		// the inner error in both the message AND the wrap chain.
+		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err)
 	}
 
 	if err := svc.parseExpressionsAs("result", s.Results...); err != nil {
-		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err).Wrap(err)
+		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err)
 	}
 
 	conv, err := func() (wfexec.Step, error) {
@@ -982,6 +987,27 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 				}
 				return nil
 			},
+			// If severity is provided as a literal string expression,
+			// validate it at save time. Non-literal expressions (e.g.
+			// vars.level) fall through and are normalised at runtime.
+			func() error {
+				sev := types.ExprSet(s.Arguments).GetByTarget("severity")
+				if sev == nil {
+					return nil
+				}
+				lit, ok := severityLiteralValue(sev.Expr)
+				if !ok {
+					return nil
+				}
+				switch lit {
+				case "error", "warning", "info":
+					return nil
+				}
+				return errors.Internal(
+					"%s step severity must be one of \"error\", \"warning\" or \"info\" (got %q)",
+					s.Kind, lit,
+				)
+			},
 			zero(results),
 			last,
 		)
@@ -1071,4 +1097,29 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 	}
 
 	return ii
+}
+
+// severityLiteralValue returns the unquoted content of an expression
+// string when it is a simple single- or double-quoted literal (e.g.
+// "error" or 'warning'), along with true. For any other expression —
+// a variable reference, a function call, a concatenation — it returns
+// "", false so the caller can skip save-time validation and leave the
+// runtime normalisation to do its job.
+func severityLiteralValue(expr string) (string, bool) {
+	s := strings.TrimSpace(expr)
+	if len(s) < 2 {
+		return "", false
+	}
+	q := s[0]
+	if (q != '"' && q != '\'') || s[len(s)-1] != q {
+		return "", false
+	}
+	inner := s[1 : len(s)-1]
+	// Reject anything that still contains a quote of the same kind —
+	// that would mean the literal is not the whole expression (e.g.
+	// "foo" + "bar" — each side is a literal but the whole isn't).
+	if strings.ContainsRune(inner, rune(q)) {
+		return "", false
+	}
+	return inner, true
 }

@@ -133,8 +133,9 @@ export default {
       // failure. A plain JS error thrown from inside a .then() handler
       // must not be misreported as "server unreachable", so we only
       // match on known axios/fetch signals:
-      //   - axios error code indicates network/timeout (ECONNREFUSED,
-      //     ETIMEDOUT, ENETUNREACH, ENOTFOUND)
+      //   - axios error code indicates network/timeout/DNS (ECONNREFUSED,
+      //     ETIMEDOUT, ENETUNREACH, ENOTFOUND, EAI_AGAIN) or the
+      //     axios ≥ 1.x generic ERR_NETWORK
       //   - axios marks the request as sent but with no response
       //     (err.request set, err.response absent) which is the
       //     canonical "server did not reply" case
@@ -142,7 +143,7 @@ export default {
       // Anything else falls through as a generic error.
       const isNetworkError = e => {
         if (!e || typeof e === 'string') return false
-        if (e.code && /^E(CONN|TIMED|NETUN|NOTFO)/i.test(e.code)) return true
+        if (e.code && /^(E(CONN|TIMED|NETUN|NOTFO|AI_AGAIN)|ERR_NETWORK)/i.test(e.code)) return true
         if (e.request && !e.response) return true
         if (typeof e.message === 'string' && /Network Error|Failed to fetch/i.test(e.message)) return true
         return false

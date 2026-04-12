@@ -2,6 +2,7 @@ package wfexec
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -156,16 +157,33 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 // branch and returns a human-readable warning for every key that has
 // more than one distinct value across branches.
 //
-// The per-value dedup uses the expr iterator's string rendering as a
-// stable fingerprint. Not perfect for complex types but good enough to
-// catch the common case of "branch A set x to 1, branch B set x to 2".
-// False positives (same logical value, different formatting) are
-// acceptable — this is an advisory warning, not a hard error.
+// The per-value fingerprint is produced by JSON-marshaling the underlying
+// value with map keys sorted. This gives a stable, deterministic string
+// even for map-valued contributors — fmt.Sprintf("%v", ...) prints maps
+// in random iteration order and pointers as addresses, which produces
+// both false positives and false negatives. encoding/json sorts object
+// keys on output (see encoding/json package docs), so two structurally
+// equal maps serialise identically.
+//
+// Values that fail to marshal (cyclic references, unsupported types)
+// fall back to "%v" formatting; they're still compared consistently
+// within a single run, just not robustly across types.
 func (gw *joinGateway) detectConflicts(sessionID uint64) []string {
 	type contributor struct {
-		pathIdx int
-		origin  string // "scope" or "results"
-		value   string
+		parentID uint64
+		pathIdx  int
+		origin   string // "scope" or "results"
+		value    string
+	}
+
+	fingerprint := func(tv expr.TypedValue) string {
+		if tv == nil {
+			return "null"
+		}
+		if b, err := json.Marshal(tv.Get()); err == nil {
+			return string(b)
+		}
+		return fmt.Sprintf("%v", tv.Get())
 	}
 
 	perKey := make(map[string][]contributor)
@@ -176,12 +194,17 @@ func (gw *joinGateway) detectConflicts(sessionID uint64) []string {
 			if v == nil {
 				continue
 			}
+			var parentID uint64
+			if p != nil {
+				parentID = p.ID()
+			}
 			_ = v.Each(func(k string, tv expr.TypedValue) error {
-				val := "<unprintable>"
-				if tv != nil {
-					val = fmt.Sprintf("%v", tv.Get())
-				}
-				perKey[k] = append(perKey[k], contributor{pathIdx: i, origin: origin, value: val})
+				perKey[k] = append(perKey[k], contributor{
+					parentID: parentID,
+					pathIdx:  i,
+					origin:   origin,
+					value:    fingerprint(tv),
+				})
 				return nil
 			})
 		}
@@ -207,17 +230,27 @@ func (gw *joinGateway) detectConflicts(sessionID uint64) []string {
 			continue
 		}
 
-		// build a list of contributing branches for the warning
+		// build a list of contributing branches for the warning,
+		// naming branches by their parent step ID so authors can
+		// correlate with the canvas instead of an abstract paths[i].
 		branchDescs := make([]string, 0, len(cc))
 		for _, c := range cc {
 			branchDescs = append(branchDescs,
-				fmt.Sprintf("paths[%d].%s=%s", c.pathIdx, c.origin, truncateForWarning(c.value)),
+				fmt.Sprintf("step %d.%s=%s", c.parentID, c.origin, truncateForWarning(c.value)),
 			)
 		}
+
+		// name the winner — paths[0] — by its actual parent step ID
+		var winner uint64
+		if len(gw.paths) > 0 && gw.paths[0] != nil {
+			winner = gw.paths[0].ID()
+		}
+
 		warnings = append(warnings, fmt.Sprintf(
-			"variable %q has conflicting values at parallel join (%s); paths[0] wins",
+			"variable %q has conflicting values at parallel join (%s); the value from step %d wins",
 			key,
 			strings.Join(branchDescs, ", "),
+			winner,
 		))
 	}
 
@@ -225,13 +258,15 @@ func (gw *joinGateway) detectConflicts(sessionID uint64) []string {
 }
 
 // truncateForWarning clips long values so a warning listing 8 branches
-// doesn't explode into an unreadable wall of text.
+// doesn't explode into an unreadable wall of text. Rune-aware so that
+// non-ASCII values can never be split mid-codepoint.
 func truncateForWarning(s string) string {
-	const max = 40
-	if len(s) <= max {
+	const maxRunes = 40
+	runes := []rune(s)
+	if len(runes) <= maxRunes {
 		return s
 	}
-	return s[:max] + "…"
+	return string(runes[:maxRunes]) + "…"
 }
 
 // forkGateway handles forking to multiple paths
