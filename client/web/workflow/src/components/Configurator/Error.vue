@@ -136,14 +136,19 @@ export default {
   },
 
   computed: {
+    // Computed getters are pure reads. All four allowed-target args
+    // are pre-created in `created()` and also re-created by
+    // `ensureArgs()` before any method that needs write access. This
+    // keeps the computeds side-effect-free so Vue's reactivity graph
+    // can't re-enter the getter while it is mutating arguments.
     messageArg () {
-      return this.findOrCreateArg('message')
+      return this.findArg('message') || makeArg('message')
     },
     titleArg () {
-      return this.findOrCreateArg('title')
+      return this.findArg('title') || makeArg('title')
     },
     severityArg () {
-      return this.findOrCreateArg('severity')
+      return this.findArg('severity') || makeArg('severity')
     },
 
     // severityIsLiteral: true when the severity expression is either
@@ -181,31 +186,45 @@ export default {
   },
 
   created () {
-    // Normalise config.arguments: keep only allowed targets, ensure all of
-    // them exist (even if empty) so v-model bindings are stable.
-    const existing = Array.isArray(this.item.config.arguments) ? this.item.config.arguments : []
-    const byTarget = {}
-    existing.forEach(({ target, type, value, expr }) => {
-      if (!ALLOWED_TARGETS.includes(target)) return
-      byTarget[target] = {
-        target,
-        type: type || 'String',
-        expr: expr || (value ? `"${value}"` : ''),
-      }
-    })
-
-    const args = ALLOWED_TARGETS.map(t => byTarget[t] || makeArg(t))
-    this.$set(this.item.config, 'arguments', args)
+    this.ensureArgs()
   },
 
   methods: {
-    findOrCreateArg (target) {
+    // ensureArgs normalises item.config.arguments: keeps only allowed
+    // targets and guarantees one entry per target, even if empty. Safe
+    // to call from any write path. Does NOT run from computed getters.
+    ensureArgs () {
+      const existing = Array.isArray(this.item.config.arguments) ? this.item.config.arguments : []
+      const byTarget = {}
+      existing.forEach(({ target, type, value, expr }) => {
+        if (!ALLOWED_TARGETS.includes(target)) return
+        byTarget[target] = {
+          target,
+          type: type || 'String',
+          expr: expr || (value ? `"${value}"` : ''),
+        }
+      })
+
+      const args = ALLOWED_TARGETS.map(t => byTarget[t] || makeArg(t))
+      this.$set(this.item.config, 'arguments', args)
+    },
+
+    // findArg is a pure read. Returns the matching arg object or
+    // undefined when absent. Safe to call from computeds.
+    findArg (target) {
       const args = this.item.config.arguments || []
-      let arg = args.find(a => a.target === target)
+      return args.find(a => a.target === target)
+    },
+
+    // findOrCreateArg is a mutating read used by write paths only.
+    // It guarantees the arg exists on item.config.arguments before
+    // returning it. Never call from inside a computed getter — use
+    // findArg with a fallback instead.
+    findOrCreateArg (target) {
+      let arg = this.findArg(target)
       if (!arg) {
-        arg = makeArg(target)
-        args.push(arg)
-        this.$set(this.item.config, 'arguments', args)
+        this.ensureArgs()
+        arg = this.findArg(target) || makeArg(target)
       }
       return arg
     },

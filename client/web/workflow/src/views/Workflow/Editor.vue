@@ -213,7 +213,11 @@ export default {
 
         if (!saved || !saved.workflowID) {
           // Defensive: API returned an unexpected shape. Don't crash on
-          // saved.workflowID later down the chain.
+          // saved.workflowID later down the chain. Emit the raw payload
+          // to the browser console so the malformed response is still
+          // diagnosable — the toast can't show it safely and silently
+          // dropping it would make this path impossible to debug.
+          console.warn('workflow save: unexpected response payload', saved)
           this.toastDanger(
             this.$t('notification:failed-save-unexpected-response'),
             this.$t('notification:failed-save'),

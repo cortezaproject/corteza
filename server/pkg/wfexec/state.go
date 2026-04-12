@@ -76,6 +76,14 @@ type (
 		// wrapper and surfaced via MakeFrame into Frame.Warnings so the
 		// editor test panel can render them alongside the existing
 		// action/error info.
+		//
+		// Concurrency: each *State is owned by a single step-execution
+		// goroutine for its entire lifecycle (see Session.exec and the
+		// goroutine launched around it). Appends to warnings happen in
+		// exec(); MakeFrame is called synchronously on the same
+		// goroutine from the subsequent eventHandler invocation.
+		// Sibling parallel branches run on distinct *State values so
+		// there is no cross-state sharing. No mutex needed.
 		warnings []string
 	}
 )
