@@ -112,10 +112,12 @@ type (
 
 	TAQService interface {
 		LookupByID(ctx context.Context, ID uint64) (*autoTypes.NgAutomation, error)
+		LookupByHandle(ctx context.Context, handle string) (*autoTypes.NgAutomation, error)
 	}
 
 	WorkflowService interface {
 		LookupByID(ctx context.Context, ID uint64) (*autoTypes.Workflow, error)
+		LookupByHandle(ctx context.Context, handle string) (*autoTypes.Workflow, error)
 	}
 
 	NsModResolver interface {

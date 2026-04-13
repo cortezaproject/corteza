@@ -184,6 +184,17 @@ func (svc *ngAutomation) LookupByID(ctx context.Context, ngAutomationID uint64) 
 	return ngAtuomation, svc.recordAction(ctx, wap, NgAutomationActionLookup, err)
 }
 
+func (svc *ngAutomation) LookupByHandle(ctx context.Context, handle string) (*types.NgAutomation, error) {
+	rr, _, err := svc.Search(ctx, types.NgAutomationFilter{Handle: handle})
+	if err != nil {
+		return nil, err
+	}
+	if len(rr) == 0 {
+		return nil, NgAutomationErrNotFound()
+	}
+	return rr[0], nil
+}
+
 // Create adds new ngAutomation resource and saves it into store
 // It updates service's cache
 func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (automation *types.NgAutomation, err error) {

@@ -92,8 +92,8 @@ type (
 
 	AgentAccessTool struct {
 		Name    string                 `json:"name"`
-		Hints   string                 `json:"hints,omitempty"`
-		Allow   []AgentAccessAllow     `json:"allow,omitempty"`
+		Description string             `json:"description"`
+		Allow   []AgentAccessAllow     `json:"allow"`
 		Context AgentAccessToolContext `json:"context,omitempty"`
 	}
 
@@ -104,7 +104,7 @@ type (
 
 	AgentAccessAllow struct {
 		NamespaceID uint64            `json:"namespaceID,string"`
-		ModuleIDs   AgentAccessIDList `json:"moduleIDs,omitempty"`
+		ModuleIDs   AgentAccessIDList `json:"moduleIDs"`
 	}
 
 	// AgentAccessIDList is a []uint64 that serializes each element as a JSON string.

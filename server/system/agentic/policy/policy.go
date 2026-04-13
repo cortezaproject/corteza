@@ -191,6 +191,11 @@ func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
 		return Decision{Allowed: true}
 	}
 	nsStr := parts[1]
+	if nsStr == "*" {
+		// Wildcard namespace means a listing/discovery operation (no specific namespace
+		// was provided). Allow it — the tool is already in the agent's allow-list.
+		return Decision{Allowed: true}
+	}
 	modStr := ""
 	if len(parts) > 2 {
 		modStr = parts[2]
