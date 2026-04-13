@@ -29,7 +29,7 @@ func (h *workflowHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_workflow_lookup",
 			mcp.WithDescription("List all workflows or look up a specific one by ID or handle. Omit 'workflow' to list all."),
-			mcp.WithString("workflow", mcp.Description("Workflow ID or handle. Omit to list all.")),
+			mcp.WithString("workflow", mcp.Description("Workflow ID as string (to prevent precision loss) or handle. Omit to list all.")),
 			mcp.WithString("query", mcp.Description("Search query to filter workflows by handle")),
 		),
 		"Lookup workflow",
@@ -38,7 +38,7 @@ func (h *workflowHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_workflow_exec",
 			mcp.WithDescription("Execute a workflow by ID or handle and wait for the result"),
-			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow ID or handle")),
+			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow ID as string (to prevent precision loss) or handle")),
 			mcp.WithString("input", mcp.Description("JSON object of input variables")),
 		),
 		"Execute workflow",

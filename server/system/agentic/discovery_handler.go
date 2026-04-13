@@ -177,7 +177,7 @@ func formatDiscoveryResponse(body []byte) (string, error) {
 	for i, hit := range dr.Response.Hits {
 		v := hit.Value
 		sb.WriteString(fmt.Sprintf("--- Result %d ---\n", i+1))
-		sb.WriteString(fmt.Sprintf("Record ID : %s\n", v.RecordID))
+		sb.WriteString(fmt.Sprintf("Record ID : \"%s\"\n", v.RecordID))
 		sb.WriteString(fmt.Sprintf("Module    : %s\n", v.Module.Name))
 		sb.WriteString(fmt.Sprintf("Namespace : %s\n", v.Namespace.Name))
 		sb.WriteString(fmt.Sprintf("Created   : %s by %s\n", v.Created.At, v.Created.By))

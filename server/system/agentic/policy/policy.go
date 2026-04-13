@@ -210,7 +210,7 @@ func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
 			return Decision{Allowed: true}
 		}
 		if modStr == "" || modStr == "*" {
-			return Decision{Allowed: true}
+			return Decision{Allowed: false, Reason: "module is required but was not specified"}
 		}
 		for _, mid := range a.ModuleIDs {
 			if fmt.Sprintf("%d", mid) == modStr {

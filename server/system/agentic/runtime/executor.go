@@ -125,7 +125,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	// Inject available TAQs and Workflows into system prompt
 	if len(agent.Access.TAQs) > 0 || len(agent.Access.Workflows) > 0 {
-		systemPrompt += "\n\n## AVAILABLE AUTOMATIONS\n\nYou have access to execute the following TAQs and Workflows. The internal IDs below are for tool calls only — NEVER mention or display them to the user. When referring to an automation, use its name or description. When the user asks to trigger one: (1) use automation_taq_lookup or automation_workflow_lookup to fetch its details, (2) always ask the user if they want to provide any input — if the lookup reveals specific input fields ask for those, otherwise ask generically — (3) only execute after the user has responded about inputs, using the internal-id. If the execution returns an empty result, do not retry — inform the user that the automation ran but returned no output, and ask if they want to provide additional details or try again.\n"
+		systemPrompt += "\n\n## AVAILABLE AUTOMATIONS\n\nYou have access to execute the following TAQs and Workflows. The internal IDs below are for tool calls only — NEVER mention or display them to the user. When referring to an automation, use its name or description. When the user asks to trigger one: (1) use automation_taq_lookup or automation_workflow_lookup to fetch its details, (2) always ask the user if they want to provide any input — if the lookup reveals specific input fields ask for those, otherwise ask generically — (3) only execute after the user has responded about inputs, using the internal-id as a string (e.g. \"123456\"). If the execution returns an empty result, do not retry — inform the user that the automation ran but returned no output, and ask if they want to provide additional details or try again.\n"
 		if len(agent.Access.TAQs) > 0 {
 			systemPrompt += "\n### TAQs:\n"
 			for _, t := range agent.Access.TAQs {
@@ -141,9 +141,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 					short = info.Meta.Short
 				}
 				if short != "" {
-					systemPrompt += fmt.Sprintf("- name=%q description=%q [internal-id=%d]", info.Handle, short, info.ID)
+					systemPrompt += fmt.Sprintf("- name=%q description=%q [internal-id=%q]", info.Handle, short, strconv.FormatUint(info.ID, 10))
 				} else {
-					systemPrompt += fmt.Sprintf("- name=%q [internal-id=%d]", info.Handle, info.ID)
+					systemPrompt += fmt.Sprintf("- name=%q [internal-id=%q]", info.Handle, strconv.FormatUint(info.ID, 10))
 				}
 				if fields := scopeFields(info.Scope); fields != "" {
 					systemPrompt += " inputs: " + fields
@@ -169,9 +169,9 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 					desc = info.Meta.Description
 				}
 				if desc != "" {
-					systemPrompt += fmt.Sprintf("- name=%q description=%q [internal-id=%d]", info.Handle, desc, info.ID)
+					systemPrompt += fmt.Sprintf("- name=%q description=%q [internal-id=%q]", info.Handle, desc, strconv.FormatUint(info.ID, 10))
 				} else {
-					systemPrompt += fmt.Sprintf("- name=%q [internal-id=%d]", info.Handle, info.ID)
+					systemPrompt += fmt.Sprintf("- name=%q [internal-id=%q]", info.Handle, strconv.FormatUint(info.ID, 10))
 				}
 				if fields := scopeFields(info.Scope); fields != "" {
 					systemPrompt += " inputs: " + fields
@@ -767,7 +767,7 @@ func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsMod
 		if err != nil {
 			continue
 		}
-		out += fmt.Sprintf("\n- namespace handle=%q id=%d\n", ns.Handle, ns.ID)
+		out += fmt.Sprintf("\n- namespace handle=%q id=%q\n", ns.Handle, strconv.FormatUint(ns.ID, 10))
 
 		for key := range seen {
 			if key.nsID != nsID {
@@ -777,7 +777,7 @@ func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsMod
 			if err != nil {
 				continue
 			}
-			out += fmt.Sprintf("  - module handle=%q id=%d\n", mod.Handle, mod.ID)
+			out += fmt.Sprintf("  - module handle=%q id=%q\n", mod.Handle, strconv.FormatUint(mod.ID, 10))
 		}
 	}
 

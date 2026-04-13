@@ -35,7 +35,7 @@ func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_lookup",
 			mcp.WithDescription("List all TAQs or look up a specific one by ID or handle. Omit 'taq' to list all."),
-			mcp.WithString("taq", mcp.Description("TAQ ID or handle. Omit to list all.")),
+			mcp.WithString("taq", mcp.Description("TAQ ID as string (to prevent precision loss) or handle. Omit to list all.")),
 			mcp.WithString("query", mcp.Description("Search query to filter TAQs")),
 		),
 		"Lookup TAQ",
@@ -44,7 +44,7 @@ func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_exec",
 			mcp.WithDescription("Execute a TAQ by ID or handle and wait for the result"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID or handle")),
+			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
 			mcp.WithString("entryPoint", mcp.Description("Entry point (trigger handle) to invoke")),
 			mcp.WithString("input", mcp.Description("JSON object of input variables")),
 		),
@@ -54,7 +54,7 @@ func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_executions",
 			mcp.WithDescription("List executions for a TAQ"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID or handle")),
+			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
 		),
 		"List TAQ executions",
 		h.executions,
@@ -62,7 +62,7 @@ func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_execution_trace",
 			mcp.WithDescription("Get the execution trace for a specific TAQ execution"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID or handle")),
+			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
 			mcp.WithString("executionID", mcp.Required(), mcp.Description("Execution ID")),
 		),
 		"Get TAQ execution trace",
