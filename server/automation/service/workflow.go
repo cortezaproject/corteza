@@ -192,6 +192,17 @@ func (svc *workflow) LookupByID(ctx context.Context, workflowID uint64) (wf *typ
 	return wf, svc.recordAction(ctx, wap, WorkflowActionLookup, err)
 }
 
+func (svc *workflow) LookupByHandle(ctx context.Context, handle string) (*types.Workflow, error) {
+	rr, _, err := svc.Search(ctx, types.WorkflowFilter{Handle: handle})
+	if err != nil {
+		return nil, err
+	}
+	if len(rr) == 0 {
+		return nil, WorkflowErrNotFound()
+	}
+	return rr[0], nil
+}
+
 // Create adds new workflow resource and saves it into store
 // It updates service's cache
 func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types.Workflow, err error) {

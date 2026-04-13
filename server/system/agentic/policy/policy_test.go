@@ -123,6 +123,22 @@ func TestEvaluate(t *testing.T) {
 		assert.True(t, d.Allowed)
 	})
 
+	t.Run("allowed when namespace is wildcard (listing/discovery)", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{
+					{
+						Name:  "compose_namespace_lookup",
+						Allow: []types.AgentAccessAllow{{NamespaceID: 100}},
+					},
+				},
+			},
+		}
+		// No namespaceID in args — agent is listing all namespaces (wildcard)
+		d := Evaluate(agent, "compose_namespace_lookup", MapValues{})
+		assert.True(t, d.Allowed)
+	})
+
 	t.Run("taq denied when id not in list", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{

@@ -101,8 +101,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		systemPrompt = humanSystemContext + "\n\n" + systemPrompt
 	}
 	for _, t := range agent.Access.Tools {
-		if t.Hints != "" {
-			systemPrompt += "\n\n" + sanitizePromptInput(t.Hints)
+		if t.Description != "" {
+			systemPrompt += "\n\n" + sanitizePromptInput(t.Description)
 		}
 	}
 	if len(agent.Behavior.KnowledgeBases) > 0 {
@@ -514,10 +514,22 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		if strings.HasPrefix(tc.Name, "compose_") && r.nsModResolver != nil {
 			ns, _ := tc.Args["namespace"].(string)
 			mod, _ := tc.Args["module"].(string)
+			// Always derive IDs from handles — ignore any direct namespaceID/moduleID
+			// the LLM may have hallucinated (those aren't schema parameters).
+			delete(policyArgs, "namespaceID")
+			delete(policyArgs, "moduleID")
 			if nsID, modID, err := r.nsModResolver.Resolve(ctx, ns, mod); err == nil {
 				policyArgs["namespaceID"] = strconv.FormatUint(nsID, 10)
 				policyArgs["moduleID"] = strconv.FormatUint(modID, 10)
 			}
+		}
+		// If the agent passed a TAQ/workflow handle or name instead of numeric ID,
+		// resolve it so the policy check always sees the numeric ID.
+		if tc.Name == "automation_taq_exec" {
+			policyArgs["taq"] = r.resolveTAQRef(ctx, fmt.Sprintf("%v", tc.Args["taq"]))
+		}
+		if tc.Name == "automation_workflow_exec" {
+			policyArgs["workflow"] = r.resolveWorkflowRef(ctx, fmt.Sprintf("%v", tc.Args["workflow"]))
 		}
 		decision := policy.Evaluate(agent, tc.Name, policyArgs)
 		policySpan := observability.AgentSpan{
@@ -756,4 +768,42 @@ func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsMod
 	}
 
 	return out
+}
+
+// resolveTAQRef returns a numeric ID string for the given ref.
+// If ref is already numeric it passes through unchanged.
+// If not, it tries LookupByHandle so the policy check always sees a numeric ID.
+func (r *runtime) resolveTAQRef(ctx context.Context, ref string) string {
+	if ref == "" {
+		return ref
+	}
+	if _, err := strconv.ParseUint(ref, 10, 64); err == nil {
+		return ref
+	}
+	if r.taqService == nil {
+		return ref
+	}
+	taq, err := r.taqService.LookupByHandle(ctx, ref)
+	if err != nil || taq == nil {
+		return ref
+	}
+	return strconv.FormatUint(taq.ID, 10)
+}
+
+// resolveWorkflowRef is the same as resolveTAQRef but for workflows.
+func (r *runtime) resolveWorkflowRef(ctx context.Context, ref string) string {
+	if ref == "" {
+		return ref
+	}
+	if _, err := strconv.ParseUint(ref, 10, 64); err == nil {
+		return ref
+	}
+	if r.workflowService == nil {
+		return ref
+	}
+	wf, err := r.workflowService.LookupByHandle(ctx, ref)
+	if err != nil || wf == nil {
+		return ref
+	}
+	return strconv.FormatUint(wf.ID, 10)
 }
