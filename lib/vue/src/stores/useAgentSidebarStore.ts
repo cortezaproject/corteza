@@ -17,9 +17,13 @@ export const useAgentSidebarStore = defineStore('agentSidebar', () => {
   }
 
   function setAvailableAgents(agents: any[]) {
-    availableAgents.value = agents
-    if (agents.length > 0 && (!activeAgentID.value || !agents.find(a => a.agentID === activeAgentID.value))) {
-      activeAgentID.value = agents[0].agentID
+    availableAgents.value = [...agents].sort((a, b) => {
+      const nameA = a.meta?.short || a.handle || ''
+      const nameB = b.meta?.short || b.handle || ''
+      return nameA.localeCompare(nameB)
+    })
+    if (availableAgents.value.length > 0 && (!activeAgentID.value || !availableAgents.value.find(a => a.agentID === activeAgentID.value))) {
+      activeAgentID.value = availableAgents.value[0].agentID
     }
   }
 

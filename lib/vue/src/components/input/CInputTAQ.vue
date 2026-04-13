@@ -67,8 +67,10 @@ async function fetchAutomations() {
 
     const result = await response()
     const automations = Array.isArray(result) ? result : result.set || []
-    
-    options.value = automations.map(a => ({ ...a, label: getOptionLabel(a) }))
+
+    options.value = automations
+      .map(a => ({ ...a, label: getOptionLabel(a) }))
+      .sort((a, b) => (a.label || '').localeCompare(b.label || ''))
 
     if (props.modelValue && props.modelValue !== '0') {
       if (!options.value.some(a => a.automationID === props.modelValue)) {
@@ -112,10 +114,7 @@ async function loadAutomationById(automationID) {
 watch(
   () => props.modelValue,
   newVal => {
-    if (
-      newVal &&
-      newVal !== '0'
-    ) {
+    if (newVal && newVal !== '0') {
       loadAutomationById(newVal)
     }
   },

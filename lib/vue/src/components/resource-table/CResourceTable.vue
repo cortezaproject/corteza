@@ -1,5 +1,5 @@
 <template>
-  <div class="c-resource-table flex flex-col" :class="{ 'h-full': fillHeight }">
+  <div class="c-resource-table flex flex-col" :class="{ 'h-full': fillHeight, 'is-reorderable': reorderableRows }">
     <!-- Header slot -->
     <div v-if="$slots.header" class="flex items-center justify-between gap-3 mb-3 shrink-0">
       <slot name="header" />
@@ -26,6 +26,7 @@
       v-bind="$attrs"
       @sort="$emit('sort', $event)"
       @row-click="$emit('row-click', $event)"
+      @row-reorder="$emit('row-reorder', $event)"
     >
       <template #empty>
         <div class="flex items-center justify-center p-4 text-muted-color">
@@ -34,6 +35,17 @@
           </slot>
         </div>
       </template>
+
+      <!-- Row reorder drag handle column -->
+      <Column
+        v-if="reorderableRows"
+        rowReorder
+        headerStyle="width: 2rem"
+        :pt="{
+          headerCell: { class: 'border-r-0' },
+          bodyCell: { class: 'cursor-move border-r-0' },
+        }"
+      />
 
       <!-- Dynamic columns from fields prop -->
       <Column
@@ -93,6 +105,7 @@
       ref="actionsMenuRef"
       :model="currentMenuItems"
       popup
+      append-to="body"
     >
       <template #item="{ item, props }">
         <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
@@ -185,9 +198,15 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+
+  /** Whether rows can be reordered via drag-and-drop */
+  reorderableRows: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-defineEmits(['sort', 'row-click'])
+defineEmits(['sort', 'row-click', 'row-reorder'])
 
 const dataTableRef = ref()
 
@@ -240,5 +259,14 @@ defineExpose({
 
 .c-resource-table :deep(.p-datatable-tbody > tr:hover .row-action-btn) {
   opacity: 1;
+}
+
+.c-resource-table.is-reorderable :deep(.p-datatable-tbody) {
+  user-select: none;
+}
+
+.c-resource-table.is-reorderable :deep(input),
+.c-resource-table.is-reorderable :deep(textarea) {
+  user-select: auto;
 }
 </style>

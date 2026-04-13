@@ -11,9 +11,6 @@ import type { AutomationFunction, AutomationTrigger } from '@/stores/automation'
 import { getTriggerMeta, DEFAULT_TRIGGER_ICON } from '@/utils/flow-constants'
 
 type NgAutomation = automation.NgAutomation
-type NgAutomationTrigger = automation.NgAutomationTrigger
-type NgAutomationStep = automation.NgAutomationStep
-type NgAutomationPath = automation.NgAutomationPath
 type Expr = automation.Expr
 type TriggerConstraint = automation.TriggerConstraint
 
@@ -260,6 +257,7 @@ export function automationToVueFlow(
           nodeType: isBodyTip ? 'loop' : 'termination',
           icon: isBodyTip ? undefined : DEFAULT_ICONS.END,
           config: {},
+          arguments: [],
           ref: endId,
         },
       })
@@ -274,102 +272,6 @@ export function automationToVueFlow(
 
   // Apply automatic layout
   return applyDagreLayout({ nodes, edges })
-}
-
-/**
- * Convert VueFlow state (frontend) to NgAutomation data (for API)
- * End nodes are saved as termination steps
- */
-export function vueFlowToAutomation(
-  state: VueFlowState,
-): Pick<NgAutomation, 'triggers' | 'steps' | 'paths'> {
-  const triggers: NgAutomationTrigger[] = []
-  const steps: NgAutomationStep[] = []
-  const paths: NgAutomationPath[] = []
-
-  let triggerIndex = 0
-  let stepIndex = 0
-  let pathIndex = 0
-
-  // Map node IDs to their new stepID/triggerID for path generation
-  const nodeIdToStepId = new Map<string, string>()
-
-  // Convert nodes to triggers/steps
-  state.nodes.forEach(node => {
-    if (node.type === 'loop') return
-
-    if (node.type === 'trigger') {
-      triggerIndex++
-      const data = node.data as FlowNodeData
-      const newTriggerID = String(triggerIndex)
-      nodeIdToStepId.set(node.id, newTriggerID)
-      triggers.push({
-        triggerID: newTriggerID,
-        handle: `trigger_${triggerIndex}`,
-        enabled: true,
-        resourceType: data.resourceType || '',
-        eventType: data.nodeType,
-        constraints: data.constraints || [],
-        meta: {
-          short: data.label,
-          description: data.description || '',
-          icon: data.icon,
-        },
-        input: data.config || {},
-      })
-    } else {
-      // All non-trigger nodes become steps (including end nodes as termination)
-      stepIndex++
-      const data = node.data as FlowNodeData
-      const newStepID = String(stepIndex)
-      nodeIdToStepId.set(node.id, newStepID)
-
-      // Determine step kind
-      let kind: string = 'function'
-      if (node.type === 'end') {
-        kind = 'termination'
-      } else if (node.type === 'branch') {
-        kind = 'gateway'
-      } else if (node.type === 'iterator') {
-        kind = 'iterator'
-      }
-
-      steps.push({
-        stepID: newStepID,
-        handle: `step_${stepIndex}`,
-        kind,
-        ref: node.type === 'end' ? 'termination' : data.nodeType,
-        meta: {
-          short: data.label,
-          description: data.description || '',
-          icon: data.icon,
-        },
-        arguments: data.arguments || [],
-      })
-    }
-  })
-
-  // Convert edges to paths (including paths to termination steps)
-  state.edges.forEach(edge => {
-    const sourceId = nodeIdToStepId.get(edge.source)
-    const targetId = nodeIdToStepId.get(edge.target)
-
-    if (!sourceId || !targetId) return
-
-    pathIndex++
-    const condition = edge.data?.condition || null
-    paths.push({
-      parentID: sourceId,
-      childID: targetId,
-      handle: `path_${pathIndex}`,
-      ...(condition ? { condition } : {}),
-      meta: {
-        short: condition ? conditionToShort(condition) : '',
-      },
-    })
-  })
-
-  return { triggers, steps, paths }
 }
 
 /**
@@ -491,27 +393,6 @@ export function applyDagreLayout(state: VueFlowState): VueFlowState {
   })
 
   return { nodes: layoutedNodes, edges: state.edges }
-}
-
-/**
- * Generate a unique ref for new nodes
- */
-export function generateRef(_nodeType: string, existingRefs: string[]): string {
-  let maxId = 0
-  for (const ref of existingRefs) {
-    const num = parseInt(ref, 10)
-    if (!isNaN(num) && num > maxId) {
-      maxId = num
-    }
-  }
-  return String(maxId + 1)
-}
-
-/**
- * Get all refs from VueFlow state
- */
-export function getAllRefs(state: VueFlowState): string[] {
-  return state.nodes.filter(n => n.type !== 'end').map(n => (n.data as FlowNodeData).ref || n.id)
 }
 
 // Helper: Resolve trigger icon from catalog, TRIGGER_META, or fallback

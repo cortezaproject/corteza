@@ -36,7 +36,6 @@
             v-model="dateFrom"
             showTime
             hourFormat="24"
-            dateFormat="yy-mm-dd"
             size="small"
             @update:modelValue="filterList"
           />
@@ -47,7 +46,6 @@
             v-model="dateTo"
             showTime
             hourFormat="24"
-            dateFormat="yy-mm-dd"
             size="small"
             @update:modelValue="filterList"
           />

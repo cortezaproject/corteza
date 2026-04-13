@@ -300,7 +300,7 @@ async function handleDelete(user) {
   try {
     await $SystemAPI.userDelete({ userID: user.userID })
     $toast.toastSuccess(t('notification.user.delete.success'))
-    filterList() // Refresh the list
+    filterList()
   } catch (e) {
     console.error('Failed to delete user:', e)
     $toast.toastErrorHandler(t('notification.user.delete.error'))(e)

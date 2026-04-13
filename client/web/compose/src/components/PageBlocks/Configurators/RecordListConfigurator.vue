@@ -79,31 +79,6 @@
             />
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.recordList.positionField.label') }}
-              </label>
-              <Select
-                v-model="positionField"
-                :options="positionFields"
-                option-label="label"
-                option-value="name"
-                :placeholder="$t('block.recordList.positionField.placeholder')"
-                class="w-full"
-                show-clear
-              />
-              <small class="text-muted-color">
-                {{ $t('block.recordList.positionField.footnote') }}
-              </small>
-            </div>
-
-            <CInputSwitch
-              v-if="positionField"
-              v-model="draggable"
-              :label="$t('block.recordList.record.draggable')"
-            />
-          </div>
         </div>
       </template>
 
@@ -122,6 +97,26 @@
           />
 
           <CInputSwitch v-model="showFiltering" :label="$t('block.recordList.record.filterHide')" />
+        </div>
+
+        <div v-if="showSearch" class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.recordList.record.searchableFields') }}
+          </label>
+          <CFieldPicker
+            :all-fields="queryableFields"
+            :model-value="selectedSearchableFieldNames"
+            :available-label="$t('field.selector.available')"
+            :selected-label="$t('field.selector.selected')"
+            :select-all-label="$t('field.selector.selectAll')"
+            :unselect-all-label="$t('field.selector.unselectAll')"
+            :search-placeholder="$t('field.selector.search')"
+            :no-items-label="$t('field.no-items-found')"
+            @update:model-value="onSearchableFieldPickerUpdate"
+          />
+          <small class="text-muted-color">
+            {{ $t('block.recordList.record.searchableFieldsFootnote') }}
+          </small>
         </div>
 
         <div class="flex flex-col gap-1">
@@ -558,33 +553,6 @@ const editable = computed({
   set: v => updateOptions('editable', v),
 })
 
-const positionField = computed({
-  get: () => props.block.options?.positionField || null,
-  set: v => {
-    updateOptions('positionField', v || undefined)
-    if (!v) {
-      updateOptions('draggable', false)
-      // force sorting off when position field is used
-    } else {
-      updateOptions('hideSorting', true)
-      updateOptions('presort', '')
-    }
-  },
-})
-
-const draggable = computed({
-  get: () => !!props.block.options?.draggable,
-  set: v => updateOptions('draggable', v),
-})
-
-// Number (non-multi) fields for drag-to-reorder position
-const positionFields = computed(() => {
-  if (!recordListModule.value) return []
-  return recordListModule.value.fields
-    .filter(f => f.kind === 'Number' && !f.isMulti)
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-})
-
 // Field subset available for inline editing: selected display fields or all module fields
 const editableFieldSubset = computed(() => {
   if (!recordListModule.value) return []
@@ -675,6 +643,7 @@ const recordSelectorDisplayOption = computed({
 
 const selectedFieldNames = ref([])
 const selectedEditFieldNames = ref([])
+const selectedSearchableFieldNames = ref([])
 
 // Initialize field name refs from block options
 watch(
@@ -697,6 +666,18 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => props.block.options?.searchableFields,
+  fields => {
+    if (fields?.length) {
+      selectedSearchableFieldNames.value = fields.map(f => f.name ?? f)
+    } else {
+      selectedSearchableFieldNames.value = []
+    }
+  },
+  { immediate: true },
+)
+
 // All fields: regular + system with translated labels
 const allModuleFields = computed(() => {
   if (!recordListModule.value) return []
@@ -707,6 +688,11 @@ const allModuleFields = computed(() => {
     isSystem: true,
   }))
   return [...regular, ...system]
+})
+
+const queryableFields = computed(() => {
+  if (!allModuleFields.value) return []
+  return allModuleFields.value.filter(f => f.isQueryable)
 })
 
 function onFieldPickerUpdate(names) {
@@ -724,6 +710,11 @@ function onFieldPickerUpdate(names) {
 function onEditFieldPickerUpdate(names) {
   selectedEditFieldNames.value = names
   updateOptions('editFields', names)
+}
+
+function onSearchableFieldPickerUpdate(names) {
+  selectedSearchableFieldNames.value = names
+  updateOptions('searchableFields', names)
 }
 
 // When module changes: reset fields + editable, auto-enable editable if module has no record page

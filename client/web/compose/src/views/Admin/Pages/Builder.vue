@@ -415,7 +415,6 @@ import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/R
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
 
-
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -542,7 +541,11 @@ const availableBlockTypes = computed(() => {
     ...(isRecordPage
       ? [
           { kind: 'Record', label: t('block.record.label'), icon: 'pi pi-objects-column' },
-          { kind: 'RecordRevisions', label: t('block.recordRevisions.label'), icon: 'pi pi-history' },
+          {
+            kind: 'RecordRevisions',
+            label: t('block.recordRevisions.label'),
+            icon: 'pi pi-history',
+          },
         ]
       : []),
   ].sort((a, b) => a.label.localeCompare(b.label))
@@ -589,7 +592,6 @@ const configurators = {
   RecordOrganizer: markRaw(RecordOrganizerConfigurator),
   RecordRevisions: markRaw(RecordRevisionsConfigurator),
   Geometry: markRaw(GeometryConfigurator),
-
 }
 
 const blockConfigurator = computed(() => {
@@ -837,7 +839,10 @@ async function handleSave() {
 
     const savedBlocks = updatedPage?.blocks || []
     const blockIdMap = new Map(
-      rawBlocks.map((block, index) => [String(getBlockId(block)), String(savedBlocks[index]?.blockID || block.blockID)]),
+      rawBlocks.map((block, index) => [
+        String(getBlockId(block)),
+        String(savedBlocks[index]?.blockID || block.blockID),
+      ]),
     )
 
     const remappedBlocks = savedBlocks.map(block => {
@@ -854,9 +859,7 @@ async function handleSave() {
         return tab
       })
 
-      return changed
-        ? { ...toRaw(block), options: { ...block.options, tabs } }
-        : block
+      return changed ? { ...toRaw(block), options: { ...block.options, tabs } } : block
     })
 
     if (remappedBlocks.some((block, index) => block !== savedBlocks[index])) {

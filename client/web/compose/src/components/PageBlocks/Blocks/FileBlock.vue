@@ -17,26 +17,14 @@
             <div v-if="!hideFileName" class="font-medium truncate">{{ att.name }}</div>
             <div class="text-sm text-muted-color">{{ formatSize(att.size) }}</div>
           </div>
-          <a
-            v-if="att.download"
-            :href="att.download"
-            @click.stop
-          >
-            <Button
-              icon="pi pi-download"
-              text
-              size="small"
-              severity="secondary"
-            />
+          <a v-if="att.download" :href="att.download" @click.stop>
+            <Button icon="pi pi-download" text size="small" severity="secondary" />
           </a>
         </div>
       </div>
 
       <!-- Gallery mode -->
-      <div
-        v-else
-        class="flex items-start justify-around gap-3 flex-wrap h-full"
-      >
+      <div v-else class="flex items-start justify-around gap-3 flex-wrap h-full">
         <div
           v-for="att in resolvedAttachments"
           :key="att.attachmentID"
@@ -75,7 +63,7 @@
             <div
               v-if="!hideFileName"
               class="filename-container text-center"
-              style="margin-top: 0.1rem;"
+              style="margin-top: 0.1rem"
             >
               <a
                 v-if="att.clickToView && att.url"
@@ -97,12 +85,7 @@
             class="preview-download-button absolute top-0 right-0"
             @click.stop
           >
-            <Button
-              icon="pi pi-download"
-              text
-              size="small"
-              severity="secondary"
-            />
+            <Button icon="pi pi-download" text size="small" severity="secondary" />
           </a>
         </div>
       </div>
@@ -135,7 +118,7 @@ const resolvedAttachments = ref([])
 
 const rawAttachments = computed(() => props.block.options?.attachments || [])
 
-function inlineCustomStyles (att) {
+function inlineCustomStyles(att) {
   const o = props.block.options || {}
   let { width, height, maxWidth, maxHeight, margin, borderRadius, backgroundColor } = o
 
@@ -250,5 +233,3 @@ function formatSize(bytes) {
   overflow: visible;
 }
 </style>
-
-

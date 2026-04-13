@@ -119,13 +119,13 @@
                   <!-- validFrom -->
                   <div class="flex flex-col gap-2">
                     <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.validFrom') }}</label>
-                    <DatePicker v-model="authClient.validFrom" showTime hourFormat="24" dateFormat="dd/mm/yy" showIcon />
+                    <DatePicker v-model="authClient.validFrom" showTime hourFormat="24" showIcon />
                   </div>
 
                   <!-- expiresAt -->
                   <div class="flex flex-col gap-2">
                     <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.expiresAt') }}</label>
-                    <DatePicker v-model="authClient.expiresAt" showTime hourFormat="24" dateFormat="dd/mm/yy" showIcon />
+                    <DatePicker v-model="authClient.expiresAt" showTime hourFormat="24" showIcon />
                   </div>
 
                   <!-- Scope checkboxes -->

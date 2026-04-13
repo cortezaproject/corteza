@@ -19,7 +19,7 @@
                 size="small"
                 icon="pi pi-chevron-down"
                 icon-pos="right"
-                :style="{ color: navItem.options?.textColor }"
+                :style="{ color: navItem.options?.item?.textColor }"
                 @click="toggleDropdown(index, $event)"
               />
               <Menu
@@ -134,8 +134,9 @@ function selectTargetOption(target) {
 
 function itemStyle(navItem) {
   const style = {}
-  if (navItem.options?.textColor) style.color = navItem.options.textColor
-  if (navItem.options?.backgroundColor) style.backgroundColor = navItem.options.backgroundColor
+  const item = navItem.options?.item
+  if (item?.textColor) style.color = item.textColor
+  if (item?.backgroundColor) style.backgroundColor = item.backgroundColor
   return style
 }
 

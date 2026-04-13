@@ -68,7 +68,9 @@ async function fetchWorkflows() {
     const result = await response()
     const workflows = Array.isArray(result) ? result : result.set || []
     
-    options.value = workflows.map(w => ({ ...w, label: getOptionLabel(w) }))
+    options.value = workflows
+      .map(w => ({ ...w, label: getOptionLabel(w) }))
+      .sort((a, b) => (a.label || '').localeCompare(b.label || ''))
 
     if (props.modelValue && props.modelValue !== '0') {
       if (!options.value.some(w => w.workflowID === props.modelValue)) {

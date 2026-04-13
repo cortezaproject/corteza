@@ -108,13 +108,47 @@
             class="w-full"
           />
         </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('chart.edit.formatting.presetFormats.label') }}
+          </label>
+          <Select
+            v-model="metric.formatting.presetFormat"
+            :options="formatOptions"
+            option-label="text"
+            option-value="value"
+            class="w-full"
+          />
+          <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
+            {{ $t(`chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`) }}
+          </small>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('chart.edit.formatting.format.label') }}
+          </label>
+          <InputText 
+            v-model="metric.formatting.format" 
+            :disabled="metric.formatting.presetFormat !== 'custom'" 
+            :placeholder="$t('chart.edit.formatting.format.placeholder')" 
+            class="w-full" 
+          />
+        </div>
       </div>
     </template>
   </ReportEdit>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import ReportEdit from './ReportEdit.vue'
+
+const { t } = useI18n()
+
+const formatOptions = [
+  { value: 'custom', text: t('chart.edit.formatting.presetFormats.options.custom') },
+  { value: 'accounting', text: t('chart.edit.formatting.presetFormats.options.accounting') },
+]
 
 defineProps({
   report: {

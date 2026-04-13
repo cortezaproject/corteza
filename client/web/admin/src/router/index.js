@@ -48,23 +48,6 @@ const router = createRouter({
       component: () => import('../views/system/DataSource/Editor.vue'),
     },
 
-    // Sensitivity Levels
-    {
-      path: '/system/sensitivity-levels',
-      name: 'system.sensitivityLevels',
-      component: () => import('../views/system/SensitivityLevel/List.vue'),
-    },
-    {
-      path: '/system/sensitivity-levels/new',
-      name: 'system.sensitivityLevels.create',
-      component: () => import('../views/system/SensitivityLevel/Editor.vue'),
-    },
-    {
-      path: '/system/sensitivity-levels/:sensitivityLevelID',
-      name: 'system.sensitivityLevels.edit',
-      component: () => import('../views/system/SensitivityLevel/Editor.vue'),
-    },
-
     // Labels
     {
       path: '/system/labels',

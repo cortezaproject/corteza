@@ -88,12 +88,60 @@
               :key="fi"
               removable
               class="text-sm"
+              style="border-radius: var(--p-border-radius)"
               @remove="removeFilter(fg.originalIndex, fi)"
             >
               <span class="font-medium">{{ f.label || f.name }}</span>
               <span class="mx-1 text-muted-color">{{ getOperatorLabel(f.operator) }}</span>
-              <span v-if="f.value != null" class="font-semibold text-primary">
-                {{ formatFilterValue(f) }}
+              <span
+                v-if="f.value != null"
+                class="font-semibold text-primary inline-flex gap-1 flex-wrap items-center"
+              >
+                <template v-if="isBetweenOperator(f.operator)">
+                  <CFieldViewer
+                    v-if="getField(f.name)"
+                    :field="getField(f.name)"
+                    :record="getFilterMockRecord(f, f.value?.start)"
+                    :namespace="namespace"
+                  />
+                  <span v-else>{{ f.value?.start || '?' }}</span>
+                  <span class="text-muted-color mx-1">-</span>
+                  <CFieldViewer
+                    v-if="getField(f.name)"
+                    :field="getField(f.name)"
+                    :record="getFilterMockRecord(f, f.value?.end)"
+                    :namespace="namespace"
+                  />
+                  <span v-else>{{ f.value?.end || '?' }}</span>
+                </template>
+                <template
+                  v-else-if="['IN', 'NOT IN'].includes(f.operator) && !getField(f.name)?.isMulti"
+                >
+                  <template v-for="(v, i) in Array.isArray(f.value) ? f.value : [f.value]" :key="i">
+                    <CFieldViewer
+                      v-if="getField(f.name)"
+                      :field="getField(f.name)"
+                      :record="getFilterMockRecord(f, v)"
+                      :namespace="namespace"
+                    />
+                    <span v-else>{{ v }}</span>
+                    <span
+                      v-if="i < (Array.isArray(f.value) ? f.value.length : 1) - 1"
+                      class="text-muted-color"
+                    >
+                      ,
+                    </span>
+                  </template>
+                </template>
+                <template v-else>
+                  <CFieldViewer
+                    v-if="getField(f.name)"
+                    :field="getField(f.name)"
+                    :record="getFilterMockRecord(f, f.value)"
+                    :namespace="namespace"
+                  />
+                  <span v-else>{{ formatFilterValue(f) }}</span>
+                </template>
               </span>
               <span v-else class="text-muted-color italic">
                 {{ $t('block.recordList.filter.nil') }}
@@ -127,7 +175,7 @@
       v-if="selectedRecords.length || showBulkSave"
       class="flex items-center gap-2 px-3 py-2 bg-highlight border-b"
     >
-      <span v-if="selectedRecords.length" class="text-sm font-medium">
+      <span v-if="selectedRecords.length && !selectedAllRecords" class="text-sm font-medium">
         {{
           $t('block.recordList.selected', {
             count: selectedRecords.length,
@@ -135,6 +183,37 @@
           })
         }}
       </span>
+      <span v-else-if="selectedAllRecords" class="text-sm font-medium">
+        {{
+          $t('block.recordList.selected', {
+            count: totalRecords,
+            total: totalRecords,
+          })
+        }}
+      </span>
+
+      <Button
+        v-if="
+          selectedRecords.length === records.length &&
+          records.length > 0 &&
+          totalRecords > records.length &&
+          !selectedAllRecords
+        "
+        :label="$t('block.recordList.selectAllRecords', { count: totalRecords })"
+        text
+        size="small"
+        class="text-primary"
+        @click="selectedAllRecords = true"
+      />
+
+      <Button
+        v-if="selectedAllRecords"
+        :label="$t('block.recordList.unselectAllRecords')"
+        text
+        size="small"
+        class="text-primary"
+        @click="clearSelection"
+      />
 
       <div class="flex-1" />
 
@@ -163,13 +242,32 @@
       </template>
 
       <Button
+        v-if="options.bulkRecordEditEnabled && canUpdateSelected && !showingDeletedRecords"
+        v-tooltip.bottom="$t('block.recordList.bulkRecord.title', 'Bulk Edit')"
+        icon="pi pi-pencil"
+        severity="secondary"
+        text
+        size="small"
+        @click="showBulkEditModal = true"
+      />
+
+      <Button
         v-if="canDeleteSelected"
-        :label="$t('block.recordList.tooltip.deleteSelected')"
+        v-tooltip.bottom="$t('block.recordList.tooltip.deleteSelected')"
         icon="pi pi-trash"
         severity="danger"
         text
         size="small"
         @click="deleteSelected"
+      />
+
+      <CBulkRecordEditModal
+        v-model:visible="showBulkEditModal"
+        :module="recordListModule"
+        :namespace="namespace"
+        :query="activeBulkQuery"
+        allow-add-field
+        @save="fetchRecords(true)"
       />
     </div>
 
@@ -410,6 +508,7 @@ import { useRecordStore } from '@/stores/record'
 import { useReminderStore } from '@/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@/stores/page'
+import CBulkRecordEditModal from './CBulkRecordEditModal.vue'
 import RecordListFilter from '../../Common/RecordListFilter.vue'
 import {
   evaluatePrefilter,
@@ -469,6 +568,7 @@ const recordListFilter = ref([])
 const presetMenuRef = ref(null)
 const showingDeletedRecords = ref(false)
 const selectedRecords = ref([])
+const showBulkEditModal = ref(false)
 
 // Pagination state — cursor based
 const pageCursors = ref([]) // stack of previous page cursors
@@ -564,17 +664,19 @@ const paginationRangeText = computed(() => {
 // Permission-based helpers
 const canSelectRecords = computed(() => options.value.selectable !== false)
 const canDeleteSelected = computed(() => selectedRecords.value.some(r => r.canDeleteRecord))
+const canUpdateSelected = computed(() =>
+  selectedRecords.value.some(r => r.canUpdateRecordValue !== false),
+)
 const hasRowActions = computed(() => {
-  if (!recordPageID.value && !recordListModule.value?.canCreateRecord) return false
   const o = options.value
-  return (
-    !o.hideRecordViewButton ||
-    !o.hideRecordEditButton ||
-    !o.hideRecordCloneButton ||
-    !o.hideRecordReminderButton ||
-    !o.hideRecordPermissionsButton ||
-    !o.hideRecordDeleteButton
-  )
+  // View/Edit/Clone require a record page to navigate to
+  const hasPageActions =
+    recordPageID.value &&
+    (!o.hideRecordViewButton || !o.hideRecordEditButton || !o.hideRecordCloneButton)
+  // These actions don't require a record page
+  const hasStandaloneActions =
+    !o.hideRecordReminderButton || !o.hideRecordPermissionsButton || !o.hideRecordDeleteButton
+  return hasPageActions || hasStandaloneActions
 })
 
 // Row action menu items — filtered by per-record permissions and configurator hide options
@@ -938,6 +1040,46 @@ function buildPrefilter() {
   return filterParts.filter(Boolean).join(' AND ')
 }
 
+const selectedAllRecords = ref(false)
+
+watch(selectedRecords, newVal => {
+  if (newVal.length === 0 || newVal.length < records.value.length) {
+    selectedAllRecords.value = false
+  }
+})
+
+function clearSelection() {
+  selectedRecords.value = []
+  selectedAllRecords.value = false
+}
+
+const currentQuery = computed(() => {
+  if (!recordListModule.value) return ''
+
+  const evaluatedPrefilter = buildPrefilter()
+
+  let searchFields = []
+  const searchableFieldConfig = options.value.searchableFields || []
+  if (searchableFieldConfig.length > 0 && recordListModule.value.filterFields) {
+    searchFields = recordListModule.value.filterFields(searchableFieldConfig)
+  } else {
+    searchFields = columns.value
+  }
+
+  const filterGroups = recordListFilter.value
+    .map(g => ({ ...g, filter: convertRecordListFilter(g.filter || []) }))
+    .filter(g => g.filter?.length)
+
+  return queryToFilter(searchQuery.value || '', evaluatedPrefilter, searchFields, filterGroups)
+})
+
+const activeBulkQuery = computed(() => {
+  if (selectedAllRecords.value) return currentQuery.value
+  const ids = selectedRecords.value.map(r => `'${getRecordKey(r)}'`)
+  if (ids.length === 1) return `recordID = ${ids[0]}`
+  return `recordID IN (${ids.join(',')})`
+})
+
 // Fetch records with cancellation support
 async function fetchRecords(resetCursor = false) {
   if (!recordListModule.value) return
@@ -963,33 +1105,8 @@ async function fetchRecords(resetCursor = false) {
       sort = `${sortField.value} ${sortOrder.value === 1 ? 'ASC' : 'DESC'}`
     }
 
-    // Build query using queryToFilter — matches Corteza's RecordListBase behavior
-    const evaluatedPrefilter = buildPrefilter()
-
-    // Determine search fields: use configured searchableFields or fall back to visible columns
-    let searchFields = []
-    const searchableFieldConfig = options.value.searchableFields || []
-    if (searchableFieldConfig.length > 0 && recordListModule.value.filterFields) {
-      searchFields = recordListModule.value.filterFields(searchableFieldConfig)
-    } else {
-      // Default to visible columns (same as old Corteza behavior)
-      searchFields = columns.value
-    }
-
-    // Prepare filter groups exactly like old Corteza RecordListBase
-    const filterGroups = recordListFilter.value
-      .map(g => {
-        const filter = convertRecordListFilter(g.filter || [])
-        return { ...g, filter }
-      })
-      .filter(g => g.filter?.length)
-
-    const query = queryToFilter(
-      searchQuery.value || '',
-      evaluatedPrefilter,
-      searchFields,
-      filterGroups,
-    )
+    // Build query using computed property
+    const query = currentQuery.value
 
     // Determine page cursor for API call
     let pageCursor
@@ -1023,6 +1140,9 @@ async function fetchRecords(resetCursor = false) {
     const set = (result.set || []).map(r => new compose.Record(mod, r))
 
     records.value = set
+    if (options.value.enableRecordPageNavigation !== false && route.name !== 'page.record') {
+      recordStore.setNavigationIDs(set.map(r => r.recordID))
+    }
     if (result.filter?.total !== undefined) {
       totalRecords.value = result.filter.total
     } else if (!pageCursor) {
@@ -1285,19 +1405,35 @@ function confirmDeleteRecord(record) {
 }
 
 async function deleteSelected() {
-  if (!selectedRecords.value.length) return
-  try {
-    for (const record of selectedRecords.value) {
-      await recordStore.delete({
+  if (!selectedRecords.value.length && !selectedAllRecords.value) return
+  loading.value = true
+  if (selectedAllRecords.value) {
+    try {
+      await $ComposeAPI.recordBulkDelete({
         namespaceID: props.namespace.namespaceID,
         moduleID: recordListModule.value.moduleID,
-        recordID: record.recordID,
+        query: activeBulkQuery.value,
       })
+      selectedRecords.value = []
+      selectedAllRecords.value = false
+      fetchRecords(true)
+    } catch (e) {
+      console.error('Failed to mass delete records:', e)
     }
-    selectedRecords.value = []
-    fetchRecords(true)
-  } catch (e) {
-    console.error('Failed to delete selected records:', e)
+  } else {
+    try {
+      for (const record of selectedRecords.value) {
+        await recordStore.delete({
+          namespaceID: props.namespace.namespaceID,
+          moduleID: recordListModule.value.moduleID,
+          recordID: record.recordID,
+        })
+      }
+      selectedRecords.value = []
+      fetchRecords(true)
+    } catch (e) {
+      console.error('Failed to delete selected records:', e)
+    }
   }
 }
 
@@ -1355,6 +1491,24 @@ const groupedActiveFilters = computed(() => {
   if (current.groups.length) segments.push(current)
   return segments
 })
+
+function getField(name) {
+  if (!recordListModule.value) return null
+  return recordListModule.value.fields.find(f => f.name === name)
+}
+
+function getFilterMockRecord(f, val) {
+  const base = getField(f.name)
+  let value = val
+  if (base?.isMulti && !Array.isArray(value)) {
+    value = value != null && value !== '' ? [value] : []
+  }
+  return new compose.Record(recordListModule.value, {
+    values: {
+      [f.name]: value,
+    },
+  })
+}
 
 function getOperatorLabel(op) {
   const key = formatActiveFilterOperator(op)

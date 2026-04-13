@@ -85,6 +85,7 @@
 
 <script setup>
 import { ref, watch, computed, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   CInputRecord,
   CInputModule,
@@ -102,6 +103,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:visible', 'run'])
+
+const { t } = useI18n()
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $SystemAPI = inject('$SystemAPI')
@@ -183,7 +186,7 @@ async function run() {
     }
   } catch (err) {
     console.error('[RunModal] Error fetching context references:', err)
-    $toast?.toastDanger('Failed to fetch full object scopes for execution. Ensure your selections are valid.')
+    $toast?.toastDanger(t('builder.toast.scopeError.detail'), t('builder.toast.scopeError.summary'))
     return
   } finally {
     isFetchingContext.value = false

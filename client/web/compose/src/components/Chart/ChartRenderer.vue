@@ -125,7 +125,13 @@ async function updateChart() {
 
     renderer.value = chart.makeOptions(data)
   } catch (e) {
-    error.value = (e instanceof Error ? e.message : String(e)) || t('chart.notification.loadFailed')
+    let msg = e instanceof Error ? e.message : String(e)
+    
+    if (msg && msg.startsWith('notification.')) {
+      msg = t(msg)
+    }
+    
+    error.value = msg || t('notification.chart.loadFailed')
     processing.value = false
     return
   }

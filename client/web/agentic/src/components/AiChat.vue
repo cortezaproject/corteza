@@ -450,7 +450,7 @@ const props = defineProps({
 })
 
 const visibleMessages = computed(() => {
-  return (props.conversation?.messages || []).filter(m => ['user', 'agent', 'assistant'].includes(m.role))
+  return (props.conversation?.messages || []).filter(m => ['user', 'agent', 'assistant'].includes(m.role) && m.content)
 })
 
 const { t } = useI18n()

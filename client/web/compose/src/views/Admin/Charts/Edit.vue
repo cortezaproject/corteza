@@ -407,7 +407,7 @@ async function fetchChart() {
       editReportIndex.value = 0
     } catch (e) {
       console.error('Failed to load chart:', e)
-      $toast.toastDanger(t('chart.notification.loadFailed'))
+      $toast.toastDanger(t('notification.chart.loadFailed'))
       router.push({ name: 'admin.charts' })
     } finally {
       setTimeout(() => {
@@ -450,16 +450,16 @@ async function handleSave() {
     if (!isEdit.value) {
       const created = await chartStore.create(c)
       chart.value = chartConstructor(created)
-      $toast.toastSuccess(t('chart.notification.saved'))
+      $toast.toastSuccess(t('notification.chart.created'))
       router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
     } else {
       const updated = await chartStore.update(c)
       chart.value = chartConstructor(updated)
-      $toast.toastSuccess(t('chart.notification.saved'))
+      $toast.toastSuccess(t('notification.chart.updated'))
     }
   } catch (e) {
     console.error('Failed to save chart:', e)
-    $toast.toastDanger(t('chart.notification.saveFailed'))
+    $toast.toastDanger(t('notification.chart.updateFailed'))
   } finally {
     processing.value = false
     processingSave.value = false
@@ -483,11 +483,11 @@ async function handleClone() {
 
     const created = await chartStore.create(cloned)
     chart.value = chartConstructor(created)
-    $toast.toastSuccess(t('chart.notification.saved'))
+    $toast.toastSuccess(t('notification.chart.created'))
     router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
   } catch (e) {
     console.error('Failed to clone chart:', e)
-    $toast.toastDanger(t('chart.notification.saveFailed'))
+    $toast.toastDanger(t('notification.chart.createFailed'))
   } finally {
     processing.value = false
     processingClone.value = false
@@ -500,11 +500,11 @@ async function handleDelete() {
 
   try {
     await chartStore.delete(toRaw(chart.value))
-    $toast.toastSuccess(t('chart.notification.deleted'))
+    $toast.toastSuccess(t('notification.chart.deleted'))
     router.push({ name: 'admin.charts' })
   } catch (e) {
     console.error('Failed to delete chart:', e)
-    $toast.toastDanger(t('chart.notification.deleteFailed'))
+    $toast.toastDanger(t('notification.chart.deleteFailed'))
   } finally {
     processing.value = false
     processingDelete.value = false

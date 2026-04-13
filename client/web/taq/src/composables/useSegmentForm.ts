@@ -137,7 +137,7 @@ export function useSegmentForm(options: {
               key: `input-${sIdx}-${secIdx}-${elIdx}`,
               type: element.input.type,
               label: element.input.label,
-              placeholder: element.input.placeholder,
+              placeholder: element.input.placeholder || t('builder.form.selectPlaceholder', { field: element.input.label || element.input.argument }),
               disabledPlaceholder,
               disabled,
               argument: element.input.argument,

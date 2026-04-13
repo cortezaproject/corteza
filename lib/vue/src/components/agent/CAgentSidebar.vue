@@ -109,9 +109,9 @@
         <div class="flex min-h-0 flex-1 flex-col">
           <div class="flex-1 overflow-y-auto p-3 space-y-4 flex flex-col" ref="chatContainer">
             <!-- Chat messages -->
-            <template v-if="activeConversation && activeConversation.messages.length > 0">
+            <template v-if="activeConversation && filteredMessages.length > 0">
               <div
-                v-for="(msg, index) in activeConversation.messages"
+                v-for="(msg, index) in filteredMessages"
                 :key="index"
                 class="flex flex-col max-w-[90%]"
                 :class="msg.role === 'user' ? 'self-end items-end' : 'self-start items-start'"
@@ -216,6 +216,11 @@ const conversations = computed(() => {
 const activeConversationIndex = computed(() => {
   if (!agentStore.activeAgentID) return 0
   return agentStore.activeConversationIndex[agentStore.activeAgentID] || 0
+})
+
+const filteredMessages = computed(() => {
+  if (!activeConversation.value) return []
+  return activeConversation.value.messages.filter((m: any) => m.content)
 })
 
 const chatInput = ref('')

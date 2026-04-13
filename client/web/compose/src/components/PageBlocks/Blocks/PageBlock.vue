@@ -158,7 +158,7 @@ let interval = null
 
 watch(
   refreshRate,
-  (rate) => {
+  rate => {
     if (interval) clearInterval(interval)
     if (rate > 0) {
       interval = setInterval(() => {

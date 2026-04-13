@@ -1,5 +1,9 @@
 import { automation } from '@cortezaproject/corteza-js-next'
-import type { StackFrame, ExecutionResult, TraceStatus } from '@cortezaproject/corteza-js-next/src/automation/types/trace'
+import type {
+  StackFrame,
+  ExecutionResult,
+  TraceStatus,
+} from '@cortezaproject/corteza-js-next/src/automation/types/trace'
 import { withMinDuration } from '@cortezaproject/corteza-vue-next'
 import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
@@ -62,7 +66,7 @@ export function useFlowEditor() {
   const history = ref<string[]>([])
   const historyIndex = ref(-1)
   const lastSavedHistoryIndex = ref(0)
-  
+
   // Computed
   const isDirty = computed(() => historyIndex.value !== lastSavedHistoryIndex.value)
   const canUndo = computed(() => historyIndex.value > 0)
@@ -89,6 +93,14 @@ export function useFlowEditor() {
     const state = JSON.stringify({ nodes: nodes.value, edges: edges.value })
     history.value = history.value.slice(0, historyIndex.value + 1)
     history.value.push(state)
+    // Cap history to prevent unbounded memory growth
+    const MAX_HISTORY = 100
+    if (history.value.length > MAX_HISTORY) {
+      const excess = history.value.length - MAX_HISTORY
+      history.value = history.value.slice(excess)
+      historyIndex.value -= excess
+      lastSavedHistoryIndex.value = Math.max(0, lastSavedHistoryIndex.value - excess)
+    }
     historyIndex.value = history.value.length - 1
   }
 
@@ -228,7 +240,9 @@ export function useFlowEditor() {
       // Process in order: 1) triggers, 2) terminations, 3) other steps
       nodes.value.filter(n => n.type === 'trigger').forEach(processNode)
       nodes.value.filter(n => n.type === 'end').forEach(processNode)
-      nodes.value.filter(n => n.type !== 'trigger' && n.type !== 'end' && n.type !== 'loop').forEach(processNode)
+      nodes.value
+        .filter(n => n.type !== 'trigger' && n.type !== 'end' && n.type !== 'loop')
+        .forEach(processNode)
 
       // Derive paths from edges (including paths to termination steps)
       // Filter out any invalid or duplicate edges
@@ -256,8 +270,6 @@ export function useFlowEditor() {
           }
         })
         .filter(Boolean)
-
-
 
       const dataToSave = {
         automationID: automation.value.automationID,
@@ -297,7 +309,7 @@ export function useFlowEditor() {
 
       $toast?.toastSuccess(t('builder.toast.saved.detail'), t('builder.toast.saved.summary'))
       lastSavedHistoryIndex.value = historyIndex.value
-      
+
       return automation.value
     } catch (e) {
       console.error('Failed to save automation:', e)
@@ -327,7 +339,10 @@ export function useFlowEditor() {
     insertionPoint: InsertionPoint | null,
   ): Node<FlowNodeData> | null {
     const isBranch =
-      nodeType.id === 'branch' || nodeType.type === 'condition' || nodeType.ref === 'gateway' || nodeType.ref?.startsWith('gateway')
+      nodeType.id === 'branch' ||
+      nodeType.type === 'condition' ||
+      nodeType.ref === 'gateway' ||
+      nodeType.ref?.startsWith('gateway')
     const isIterator = nodeType.kind === 'iterator'
     const gatewayRef = nodeType.ref?.startsWith('gateway') ? nodeType.ref : 'gatewayExclusive'
     const isEnd = nodeType.type === 'end'
@@ -349,7 +364,7 @@ export function useFlowEditor() {
     let newHandle: string
 
     const store = useAutomationStore()
-    
+
     let defaultArguments: any[] = []
     let defaultConfig: Record<string, any> = {}
 
@@ -523,7 +538,7 @@ export function useFlowEditor() {
             position: { x: 0, y: 0 },
             selectable: false,
             data: {
-              label: isIterator ? 'Loop' : t('builder.nodes.end'),
+              label: isIterator ? t('builder.nodes.loop') : t('builder.nodes.end'),
               nodeType: isIterator ? 'loop' : 'termination',
               icon: isIterator ? undefined : DEFAULT_ICONS.END,
               config: {},
@@ -643,7 +658,7 @@ export function useFlowEditor() {
             position: { x: 0, y: 0 },
             selectable: false,
             data: {
-              label: type === 'loop' ? 'Loop' : t('builder.nodes.end'),
+              label: type === 'loop' ? t('builder.nodes.loop') : t('builder.nodes.end'),
               nodeType: type === 'loop' ? 'loop' : 'termination',
               icon: type === 'loop' ? undefined : DEFAULT_ICONS.END,
               config: {},
@@ -668,7 +683,11 @@ export function useFlowEditor() {
     // For non-end nodes: reconnect parent to ALL children (including terminations)
     // EXCEPT for branches, where we want to delete the subtrees instead
     incomingEdges.forEach(incoming => {
-      if (outgoingEdges.length > 0 && nodeToDelete.type !== 'branch' && nodeToDelete.type !== 'iterator') {
+      if (
+        outgoingEdges.length > 0 &&
+        nodeToDelete.type !== 'branch' &&
+        nodeToDelete.type !== 'iterator'
+      ) {
         // Reconnect parent to all children of deleted node
         outgoingEdges.forEach(outgoing => {
           if (incoming.source !== outgoing.target) {
@@ -1018,7 +1037,7 @@ export function useFlowEditor() {
       const args = nodeData?.arguments || []
       const a = args.find((aa: any) => aa.argumentName === argName)
       if (!a) return null
-      
+
       // If entered manually in UI, expressions may be wrapped in quotes
       if (a.expr && typeof a.expr === 'string' && a.expr.startsWith('"') && a.expr.endsWith('"')) {
         return a.expr.slice(1, -1)
@@ -1054,7 +1073,7 @@ export function useFlowEditor() {
             // Mark structurally complex types as expandable
             if (result.types.some((t: string) => EXPANDABLE_TYPES.includes(t))) {
               result.expandable = true
-              
+
               if (result.types.includes('ComposeRecord')) {
                 result.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
                 result.moduleID = getTriggerConstraintValue(node.data, 'module')
@@ -1079,17 +1098,17 @@ export function useFlowEditor() {
               sourceName: r.argumentName,
               types: r.types || [],
             }
-            
+
             // Mark structurally complex types as expandable
             if (result.types.some((t: string) => EXPANDABLE_TYPES.includes(t))) {
               result.expandable = true
-              
+
               if (result.types.includes('ComposeRecord')) {
                 result.namespaceID = getFunctionArgumentValue(node.data, 'namespace')
                 result.moduleID = getFunctionArgumentValue(node.data, 'module')
               }
             }
-            
+
             return result
           }),
         })
@@ -1123,7 +1142,9 @@ export function useFlowEditor() {
 
     const oldNode = nodes.value[nodeIndex]
     const isBranch =
-      newNodeType.id === 'branch' || newNodeType.type === 'condition' || newNodeType.ref === 'gateway'
+      newNodeType.id === 'branch' ||
+      newNodeType.type === 'condition' ||
+      newNodeType.ref === 'gateway'
     const isIterator = newNodeType.kind === 'iterator'
     const isTrigger = newNodeType.type === 'trigger'
     const hasTwoOutputs = isBranch || isIterator
@@ -1160,17 +1181,63 @@ export function useFlowEditor() {
       }
     } else if (oldNode.data?.stepID) {
       // Update existing step in automation model
-      const step = automation.value.steps?.find(
-        (s: any) => s.stepID === oldNode.data.stepID,
-      )
+      const step = automation.value.steps?.find((s: any) => s.stepID === oldNode.data.stepID)
       if (step) {
         step.kind = isIterator ? 'iterator' : isBranch ? gatewayRef : 'function'
-        step.ref = isIterator ? newNodeType.ref || '' : isBranch ? gatewayRef : newNodeType.ref || ''
+        step.ref = isIterator
+          ? newNodeType.ref || ''
+          : isBranch
+            ? gatewayRef
+            : newNodeType.ref || ''
         step.arguments = []
         step.meta = {
           short: newNodeType.label,
           description: newNodeType.description || '',
         }
+      }
+    }
+
+    // Seed default arguments from function/trigger segments (mirrors addNode logic)
+    const store = useAutomationStore()
+    let defaultArguments: any[] = []
+    let defaultConfig: Record<string, any> = {}
+
+    if (isTrigger) {
+      const dbTrigger = store.triggers.find(
+        t =>
+          t.eventType === (newNodeType.eventType || newNodeType.ref) &&
+          (!newNodeType.resourceType || t.resourceType === newNodeType.resourceType),
+      )
+      if (dbTrigger?.segments) {
+        dbTrigger.segments.forEach(seg => {
+          seg.sections?.forEach(sec => {
+            sec.elements?.forEach(el => {
+              const elInput = el.input as any
+              if (elInput && elInput.default !== undefined && elInput.argument) {
+                defaultConfig[elInput.argument] = elInput.default
+              }
+            })
+          })
+        })
+      }
+    } else if (!isBranch) {
+      const dbFunction = store.functions.find(f => f.ref === newNodeType.ref)
+      if (dbFunction?.segments) {
+        dbFunction.segments.forEach(seg => {
+          seg.sections?.forEach(sec => {
+            sec.elements?.forEach(el => {
+              const elInput = el.input as any
+              if (elInput && elInput.default !== undefined && elInput.argument) {
+                const param = dbFunction.parameters?.find(p => p.argumentName === elInput.argument)
+                defaultArguments.push({
+                  argumentName: elInput.argument,
+                  type: param?.types?.[0] || 'Any',
+                  value: elInput.default,
+                })
+              }
+            })
+          })
+        })
       }
     }
 
@@ -1181,8 +1248,8 @@ export function useFlowEditor() {
       description: newNodeType.description,
       icon: newNodeType.icon,
       nodeType: newDataNodeType,
-      arguments: [],
-      config: {},
+      arguments: [...defaultArguments],
+      config: { ...defaultConfig },
       constraints: isTrigger ? [] : undefined,
       resourceType: isTrigger ? newNodeType.resourceType || '' : undefined,
     }
@@ -1286,45 +1353,47 @@ export function useFlowEditor() {
       return c?.values?.[0]?.['@value'] ?? null
     }
 
-    nodes.value.filter(n => n.type === 'trigger').forEach(node => {
-      const eventType = node.data?.nodeType
-      const resourceType = node.data?.resourceType
-      const triggerDef = store.triggers.find(
-        t => t.eventType === eventType && (!resourceType || t.resourceType === resourceType)
-      )
-      
-      if (triggerDef?.properties) {
-        triggerDef.properties.forEach((p: any) => {
-          // Store by name to deduplicate overlapping properties across triggers
-          if (!allProperties.has(p.name)) {
-            const prop: any = {
-              name: p.name,
-              type: p.type || 'String',
-              defaultValue: getTriggerConstraintValue(node.data, p.name),
-              meta: p.meta || {}
+    nodes.value
+      .filter(n => n.type === 'trigger')
+      .forEach(node => {
+        const eventType = node.data?.nodeType
+        const resourceType = node.data?.resourceType
+        const triggerDef = store.triggers.find(
+          t => t.eventType === eventType && (!resourceType || t.resourceType === resourceType),
+        )
+
+        if (triggerDef?.properties) {
+          triggerDef.properties.forEach((p: any) => {
+            // Store by name to deduplicate overlapping properties across triggers
+            if (!allProperties.has(p.name)) {
+              const prop: any = {
+                name: p.name,
+                type: p.type || 'String',
+                defaultValue: getTriggerConstraintValue(node.data, p.name),
+                meta: p.meta || {},
+              }
+
+              // Extract namespace and module if it's a ComposeRecord
+              if (prop.type === 'ComposeRecord') {
+                prop.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
+                prop.moduleID = getTriggerConstraintValue(node.data, 'module')
+              }
+
+              allProperties.set(p.name, prop)
             }
-            
-            // Extract namespace and module if it's a ComposeRecord
-            if (prop.type === 'ComposeRecord') {
-              prop.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
-              prop.moduleID = getTriggerConstraintValue(node.data, 'module')
-            }
-            
-            allProperties.set(p.name, prop)
-          }
-        })
-      }
-    })
+          })
+        }
+      })
 
     const propertyOrder = ['namespace', 'module', 'record', 'oldRecord', 'user', 'oldUser']
     return Array.from(allProperties.values()).sort((a, b) => {
       const indexA = propertyOrder.indexOf(a.name)
       const indexB = propertyOrder.indexOf(b.name)
-      
+
       if (indexA !== -1 && indexB !== -1) return indexA - indexB
       if (indexA !== -1) return -1
       if (indexB !== -1) return 1
-      
+
       return a.name.localeCompare(b.name)
     })
   }

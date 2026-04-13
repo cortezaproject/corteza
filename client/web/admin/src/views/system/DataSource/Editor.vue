@@ -40,7 +40,6 @@
               <Tab v-if="showDalConfig" value="dal-config">
                 {{ $t('system.data-sources.editor.tabs.dal-config') }}
               </Tab>
-              <Tab value="privacy">{{ $t('system.data-sources.editor.tabs.privacy') }}</Tab>
             </TabList>
 
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
@@ -109,23 +108,6 @@
                       {{ $form.dalConfig.error?.message }}
                     </Message>
                   </FormField>
-                </div>
-              </TabPanel>
-
-              <TabPanel value="privacy">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="flex flex-col gap-2">
-                    <label for="sensitivityLevelID" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.sensitivity-level.label') }}
-                    </label>
-                    <InputText
-                      id="sensitivityLevelID"
-                      v-model="dataSource.config.privacy.sensitivityLevelID"
-                    />
-                    <small class="text-muted-color">
-                      {{ $t('system.data-sources.editor.privacy.sensitivityLevelID.hint') }}
-                    </small>
-                  </div>
                 </div>
               </TabPanel>
             </TabPanels>

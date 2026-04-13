@@ -13,6 +13,8 @@ export const useRecordStore = defineStore('record', () => {
     records: new Map(),
     // Lightweight cache for raw API records used by field viewers (no module required)
     labelCache: new Map(),
+    // Ordered list of record IDs from the last-viewed record list, used for prev/next navigation
+    paginationRecordIDs: [],
   })
 
   /**
@@ -264,6 +266,25 @@ export const useRecordStore = defineStore('record', () => {
   }
 
   /**
+   * Store ordered record IDs from a record list for prev/next navigation.
+   */
+  function setNavigationIDs(ids) {
+    state.paginationRecordIDs = ids || []
+  }
+
+  /**
+   * Get the previous and next record IDs relative to the given recordID.
+   */
+  function getNextAndPrev(recordID) {
+    const idx = state.paginationRecordIDs.indexOf(recordID)
+    if (idx === -1) return { prev: undefined, next: undefined }
+    return {
+      prev: idx > 0 ? state.paginationRecordIDs[idx - 1] : undefined,
+      next: idx < state.paginationRecordIDs.length - 1 ? state.paginationRecordIDs[idx + 1] : undefined,
+    }
+  }
+
+  /**
    * Clear all cached records.
    */
   function clearAll() {
@@ -280,6 +301,7 @@ export const useRecordStore = defineStore('record', () => {
 
     // getters
     getByID,
+    getNextAndPrev,
 
     // actions
     list,
@@ -288,6 +310,7 @@ export const useRecordStore = defineStore('record', () => {
     update,
     delete: deleteRecord,
     resolveRecordLabels,
+    setNavigationIDs,
     clearAll,
   }
 })

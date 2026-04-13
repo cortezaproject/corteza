@@ -24,10 +24,32 @@ import ToastService from 'primevue/toastservice'
 import router from '../router'
 
 /**
+ * Computes PrimeVue's dateFormat (dd/mm/yy, etc) from Intl Locale
+ */
+function getLocaleDateFormat(locale) {
+  try {
+    const parts = new Intl.DateTimeFormat(locale).formatToParts(new Date(2000, 11, 25))
+    let format = ''
+    for (const part of parts) {
+      if (part.type === 'day') format += 'dd'
+      else if (part.type === 'month') format += 'mm'
+      else if (part.type === 'year') format += 'yy'
+      else if (part.type === 'literal') format += part.value
+    }
+    return format
+  } catch {
+    return 'dd/mm/yy'
+  }
+}
+
+/**
  * Sets up PrimeVue with theming and services
  */
-function setupPrimeVue(app, theme) {
+function setupPrimeVue(app, theme, locale) {
   app.use(PrimeVue, {
+    locale: {
+      dateFormat: getLocaleDateFormat(locale),
+    },
     theme: {
       preset: getTheme(theme),
       options: {
@@ -99,7 +121,7 @@ export function setupAndAuthenticate(app) {
 
       return $Settings.init().then(() => {
         setThemes($Settings.get('ui.studio.themes'))
-        setupPrimeVue(app, $Auth.user.meta.theme)
+        setupPrimeVue(app, $Auth.user.meta.theme, locale)
       })
     })
     .catch(err => {

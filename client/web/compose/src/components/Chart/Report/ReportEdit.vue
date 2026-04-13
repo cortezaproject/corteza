@@ -124,7 +124,7 @@
           </div>
         </template>
 
-        <slot name="dimension-options" :index="i" :dimension="d" />
+        <slot name="dimension-options" :index="i" :dimension="d" :field="getField(d)" />
       </div>
     </div>
 
@@ -428,6 +428,11 @@ const legendVisible = computed({
 })
 
 // Methods
+function getField(d) {
+  if (!d.field || !module.value) return undefined
+  return module.value.fields.find(f => f.name === d.field)
+}
+
 function isTemporalField(name) {
   return dimensionFields.value.some(f => f.value === name && f.kind === 'DateTime')
 }
@@ -443,8 +448,20 @@ function onDimFieldChange(f, d) {
 function onMetricFieldChange(field, m) {
   if (field === 'count') {
     m.aggregate = undefined
-  } else if (field && !m.aggregate) {
-    m.aggregate = metricAggregates[0]?.value
+  } else if (field) {
+    const moduleField = module.value?.fields.find(f => f.name === field)
+    if (moduleField && moduleField.options) {
+      const { presetFormat, format, prefix, suffix } = moduleField.options
+      if (!m.formatting) m.formatting = {}
+      if (presetFormat !== undefined) m.formatting.presetFormat = presetFormat
+      if (format !== undefined) m.formatting.format = format
+      if (prefix !== undefined) m.formatting.prefix = prefix
+      if (suffix !== undefined) m.formatting.suffix = suffix
+    }
+
+    if (!m.aggregate) {
+      m.aggregate = metricAggregates[0]?.value
+    }
   }
 }
 

@@ -37,15 +37,6 @@
       >
         <!-- Discovery & Federation Buttons -->
         <Button
-          v-if="module?.moduleID"
-          :label="$t('module.edit.schemaAlterations.title', 'Schema Alterations')"
-          icon="pi pi-database"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="checkSchemaAlterations"
-        />
-        <Button
           :label="$t('module.edit.discoverySettings.title', 'Discovery')"
           icon="pi pi-globe"
           size="small"
@@ -151,8 +142,15 @@
               <Tab value="revisions">
                 {{ $t('module.edit.config.record-revisions.title', 'Record Revisions') }}
               </Tab>
-              <Tab value="privacy">{{ $t('module.edit.config.privacy.title', 'Privacy') }}</Tab>
-              <Tab value="issues">{{ $t('module.edit.issues.tab', 'Issues') }}</Tab>
+              <Tab
+                v-if="hasIssues"
+                value="issues"
+                @click="onIssuesTabClick"
+              >
+                <span class="text-red-500">
+                  {{ $t('module.edit.issues.label', { count: module.issues.length }) }}
+                </span>
+              </Tab>
             </TabList>
 
             <TabPanels>
@@ -162,7 +160,12 @@
                     <label for="name" class="font-medium text-primary">
                       {{ $t('module.general.label.name') }}
                     </label>
-                    <InputText id="name" name="name" v-model="module.name" />
+                    <InputText
+                      id="name"
+                      name="name"
+                      v-model="module.name"
+                      :invalid="!!module.name && !isValidFieldName(module.name)"
+                    />
                     <Message
                       v-if="$form.name?.invalid"
                       severity="error"
@@ -177,7 +180,12 @@
                     <label for="handle" class="font-medium text-primary">
                       {{ $t('module.general.label.handle') }}
                     </label>
-                    <InputText id="handle" name="handle" v-model="module.handle" />
+                    <InputText
+                      id="handle"
+                      name="handle"
+                      v-model="module.handle"
+                      :invalid="!!module.handle && !isValidHandle(module.handle)"
+                    />
                     <Message
                       v-if="$form.handle?.invalid"
                       severity="error"
@@ -207,11 +215,20 @@
                   :fields="fieldTableColumns"
                   :action-items="getFieldActionsMenuItems"
                   :scroll-height="tableScrollHeight"
+                  :reorderable-rows="true"
+                  :row-class="fieldRowClass"
                   empty-message="—"
+                  @row-reorder="onRowReorder"
                 >
                   <template #body-name="{ data }">
                     <span v-if="data.isSystem" class="text-muted-color">{{ data.name }}</span>
-                    <InputText v-else v-model="data.name" class="w-full" size="small" />
+                    <InputText
+                      v-else
+                      v-model="data.name"
+                      class="w-full"
+                      size="small"
+                      :invalid="!!data.name && !isValidFieldName(data.name)"
+                    />
                   </template>
 
                   <template #body-label="{ data }">
@@ -269,15 +286,6 @@
                 <RecordRevisionsSettings :module="module" />
               </TabPanel>
 
-              <TabPanel value="privacy">
-                <DataPrivacySettings
-                  :resource="module"
-                  :connection="{}"
-                  :sensitivityLevels="sensitivityLevels"
-                  :translations="privacyTranslations"
-                />
-              </TabPanel>
-
               <TabPanel value="issues">
                 <ModuleIssues :module="module" />
               </TabPanel>
@@ -328,6 +336,7 @@
     <CFieldConfigurator
       v-model:visible="configuratorVisible"
       :field="activeConfiguratorField"
+      :namespace="namespace"
       @save="onFieldSave"
     />
 
@@ -348,7 +357,6 @@ import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue
 import DalSettings from '@/components/Admin/Module/DalSettings.vue'
 import UniqueValues from '@/components/Admin/Module/UniqueValues.vue'
 import RecordRevisionsSettings from '@/components/Admin/Module/RecordRevisionsSettings.vue'
-import DataPrivacySettings from '@/components/Admin/Module/DataPrivacySettings.vue'
 import FederationSettings from '@/components/Admin/Module/FederationSettings.vue'
 import DiscoverySettings from '@/components/Admin/Module/DiscoverySettings.vue'
 import DalSchemaAlterations from '@/components/Admin/Module/DalSchemaAlterations.vue'
@@ -396,7 +404,6 @@ const fieldTableRef = ref()
 
 // App State Defaults
 const $SystemAPI = inject('$SystemAPI')
-const sensitivityLevels = ref([])
 const federationModal = ref(false)
 const discoveryModal = ref(false)
 const schemaModal = ref(false)
@@ -446,28 +453,10 @@ const permissionsMenuItems = computed(() => {
   ]
 })
 
-const privacyTranslations = computed(() => ({
-  sensitivity: {
-    label: t('module.edit.config.privacy.sensitivity-level.label', 'Sensitivity'),
-    description: t('module.edit.config.privacy.sensitivity-level.description', 'Data access sensitivity'),
-    placeholder: t('module.edit.config.privacy.sensitivity-level.placeholder', 'Select Sensitivity'),
-  },
-  usage: {
-    label: t('module.edit.config.privacy.usage-disclosure.label', 'Usage Disclosure'),
-  },
-}))
-
 function onDiscoverySave(mod) {
   module.value.config = mod.config
   discoveryModal.value = false
   // Flag to maybe save right after discovery save? It's fine to require top level form save.
-}
-
-async function fetchSensitivityLevels() {
-  try {
-    const { set } = await $SystemAPI.dalSensitivityLevelList()
-    sensitivityLevels.value = set || []
-  } catch (e) {}
 }
 
 // Field type options
@@ -537,6 +526,10 @@ const allFieldsForTable = computed(() => {
 // Computed
 const isEdit = computed(() => !!route.params.moduleID)
 
+const hasIssues = computed(() => {
+  return (module.value?.issues || []).length > 0
+})
+
 const pageTitle = computed(() => {
   return isEdit.value ? t('module.edit.edit') : t('module.edit.create')
 })
@@ -566,6 +559,16 @@ const canSave = computed(() => {
   if (isEdit.value && !module.value?.canUpdateModule) return false
   return true
 })
+
+// Valid field/module name: starts with letter, only letters/numbers/underscores
+function isValidFieldName(name) {
+  return /^[A-Za-z][A-Za-z0-9_]*$/.test(name)
+}
+
+// Valid handle: starts with letter, letters/numbers/underscores/dashes/dots, ends with letter/number
+function isValidHandle(handle) {
+  return /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(handle)
+}
 
 // Related Pages - find existing pages for this module
 const recordPage = computed(() => {
@@ -606,6 +609,11 @@ async function loadModule() {
       })
       module.value = new compose.Module({ ...m })
     }
+
+    // Auto-trigger schema alterations check if module has issues (matching Corteza behavior)
+    if ((module.value.issues || []).length > 0) {
+      checkSchemaAlterations()
+    }
   } catch (e) {
     console.error('Failed to load module:', e)
     $toast.toastDanger(t('notification.module.loadFailed'))
@@ -626,6 +634,20 @@ function addField() {
 
 function removeField(index) {
   module.value.fields.splice(index, 1)
+}
+
+function onRowReorder(event) {
+  // Extract only the non-system fields to update module.fields
+  const reordered = (event.value || []).filter(f => !f.isSystem)
+  module.value.fields = reordered
+}
+
+function fieldRowClass(data) {
+  return data.isSystem ? 'system-field-row' : ''
+}
+
+function onIssuesTabClick() {
+  checkSchemaAlterations()
 }
 
 function getFieldActionsMenuItems(field, index) {
@@ -857,7 +879,6 @@ function updateTableScrollHeight() {
 
 onMounted(() => {
   loadModule()
-  fetchSensitivityLevels()
 
   // Observe layout changes to recalculate scroll height
   updateTableScrollHeight()
@@ -898,3 +919,10 @@ function exportModule() {
   URL.revokeObjectURL(url)
 }
 </script>
+
+<style scoped>
+:deep(.system-field-row) .p-datatable-reorderable-row-handle {
+  visibility: hidden;
+  pointer-events: none;
+}
+</style>

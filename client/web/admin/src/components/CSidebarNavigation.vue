@@ -139,13 +139,6 @@ const navItems = computed(() => [
 
   // Policy & Monitoring
   {
-    _id: 'sensitivity-levels',
-    _parentId: 'system',
-    _label: t('navigation.system.items.sensitivityLevel'),
-    _icon: 'pi pi-shield',
-    _route: { name: 'system.sensitivityLevels' },
-  },
-  {
     _id: 'labels',
     _parentId: 'system',
     _label: t('navigation.system.items.labels'),

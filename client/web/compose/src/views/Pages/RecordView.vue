@@ -68,6 +68,24 @@
           />
         </div>
 
+        <!-- Center: prev/next navigation -->
+        <div v-if="mode === 'view' && (recordNavigation.prev || recordNavigation.next)" class="flex gap-1">
+          <Button
+            icon="pi pi-chevron-left"
+            severity="secondary"
+            :disabled="!recordNavigation.prev"
+            :title="$t('recordNavigation.prev')"
+            @click="navigateToRecord(recordNavigation.prev)"
+          />
+          <Button
+            icon="pi pi-chevron-right"
+            severity="secondary"
+            :disabled="!recordNavigation.next"
+            :title="$t('recordNavigation.next')"
+            @click="navigateToRecord(recordNavigation.next)"
+          />
+        </div>
+
         <!-- Right side -->
         <div class="flex gap-2">
           <!-- Delete button (view mode or edit mode for existing records) -->
@@ -184,6 +202,24 @@ const formRef = ref(null)
 const serverErrors = ref({})
 
 const loading = ref(false)
+
+const recordNavigation = computed(() => {
+  const recordID = props.inModal ? props.modalRecordID : route.params.recordID
+  if (!recordID || recordID === '0') return {}
+  return recordStore.getNextAndPrev(recordID)
+})
+
+function navigateToRecord(targetRecordID) {
+  if (!targetRecordID) return
+  if (props.inModal) {
+    router.push({ query: { ...route.query, recordID: targetRecordID, edit: undefined } })
+  } else {
+    router.push({
+      name: 'page.record',
+      params: { slug: route.params.slug, pageID: route.params.pageID, recordID: targetRecordID },
+    })
+  }
+}
 const deleting = ref(false)
 const isSaving = ref(false)
 const page = ref(null)
@@ -513,10 +549,22 @@ function handleCancel() {
   }
 
   if (mode.value === 'create') {
-    router.back()
+    goBack()
   } else {
     // Return to view mode (remove edit query)
     router.replace({ query: {} })
+  }
+}
+
+function goBack() {
+  // If we have history, go back. Otherwise navigate to the namespace pages.
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push({
+      name: 'pages',
+      params: { slug: route.params.slug },
+    })
   }
 }
 
@@ -534,7 +582,7 @@ async function handleDelete() {
     if (props.inModal) {
       emit('close')
     } else {
-      router.back()
+      goBack()
     }
   } catch (e) {
     console.error('Failed to delete record:', e)

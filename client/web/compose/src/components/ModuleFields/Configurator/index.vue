@@ -13,22 +13,36 @@
     @update:visible="emit('update:visible', $event)"
   >
     <Tabs v-if="mockField" v-model:value="activeTab" class="flex flex-col flex-1 min-h-0">
-      <TabList class="shrink-0 z-10">
+      <TabList class="shrink-0 z-10 w-full overflow-x-auto whitespace-nowrap">
         <Tab value="basic">{{ $t('general.label.general') }}</Tab>
         <Tab v-if="hasKindSettings" value="kind">
           {{ $t(`general.fieldKinds.${mockField.kind}.label`) }}
         </Tab>
+        <Tab v-if="mockField.cap?.multi" :disabled="!mockField.isMulti" value="multi">
+          {{ $t('field.label.multi') }}
+        </Tab>
+        <Tab value="validation">{{ $t('field.validators.label') }}</Tab>
       </TabList>
 
-      <TabPanels class="flex-1 overflow-y-auto">
+      <TabPanels class="flex-1 overflow-y-auto w-full">
         <!-- General Settings -->
         <TabPanel value="basic" class="px-0">
-          <CConfiguratorBasic :field="mockField" />
+          <CConfiguratorBasic :field="mockField" :namespace="namespace" />
         </TabPanel>
 
         <!-- Field-Specific Settings -->
         <TabPanel v-if="hasKindSettings" value="kind" class="px-0">
           <component :is="kindComponent" :field="mockField" />
+        </TabPanel>
+
+        <!-- Multi-Value -->
+        <TabPanel v-if="mockField.cap?.multi" value="multi" class="px-0">
+          <CConfiguratorMultiDelimiter :field="mockField" />
+        </TabPanel>
+
+        <!-- Validation -->
+        <TabPanel value="validation" class="px-0">
+          <CConfiguratorValidation :field="mockField" />
         </TabPanel>
       </TabPanels>
     </Tabs>
@@ -51,7 +65,12 @@
 <script setup>
 import { compose } from '@cortezaproject/corteza-js-next'
 import { computed, ref, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CConfiguratorBasic from './CConfiguratorBasic.vue'
+import CConfiguratorValidation from './CConfiguratorValidation.vue'
+import CConfiguratorMultiDelimiter from './CConfiguratorMultiDelimiter.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   visible: {
@@ -59,6 +78,10 @@ const props = defineProps({
     default: false,
   },
   field: {
+    type: Object,
+    default: null,
+  },
+  namespace: {
     type: Object,
     default: null,
   },

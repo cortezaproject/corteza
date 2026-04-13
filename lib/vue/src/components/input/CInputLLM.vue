@@ -68,7 +68,9 @@ async function fetchProviders() {
 
     const result = await response()
     const all = Array.isArray(result) ? result : result.set || []
-    options.value = all.filter(p => !p.deletedAt && p.status === 'active')
+    options.value = all
+      .filter(p => !p.deletedAt && p.status === 'active')
+      .sort((a, b) => (getOptionLabel(a) || '').localeCompare(getOptionLabel(b) || ''))
   } catch (e) {
     if (e?.message !== 'canceled') {
       options.value = []

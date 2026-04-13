@@ -241,7 +241,7 @@
                   @click="emit('select', { scope: step.handle, source: result.sourceName })"
                 >
                   <span
-                    class="text-sm capitalize"
+                    class="text-sm capitalize italic"
                     :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
                   >
                     {{ result.name }}
@@ -403,10 +403,18 @@ function fieldKey(step, result) {
 }
 
 // Type compatibility check
+// Scalar types that can always be represented as String
+const STRINGABLE_TYPES = ['ID', 'Boolean', 'Integer', 'UnsignedInteger', 'Float', 'DateTime', 'Handle', 'String']
+
 function typesOverlap(acceptedTypes, resultTypes) {
   if (!acceptedTypes?.length || acceptedTypes.includes('Any')) return true
   if (!resultTypes?.length) return true
-  return acceptedTypes.some(t => resultTypes.includes(t))
+  if (acceptedTypes.some(t => resultTypes.includes(t))) return true
+
+  // String accepts any scalar type (IDs, booleans, dates, etc. are all stringifiable)
+  if (acceptedTypes.includes('String') && resultTypes.some(t => STRINGABLE_TYPES.includes(t))) return true
+
+  return false
 }
 
 // Filtered results based on active argument's accepted types
@@ -426,6 +434,9 @@ const filteredResults = computed(() => {
         if (result.expandable) {
           // Show expandable if param accepts the parent type (e.g. ComposeRecord)
           if (typesOverlap(accepted, result.types)) return true
+
+          // String inputs can reference any sub-value (IDs, dates, etc. are all stringifiable)
+          if (accepted.includes('String')) return true
 
           // Or if any sub-field kind matches the accepted types
           const fields = recordFields[fieldKey(step, result)] || []

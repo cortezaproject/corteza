@@ -1014,7 +1014,7 @@ const emptyAgent = () => ({
   behavior: {
     systemPrompt: '',
     guardrails: [],
-    treatyCLEnabled: true,
+    treatyCLEnabled: false,
     tclTemperature: 5,
     tclArticles: [],
     injectSystemContext: true,

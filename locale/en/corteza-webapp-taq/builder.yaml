@@ -58,6 +58,13 @@ toast:
   runError:
     summary: Error
     detail: Failed to run automation
+  scopeError:
+    summary: Scope Error
+    detail: Failed to fetch execution scope. Ensure your selections are valid.
+
+runModal:
+  header: Execution Scope
+  description: Provide initial variables to execute triggers that expect a specific scope.
 
 nodePicker:
   searchTriggers: Search triggers...
@@ -102,6 +109,7 @@ fieldValueMap:
 
 configSidebar:
   node: Node
+  noDescription: Add a description...
   branches: Branches
   addElseIf: Add Else If Branch
   deleteNode: Delete Node
@@ -155,6 +163,7 @@ nodes:
   branch: Branch
   iterator: Loop
   end: End
+  loop: Loop
   startAutomation: Start automation
   splitFlow: Split flow
   menu:

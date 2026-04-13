@@ -140,6 +140,32 @@
               class="w-full"
             />
           </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.formatting.presetFormats.label') }}
+            </label>
+            <Select
+              v-model="r.yAxis.formatting.presetFormat"
+              :options="formatOptions"
+              option-label="text"
+              option-value="value"
+              class="w-full"
+            />
+            <small v-if="r.yAxis.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
+              {{ $t(`chart.edit.formatting.presetFormats.description.${r.yAxis.formatting.presetFormat}`) }}
+            </small>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.formatting.format.label') }}
+            </label>
+            <InputText 
+              v-model="r.yAxis.formatting.format" 
+              :disabled="r.yAxis.formatting.presetFormat !== 'custom'" 
+              :placeholder="$t('chart.edit.formatting.format.placeholder')" 
+              class="w-full" 
+            />
+          </div>
         </div>
       </div>
     </template>
@@ -259,6 +285,107 @@
             class="w-full"
           />
         </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('chart.edit.formatting.presetFormats.label') }}
+          </label>
+          <Select
+            v-model="metric.formatting.presetFormat"
+            :options="formatOptions"
+            option-label="text"
+            option-value="value"
+            class="w-full"
+          />
+          <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
+            {{ $t(`chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`) }}
+          </small>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('chart.edit.formatting.format.label') }}
+          </label>
+          <InputText 
+            v-model="metric.formatting.format" 
+            :disabled="metric.formatting.presetFormat !== 'custom'" 
+            :placeholder="$t('chart.edit.formatting.format.placeholder')" 
+            class="w-full" 
+          />
+        </div>
+      </div>
+    </template>
+
+    <template #additional-config="{ report: r, hasAxis }">
+      <Divider />
+      <div class="px-3">
+        <h5 class="mb-3">
+          {{ $t('chart.edit.additionalConfig.tooltip.label') }}
+        </h5>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.tooltip.formatting.label') }}
+            </label>
+            <InputText
+              v-model="r.tooltip.formatting"
+              :placeholder="$t('chart.edit.additionalConfig.tooltip.formatting.placeholder')"
+              class="w-full"
+            />
+            <small class="text-muted-color">
+              {{ $t('chart.edit.additionalConfig.tooltip.formatting.description') }}
+            </small>
+          </div>
+
+          <div v-if="!hasAxis" class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.tooltip.labelNextToChart') }}
+            </label>
+            <div class="flex items-center gap-2 mt-2">
+              <ToggleSwitch v-model="r.tooltip.labelsNextToPartition" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Divider />
+
+      <div class="px-3 mb-2">
+        <h5 class="mb-3">
+          {{ $t('chart.edit.additionalConfig.offset.label') }}
+        </h5>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.offset.default') }}
+            </label>
+            <div class="flex items-center gap-2 mt-2">
+              <ToggleSwitch v-model="r.offset.isDefault" />
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!r.offset.isDefault" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.top') }}</label>
+            <InputText v-model="r.offset.top" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.right') }}</label>
+            <InputText v-model="r.offset.right" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.bottom') }}</label>
+            <InputText v-model="r.offset.bottom" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.left') }}</label>
+            <InputText v-model="r.offset.left" class="w-full" />
+          </div>
+          <div class="col-span-1 lg:col-span-2">
+            <small class="text-muted-color">{{ $t('chart.edit.additionalConfig.offset.valueRange') }}</small>
+          </div>
+        </div>
       </div>
     </template>
   </ReportEdit>
@@ -294,6 +421,11 @@ const props = defineProps({
 defineEmits(['update:report'])
 
 const ignoredCharts = ['funnel', 'gauge', 'radar']
+
+const formatOptions = [
+  { value: 'custom', text: t('chart.edit.formatting.presetFormats.options.custom') },
+  { value: 'accounting', text: t('chart.edit.formatting.presetFormats.options.accounting') },
+]
 
 const chartTypes = Object.values(compose.chartUtil.ChartType)
   .filter(v => !ignoredCharts.includes(v))

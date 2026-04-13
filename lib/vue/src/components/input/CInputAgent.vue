@@ -68,7 +68,9 @@ async function fetchAgents() {
     const result = await response()
     const agents = Array.isArray(result) ? result : result.set || []
     
-    options.value = agents.map(a => ({ ...a, label: getOptionLabel(a) }))
+    options.value = agents
+      .map(a => ({ ...a, label: getOptionLabel(a) }))
+      .sort((a, b) => (a.label || '').localeCompare(b.label || ''))
 
     if (props.modelValue && props.modelValue !== '0') {
       if (!options.value.some(a => a.agentID === props.modelValue)) {

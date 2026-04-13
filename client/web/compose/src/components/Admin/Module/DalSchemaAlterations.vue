@@ -51,7 +51,7 @@
               :label="$t('general.label.resolve')"
               size="small"
               :disabled="!canResolve(data) || processing"
-              @click.stop="onResolve(data)"
+              @click.stop="confirmResolve(data)"
             />
             <Button
               :label="$t('general.label.dismiss')"
@@ -59,7 +59,7 @@
               text
               size="small"
               :disabled="!canDismiss(data) || processing"
-              @click.stop="onDismiss(data)"
+              @click.stop="confirmDismiss(data)"
             />
           </div>
         </template>
@@ -67,7 +67,7 @@
     </DataTable>
 
     <template #footer>
-      <div class="flex justify-end gap-2 px-4 py-3 border-t border-surface bg-surface -mx-6 -mb-6 mt-4">
+      <div class="flex justify-end gap-2">
         <Button
           :label="canResolveAlterations ? $t('general.label.cancel') : $t('general.label.close')"
           severity="secondary"
@@ -79,7 +79,7 @@
           v-if="canResolveAlterations"
           :label="$t('module.edit.schemaAlterations.resolveAuto')"
           :loading="processing"
-          @click="onResolve()"
+          @click="confirmResolve()"
         />
       </div>
     </template>
@@ -89,6 +89,7 @@
 <script setup>
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
 
 const props = defineProps({
   modal: {
@@ -107,6 +108,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modal'])
 const { t } = useI18n()
+const { confirmDelete: confirm } = useConfirmDelete()
 const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')
 
@@ -173,6 +175,22 @@ async function load(...batchID) {
   } finally {
     loading.value = false
   }
+}
+
+function confirmResolve(alteration) {
+  confirm({
+    message: t('module.edit.schemaAlterations.confirmResolve', 'Are you sure you want to apply this schema alteration?'),
+    header: t('general.label.resolve'),
+    onConfirm: () => onResolve(alteration),
+  })
+}
+
+function confirmDismiss(alteration) {
+  confirm({
+    message: t('module.edit.schemaAlterations.confirmDismiss', 'Are you sure you want to dismiss this schema alteration?'),
+    header: t('general.label.dismiss'),
+    onConfirm: () => onDismiss(alteration),
+  })
 }
 
 async function onDismiss(alteration) {

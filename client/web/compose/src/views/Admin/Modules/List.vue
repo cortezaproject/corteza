@@ -48,6 +48,11 @@
             severity="secondary"
             @click="exportAllModules"
           />
+          <ModuleImporter
+            v-if="namespace?.canCreateModule"
+            :namespace="namespace"
+            @imported="filterList"
+          />
           <CPermissionsButton
             v-if="canGrant"
             v-tooltip.bottom="$t('general.label.permissions')"
@@ -92,6 +97,7 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import ModuleImporter from '@/components/Modules/ModuleImporter.vue'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters

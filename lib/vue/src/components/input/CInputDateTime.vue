@@ -6,7 +6,6 @@
     :min-date="minDate"
     :max-date="maxDate"
     :disabled="disabled"
-    date-format="yy-mm-dd"
     show-icon
     fluid
     :size="size"
