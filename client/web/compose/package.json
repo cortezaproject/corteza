@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-compose",
-  "version": "2026.3.0-dev.11",
+  "version": "2026.3.0-dev.12",
   "private": true,
   "type": "module",
   "scripts": {
