@@ -192,9 +192,10 @@ func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
 	}
 	nsStr := parts[1]
 	if nsStr == "*" {
-		// Wildcard namespace means a listing/discovery operation (no specific namespace
-		// was provided). Allow it — the tool is already in the agent's allow-list.
-		return Decision{Allowed: true}
+		// The executor already errors out early when the LLM provides an invalid namespace,
+		// so reaching "*" here means no namespace was provided at all.
+		// Deny — when an explicit allow-list is present a namespace must be specified.
+		return Decision{Allowed: false, Reason: "namespace is required but was not specified"}
 	}
 	modStr := ""
 	if len(parts) > 2 {

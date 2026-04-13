@@ -93,7 +93,7 @@ func (r *Registry) HasTool(name string) bool {
 	return ok
 }
 
-func (r *Registry) RegisterResource(resource mcp.Resource, handler server.ResourceHandlerFunc){
+func (r *Registry) RegisterResource(resource mcp.Resource, handler server.ResourceHandlerFunc) {
 	r.resources[resource.URI] = registeredResource{Resource: resource, Handler: handler}
 }
 
@@ -103,6 +103,7 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 	}
 
 	// nil means no filter — return all non-hidden registered tools
+	// @note should this be len(allowedTools) == 0 instead? Depends on the caller logic
 	if allowedTools == nil {
 		out := make([]rt.Tool, 0, len(r.tools))
 		for _, t := range r.tools {
@@ -122,7 +123,10 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 	out := make([]rt.Tool, 0, len(allowedTools))
 	for _, name := range allowedTools {
 		t, ok := r.tools[ResolveToolAlias(name)]
-		if !ok || !isAvailable(t) {
+		if !ok {
+			return nil, fmt.Errorf("tool not found: %s", name)
+		}
+		if !isAvailable(t) {
 			continue
 		}
 		out = append(out, rt.Tool{

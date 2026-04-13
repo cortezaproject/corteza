@@ -518,7 +518,21 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			// the LLM may have hallucinated (those aren't schema parameters).
 			delete(policyArgs, "namespaceID")
 			delete(policyArgs, "moduleID")
-			if nsID, modID, err := r.nsModResolver.Resolve(ctx, ns, mod); err == nil {
+			if ns != "" {
+				nsID, modID, resolveErr := r.nsModResolver.Resolve(ctx, ns, mod)
+				if resolveErr != nil {
+					// Fail early — don't let an unresolvable namespace fall through to the
+					// wildcard policy path. Return a descriptive error so the LLM can self-correct.
+					errMsg := resolveErr.Error()
+					infos = append(infos, ToolCallInfo{Tool: tc.Name, Args: tc.Args, Error: errMsg})
+					messages = append(messages, types.AiConversationMessage{
+						Role: "tool",
+						ToolResults: []types.AiConversationToolResult{
+							{CallID: tc.ID, Data: errMsg, Error: errMsg},
+						},
+					})
+					continue
+				}
 				policyArgs["namespaceID"] = strconv.FormatUint(nsID, 10)
 				policyArgs["moduleID"] = strconv.FormatUint(modID, 10)
 			}
