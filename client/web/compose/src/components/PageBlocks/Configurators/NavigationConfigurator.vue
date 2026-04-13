@@ -48,34 +48,46 @@
       />
     </div>
 
-    <div v-for="(item, index) in navItems" :key="index" class="border border-surface rounded-border p-3">
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <div class="flex flex-col gap-1">
-            <Button
-              icon="pi pi-chevron-up"
-              text rounded size="small" severity="secondary"
-              :disabled="index === 0"
-              @click="moveItem(index, -1)"
-            />
-            <Button
-              icon="pi pi-chevron-down"
-              text rounded size="small" severity="secondary"
-              :disabled="index === navItems.length - 1"
-              @click="moveItem(index, 1)"
-            />
-          </div>
+    <Panel
+      v-for="(item, index) in navItems"
+      :key="index"
+      :header="item.options?.item?.label || $t('block.navigation.newItem', 'New item')"
+      toggleable
+    >
+      <template #icons>
+        <Button
+          icon="pi pi-chevron-up"
+          text rounded size="small" severity="secondary"
+          :disabled="index === 0"
+          @click="moveItem(index, -1)"
+        />
+        <Button
+          icon="pi pi-chevron-down"
+          text rounded size="small" severity="secondary"
+          :disabled="index === navItems.length - 1"
+          @click="moveItem(index, 1)"
+        />
+        <Button
+          icon="pi pi-trash"
+          text rounded size="small" severity="danger"
+          @click="removeNavItem(index)"
+        />
+      </template>
 
-          <span class="text-sm font-medium flex-1">#{{ index + 1 }}</span>
-          <Button
-            icon="pi pi-trash"
-            text rounded size="small" severity="danger"
-            @click="removeNavItem(index)"
+      <div class="flex flex-col gap-2">
+        <!-- Label -->
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">{{ $t('block.navigation.fieldLabel') }}</label>
+          <InputText
+            :model-value="item.options?.item?.label || ''"
+            class="w-full"
+            @update:model-value="updateNavItemOption(index, 'label', $event)"
           />
         </div>
 
+        <!-- Type selector -->
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('block.navigation.type') }}</label>
+          <label class="text-primary font-medium text-sm">{{ $t('block.navigation.type') }}</label>
           <Select
             :model-value="item.type"
             :options="typeOptions"
@@ -86,45 +98,156 @@
           />
         </div>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('block.navigation.fieldLabel') }}</label>
-          <InputText
-            :model-value="item.options?.item?.label || ''"
-            class="w-full"
-            @update:model-value="updateNavItemLabel(index, $event)"
-          />
-        </div>
-
-        <div v-if="item.type === 'url'" class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('block.navigation.url') }}</label>
-          <InputText
-            :model-value="item.options?.item?.url || ''"
-            placeholder="https://"
-            class="w-full"
-            @update:model-value="updateNavItemUrl(index, $event)"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
+        <!-- URL type: URL input + target -->
+        <template v-if="item.type === 'url'">
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.navigation.textColor') }}</label>
-            <CInputColorPicker
-              :model-value="item.options?.item?.textColor || ''"
-              show-text
-              @update:model-value="updateNavItemStyle(index, 'textColor', $event)"
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.url') }}</label>
+            <InputText
+              :model-value="item.options?.item?.url || ''"
+              placeholder="https://"
+              class="w-full"
+              @update:model-value="updateNavItemOption(index, 'url', $event)"
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.navigation.backgroundColor') }}</label>
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target', 'Open in') }}</label>
+            <Select
+              :model-value="item.options?.item?.target || 'sameTab'"
+              :options="targetOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              @update:model-value="updateNavItemOption(index, 'target', $event)"
+            />
+          </div>
+        </template>
+
+        <!-- Compose Page type: page selector + options -->
+        <template v-else-if="item.type === 'compose'">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.composePage', 'Page') }}</label>
+            <Select
+              :model-value="item.options?.item?.pageID || null"
+              :options="pageOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('block.navigation.selectPage', 'Select page')"
+              filter
+              show-clear
+              class="w-full"
+              @update:model-value="updateNavItemOption(index, 'pageID', $event)"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target', 'Open in') }}</label>
+            <Select
+              :model-value="item.options?.item?.target || 'sameTab'"
+              :options="targetOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              @update:model-value="updateNavItemOption(index, 'target', $event)"
+            />
+          </div>
+          <CInputSwitch
+            :model-value="!!item.options?.item?.displaySubPages"
+            :label="$t('block.navigation.displaySubPages', 'Show as dropdown with sub-pages')"
+            @update:model-value="updateNavItemOption(index, 'displaySubPages', $event)"
+          />
+        </template>
+
+        <!-- Dropdown type: dropdown label + items -->
+        <template v-else-if="item.type === 'dropdown'">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownLabel', 'Dropdown button label') }}</label>
+            <InputText
+              :model-value="item.options?.item?.dropdown?.label || ''"
+              class="w-full"
+              @update:model-value="updateDropdownLabel(index, $event)"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownItems', 'Items') }}</label>
+              <Button
+                :label="$t('general.label.add')"
+                icon="pi pi-plus"
+                size="small"
+                severity="secondary"
+                text
+                @click="addDropdownItem(index)"
+              />
+            </div>
+
+            <div
+              v-for="(dItem, dIndex) in (item.options?.item?.dropdown?.items || [])"
+              :key="dIndex"
+              class="border border-surface rounded-border p-2 flex flex-col gap-2"
+            >
+              <div class="flex items-center justify-between">
+                <CInputSwitch
+                  :model-value="!!dItem.delimiter"
+                  :label="$t('block.navigation.delimiter', 'Separator')"
+                  @update:model-value="updateDropdownItem(index, dIndex, 'delimiter', $event)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  text rounded size="small" severity="danger"
+                  @click="removeDropdownItem(index, dIndex)"
+                />
+              </div>
+
+              <template v-if="!dItem.delimiter">
+                <InputText
+                  :model-value="dItem.label || ''"
+                  :placeholder="$t('block.navigation.fieldLabel')"
+                  class="w-full"
+                  size="small"
+                  @update:model-value="updateDropdownItem(index, dIndex, 'label', $event)"
+                />
+                <InputText
+                  :model-value="dItem.url || ''"
+                  placeholder="https://"
+                  class="w-full"
+                  size="small"
+                  @update:model-value="updateDropdownItem(index, dIndex, 'url', $event)"
+                />
+                <Select
+                  :model-value="dItem.target || 'sameTab'"
+                  :options="targetOptions"
+                  option-label="label"
+                  option-value="value"
+                  class="w-full"
+                  size="small"
+                  @update:model-value="updateDropdownItem(index, dIndex, 'target', $event)"
+                />
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- Text and Background Colours (all types) -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.textColor') }}</label>
+            <CInputColorPicker
+              :model-value="item.options?.item?.textColor || ''"
+              show-text
+              @update:model-value="updateNavItemOption(index, 'textColor', $event)"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.backgroundColor') }}</label>
             <CInputColorPicker
               :model-value="item.options?.item?.backgroundColor || ''"
               show-text
-              @update:model-value="updateNavItemStyle(index, 'backgroundColor', $event)"
+              @update:model-value="updateNavItemOption(index, 'backgroundColor', $event)"
             />
           </div>
         </div>
       </div>
-    </div>
+    </Panel>
   </div>
 </template>
 
@@ -132,8 +255,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@cortezaproject/corteza-vue-next'
+import { usePageStore } from '@/stores/page'
 
-const { CInputColorPicker } = components
+const { CInputColorPicker, CInputSwitch } = components
 
 const { t } = useI18n()
 
@@ -144,6 +268,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:block'])
+
+const pageStore = usePageStore()
 
 const typeOptions = [
   { value: 'url', label: t('block.navigation.url') },
@@ -168,6 +294,18 @@ const justifyOptions = [
   { value: 'justify', label: t('block.navigation.justify') },
   { value: 'none', label: t('block.navigation.none') },
 ]
+
+const targetOptions = [
+  { value: 'sameTab', label: t('block.navigation.sameTab', 'Same tab') },
+  { value: 'newTab', label: t('block.navigation.newTab', 'New tab') },
+]
+
+const pageOptions = computed(() => {
+  return (pageStore.set || []).map(p => ({
+    value: p.pageID,
+    label: p.title || p.handle || p.pageID,
+  }))
+})
 
 const navItems = computed(() => props.block.options?.navigationItems || [])
 
@@ -213,37 +351,83 @@ function updateNavItem(index, key, value) {
   updateOptions('navigationItems', items)
 }
 
-function updateNavItemLabel(index, label) {
+// Update a field inside item.options.item
+function updateNavItemOption(index, key, value) {
   const items = [...navItems.value]
   items[index] = {
     ...items[index],
     options: {
       ...items[index].options,
-      item: { ...items[index].options?.item, label },
+      item: { ...items[index].options?.item, [key]: value },
     },
   }
   updateOptions('navigationItems', items)
 }
 
-function updateNavItemUrl(index, url) {
+function updateDropdownLabel(index, label) {
   const items = [...navItems.value]
+  const dropdown = items[index].options?.item?.dropdown || {}
   items[index] = {
     ...items[index],
     options: {
       ...items[index].options,
-      item: { ...items[index].options?.item, url },
+      item: {
+        ...items[index].options?.item,
+        dropdown: { ...dropdown, label },
+      },
     },
   }
   updateOptions('navigationItems', items)
 }
 
-function updateNavItemStyle(index, styleKey, value) {
+function addDropdownItem(index) {
   const items = [...navItems.value]
+  const dropdown = items[index].options?.item?.dropdown || { label: '', items: [] }
+  const dItems = [...(dropdown.items || []), { label: '', url: '', target: 'sameTab', delimiter: false }]
   items[index] = {
     ...items[index],
     options: {
       ...items[index].options,
-      item: { ...items[index].options?.item, [styleKey]: value },
+      item: {
+        ...items[index].options?.item,
+        dropdown: { ...dropdown, items: dItems },
+      },
+    },
+  }
+  updateOptions('navigationItems', items)
+}
+
+function removeDropdownItem(index, dIndex) {
+  const items = [...navItems.value]
+  const dropdown = items[index].options?.item?.dropdown || {}
+  const dItems = [...(dropdown.items || [])]
+  dItems.splice(dIndex, 1)
+  items[index] = {
+    ...items[index],
+    options: {
+      ...items[index].options,
+      item: {
+        ...items[index].options?.item,
+        dropdown: { ...dropdown, items: dItems },
+      },
+    },
+  }
+  updateOptions('navigationItems', items)
+}
+
+function updateDropdownItem(index, dIndex, key, value) {
+  const items = [...navItems.value]
+  const dropdown = items[index].options?.item?.dropdown || {}
+  const dItems = [...(dropdown.items || [])]
+  dItems[dIndex] = { ...dItems[dIndex], [key]: value }
+  items[index] = {
+    ...items[index],
+    options: {
+      ...items[index].options,
+      item: {
+        ...items[index].options?.item,
+        dropdown: { ...dropdown, items: dItems },
+      },
     },
   }
   updateOptions('navigationItems', items)

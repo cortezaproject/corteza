@@ -176,9 +176,7 @@ function onFilter(event) {
 }
 
 function onShow() {
-  if (options.value.length === 0) {
-    fetchUsers()
-  }
+  fetchUsers()
 }
 
 function goToPage(next) {

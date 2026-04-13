@@ -17,7 +17,8 @@ export function ModuleFieldMaker(i: { kind?: string }): ModuleField {
   }
 
   if (!Registry.has(i.kind)) {
-    throw new Error(`unknown module field kind '${i.kind}'`)
+    // Unknown field kind — return a plain ModuleField so the module can still load
+    return new ModuleField(i)
   }
 
   return new (Registry.get(i.kind) as typeof ModuleField)(i)

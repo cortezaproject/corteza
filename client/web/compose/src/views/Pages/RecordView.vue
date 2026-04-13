@@ -73,16 +73,18 @@
           <Button
             icon="pi pi-chevron-left"
             severity="secondary"
-            :disabled="!recordNavigation.prev"
+            :disabled="!recordNavigation.prev || navigating !== null"
+            :loading="navigating === 'prev'"
             :title="$t('recordNavigation.prev')"
-            @click="navigateToRecord(recordNavigation.prev)"
+            @click="navigateToRecord(recordNavigation.prev, 'prev')"
           />
           <Button
             icon="pi pi-chevron-right"
             severity="secondary"
-            :disabled="!recordNavigation.next"
+            :disabled="!recordNavigation.next || navigating !== null"
+            :loading="navigating === 'next'"
             :title="$t('recordNavigation.next')"
-            @click="navigateToRecord(recordNavigation.next)"
+            @click="navigateToRecord(recordNavigation.next, 'next')"
           />
         </div>
 
@@ -206,10 +208,18 @@ const loading = ref(false)
 const recordNavigation = computed(() => {
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
   if (!recordID || recordID === '0') return {}
-  return recordStore.getNextAndPrev(recordID)
+  // Access the ref directly so Vue tracks it as a reactive dependency
+  const ids = recordStore.paginationRecordIDs
+  const idx = ids.indexOf(recordID)
+  if (idx === -1) return {}
+  return {
+    prev: idx > 0 ? ids[idx - 1] : undefined,
+    next: idx < ids.length - 1 ? ids[idx + 1] : undefined,
+  }
 })
 
-function navigateToRecord(targetRecordID) {
+function navigateToRecord(targetRecordID, direction) {
+  navigating.value = direction
   if (!targetRecordID) return
   if (props.inModal) {
     router.push({ query: { ...route.query, recordID: targetRecordID, edit: undefined } })
@@ -297,6 +307,33 @@ const positionedBlocks = computed(() => {
     })
     .filter(Boolean)
 })
+
+const navigating = ref(null) // 'prev' | 'next' | null
+
+async function loadRecord(recordID) {
+  if (!page.value || !recordID || recordID === '0') return
+  const moduleID = page.value.moduleID
+  if (!moduleID) return
+  const mod = moduleStore.getByID(moduleID)
+  if (!mod) return
+
+  try {
+    const loaded = await recordStore.findByID({
+      namespaceID: mod.namespaceID,
+      moduleID: mod.moduleID,
+      recordID,
+      force: true,
+    })
+    pristineRecord.value = loaded
+    record.value = loaded
+    serverErrors.value = {}
+  } catch (e) {
+    console.error('Failed to load record:', e)
+    record.value = null
+  } finally {
+    navigating.value = null
+  }
+}
 
 async function loadPage() {
   const pageID = props.inModal ? props.modalPageID : route.params.pageID
@@ -548,11 +585,11 @@ function handleCancel() {
     return
   }
 
-  if (mode.value === 'create') {
-    goBack()
-  } else {
-    // Return to view mode (remove edit query)
+  if (mode.value === 'edit') {
+    // Cancel edit — return to view mode by removing the edit query param
     router.replace({ query: {} })
+  } else {
+    goBack()
   }
 }
 
@@ -661,7 +698,15 @@ watch(
     props.inModal ? props.modalRecordID : route.params.recordID,
     route.query.cloneFromID
   ],
-  () => loadPage(),
+  ([newPageID, newRecordID, newCloneFromID], old) => {
+    const [oldPageID, , oldCloneFromID] = old || []
+    // If only the recordID changed (same page, no clone transition), just swap the record
+    if (old && newPageID === oldPageID && newCloneFromID === oldCloneFromID && page.value) {
+      loadRecord(newRecordID)
+    } else {
+      loadPage()
+    }
+  },
   { immediate: true },
 )
 

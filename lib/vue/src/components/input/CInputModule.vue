@@ -126,7 +126,7 @@ async function fetchModules() {
 }
 
 function onShow() {
-  if (options.value.length === 0 && props.namespaceID) {
+  if (props.namespaceID) {
     fetchModules()
   }
 }

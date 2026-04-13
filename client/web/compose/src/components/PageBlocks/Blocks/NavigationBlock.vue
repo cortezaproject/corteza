@@ -52,6 +52,14 @@
             >
               {{ navItem.options?.item?.label || '' }}
             </a>
+            <!-- Text section: non-clickable label -->
+            <span
+              v-else-if="navItem.type === 'text-section'"
+              class="flex items-center px-3 py-2 text-sm"
+              :style="itemStyle(navItem)"
+            >
+              {{ navItem.options?.item?.label || '' }}
+            </span>
           </template>
         </template>
       </div>
@@ -78,12 +86,13 @@ const navigationItems = computed(() => options.value.navigationItems || [])
 const display = computed(() => options.value.display || {})
 
 const navContainerClass = computed(() => {
-  const classes = ['gap-1']
+  const classes = ['gap-1', 'items-center']
   const { alignment, justify, appearance } = display.value
 
   if (justify === 'justify') classes.push('justify-between')
-  else if (alignment === 'center') classes.push('justify-center')
   else if (alignment === 'right') classes.push('justify-end')
+  else if (alignment === 'left') classes.push('justify-start')
+  else classes.push('justify-center')
 
   if (appearance === 'pills') classes.push('nav-pills')
   if (appearance === 'tabs') classes.push('nav-tabs')

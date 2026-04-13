@@ -7,7 +7,8 @@ export { DisplayElementMetric } from './metric'
 export function DisplayElementMaker<T extends DisplayElement>(i: { kind: string }): T {
   const DisplayElementTemp = Registry.get(i.kind)
   if (DisplayElementTemp === undefined) {
-    throw new Error(`unknown display element kind '${i.kind}'`)
+    // Unknown display element kind — return a plain DisplayElement so the report can still load
+    return new DisplayElement(i) as T
   }
 
   if (i instanceof DisplayElement) {

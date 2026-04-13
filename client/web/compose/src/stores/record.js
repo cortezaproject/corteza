@@ -1,6 +1,6 @@
 import { compose } from '@cortezaproject/corteza-js-next'
 import { defineStore } from 'pinia'
-import { inject, reactive, toRef } from 'vue'
+import { inject, reactive, ref, toRef } from 'vue'
 import { useModuleStore } from './module'
 
 export const useRecordStore = defineStore('record', () => {
@@ -13,9 +13,10 @@ export const useRecordStore = defineStore('record', () => {
     records: new Map(),
     // Lightweight cache for raw API records used by field viewers (no module required)
     labelCache: new Map(),
-    // Ordered list of record IDs from the last-viewed record list, used for prev/next navigation
-    paginationRecordIDs: [],
   })
+
+  // Exposed ref so components can reactively track navigation changes
+  const paginationRecordIDs = ref([])
 
   /**
    * Fetch a list of records for a given module.
@@ -269,18 +270,19 @@ export const useRecordStore = defineStore('record', () => {
    * Store ordered record IDs from a record list for prev/next navigation.
    */
   function setNavigationIDs(ids) {
-    state.paginationRecordIDs = ids || []
+    paginationRecordIDs.value = ids || []
   }
 
   /**
    * Get the previous and next record IDs relative to the given recordID.
    */
   function getNextAndPrev(recordID) {
-    const idx = state.paginationRecordIDs.indexOf(recordID)
+    const ids = paginationRecordIDs.value
+    const idx = ids.indexOf(recordID)
     if (idx === -1) return { prev: undefined, next: undefined }
     return {
-      prev: idx > 0 ? state.paginationRecordIDs[idx - 1] : undefined,
-      next: idx < state.paginationRecordIDs.length - 1 ? state.paginationRecordIDs[idx + 1] : undefined,
+      prev: idx > 0 ? ids[idx - 1] : undefined,
+      next: idx < ids.length - 1 ? ids[idx + 1] : undefined,
     }
   }
 
@@ -292,12 +294,14 @@ export const useRecordStore = defineStore('record', () => {
     state.labelCache.clear()
     state.loading = false
     state.pending = false
+    paginationRecordIDs.value = []
   }
 
   return {
     // state
     loading: toRef(state, 'loading'),
     pending: toRef(state, 'pending'),
+    paginationRecordIDs,
 
     // getters
     getByID,

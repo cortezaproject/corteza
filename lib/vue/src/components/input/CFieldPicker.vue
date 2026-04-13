@@ -20,7 +20,7 @@
         <CInputSearch v-model="availableSearch" :placeholder="searchPlaceholder" size="small" />
       </div>
       <div
-        class="flex-1 overflow-y-auto p-1.5 flex flex-col gap-2 max-h-80"
+        :class="['flex-1 overflow-y-auto p-1.5 flex flex-col gap-2', listClass]"
         @dragover.prevent
         @drop="onDropToAvailable"
       >
@@ -65,7 +65,7 @@
         <CInputSearch v-model="selectedSearch" :placeholder="searchPlaceholder" size="small" />
       </div>
       <div
-        class="flex-1 overflow-y-auto p-1.5 flex flex-col gap-2 max-h-80"
+        :class="['flex-1 overflow-y-auto p-1.5 flex flex-col gap-2', listClass]"
         @dragover.prevent
         @dragenter.prevent
         @drop="onDropToSelected($event)"
@@ -141,6 +141,11 @@ const props = defineProps({
   noItemsLabel: {
     type: String,
     default: 'No items found',
+  },
+  /** Tailwind class controlling the max-height of each list panel */
+  listClass: {
+    type: String,
+    default: 'max-h-80',
   },
 })
 

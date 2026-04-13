@@ -222,8 +222,8 @@ function onFilter(event) {
 }
 
 function onShow() {
-  if (options.value.length === 0 && resolvedNamespaceID.value && props.moduleID) {
-    fetchRecords()
+  if (resolvedNamespaceID.value && props.moduleID) {
+    fetchRecords(currentSearchQuery.value)
   }
 }
 

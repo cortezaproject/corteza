@@ -8,50 +8,140 @@
       {{ $t('block.record.noModule') }}
     </div>
 
-    <div v-else ref="fieldContainer" class="p-4 overflow-y-auto" :class="layoutClass">
+    <template v-else>
+      <!-- Inline edit save/cancel bar -->
       <div
-        v-for="field in displayedFields"
-        :key="field.fieldID || field.name"
-        class="field-item"
-        :class="fieldContainerClass"
+        v-if="hasActiveInlineEdits"
+        class="flex items-center gap-1 px-2 py-1 border-b border-surface shrink-0 justify-end"
       >
-        <!-- Horizontal layout: label and value side-by-side -->
-        <template
-          v-if="
-            options.horizontalFieldLayoutEnabled && options.recordFieldLayoutOption !== 'noWrap'
-          "
+        <Button
+          v-tooltip.bottom="$t('block.recordList.tooltip.saveChanges')"
+          icon="pi pi-check"
+          text
+          size="small"
+          severity="primary"
+          :loading="localSaving"
+          :disabled="localSaving"
+          @click="saveInlineEdits"
+        />
+        <Button
+          v-tooltip.bottom="$t('block.recordList.tooltip.discardChanges')"
+          icon="pi pi-times"
+          text
+          size="small"
+          severity="secondary"
+          :disabled="localSaving"
+          @click="cancelInlineEdits"
+        />
+      </div>
+
+      <div ref="fieldContainer" class="p-4 overflow-y-auto flex-1" :class="layoutClass">
+        <div
+          v-for="field in displayedFields"
+          :key="field.fieldID || field.name"
+          class="field-item"
+          :class="fieldContainerClass"
         >
-          <div class="grid grid-cols-[auto_1fr] gap-x-4 items-start">
-            <div class="flex flex-col min-w-[8rem]">
-              <div class="flex items-center gap-1.5">
-                <label class="text-sm font-semibold text-primary">
-                  {{ fieldLabel(field) }}
-                </label>
-                <span v-if="field.isRequired && isEditing" class="text-red-500">*</span>
-                <!-- Inline edit button -->
-                <button
-                  v-if="showInlineEditButton(field)"
-                  class="text-muted-color hover:text-primary transition-colors p-0.5"
-                  :title="$t('block.record.inlineEdit.button.title')"
-                  @click="editInlineField(field)"
+          <!-- Horizontal layout: label and value side-by-side -->
+          <template
+            v-if="
+              options.horizontalFieldLayoutEnabled && options.recordFieldLayoutOption !== 'noWrap'
+            "
+          >
+            <div class="grid grid-cols-[auto_1fr] gap-x-4 items-start">
+              <div class="flex flex-col min-w-[8rem]">
+                <div class="flex items-center gap-1.5">
+                  <label class="text-sm font-semibold text-primary">
+                    {{ fieldLabel(field) }}
+                  </label>
+                  <span v-if="field.isRequired && isAnyEditing(field)" class="text-red-500">*</span>
+                  <!-- Inline edit button -->
+                  <button
+                    v-if="showInlineEditButton(field)"
+                    class="text-muted-color hover:text-primary transition-colors p-0.5"
+                    :title="$t('block.record.inlineEdit.button.title')"
+                    @click="startFieldEdit(field)"
+                  >
+                    <i class="pi pi-pencil text-xs" />
+                  </button>
+                </div>
+                <!-- Field hint -->
+                <small
+                  v-if="fieldHint(field)"
+                  class="text-muted-color"
+                  v-tooltip.top="fieldHint(field)"
                 >
-                  <i class="pi pi-pencil text-xs" />
-                </button>
+                  <i class="pi pi-info-circle text-xs" />
+                </small>
+                <!-- Field description -->
+                <small v-if="fieldDescription(field)" class="text-muted-color mt-0.5">
+                  {{ fieldDescription(field) }}
+                </small>
               </div>
+              <div class="field-value text-color min-h-[2rem]">
+                <template v-if="isFieldEditable(field)">
+                  <FormField :name="field.name" v-slot="{ invalid, error }">
+                    <CFieldEditor
+                      :field="field"
+                      :namespace="namespace"
+                      :model-value="getFieldValue(field)"
+                      @update:model-value="setFieldValue(field, $event)"
+                    />
+                    <Message v-if="invalid" severity="error" size="small" variant="simple">
+                      {{ error?.message }}
+                    </Message>
+                  </FormField>
+                </template>
+
+                <CFieldViewer
+                  v-else-if="field.canReadRecordValue !== false"
+                  :field="field"
+                  :record="activeRecord"
+                  :namespace="namespace"
+                />
+
+                <span v-else class="text-muted-color italic text-sm">
+                  {{ $t('block.field.noPermission') }}
+                </span>
+              </div>
+            </div>
+          </template>
+
+          <!-- Default vertical layout -->
+          <template v-else>
+            <div class="flex items-center gap-1.5 mb-1">
+              <label
+                v-if="field.kind !== 'Bool' || field.options?.switch || !isEditing"
+                class="text-sm font-semibold text-primary block"
+              >
+                {{ fieldLabel(field) }}
+              </label>
+              <span v-if="field.isRequired && isAnyEditing(field)" class="text-red-500">*</span>
+              <!-- Inline edit button -->
+              <button
+                v-if="showInlineEditButton(field)"
+                class="text-muted-color hover:text-primary transition-colors p-0.5"
+                :title="$t('block.record.inlineEdit.button.title')"
+                @click="startFieldEdit(field)"
+              >
+                <i class="pi pi-pencil text-xs" />
+              </button>
               <!-- Field hint -->
-              <small
+              <span
                 v-if="fieldHint(field)"
-                class="text-muted-color"
                 v-tooltip.top="fieldHint(field)"
+                class="text-muted-color cursor-help"
               >
                 <i class="pi pi-info-circle text-xs" />
-              </small>
-              <!-- Field description -->
-              <small v-if="fieldDescription(field)" class="text-muted-color mt-0.5">
-                {{ fieldDescription(field) }}
-              </small>
+              </span>
             </div>
+            <!-- Field description -->
+            <small v-if="fieldDescription(field)" class="text-muted-color block mb-1">
+              {{ fieldDescription(field) }}
+            </small>
+
             <div class="field-value text-color min-h-[2rem]">
+              <!-- Editor -->
               <template v-if="isFieldEditable(field)">
                 <FormField :name="field.name" v-slot="{ invalid, error }">
                   <CFieldEditor
@@ -66,6 +156,7 @@
                 </FormField>
               </template>
 
+              <!-- Viewer -->
               <CFieldViewer
                 v-else-if="field.canReadRecordValue !== false"
                 :field="field"
@@ -77,78 +168,15 @@
                 {{ $t('block.field.noPermission') }}
               </span>
             </div>
-          </div>
-        </template>
-
-        <!-- Default vertical layout -->
-        <template v-else>
-          <div class="flex items-center gap-1.5 mb-1">
-            <label
-              v-if="field.kind !== 'Bool' || field.options?.switch || !isEditing"
-              class="text-sm font-semibold text-primary block"
-            >
-              {{ fieldLabel(field) }}
-            </label>
-            <span v-if="field.isRequired && isEditing" class="text-red-500">*</span>
-            <!-- Inline edit button -->
-            <button
-              v-if="showInlineEditButton(field)"
-              class="text-muted-color hover:text-primary transition-colors p-0.5"
-              :title="$t('block.record.inlineEdit.button.title')"
-              @click="editInlineField(field)"
-            >
-              <i class="pi pi-pencil text-xs" />
-            </button>
-            <!-- Field hint -->
-            <span
-              v-if="fieldHint(field)"
-              v-tooltip.top="fieldHint(field)"
-              class="text-muted-color cursor-help"
-            >
-              <i class="pi pi-info-circle text-xs" />
-            </span>
-          </div>
-          <!-- Field description -->
-          <small v-if="fieldDescription(field)" class="text-muted-color block mb-1">
-            {{ fieldDescription(field) }}
-          </small>
-
-          <div class="field-value text-color min-h-[2rem]">
-            <!-- Editor (edit/create mode) -->
-            <template v-if="isFieldEditable(field)">
-              <FormField :name="field.name" v-slot="{ invalid, error }">
-                <CFieldEditor
-                  :field="field"
-                  :namespace="namespace"
-                  :model-value="getFieldValue(field)"
-                  @update:model-value="setFieldValue(field, $event)"
-                />
-                <Message v-if="invalid" severity="error" size="small" variant="simple">
-                  {{ error?.message }}
-                </Message>
-              </FormField>
-            </template>
-
-            <!-- Viewer (view mode) -->
-            <CFieldViewer
-              v-else-if="field.canReadRecordValue !== false"
-              :field="field"
-              :record="activeRecord"
-              :namespace="namespace"
-            />
-
-            <span v-else class="text-muted-color italic text-sm">
-              {{ $t('block.field.noPermission') }}
-            </span>
-          </div>
-        </template>
+          </template>
+        </div>
       </div>
-    </div>
+    </template>
   </PageBlock>
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref, watch, nextTick } from 'vue'
+import { computed, inject, onBeforeUnmount, reactive, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components } from '@cortezaproject/corteza-vue-next'
@@ -178,7 +206,9 @@ const route = useRoute()
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 const $SystemAPI = inject('$SystemAPI', null)
+const $ComposeAPI = inject('$ComposeAPI', null)
 const $auth = inject('$auth', {})
+const $toast = inject('$toast', null)
 
 // Inject edit context from RecordView (may be null on non-record pages)
 const ctx = inject('recordViewContext', null)
@@ -188,6 +218,12 @@ const localRecord = ref(null)
 const referenceRecord = ref(null)
 const referenceModule = ref(null)
 const fieldContainer = ref(null)
+
+// Per-field inline edit state (only used when NOT on an edit page)
+const activeEditFieldNames = ref([])
+const localDirtyValues = reactive({})
+const localSaving = ref(false)
+const hasActiveInlineEdits = computed(() => activeEditFieldNames.value.length > 0)
 
 // Field condition tracking
 const hiddenConditions = ref([]) // array of fieldIDs/names that should be hidden
@@ -205,10 +241,13 @@ const isBuilder = computed(() => route.name === 'admin.pages.builder')
 // Dummy record for builder preview
 const builderRecord = ref(null)
 
-// Whether we're in edit or create mode
+// True when the page itself is in edit/create mode (record edit page)
+const isOnEditPage = computed(() => !!ctx && ctx.mode.value !== 'view')
+
+// Whether we're in page-level edit or create mode
 const isEditing = computed(() => {
   if (isBuilder.value) return true
-  return !!ctx && ctx.mode.value !== 'view'
+  return isOnEditPage.value
 })
 
 // The page's module
@@ -303,60 +342,110 @@ function fieldDescription(field) {
   return field.options?.description?.view || ''
 }
 
-// --- Field editability (matching Corteza's isFieldEditable) ---
+// --- Field editability ---
+function canFieldBeEdited(field) {
+  if (!field) return false
+  if (field.canReadRecordValue === false) return false
+  if (field.canUpdateRecordValue === false) return false
+  if (field.isSystem) {
+    if (field.name !== 'ownedBy') return false
+    const record = activeRecord.value
+    const mod = fieldModule.value
+    return record?.createdAt
+      ? record.canManageOwnerOnRecord !== false
+      : mod?.canCreateOwnedRecord !== false
+  }
+  return !field.expressions?.value
+}
+
 function isFieldEditable(field) {
   if (!field) return false
-  if (!isEditing.value) return false
-  if (field.canReadRecordValue === false) return false
+  if (isBuilder.value) return true
 
-  // Check RBAC canUpdateRecordValue
-  if (field.canUpdateRecordValue === false) return false
-
-  if (field.isSystem) {
-    // Only ownedBy is editable among system fields
-    if (field.name === 'ownedBy') {
-      const record = activeRecord.value
-      const mod = fieldModule.value
-      // If not yet created, check module-level permission; otherwise check record-level
-      return record?.createdAt
-        ? record.canManageOwnerOnRecord !== false
-        : mod?.canCreateOwnedRecord !== false
-    }
-    return false
+  if (isOnEditPage.value) {
+    return canFieldBeEdited(field)
   }
 
-  // Non-system: editable if no value expression
-  return !field.expressions?.value
+  // Local per-field inline edit mode
+  return activeEditFieldNames.value.includes(field.name)
+}
+
+// Whether required * or bool-label logic should treat field as "being edited"
+function isAnyEditing(field) {
+  return isEditing.value || activeEditFieldNames.value.includes(field.name)
 }
 
 // --- Inline edit ---
 function showInlineEditButton(field) {
   if (!options.value.inlineRecordEditEnabled) return false
-  if (isEditing.value) return false
+  if (isOnEditPage.value || isBuilder.value) return false
+  if (activeEditFieldNames.value.includes(field.name)) return false
   if (activeRecord.value?.deletedAt) return false
-  return isFieldEditable({ ...field, canUpdateRecordValue: true })
+  return canFieldBeEdited(field)
 }
 
-function editInlineField(field) {
-  // For now, inline edit triggers edit mode via the record view context
-  // A full inline edit modal implementation would go here
-  // This matches the button being visible but the full modal requires the BulkEdit component
-  console.warn('Inline edit for field:', field.name, '- full modal implementation pending')
+function startFieldEdit(field) {
+  if (!activeEditFieldNames.value.includes(field.name)) {
+    activeEditFieldNames.value = [...activeEditFieldNames.value, field.name]
+  }
 }
 
-// --- Field value helpers for edit mode ---
+async function saveInlineEdits() {
+  const record = activeRecord.value
+  if (!record) return
+
+  localSaving.value = true
+  try {
+    Object.entries(localDirtyValues).forEach(([fieldName, value]) => {
+      record.setValue(fieldName, value)
+    })
+    const saved = await recordStore.update(record)
+    // Update local record ref if we own it (not via ctx)
+    if (!ctx) localRecord.value = saved
+    activeEditFieldNames.value = []
+    Object.keys(localDirtyValues).forEach(k => delete localDirtyValues[k])
+  } catch (e) {
+    console.error('Failed to save inline edits:', e)
+    $toast?.toastDanger(
+      t('block.record.inlineEdit.saveError', 'Failed to save'),
+      t('block.record.inlineEdit.saveErrorSummary', 'Error'),
+    )
+  } finally {
+    localSaving.value = false
+  }
+}
+
+function cancelInlineEdits() {
+  Object.keys(localDirtyValues).forEach(k => delete localDirtyValues[k])
+  activeEditFieldNames.value = []
+}
+
+// --- Field value helpers ---
 function getFieldValue(field) {
-  const r = ctx?.record?.value || builderRecord.value
+  if (isOnEditPage.value || isBuilder.value) {
+    const r = ctx?.record?.value || builderRecord.value
+    if (!r) return field.isMulti ? [] : ''
+    const val = r.values[field.name]
+    return val === undefined || val === null ? (field.isMulti ? [] : '') : val
+  }
+  // Local inline edit: serve dirty value if present, else record value
+  if (field.name in localDirtyValues) {
+    return localDirtyValues[field.name]
+  }
+  const r = activeRecord.value
   if (!r) return field.isMulti ? [] : ''
   const val = r.values[field.name]
-  if (val === undefined || val === null) return field.isMulti ? [] : ''
-  return val
+  return val === undefined || val === null ? (field.isMulti ? [] : '') : val
 }
 
 function setFieldValue(field, value) {
-  const r = ctx?.record?.value || builderRecord.value
-  if (!r) return
-  r.setValue(field.name, value)
+  if (isOnEditPage.value || isBuilder.value) {
+    const r = ctx?.record?.value || builderRecord.value
+    if (!r) return
+    r.setValue(field.name, value)
+  } else {
+    localDirtyValues[field.name] = value
+  }
 }
 
 // --- Field conditions ---

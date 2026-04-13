@@ -1,29 +1,19 @@
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col gap-3">
     <!-- General -->
-    <div class="flex flex-col gap-3">
-      <h5 class="text-lg font-semibold text-primary m-0">
-        {{ $t('block.recordList.record.generalLabel') }}
-      </h5>
-
+    <Panel :header="$t('block.recordList.record.generalLabel')" toggleable>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <!-- Module (read-only since it comes from the page) -->
         <div class="flex flex-col gap-1">
           <label class="text-primary font-medium text-sm">{{ $t('block.general.module') }}</label>
           <InputText :model-value="moduleName" disabled class="w-full" />
         </div>
 
-        <!-- Inline record edit -->
-        <CInputSwitch v-model="inlineEditEnabled" :label="$t('block.record.inlineEdit.enabled')" />
-
-        <!-- Horizontal form layout -->
         <CInputSwitch
           v-model="horizontalLayout"
           :label="$t('block.record.horizontalFormLayout')"
           :disabled="layoutMode === 'noWrap'"
         />
 
-        <!-- Field layout mode -->
         <div class="flex flex-col gap-1">
           <label class="text-primary font-medium text-sm">
             {{ $t('block.record.fieldsLayoutMode.label') }}
@@ -37,7 +27,6 @@
           />
         </div>
 
-        <!-- Reference record field -->
         <div class="flex flex-col gap-1">
           <label class="text-primary font-medium text-sm">
             {{ $t('block.record.referenceRecordField') }}
@@ -57,17 +46,11 @@
           </small>
         </div>
       </div>
-    </div>
+    </Panel>
 
     <template v-if="fieldPickerModule">
-      <Divider />
-
       <!-- Fields -->
-      <div class="flex flex-col gap-3">
-        <h5 class="text-lg font-semibold text-primary m-0">
-          {{ $t('block.general.fields') }}
-        </h5>
-
+      <Panel :header="$t('block.general.fields')" toggleable>
         <CFieldPicker
           :all-fields="allModuleFields"
           :model-value="selectedFieldNames"
@@ -79,126 +62,125 @@
           :no-items-label="$t('field.no-items-found')"
           @update:model-value="onFieldPickerUpdate"
         />
-      </div>
+      </Panel>
 
-      <template v-if="isRecordFieldUsedConfigured">
-        <Divider />
-
-        <!-- Record Display Options (only shown when Record-kind fields are used) -->
-        <div class="flex flex-col gap-3">
-          <h5 class="text-lg font-semibold text-primary m-0">
-            {{ $t('block.record.recordDisplay.label') }}
-          </h5>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.record.recordSelectorDisplayOptions') }}
-              </label>
-              <Select
-                v-model="recordSelectorDisplayOption"
-                :options="displayOptions"
-                option-label="text"
-                option-value="value"
-                class="w-full"
-              />
-            </div>
-
-            <CInputSwitch
-              v-model="recordSelectorShowAddRecordButton"
-              :label="$t('block.record.recordSelectorCanAddRecord')"
-            />
-
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.record.recordSelectorAddRecordDisplayOption') }}
-              </label>
-              <Select
-                v-model="recordSelectorAddRecordDisplayOption"
-                :options="displayOptions"
-                option-label="text"
-                option-value="value"
-                class="w-full"
-                :disabled="!recordSelectorShowAddRecordButton"
-              />
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <Divider />
-
-      <!-- Field conditions -->
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center gap-2">
-          <h5 class="text-lg font-semibold text-primary m-0">
-            {{ $t('block.record.fieldConditions.label') }}
-          </h5>
-          <i
-            class="pi pi-exclamation-triangle text-orange-500 text-sm"
-            v-tooltip="$t('block.record.fieldConditions.tooltip.performance')"
-          />
-        </div>
-
-        <!-- Clear all on hide -->
+      <!-- Inline editing -->
+      <Panel :header="$t('block.record.inlineEdit.label', 'Inline Editing')" toggleable>
         <CInputSwitch
-          v-model="clearConditionalFieldsOnHide"
-          :label="$t('block.record.fieldConditions.clearAllOnHide')"
+          v-model="inlineEditEnabled"
+          :label="$t('block.record.inlineEdit.enabled')"
         />
-        <small class="text-muted-color -mt-2">
-          {{ $t('block.record.fieldConditions.clearAllOnHideDescription') }}
-        </small>
+      </Panel>
 
-        <div class="flex flex-col gap-2">
-          <div v-for="(condition, i) in fieldConditions" :key="i" class="flex items-center gap-2">
+      <!-- Record selector -->
+      <Panel :header="$t('block.record.recordDisplay.label')" toggleable>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.record.recordSelectorDisplayOptions') }}
+            </label>
             <Select
-              v-model="condition.field"
-              :options="conditionFieldOptions"
+              v-model="recordSelectorDisplayOption"
+              :options="displayOptions"
               option-label="text"
               option-value="value"
-              :placeholder="$t('block.record.fieldConditions.selectPlaceholder')"
-              class="flex-1"
-              filter
+              class="w-full"
             />
-            <InputText
-              v-model="condition.condition"
-              :placeholder="$t('block.record.fieldConditions.placeholder')"
-              class="flex-1"
-            />
-            <div class="flex items-center gap-1">
-              <Checkbox
-                :model-value="condition.clearOnHide || false"
-                binary
-                :input-id="`clearOnHide-${i}`"
-                @update:model-value="updateConditionClearOnHide(i, $event)"
-              />
-              <label :for="`clearOnHide-${i}`" class="text-xs text-muted-color">
-                {{ $t('block.record.fieldConditions.clearOnHide') }}
-              </label>
-            </div>
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              size="small"
-              @click="removeCondition(i)"
+          </div>
+
+          <CInputSwitch
+            v-model="recordSelectorShowAddRecordButton"
+            :label="$t('block.record.recordSelectorCanAddRecord')"
+          />
+
+          <div class="flex flex-col gap-1">
+            <label class="text-primary font-medium text-sm">
+              {{ $t('block.record.recordSelectorAddRecordDisplayOption') }}
+            </label>
+            <Select
+              v-model="recordSelectorAddRecordDisplayOption"
+              :options="displayOptions"
+              option-label="text"
+              option-value="value"
+              class="w-full"
+              :disabled="!recordSelectorShowAddRecordButton"
             />
           </div>
         </div>
+      </Panel>
 
-        <Button
-          :label="$t('general.label.add')"
-          icon="pi pi-plus"
-          severity="secondary"
-          size="small"
-          class="self-start"
-          @click="addCondition"
-        />
+      <!-- Field conditions -->
+      <Panel toggleable>
+        <template #header>
+          <div class="flex items-center gap-2">
+            <span>{{ $t('block.record.fieldConditions.label') }}</span>
+            <i
+              class="pi pi-exclamation-triangle text-orange-500 text-sm"
+              v-tooltip="$t('block.record.fieldConditions.tooltip.performance')"
+            />
+          </div>
+        </template>
 
-        <small class="text-muted-color">
-          {{ $t('block.record.fieldConditions.description') }}
-        </small>
-      </div>
+        <div class="flex flex-col gap-3">
+          <CInputSwitch
+            v-model="clearConditionalFieldsOnHide"
+            :label="$t('block.record.fieldConditions.clearAllOnHide')"
+          />
+          <small class="text-muted-color -mt-2">
+            {{ $t('block.record.fieldConditions.clearAllOnHideDescription') }}
+          </small>
+
+          <div class="flex flex-col gap-2">
+            <div v-for="(condition, i) in fieldConditions" :key="i" class="flex items-center gap-2">
+              <Select
+                v-model="condition.field"
+                :options="conditionFieldOptions"
+                option-label="text"
+                option-value="value"
+                :placeholder="$t('block.record.fieldConditions.selectPlaceholder')"
+                class="flex-1"
+                filter
+              />
+              <InputText
+                v-model="condition.condition"
+                :placeholder="$t('block.record.fieldConditions.placeholder')"
+                class="flex-1"
+              />
+              <div class="flex items-center gap-1">
+                <Checkbox
+                  :model-value="condition.clearOnHide || false"
+                  binary
+                  :input-id="`clearOnHide-${i}`"
+                  @update:model-value="updateConditionClearOnHide(i, $event)"
+                />
+                <label :for="`clearOnHide-${i}`" class="text-xs text-muted-color">
+                  {{ $t('block.record.fieldConditions.clearOnHide') }}
+                </label>
+              </div>
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                size="small"
+                @click="removeCondition(i)"
+              />
+            </div>
+          </div>
+
+          <Button
+            :label="$t('general.label.add')"
+            icon="pi pi-plus"
+            severity="secondary"
+            size="small"
+            class="self-start"
+            @click="addCondition"
+          />
+
+          <small class="text-muted-color">
+            {{ $t('block.record.fieldConditions.description') }}
+          </small>
+        </div>
+      </Panel>
     </template>
   </div>
 </template>

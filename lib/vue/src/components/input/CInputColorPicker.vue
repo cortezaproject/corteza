@@ -185,7 +185,11 @@ function emitColor() {
   }
 }
 
-watch(pickerHex, () => emitColor())
+watch(pickerHex, () => {
+  // If fully transparent and user picks a new color, restore full opacity
+  if (alpha.value === 0) alpha.value = 255
+  emitColor()
+})
 watch(alpha, () => emitColor())
 
 // Computed hex8 from pickerHex + alpha

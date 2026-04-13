@@ -88,10 +88,7 @@ async function fetchNamespaces() {
 }
 
 function onShow() {
-  // Refresh options when dropdown opens if empty
-  if (options.value.length === 0) {
-    fetchNamespaces()
-  }
+  fetchNamespaces()
 }
 
 function onSelect(value) {

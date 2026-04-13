@@ -47,6 +47,17 @@
         @click="toggleDeletedRecords"
       />
 
+      <!-- Configure Fields button -->
+      <Button
+        v-if="!options.hideConfigureFieldsButton"
+        icon="pi pi-table"
+        :label="$t('block.recordList.configureFields', 'Fields')"
+        severity="secondary"
+        outlined
+        size="small"
+        @click="openFieldPicker"
+      />
+
       <!-- Spacer -->
       <div class="flex-1" />
 
@@ -224,7 +235,7 @@
           icon="pi pi-check"
           text
           size="small"
-          severity="success"
+          severity="primary"
           :loading="processingDirtyRecords === 'save'"
           :disabled="!!processingDirtyRecords"
           @click="handleSaveDirtyRecords"
@@ -390,7 +401,7 @@
                   icon="pi pi-check"
                   text
                   size="small"
-                  severity="success"
+                  severity="primary"
                   :loading="processingRecords[getRecordKey(data)] === 'save'"
                   :disabled="!!processingRecords[getRecordKey(data)]"
                   @click.stop="handleSaveInline(data, index)"
@@ -477,6 +488,45 @@
       </div>
     </template>
 
+    <!-- Configure Fields modal -->
+    <Dialog
+      v-model:visible="showFieldPickerModal"
+      modal
+      :header="$t('block.recordList.configureFields', 'Configure Fields')"
+      :style="{ width: '90vw', maxWidth: '56rem' }"
+      :contentStyle="{ minHeight: 'min(60vh, 32rem)' }"
+      @hide="cancelFieldPicker"
+    >
+      <CFieldPicker
+        :all-fields="allModuleFields"
+        :model-value="localFieldNames"
+        list-class="max-h-[32rem]"
+        :available-label="$t('field.selector.available', 'Available')"
+        :selected-label="$t('field.selector.selected', 'Selected')"
+        :select-all-label="$t('field.selector.selectAll', 'Select all')"
+        :unselect-all-label="$t('field.selector.unselectAll', 'Unselect all')"
+        :search-placeholder="$t('general.label.search', 'Search...')"
+        :no-items-label="$t('field.no-items-found', 'No items found')"
+        @update:model-value="localFieldNames = $event"
+      />
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            :label="$t('general.label.cancel', 'Cancel')"
+            text
+            severity="secondary"
+            size="small"
+            @click="cancelFieldPicker"
+          />
+          <Button
+            :label="$t('general.label.apply', 'Apply')"
+            size="small"
+            @click="applyFieldPicker"
+          />
+        </div>
+      </template>
+    </Dialog>
+
     <!-- Row action menu (teleported) -->
     <Menu :key="rowMenuKey" ref="rowMenuRef" :model="rowMenuItems" :popup="true">
       <template #item="{ item, props }">
@@ -502,7 +552,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { components, useConfirmDelete, usePermissions } from '@cortezaproject/corteza-vue-next'
-const { CFieldViewer, CFieldEditor, CInputSearch } = components
+const { CFieldViewer, CFieldEditor, CInputSearch, CFieldPicker } = components
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
 import { useReminderStore } from '@/stores/reminder'
@@ -589,6 +639,32 @@ const rowMenuRef = ref(null)
 const rowMenuKey = ref(0)
 const activeRowRecord = ref(null)
 
+// Configure Fields modal
+const showFieldPickerModal = ref(false)
+const localFieldNames = ref(
+  (props.block.options?.fields || []).map(f => f.name ?? f),
+)
+let _fieldPickerSnapshot = []
+let _fieldPickerApplied = false
+
+function openFieldPicker() {
+  _fieldPickerSnapshot = [...localFieldNames.value]
+  _fieldPickerApplied = false
+  showFieldPickerModal.value = true
+}
+
+function cancelFieldPicker() {
+  if (!_fieldPickerApplied) {
+    localFieldNames.value = _fieldPickerSnapshot
+  }
+  showFieldPickerModal.value = false
+}
+
+function applyFieldPicker() {
+  _fieldPickerApplied = true
+  showFieldPickerModal.value = false
+}
+
 // Inline editing — Corteza-style dirty tracking
 const dirtyRecords = reactive({})
 const activeInlineEdits = ref(new Map())
@@ -631,23 +707,33 @@ const recordPageID = computed(() => {
   return page?.pageID || null
 })
 
+// All module fields available for the field picker (regular + system)
+const allModuleFields = computed(() => {
+  if (!recordListModule.value) return []
+  const regular = recordListModule.value.fields || []
+  const system = (recordListModule.value.systemFields?.() || []).map(f => ({
+    ...f,
+    label: t(`field.system.${f.name}`, f.label || f.name),
+    isSystem: true,
+  }))
+  return [...regular, ...system]
+})
+
 // Columns derived from block field config or module fields
+// localFieldNames (user runtime selection) takes precedence over block options
 const columns = computed(() => {
   if (!recordListModule.value) return []
 
-  const configuredFields = options.value.fields || []
+  const activeNames = localFieldNames.value.length
+    ? localFieldNames.value
+    : (options.value.fields || []).map(f => f.name ?? f)
 
-  if (configuredFields.length === 0) {
+  if (activeNames.length === 0) {
     // Fallback: show first 5 fields
     return (recordListModule.value.fields || []).slice(0, 5)
   }
 
-  // Map configured field names to module field definitions
-  if (recordListModule.value.filterFields) {
-    return recordListModule.value.filterFields(configuredFields)
-  }
-
-  return configuredFields
+  return recordListModule.value.filterFields(activeNames)
 })
 
 // Pagination helpers
@@ -1080,6 +1166,28 @@ const activeBulkQuery = computed(() => {
   return `recordID IN (${ids.join(',')})`
 })
 
+// Fetch a flat list of record IDs for prev/next navigation (mirrors Corteza's loadPaginationRecords)
+async function loadNavigationIDs() {
+  if (!recordListModule.value) return
+  try {
+    let sort = options.value.presort || ''
+    if (sortField.value) {
+      sort = `${sortField.value} ${sortOrder.value === 1 ? 'ASC' : 'DESC'}`
+    }
+    const response = await $ComposeAPI.recordList({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: recordListModule.value.moduleID,
+      query: currentQuery.value,
+      sort,
+      limit: 50,
+    })
+    const ids = (response.set || []).map(r => r.recordID)
+    recordStore.setNavigationIDs(ids)
+  } catch (e) {
+    // non-critical, ignore
+  }
+}
+
 // Fetch records with cancellation support
 async function fetchRecords(resetCursor = false) {
   if (!recordListModule.value) return
@@ -1140,9 +1248,6 @@ async function fetchRecords(resetCursor = false) {
     const set = (result.set || []).map(r => new compose.Record(mod, r))
 
     records.value = set
-    if (options.value.enableRecordPageNavigation !== false && route.name !== 'page.record') {
-      recordStore.setNavigationIDs(set.map(r => r.recordID))
-    }
     if (result.filter?.total !== undefined) {
       totalRecords.value = result.filter.total
     } else if (!pageCursor) {
@@ -1212,7 +1317,7 @@ function goToPrevPage() {
 
 function onRowClick(event) {
   const record = event.data
-  if (!record?.recordID) return
+if (!record?.recordID) return
 
   // Don't navigate in inline editing mode — fields are edited in-place
   if (options.value.editable) return
@@ -1227,6 +1332,10 @@ function onRowClick(event) {
   if (displayOption === 'doNothing') return
 
   const isEditMode = options.value.openRecordInEditMode && record.canUpdateRecord
+
+  if (options.value.enableRecordPageNavigation !== false) {
+    loadNavigationIDs()
+  }
 
   if (displayOption === 'modal' && !$recordRoutes) {
     const query = {
