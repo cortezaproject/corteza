@@ -89,8 +89,7 @@ const navContainerClass = computed(() => {
   const classes = ['gap-1', 'items-center']
   const { alignment, justify, appearance } = display.value
 
-  if (justify === 'justify') classes.push('justify-between')
-  else if (alignment === 'right') classes.push('justify-end')
+  if (alignment === 'right') classes.push('justify-end')
   else if (alignment === 'left') classes.push('justify-start')
   else classes.push('justify-center')
 

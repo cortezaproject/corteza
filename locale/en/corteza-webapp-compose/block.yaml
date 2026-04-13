@@ -443,6 +443,7 @@ recordList:
       moduleFields: Selecting a large number of fields or displaying record/user fields will impact performance
       perPage: Displaying a large amount of records per page will impact performance, especially if you are displaying record/user fields
     restoreSelected: Restore selected records
+  configureFields: Configure Fields
   editFields: Editable module fields
   export:
     all: Export all records
@@ -937,6 +938,7 @@ navigation:
   justify: Justify
   fieldLabel: Label
   enabled: Enabled
+  target: Open in
   openIn: Open in
   navigationItems: Navigation items
   type: Type

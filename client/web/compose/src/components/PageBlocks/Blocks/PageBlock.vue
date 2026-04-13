@@ -95,6 +95,8 @@
 <script setup>
 import { computed, ref, useSlots, watch, onBeforeUnmount } from 'vue'
 
+defineOptions({ inheritAttrs: false })
+
 const $slots = useSlots()
 
 const emit = defineEmits(['refreshBlock'])

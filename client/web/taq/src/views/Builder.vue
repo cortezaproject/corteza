@@ -31,7 +31,7 @@
         {{ editor.automation.value.meta.description }}
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 mt-2">
         <!-- Main toggle/run card -->
         <div
           class="flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm"
