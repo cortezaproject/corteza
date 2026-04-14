@@ -103,6 +103,7 @@ type (
 		Required    bool         `json:"required,omitempty"`
 		Options     []SelectItem `json:"options,omitempty"`
 		Default     interface{}  `json:"default,omitempty"`
+		Disabled    bool         `json:"disabled,omitempty"`
 
 		// Context defines data dependencies between inputs
 		Context SectionElementInputContext `json:"context,omitempty"`
