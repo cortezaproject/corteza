@@ -51,6 +51,7 @@ import { usePageLayoutStore } from '@/stores/page-layout'
 import { usePageStore } from '@/stores/page'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { compose } from '@cortezaproject/corteza-js-next'
 
 defineProps({
   namespace: {
@@ -84,10 +85,10 @@ const positionedBlocks = computed(() => {
       if (!pageBlock) return null
 
       // Clone page block and override xywh from layout
-      return {
+      return compose.PageBlockMaker({
         ...pageBlock,
         xywh: layoutBlock.xywh || pageBlock.xywh,
-      }
+      })
     })
     .filter(Boolean)
 })
