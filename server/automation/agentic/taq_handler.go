@@ -31,108 +31,7 @@ func TAQHandler(reg toolRegistrar) *taqHandler {
 	return h
 }
 
-func (h *taqHandler) RegisterAgenticTAQs(ctx context.Context, taqIDs []uint64) error {
-	for _, taqID := range taqIDs {
-		taq, err := autoService.DefaultNgAutomation.LookupByID(ctx, taqID)
-		if err != nil {
-			continue
-		}
 
-		trigger := h.findTriggerWithDefinition(taq)
-		if trigger == nil {
-			continue
-		}
-
-		def, err := autoService.DefaultTriggerDefinition.LookupByID(ctx, trigger.TriggerDefinitionID)
-		if err != nil {
-			continue
-		}
-
-		if !def.SkipEventBus {
-			continue
-		}
-
-		toolName := fmt.Sprintf("automation_%d", taq.ID)
-		tool := h.schemaToMCPTool(toolName, taq, def)
-
-		h.reg.RegisterTool(tool, taq.Meta.Short, h.makeAgenticExecHandler(taq.ID, trigger.Handle))
-	}
-	return nil
-}
-
-func (h *taqHandler) findTriggerWithDefinition(taq *autoTypes.NgAutomation) *autoTypes.NgAutomationTrigger {
-	for _, t := range taq.Triggers {
-		if t.TriggerDefinitionID > 0 {
-			return t
-		}
-	}
-	return nil
-}
-
-func (h *taqHandler) schemaToMCPTool(name string, taq *autoTypes.NgAutomation, def *autoTypes.TriggerDefinition) mcp.Tool {
-	desc := ""
-	if taq.Meta != nil {
-		desc = taq.Meta.Description
-	}
-
-	if len(def.OutputSchema) > 0 {
-		desc += "\n\nReturns:"
-		for _, p := range def.OutputSchema {
-			desc += fmt.Sprintf("\n- %s (%s): %s", p.Name, p.Type, p.Description)
-		}
-	}
-
-	props := map[string]any{}
-	required := []string{}
-	for _, p := range def.InputSchema {
-		props[p.Name] = map[string]any{
-			"type":        "string", // default to string for now
-			"description": p.Description,
-		}
-		if p.Required {
-			required = append(required, p.Name)
-		}
-	}
-
-	rawSchema, _ := json.Marshal(map[string]any{
-		"type":       "object",
-		"properties": props,
-		"required":   required,
-	})
-
-	return mcp.NewToolWithRawSchema(name, desc, rawSchema)
-}
-
-func (h *taqHandler) makeAgenticExecHandler(taqID uint64, entryPoint string) server.ToolHandlerFunc {
-	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		args, ok := req.Params.Arguments.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid request")
-		}
-
-		vars, err := expr.NewVars(args)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build input vars: %w", err)
-		}
-
-		params := autoTypes.NgAutomationExecParams{
-			EntryPoint: entryPoint,
-			Input:      vars,
-		}
-
-		result, err := autoService.DefaultNgAutomation.ExecAndWait(ctx, taqID, params)
-		if err != nil {
-			return nil, fmt.Errorf("TAQ execution failed: %w", err)
-		}
-
-		out, err := json.Marshal(result)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal result: %w", err)
-		}
-
-		return mcp.NewToolResultText(string(out)), nil
-	}
-}
 
 func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
@@ -234,6 +133,11 @@ func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	if inputMap, err := parseInput(args["input"]); err != nil {
 		return nil, err
 	} else if inputMap != nil {
+		inputMap, err = h.validateAndFixInput(ctx, taq, params.EntryPoint, inputMap)
+		if err != nil {
+			return nil, err
+		}
+
 		vars, err := expr.NewVars(inputMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build input vars: %w", err)
@@ -342,4 +246,72 @@ func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgA
 		return nil, fmt.Errorf("TAQ %q not found", refStr)
 	}
 	return set[0], nil
+}
+
+func (h *taqHandler) validateAndFixInput(ctx context.Context, taq *autoTypes.NgAutomation, entryPoint string, inputMap map[string]interface{}) (map[string]interface{}, error) {
+	if inputMap == nil {
+		return nil, nil
+	}
+
+	var trigger *autoTypes.NgAutomationTrigger
+	if entryPoint != "" {
+		for _, t := range taq.Triggers {
+			if t.Handle == entryPoint {
+				trigger = t
+				break
+			}
+		}
+	} else if len(taq.Triggers) > 0 {
+		trigger = taq.Triggers[0]
+	}
+
+	if trigger == nil || trigger.TriggerDefinitionID == 0 {
+		return inputMap, nil
+	}
+
+	def, err := autoService.DefaultTriggerDefinition.LookupByID(ctx, trigger.TriggerDefinitionID)
+	if err != nil || def == nil {
+		return inputMap, nil
+	}
+
+	// Programmatically refactor casing mapping
+	correctedMap := fixInputCasing(inputMap, def.InputSchema)
+
+	// Validate required schema properties
+	var missing []string
+	for _, schemaParam := range def.InputSchema {
+		if schemaParam.Required {
+			if val, exists := correctedMap[schemaParam.Name]; !exists || val == nil {
+				missing = append(missing, schemaParam.Name)
+			}
+		}
+	}
+
+	if len(missing) > 0 {
+		var provided []string
+		for k := range correctedMap {
+			provided = append(provided, k)
+		}
+		return nil, fmt.Errorf("Schema validation failed. Missing required parameters: [%s]. (Provided keys: [%s]). Please re-evaluate the schema and provide the missing parameters.", strings.Join(missing, ", "), strings.Join(provided, ", "))
+	}
+
+	return correctedMap, nil
+}
+
+func fixInputCasing(inputMap map[string]interface{}, schema autoTypes.TriggerDefinitionSchema) map[string]interface{} {
+	correctedMap := make(map[string]interface{}, len(inputMap))
+	for k, v := range inputMap {
+		matched := false
+		for _, schemaParam := range schema {
+			if strings.EqualFold(k, schemaParam.Name) {
+				correctedMap[schemaParam.Name] = v
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			correctedMap[k] = v
+		}
+	}
+	return correctedMap
 }
