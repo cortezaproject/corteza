@@ -55,14 +55,15 @@
           @clear="onClearValue"
           @update:label="onValueRefEdit"
         />
-        <div v-else class="flex items-center gap-1">
-          <component
-            :is="dynamicInputComponent"
+        <div
+          v-else
+          class="flex items-center gap-1"
+          @focusin="emit('toggleReference', { side: 'value', edgeId, rowIndex })"
+        >
+          <CFieldEditor
+            :field="resolvedFieldDef"
             :model-value="valueVal"
-            :placeholder="$t('builder.condition.enterValue')"
             class="flex-1 min-w-0"
-            size="small"
-            @focus="emit('toggleReference', { side: 'value', edgeId, rowIndex })"
             @update:model-value="onValueChange"
           />
           <Button
@@ -91,10 +92,10 @@
 </template>
 
 <script setup>
-import { computed, inject, ref as vueRef, watchEffect } from 'vue'
+import { computed, inject, ref as vueRef, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../form/CReferenceChip.vue'
-import { resolveInputComponent } from '../form/inputs/registry'
+import { CFieldEditor } from '@cortezaproject/corteza-vue-next/src/components/field'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
 
 const { t } = useI18n()
@@ -171,49 +172,62 @@ const variableRefLabel = computed(() => {
 
 const symbolStr = computed(() => leftArg.value?.symbol || '')
 
-const resolvedVariableType = vueRef('String')
+function makeFieldDef(kind = 'String', options = {}) {
+  return { kind, name: 'value', label: '', options, isMulti: false, isRequired: false }
+}
+
+const resolvedFieldDef = vueRef(makeFieldDef())
+
+// Derived for use in onValueChange typing logic
+const resolvedVariableType = computed(() => resolvedFieldDef.value.kind)
+
+watch(resolvedVariableType, (newKind, oldKind) => {
+  if (oldKind && newKind !== oldKind && !hasValueRef.value) {
+    onClearValue()
+  }
+})
 
 watchEffect(async () => {
   const left = leftArg.value
   if (!left?.symbol || !left?.meta?.scope) {
-    resolvedVariableType.value = 'String'
+    resolvedFieldDef.value = makeFieldDef()
     return
   }
   const scope = left.meta.scope
   const symbol = left.symbol
-  
+
   const step = upstreamResults.value.find(s => s.handle === scope)
   if (!step) {
-    resolvedVariableType.value = 'String'
+    resolvedFieldDef.value = makeFieldDef()
     return
   }
 
   const topLevelName = symbol.split('.')[0]
   const topLevel = (step.properties || step.results || []).find(r => r.sourceName === topLevelName)
   if (!topLevel) {
-    resolvedVariableType.value = 'String'
+    resolvedFieldDef.value = makeFieldDef()
     return
   }
 
   if (symbol === topLevelName) {
-    resolvedVariableType.value = topLevel.types?.[0] || 'String'
+    resolvedFieldDef.value = makeFieldDef(topLevel.types?.[0] || 'String')
     return
   }
 
   if (topLevel.types?.includes('ComposeRecord') && symbol.startsWith(`${topLevelName}.`)) {
     const fieldPath = symbol.substring(topLevelName.length + 1)
-    
+
     if (fieldPath === 'recordID' || fieldPath === 'moduleID' || fieldPath === 'namespaceID') {
-       resolvedVariableType.value = 'ID'
-       return
+      resolvedFieldDef.value = makeFieldDef('ID')
+      return
     }
     if (fieldPath === 'ownedBy' || fieldPath === 'createdBy' || fieldPath === 'updatedBy' || fieldPath === 'deletedBy') {
-       resolvedVariableType.value = 'UserSelector'
-       return
+      resolvedFieldDef.value = makeFieldDef('UserSelector')
+      return
     }
     if (fieldPath === 'createdAt' || fieldPath === 'updatedAt' || fieldPath === 'deletedAt') {
-       resolvedVariableType.value = 'DateTime'
-       return
+      resolvedFieldDef.value = makeFieldDef('DateTime')
+      return
     }
     if (fieldPath.startsWith('values.')) {
       const customFieldName = fieldPath.substring(7)
@@ -222,7 +236,14 @@ watchEffect(async () => {
           const mod = await store.resolveModule(topLevel.namespaceID, topLevel.moduleID)
           const field = mod.fields?.find(f => f.name === customFieldName)
           if (field) {
-            resolvedVariableType.value = field.kind
+            resolvedFieldDef.value = {
+              kind: field.kind,
+              name: field.name,
+              label: field.label || field.name,
+              options: field.options || {},
+              isMulti: false,
+              isRequired: false,
+            }
             return
           }
         } catch(e) {}
@@ -230,10 +251,8 @@ watchEffect(async () => {
     }
   }
 
-  resolvedVariableType.value = 'String'
+  resolvedFieldDef.value = makeFieldDef()
 })
-
-const dynamicInputComponent = computed(() => resolveInputComponent(resolvedVariableType.value))
 
 // --- Value (right side) ---
 

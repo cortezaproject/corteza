@@ -26,29 +26,30 @@ applications:
       logo: applications/workflows.png
       url: workflow/
 
-  - name: Jitsi Video Conferencing
+  - name: Automation
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: applications/video-conference.png
-      logo: applications/video-conference.png
-      url: bridge/jitsi/
+      url: taq/
 
-  - name: Reporter
+  - name: Agentic
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: applications/reporter.png
-      logo: applications/reporter.png
-      url: reporter/
+      url: agentic/
 
-  - name: Privacy
+  - name: One
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: applications/privacy.png
-      logo: applications/privacy.png
-      url: privacy/
+      url: one/
+
+  - name: Two
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      url: /
