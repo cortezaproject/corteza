@@ -44,16 +44,6 @@ func (h *taqHandler) register() {
 		h.lookup,
 	)
 	h.reg.RegisterHiddenTool(
-		mcp.NewTool("automation_taq_exec",
-			mcp.WithDescription("Execute a TAQ by ID or handle and wait for the result"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
-			mcp.WithString("entryPoint", mcp.Description("Entry point (trigger handle) to invoke")),
-			mcp.WithString("input", mcp.Description("JSON object of input variables")),
-		),
-		"Execute TAQ",
-		h.exec,
-	)
-	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_executions",
 			mcp.WithDescription("List executions for a TAQ"),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),

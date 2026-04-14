@@ -44,14 +44,6 @@ type Decision struct {
 }
 
 func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
-	// TAQ and workflow tools are auto-injected — validate against the agent's allowlist
-	if tool == "automation_taq_exec" {
-		ref, _ := args.Get("taq")
-		if findTAQ(agent, fmt.Sprintf("%v", ref)) == nil {
-			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute TAQ %q", ref)}
-		}
-		return allowedDecision(agent, nil, args)
-	}
 	if tool == "automation_workflow_exec" {
 		ref, _ := args.Get("workflow")
 		if findWorkflow(agent, fmt.Sprintf("%v", ref)) == nil {
@@ -63,6 +55,14 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 		return allowedDecision(agent, nil, args)
 	}
 	if tool == "automation_workflow_lookup" && len(agent.Access.Workflows) > 0 {
+		return allowedDecision(agent, nil, args)
+	}
+
+	if strings.HasPrefix(tool, "automation_") && tool != "automation_taq_lookup" && tool != "automation_workflow_exec" && tool != "automation_workflow_lookup" {
+		taqIDStr := strings.TrimPrefix(tool, "automation_")
+		if findTAQ(agent, taqIDStr) == nil {
+			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute automation %q", taqIDStr)}
+		}
 		return allowedDecision(agent, nil, args)
 	}
 

@@ -91,14 +91,19 @@
         class="mb-4"
       />
 
-      <!-- Trigger form for trigger configuration -->
+      <!-- Standard Trigger form for generic trigger configuration -->
       <TriggerForm
-        v-if="node.type === 'trigger' && triggerDefinition?.segments?.length"
+        v-if="node.type === 'trigger' && triggerDefinition?.segments?.length && !triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')"
         :trigger-def="triggerDefinition"
         :constraints="node.data?.constraints || []"
         @update:constraints="onConstraintsUpdate"
         class="mb-4"
       />
+
+      <!-- Trigger Schema Editor for dynamically defining inputs that the LLM resolves -->
+      <div v-if="node.type === 'trigger' && triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')" class="mb-4">
+        <TriggerSchemaEditor :trigger-def="triggerDefinition" />
+      </div>
 
       <!-- Branch configuration (only for branch nodes) -->
       <div v-if="node.type === 'branch'" class="mb-4">
@@ -192,14 +197,13 @@
     </div>
 
     <!-- Delete action at bottom -->
-    <div class="p-2">
+    <div class="p-2 flex flex-col [&>button]:w-full">
       <CInputDelete
         :label="$t('builder.configSidebar.deleteNode')"
         :message="$t('builder.confirmDelete.message')"
         :header="node.data?.label || $t('builder.configSidebar.node')"
         outlined
         size="small"
-        class="w-full"
         @confirm="emit('delete')"
       />
     </div>
@@ -216,6 +220,7 @@ import TaqIcon from '../common/TaqIcon.vue'
 import ConditionBuilder from './condition/ConditionBuilder.vue'
 import FunctionForm from './form/FunctionForm.vue'
 import TriggerForm from './form/TriggerForm.vue'
+import TriggerSchemaEditor from './form/TriggerSchemaEditor.vue'
 
 const { CInputDelete } = components
 

@@ -89,5 +89,8 @@ func (ctrl *triggerDefinition) makeFilterPayload(_ context.Context, set types.Tr
 		return nil, err
 	}
 
-	return set, nil
+	return map[string]interface{}{
+		"set":    set,
+		"filter": f,
+	}, nil
 }

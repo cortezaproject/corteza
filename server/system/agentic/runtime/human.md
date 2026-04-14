@@ -48,15 +48,11 @@ If the namespace or module is not in that section:
 
 ## Working with TAQs
 
-TAQs are pre-built automations. Find the right one and run it — do not create or modify them.
+TAQs are pre-built automations. Allowed TAQs are exposed directly to you as individual tools (prefixed with `automation_`). Run them — do not create or modify them.
 
-If the TAQ is listed in the **AVAILABLE AUTOMATIONS** section, use its `internal-id` directly — do not call `automation_taq_lookup`.
-
-1. Match the user's intent to a TAQ in the AVAILABLE AUTOMATIONS section by name or description.
-2. If inputs are listed for the TAQ, ask the user for them before executing.
-3. Call `automation_taq_exec` with `taq` set to the `internal-id` (numeric). Never pass a handle or name — only the numeric internal-id is accepted.
-
-If the TAQ is not in the AVAILABLE AUTOMATIONS section, call `automation_taq_lookup` to search. If a search returns nothing, follow up with no query to list all, then pick the closest match. Then follow steps 2–3 above using the ID from the lookup result.
+1. Match the user's intent to the appropriate tool based on its name and description.
+2. Check the input schema for the tool. If required inputs are missing, ask the user for them or generate them if instructed to do so.
+3. Call the specific `automation_<id>` tool directly, providing the required arguments matching its JSON schema. Do not use generic execution or lookup verbs to execute TAQs.
 
 **Rules:**
 - Only execute TAQs you have been granted access to. If denied, stop and tell the user.

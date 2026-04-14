@@ -180,10 +180,28 @@ func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent) ([]
 	}
 	tools = append(tools, baseTools...)
 
-	if len(agent.Access.TAQs) > 0 {
-		if taqTools, taqErr := r.mcp.GetTools(ctx, []string{"automation_taq_exec", "automation_taq_lookup"}); taqErr == nil {
-			tools = append(tools, taqTools...)
+	for _, tac := range agent.Access.TAQs {
+		if tac.ID == 0 {
+			continue
 		}
+		info, err := r.taqService.LookupByID(ctx, tac.ID)
+		if err != nil {
+			continue
+		}
+
+		// Resolve trigger definition from the TAQ's own trigger config
+		var def *autoTypes.TriggerDefinition
+		for _, t := range info.Triggers {
+			if t.TriggerDefinitionID > 0 {
+				d, err := r.triggerDefService.LookupByID(ctx, t.TriggerDefinitionID)
+				if err == nil && d != nil {
+					def = d
+					break
+				}
+			}
+		}
+
+		tools = append(tools, r.buildMappedMCPTool(tac, info, def))
 	}
 
 	if len(agent.Access.Workflows) > 0 {
@@ -920,4 +938,59 @@ func (r *runtime) schemaToJSONSchema(schema autoTypes.TriggerDefinitionSchema) j
 		"required":   required,
 	})
 	return raw
+}
+
+func (r *runtime) schemaToInputSchema(schema autoTypes.TriggerDefinitionSchema) map[string]any {
+	props := map[string]any{}
+	required := []string{}
+	for _, p := range schema {
+		props[p.Name] = map[string]any{
+			"type":        "string",
+			"description": p.Description,
+		}
+		if p.Required {
+			required = append(required, p.Name)
+		}
+	}
+	return map[string]any{
+		"type":       "object",
+		"properties": props,
+		"required":   required,
+	}
+}
+
+func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.NgAutomation, def *autoTypes.TriggerDefinition) Tool {
+	name := fmt.Sprintf("automation_%d", taq.ID)
+
+	title := ""
+	if taq.Meta != nil && taq.Meta.Short != "" {
+		title = taq.Meta.Short
+	} else if taq.Handle != "" {
+		title = taq.Handle
+	} else {
+		title = name
+	}
+
+	desc := fmt.Sprintf("Executes the %q automation.", title)
+	if taq.Meta != nil && taq.Meta.Description != "" {
+		desc += "\n\nDescription:\n" + taq.Meta.Description
+	}
+
+	var inputSchema map[string]any
+	if def != nil {
+		if len(def.OutputSchema) > 0 {
+			desc += "\n\nReturns:"
+			for _, p := range def.OutputSchema {
+				desc += fmt.Sprintf("\n- %s (%s): %s", p.Name, p.Type, p.Description)
+			}
+		}
+		inputSchema = r.schemaToInputSchema(def.InputSchema)
+	}
+
+	return Tool{
+		Name:        name,
+		Title:       title,
+		Description: desc,
+		InputSchema: inputSchema,
+	}
 }

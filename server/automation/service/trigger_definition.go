@@ -364,7 +364,7 @@ func triggerDefToConstruct(def *types.TriggerDefinition) types.ConstructTrigger 
 				Placeholder: "Provided by agent at runtime",
 				Type:        "string", // Render as string input
 				Required:    p.Required,
-				Disabled:    true, // Make it readonly
+				Disabled:    false, // Enable editing to set structural defaults/overrides
 			},
 		})
 	}

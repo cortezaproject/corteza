@@ -75,8 +75,9 @@ type (
 	}
 
 	AgentAccessTAQ struct {
-		ID          uint64 `json:"id,string"`
-		Description string `json:"description,omitempty"`
+		ID          uint64            `json:"id,string"`
+		Description string            `json:"description,omitempty"`
+		Params      map[string]string `json:"params,omitempty"`
 	}
 
 	AgentAccessWorkflow struct {
