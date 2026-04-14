@@ -133,7 +133,7 @@ jobs:
           node-version: '${{ env.NODE_VERSION }}'
           cache: 'pnpm'
       - name: 'Install dependencies'
-        run: pnpm install
+        run: pnpm install --ignore-scripts && pnpm rebuild esbuild unrs-resolver vue-demi
       - name: 'Test lib/js'
         working-directory: lib/js
         run: pnpm test:unit
@@ -160,7 +160,7 @@ jobs:
           node-version: '${{ env.NODE_VERSION }}'
           cache: 'pnpm'
       - name: 'Dependencies'
-        run: pnpm install
+        run: pnpm install --ignore-scripts && pnpm rebuild esbuild unrs-resolver vue-demi
       - name: 'Build'
         working-directory: client/web/${{ matrix.app }}
         run: pnpm build

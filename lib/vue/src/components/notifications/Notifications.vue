@@ -10,7 +10,7 @@
                 <Badge
                   v-if="notifications.unreadCount > 0"
                   :value="notifications.unreadCount"
-                  severity="secondary"
+                  severity="danger"
                   size="small"
                 />
               </span>
