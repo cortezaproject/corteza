@@ -6,6 +6,7 @@ export { default as AuthPlugin } from './plugins/auth'
 export {
   AutomationAPIPlugin,
   ComposeAPIPlugin,
+  DiscoveryAPIPlugin,
   FederationAPIPlugin,
   SystemAPIPlugin,
 } from './plugins/corteza-api'

@@ -25,7 +25,21 @@
         }"
         :sidebar-disabled="true"
         :hide-logo="true"
-      />
+      >
+        <template
+          v-if="$Settings.get('discovery.enabled', false) && $Settings.get('ui.topbar.showSearch', true)"
+          #right-tools
+        >
+          <Button
+            v-tooltip.bottom="$t('navigation.search.label')"
+            icon="pi pi-search"
+            severity="secondary"
+            variant="text"
+            rounded
+            @click="searchRef.open()"
+          />
+        </template>
+      </CTopbar>
     </header>
 
     <Teleport to="#topbar-title" defer>
@@ -54,6 +68,20 @@
     />
 
     <CPrompts />
+    <CTopbarSearch
+      ref="searchRef"
+      :labels="{
+        placeholder: $t('navigation.search.placeholder'),
+        noResults: () => $t('navigation.search.noResults'),
+        notFoundNamespace: $t('navigation.search.notFoundNamespace'),
+        notFoundPage: $t('navigation.search.notFoundPage'),
+        recordRedirectError: $t('navigation.search.recordRedirectError'),
+        recentSearches: $t('navigation.search.recentSearches'),
+        clearHistory: $t('navigation.search.clearHistory'),
+        openInNewTab: $t('navigation.search.openInNewTab'),
+        numberOfResults: count => $t('navigation.search.numberOfResults', { count }),
+      }"
+    />
   </div>
 </template>
 
@@ -67,7 +95,7 @@ import {
 } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterView } from 'vue-router'
-const { CTopbar, CLoaderLogo, CPrompts } = components
+const { CTopbar, CLoaderLogo, CPrompts, CTopbarSearch } = components
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
@@ -82,6 +110,7 @@ const logoUrl = computed(() => {
 })
 
 const loading = ref(true)
+const searchRef = ref(null)
 let realtimeClient
 
 const baseTitle = import.meta.env.VITE_APP_TITLE || 'Two'

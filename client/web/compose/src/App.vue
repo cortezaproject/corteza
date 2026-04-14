@@ -38,7 +38,24 @@
           }"
           :custom-profile-items="profileReminderItems"
           @app-menu-click="appListVisible = true"
-        />
+        >
+          <template
+            v-if="
+              $Settings.get('discovery.enabled', false) &&
+              $Settings.get('ui.topbar.showSearch', true)
+            "
+            #right-tools
+          >
+            <Button
+              v-tooltip.bottom="$t('navigation.search.label')"
+              icon="pi pi-search"
+              severity="secondary"
+              variant="text"
+              rounded
+              @click="searchRef.open()"
+            />
+          </template>
+        </CTopbar>
       </header>
 
       <main class="flex-1 overflow-hidden">
@@ -72,6 +89,20 @@
 
     <CPrompts />
     <CNotificationSidebar />
+    <CTopbarSearch
+      ref="searchRef"
+      :labels="{
+        placeholder: $t('navigation.search.placeholder'),
+        noResults: () => $t('navigation.search.noResults'),
+        notFoundNamespace: $t('navigation.search.notFoundNamespace'),
+        notFoundPage: $t('navigation.search.notFoundPage'),
+        recordRedirectError: $t('navigation.search.recordRedirectError'),
+        recentSearches: $t('navigation.search.recentSearches'),
+        clearHistory: $t('navigation.search.clearHistory'),
+        openInNewTab: $t('navigation.search.openInNewTab'),
+        numberOfResults: count => $t('navigation.search.numberOfResults', { count }),
+      }"
+    />
     <CAgentSidebar />
     <ReminderSidebar />
     <ReminderToastHost />
@@ -110,6 +141,7 @@ const {
   CPermissionsDialog,
   CAgentSidebar,
   CAppDisabled,
+  CTopbarSearch,
 } = components
 
 // Provide permissions dialog context for the entire app
@@ -138,6 +170,7 @@ const workflowPromptsStore = useWorkflowPromptsStore()
 const reminderStore = useReminderStore()
 
 const appListVisible = ref(false)
+const searchRef = ref(null)
 const appEnabled = computed(() => applicationsStore.isCurrentAppEnabled())
 let realtimeClient
 

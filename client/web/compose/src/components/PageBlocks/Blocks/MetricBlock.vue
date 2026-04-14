@@ -22,6 +22,7 @@
               :metric="m.metric"
               :value="v"
               :change-value="m.metric.comparison?.enabled ? (changeValues[m.index] ?? null) : null"
+              @drill-down="onMetricDrillDown(m.metric, v)"
             />
           </div>
         </div>
@@ -31,14 +32,37 @@
         </div>
       </template>
     </div>
+
+    <!-- Drill down modal -->
+    <Dialog
+      v-if="drillDownTargetBlock"
+      v-model:visible="drillDownModalVisible"
+      :header="drillDownModalTitle"
+      modal
+      dismissableMask
+      :style="{ width: '90vw', height: '90vh' }"
+      :pt="{
+        content: { class: 'flex-1 flex flex-col overflow-hidden p-0 bg-surface h-full' },
+      }"
+    >
+      <RecordListBlock
+        :block="drillDownTargetBlock"
+        :namespace="namespace"
+        :page="page"
+        :record="record"
+        class="h-full rounded-none border-0 shadow-none border-t"
+      />
+    </Dialog>
   </PageBlock>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, inject } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, inject, defineAsyncComponent } from 'vue'
+import { compose } from '@cortezaproject/corteza-js-next'
 import numeral from 'numeral'
 import PageBlock from './PageBlock.vue'
 import MetricItem from './Metric/MetricItem.vue'
+const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -54,6 +78,9 @@ const processing = ref(false)
 const error = ref(undefined)
 const reports = ref([])
 const changeValues = ref({})
+const drillDownModalVisible = ref(false)
+const drillDownTargetBlock = ref(null)
+const drillDownModalTitle = ref('')
 
 const options = computed(() => props.block.options || {})
 
@@ -229,4 +256,55 @@ onBeforeUnmount(() => {
 })
 
 const offRefetch = $eventBus?.on('refetch-records', () => refresh())
+
+function onMetricDrillDown(metric, value) {
+  drillDown(metric, value)
+}
+
+function drillDown(metric, value) {
+  const drillDownOpts = metric.drillDown || {}
+  if (!drillDownOpts.enabled) return
+
+  const drillDownValue = metric.label || value?.label || value?.value || ''
+  const prefilter = metric.filter ? `(${metric.filter})` : ''
+
+  if (drillDownOpts.blockID) {
+    $eventBus?.emit(`drill-down-recordList:${drillDownOpts.blockID}`, {
+      prefilter,
+      name: drillDownValue,
+      value: drillDownValue,
+    })
+    return
+  }
+
+  const title = props.block.title || metric.label
+  drillDownModalTitle.value = title ? `${title} - "${drillDownValue}"` : drillDownValue
+
+  const fields = drillDownOpts.recordListOptions?.fields || []
+
+  drillDownTargetBlock.value = new compose.PageBlockRecordList({
+    blockID: `drillDown-${props.block.blockID}-${metric.moduleID}`,
+    options: {
+      moduleID: metric.moduleID,
+      fields,
+      prefilter,
+      presort: 'createdAt DESC',
+      hideRecordReminderButton: true,
+      hideRecordViewButton: false,
+      hideConfigureFieldsButton: false,
+      hideImportButton: true,
+      enableRecordPageNavigation: true,
+      selectable: true,
+      allowExport: true,
+      perPage: 14,
+      showTotalCount: true,
+      recordDisplayOption: 'modal',
+    },
+    style: {
+      wrap: { kind: 'plain' },
+    },
+  })
+
+  drillDownModalVisible.value = true
+}
 </script>

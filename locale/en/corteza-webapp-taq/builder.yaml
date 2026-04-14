@@ -112,7 +112,7 @@ configSidebar:
   noDescription: Add a description...
   branches: Branches
   addElseIf: Add Else If Branch
-  deleteNode: Delete Node
+  deleteNode: Delete Step
   end: End
 
 branch:

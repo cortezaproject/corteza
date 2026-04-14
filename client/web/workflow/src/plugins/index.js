@@ -5,6 +5,7 @@ import {
     AuthPlugin,
     AutomationAPIPlugin,
     ComposeAPIPlugin,
+    DiscoveryAPIPlugin,
     EventBusPlugin,
     I18nPlugin,
     PrimeVueComponentsPlugin,
@@ -68,6 +69,7 @@ export function setupAndAuthenticate(app) {
       // API plugins
       app.use(SystemAPIPlugin)
       app.use(ComposeAPIPlugin)
+      app.use(DiscoveryAPIPlugin)
       app.use(AutomationAPIPlugin)
 
       // Settings

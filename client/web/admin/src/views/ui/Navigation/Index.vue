@@ -43,6 +43,16 @@
             </label>
           </div>
 
+          <div
+            v-if="$Settings.get('discovery.enabled', false)"
+            class="flex items-center gap-2"
+          >
+            <Checkbox v-model="hideSearch" :binary="true" inputId="hideSearch" />
+            <label for="hideSearch">
+              {{ $t('ui.settings.editor.topbar.search.hide') }}
+            </label>
+          </div>
+
           <div class="flex items-center gap-2">
             <Checkbox v-model="topbar.hideProfile" :binary="true" inputId="hideProfile" />
             <label for="hideProfile">
@@ -263,6 +273,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $Settings = inject('$Settings')
 
 const loading = ref(false)
 const saving = ref(false)
@@ -282,6 +293,13 @@ const hideDrafts = computed({
   get: () => topbar.showDrafts !== true,
   set: val => {
     topbar.showDrafts = !val
+  },
+})
+
+const hideSearch = computed({
+  get: () => topbar.showSearch !== true,
+  set: val => {
+    topbar.showSearch = !val
   },
 })
 

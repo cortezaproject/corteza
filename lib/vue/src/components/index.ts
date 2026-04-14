@@ -1,4 +1,5 @@
 export * from './app'
+export * from './search'
 export * from './chart'
 export * from './field'
 export * from './input'

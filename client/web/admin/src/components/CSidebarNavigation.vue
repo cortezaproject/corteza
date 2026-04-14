@@ -63,34 +63,11 @@ const navItems = computed(() => [
     _route: { name: 'system.userGroups' },
   },
   {
-    _id: 'auth-clients',
+    _id: 'labels',
     _parentId: 'system',
-    _label: t('navigation.system.items.authclients'),
-    _icon: 'pi pi-key',
-    _route: { name: 'system.authClients' },
-  },
-
-  // Resources
-  {
-    _id: 'applications',
-    _parentId: 'system',
-    _label: t('navigation.system.items.applications'),
-    _icon: 'pi pi-th-large',
-    _route: { name: 'system.applications' },
-  },
-  {
-    _id: 'templates',
-    _parentId: 'system',
-    _label: t('navigation.system.items.templates'),
-    _icon: 'pi pi-file',
-    _route: { name: 'system.templates' },
-  },
-  {
-    _id: 'code-snippets',
-    _parentId: 'system',
-    _label: t('navigation.system.items.code-snippets'),
-    _icon: 'pi pi-code',
-    _route: { name: 'system.codeSnippets' },
+    _label: 'Families (Labels)',
+    _icon: 'pi pi-tags',
+    _route: { name: 'system.labels' },
   },
   {
     _id: 'llm-providers',
@@ -115,6 +92,36 @@ const navItems = computed(() => [
     _icon: 'pi pi-database',
     _route: { name: 'system.dataSources' },
   },
+
+  // Resources
+  {
+    _id: 'applications',
+    _parentId: 'system',
+    _label: t('navigation.system.items.applications'),
+    _icon: 'pi pi-th-large',
+    _route: { name: 'system.applications' },
+  },
+  {
+    _id: 'auth-clients',
+    _parentId: 'system',
+    _label: t('navigation.system.items.authclients'),
+    _icon: 'pi pi-key',
+    _route: { name: 'system.authClients' },
+  },
+  {
+    _id: 'templates',
+    _parentId: 'system',
+    _label: t('navigation.system.items.templates'),
+    _icon: 'pi pi-file',
+    _route: { name: 'system.templates' },
+  },
+  {
+    _id: 'code-snippets',
+    _parentId: 'system',
+    _label: t('navigation.system.items.code-snippets'),
+    _icon: 'pi pi-code',
+    _route: { name: 'system.codeSnippets' },
+  },
   {
     _id: 'queues',
     _parentId: 'system',
@@ -138,13 +145,6 @@ const navItems = computed(() => [
   },
 
   // Policy & Monitoring
-  {
-    _id: 'labels',
-    _parentId: 'system',
-    _label: t('navigation.system.items.labels'),
-    _icon: 'pi pi-tags',
-    _route: { name: 'system.labels' },
-  },
   {
     _id: 'action-log',
     _parentId: 'system',

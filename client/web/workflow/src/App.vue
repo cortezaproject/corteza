@@ -35,7 +35,21 @@
             darkTheme: $t('navigation.themes.labels.dark'),
           }"
           @app-menu-click="appListVisible = true"
-        />
+        >
+          <template
+            v-if="$Settings.get('discovery.enabled', false) && $Settings.get('ui.topbar.showSearch', true)"
+            #right-tools
+          >
+            <Button
+              v-tooltip.bottom="$t('navigation.search.label')"
+              icon="pi pi-search"
+              severity="secondary"
+              variant="text"
+              rounded
+              @click="searchRef.open()"
+            />
+          </template>
+        </CTopbar>
       </header>
 
       <main class="flex-1 overflow-hidden">
@@ -71,6 +85,20 @@
     <CNotificationSidebar />
     <CAgentSidebar />
     <CPermissionsDialog />
+    <CTopbarSearch
+      ref="searchRef"
+      :labels="{
+        placeholder: $t('navigation.search.placeholder'),
+        noResults: () => $t('navigation.search.noResults'),
+        notFoundNamespace: $t('navigation.search.notFoundNamespace'),
+        notFoundPage: $t('navigation.search.notFoundPage'),
+        recordRedirectError: $t('navigation.search.recordRedirectError'),
+        recentSearches: $t('navigation.search.recentSearches'),
+        clearHistory: $t('navigation.search.clearHistory'),
+        openInNewTab: $t('navigation.search.openInNewTab'),
+        numberOfResults: count => $t('navigation.search.numberOfResults', { count }),
+      }"
+    />
   </div>
 </template>
 
@@ -98,6 +126,7 @@ const {
   CPermissionsDialog,
   CAgentSidebar,
   CAppDisabled,
+  CTopbarSearch,
 } = components
 
 // Provide permissions dialog context for the entire app
@@ -115,6 +144,7 @@ const workflowPromptsStore = useWorkflowPromptsStore()
 let realtimeClient
 
 const appListVisible = ref(false)
+const searchRef = ref(null)
 const appEnabled = computed(() => applicationsStore.isCurrentAppEnabled())
 
 const logoUrl = computed(() => {

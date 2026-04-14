@@ -69,7 +69,10 @@
         </div>
 
         <!-- Center: prev/next navigation -->
-        <div v-if="mode === 'view' && (recordNavigation.prev || recordNavigation.next)" class="flex gap-1">
+        <div
+          v-if="mode === 'view' && (recordNavigation.prev || recordNavigation.next)"
+          class="flex gap-1"
+        >
           <Button
             icon="pi pi-chevron-left"
             severity="secondary"
@@ -389,6 +392,20 @@ async function loadPage() {
             } else {
               record.value = new compose.Record(mod, { ownedBy: $auth?.user?.userID })
             }
+
+            const refField = route.query.refField
+            const refValue = route.query.refValue
+            if (record.value && refField && refValue) {
+              const field = mod.fields.find(f => f.name === refField)
+              if (field) {
+                const valueArray = Array.isArray(refValue) ? refValue : [refValue]
+                if (field.isMulti) {
+                  record.value.setValue(refField, valueArray)
+                } else {
+                  record.value.setValue(refField, valueArray[0])
+                }
+              }
+            }
           } else if (recordID && recordID !== '0') {
             try {
               const loaded = await recordStore.findByID({
@@ -491,7 +508,7 @@ async function handleSave({ valid }) {
             ...route.query,
             recordID: saved.recordID,
             edit: undefined,
-          }
+          },
         })
       } else {
         router.replace({ query: { ...route.query, edit: undefined } })
@@ -542,12 +559,16 @@ function handleClone() {
         ...route.query,
         recordID: '0',
         cloneFromID: record.value.recordID,
-      }
+      },
     })
   } else {
     router.push({
       name: 'page.record',
-      params: { slug: route.params.slug, pageID: props.inModal ? props.modalPageID : route.params.pageID, recordID: '0' },
+      params: {
+        slug: route.params.slug,
+        pageID: props.inModal ? props.modalPageID : route.params.pageID,
+        recordID: '0',
+      },
       query: { cloneFromID: record.value.recordID },
     })
   }
@@ -559,7 +580,7 @@ function handleNew() {
       query: {
         ...route.query,
         recordID: '0',
-      }
+      },
     })
   } else {
     router.push({
@@ -696,12 +717,21 @@ watch(
   () => [
     props.inModal ? props.modalPageID : route.params.pageID,
     props.inModal ? props.modalRecordID : route.params.recordID,
-    route.query.cloneFromID
+    route.query.cloneFromID,
+    route.query.refField,
+    route.query.refValue,
   ],
-  ([newPageID, newRecordID, newCloneFromID], old) => {
-    const [oldPageID, , oldCloneFromID] = old || []
-    // If only the recordID changed (same page, no clone transition), just swap the record
-    if (old && newPageID === oldPageID && newCloneFromID === oldCloneFromID && page.value) {
+  ([newPageID, newRecordID, newCloneFromID, newRefField, newRefValue], old) => {
+    const [oldPageID, , oldCloneFromID, oldRefField, oldRefValue] = old || []
+    // If only the recordID changed (same page, no clone transition, no change in prefill params), just swap the record
+    if (
+      old &&
+      newPageID === oldPageID &&
+      newCloneFromID === oldCloneFromID &&
+      newRefField === oldRefField &&
+      newRefValue === oldRefValue &&
+      page.value
+    ) {
       loadRecord(newRecordID)
     } else {
       loadPage()

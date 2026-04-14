@@ -21,3 +21,15 @@ appList:
   noResults: No results found
   search: Search applications
   title: Apps
+search:
+  label: Search
+  placeholder: Search for records
+  noResults: No results found
+  notFoundNamespace: Namespace not found
+  notFoundPage: Page not found
+  recordRedirectError: Error navigating to record
+  recentSearches: Recent Searches
+  clearHistory: Clear
+  openInNewTab: Open in new tab
+  numberOfResults_one: "{{count}} record"
+  numberOfResults_other: "{{count}} records"

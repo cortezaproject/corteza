@@ -1,9 +1,7 @@
 <template>
   <!-- Topbar title -->
   <Teleport to="#topbar-title" :defer="true">
-    <span v-if="recordModule">
-      {{ recordModule.name }} — {{ $t('module.edit.createRecord') }}
-    </span>
+    <span v-if="recordModule">{{ recordModule.name }} — {{ $t('module.edit.createRecord') }}</span>
   </Teleport>
 
   <!-- Module not found -->
@@ -123,6 +121,22 @@ const syntheticPage = computed(() => ({
 function initRecord() {
   if (!recordModule.value) return
 
+  const prefillRefField = record => {
+    const refField = route.query.refField
+    const refValue = route.query.refValue
+    if (!record || !refField || !refValue) return
+
+    const field = recordModule.value.fields.find(f => f.name === refField)
+    if (!field) return
+
+    const valueArray = Array.isArray(refValue) ? refValue : [refValue]
+    if (field.isMulti) {
+      record.setValue(refField, valueArray)
+    } else {
+      record.setValue(refField, valueArray[0])
+    }
+  }
+
   // Handle clone
   if (route.query.cloneFromID) {
     recordStore
@@ -138,14 +152,19 @@ function initRecord() {
         }
         // Prefill ownedBy with current user
         newRec.ownedBy = $auth?.user?.userID || undefined
+        prefillRefField(newRec)
         record.value = newRec
       })
       .catch(e => {
         console.error('Failed to load source record for clone:', e)
-        record.value = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+        const newRec = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+        prefillRefField(newRec)
+        record.value = newRec
       })
   } else {
-    record.value = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+    const newRec = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+    prefillRefField(newRec)
+    record.value = newRec
   }
 }
 
@@ -245,7 +264,12 @@ function handleCancel() {
 }
 
 watch(
-  () => [recordModule.value?.moduleID, route.query.cloneFromID],
+  () => [
+    recordModule.value?.moduleID,
+    route.query.cloneFromID,
+    route.query.refField,
+    route.query.refValue,
+  ],
   () => {
     if (recordModule.value) initRecord()
   },

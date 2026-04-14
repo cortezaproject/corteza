@@ -1,5 +1,10 @@
 <template>
-  <div class="metric-item flex flex-col h-full p-3" :style="containerStyle">
+  <div
+    class="metric-item flex flex-col h-full p-3"
+    :class="{ 'cursor-pointer hover:bg-surface-200': metric.drillDown?.enabled }"
+    :style="containerStyle"
+    @click="onClick"
+  >
     <!-- Top row: label + change badge -->
     <div class="flex items-center gap-2 mb-1">
       <span
@@ -45,6 +50,14 @@ const props = defineProps({
     default: null,
   },
 })
+
+const emit = defineEmits(['drill-down'])
+
+function onClick() {
+  if (props.metric?.drillDown?.enabled) {
+    emit('drill-down')
+  }
+}
 
 const containerStyle = computed(() => {
   const s = props.metric.valueStyle || {}

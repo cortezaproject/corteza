@@ -641,9 +641,7 @@ const activeRowRecord = ref(null)
 
 // Configure Fields modal
 const showFieldPickerModal = ref(false)
-const localFieldNames = ref(
-  (props.block.options?.fields || []).map(f => f.name ?? f),
-)
+const localFieldNames = ref((props.block.options?.fields || []).map(f => f.name ?? f))
 let _fieldPickerSnapshot = []
 let _fieldPickerApplied = false
 
@@ -1317,7 +1315,7 @@ function goToPrevPage() {
 
 function onRowClick(event) {
   const record = event.data
-if (!record?.recordID) return
+  if (!record?.recordID) return
 
   // Don't navigate in inline editing mode — fields are edited in-place
   if (options.value.editable) return
@@ -1390,10 +1388,19 @@ function openRowMenu(event, record) {
   })
 }
 
+function buildRecordCreatePrefillQuery() {
+  if (!options.value.refField || !props.record?.recordID) return {}
+  return {
+    refField: options.value.refField,
+    refValue: props.record.recordID,
+  }
+}
+
 function handleAddRecord() {
   if (!recordPageID.value) return
 
   const displayOption = options.value.addRecordDisplayOption || 'sameTab'
+  const refQuery = buildRecordCreatePrefillQuery()
 
   if (displayOption === 'modal' && !$recordRoutes) {
     router.push({
@@ -1401,6 +1408,7 @@ function handleAddRecord() {
         ...route.query,
         recordPageID: recordPageID.value,
         recordID: '0',
+        ...refQuery,
       },
     })
     return
@@ -1415,6 +1423,10 @@ function handleAddRecord() {
           recordID: '0',
         },
       }
+
+  if (Object.keys(refQuery).length > 0) {
+    routeObj.query = { ...(routeObj.query || {}), ...refQuery }
+  }
 
   if (displayOption === 'newTab') {
     const resolved = router.resolve(routeObj)

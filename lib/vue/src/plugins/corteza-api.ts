@@ -66,3 +66,12 @@ export const FederationAPIPlugin = {
     app.provide('$FederationAPI', FederationAPI)
   },
 }
+
+export const DiscoveryAPIPlugin = {
+  install(app: App, opt: Options) {
+    const baseURL = opt?.baseURL ?? (window as unknown as Record<string, string>).CortezaDiscoveryAPI ?? 'http://localhost:3200/'
+    const DiscoveryAPI = new apiClients.Discovery({ baseURL, accessTokenFn: getAccessTokenFn(app, opt) })
+    app.config.globalProperties.$DiscoveryAPI = DiscoveryAPI
+    app.provide('$DiscoveryAPI', DiscoveryAPI)
+  },
+}

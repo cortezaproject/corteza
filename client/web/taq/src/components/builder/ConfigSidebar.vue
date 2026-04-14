@@ -93,7 +93,11 @@
 
       <!-- Standard Trigger form for generic trigger configuration -->
       <TriggerForm
-        v-if="node.type === 'trigger' && triggerDefinition?.segments?.length && !triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')"
+        v-if="
+          node.type === 'trigger' &&
+          triggerDefinition?.segments?.length &&
+          !triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')
+        "
         :trigger-def="triggerDefinition"
         :constraints="node.data?.constraints || []"
         @update:constraints="onConstraintsUpdate"
@@ -101,7 +105,13 @@
       />
 
       <!-- Trigger Schema Editor for dynamically defining inputs that the LLM resolves -->
-      <div v-if="node.type === 'trigger' && triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')" class="mb-4">
+      <div
+        v-if="
+          node.type === 'trigger' &&
+          triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')
+        "
+        class="mb-4"
+      >
         <TriggerSchemaEditor :trigger-def="triggerDefinition" />
       </div>
 
@@ -197,7 +207,7 @@
     </div>
 
     <!-- Delete action at bottom -->
-    <div class="p-2 flex flex-col [&>button]:w-full">
+    <div class="p-2 flex flex-col">
       <CInputDelete
         :label="$t('builder.configSidebar.deleteNode')"
         :message="$t('builder.confirmDelete.message')"
