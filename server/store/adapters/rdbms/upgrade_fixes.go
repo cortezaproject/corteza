@@ -1328,9 +1328,18 @@ func fix_2024_09_10_addHashAndModuleToComposeAttachment(ctx context.Context, s *
 	}
 	if err := addColumn(ctx, s, tableName, &dal.Attribute{
 		Ident: "ModuleID",
-		Type:  &dal.TypeID{},
+		Type:  &dal.TypeID{Nullable: true},
 		Store: &dal.CodecAlias{Ident: "rel_module"},
 	}); err != nil {
+		return err
+	}
+
+	// If table does not exist, skip index creation — table will be created
+	// with the correct schema in the next step of the upgrade process.
+	if _, err := s.DataDefiner.TableLookup(ctx, tableName); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
 
