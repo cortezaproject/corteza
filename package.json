@@ -52,5 +52,12 @@
     "vite-plugin-vue-devtools": "^8",
     "vitest": "^3.2.4",
     "vue-eslint-parser": "^10.1.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver",
+      "vue-demi"
+    ]
   }
 }
