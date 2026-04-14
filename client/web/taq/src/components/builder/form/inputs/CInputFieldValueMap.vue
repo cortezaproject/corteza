@@ -226,8 +226,10 @@ async function fetchModuleFields() {
       fields.value = []
       return
     }
-    fields.value = (mod.fields || [])
-      .filter(f => !f.isSystem)
+    const WRITABLE_SYSTEM_FIELDS = new Set(['ownedBy'])
+
+    const systemEntries = mod.systemFields()
+      .filter(f => WRITABLE_SYSTEM_FIELDS.has(f.name))
       .map(f => ({
         name: f.name,
         label: f.label || f.name,
@@ -236,6 +238,20 @@ async function fetchModuleFields() {
         isMulti: !!f.isMulti,
         isRequired: !!f.isRequired,
       }))
+
+    fields.value = [
+      ...(mod.fields || [])
+        .filter(f => !f.isSystem)
+        .map(f => ({
+          name: f.name,
+          label: f.label || f.name,
+          kind: f.kind,
+          options: f.options || {},
+          isMulti: !!f.isMulti,
+          isRequired: !!f.isRequired,
+        })),
+      ...systemEntries,
+    ]
   } catch (e) {
     fields.value = []
   } finally {
