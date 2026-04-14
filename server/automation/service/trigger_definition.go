@@ -9,6 +9,7 @@ import (
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/store"
@@ -32,6 +33,7 @@ type (
 	}
 
 	TriggerDefinitionService interface {
+		Load(ctx context.Context) error
 		Search(ctx context.Context, filter types.TriggerDefinitionFilter) (types.TriggerDefinitionSet, types.TriggerDefinitionFilter, error)
 		LookupByID(ctx context.Context, id uint64) (*types.TriggerDefinition, error)
 		LookupByHandle(ctx context.Context, handle string) (*types.TriggerDefinition, error)
@@ -49,6 +51,21 @@ func TriggerDefinition(log *zap.Logger) *triggerDefinition {
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 	}
+}
+
+func (svc triggerDefinition) Load(ctx context.Context) error {
+	set, _, err := store.SearchAutomationTriggerDefinitions(ctx, svc.store, types.TriggerDefinitionFilter{
+		Deleted: filter.StateExcluded,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, def := range set {
+		svc.reRegisterConstructs(def)
+	}
+
+	return nil
 }
 
 func (svc triggerDefinition) Search(ctx context.Context, filter types.TriggerDefinitionFilter) (set types.TriggerDefinitionSet, f types.TriggerDefinitionFilter, err error) {
@@ -330,6 +347,7 @@ func triggerDefToConstruct(def *types.TriggerDefinition) types.ConstructTrigger 
 	}
 
 	props := make([]types.ConstructTriggerProperty, len(def.InputSchema))
+	paramElements := make([]types.SectionElement, 0, len(def.InputSchema))
 	for i, p := range def.InputSchema {
 		props[i] = types.ConstructTriggerProperty{
 			Name: p.Name,
@@ -338,6 +356,29 @@ func triggerDefToConstruct(def *types.TriggerDefinition) types.ConstructTrigger 
 				Short: p.Description,
 			},
 		}
+
+		paramElements = append(paramElements, types.SectionElement{
+			Input: types.SectionElementInput{
+				Argument:    p.Name,
+				Label:       p.Name,
+				Placeholder: "Provided by agent at runtime",
+				Type:        "string", // Render as string input
+				Required:    p.Required,
+				Disabled:    true, // Make it readonly
+			},
+		})
+	}
+
+	segments := []types.ConstructSegment{}
+	if len(paramElements) > 0 {
+		segments = append(segments, types.ConstructSegment{
+			Meta: types.ConstructSegmentMeta{Short: "Agent Context Variables (Read-Only)"},
+			Sections: []types.ConstructSection{
+				{
+					Elements: paramElements,
+				},
+			},
+		})
 	}
 
 	return types.ConstructTrigger{
@@ -349,6 +390,7 @@ func triggerDefToConstruct(def *types.TriggerDefinition) types.ConstructTrigger 
 			Icon:        def.Meta.Icon,
 		},
 		Properties: props,
+		Segments:   segments,
 	}
 }
 

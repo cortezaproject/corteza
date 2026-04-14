@@ -156,6 +156,10 @@ func Activate(ctx context.Context) (err error) {
 		return
 	}
 
+	if err = DefaultTriggerDefinition.Load(ctx); err != nil {
+		return
+	}
+
 	return
 }
 
