@@ -120,6 +120,8 @@ type (
 		CsrfFieldName            string        `env:"AUTH_CSRF_FIELD_NAME"`
 		CsrfCookieName           string        `env:"AUTH_CSRF_COOKIE_NAME"`
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
+		DefaultUserGroup         string        `env:"AUTH_DEFAULT_USER_GROUP"`
+		DefaultSubUserGroup      string        `env:"AUTH_DEFAULT_SUB_USER_GROUP"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
 		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
 		ProvisionSuperUser       string        `env:"AUTH_PROVISION_SUPER_USER"`
@@ -257,10 +259,15 @@ type (
 	}
 
 	DiscoveryOpt struct {
-		Enabled       bool   `env:"DISCOVERY_ENABLED"`
-		Debug         bool   `env:"DISCOVERY_DEBUG"`
-		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
-		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
+		Enabled             bool   `env:"DISCOVERY_ENABLED"`
+		Debug               bool   `env:"DISCOVERY_DEBUG"`
+		CortezaDomain       string `env:"DISCOVERY_CORTEZA_DOMAIN"`
+		BaseUrl             string `env:"DISCOVERY_BASE_URL"`
+		JwtSecret           string `env:"DISCOVERY_JWT_SECRET"`
+		EmbeddingsEnabled   bool   `env:"DISCOVERY_EMBEDDINGS_ENABLED"`
+		EmbeddingsDimension int    `env:"DISCOVERY_EMBEDDINGS_DIMENSION"`
+		HnswEfConstruction  int    `env:"DISCOVERY_HNSW_EF_CONSTRUCTION"`
+		HnswM               int    `env:"DISCOVERY_HNSW_M"`
 	}
 
 	AttachmentOpt struct {
@@ -272,6 +279,19 @@ type (
 
 	WebappOpt struct {
 		ScssDirPath string `env:"WEBAPP_SCSS_DIR_PATH"`
+	}
+
+	ObservabilityOpt struct {
+		LangfuseHost             string `env:"OBSERVABILITY_LANGFUSE_HOST"`
+		LangfusePublicKey        string `env:"OBSERVABILITY_LANGFUSE_PUBLIC_KEY"`
+		LangfuseSecretKey        string `env:"OBSERVABILITY_LANGFUSE_SECRET_KEY"`
+		OtelExporterOtlpEndpoint string `env:"OBSERVABILITY_OTEL_EXPORTER_OTLP_ENDPOINT"`
+	}
+
+	AgenticOpt struct {
+		McpServerName       string `env:"AGENTIC_MCP_SERVER_NAME"`
+		McpServerVersion    string `env:"AGENTIC_MCP_SERVER_VERSION"`
+		AnthropicApiVersion string `env:"AGENTIC_ANTHROPIC_API_VERSION"`
 	}
 )
 
@@ -541,6 +561,8 @@ func Auth() (o *AuthOpt) {
 		CsrfFieldName:            "same-site-authenticity-token",
 		CsrfCookieName:           "same-site-authenticity-token",
 		DefaultClient:            "corteza-webapp",
+		DefaultUserGroup:         "default-root",
+		DefaultSubUserGroup:      "default-sub-root",
 	}
 
 	// Custom defaults
@@ -1053,8 +1075,12 @@ func Workflow() (o *WorkflowOpt) {
 // This function is auto-generated
 func Discovery() (o *DiscoveryOpt) {
 	o = &DiscoveryOpt{
-		Enabled: false,
-		Debug:   false,
+		Enabled:             false,
+		Debug:               false,
+		EmbeddingsEnabled:   false,
+		EmbeddingsDimension: 384,
+		HnswEfConstruction:  128,
+		HnswM:               16,
 	}
 
 	// Custom defaults
@@ -1111,6 +1137,60 @@ func Attachment() (o *AttachmentOpt) {
 // This function is auto-generated
 func Webapp() (o *WebappOpt) {
 	o = &WebappOpt{}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Observability initializes and returns a ObservabilityOpt with default values
+//
+// This function is auto-generated
+func Observability() (o *ObservabilityOpt) {
+	o = &ObservabilityOpt{}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Agentic initializes and returns a AgenticOpt with default values
+//
+// This function is auto-generated
+func Agentic() (o *AgenticOpt) {
+	o = &AgenticOpt{
+		McpServerName:       "Corteza MCP",
+		McpServerVersion:    "v1",
+		AnthropicApiVersion: "2023-06-01",
+	}
 
 	// Custom defaults
 	func(o interface{}) {

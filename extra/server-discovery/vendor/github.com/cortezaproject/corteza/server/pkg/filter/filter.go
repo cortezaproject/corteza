@@ -1,6 +1,6 @@
 package filter
 
-import "github.com/cortezaproject/corteza/server/pkg/ql"
+import "github.com/cortezaproject/corteza/server/pkg/ast"
 
 type (
 	filterOpt func(*filter)
@@ -10,7 +10,7 @@ type (
 		stateConditions  map[string]State
 		metaConditions   map[string]any
 		expression       string
-		expressionParsed *ql.ASTNode
+		expressionParsed *ast.ASTNode
 		orderBy          SortExprSet
 		limit            uint
 		cursor           *PagingCursor
@@ -103,7 +103,7 @@ func WithExpression(e string) filterOpt {
 }
 
 // WithExpressionParsed sets parsed expression to filter
-func WithExpressionParsed(e *ql.ASTNode) filterOpt {
+func WithExpressionParsed(e *ast.ASTNode) filterOpt {
 	return func(f *filter) {
 		f.expressionParsed = e
 	}
@@ -142,7 +142,7 @@ func (f *filter) Constraints() map[string][]any      { return f.constaints }
 func (f *filter) StateConstraints() map[string]State { return f.stateConditions }
 func (f *filter) MetaConstraints() map[string]any    { return f.metaConditions }
 func (f *filter) Expression() string                 { return f.expression }
-func (f *filter) ExpressionParsed() *ql.ASTNode      { return f.expressionParsed }
+func (f *filter) ExpressionParsed() *ast.ASTNode     { return f.expressionParsed }
 func (f *filter) OrderBy() SortExprSet               { return f.orderBy }
 func (f *filter) Limit() uint                        { return f.limit }
 func (f *filter) Cursor() *PagingCursor              { return f.cursor }

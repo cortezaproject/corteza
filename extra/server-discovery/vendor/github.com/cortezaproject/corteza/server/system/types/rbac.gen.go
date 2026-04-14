@@ -233,6 +233,36 @@ func RoleRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for UserGroup by calling UserGroupRbacResource fn
+//
+// RBAC resource is in the corteza::system:user-group/... format
+//
+// This function is auto-generated
+func (r UserGroup) RbacResource() string {
+	return UserGroupRbacResource(r.ID)
+}
+
+// UserGroupRbacResource returns string representation of RBAC resource for UserGroup
+//
+// RBAC resource is in the corteza::system:user-group/... format
+//
+// This function is auto-generated
+func UserGroupRbacResource(id uint64) string {
+	cpts := []interface{}{UserGroupResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(UserGroupRbacResourceTpl(), cpts...)
+
+}
+
+func UserGroupRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Template by calling TemplateRbacResource fn
 //
 // RBAC resource is in the corteza::system:template/... format
@@ -320,6 +350,186 @@ func DalConnectionRbacResource(id uint64) string {
 }
 
 func DalConnectionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Connection by calling ConnectionRbacResource fn
+//
+// RBAC resource is in the corteza::system:connection/... format
+//
+// This function is auto-generated
+func (r Connection) RbacResource() string {
+	return ConnectionRbacResource(r.ID)
+}
+
+// ConnectionRbacResource returns string representation of RBAC resource for Connection
+//
+// RBAC resource is in the corteza::system:connection/... format
+//
+// This function is auto-generated
+func ConnectionRbacResource(id uint64) string {
+	cpts := []interface{}{ConnectionResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ConnectionRbacResourceTpl(), cpts...)
+
+}
+
+func ConnectionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ConfiguredConnection by calling ConfiguredConnectionRbacResource fn
+//
+// RBAC resource is in the corteza::system:configured-connection/... format
+//
+// This function is auto-generated
+func (r ConfiguredConnection) RbacResource() string {
+	return ConfiguredConnectionRbacResource(r.ID)
+}
+
+// ConfiguredConnectionRbacResource returns string representation of RBAC resource for ConfiguredConnection
+//
+// RBAC resource is in the corteza::system:configured-connection/... format
+//
+// This function is auto-generated
+func ConfiguredConnectionRbacResource(id uint64) string {
+	cpts := []interface{}{ConfiguredConnectionResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ConfiguredConnectionRbacResourceTpl(), cpts...)
+
+}
+
+func ConfiguredConnectionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for LlmProvider by calling LlmProviderRbacResource fn
+//
+// RBAC resource is in the corteza::system:llm-provider/... format
+//
+// This function is auto-generated
+func (r LlmProvider) RbacResource() string {
+	return LlmProviderRbacResource(r.ID)
+}
+
+// LlmProviderRbacResource returns string representation of RBAC resource for LlmProvider
+//
+// RBAC resource is in the corteza::system:llm-provider/... format
+//
+// This function is auto-generated
+func LlmProviderRbacResource(id uint64) string {
+	cpts := []interface{}{LlmProviderResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(LlmProviderRbacResourceTpl(), cpts...)
+
+}
+
+func LlmProviderRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Agent by calling AgentRbacResource fn
+//
+// RBAC resource is in the corteza::system:agent/... format
+//
+// This function is auto-generated
+func (r Agent) RbacResource() string {
+	return AgentRbacResource(r.ID)
+}
+
+// AgentRbacResource returns string representation of RBAC resource for Agent
+//
+// RBAC resource is in the corteza::system:agent/... format
+//
+// This function is auto-generated
+func AgentRbacResource(id uint64) string {
+	cpts := []interface{}{AgentResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(AgentRbacResourceTpl(), cpts...)
+
+}
+
+func AgentRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for AiConversation by calling AiConversationRbacResource fn
+//
+// RBAC resource is in the corteza::system:ai-conversation/... format
+//
+// This function is auto-generated
+func (r AiConversation) RbacResource() string {
+	return AiConversationRbacResource(r.ID)
+}
+
+// AiConversationRbacResource returns string representation of RBAC resource for AiConversation
+//
+// RBAC resource is in the corteza::system:ai-conversation/... format
+//
+// This function is auto-generated
+func AiConversationRbacResource(id uint64) string {
+	cpts := []interface{}{AiConversationResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(AiConversationRbacResourceTpl(), cpts...)
+
+}
+
+func AiConversationRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for KnowledgeBase by calling KnowledgeBaseRbacResource fn
+//
+// RBAC resource is in the corteza::system:knowledge-base/... format
+//
+// This function is auto-generated
+func (r KnowledgeBase) RbacResource() string {
+	return KnowledgeBaseRbacResource(r.ID)
+}
+
+// KnowledgeBaseRbacResource returns string representation of RBAC resource for KnowledgeBase
+//
+// RBAC resource is in the corteza::system:knowledge-base/... format
+//
+// This function is auto-generated
+func KnowledgeBaseRbacResource(id uint64) string {
+	cpts := []interface{}{KnowledgeBaseResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(KnowledgeBaseRbacResourceTpl(), cpts...)
+
+}
+
+func KnowledgeBaseRbacResourceTpl() string {
 	return "%s/%s"
 }
 

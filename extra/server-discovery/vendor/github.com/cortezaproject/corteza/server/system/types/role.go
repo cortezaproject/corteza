@@ -8,6 +8,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -17,7 +19,7 @@ type (
 		Handle string `json:"handle"`
 
 		Meta   *RoleMeta         `json:"meta"`
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		CreatedAt  time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
@@ -36,8 +38,13 @@ type (
 	}
 
 	RoleFilter struct {
-		RoleID   []string `json:"roleID"`
-		MemberID uint64   `json:"memberID,string"`
+		RoleID      []string `json:"roleID"`
+		MemberID    uint64   `json:"memberID,string"`
+		UserGroupID uint64   `json:"userGroupID,string"`
+
+		// @todo will migrate from MemberID/UserGroupID in a later releae
+		// For internal use only
+		Resource string `json:"-"`
 
 		Query string `json:"query"`
 
@@ -48,7 +55,7 @@ type (
 		Archived filter.State `json:"archived"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

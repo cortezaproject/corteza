@@ -17,6 +17,8 @@ types:
     labelResourceType: role
   RoleMember:
     noIdField: true
+  UserGroup:
+    labelResourceType: userGroup
   Credential: {}
   Reminder: {}
   Notification: {}
@@ -37,6 +39,14 @@ types:
   Queue: {}
   QueueMessage:
     noIdField: true
+  Connection:
+    labelResourceType: connection
+  ConfiguredConnection:
+    labelResourceType: configuredConnection
   DataPrivacyRequest: {}
   DataPrivacyRequestComment: {}
+  LlmProvider: {}
   PrivacyDalConnection:
+  Agent: {}
+  AiConversation: {}
+  KnowledgeBase: {}

@@ -20,6 +20,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	h "github.com/cortezaproject/corteza/server/pkg/http"
 	"github.com/spf13/cast"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -294,6 +296,28 @@ func CastToArray(val interface{}) (out []TypedValue, err error) {
 		return make([]TypedValue, 0), nil
 	case *Array:
 		return val.value, nil
+	case string:
+		if val == "" {
+			return make([]TypedValue, 0), nil
+		}
+		var parsed interface{}
+		if jsonErr := json.Unmarshal([]byte(val), &parsed); jsonErr == nil {
+			if arr, ok := parsed.([]interface{}); ok {
+				out = make([]TypedValue, len(arr))
+				for i, item := range arr {
+					if out[i], err = Typify(item); err != nil {
+						return
+					}
+				}
+				return out, nil
+			}
+		}
+		// Not a JSON array — wrap as single-element array
+		tv, typErr := Typify(val)
+		if typErr != nil {
+			return nil, typErr
+		}
+		return []TypedValue{tv}, nil
 	}
 
 	cast := func(val interface{}) (out []TypedValue, err error) {
@@ -494,6 +518,14 @@ func CastToStringSlice(val interface{}) (out []string, err error) {
 func CastToHandle(val interface{}) (string, error) {
 	val = UntypedValue(val)
 
+	if p, ok := val.(HandleProvider); ok {
+		h := p.GetHandle()
+		if !handle.IsValid(h) {
+			return "", fmt.Errorf("invalid handle format: '%s'", h)
+		}
+		return h, nil
+	}
+
 	h, err := cast.ToStringE(val)
 
 	if !handle.IsValid(h) {
@@ -539,7 +571,21 @@ func CastToFloat(val interface{}) (out float64, err error) {
 	return cast.ToFloat64E(emptyStringFailsafe(val))
 }
 
+// IDProvider is implemented by resource types that can be coerced to an ID.
+type IDProvider interface {
+	GetID() uint64
+}
+
+// HandleProvider is implemented by resource types that can be coerced to a Handle string.
+type HandleProvider interface {
+	GetHandle() string
+}
+
 func CastToID(val interface{}) (out uint64, err error) {
+	val = UntypedValue(val)
+	if p, ok := val.(IDProvider); ok {
+		return p.GetID(), nil
+	}
 	return cast.ToUint64E(emptyStringFailsafe(val))
 }
 
@@ -590,6 +636,48 @@ func CastToKV(val interface{}) (out map[string]string, err error) {
 		return casted, nil
 	default:
 		return cast.ToStringMapStringE(UntypedValue(casted))
+	}
+}
+
+func assignToLabelValue(t *LabelValue, key string, val TypedValue) error{
+	if t.value == nil {
+		t.value = make(map[string]labelTypes.LabelValue)
+	}
+
+	untypedVal := UntypedValue(val)
+
+	switch v := untypedVal.(type) {
+	case []string:
+		t.value[key] = labelTypes.LabelValue{Values: v}
+	default:
+		str, err := cast.ToStringE(untypedVal)
+		if err != nil {
+			return  err
+		}
+		t.value[key] = labelTypes.LabelValue{Val: str}
+	}
+	return nil
+}
+func CastToLabelValue(val interface{}) (out map[string]labelTypes.LabelValue, err error) {
+	switch val := UntypedValue(val).(type) {
+	case map[string]labelTypes.LabelValue:
+		return val,nil
+	case map[string]string:
+		out = make(map[string]labelTypes.LabelValue,len(val))
+		for k, v:= range val {
+			out[k] = labelTypes.LabelValue{Val: v}
+		}
+		return out,nil
+	case map[string][]string:
+		out = make(map[string]labelTypes.LabelValue,len(val))
+		for k,v := range val {
+			out[k] = labelTypes.LabelValue{Values: v}
+		}
+		return out,nil
+	case nil:
+		return make(map[string]labelTypes.LabelValue),nil
+	default:
+		return nil,fmt.Errorf("unable to cast type %T to map[string]labelTypes.LabelValue", val)
 	}
 }
 
@@ -1088,6 +1176,17 @@ func (v *KV) Clone() (out TypedValue, err error) {
 	}
 	return aux, nil
 }
+ func (v *LabelValue) Clone() (out TypedValue, err error) {
+  	aux := &LabelValue{
+  		value: make(map[string]labelTypes.LabelValue, len(v.value)),
+  	}
+
+  	for k, v := range v.value {
+  		aux.value[k] = v
+  	}
+  	return aux, nil
+  }
+
 
 func (v *KVV) Clone() (out TypedValue, err error) {
 	aux := &KVV{

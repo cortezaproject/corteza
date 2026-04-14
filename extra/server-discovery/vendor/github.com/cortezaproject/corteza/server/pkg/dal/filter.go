@@ -3,8 +3,8 @@ package dal
 import (
 	"fmt"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
 
 type (
@@ -15,14 +15,14 @@ type (
 		stateConstraints map[string]filter.State
 		metaConstraints  map[string]any
 		expression       string
-		expParsed        *ql.ASTNode
+		expParsed        *ast.ASTNode
 		orderBy          filter.SortExprSet
 		limit            uint
 		cursor           *filter.PagingCursor
 	}
 
 	parsedFilter interface {
-		ExpressionParsed() *ql.ASTNode
+		ExpressionParsed() *ast.ASTNode
 	}
 )
 
@@ -30,7 +30,7 @@ func (f internalFilter) Constraints() map[string][]any             { return f.co
 func (f internalFilter) StateConstraints() map[string]filter.State { return f.stateConstraints }
 func (f internalFilter) MetaConstraints() map[string]any           { return f.metaConstraints }
 func (f internalFilter) Expression() string                        { return f.expression }
-func (f internalFilter) ExpressionParsed() *ql.ASTNode             { return f.expParsed }
+func (f internalFilter) ExpressionParsed() *ast.ASTNode            { return f.expParsed }
 func (f internalFilter) OrderBy() filter.SortExprSet               { return f.orderBy }
 func (f internalFilter) Limit() uint                               { return f.limit }
 func (f internalFilter) Cursor() *filter.PagingCursor              { return f.cursor }
@@ -59,7 +59,7 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 
 		// In case the filter was already provided, we need to make sure the idents
 		// are wrapped
-		out.expParsed.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+		out.expParsed.Traverse(func(a *ast.ASTNode) (bool, *ast.ASTNode, error) {
 			a.Symbol = wrapNestedGvalIdent(a.Symbol)
 			return true, a, nil
 		})
@@ -80,7 +80,7 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 	return
 }
 
-func FilterFromExpr(n *ql.ASTNode) internalFilter {
+func FilterFromExpr(n *ast.ASTNode) internalFilter {
 	// @todo consider adding string expr for consistency
 	return internalFilter{
 		expParsed: n,
@@ -115,9 +115,9 @@ func (a internalFilter) mergeFilters(b internalFilter) (c internalFilter) {
 			parsedA := a.expParsed
 			rawA := a.expression
 			if parsedA.Ref != "group" {
-				parsedA = &ql.ASTNode{
+				parsedA = &ast.ASTNode{
 					Ref: "group",
-					Args: []*ql.ASTNode{
+					Args: []*ast.ASTNode{
 						parsedA,
 					},
 				}
@@ -127,18 +127,18 @@ func (a internalFilter) mergeFilters(b internalFilter) (c internalFilter) {
 			parsedB := b.expParsed
 			rawB := b.expression
 			if parsedB.Ref != "group" {
-				parsedB = &ql.ASTNode{
+				parsedB = &ast.ASTNode{
 					Ref: "group",
-					Args: []*ql.ASTNode{
+					Args: []*ast.ASTNode{
 						parsedB,
 					},
 				}
 				rawB = fmt.Sprintf("(%s)", rawB)
 			}
 
-			c.expParsed = &ql.ASTNode{
+			c.expParsed = &ast.ASTNode{
 				Ref:  "and",
-				Args: ql.ASTNodeSet{parsedA, parsedB},
+				Args: ast.ASTNodeSet{parsedA, parsedB},
 			}
 			c.expression = fmt.Sprintf("%s && %s", rawA, rawB)
 		}

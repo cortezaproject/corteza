@@ -2,13 +2,15 @@ package dal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -38,7 +40,7 @@ type (
 		// DML stuff
 
 		// Create stores the given data into the underlying database
-		Create(ctx context.Context, m *Model, rr ...ValueGetter) error
+		Create(ctx context.Context, m *Model, rr ...ValueGetter) ([]map[string]any, error)
 
 		// Update updates the given value in the underlying connection
 		Update(ctx context.Context, m *Model, r ValueGetter) error
@@ -56,7 +58,7 @@ type (
 		Analyze(ctx context.Context, m *Model) (map[string]OpAnalysis, error)
 
 		// Aggregate returns the iterator with aggregated data from the base model
-		Aggregate(ctx context.Context, m *Model, f filter.Filter, groupBy []AggregateAttr, aggrExpr []AggregateAttr, having *ql.ASTNode) (i Iterator, _ error)
+		Aggregate(ctx context.Context, m *Model, f filter.Filter, groupBy []AggregateAttr, aggrExpr []AggregateAttr, having *ast.ASTNode) (i Iterator, _ error)
 
 		// Delete deletes the given value
 		Delete(ctx context.Context, m *Model, pkv ValueGetter) error
@@ -105,6 +107,10 @@ type (
 
 	ValueSetter interface {
 		SetValue(string, uint, any) error
+	}
+
+	RawExecutor interface {
+		Execute(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (statusCode int, outHeaders map[string][]string, responseBody []byte, err error)
 	}
 
 	ConnectorFn func(ctx context.Context, dsn string) (Connection, error)
@@ -163,13 +169,24 @@ func RegisterDriver(d Driver) {
 }
 
 // connect opens a new StoreConnection for the given CRS
-func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (Connection, error) {
-	if cp.Type != "corteza::dal:connection:dsn" {
-		return nil, fmt.Errorf("cannot open connection: only DSN connections supported (got: %q)", cp.Type)
-	}
+func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, conID uint64, cp ConnectionParams) (Connection, error) {
 	if cp.Params == nil {
 		return nil, fmt.Errorf("cannot open connection: connection parameters not defined")
 	}
+
+	switch cp.Type {
+	case "corteza::dal:connection:dsn":
+		return connectRDBMS(ctx, log, isDevelopment, conID, cp)
+
+	case "corteza::dal:connection:rest":
+		return connectREST(ctx, log, isDevelopment, conID, cp)
+
+	default:
+		return nil, fmt.Errorf("cannot open connection: unsupported connection (got: %q)", cp.Type)
+	}
+}
+
+func connectRDBMS(ctx context.Context, log *zap.Logger, isDevelopment bool, conID uint64, cp ConnectionParams) (Connection, error) {
 	if _, ok := cp.Params["dsn"]; !ok {
 		return nil, fmt.Errorf("cannot open connection: DSN not provided")
 	}
@@ -200,9 +217,204 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Connec
 	}
 }
 
+func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, conID uint64, cp ConnectionParams) (c Connection, err error) {
+	if _, ok := cp.Params["url"]; !ok {
+		return nil, fmt.Errorf("cannot connect to the REST API: missing parameter: url")
+	}
+
+	url := cast.ToString(cp.Params["url"])
+	if len(url) == 0 {
+		return nil, fmt.Errorf("cannot connect to the REST API: invalid parameter: url")
+	}
+
+	d, err := ParseDSN(url)
+	if err != nil {
+		return
+	}
+
+	d, err = expandDSN(d, conID, cp)
+	if err != nil {
+		return
+	}
+
+	err = validateDSN(d)
+	if err != nil {
+		err = fmt.Errorf("invalid DSN: %v", err)
+		return
+	}
+
+	storeType, err := determineStoreType(d)
+	if err != nil {
+		return
+	}
+
+	if conn, ok := registeredConnectors[storeType]; ok {
+		return conn(ctx, d.ToDSN())
+	} else {
+		return nil, fmt.Errorf("unknown store type used: %q (check your database configuration)", storeType)
+	}
+}
+
+func determineStoreType(d DSN) (out string, err error) {
+	switch strings.ToLower(d.Host) {
+	case "sheets.googleapis.com":
+		return "gsheets", nil
+	}
+
+	switch d.Scheme {
+	case "http", "https":
+		return "restapi", nil
+
+	default:
+		err = fmt.Errorf("unknown schema: %v", d.Scheme)
+		return
+	}
+}
+
+func expandDSN(base DSN, connID uint64, cp ConnectionParams) (out DSN, err error) {
+	out = base
+
+	out.ConnectionID = connID
+
+	if auth, ok := cp.Params["auth"]; ok {
+
+		bb, err := json.Marshal(auth)
+		if err != nil {
+			return out, fmt.Errorf("failed to serialize auth configuration: %w", err)
+		}
+
+		aux := struct {
+			Method string         `json:"method"`
+			Params map[string]any `json:"params"`
+		}{}
+
+		err = json.Unmarshal(bb, &aux)
+		if err != nil {
+			return out, err
+		}
+
+		auxParams := make(map[string]any)
+		for k, v := range aux.Params {
+			auxParams[strings.ToLower(k)] = v
+		}
+
+		// @todo validation and all that :)
+		out.AuthType = strings.ToLower(aux.Method)
+		out.Username, _ = auxParams["username"].(string)
+		out.Password, _ = auxParams["password"].(string)
+		out.Token, _ = auxParams["token"].(string)
+		out.APIKey, _ = auxParams["apikey"].(string)
+		out.APIKeyHeader, _ = auxParams["apikeyheader"].(string)
+		out.ClientID, _ = auxParams["clientid"].(string)
+		out.ClientSecret, _ = auxParams["clientsecret"].(string)
+		out.TokenURL, _ = auxParams["tokenurl"].(string)
+
+		// JWT bearer / Google service account fields
+		if pk, _ := auxParams["private_key"].(string); pk != "" {
+			out.Token = pk
+		}
+		if email, _ := auxParams["client_email"].(string); email != "" {
+			out.Username = email
+		}
+		if tu, _ := auxParams["token_uri"].(string); tu != "" {
+			out.TokenURL = tu
+		}
+	}
+
+	if dops, ok := cp.Params["defaultOps"]; ok {
+		aux := map[string]any{}
+
+		bb, err := json.Marshal(dops)
+		if err != nil {
+			return out, err
+		}
+
+		err = json.Unmarshal(bb, &aux)
+		if err != nil {
+			return out, err
+		}
+
+		out.Arbitrary = aux
+	}
+
+	return
+}
+
+func validateDSN(dsn DSN) (err error) {
+	// @todo add when needed
+	err = validateDSNAuth(dsn)
+	if err != nil {
+		return fmt.Errorf("invalid authentication: %v", err)
+	}
+
+	return
+}
+
+func validateDSNAuth(dsn DSN) (err error) {
+	switch dsn.AuthType {
+	// no authentication
+	case "":
+		return nil
+
+	case "bearer":
+		if dsn.Token == "" {
+			return fmt.Errorf("bearer token not provided")
+		}
+
+	case "basic":
+		// @note basic auth can function with just the username
+		if dsn.Username == "" {
+			return fmt.Errorf("basic auth username not specified")
+		}
+
+	case "apikey":
+		if dsn.APIKey == "" {
+			return fmt.Errorf("api key parameter not specified")
+		}
+
+	case "oauth2_client_credentials":
+		if dsn.ClientID == "" {
+			return fmt.Errorf("OAuth2 authentication requires 'clientID' parameter")
+		}
+		if dsn.ClientSecret == "" {
+			return fmt.Errorf("OAuth2 authentication requires 'clientSecret' parameter")
+		}
+		if dsn.TokenURL == "" {
+			return fmt.Errorf("OAuth2 authentication requires 'tokenURL' parameter")
+		}
+
+	case "jwt-bearer", "jwt_bearer", "google_service_account":
+		if dsn.Token == "" {
+			return fmt.Errorf("%s authentication requires 'private_key' parameter", dsn.AuthType)
+		}
+		if dsn.Username == "" {
+			return fmt.Errorf("%s authentication requires 'client_email' parameter", dsn.AuthType)
+		}
+
+	default:
+		return fmt.Errorf("unknown auth type: %s", dsn.AuthType)
+	}
+
+	if dsn.AuthType == "" {
+		return fmt.Errorf("auth parameters provided but type not specified")
+	}
+
+	return nil
+}
+
 func NewDSNDriverConnectionConfig() DriverConnectionConfig {
 	return DriverConnectionConfig{
 		Type: "corteza::dal:connection:dsn",
+		Params: []DriverConnectionParam{{
+			Key:       "dsn",
+			ValueType: "string",
+		}},
+	}
+}
+
+func NewRESTriverConnectionConfig() DriverConnectionConfig {
+	return DriverConnectionConfig{
+		Type: "corteza::dal:connection:rest",
 		Params: []DriverConnectionParam{{
 			Key:       "dsn",
 			ValueType: "string",

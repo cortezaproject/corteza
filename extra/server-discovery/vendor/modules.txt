@@ -1,5 +1,3 @@
-# github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
-## explicit; go 1.16
 # github.com/PaesslerAG/gval v1.2.1
 ## explicit; go 1.15
 github.com/PaesslerAG/gval
@@ -14,14 +12,11 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/aymerick/douceur/css
 github.com/aymerick/douceur/parser
-# github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4
-## explicit
-# github.com/codegangsta/gin v0.0.0-20230218063734-2c98d96c9244
-## explicit
 # github.com/cortezaproject/corteza/server v0.0.0-00010101000000-000000000000 => ../../server
 ## explicit; go 1.24.1
 github.com/cortezaproject/corteza/server/compose/types
 github.com/cortezaproject/corteza/server/pkg/api
+github.com/cortezaproject/corteza/server/pkg/ast
 github.com/cortezaproject/corteza/server/pkg/cast2
 github.com/cortezaproject/corteza/server/pkg/cli
 github.com/cortezaproject/corteza/server/pkg/dal
@@ -33,6 +28,7 @@ github.com/cortezaproject/corteza/server/pkg/gvalfnc
 github.com/cortezaproject/corteza/server/pkg/handle
 github.com/cortezaproject/corteza/server/pkg/http
 github.com/cortezaproject/corteza/server/pkg/id
+github.com/cortezaproject/corteza/server/pkg/label/types
 github.com/cortezaproject/corteza/server/pkg/locale
 github.com/cortezaproject/corteza/server/pkg/logger
 github.com/cortezaproject/corteza/server/pkg/options
@@ -45,18 +41,12 @@ github.com/cortezaproject/corteza/server/pkg/str
 github.com/cortezaproject/corteza/server/pkg/version
 github.com/cortezaproject/corteza/server/pkg/xss
 github.com/cortezaproject/corteza/server/system/types
-# github.com/cpuguy83/go-md2man/v2 v2.0.7
-## explicit; go 1.12
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 ## explicit; go 1.17
 github.com/decred/dcrd/dcrec/secp256k1/v4
-# github.com/dlclark/regexp2 v1.10.0
-## explicit; go 1.13
-github.com/dlclark/regexp2
-github.com/dlclark/regexp2/syntax
 # github.com/elastic/go-elasticsearch/v7 v7.12.0
 ## explicit; go 1.11
 github.com/elastic/go-elasticsearch/v7
@@ -94,6 +84,8 @@ github.com/goccy/go-json/internal/runtime
 # github.com/golang-jwt/jwt v3.2.2+incompatible
 ## explicit
 github.com/golang-jwt/jwt
+# github.com/google/go-cmp v0.6.0
+## explicit; go 1.13
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
@@ -154,8 +146,6 @@ github.com/lestrrat-go/strftime/internal/errors
 # github.com/markbates/goth v1.71.1
 ## explicit; go 1.15
 github.com/markbates/goth
-# github.com/mattn/go-shellwords v1.0.12
-## explicit; go 1.13
 # github.com/microcosm-cc/bluemonday v1.0.26
 ## explicit; go 1.21
 github.com/microcosm-cc/bluemonday
@@ -166,22 +156,19 @@ github.com/modern-go/reflect2
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/pkoukk/tiktoken-go v0.1.6
-## explicit; go 1.19
-github.com/pkoukk/tiktoken-go
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/russross/blackfriday/v2 v2.1.0
-## explicit
+# github.com/rogpeppe/go-internal v1.11.0
+## explicit; go 1.19
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
 # github.com/sony/sonyflake v1.0.0
 ## explicit; go 1.12
 github.com/sony/sonyflake
-# github.com/spf13/cast v1.4.1
-## explicit
+# github.com/spf13/cast v1.7.1
+## explicit; go 1.19
 github.com/spf13/cast
 # github.com/spf13/cobra v1.4.0
 ## explicit; go 1.15
@@ -189,22 +176,13 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.10.0
+# github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 # github.com/tidwall/btree v1.3.1
 ## explicit; go 1.18
 github.com/tidwall/btree
-# github.com/tmc/langchaingo v0.1.13
-## explicit; go 1.22.0
-github.com/tmc/langchaingo/callbacks
-github.com/tmc/langchaingo/llms
-github.com/tmc/langchaingo/llms/openai
-github.com/tmc/langchaingo/llms/openai/internal/openaiclient
-github.com/tmc/langchaingo/schema
-# github.com/urfave/cli v1.22.17
-## explicit; go 1.11
 # go.uber.org/atomic v1.9.0
 ## explicit; go 1.13
 go.uber.org/atomic
@@ -219,21 +197,21 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.31.0
-## explicit; go 1.20
+# golang.org/x/crypto v0.47.0
+## explicit; go 1.24.0
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/pbkdf2
-# golang.org/x/net v0.33.0
-## explicit; go 1.18
+# golang.org/x/net v0.49.0
+## explicit; go 1.24.0
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/oauth2 v0.21.0
-## explicit; go 1.18
+# golang.org/x/oauth2 v0.34.0
+## explicit; go 1.24.0
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/text v0.21.0
-## explicit; go 1.18
+# golang.org/x/text v0.33.0
+## explicit; go 1.24.0
 golang.org/x/text/internal/format
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact

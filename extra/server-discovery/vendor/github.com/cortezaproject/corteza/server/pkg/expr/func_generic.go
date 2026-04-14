@@ -2,9 +2,10 @@ package expr
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
-	"reflect"
 )
 
 type (
@@ -33,6 +34,7 @@ func coalesce(aa ...interface{}) interface{} {
 }
 
 func length(i interface{}) int {
+	i = UntypedValue(i)
 	if isEmpty(i) {
 		return 0
 	}

@@ -49,7 +49,7 @@ type (
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model
 		FindModelByIdent(connectionID uint64, ident string) *Model
 
-		Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error)
+		Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (out []map[string]any, err error)
 		Update(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error)
 		Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error)
 		Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error)
@@ -379,7 +379,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 	}
 
 	if conn.connection == nil {
-		conn.connection, err = connect(ctx, svc.logger, svc.inDev, conn.params)
+		conn.connection, err = connect(ctx, svc.logger, svc.inDev, conn.ID, conn.params)
 		if err != nil {
 			log.Warn("could not connect", zap.Error(err))
 			issues.addConnectionIssue(ID, Issue{
@@ -438,14 +438,14 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 // DML
 
 // Create stores new data (create data entry)
-func (svc *service) Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error) {
+func (svc *service) Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (meta []map[string]any, err error) {
 	if err = svc.canOpData(mf); err != nil {
-		return fmt.Errorf("cannot create data entry: %w", err)
+		return nil, fmt.Errorf("cannot create data entry: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
-		return fmt.Errorf("cannot create data entry: %w", err)
+		return nil, fmt.Errorf("cannot create data entry: %w", err)
 	}
 
 	return cw.connection.Create(ctx, model, rr...)

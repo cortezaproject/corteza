@@ -256,8 +256,6 @@ type (
 			} `kv:"sidebar,final" json:"sidebar"`
 
 			Studio struct {
-				SassInstalled bool `kv:"sass-installed" json:"sass-installed"`
-
 				Themes    []struct{ Theme } `kv:"themes" json:"themes"`
 				CustomCSS []struct{ Theme } `kv:"custom-css" json:"customCSS"`
 			} `kv:"studio" json:"studio"`
@@ -273,6 +271,7 @@ type (
 				HideProfileLink        bool `json:"hideProfileLink"`
 				HideThemeSelector      bool `json:"hideThemeSelector"`
 				HideNotifications      bool `json:"hideNotifications"`
+				ShowDrafts             bool `json:"showDrafts"`
 
 				HelpLinks []struct {
 					Handle string `json:"handle"`
@@ -285,6 +284,14 @@ type (
 					URL    string `json:"url"`
 					NewTab bool   `json:"newTab"`
 				} `json:"profileLinks"`
+
+				PageButtons []struct {
+					Label       string `json:"label"`
+					URL         string `json:"url"`
+					URLMatch    string `json:"urlMatch"`
+					NewTab      bool   `json:"newTab"`
+					Description string `json:"description"`
+				} `json:"pageButtons"`
 			} `kv:"topbar,final" json:"topbar"`
 
 			Charts struct {
@@ -294,6 +301,11 @@ type (
 					Colors []string `json:"colors"`
 				} `kv:"colorSchemes" json:"colorSchemes"`
 			} `kv:"charts" json:"charts"`
+
+			Location struct {
+				GeoSearchProvider string `json:"geoSearchProvider"`
+				GeoSearchApiKey   string `json:"geoSearchApiKey"`
+			} `kv:"location,final" json:"location"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {

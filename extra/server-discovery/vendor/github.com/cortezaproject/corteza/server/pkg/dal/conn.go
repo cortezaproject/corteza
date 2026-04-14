@@ -1,6 +1,10 @@
 package dal
 
-import "regexp"
+import (
+	"context"
+	"fmt"
+	"regexp"
+)
 
 type (
 	ConnectionWrap struct {
@@ -39,4 +43,13 @@ func checkIdent(ident string, rr ...*regexp.Regexp) bool {
 	}
 
 	return false
+}
+
+// Execute performs a raw HTTP request if the underlying connection implements RawExecutor.
+func (cw *ConnectionWrap) Execute(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (statusCode int, outHeaders map[string][]string, responseBody []byte, err error) {
+	if exec, ok := cw.connection.(RawExecutor); ok {
+		return exec.Execute(ctx, method, path, headers, payload)
+	}
+
+	return 0, nil, nil, fmt.Errorf("underlying connection does not implement RawExecutor")
 }

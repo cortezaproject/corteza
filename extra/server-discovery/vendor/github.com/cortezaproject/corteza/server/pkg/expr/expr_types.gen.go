@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/http"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"io"
 	"net/url"
 	"sync"
@@ -889,6 +890,55 @@ func (KVV) Cast(val interface{}) (TypedValue, error) {
 // value is first passed through CastToKVV
 func (t *KVV) Assign(val interface{}) error {
 	if c, err := CastToKVV(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+// LabelValue is an expression type, wrapper for map[string]labelTypes.LabelValue type
+type LabelValue struct {
+	value map[string]labelTypes.LabelValue
+	mux   sync.RWMutex
+}
+
+// NewLabelValue creates new instance of LabelValue expression type
+func NewLabelValue(val interface{}) (*LabelValue, error) {
+	if c, err := CastToLabelValue(val); err != nil {
+		return nil, fmt.Errorf("unable to create LabelValue: %w", err)
+	} else {
+		return &LabelValue{value: c}, nil
+	}
+}
+
+// Get return underlying value on LabelValue
+func (t *LabelValue) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on LabelValue
+func (t *LabelValue) GetValue() map[string]labelTypes.LabelValue {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (LabelValue) Type() string { return "LabelValue" }
+
+// Cast converts value to map[string]labelTypes.LabelValue
+func (LabelValue) Cast(val interface{}) (TypedValue, error) {
+	return NewLabelValue(val)
+}
+
+// Assign new value to LabelValue
+//
+// value is first passed through CastToLabelValue
+func (t *LabelValue) Assign(val interface{}) error {
+	if c, err := CastToLabelValue(val); err != nil {
 		return err
 	} else {
 		t.value = c

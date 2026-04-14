@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
@@ -52,7 +53,7 @@ type (
 
 		Identifier string
 		Label      string
-		Expression *ql.ASTNode
+		Expression *ast.ASTNode
 		Type       Type
 		Store      Codec
 	}
@@ -153,7 +154,7 @@ func (def *Aggregate) init(ctx context.Context, src Iterator) (exec *aggregate, 
 			}
 		} else {
 			// Manually validate already parsed expressions
-			err = attr.Expression.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+			err = attr.Expression.Traverse(func(a *ast.ASTNode) (bool, *ast.ASTNode, error) {
 				if a.Symbol == "" {
 					return true, a, nil
 				}
@@ -239,7 +240,7 @@ func (def *Aggregate) determineAttrType(base AggregateAttr, ss []AttributeMappin
 		return
 	}
 
-	var root *ql.ASTNode
+	var root *ast.ASTNode
 	var t Type
 
 	// If we have a symbol, then we'll use it to determine the type.
@@ -250,7 +251,7 @@ func (def *Aggregate) determineAttrType(base AggregateAttr, ss []AttributeMappin
 	//
 	// Note, some refs (group and add for example) may not know their types so we need
 	// to dig deeper.
-	base.Expression.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+	base.Expression.Traverse(func(a *ast.ASTNode) (bool, *ast.ASTNode, error) {
 		if a.Symbol != "" {
 			root = a
 			return false, a, nil

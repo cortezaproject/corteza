@@ -13,6 +13,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/spf13/cast"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -33,7 +35,7 @@ type (
 
 		Children PageSet `json:"children,omitempty"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Visible bool `json:"visible"`
 		Weight  int  `json:"weight"`
@@ -138,7 +140,7 @@ type (
 		Query       string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

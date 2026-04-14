@@ -6,7 +6,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )
@@ -85,7 +85,7 @@ func (a *aggregator) AddAggregateE(ident, expr string) (err error) {
 }
 
 // AddAggregate adds a new aggregate from an already parsed expression
-func (a *aggregator) AddAggregate(ident string, expr *ql.ASTNode) (err error) {
+func (a *aggregator) AddAggregate(ident string, expr *ast.ASTNode) (err error) {
 	def := aggregateDef{
 		outIdent: ident,
 	}
@@ -322,7 +322,7 @@ func (a *aggregator) completeAverage() {
 
 // Utilities
 
-func unpackMappingSource(n *ql.ASTNode) (ident string, expr *ql.ASTNode, err error) {
+func unpackMappingSource(n *ast.ASTNode) (ident string, expr *ast.ASTNode, err error) {
 	// Check if first arg of agg. fnc. is an attr.
 	if len(n.Args) == 1 && n.Args[0].Symbol != "" {
 		return n.Args[0].Symbol, n, nil
@@ -332,7 +332,7 @@ func unpackMappingSource(n *ql.ASTNode) (ident string, expr *ql.ASTNode, err err
 	return
 }
 
-func unpackExpressionNode(n *ql.ASTNode) (aggOp string, expr *ql.ASTNode, err error) {
+func unpackExpressionNode(n *ast.ASTNode) (aggOp string, expr *ast.ASTNode, err error) {
 	if n.Ref != "" {
 		aggOp = strings.ToLower(n.Ref)
 	}

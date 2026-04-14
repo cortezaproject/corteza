@@ -3,6 +3,8 @@ package ql
 import (
 	"fmt"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/ast"
 )
 
 // SelectStatement represents a SQL SELECT statement.
@@ -11,7 +13,7 @@ type (
 		fmt.Stringer
 
 		Validate() error
-		ToAST() *ASTNode
+		ToAST() *ast.ASTNode
 	}
 
 	parserNodeSet []parserNode // Stream of comma delimited nodes
