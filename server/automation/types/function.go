@@ -143,6 +143,15 @@ func (f functionStep) ExecN(ctx context.Context, r *nx.ExecRequest) (nx.ExecResp
 			}
 		}
 
+		if args != nil {
+			if r.Arguments == nil {
+				r.Arguments = make(map[string]expr.TypedValue)
+			}
+			for k, v := range args.GetValue() {
+				r.Arguments[k] = v
+			}
+		}
+
 	}
 
 	results, err = f.def.Handler(ctx, args)

@@ -91,6 +91,9 @@ type (
 	ExecRequest struct {
 		// Current scope
 		Scope map[string]*expr.Vars
+
+		// Evaluated arguments passed into this step, populated by the step's handler
+		Arguments map[string]expr.TypedValue
 	}
 
 	ExecResponse any
@@ -149,6 +152,7 @@ type (
 		Kind      string     `json:"kind,omitempty"`
 		Input     any        `json:"input,omitempty"`
 		Output    any        `json:"output,omitempty"`
+		Args      any        `json:"args,omitempty"`
 		StartedAt time.Time  `json:"startedAt"`
 		EndedAt   *time.Time `json:"endedAt,omitempty"`
 		Error     error      `json:"error,omitempty"`

@@ -774,6 +774,15 @@ func (s *ngIteratorStep) ExecN(ctx context.Context, r *execTypes.ExecRequest) (e
 				return nil, err
 			}
 		}
+
+		if args != nil {
+			if r.Arguments == nil {
+				r.Arguments = make(map[string]expr.TypedValue)
+			}
+			for k, v := range args.GetValue() {
+				r.Arguments[k] = v
+			}
+		}
 	}
 
 	ih, err := s.iterFn(ctx, args)

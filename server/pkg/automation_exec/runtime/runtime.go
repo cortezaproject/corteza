@@ -248,6 +248,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 
 	// Execute: phased or single-shot.
 	var output types.ExecResponse
+	execReq := &types.ExecRequest{Scope: inputVars}
 	if phased, ok := step.Handler.(types.PhasedStepHandler); ok {
 		phases := phased.Phases()
 		phIdx := 0
@@ -259,7 +260,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 			output = nil
 			err = nil
 		} else {
-			output, err = phases[phIdx](ctx, &types.ExecRequest{Scope: inputVars})
+			output, err = phases[phIdx](ctx, execReq)
 			if err == nil && cf != nil {
 				cf.phaseIndex++
 				cf.retryCount = 0
@@ -270,7 +271,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 			}
 		}
 	} else {
-		output, err = step.Handler.ExecN(ctx, &types.ExecRequest{Scope: inputVars})
+		output, err = step.Handler.ExecN(ctx, execReq)
 	}
 
 	// remove "" from inputVars as it's already outlined by "global"
@@ -301,6 +302,10 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		if cf != nil {
 			phIdx = cf.phaseIndex
 		}
+		var expArgs *expr.Vars
+		if execReq.Arguments != nil {
+			expArgs, _ = expr.NewVars(execReq.Arguments)
+		}
 		_ = r.ledger.RecordFrame(ctx, r.exec.ID, r.executionID, r.exec.Revision, types.StackFrame{
 			ID:        frameID,
 			StepID:    step.ID,
@@ -308,6 +313,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 			Handle:    step.Handle,
 			Kind:      step.Kind,
 			Input:     inputVars,
+			Args:      expArgs,
 			Output:    nil,
 			StartedAt: result.StartedAt,
 			EndedAt:   &result.CompletedAt,
@@ -362,6 +368,10 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 	}
 
 	// Record frame in ledger
+		var expArgs *expr.Vars
+		if execReq.Arguments != nil {
+			expArgs, _ = expr.NewVars(execReq.Arguments)
+		}
 	_ = r.ledger.RecordFrame(ctx, r.exec.ID, r.executionID, r.exec.Revision, types.StackFrame{
 		ID:        frameID,
 		StepID:    step.ID,
@@ -369,6 +379,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		Handle:    step.Handle,
 		Kind:      step.Kind,
 		Input:     inputVars,
+		Args:      expArgs,
 		Output:    expr.Must(expr.NewVars(outputMap)),
 		StartedAt: result.StartedAt,
 		EndedAt:   &result.CompletedAt,
