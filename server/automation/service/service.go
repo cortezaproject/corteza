@@ -102,7 +102,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultWorkflow.triggers = DefaultTrigger
 
 	engine, err := runnerSvc.AutomationService(ctx, DefaultLogger.Named("automation-execution"), manager.Config{
-		MaxConcurrent: 1,
+		MaxConcurrent: 10,
 	})
 	if err != nil {
 		return err
