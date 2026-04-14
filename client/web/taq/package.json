@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-taq",
-  "version": "2026.3.0-dev.13",
+  "version": "2026.3.0-dev.14",
   "private": true,
   "type": "module",
   "scripts": {

@@ -20,7 +20,6 @@
     "eamodio.gitlens",
 
     // Utility extensions
-    "ms-vscode.vscode-json",
-    "formulahendry.auto-rename-tag"
+    "ms-vscode.vscode-json"
   ]
 }
