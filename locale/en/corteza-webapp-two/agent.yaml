@@ -1,0 +1,8 @@
+sidebar:
+  title: Human Assistant
+  chatTab: Chat {id}
+  newChat: New Chat
+  deleteChat: Delete Chat
+  clearAllChats: Clear All Chats
+  empty: How can I help you today?
+  placeholder: Message...

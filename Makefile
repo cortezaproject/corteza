@@ -1,6 +1,6 @@
 .PHONY: dev dev-all test lint fresh audit codegen tag ftag
 
-WEB_APPS := admin agentic compose one taq
+WEB_APPS := admin agentic compose one taq two
 
 codegen:
 	@echo "---Running codegen---"

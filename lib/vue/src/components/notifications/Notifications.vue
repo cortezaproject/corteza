@@ -4,7 +4,17 @@
       <div>
         <div class="flex items-center gap-2">
           <TabList>
-            <Tab value="unread">{{ $t('notifications.unread') }}</Tab>
+            <Tab value="unread">
+              <span class="flex items-center gap-1.5">
+                {{ $t('notifications.unread') }}
+                <Badge
+                  v-if="notifications.unreadCount > 0"
+                  :value="notifications.unreadCount"
+                  severity="secondary"
+                  size="small"
+                />
+              </span>
+            </Tab>
             <Tab value="all">{{ $t('notifications.all') }}</Tab>
           </TabList>
 

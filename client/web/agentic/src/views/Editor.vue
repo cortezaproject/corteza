@@ -1,6 +1,7 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ isCreate ? $t('agent.editor.titleCreate') : $t('agent.editor.titleEdit') }}</span>
+    <span v-if="isCreate">{{ $t('agent.editor.titleCreate') }}</span>
+    <span v-else class="font-semibold">{{ agent?.meta?.short || agent?.handle || $t('agent.editor.titleEdit') }}</span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">

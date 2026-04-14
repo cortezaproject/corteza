@@ -25,6 +25,7 @@
               :options="agentStore.availableAgents"
               optionLabel="meta.short"
               optionValue="agentID"
+              size="small"
               class="!border-0 !shadow-none !bg-transparent"
             >
               <template #value="slotProps">

@@ -1,0 +1,13 @@
+label:
+  cancel: Cancel
+  delete: Delete
+  yes: Yes
+  no: No
+
+resourceList:
+  noItems: No items to show
+
+appDisabled:
+  title: Application Disabled
+  message: Please contact your system administrator for more information.
+  backToHome: Back to Home
