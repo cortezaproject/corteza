@@ -31,6 +31,109 @@ func TAQHandler(reg toolRegistrar) *taqHandler {
 	return h
 }
 
+func (h *taqHandler) RegisterAgenticTAQs(ctx context.Context, taqIDs []uint64) error {
+	for _, taqID := range taqIDs {
+		taq, err := autoService.DefaultNgAutomation.LookupByID(ctx, taqID)
+		if err != nil {
+			continue
+		}
+
+		trigger := h.findTriggerWithDefinition(taq)
+		if trigger == nil {
+			continue
+		}
+
+		def, err := autoService.DefaultTriggerDefinition.LookupByID(ctx, trigger.TriggerDefinitionID)
+		if err != nil {
+			continue
+		}
+
+		if !def.SkipEventBus {
+			continue
+		}
+
+		toolName := fmt.Sprintf("automation_%d", taq.ID)
+		tool := h.schemaToMCPTool(toolName, taq, def)
+
+		h.reg.RegisterTool(tool, taq.Meta.Short, h.makeAgenticExecHandler(taq.ID, trigger.Handle))
+	}
+	return nil
+}
+
+func (h *taqHandler) findTriggerWithDefinition(taq *autoTypes.NgAutomation) *autoTypes.NgAutomationTrigger {
+	for _, t := range taq.Triggers {
+		if t.TriggerDefinitionID > 0 {
+			return t
+		}
+	}
+	return nil
+}
+
+func (h *taqHandler) schemaToMCPTool(name string, taq *autoTypes.NgAutomation, def *autoTypes.TriggerDefinition) mcp.Tool {
+	desc := ""
+	if taq.Meta != nil {
+		desc = taq.Meta.Description
+	}
+
+	if len(def.OutputSchema) > 0 {
+		desc += "\n\nReturns:"
+		for _, p := range def.OutputSchema {
+			desc += fmt.Sprintf("\n- %s (%s): %s", p.Name, p.Type, p.Description)
+		}
+	}
+
+	props := map[string]any{}
+	required := []string{}
+	for _, p := range def.InputSchema {
+		props[p.Name] = map[string]any{
+			"type":        "string", // default to string for now
+			"description": p.Description,
+		}
+		if p.Required {
+			required = append(required, p.Name)
+		}
+	}
+
+	rawSchema, _ := json.Marshal(map[string]any{
+		"type":       "object",
+		"properties": props,
+		"required":   required,
+	})
+
+	return mcp.NewToolWithRawSchema(name, desc, rawSchema)
+}
+
+func (h *taqHandler) makeAgenticExecHandler(taqID uint64, entryPoint string) server.ToolHandlerFunc {
+	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args, ok := req.Params.Arguments.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid request")
+		}
+
+		vars, err := expr.NewVars(args)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build input vars: %w", err)
+		}
+
+		params := autoTypes.NgAutomationExecParams{
+			EntryPoint: entryPoint,
+			Input:      vars,
+		}
+
+		result, err := autoService.DefaultNgAutomation.ExecAndWait(ctx, taqID, params)
+		if err != nil {
+			return nil, fmt.Errorf("TAQ execution failed: %w", err)
+		}
+
+		out, err := json.Marshal(result)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal result: %w", err)
+		}
+
+		return mcp.NewToolResultText(string(out)), nil
+	}
+}
+
 func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_lookup",

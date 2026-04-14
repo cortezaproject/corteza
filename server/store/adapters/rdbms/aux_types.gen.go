@@ -246,6 +246,23 @@ type (
 		DeletedBy    uint64                              `db:"deleted_by"`
 	}
 
+	// auxAutomationTriggerDefinition is an auxiliary structure used for transporting to/from RDBMS store
+	auxAutomationTriggerDefinition struct {
+		ID           uint64                                 `db:"id"`
+		Handle       string                                 `db:"handle"`
+		Meta         *automationType.TriggerDefinitionMeta  `db:"meta"`
+		InputSchema  automationType.TriggerDefinitionSchema `db:"input_schema"`
+		OutputSchema automationType.TriggerDefinitionSchema `db:"output_schema"`
+		SkipEventBus bool                                   `db:"skip_event_bus"`
+		OwnedBy      uint64                                 `db:"owned_by"`
+		CreatedAt    time.Time                              `db:"created_at"`
+		UpdatedAt    *time.Time                             `db:"updated_at"`
+		DeletedAt    *time.Time                             `db:"deleted_at"`
+		CreatedBy    uint64                                 `db:"created_by"`
+		UpdatedBy    uint64                                 `db:"updated_by"`
+		DeletedBy    uint64                                 `db:"deleted_by"`
+	}
+
 	// auxAutomationWorkflow is an auxiliary structure used for transporting to/from RDBMS store
 	auxAutomationWorkflow struct {
 		ID           uint64                          `db:"id"`
@@ -1618,6 +1635,68 @@ func (aux *auxAutomationTrigger) scan(row scanner) error {
 		&aux.EventType,
 		&aux.Constraints,
 		&aux.Input,
+		&aux.OwnedBy,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes AutomationTriggerDefinition to auxAutomationTriggerDefinition
+//
+// This function is auto-generated
+func (aux *auxAutomationTriggerDefinition) encode(res *automationType.TriggerDefinition) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Meta = res.Meta
+	aux.InputSchema = res.InputSchema
+	aux.OutputSchema = res.OutputSchema
+	aux.SkipEventBus = res.SkipEventBus
+	aux.OwnedBy = res.OwnedBy
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes AutomationTriggerDefinition from auxAutomationTriggerDefinition
+//
+// This function is auto-generated
+func (aux auxAutomationTriggerDefinition) decode() (res *automationType.TriggerDefinition, _ error) {
+	res = new(automationType.TriggerDefinition)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Meta = aux.Meta
+	res.InputSchema = aux.InputSchema
+	res.OutputSchema = aux.OutputSchema
+	res.SkipEventBus = aux.SkipEventBus
+	res.OwnedBy = aux.OwnedBy
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxAutomationTriggerDefinition fields
+//
+// This function is auto-generated
+func (aux *auxAutomationTriggerDefinition) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Meta,
+		&aux.InputSchema,
+		&aux.OutputSchema,
+		&aux.SkipEventBus,
 		&aux.OwnedBy,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,

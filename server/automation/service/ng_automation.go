@@ -132,7 +132,7 @@ func (svc *ngAutomation) Search(ctx context.Context, filter types.NgAutomationFi
 			filter.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
-				"ng-automation",
+				types.NgAutomation{}.LabelResourceKind(),
 				filter.Labels,
 			)
 
@@ -338,13 +338,29 @@ func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.
 
 func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
 	entryPoint := p.EntryPoint
+	atm, loadErr := loadNgAutomation(ctx, svc.store, automationID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+
 	if entryPoint == "" {
 		// In case no entry point, use the first trigger as the parent.
-		// @todo this won't be 100% ok and will need to be specified on a higher level
-		if atm, loadErr := loadNgAutomation(ctx, svc.store, automationID); loadErr == nil {
-			if len(atm.Triggers) > 0 {
-				entryPoint = atm.Triggers[0].Handle
+		if len(atm.Triggers) > 0 {
+			entryPoint = atm.Triggers[0].Handle
+		}
+	}
+
+	// Validate input against TriggerDefinition if the trigger has one
+	for _, t := range atm.Triggers {
+		if (t.Handle == entryPoint || (entryPoint == "" && t.ID == atm.Triggers[0].ID)) && t.TriggerDefinitionID > 0 {
+			def, err := DefaultTriggerDefinition.LookupByID(ctx, t.TriggerDefinitionID)
+			if err != nil {
+				return nil, err
 			}
+			if err := validateAgenticInput(def.InputSchema, p.Input); err != nil {
+				return nil, err
+			}
+			break
 		}
 	}
 
@@ -710,6 +726,18 @@ func (svc *ngAutomation) registerAutomation(ctx context.Context, a *types.NgAuto
 
 func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation, t *types.NgAutomationTrigger) {
 	log = log.With(logger.Uint64("triggerID", t.ID))
+
+	if t.TriggerDefinitionID > 0 {
+		def, err := DefaultTriggerDefinition.LookupByID(context.Background(), t.TriggerDefinitionID)
+		if err == nil && def != nil && def.SkipEventBus {
+			// Always unregister existing handler if it was somehow registered before
+			if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {
+				svc.eventbus.Unregister(ptr)
+				delete(svc.reg[a.ID], t.ID)
+			}
+			return
+		}
+	}
 
 	// Always unregister existing handler
 	if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {

@@ -25,3 +25,6 @@ types:
     pkgID: true
   NgAutomationPath:
     noIdField: true
+
+  TriggerDefinition:
+    labelResourceType: trigger-definition

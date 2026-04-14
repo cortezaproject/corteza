@@ -13,6 +13,7 @@ component: schema.#component & {
 		"trigger":  trigger
 
 		"ng-automation": ng_automation
+		"trigger-definition": trigger_definition
 	}
 
 	rbac: operations: {
@@ -23,6 +24,8 @@ component: schema.#component & {
 		"workflows.search": description:             "List, search or filter workflows"
 		"ng-automation.create": description:         "Create workflows"
 		"ng-automations.search": description:        "List, search or filter workflows"
+		"trigger-definition.create": description:    "Create trigger definitions"
+		"trigger-definitions.search": description:   "List, search or filter trigger definitions"
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
 	}
 }

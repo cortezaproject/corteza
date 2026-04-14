@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/agentic/policy"
 	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
 	"github.com/cortezaproject/corteza/server/system/types"
+	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
 )
 
 //go:embed human.md
@@ -35,6 +36,11 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	if err := validateAgent(agent); err != nil {
 		return nil, err
+	}
+
+	// Dynamic invocation schema population
+	if agent.Invocation.System.Enabled && (agent.Invocation.System.InputSchema == nil || len(agent.Invocation.System.InputSchema) == 0) {
+		agent.Invocation.System.InputSchema = r.computeInputSchema(ctx, agent)
 	}
 
 	// 2. Get available tools
@@ -230,6 +236,13 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent) str
 				if err != nil {
 					continue
 				}
+
+				// If the TAQ has an onAgentic/direct-invoke trigger, it's already an MCP tool
+				// and should be excluded from the legacy text prompt injection.
+				if r.hasDirectInvokeTrigger(ctx, info) {
+					continue
+				}
+
 				short := ""
 				if info.Meta != nil {
 					short = info.Meta.Short
@@ -853,4 +866,58 @@ func (r *runtime) resolveWorkflowRef(ctx context.Context, ref string) string {
 		return ref
 	}
 	return strconv.FormatUint(wf.ID, 10)
+}
+
+func (r *runtime) hasDirectInvokeTrigger(ctx context.Context, a *autoTypes.NgAutomation) bool {
+	for _, t := range a.Triggers {
+		if t.TriggerDefinitionID > 0 {
+			def, err := r.triggerDefService.LookupByID(ctx, t.TriggerDefinitionID)
+			if err == nil && def != nil && def.SkipEventBus {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (r *runtime) computeInputSchema(ctx context.Context, agent *types.Agent) json.RawMessage {
+	// If the agent specifies a direct-invoke TAQ, use its InputSchema
+	for _, t := range agent.Access.TAQs {
+		info, err := r.taqService.LookupByID(ctx, t.ID)
+		if err != nil {
+			continue
+		}
+
+		for _, trg := range info.Triggers {
+			if trg.TriggerDefinitionID > 0 {
+				def, err := r.triggerDefService.LookupByID(ctx, trg.TriggerDefinitionID)
+				if err == nil && def != nil && def.SkipEventBus {
+					// Convert TriggerDefinitionSchema to JSON Schema
+					return r.schemaToJSONSchema(def.InputSchema)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (r *runtime) schemaToJSONSchema(schema autoTypes.TriggerDefinitionSchema) json.RawMessage {
+	props := map[string]any{}
+	required := []string{}
+	for _, p := range schema {
+		props[p.Name] = map[string]any{
+			"type":        "string", // default to string for now
+			"description": p.Description,
+		}
+		if p.Required {
+			required = append(required, p.Name)
+		}
+	}
+
+	raw, _ := json.Marshal(map[string]any{
+		"type":       "object",
+		"properties": props,
+		"required":   required,
+	})
+	return raw
 }

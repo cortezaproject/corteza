@@ -1643,6 +1643,126 @@ var (
 		}
 	}
 
+	// automationTriggerDefinitionTable represents automationTriggerDefinitions store table
+	//
+	// This value is auto-generated
+	automationTriggerDefinitionTable = goqu.T("trigger_definitions")
+
+	// automationTriggerDefinitionSelectQuery assembles select query for fetching automationTriggerDefinitions
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"meta",
+			"input_schema",
+			"output_schema",
+			"skip_event_bus",
+			"owned_by",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(automationTriggerDefinitionTable)
+	}
+
+	// automationTriggerDefinitionInsertQuery assembles query inserting automationTriggerDefinitions
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionInsertQuery = func(d goqu.DialectWrapper, res *automationType.TriggerDefinition) *goqu.InsertDataset {
+		return d.Insert(automationTriggerDefinitionTable).
+			Rows(goqu.Record{
+				"id":             res.ID,
+				"handle":         res.Handle,
+				"meta":           res.Meta,
+				"input_schema":   res.InputSchema,
+				"output_schema":  res.OutputSchema,
+				"skip_event_bus": res.SkipEventBus,
+				"owned_by":       res.OwnedBy,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+				"created_by":     res.CreatedBy,
+				"updated_by":     res.UpdatedBy,
+				"deleted_by":     res.DeletedBy,
+			})
+	}
+
+	// automationTriggerDefinitionUpsertQuery assembles (insert+on-conflict) query for replacing automationTriggerDefinitions
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionUpsertQuery = func(d goqu.DialectWrapper, res *automationType.TriggerDefinition) *goqu.InsertDataset {
+		var target = `,id`
+
+		return automationTriggerDefinitionInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":         res.Handle,
+						"meta":           res.Meta,
+						"input_schema":   res.InputSchema,
+						"output_schema":  res.OutputSchema,
+						"skip_event_bus": res.SkipEventBus,
+						"owned_by":       res.OwnedBy,
+						"created_at":     res.CreatedAt,
+						"updated_at":     res.UpdatedAt,
+						"deleted_at":     res.DeletedAt,
+						"created_by":     res.CreatedBy,
+						"updated_by":     res.UpdatedBy,
+						"deleted_by":     res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// automationTriggerDefinitionUpdateQuery assembles query for updating automationTriggerDefinitions
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionUpdateQuery = func(d goqu.DialectWrapper, res *automationType.TriggerDefinition) *goqu.UpdateDataset {
+		return d.Update(automationTriggerDefinitionTable).
+			Set(goqu.Record{
+				"handle":         res.Handle,
+				"meta":           res.Meta,
+				"input_schema":   res.InputSchema,
+				"output_schema":  res.OutputSchema,
+				"skip_event_bus": res.SkipEventBus,
+				"owned_by":       res.OwnedBy,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+				"created_by":     res.CreatedBy,
+				"updated_by":     res.UpdatedBy,
+				"deleted_by":     res.DeletedBy,
+			}).
+			Where(automationTriggerDefinitionPrimaryKeys(res))
+	}
+
+	// automationTriggerDefinitionDeleteQuery assembles delete query for removing automationTriggerDefinitions
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(automationTriggerDefinitionTable).Where(ee...)
+	}
+
+	// automationTriggerDefinitionDeleteQuery assembles delete query for removing automationTriggerDefinitions
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(automationTriggerDefinitionTable)
+	}
+
+	// automationTriggerDefinitionPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	automationTriggerDefinitionPrimaryKeys = func(res *automationType.TriggerDefinition) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// automationWorkflowTable represents automationWorkflows store table
 	//
 	// This value is auto-generated

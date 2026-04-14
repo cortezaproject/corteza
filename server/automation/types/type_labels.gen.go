@@ -60,6 +60,30 @@ func (m Trigger) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
+func (m *TriggerDefinition) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m TriggerDefinition) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (TriggerDefinition) LabelResourceKind() string {
+	return "trigger-definition"
+}
+
+// GetLabels adds new label to label map
+func (m TriggerDefinition) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *Workflow) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)

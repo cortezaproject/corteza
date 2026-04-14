@@ -58,6 +58,7 @@ type (
 		AutomationNgAutomations
 		AutomationSessions
 		AutomationTriggers
+		AutomationTriggerDefinitions
 		AutomationWorkflows
 		ComposeAttachments
 		ComposeCharts
@@ -282,6 +283,19 @@ type (
 		DeleteAutomationTriggerByID(ctx context.Context, id uint64) error
 		TruncateAutomationTriggers(ctx context.Context) error
 		LookupAutomationTriggerByID(ctx context.Context, id uint64) (*automationType.Trigger, error)
+	}
+
+	AutomationTriggerDefinitions interface {
+		SearchAutomationTriggerDefinitions(ctx context.Context, f automationType.TriggerDefinitionFilter) (automationType.TriggerDefinitionSet, automationType.TriggerDefinitionFilter, error)
+		CreateAutomationTriggerDefinition(ctx context.Context, rr ...*automationType.TriggerDefinition) error
+		UpdateAutomationTriggerDefinition(ctx context.Context, rr ...*automationType.TriggerDefinition) error
+		UpsertAutomationTriggerDefinition(ctx context.Context, rr ...*automationType.TriggerDefinition) error
+		DeleteAutomationTriggerDefinition(ctx context.Context, rr ...*automationType.TriggerDefinition) error
+
+		DeleteAutomationTriggerDefinitionByID(ctx context.Context, id uint64) error
+		TruncateAutomationTriggerDefinitions(ctx context.Context) error
+		LookupAutomationTriggerDefinitionByID(ctx context.Context, id uint64) (*automationType.TriggerDefinition, error)
+		LookupAutomationTriggerDefinitionByHandle(ctx context.Context, handle string) (*automationType.TriggerDefinition, error)
 	}
 
 	AutomationWorkflows interface {
@@ -1707,6 +1721,73 @@ func TruncateAutomationTriggers(ctx context.Context, s AutomationTriggers) error
 // This function is auto-generated
 func LookupAutomationTriggerByID(ctx context.Context, s AutomationTriggers, id uint64) (*automationType.Trigger, error) {
 	return s.LookupAutomationTriggerByID(ctx, id)
+}
+
+// SearchAutomationTriggerDefinitions returns all matching AutomationTriggerDefinitions from store
+//
+// This function is auto-generated
+func SearchAutomationTriggerDefinitions(ctx context.Context, s AutomationTriggerDefinitions, f automationType.TriggerDefinitionFilter) (automationType.TriggerDefinitionSet, automationType.TriggerDefinitionFilter, error) {
+	return s.SearchAutomationTriggerDefinitions(ctx, f)
+}
+
+// CreateAutomationTriggerDefinition creates one or more AutomationTriggerDefinitions in store
+//
+// This function is auto-generated
+func CreateAutomationTriggerDefinition(ctx context.Context, s AutomationTriggerDefinitions, rr ...*automationType.TriggerDefinition) error {
+	return s.CreateAutomationTriggerDefinition(ctx, rr...)
+}
+
+// UpdateAutomationTriggerDefinition updates one or more (existing) AutomationTriggerDefinitions in store
+//
+// This function is auto-generated
+func UpdateAutomationTriggerDefinition(ctx context.Context, s AutomationTriggerDefinitions, rr ...*automationType.TriggerDefinition) error {
+	return s.UpdateAutomationTriggerDefinition(ctx, rr...)
+}
+
+// UpsertAutomationTriggerDefinition creates new or updates existing one or more AutomationTriggerDefinitions in store
+//
+// This function is auto-generated
+func UpsertAutomationTriggerDefinition(ctx context.Context, s AutomationTriggerDefinitions, rr ...*automationType.TriggerDefinition) error {
+	return s.UpsertAutomationTriggerDefinition(ctx, rr...)
+}
+
+// DeleteAutomationTriggerDefinition deletes one or more AutomationTriggerDefinitions from store
+//
+// This function is auto-generated
+func DeleteAutomationTriggerDefinition(ctx context.Context, s AutomationTriggerDefinitions, rr ...*automationType.TriggerDefinition) error {
+	return s.DeleteAutomationTriggerDefinition(ctx, rr...)
+}
+
+// DeleteAutomationTriggerDefinitionByID deletes one or more AutomationTriggerDefinitions from store
+//
+// This function is auto-generated
+func DeleteAutomationTriggerDefinitionByID(ctx context.Context, s AutomationTriggerDefinitions, id uint64) error {
+	return s.DeleteAutomationTriggerDefinitionByID(ctx, id)
+}
+
+// TruncateAutomationTriggerDefinitions Deletes all AutomationTriggerDefinitions from store
+//
+// This function is auto-generated
+func TruncateAutomationTriggerDefinitions(ctx context.Context, s AutomationTriggerDefinitions) error {
+	return s.TruncateAutomationTriggerDefinitions(ctx)
+}
+
+// LookupAutomationTriggerDefinitionByID searches for trigger definition by ID
+//
+// It returns trigger definition even if deleted
+//
+// This function is auto-generated
+func LookupAutomationTriggerDefinitionByID(ctx context.Context, s AutomationTriggerDefinitions, id uint64) (*automationType.TriggerDefinition, error) {
+	return s.LookupAutomationTriggerDefinitionByID(ctx, id)
+}
+
+// LookupAutomationTriggerDefinitionByHandle searches for trigger definition by their handle
+//
+// It returns only valid trigger definitions
+//
+// This function is auto-generated
+func LookupAutomationTriggerDefinitionByHandle(ctx context.Context, s AutomationTriggerDefinitions, handle string) (*automationType.TriggerDefinition, error) {
+	return s.LookupAutomationTriggerDefinitionByHandle(ctx, handle)
 }
 
 // SearchAutomationWorkflows returns all matching AutomationWorkflows from store

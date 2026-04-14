@@ -90,6 +90,11 @@ type (
 		// Initial input scope,
 		// will be merged merged with automation variables
 		Input *expr.Vars `json:"input"`
+
+		// TriggerDefinitionID references a TriggerDefinition.
+		// Defines the parameter schema this trigger accepts from callers.
+		// Zero when not using a custom definition.
+		TriggerDefinitionID uint64 `json:"triggerDefinitionID,string,omitempty"`
 	}
 
 	NgTriggerConstraint struct {

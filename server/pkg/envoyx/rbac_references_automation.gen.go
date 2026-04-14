@@ -35,3 +35,16 @@ func AutomationNgAutomationRbacReferences(ngAutomation string) (res *Ref, pp []*
 
 	return
 }
+
+// AutomationTriggerDefinitionRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func AutomationTriggerDefinitionRbacReferences(triggerDefinition string) (res *Ref, pp []*Ref, err error) {
+	if triggerDefinition != "*" {
+		res = &Ref{ResourceType: types.TriggerDefinitionResourceType, Identifiers: MakeIdentifiers(triggerDefinition)}
+	}
+
+	return
+}

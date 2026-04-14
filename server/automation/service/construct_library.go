@@ -53,7 +53,19 @@ func (r *constructRegistry) AddTriggers(tt ...types.ConstructTrigger) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	r.triggers = append(r.triggers, tt...)
+	for _, t := range tt {
+		replaced := false
+		for i, existing := range r.triggers {
+			if existing.ResourceType == t.ResourceType && existing.EventType == t.EventType {
+				r.triggers[i] = t
+				replaced = true
+				break
+			}
+		}
+		if !replaced {
+			r.triggers = append(r.triggers, t)
+		}
+	}
 }
 
 func (r *constructRegistry) Function(ref string) (out types.ConstructFunction, ok bool) {

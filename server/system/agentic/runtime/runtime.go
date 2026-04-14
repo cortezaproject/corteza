@@ -22,6 +22,7 @@ type (
 		obs               *observability.Bus
 		taqService        TAQService
 		workflowService   WorkflowService
+		triggerDefService TriggerDefinitionService
 		nsModResolver     NsModResolver
 	}
 
@@ -120,6 +121,10 @@ type (
 		LookupByHandle(ctx context.Context, handle string) (*autoTypes.Workflow, error)
 	}
 
+	TriggerDefinitionService interface {
+		LookupByID(ctx context.Context, ID uint64) (*autoTypes.TriggerDefinition, error)
+	}
+
 	NsModResolver interface {
 		Resolve(ctx context.Context, namespace, module string) (nsID, modID uint64, err error)
 		LookupNamespace(ctx context.Context, id uint64) (NsHandle, error)
@@ -182,5 +187,9 @@ func (r *runtime) SetWorkflowService(s WorkflowService) {
 
 func (r *runtime) SetNsModResolver(s NsModResolver) {
 	r.nsModResolver = s
+}
+
+func (r *runtime) SetTriggerDefinitionService(s TriggerDefinitionService) {
+	r.triggerDefService = s
 }
 
