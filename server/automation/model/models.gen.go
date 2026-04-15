@@ -548,6 +548,12 @@ var TriggerDefinition = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "AgentID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "agent_id"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},

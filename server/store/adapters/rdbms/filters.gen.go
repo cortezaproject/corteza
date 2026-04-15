@@ -593,6 +593,10 @@ func AutomationTriggerDefinitionFilter(d drivers.Dialect, f automationType.Trigg
 		ee = append(ee, expr)
 	}
 
+	if ss := trimStringSlice(f.AgentID); len(ss) > 0 {
+		ee = append(ee, goqu.C("agent_id").In(ss))
+	}
+
 	if ss := trimStringSlice(f.TriggerDefinitionID); len(ss) > 0 {
 		ee = append(ee, goqu.C("id").In(ss))
 	}

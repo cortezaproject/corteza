@@ -8,6 +8,11 @@ trigger_definition: {
 	model: {
 		attributes: {
 			id: schema.IdField
+			agent_id: {
+				goType: "uint64"
+				ident: "agentID"
+				dal: { type: "ID" }
+			}
 			handle: schema.HandleField
 			meta: {
 				goType: "*types.TriggerDefinitionMeta"
@@ -55,6 +60,7 @@ trigger_definition: {
 
 	filter: {
 		struct: {
+			agent_id: { goType: "[]string", ident: "agentID", storeIdent: "agent_id" }
 			trigger_definition_id: { goType: "[]string", ident: "triggerDefinitionID", storeIdent: "id" }
 			handle: { goType: "string" }
 			query: { goType: "string" }
@@ -62,7 +68,7 @@ trigger_definition: {
 		}
 
 		query: ["handle"]
-		byValue: ["trigger_definition_id", "handle"]
+		byValue: ["agent_id", "trigger_definition_id", "handle"]
 		byNilState: ["deleted"]
 	}
 

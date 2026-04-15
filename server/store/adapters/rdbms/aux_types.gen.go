@@ -249,6 +249,7 @@ type (
 	// auxAutomationTriggerDefinition is an auxiliary structure used for transporting to/from RDBMS store
 	auxAutomationTriggerDefinition struct {
 		ID           uint64                                 `db:"id"`
+		AgentID      uint64                                 `db:"agent_id"`
 		Handle       string                                 `db:"handle"`
 		Meta         *automationType.TriggerDefinitionMeta  `db:"meta"`
 		InputSchema  automationType.TriggerDefinitionSchema `db:"input_schema"`
@@ -1650,6 +1651,7 @@ func (aux *auxAutomationTrigger) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxAutomationTriggerDefinition) encode(res *automationType.TriggerDefinition) (_ error) {
 	aux.ID = res.ID
+	aux.AgentID = res.AgentID
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
 	aux.InputSchema = res.InputSchema
@@ -1671,6 +1673,7 @@ func (aux *auxAutomationTriggerDefinition) encode(res *automationType.TriggerDef
 func (aux auxAutomationTriggerDefinition) decode() (res *automationType.TriggerDefinition, _ error) {
 	res = new(automationType.TriggerDefinition)
 	res.ID = aux.ID
+	res.AgentID = aux.AgentID
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
 	res.InputSchema = aux.InputSchema
@@ -1692,6 +1695,7 @@ func (aux auxAutomationTriggerDefinition) decode() (res *automationType.TriggerD
 func (aux *auxAutomationTriggerDefinition) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.AgentID,
 		&aux.Handle,
 		&aux.Meta,
 		&aux.InputSchema,

@@ -245,7 +245,9 @@ func (svc triggerDefinition) Update(ctx context.Context, upd *types.TriggerDefin
 		def.SkipEventBus = upd.SkipEventBus
 		def.InputSchema = upd.InputSchema
 		def.OutputSchema = upd.OutputSchema
-		def.Meta = upd.Meta
+		if upd.Meta != nil {
+			def.Meta = upd.Meta
+		}
 		def.UpdatedAt = now()
 		def.UpdatedBy = cUser
 
@@ -381,17 +383,22 @@ func triggerDefToConstruct(def *types.TriggerDefinition) types.ConstructTrigger 
 		})
 	}
 
-	return types.ConstructTrigger{
+	ct := types.ConstructTrigger{
 		ResourceType: "automation:trigger-definition:" + ref,
 		EventType:    "onAgentic",
-		Meta: &types.ConstructTriggerMeta{
+		Properties:   props,
+		Segments:     segments,
+	}
+
+	if def.Meta != nil {
+		ct.Meta = &types.ConstructTriggerMeta{
 			Short:       def.Meta.Short,
 			Description: def.Meta.Description,
 			Icon:        def.Meta.Icon,
-		},
-		Properties: props,
-		Segments:   segments,
+		}
 	}
+
+	return ct
 }
 
 func validateAgenticInput(schema types.TriggerDefinitionSchema, input *expr.Vars) error {

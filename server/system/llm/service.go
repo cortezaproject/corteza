@@ -289,12 +289,16 @@ func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.
 
 	llmTools := make([]Tool, len(tools))
 	for i, t := range tools {
+		params := any(t.InputSchema)
+		if t.InputSchema == nil {
+			params = map[string]any{"type": "object", "properties": map[string]any{}}
+		}
 		llmTools[i] = Tool{
 			Type: "function",
 			Function: ToolFunction{
 				Name:        t.Name,
 				Description: t.Description,
-				Parameters:  t.InputSchema,
+				Parameters:  params,
 			},
 		}
 	}

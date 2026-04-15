@@ -5,7 +5,10 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 
+	automationService "github.com/cortezaproject/corteza/server/automation/service"
+	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -75,6 +78,10 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 			return
 		}
 
+		// Auto-create a linked TriggerDefinition using service-user context
+		svcCtx := intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+		_, _ = automationService.DefaultTriggerDefinition.Create(svcCtx, agentToTriggerDef(new))
+
 		a = new
 		return nil
 	}()
@@ -109,6 +116,16 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 			return
 		}
 
+		// Sync linked TriggerDefinition meta using service-user context
+		svcCtx := intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+		if td, tdErr := automationService.DefaultTriggerDefinition.LookupByHandle(svcCtx, "agent-"+upd.Handle); tdErr == nil && td != nil {
+			td.Meta = &automationTypes.TriggerDefinitionMeta{
+				Short:       upd.Meta.Short,
+				Description: upd.Meta.Description,
+			}
+			_, _ = automationService.DefaultTriggerDefinition.Update(svcCtx, td)
+		}
+
 		a = upd
 		return nil
 	}()
@@ -132,6 +149,12 @@ func (svc *agent) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		// Soft-delete linked TriggerDefinition using service-user context
+		svcCtx := intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+		if td, tdErr := automationService.DefaultTriggerDefinition.LookupByHandle(svcCtx, "agent-"+a.Handle); tdErr == nil && td != nil {
+			_ = automationService.DefaultTriggerDefinition.DeleteByID(svcCtx, td.ID)
+		}
+
 		return nil
 	}()
 
@@ -152,6 +175,12 @@ func (svc *agent) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		a.DeletedAt = nil
 		if err = store.UpdateAgent(ctx, svc.store, a); err != nil {
 			return
+		}
+
+		// Restore linked TriggerDefinition using service-user context
+		svcCtx := intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+		if td, tdErr := automationService.DefaultTriggerDefinition.LookupByHandle(svcCtx, "agent-"+a.Handle); tdErr == nil && td != nil {
+			_ = automationService.DefaultTriggerDefinition.UndeleteByID(svcCtx, td.ID)
 		}
 
 		return nil
@@ -197,6 +226,19 @@ func prepareTCL(b *types.AgentBehavior) {
 		b.TreatyCLArticles = tcl.DefaultArticleIDs()
 	} else {
 		b.TreatyCLArticles = tcl.MergeWithHardwired(b.TreatyCLArticles)
+	}
+}
+
+// agentToTriggerDef builds a TriggerDefinition linked to the given agent.
+func agentToTriggerDef(a *types.Agent) *automationTypes.TriggerDefinition {
+	return &automationTypes.TriggerDefinition{
+		AgentID:      a.ID,
+		Handle:       "agent-" + a.Handle,
+		SkipEventBus: true,
+		Meta: &automationTypes.TriggerDefinitionMeta{
+			Short:       a.Meta.Short,
+			Description: a.Meta.Description,
+		},
 	}
 }
 

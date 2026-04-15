@@ -12,8 +12,9 @@ import (
 
 type (
 	TriggerDefinition struct {
-		ID     uint64 `json:"triggerDefinitionID,string"`
-		Handle string `json:"handle"`
+		ID      uint64 `json:"triggerDefinitionID,string"`
+		AgentID uint64 `json:"agentID,string,omitempty"`
+		Handle  string `json:"handle"`
 
 		Meta *TriggerDefinitionMeta `json:"meta,omitempty"`
 
@@ -54,6 +55,7 @@ type (
 	}
 
 	TriggerDefinitionFilter struct {
+		AgentID             []string `json:"agentID"`
 		TriggerDefinitionID []string `json:"triggerDefinitionID"`
 		Handle              string   `json:"handle"`
 		Query               string   `json:"query"`

@@ -1654,6 +1654,7 @@ var (
 	automationTriggerDefinitionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"agent_id",
 			"handle",
 			"meta",
 			"input_schema",
@@ -1676,6 +1677,7 @@ var (
 		return d.Insert(automationTriggerDefinitionTable).
 			Rows(goqu.Record{
 				"id":             res.ID,
+				"agent_id":       res.AgentID,
 				"handle":         res.Handle,
 				"meta":           res.Meta,
 				"input_schema":   res.InputSchema,
@@ -1701,6 +1703,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"agent_id":       res.AgentID,
 						"handle":         res.Handle,
 						"meta":           res.Meta,
 						"input_schema":   res.InputSchema,
@@ -1724,6 +1727,7 @@ var (
 	automationTriggerDefinitionUpdateQuery = func(d goqu.DialectWrapper, res *automationType.TriggerDefinition) *goqu.UpdateDataset {
 		return d.Update(automationTriggerDefinitionTable).
 			Set(goqu.Record{
+				"agent_id":       res.AgentID,
 				"handle":         res.Handle,
 				"meta":           res.Meta,
 				"input_schema":   res.InputSchema,

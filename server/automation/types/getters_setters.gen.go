@@ -302,6 +302,8 @@ func (r *TriggerDefinition) GetValue(name string, pos uint) (any, error) {
 	}
 
 	switch name {
+	case "agentID", "AgentID":
+		return r.AgentID, nil
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
 	case "createdBy", "CreatedBy":
@@ -333,6 +335,8 @@ func (r *TriggerDefinition) SetValue(name string, pos uint, value any) (err erro
 	}
 
 	switch name {
+	case "agentID", "AgentID":
+		return cast2.Uint64(value, &r.AgentID)
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
 	case "createdBy", "CreatedBy":
