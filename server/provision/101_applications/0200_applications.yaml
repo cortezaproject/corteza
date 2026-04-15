@@ -47,9 +47,9 @@ applications:
       listed: true
       url: one/
 
-  - name: Two
+  - name: Home
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      url: /
+      url: home/

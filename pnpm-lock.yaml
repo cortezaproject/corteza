@@ -265,6 +265,15 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1(echarts@6.0.0)(vue@3.5.26(typescript@5.9.3))
 
+  client/web/home:
+    dependencies:
+      '@cortezaproject/corteza-js-next':
+        specifier: workspace:*
+        version: link:../../../lib/js
+      '@cortezaproject/corteza-vue-next':
+        specifier: workspace:*
+        version: link:../../../lib/vue
+
   client/web/one:
     dependencies:
       '@cortezaproject/corteza-js-next':
@@ -298,15 +307,6 @@ importers:
       '@types/dagre':
         specifier: ^0.7.53
         version: 0.7.53
-
-  client/web/two:
-    dependencies:
-      '@cortezaproject/corteza-js-next':
-        specifier: workspace:*
-        version: link:../../../lib/js
-      '@cortezaproject/corteza-vue-next':
-        specifier: workspace:*
-        version: link:../../../lib/vue
 
   client/web/workflow:
     dependencies:

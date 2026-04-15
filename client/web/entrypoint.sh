@@ -45,6 +45,7 @@ else
   config './agentic'
   config './compose'
   config './taq'
+  config './home'
   config '.'
 
   nginx -g "daemon off;"
