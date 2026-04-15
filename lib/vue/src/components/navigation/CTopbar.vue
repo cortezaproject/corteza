@@ -206,7 +206,16 @@ const homeURL = computed(() => window.location.origin)
 const visiblePageButtons = computed(() => {
   const buttons = settings.value?.pageButtons || []
   const href = currentHref.value
-  return buttons.filter(btn => btn.label && btn.url && btn.urlMatch && href.includes(btn.urlMatch))
+  let pathname = ''
+  try {
+    pathname = new URL(href).pathname
+  } catch { /* ignore */ }
+  const isRoot = pathname === '' || pathname === '/'
+  return buttons.filter(btn => {
+    if (!btn.label || !btn.url) return false
+    if (!btn.urlMatch) return isRoot
+    return href.includes(btn.urlMatch)
+  })
 })
 
 const iconLogo = computed(() => {

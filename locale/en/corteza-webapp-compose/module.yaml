@@ -1,3 +1,6 @@
+fieldPermissions: Field Permissions
+recordPermissions: Record Permissions
+
 allRecords:
   create:
     title: Create record for module "{name}"
@@ -109,6 +112,9 @@ edit:
     dismiss: Dismiss
     waitingFor: 'Waiting for {id}'
     noAlterations: No schema alterations need to be resolved
+    confirmResolve: Are you sure you want to apply this schema alteration?
+    confirmDismiss: Are you sure you want to dismiss this schema alteration?
+    unknownType: Unknown alteration type
     columns:
       alteration: Alteration
       change: Change

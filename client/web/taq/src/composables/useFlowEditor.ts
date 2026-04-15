@@ -1386,6 +1386,27 @@ export function useFlowEditor() {
           t => t.eventType === eventType && (!resourceType || t.resourceType === resourceType),
         )
 
+        // Triggers that declare their own input schema (agentic + manual schema triggers)
+        if (
+          eventType === 'onAgentic' ||
+          resourceType === 'automation:trigger:agentic' ||
+          resourceType?.startsWith('automation:trigger-definition:')
+        ) {
+          const schema: Array<{ name: string; type: string; required?: boolean; description?: string }> =
+            node.data?.inputSchema || []
+          schema.filter(p => p.name).forEach(p => {
+            if (!allProperties.has(p.name)) {
+              allProperties.set(p.name, {
+                name: p.name,
+                type: p.type || 'String',
+                required: !!p.required,
+                meta: { short: p.name, description: p.description || '' },
+              })
+            }
+          })
+          return
+        }
+
         if (triggerDef?.properties) {
           triggerDef.properties.forEach((p: any) => {
             // Store by name to deduplicate overlapping properties across triggers

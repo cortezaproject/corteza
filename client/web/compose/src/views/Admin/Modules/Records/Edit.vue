@@ -327,7 +327,7 @@ onBeforeRouteLeave(() => {
     return true
   }
   if (isEditMode.value && !isSaving.value) {
-    return window.confirm(t('general.record.unsavedChanges'))
+    return window.confirm(t('general.editor.unsavedChanges'))
   }
 })
 

@@ -154,7 +154,6 @@ const saveWorkflow = throttle(async function (wf) {
     await fetchTriggers(wf.workflowID)
 
     changeDetected.value = false
-    window.onbeforeunload = null
 
     workflow.value = new automation.Workflow(wf)
     toast.add({ severity: 'success', summary: t('notification.update.success'), life: 3000 })

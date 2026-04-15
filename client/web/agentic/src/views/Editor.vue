@@ -837,10 +837,11 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
-import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import { useComposeResourceStore, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
 import { system } from '@cortezaproject/corteza-js-next'
 
 // Components (not globally registered)
@@ -876,7 +877,13 @@ const loading = ref(false)
 const saving = ref(false)
 const submitted = ref(false)
 const agent = ref(null)
+const initialAgent = ref(null)
 const activeTab = ref('config')
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !!agent.value && !!initialAgent.value && !isEqual(agent.value, initialAgent.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 // Conversation tabs
 let convCounter = 1
@@ -1007,6 +1014,7 @@ async function fetchTclMasterList() {
 }
 function applyAgentData(res) {
   agent.value = new system.Agent(res)
+  initialAgent.value = cloneDeep(agent.value)
   initToolSelection()
 }
 
@@ -1014,6 +1022,7 @@ async function loadAgent() {
   const agentID = route.params.agentID
   if (!agentID) {
     agent.value = new system.Agent()
+    initialAgent.value = cloneDeep(agent.value)
     return
   }
 
@@ -1077,6 +1086,7 @@ async function handleDelete() {
     await $SystemAPI.agentDelete({ agentID: route.params.agentID })
     agentStore.removeFromList(route.params.agentID)
     $toast.toastSuccess(t('notification.agent.deleted'))
+    initialAgent.value = cloneDeep(agent.value)
     router.push({ name: 'root' })
   } catch (err) {
     console.error(err)

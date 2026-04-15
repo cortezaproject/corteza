@@ -157,6 +157,7 @@ record:
   deleteBulkRecordUpdateFailed: Could not update selected records
   deleteBulkSuccess: Successfully deleted selected records
   bulkRecordUpdateSuccess: Successfully updated selected records
+  bulkRecordUpdateFailed: Failed to bulk update records
   restoreBulkFailed: Could not restore selected records
   restoreBulkSuccess: Successfully restored selected records
   invalidOwnerVar: Can not use ${ownerID} variable in non-record pages

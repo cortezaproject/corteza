@@ -351,7 +351,8 @@
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete, usePermissions } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete, usePermissions, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
 import DalSettings from '@/components/Admin/Module/DalSettings.vue'
@@ -387,7 +388,13 @@ const saving = ref(false)
 const deleting = ref(false)
 const cloning = ref(false)
 const module = ref(null)
+const initialModule = ref(null)
 const activeTab = ref('fields')
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !cloning.value && !!module.value && !!initialModule.value && !isEqual(module.value, initialModule.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
 
@@ -594,6 +601,7 @@ async function loadModule() {
       namespaceID: props.namespace?.namespaceID,
       fields: [],
     })
+    initialModule.value = cloneDeep(module.value)
     return
   }
 
@@ -609,6 +617,7 @@ async function loadModule() {
       })
       module.value = new compose.Module({ ...m })
     }
+    initialModule.value = cloneDeep(module.value)
 
     // Auto-trigger schema alterations check if module has issues (matching Corteza behavior)
     if ((module.value.issues || []).length > 0) {
@@ -713,7 +722,9 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.moduleID = module.value.moduleID
-      await moduleStore.update(payload)
+      const updated = await moduleStore.update(payload)
+      module.value = new compose.Module({ ...updated })
+      initialModule.value = cloneDeep(module.value)
       $toast.toastSuccess(t('notification.module.saved'))
     } else {
       const created = await moduleStore.create(payload)
@@ -759,6 +770,7 @@ async function handleDelete() {
   deleting.value = true
   try {
     await moduleStore.delete({ moduleID: module.value.moduleID })
+    initialModule.value = cloneDeep(module.value)
     $toast.toastSuccess(t('notification.module.deleted'))
     router.push({ name: 'admin.modules' })
   } catch (e) {

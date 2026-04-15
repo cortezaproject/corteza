@@ -12,6 +12,7 @@ namespaceSelector:
   label: Namespace
   placeholder: Select a namespace
   viewAll: View all
+  manage: Manage
 publicPages: Public pages
 editNamespace: Edit namespace
 searchPlaceholder:

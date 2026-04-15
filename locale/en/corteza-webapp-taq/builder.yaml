@@ -2,6 +2,7 @@ title: TAQ Builder
 welcome: Welcome to the TAQ workflow automation builder.
 newTaq: New TAQ
 save: Save
+saveAndRun: Save & Run
 run: Run
 enabled: Enabled
 selectTrigger: Select Trigger
@@ -123,6 +124,7 @@ configSidebar:
   addElseIf: Add Else If Branch
   deleteNode: Delete Step
   end: End
+  selectNamespaceFirst: Select a namespace first
 
 inputSchema:
   title: Input schema
@@ -186,6 +188,10 @@ confirmDelete:
   message: Are you sure you want to delete this node?
   confirm: Delete
   cancel: Cancel
+
+unsavedChanges:
+  header: Unsaved Changes Detected
+  description: "You have unsaved changes in this automation.\n\nPlease save your work before executing a run to ensure your latest changes are tested."
 
 nodes:
   trigger: Trigger

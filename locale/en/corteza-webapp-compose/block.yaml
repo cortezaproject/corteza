@@ -124,6 +124,7 @@ chart:
     blockID: Record list block
     blockIDFootnote: Select a record list block to display the drill down data
     blockIDPlaceholder: Select a record list block
+    fields: Fields
   edit:
     label: Edit chart
     dimension:
@@ -360,6 +361,9 @@ record:
   horizontalFormLayout: Horizontal form layout
   inlineEdit:
     enabled: Inline value editing enabled
+    label: Inline Editing
+    saveError: Failed to save
+    saveErrorSummary: Error
     button:
       title: Edit value
     modal:
@@ -957,6 +961,9 @@ navigation:
   add: Add navigation item
   addDropdown: Add dropdown item
   composePage: Compose page
+  newItem: New item
+  selectPage: Select page
+  dropdownLabel: Dropdown button label
   pageLayout: Page Layout
   defaultLayout: Default Layout
   unnamedLayout: Unnamed Layout

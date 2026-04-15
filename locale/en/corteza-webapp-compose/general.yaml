@@ -42,7 +42,9 @@ label:
   delete: Delete
   default: Default
   restore: Restore
+  resolve: Resolve
   discard: Discard
+  dismiss: Dismiss
   descending: Descending
   description: Description
   download: Download
@@ -57,6 +59,7 @@ label:
   home: Home
   import: Import
   all: All
+  apply: Apply
   importPlaceholder: Upload files to import
   loading: Loading
   makeDefault: Make default

@@ -230,7 +230,8 @@ import { ref, computed, watch, inject, toRaw, markRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { compose, shared } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { chartConstructor } from '../../../lib/charts'
 import { useChartStore } from '../../../stores/chart'
 import { useModuleStore } from '../../../stores/module'
@@ -259,6 +260,12 @@ const props = defineProps({
 
 // State
 const chart = ref(null)
+const initialChart = ref(null)
+
+useUnsavedGuard({
+  isDirty: () => !processingSave.value && !processingDelete.value && !processingClone.value && !!chart.value && !!initialChart.value && !isEqual(toRaw(chart.value), initialChart.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 const loading = ref(false)
 const processing = ref(false)
 const processingSave = ref(false)
@@ -396,6 +403,7 @@ async function fetchChart() {
     }
 
     chart.value = c
+    initialChart.value = cloneDeep(toRaw(c))
     editReportIndex.value = 0
   } else {
     loading.value = true
@@ -404,6 +412,7 @@ async function fetchChart() {
     try {
       const raw = await chartStore.findByID({ namespaceID, chartID: cID, force: true })
       chart.value = chartConstructor(raw)
+      initialChart.value = cloneDeep(toRaw(chart.value))
       editReportIndex.value = 0
     } catch (e) {
       console.error('Failed to load chart:', e)
@@ -450,11 +459,13 @@ async function handleSave() {
     if (!isEdit.value) {
       const created = await chartStore.create(c)
       chart.value = chartConstructor(created)
+      initialChart.value = cloneDeep(toRaw(chart.value))
       $toast.toastSuccess(t('notification.chart.created'))
       router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
     } else {
       const updated = await chartStore.update(c)
       chart.value = chartConstructor(updated)
+      initialChart.value = cloneDeep(toRaw(chart.value))
       $toast.toastSuccess(t('notification.chart.updated'))
     }
   } catch (e) {
@@ -483,6 +494,7 @@ async function handleClone() {
 
     const created = await chartStore.create(cloned)
     chart.value = chartConstructor(created)
+    initialChart.value = cloneDeep(toRaw(chart.value))
     $toast.toastSuccess(t('notification.chart.created'))
     router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
   } catch (e) {
@@ -500,6 +512,7 @@ async function handleDelete() {
 
   try {
     await chartStore.delete(toRaw(chart.value))
+    initialChart.value = cloneDeep(toRaw(chart.value))
     $toast.toastSuccess(t('notification.chart.deleted'))
     router.push({ name: 'admin.charts' })
   } catch (e) {

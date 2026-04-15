@@ -410,12 +410,7 @@
       :style="{ width: '40rem' }"
     >
       <div class="mb-4 text-color whitespace-pre-line">
-        {{
-          $t(
-            'builder.unsavedChanges.description',
-            'You have unsaved changes in this automation.\n\nPlease save your work before executing a run to ensure your latest changes are tested.',
-          )
-        }}
+        {{ $t('builder.unsavedChanges.description') }}
       </div>
 
       <template #footer>
@@ -466,7 +461,7 @@ import { components } from '@cortezaproject/corteza-vue-next'
 
 const { CToolbar } = components
 
-import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -491,6 +486,11 @@ const store = useAutomationStore()
 const editor = useFlowEditor()
 const { confirmDelete } = useConfirmDelete()
 const { t } = useI18n()
+
+useUnsavedGuard({
+  isDirty: editor.isDirty,
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 const $SystemAPI = inject('$SystemAPI')
 const runAsUser = ref(null)

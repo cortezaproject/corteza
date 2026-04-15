@@ -1283,6 +1283,11 @@ user-groups:
     permissions: Permissions
     members:
       title: User Group Members
+      placeholder: Select a user to add
+      empty: No members assigned to this user group yet.
+      fetchError: Failed to load members
+      addError: Failed to add member
+      removeError: Failed to remove member
     roles:
       add: Add
       count: roles

@@ -684,7 +684,7 @@ onBeforeRouteLeave(() => {
     return true
   }
   if (mode.value !== 'view' && !isSaving.value) {
-    return window.confirm(t('general.record.unsavedChanges'))
+    return window.confirm(t('general.editor.unsavedChanges'))
   }
 })
 

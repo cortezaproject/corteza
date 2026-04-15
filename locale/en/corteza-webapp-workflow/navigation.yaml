@@ -1,5 +1,6 @@
 appMenu: Menu
 home: Home
+workflows: Workflows
 help:
   documentation: Documentation
   feedback: Send feedback

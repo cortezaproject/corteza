@@ -7,12 +7,7 @@
     @update:visible="emit('update:visible', $event)"
   >
     <div class="mb-4 text-muted-color">
-      {{
-        $t(
-          'builder.runModal.description',
-          'Provide initial variables to execute triggers that expect a specific scope.',
-        )
-      }}
+      {{ $t('builder.runModal.description') }}
     </div>
 
     <div class="flex flex-col gap-4">
@@ -51,7 +46,11 @@
           v-model="scope[prop.name]"
           class="w-full"
         />
-        <!-- Fallback to plain text for strings and other unsupported types right now -->
+        <ToggleSwitch
+          v-else-if="prop.type === 'Boolean'"
+          v-model="scope[prop.name]"
+        />
+        <!-- String, Number, and any other types -->
         <InputText v-else v-model="scope[prop.name]" class="w-full" />
 
         <span v-if="prop.meta?.description" class="text-xs text-muted-color">
@@ -93,9 +92,7 @@ import {
   CInputUser,
 } from '@cortezaproject/corteza-vue-next/src/components/input'
 
-import { components } from '@cortezaproject/corteza-vue-next'
-// Temporary fallback if InputText is not globally registered
-const InputText = components.InputText || Object
+import InputText from 'primevue/inputtext'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -113,7 +110,7 @@ const $toast = inject('$toast')
 const scope = ref({})
 const isFetchingContext = ref(false)
 
-const supportedTypes = ['ComposeRecord', 'ComposeModule', 'ComposeNamespace', 'SystemUser', 'User']
+const supportedTypes = ['ComposeRecord', 'ComposeModule', 'ComposeNamespace', 'SystemUser', 'User', 'String', 'Number', 'Boolean']
 
 const filteredProperties = computed(() => {
   return props.properties.filter(p => supportedTypes.includes(p.type))
@@ -131,8 +128,10 @@ watch(
     if (isVisible) {
       scope.value = {}
       props.properties.forEach(p => {
-        if (p.defaultValue) {
+        if (p.defaultValue !== undefined) {
           scope.value[p.name] = p.defaultValue
+        } else if (p.type === 'Boolean') {
+          scope.value[p.name] = false
         }
       })
     }
@@ -149,11 +148,15 @@ async function run() {
 
   try {
     for (const [key, val] of Object.entries(scope.value)) {
-      if (val !== undefined && val !== null && val !== '') {
-        const propDef = props.properties.find(p => p.name === key)
-        // If it is a string type or unknown, just pass as is
-        if (!propDef || propDef.type === 'String' || propDef.type === 'Any') {
-          formattedScope[key] = val
+      const propDef = props.properties.find(p => p.name === key)
+      if (val !== undefined && val !== null && (val !== '' || propDef?.type === 'Boolean')) {
+        if (propDef?.type === 'Number') {
+          const num = val === '' ? undefined : Number(val)
+          if (num !== undefined) formattedScope[key] = { '@type': 'Float', '@value': num }
+        } else if (propDef?.type === 'Boolean') {
+          formattedScope[key] = { '@type': 'Boolean', '@value': val }
+        } else if (!propDef || propDef.type === 'String' || propDef.type === 'Any') {
+          formattedScope[key] = { '@type': 'String', '@value': String(val) }
         } else {
           // Fetch full object so the expr engine receives the rich datatype as it expects
           let typedVal = val

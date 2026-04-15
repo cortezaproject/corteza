@@ -542,7 +542,8 @@
 import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { compose, NoID } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 
 const { CInputDelete, CResourceTable } = components
@@ -570,10 +571,23 @@ const saving = ref(false)
 const deleting = ref(false)
 const cloning = ref(false)
 const page = ref(null)
+const initialPage = ref(null)
 
 // Page layouts state
 const layouts = ref([])
+const initialLayouts = ref([])
 const removedLayouts = ref([])
+
+useUnsavedGuard({
+  isDirty: () => {
+    if (saving.value || deleting.value || cloning.value) return false
+    if (!page.value || !initialPage.value) return false
+    if (!isEqual(page.value, initialPage.value)) return true
+    if (!isEqual(layouts.value, initialLayouts.value)) return true
+    return false
+  },
+  messageKey: 'general.editor.unsavedChanges',
+})
 let layoutKeyCounter = 0
 
 // Layout config dialog state
@@ -803,6 +817,8 @@ async function loadPage() {
       namespaceID: props.namespace?.namespaceID,
       visible: true,
     })
+    initialPage.value = cloneDeep(page.value)
+    initialLayouts.value = []
     return
   }
 
@@ -821,6 +837,8 @@ async function loadPage() {
 
     // Load layouts for this page
     await loadLayouts()
+    initialPage.value = cloneDeep(page.value)
+    initialLayouts.value = cloneDeep(layouts.value)
   } catch (e) {
     console.error('Failed to load page:', e)
     $toast.toastDanger(t('notification.page.loadFailed'))
@@ -973,10 +991,14 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.pageID = page.value.pageID
-      await pageStore.update(payload)
+      const updated = await pageStore.update(payload)
+      page.value = new compose.Page({ ...updated })
 
       // Save layouts
       await saveLayouts()
+
+      initialPage.value = cloneDeep(page.value)
+      initialLayouts.value = cloneDeep(layouts.value)
 
       $toast.toastSuccess(t('notification.page.saved'))
     } else {
@@ -1106,6 +1128,8 @@ async function handleDelete(strategy = 'abort') {
       namespaceID: props.namespace.namespaceID,
       strategy,
     })
+    initialPage.value = cloneDeep(page.value)
+    initialLayouts.value = cloneDeep(layouts.value)
     $toast.toastSuccess(t('notification.page.deleted'))
     router.push({ name: 'admin.pages' })
   } catch (e) {

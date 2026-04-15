@@ -15,12 +15,7 @@
     </div>
 
     <p class="text-xs text-muted-color">
-      {{
-        $t(
-          'builder.inputSchema.hint',
-          'Declare params the agent must pass. They become references available to downstream steps.',
-        )
-      }}
+      {{ $t('builder.inputSchema.hint') }}
     </p>
 
     <div
@@ -142,10 +137,7 @@ const nameErrors = computed(() => {
       return
     }
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
-      errors[i] = t(
-        'builder.inputSchema.errors.nameInvalid',
-        'Use letters, digits, underscore; must not start with digit',
-      )
+      errors[i] = t('builder.inputSchema.errors.nameInvalid')
       return
     }
     if (seen.has(name)) {

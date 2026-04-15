@@ -199,7 +199,8 @@
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
 import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
+import { components, useFileUpload, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 
 const { CInputDelete, CFileDropZone } = components
@@ -219,6 +220,12 @@ const saving = ref(false)
 const deleting = ref(false)
 const cloning = ref(false)
 const namespace = ref(null)
+const initialNamespace = ref(null)
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!namespace.value && !!initialNamespace.value && !isEqual(namespace.value, initialNamespace.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 // Logo upload
 const { uploading: logoUploading, uploadError: logoError, uploadFileRaw: uploadLogoRaw, reset: resetLogoUpload } = useFileUpload()
@@ -279,6 +286,7 @@ async function loadNamespace() {
         logoEnabled: false,
       },
     })
+    initialNamespace.value = cloneDeep(namespace.value)
     return
   }
 
@@ -299,6 +307,7 @@ async function loadNamespace() {
         router.push({ name: 'namespace.manage' })
       }
     }
+    initialNamespace.value = cloneDeep(namespace.value)
   } catch (e) {
     console.error('Failed to load namespace:', e)
     $toast.toastDanger(t('notification.namespace.loadFailed'))
@@ -323,6 +332,7 @@ async function handleSubmit({ valid }) {
     if (isEdit.value) {
       payload.namespaceID = namespace.value.namespaceID
       await namespaceStore.update(payload)
+      initialNamespace.value = cloneDeep(namespace.value)
       $toast.toastSuccess(t('notification.namespace.saved'))
     } else {
       const created = await namespaceStore.create(payload)
