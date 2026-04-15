@@ -46,11 +46,22 @@ func BuildContext(ctx context.Context, kbStore KnowledgeBaseStore, ns NamespaceL
 	return strings.Join(parts, "\n\n")
 }
 
+func sanitize(s string) string {
+	s = strings.ReplaceAll(s, "\x00", "")
+	for strings.Contains(s, "\n\n\n") {
+		s = strings.ReplaceAll(s, "\n\n\n", "\n\n")
+	}
+	for _, marker := range []string{"<|", "|>", "###", "##", "---", "SYSTEM:", "ASSISTANT:", "USER:"} {
+		s = strings.ReplaceAll(s, marker, "")
+	}
+	return strings.TrimSpace(s)
+}
+
 func render(ctx context.Context, ns NamespaceLookup, mod ModuleLookup, kb *sysTypes.KnowledgeBase) (string, error) {
 	var parts []string
 
 	if kb.Description != "" {
-		parts = append(parts, kb.Description)
+		parts = append(parts, sanitize(kb.Description))
 	}
 
 	if kb.Context != nil {
@@ -68,7 +79,7 @@ func render(ctx context.Context, ns NamespaceLookup, mod ModuleLookup, kb *sysTy
 
 func renderComposeContext(ctx context.Context, ns NamespaceLookup, mod ModuleLookup, title string, c *sysTypes.KnowledgeBaseContext) (string, error) {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("# %s\n", title))
+	sb.WriteString(fmt.Sprintf("# %s\n", sanitize(title)))
 
 	for _, nsCtx := range c.Namespaces {
 		namespace, err := ns.FindByID(ctx, nsCtx.NamespaceID)
@@ -76,7 +87,7 @@ func renderComposeContext(ctx context.Context, ns NamespaceLookup, mod ModuleLoo
 			continue
 		}
 
-		sb.WriteString(fmt.Sprintf("\nNamespace: %s\n", namespace.Name))
+		sb.WriteString(fmt.Sprintf("\nNamespace: %s\n", sanitize(namespace.Name)))
 
 		for _, moduleID := range nsCtx.ModuleIDs {
 			module, err := mod.FindByID(ctx, namespace.ID, moduleID)
@@ -84,9 +95,9 @@ func renderComposeContext(ctx context.Context, ns NamespaceLookup, mod ModuleLoo
 				continue
 			}
 
-			sb.WriteString(fmt.Sprintf("\n## Module: %s\n", module.Name))
+			sb.WriteString(fmt.Sprintf("\nModule: %s\n", sanitize(module.Name)))
 			for _, f := range module.Fields {
-				sb.WriteString(fmt.Sprintf("- %s (%s)\n", f.Name, f.Kind))
+				sb.WriteString(fmt.Sprintf("- %s (%s)\n", sanitize(f.Name), f.Kind))
 			}
 		}
 	}
