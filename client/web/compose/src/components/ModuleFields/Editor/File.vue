@@ -229,19 +229,19 @@ export default {
             h('span', this.$t('notification:field.duplicateAlert', { recordID: existingRecordID })),
             existingRecordID && existingRecordID !== '0' && recordPageID && recordPageID !== '0'
               ? h(
-                  'b-button',
-                  {
-                    props: { variant: 'link', size: 'sm' },
-                    on: {
-                      click: () => {
-                        this.$root.$emit('bv::hide::toast', 'duplicate-file-alert')
-                        showModal()
-                      },
+                'b-button',
+                {
+                  props: { variant: 'link', size: 'sm' },
+                  on: {
+                    click: () => {
+                      this.$root.$emit('bv::hide::toast', 'duplicate-file-alert')
+                      showModal()
                     },
-                    class: 'p-0 ml-2',
                   },
-                  this.$t('notification:field.openRecord'),
-                )
+                  class: 'p-0 ml-2',
+                },
+                this.$t('notification:field.openRecord'),
+              )
               : null,
           ])
           this.$bvToast.toast([vNodeMsg], {
