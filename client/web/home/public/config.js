@@ -1,6 +1,6 @@
 // Corteza API location
 window.CortezaAPI = 'http://localhost:1043/api'
-// window.CortezaAPI = 'https://20239-qc.cortezaproject.org/api'
+// window.CortezaAPI = 'https://20219-qc.cortezaproject.org/api'
 // window.CortezaAPI = 'https://internal.crust.tech/api'
 // window.CortezaAPI = 'https://pyd.staging.crust.tech/api'
 // window.CortezaAPI = 'https://nocode-api-qc.cloud.planetcrust.net/api'
