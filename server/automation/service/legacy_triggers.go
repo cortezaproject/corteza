@@ -88,14 +88,17 @@ func init() {
 			},
 		},
 		types.ConstructTrigger{
-			ResourceType: "system",
+			ResourceType: "compose:record",
 			EventType:    "onManual",
-			Groups:       []string{"System"},
+			Groups:       []string{"Records"},
 			Meta: &types.ConstructTriggerMeta{
-				Short:       "Manual",
-				Description: "Triggered manually",
+				Short:       "Manual (Record)",
+				Description: "Triggered manually on a record",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "play"},
 			},
+			Properties:  recordProperties(),
+			Segments:    recordSegments(),
+			Constraints: recordConstraints(),
 		},
 		types.ConstructTrigger{
 			ResourceType: "system",
