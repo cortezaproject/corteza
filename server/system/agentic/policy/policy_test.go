@@ -15,7 +15,20 @@ func TestEvaluate(t *testing.T) {
 		assert.Contains(t, d.Reason, "not in the agent's allow-list")
 	})
 
-	t.Run("allowed when tool is in allow-list", func(t *testing.T) {
+	t.Run("allowed when tool is in allow-list with allow entry", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{
+					{Name: "compose_record_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 1}}},
+				},
+			},
+		}
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"})
+		assert.True(t, d.Allowed)
+		assert.Equal(t, "123", d.SanitizedArgs["recordID"])
+	})
+
+	t.Run("denied when tool has no allow entries", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{
@@ -23,40 +36,39 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"recordID": "123"})
-		assert.True(t, d.Allowed)
-		assert.Equal(t, "123", d.SanitizedArgs["recordID"])
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"})
+		assert.False(t, d.Allowed)
 	})
 
 	t.Run("global context defaults fill missing args", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Context: types.AgentAccessContext{
-					Defaults: MapValues{"namespaceID": "ns1"},
+					Defaults: MapValues{"namespaceID": "1"},
 				},
 				Tools: []types.AgentAccessTool{
-					{Name: "compose_record_lookup"},
+					{Name: "compose_record_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 1}}},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
 		assert.True(t, d.Allowed)
-		assert.Equal(t, "ns1", d.SanitizedArgs["namespaceID"])
+		assert.Equal(t, "1", d.SanitizedArgs["namespaceID"])
 	})
 
 	t.Run("global context defaults do not overwrite existing args", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Context: types.AgentAccessContext{
-					Defaults: MapValues{"namespaceID": "ns1"},
+					Defaults: MapValues{"namespaceID": "1"},
 				},
 				Tools: []types.AgentAccessTool{
-					{Name: "compose_record_lookup"},
+					{Name: "compose_record_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 1}}},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "ns-custom"})
-		assert.Equal(t, "ns-custom", d.SanitizedArgs["namespaceID"])
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
+		assert.Equal(t, "1", d.SanitizedArgs["namespaceID"])
 	})
 
 	t.Run("tool-level defaults fill missing args", func(t *testing.T) {
@@ -64,7 +76,8 @@ func TestEvaluate(t *testing.T) {
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{
 					{
-						Name: "compose_record_lookup",
+						Name:  "compose_record_lookup",
+						Allow: []types.AgentAccessAllow{{NamespaceID: 1}},
 						Context: types.AgentAccessToolContext{
 							Defaults: MapValues{"moduleID": "mod1"},
 						},
@@ -72,7 +85,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{})
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
 		assert.Equal(t, "mod1", d.SanitizedArgs["moduleID"])
 	})
 
@@ -81,16 +94,18 @@ func TestEvaluate(t *testing.T) {
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{
 					{
-						Name: "compose_record_lookup",
+						Name:  "compose_record_lookup",
+						Allow: []types.AgentAccessAllow{{NamespaceID: 1}},
 						Context: types.AgentAccessToolContext{
-							Overrides: MapValues{"namespaceID": "forced-ns"},
+							Overrides: MapValues{"someField": "forced-value"},
 						},
 					},
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "user-ns"})
-		assert.Equal(t, "forced-ns", d.SanitizedArgs["namespaceID"])
+		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
+		assert.True(t, d.Allowed)
+		assert.Equal(t, "forced-value", d.SanitizedArgs["someField"])
 	})
 
 	t.Run("denied when namespaceID does not match allow entry", func(t *testing.T) {
@@ -123,7 +138,7 @@ func TestEvaluate(t *testing.T) {
 		assert.True(t, d.Allowed)
 	})
 
-	t.Run("allowed when namespace is wildcard (listing/discovery)", func(t *testing.T) {
+	t.Run("denied when namespace is wildcard with allow entries present", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{
@@ -134,9 +149,9 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		// No namespaceID in args — agent is listing all namespaces (wildcard)
+		// No namespaceID resolved — wildcard is denied when allow entries are present
 		d := Evaluate(agent, "compose_namespace_lookup", MapValues{})
-		assert.True(t, d.Allowed)
+		assert.False(t, d.Allowed)
 	})
 
 	t.Run("taq denied when id not in list", func(t *testing.T) {
@@ -145,7 +160,7 @@ func TestEvaluate(t *testing.T) {
 				TAQs: []types.AgentAccessTAQ{{ID: 111}},
 			},
 		}
-		d := Evaluate(agent, "automation_taq_exec", MapValues{"taq": "999"})
+		d := Evaluate(agent, "automation_999", MapValues{})
 		assert.False(t, d.Allowed)
 	})
 
@@ -155,7 +170,7 @@ func TestEvaluate(t *testing.T) {
 				TAQs: []types.AgentAccessTAQ{{ID: 111}},
 			},
 		}
-		d := Evaluate(agent, "automation_taq_exec", MapValues{"taq": "111"})
+		d := Evaluate(agent, "automation_111", MapValues{})
 		assert.True(t, d.Allowed)
 	})
 }

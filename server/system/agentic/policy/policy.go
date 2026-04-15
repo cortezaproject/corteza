@@ -178,8 +178,11 @@ func buildResource(tool string, args ValueGetter) string {
 // checkAllow returns denied if allow is non-empty and no entry covers the resource.
 // Each allow entry covers a namespace; if ModuleIDs is empty it covers all modules in that namespace.
 func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
-	if len(allow) == 0 || resource == "" {
+	if resource == "" {
 		return Decision{Allowed: true}
+	}
+	if len(allow) == 0 {
+		return Decision{Allowed: false, Reason: "tool has no allow entries"}
 	}
 
 	if !strings.HasPrefix(resource, "corteza::compose:") {
