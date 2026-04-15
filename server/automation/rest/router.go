@@ -23,7 +23,6 @@ func MountRoutes() func(r chi.Router) {
 
 			handlers.NewNgAutomation(NgAutomation{}.New()).MountRoutes(r)
 			handlers.NewConstructLibrary(ConstructLibrary{}.New()).MountRoutes(r)
-			handlers.NewTriggerDefinition(TriggerDefinition()).MountRoutes(r)
 		})
 	}
 }

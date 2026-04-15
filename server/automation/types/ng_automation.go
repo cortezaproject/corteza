@@ -91,10 +91,17 @@ type (
 		// will be merged merged with automation variables
 		Input *expr.Vars `json:"input"`
 
-		// TriggerDefinitionID references a TriggerDefinition.
-		// Defines the parameter schema this trigger accepts from callers.
-		// Zero when not using a custom definition.
-		TriggerDefinitionID uint64 `json:"triggerDefinitionID,string,omitempty"`
+		// Input parameter schema this trigger accepts from callers
+		InputSchema NgAutomationTriggerSchema `json:"inputSchema,omitempty"`
+	}
+
+	NgAutomationTriggerSchema []NgAutomationTriggerParam
+
+	NgAutomationTriggerParam struct {
+		Name        string `json:"name"`
+		Type        string `json:"type"`
+		Required    bool   `json:"required"`
+		Description string `json:"description"`
 	}
 
 	NgTriggerConstraint struct {

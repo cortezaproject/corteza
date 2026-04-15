@@ -55,7 +55,6 @@ var (
 	DefaultSession  *session
 
 	DefaultNgAutomation      *ngAutomation
-	DefaultTriggerDefinition *triggerDefinition
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -109,7 +108,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		return err
 	}
 	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor, engine)
-	DefaultTriggerDefinition = TriggerDefinition(DefaultLogger.Named("trigger-definition"))
 
 	Registry().AddTypes(
 		&expr.Any{},
@@ -153,10 +151,6 @@ func Activate(ctx context.Context) (err error) {
 	}
 
 	if err = DefaultNgAutomation.Load(ctx); err != nil {
-		return
-	}
-
-	if err = DefaultTriggerDefinition.Load(ctx); err != nil {
 		return
 	}
 

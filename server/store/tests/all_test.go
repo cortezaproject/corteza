@@ -56,9 +56,6 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("automationTrigger", func(t *testing.T) {
 		testAutomationTriggers(t, s)
 	})
-	t.Run("automationTriggerDefinition", func(t *testing.T) {
-		testAutomationTriggerDefinitions(t, s)
-	})
 	t.Run("automationWorkflow", func(t *testing.T) {
 		testAutomationWorkflows(t, s)
 	})

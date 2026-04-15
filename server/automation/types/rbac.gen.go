@@ -83,36 +83,6 @@ func NgAutomationRbacResourceTpl() string {
 	return "%s/%s"
 }
 
-// RbacResource returns string representation of RBAC resource for TriggerDefinition by calling TriggerDefinitionRbacResource fn
-//
-// RBAC resource is in the corteza::automation:trigger-definition/... format
-//
-// This function is auto-generated
-func (r TriggerDefinition) RbacResource() string {
-	return TriggerDefinitionRbacResource(r.ID)
-}
-
-// TriggerDefinitionRbacResource returns string representation of RBAC resource for TriggerDefinition
-//
-// RBAC resource is in the corteza::automation:trigger-definition/... format
-//
-// This function is auto-generated
-func TriggerDefinitionRbacResource(id uint64) string {
-	cpts := []interface{}{TriggerDefinitionResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(TriggerDefinitionRbacResourceTpl(), cpts...)
-
-}
-
-func TriggerDefinitionRbacResourceTpl() string {
-	return "%s/%s"
-}
-
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::automation/... format

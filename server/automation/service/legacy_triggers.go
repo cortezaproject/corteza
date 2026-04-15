@@ -78,6 +78,16 @@ func userSegments() []types.ConstructSegment {
 func init() {
 	ConstructLibrary().AddTriggers(
 		types.ConstructTrigger{
+			ResourceType: "automation:trigger:agentic",
+			EventType:    "onAgentic",
+			Groups:       []string{"Agent"},
+			Meta: &types.ConstructTriggerMeta{
+				Short:       "Agentic Payload",
+				Description: "Triggered by an LLM Agent providing a variable payload",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "robot"},
+			},
+		},
+		types.ConstructTrigger{
 			ResourceType: "system",
 			EventType:    "onManual",
 			Groups:       []string{"System"},

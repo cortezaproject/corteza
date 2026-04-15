@@ -255,21 +255,16 @@ func (h *taqHandler) validateAndFixInput(ctx context.Context, taq *autoTypes.NgA
 		trigger = taq.Triggers[0]
 	}
 
-	if trigger == nil || trigger.TriggerDefinitionID == 0 {
-		return inputMap, nil
-	}
-
-	def, err := autoService.DefaultTriggerDefinition.LookupByID(ctx, trigger.TriggerDefinitionID)
-	if err != nil || def == nil {
+	if trigger == nil {
 		return inputMap, nil
 	}
 
 	// Programmatically refactor casing mapping
-	correctedMap := fixInputCasing(inputMap, def.InputSchema)
+	correctedMap := fixInputCasing(inputMap, trigger.InputSchema)
 
 	// Validate required schema properties
 	var missing []string
-	for _, schemaParam := range def.InputSchema {
+	for _, schemaParam := range trigger.InputSchema {
 		if schemaParam.Required {
 			if val, exists := correctedMap[schemaParam.Name]; !exists || val == nil {
 				missing = append(missing, schemaParam.Name)
@@ -288,7 +283,7 @@ func (h *taqHandler) validateAndFixInput(ctx context.Context, taq *autoTypes.NgA
 	return correctedMap, nil
 }
 
-func fixInputCasing(inputMap map[string]interface{}, schema autoTypes.TriggerDefinitionSchema) map[string]interface{} {
+func fixInputCasing(inputMap map[string]interface{}, schema autoTypes.NgAutomationTriggerSchema) map[string]interface{} {
 	correctedMap := make(map[string]interface{}, len(inputMap))
 	for k, v := range inputMap {
 		matched := false

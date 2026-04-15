@@ -736,19 +736,6 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::automation:trigger-definition":
-		scope := Scope{}
-
-		if gRef(pp, 0) == "" {
-			return
-		}
-
-		out["Path.0"] = Ref{
-			ResourceType: "corteza::automation:trigger-definition",
-			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
-			Scope:        scope,
-		}
-
 	case "corteza::automation:workflow":
 		scope := Scope{}
 

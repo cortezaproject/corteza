@@ -72,9 +72,6 @@ type (
 		// optional automationTrigger filter function called after the generated function
 		AutomationTrigger func(*Store, automationType.TriggerFilter) ([]goqu.Expression, automationType.TriggerFilter, error)
 
-		// optional automationTriggerDefinition filter function called after the generated function
-		AutomationTriggerDefinition func(*Store, automationType.TriggerDefinitionFilter) ([]goqu.Expression, automationType.TriggerDefinitionFilter, error)
-
 		// optional automationWorkflow filter function called after the generated function
 		AutomationWorkflow func(*Store, automationType.WorkflowFilter) ([]goqu.Expression, automationType.WorkflowFilter, error)
 
@@ -575,44 +572,6 @@ func AutomationTriggerFilter(d drivers.Dialect, f automationType.TriggerFilter) 
 
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
-	}
-
-	return ee, f, err
-}
-
-// AutomationTriggerDefinitionFilter returns logical expressions
-//
-// This function is called from Store.QueryAutomationTriggerDefinitions() and can be extended
-// by setting Store.Filters.AutomationTriggerDefinition. Extension is called after all expressions
-// are generated and can choose to ignore or alter them.
-//
-// This function is auto-generated
-func AutomationTriggerDefinitionFilter(d drivers.Dialect, f automationType.TriggerDefinitionFilter) (ee []goqu.Expression, _ automationType.TriggerDefinitionFilter, err error) {
-
-	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
-		ee = append(ee, expr)
-	}
-
-	if ss := trimStringSlice(f.AgentID); len(ss) > 0 {
-		ee = append(ee, goqu.C("agent_id").In(ss))
-	}
-
-	if ss := trimStringSlice(f.TriggerDefinitionID); len(ss) > 0 {
-		ee = append(ee, goqu.C("id").In(ss))
-	}
-
-	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
-		ee = append(ee, goqu.C("handle").Eq(f.Handle))
-	}
-
-	if len(f.LabeledIDs) > 0 {
-		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
-	}
-
-	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
 	}
 
 	return ee, f, err

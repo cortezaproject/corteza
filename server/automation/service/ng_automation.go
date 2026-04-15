@@ -350,14 +350,10 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 		}
 	}
 
-	// Validate input against TriggerDefinition if the trigger has one
+	// Validate input against embedded schema if the trigger corresponds to the entrypoint
 	for _, t := range atm.Triggers {
-		if (t.Handle == entryPoint || (entryPoint == "" && t.ID == atm.Triggers[0].ID)) && t.TriggerDefinitionID > 0 {
-			def, err := DefaultTriggerDefinition.LookupByID(ctx, t.TriggerDefinitionID)
-			if err != nil {
-				return nil, err
-			}
-			if err := validateAgenticInput(def.InputSchema, p.Input); err != nil {
+		if (t.Handle == entryPoint || (entryPoint == "" && t.ID == atm.Triggers[0].ID)) {
+			if err := validateAgenticInput(t.InputSchema, p.Input); err != nil {
 				return nil, err
 			}
 			break
@@ -727,16 +723,13 @@ func (svc *ngAutomation) registerAutomation(ctx context.Context, a *types.NgAuto
 func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation, t *types.NgAutomationTrigger) {
 	log = log.With(logger.Uint64("triggerID", t.ID))
 
-	if t.TriggerDefinitionID > 0 {
-		def, err := DefaultTriggerDefinition.LookupByID(context.Background(), t.TriggerDefinitionID)
-		if err == nil && def != nil && def.SkipEventBus {
-			// Always unregister existing handler if it was somehow registered before
-			if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {
-				svc.eventbus.Unregister(ptr)
-				delete(svc.reg[a.ID], t.ID)
-			}
-			return
+	if t.ResourceType == "automation:trigger:agentic" {
+		// EventBus is skipped for natively-executed agentic triggers
+		if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {
+			svc.eventbus.Unregister(ptr)
+			delete(svc.reg[a.ID], t.ID)
 		}
+		return
 	}
 
 	// Always unregister existing handler
@@ -844,3 +837,19 @@ func toLabeledNgAutomations(set []*types.NgAutomation) []label.LabeledResource {
 
 	return ll
 }
+
+func validateAgenticInput(schema types.NgAutomationTriggerSchema, input *expr.Vars) error {
+	if len(schema) == 0 {
+		return nil
+	}
+	if input == nil {
+		input = &expr.Vars{}
+	}
+	for _, p := range schema {
+		if p.Required && !input.Has(p.Name) {
+			return fmt.Errorf("missing required input: %s", p.Name)
+		}
+	}
+	return nil
+}
+

@@ -26,5 +26,3 @@ types:
   NgAutomationPath:
     noIdField: true
 
-  TriggerDefinition:
-    labelResourceType: trigger-definition

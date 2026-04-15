@@ -189,19 +189,16 @@ func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent) ([]
 			continue
 		}
 
-		// Resolve trigger definition from the TAQ's own trigger config
-		var def *autoTypes.TriggerDefinition
+		// Resolve the agentic trigger's input schema natively
+		var trigger *autoTypes.NgAutomationTrigger
 		for _, t := range info.Triggers {
-			if t.TriggerDefinitionID > 0 {
-				d, err := r.triggerDefService.LookupByID(ctx, t.TriggerDefinitionID)
-				if err == nil && d != nil {
-					def = d
-					break
-				}
+			if t.ResourceType == "automation:trigger:agentic" {
+				trigger = t
+				break
 			}
 		}
 
-		tools = append(tools, r.buildMappedMCPTool(tac, info, def))
+		tools = append(tools, r.buildMappedMCPTool(tac, info, trigger))
 	}
 
 	if len(agent.Access.Workflows) > 0 {
@@ -888,11 +885,8 @@ func (r *runtime) resolveWorkflowRef(ctx context.Context, ref string) string {
 
 func (r *runtime) hasDirectInvokeTrigger(ctx context.Context, a *autoTypes.NgAutomation) bool {
 	for _, t := range a.Triggers {
-		if t.TriggerDefinitionID > 0 {
-			def, err := r.triggerDefService.LookupByID(ctx, t.TriggerDefinitionID)
-			if err == nil && def != nil && def.SkipEventBus {
-				return true
-			}
+		if t.ResourceType == "automation:trigger:agentic" {
+			return true
 		}
 	}
 	return false
@@ -907,19 +901,15 @@ func (r *runtime) computeInputSchema(ctx context.Context, agent *types.Agent) js
 		}
 
 		for _, trg := range info.Triggers {
-			if trg.TriggerDefinitionID > 0 {
-				def, err := r.triggerDefService.LookupByID(ctx, trg.TriggerDefinitionID)
-				if err == nil && def != nil && def.SkipEventBus {
-					// Convert TriggerDefinitionSchema to JSON Schema
-					return r.schemaToJSONSchema(def.InputSchema)
-				}
+			if trg.ResourceType == "automation:trigger:agentic" {
+				return r.schemaToJSONSchema(trg.InputSchema)
 			}
 		}
 	}
 	return nil
 }
 
-func (r *runtime) schemaToJSONSchema(schema autoTypes.TriggerDefinitionSchema) json.RawMessage {
+func (r *runtime) schemaToJSONSchema(schema autoTypes.NgAutomationTriggerSchema) json.RawMessage {
 	props := map[string]any{}
 	required := []string{}
 	for _, p := range schema {
@@ -940,7 +930,7 @@ func (r *runtime) schemaToJSONSchema(schema autoTypes.TriggerDefinitionSchema) j
 	return raw
 }
 
-func (r *runtime) schemaToInputSchema(schema autoTypes.TriggerDefinitionSchema) map[string]any {
+func (r *runtime) schemaToInputSchema(schema autoTypes.NgAutomationTriggerSchema) map[string]any {
 	props := map[string]any{}
 	required := []string{}
 	for _, p := range schema {
@@ -959,7 +949,7 @@ func (r *runtime) schemaToInputSchema(schema autoTypes.TriggerDefinitionSchema) 
 	}
 }
 
-func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.NgAutomation, def *autoTypes.TriggerDefinition) Tool {
+func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.NgAutomation, trigger *autoTypes.NgAutomationTrigger) Tool {
 	name := fmt.Sprintf("automation_%d", taq.ID)
 
 	title := ""
@@ -977,14 +967,8 @@ func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.Ng
 	}
 
 	var inputSchema map[string]any
-	if def != nil {
-		if len(def.OutputSchema) > 0 {
-			desc += "\n\nReturns:"
-			for _, p := range def.OutputSchema {
-				desc += fmt.Sprintf("\n- %s (%s): %s", p.Name, p.Type, p.Description)
-			}
-		}
-		inputSchema = r.schemaToInputSchema(def.InputSchema)
+	if trigger != nil {
+		inputSchema = r.schemaToInputSchema(trigger.InputSchema)
 	}
 
 	return Tool{
