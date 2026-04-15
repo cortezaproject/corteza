@@ -1,3 +1,4 @@
+export { default as CAppList } from './CAppList.vue'
 export { default as CAppListSidebar } from './CAppListSidebar.vue'
 export { default as CSidebar } from './CSidebar.vue'
 export { default as CSidebarNav } from './CSidebarNav.vue'

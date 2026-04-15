@@ -136,12 +136,12 @@ editor:
     toolName: Tool Name
     toolDescription: Description
     configure: Configure tool
-    restrictAccess: Restrict access
-    restrictAccessHelp: When enabled, only the specified namespaces and modules are accessible. Leave disabled for full access.
+    configureAccess: Configure Access
+    configureAccessHelp: Define which namespaces and modules this tool can access. Access is restricted by default when not configured.
     namespacePlaceholder: Select namespace...
     modulesPlaceholder: All modules accessible
     addNamespace: Add namespace
-    unrestricted: Unrestricted access
+    restricted: No Access
     allModules: all modules accessible
   taqs:
     label: Allowed TAQs
@@ -215,3 +215,4 @@ sidebar:
   clearAllChats: Clear All Chats
   empty: How can I help you today?
   placeholder: Message...
+  noAgents: No assistant agents are configured for your account.

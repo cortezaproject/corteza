@@ -3,15 +3,24 @@
     :visible="visible"
     @update:visible="emit('update:visible', $event)"
     modal
-    :header="mode === 'create' ? $t('list.dialog.create.header') : $t('builder.generalConfig.header', 'General Configuration')"
-    :style="{ width: '500px' }"
+    :header="
+      mode === 'create'
+        ? $t('list.dialog.create.header')
+        : $t('builder.generalConfig.header')
+    "
+    :style="{ width: '700px' }"
     @hide="resetForm"
   >
     <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-2">
-        <label for="automation-name" class="font-medium text-primary"
-          >{{ mode === 'create' ? $t('list.dialog.create.name') : $t('builder.configSidebar.node', 'Name') }} <span class="text-red-500">*</span></label
-        >
+        <label for="automation-name" class="font-medium text-primary">
+          {{
+            mode === 'create'
+              ? $t('list.dialog.create.name')
+              : $t('builder.configSidebar.node')
+          }}
+          <span class="text-red-500">*</span>
+        </label>
         <InputText
           id="automation-name"
           v-model="form.name"
@@ -25,7 +34,9 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <label for="automation-description" class="font-medium text-primary">{{ $t('list.dialog.create.description') }}</label>
+        <label for="automation-description" class="font-medium text-primary">
+          {{ $t('list.dialog.create.description') }}
+        </label>
         <Textarea
           id="automation-description"
           v-model="form.description"
@@ -33,6 +44,18 @@
           class="w-full"
           rows="3"
         />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-primary">
+          {{ $t('builder.generalConfig.runAs') }}
+        </label>
+        <CInputUser
+          v-model="form.runAs"
+          :placeholder="$t('builder.generalConfig.runAsPlaceholder')"
+          class="w-full"
+        />
+        <small class="text-muted-color">{{ $t('builder.generalConfig.runAsHint') }}</small>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -50,12 +73,12 @@
     </div>
     <template #footer>
       <div class="flex justify-end w-full h-full items-center gap-2">
-        <Button 
-          :label="$t('list.button.cancel')" 
-          text 
+        <Button
+          :label="$t('list.button.cancel')"
+          text
           size="small"
           severity="secondary"
-          @click="emit('update:visible', false)" 
+          @click="emit('update:visible', false)"
         />
         <Button
           :label="mode === 'create' ? $t('list.button.create') : $t('builder.save')"
@@ -75,8 +98,9 @@ import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { components } from '@cortezaproject/corteza-vue-next'
+import { useAutomationStore } from '@/stores/automation'
 
-const { CInputLabel } = components
+const { CInputLabel, CInputUser } = components
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -84,6 +108,7 @@ const props = defineProps({
   initialName: { type: String, default: '' },
   initialDescription: { type: String, default: '' },
   initialLabels: { type: Object, default: () => ({}) },
+  initialRunAs: { type: [String, Number], default: null },
 })
 
 const emit = defineEmits(['update:visible', 'saved'])
@@ -92,32 +117,40 @@ const { t } = useI18n()
 const router = useRouter()
 const $AutomationAPI = inject('$AutomationAPI')
 const $Auth = inject('$Auth')
+const automationStore = useAutomationStore()
 
 const form = ref({
   name: props.initialName,
   description: props.initialDescription,
   labels: {},
+  runAs: props.initialRunAs || null,
 })
 
 const nameError = ref('')
 const processing = ref(false)
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    form.value.name = props.initialName
-    form.value.description = props.initialDescription || ''
-    form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
-  }
-})
+watch(
+  () => props.visible,
+  val => {
+    if (val) {
+      form.value.name = props.initialName
+      form.value.description = props.initialDescription || ''
+      form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
+      form.value.runAs = props.initialRunAs || null
+    }
+  },
+)
 
 function resetForm() {
   if (props.mode === 'create') {
     form.value.name = ''
     form.value.description = ''
+    form.value.runAs = null
   } else {
     form.value.name = props.initialName
     form.value.description = props.initialDescription || ''
     form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
+    form.value.runAs = props.initialRunAs || null
   }
   nameError.value = ''
 }
@@ -125,7 +158,7 @@ function resetForm() {
 function validateForm() {
   nameError.value = ''
   if (!form.value.name.trim()) {
-    nameError.value = t('list.dialog.create.nameRequired', 'Name is required')
+    nameError.value = t('list.dialog.create.nameRequired')
     return false
   }
   return true
@@ -133,12 +166,12 @@ function validateForm() {
 
 async function handleSubmit() {
   if (!validateForm()) return
-  
+
   processing.value = true
-  
+
   try {
     if (props.mode === 'create') {
-      const response = await $AutomationAPI.ngAutomationCreate({
+      const created = await automationStore.create($AutomationAPI, {
         meta: {
           short: form.value.name.trim(),
           description: form.value.description.trim() || undefined,
@@ -149,9 +182,10 @@ async function handleSubmit() {
         steps: [],
         paths: [],
         ownedBy: $Auth?.user?.userID,
+        runAs: form.value.runAs || undefined,
       })
       emit('update:visible', false)
-      router.push(`/builder/${response.automationID}`)
+      router.push(`/builder/${created.automationID}`)
     } else {
       // For editing we emit the saved event and expect parent to handle the actual workflow update,
       // because we need to include all current canvas nodes/edges in the API request, which Builder.vue holds.
@@ -159,6 +193,7 @@ async function handleSubmit() {
         name: form.value.name.trim(),
         description: form.value.description.trim() || undefined,
         labels: form.value.labels || {},
+        runAs: form.value.runAs || undefined,
       })
       emit('update:visible', false)
     }

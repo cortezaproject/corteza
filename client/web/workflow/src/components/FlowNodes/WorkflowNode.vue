@@ -50,7 +50,11 @@
     </div>
 
     <!-- Trace badge -->
-    <div v-if="data?.traceLog" class="workflow-node__trace-badge">
+    <div
+      v-if="data?.traceLog"
+      v-tooltip.top="{ value: data.traceLog, pt: { text: 'whitespace-pre-wrap font-mono text-xs' } }"
+      class="workflow-node__trace-badge"
+    >
       <img
         :src="getIcon(data.traceState === 'error' ? 'clock-danger' : 'clock-success')"
         class="workflow-node__trace-icon"

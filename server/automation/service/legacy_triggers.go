@@ -80,11 +80,11 @@ func init() {
 		types.ConstructTrigger{
 			ResourceType: "automation:trigger:agentic",
 			EventType:    "onAgentic",
-			Groups:       []string{"Agent"},
+			Groups:       []string{"Agents"},
 			Meta: &types.ConstructTriggerMeta{
-				Short:       "Agentic Payload",
-				Description: "Triggered by an LLM Agent providing a variable payload",
-				Icon:        &types.NgAutomationIcon{Type: "name", Value: "robot"},
+				Short:       "Agent Invoked",
+				Description: "Triggered by an Agent providing a variable payload",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "sparkles"},
 			},
 		},
 		types.ConstructTrigger{

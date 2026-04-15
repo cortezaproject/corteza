@@ -36,6 +36,8 @@ subworkflow: Subworkflow
 subworkflows: Subworkflows
 deleted: Deleted
 disabled: Disabled
+editor:
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 without: Without
 only: Only
 including: Including

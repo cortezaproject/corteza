@@ -2,7 +2,7 @@
   <Dialog
     :visible="visible"
     modal
-    :header="$t('builder.runModal.header', 'Execution Scope')"
+    :header="$t('builder.runModal.header')"
     :style="{ width: '50rem' }"
     @update:visible="emit('update:visible', $event)"
   >
@@ -36,7 +36,7 @@
           :disabled="!scope['namespace']"
           :placeholder="
             !scope['namespace']
-              ? $t('builder.configSidebar.selectNamespaceFirst', 'Select a namespace first')
+              ? $t('builder.configSidebar.selectNamespaceFirst')
               : undefined
           "
           class="w-full"
@@ -63,14 +63,14 @@
     <template #footer>
       <div class="flex justify-end w-full h-full items-center gap-2">
         <Button
-          :label="$t('general.label.cancel', 'Cancel')"
+          :label="$t('general.label.cancel')"
           text
           size="small"
           severity="secondary"
           @click="close"
         />
         <Button
-          :label="$t('builder.run', 'Run')"
+          :label="$t('builder.run')"
           icon="pi pi-play"
           severity="success"
           size="small"

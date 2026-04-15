@@ -31,6 +31,7 @@ export { useUserResolver } from './composables/useUserResolver'
 export { useFileUpload } from './composables/useFileUpload'
 export { providePermissions, usePermissions, PermissionsKey } from './composables/usePermissions'
 export { useRightSidebarResize } from './composables/useRightSidebarResize'
+export { useUnsavedGuard } from './composables/useUnsavedGuard'
 export { resolveAppLogoUrl, appIconMap, defaultAppIcon } from './utils/appIcons'
 export * as websocket from './libs/websocket'
 

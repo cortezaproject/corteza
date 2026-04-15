@@ -29,7 +29,7 @@ const navItems = computed(() => [
   {
     _id: 'automations',
     _parentId: '0',
-    _label: t('navigation.automations', 'Automations'),
+    _label: t('navigation.automations'),
     _icon: 'pi pi-bolt',
     _route: { name: 'list' },
   },
@@ -42,7 +42,7 @@ const navItems = computed(() => [
     .map(a => ({
       _id: a.automationID,
       _parentId: 'automations',
-      _label: a.meta?.short || t('list.untitled', 'Untitled'),
+      _label: a.meta?.short || t('list.untitled'),
       _route: { name: 'builder-edit', params: { id: a.automationID } },
     })),
 ])

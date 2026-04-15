@@ -8,6 +8,7 @@ help:
   manageSubscription: 'Manage Subscription'
   packageDetails: 'Package Details'
 appMenu: Menu
+home: Home
 userSettings:
   changePassword: Change password
   logout: Logout

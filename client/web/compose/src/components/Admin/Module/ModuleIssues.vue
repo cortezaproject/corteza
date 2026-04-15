@@ -12,7 +12,7 @@
   </div>
   <div v-else class="flex flex-col items-center justify-center p-8 text-muted-color">
     <i class="pi pi-check-circle text-4xl mb-4 text-green-500"></i>
-    <p class="m-0 text-lg">{{ $t('module.edit.issues.noIssues', 'No configuration issues detected.') }}</p>
+    <p class="m-0 text-lg">{{ $t('module.edit.issues.noIssues') }}</p>
   </div>
 </template>
 

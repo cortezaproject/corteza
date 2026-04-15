@@ -192,10 +192,6 @@ webcam:
   errors:
     camera: Unable to access the camera. Please make sure you have granted camera permissions.
 
-record:
-  unsavedChanges: Unsaved changes will be lost. Do you wish to leave?
-  unsavedChangesDraft: Unsaved changes will be discarded, but can still be found in Drafts. Do you wish to leave?
-
 themes:
   labels:
     light: Light

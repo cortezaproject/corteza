@@ -15,6 +15,23 @@
         @click="options.editable ? addInlineRecord() : handleAddRecord()"
       />
 
+      <!-- Import button -->
+      <RecordImporter
+        v-if="!options.hideImportButton && recordListModule?.canCreateRecord && !options.editable"
+        :module="recordListModule"
+        :namespace="namespace"
+        @import-successful="fetchRecords(true)"
+      />
+
+      <!-- Export button -->
+      <RecordExporter
+        v-if="options.allowExport && recordListModule"
+        :module="recordListModule"
+        :namespace="namespace"
+        :filter="currentQuery"
+        :selection="selectedRecords"
+      />
+
       <!-- Filter presets dropdown -->
       <Menu
         v-if="visiblePresets.length"
@@ -51,7 +68,7 @@
       <Button
         v-if="!options.hideConfigureFieldsButton"
         icon="pi pi-table"
-        :label="$t('block.recordList.configureFields', 'Fields')"
+        :label="$t('block.recordList.configureFields')"
         severity="secondary"
         outlined
         size="small"
@@ -254,7 +271,7 @@
 
       <Button
         v-if="options.bulkRecordEditEnabled && canUpdateSelected && !showingDeletedRecords"
-        v-tooltip.bottom="$t('block.recordList.bulkRecord.title', 'Bulk Edit')"
+        v-tooltip.bottom="$t('block.recordList.bulkRecord.title')"
         icon="pi pi-pencil"
         severity="secondary"
         text
@@ -492,7 +509,7 @@
     <Dialog
       v-model:visible="showFieldPickerModal"
       modal
-      :header="$t('block.recordList.configureFields', 'Configure Fields')"
+      :header="$t('block.recordList.configureFields')"
       :style="{ width: '90vw', maxWidth: '56rem' }"
       :contentStyle="{ minHeight: 'min(60vh, 32rem)' }"
       @hide="cancelFieldPicker"
@@ -501,25 +518,25 @@
         :all-fields="allModuleFields"
         :model-value="localFieldNames"
         list-class="max-h-[32rem]"
-        :available-label="$t('field.selector.available', 'Available')"
-        :selected-label="$t('field.selector.selected', 'Selected')"
-        :select-all-label="$t('field.selector.selectAll', 'Select all')"
-        :unselect-all-label="$t('field.selector.unselectAll', 'Unselect all')"
-        :search-placeholder="$t('general.label.search', 'Search...')"
-        :no-items-label="$t('field.no-items-found', 'No items found')"
+        :available-label="$t('field.selector.available')"
+        :selected-label="$t('field.selector.selected')"
+        :select-all-label="$t('field.selector.selectAll')"
+        :unselect-all-label="$t('field.selector.unselectAll')"
+        :search-placeholder="$t('general.label.search')"
+        :no-items-label="$t('field.no-items-found')"
         @update:model-value="localFieldNames = $event"
       />
       <template #footer>
         <div class="flex justify-end gap-2">
           <Button
-            :label="$t('general.label.cancel', 'Cancel')"
+            :label="$t('general.label.cancel')"
             text
             severity="secondary"
             size="small"
             @click="cancelFieldPicker"
           />
           <Button
-            :label="$t('general.label.apply', 'Apply')"
+            :label="$t('general.label.apply')"
             size="small"
             @click="applyFieldPicker"
           />
@@ -560,6 +577,8 @@ import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@/stores/page'
 import CBulkRecordEditModal from './CBulkRecordEditModal.vue'
 import RecordListFilter from '../../Common/RecordListFilter.vue'
+import RecordImporter from '../../Public/Record/Importer/index.vue'
+import RecordExporter from '../../Public/Record/Exporter/index.vue'
 import {
   evaluatePrefilter,
   queryToFilter,

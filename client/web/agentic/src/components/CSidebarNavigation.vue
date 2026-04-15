@@ -29,14 +29,14 @@ const navItems = computed(() => [
   {
     _id: 'home',
     _parentId: '0',
-    _label: t('navigation.home', 'Home'),
+    _label: t('navigation.home'),
     _icon: 'pi pi-home',
     _route: { name: 'root' },
   },
   {
     _id: 'agents',
     _parentId: '0',
-    _label: t('navigation.agents', 'Agents'),
+    _label: t('navigation.agents'),
     _icon: 'pi pi-android',
     _divider: true,
   },
@@ -49,7 +49,7 @@ const navItems = computed(() => [
     .map(a => ({
       _id: a.agentID,
       _parentId: 'agents',
-      _label: a.meta?.short || a.handle || t('agent.list.untitled', 'Untitled'),
+      _label: a.meta?.short || a.handle || t('agent.list.untitled'),
       _route: { name: 'agent.edit', params: { agentID: a.agentID } },
     })),
 ])

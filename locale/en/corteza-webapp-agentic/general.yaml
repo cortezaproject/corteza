@@ -8,6 +8,8 @@ label:
   yes: Yes
   no: No
   permissions: Permissions
+editor:
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 resourceList:
   notFound: Not found
   noItems: No items to show

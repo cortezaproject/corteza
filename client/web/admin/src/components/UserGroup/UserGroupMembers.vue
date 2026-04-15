@@ -45,7 +45,7 @@ async function loadMembers() {
     const result = await $SystemAPI.userGroupMemberList({ userGroupID: props.userGroupID })
     members.value = result?.set || result || []
   } catch (e) {
-    $toast.toastErrorHandler(t('system.user-groups.editor.members.fetchError', 'Failed to load members'))(e)
+    $toast.toastErrorHandler(t('system.user-groups.editor.members.fetchError'))(e)
   }
 }
 
@@ -57,7 +57,7 @@ async function addMember(user) {
       members.value.push(user)
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('system.user-groups.editor.members.addError', 'Failed to add member'))(e)
+    $toast.toastErrorHandler(t('system.user-groups.editor.members.addError'))(e)
   }
 }
 
@@ -67,7 +67,7 @@ async function removeMember(member) {
     const idx = members.value.findIndex(m => m.userID === member.userID)
     if (idx !== -1) members.value.splice(idx, 1)
   } catch (e) {
-    $toast.toastErrorHandler(t('system.user-groups.editor.members.removeError', 'Failed to remove member'))(e)
+    $toast.toastErrorHandler(t('system.user-groups.editor.members.removeError'))(e)
   }
 }
 

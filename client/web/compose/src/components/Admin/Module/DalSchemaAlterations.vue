@@ -179,7 +179,7 @@ async function load(...batchID) {
 
 function confirmResolve(alteration) {
   confirm({
-    message: t('module.edit.schemaAlterations.confirmResolve', 'Are you sure you want to apply this schema alteration?'),
+    message: t('module.edit.schemaAlterations.confirmResolve'),
     header: t('general.label.resolve'),
     onConfirm: () => onResolve(alteration),
   })
@@ -187,7 +187,7 @@ function confirmResolve(alteration) {
 
 function confirmDismiss(alteration) {
   confirm({
-    message: t('module.edit.schemaAlterations.confirmDismiss', 'Are you sure you want to dismiss this schema alteration?'),
+    message: t('module.edit.schemaAlterations.confirmDismiss'),
     header: t('general.label.dismiss'),
     onConfirm: () => onDismiss(alteration),
   })
@@ -258,7 +258,7 @@ function stringifyParams(params) {
     if (params.modelAdd) return stringifyModelAddParams(params.modelAdd)
     if (params.modelDelete) return stringifyModelDeleteParams(params.modelDelete)
   } catch(e) {}
-  return t('module.edit.schemaAlterations.unknownType', 'Unknown alteration type')
+  return t('module.edit.schemaAlterations.unknownType')
 }
 
 function stringifyAttributeAddParams({ attr = {} }) {

@@ -407,8 +407,8 @@ async function saveInlineEdits() {
   } catch (e) {
     console.error('Failed to save inline edits:', e)
     $toast?.toastDanger(
-      t('block.record.inlineEdit.saveError', 'Failed to save'),
-      t('block.record.inlineEdit.saveErrorSummary', 'Error'),
+      t('block.record.inlineEdit.saveError'),
+      t('block.record.inlineEdit.saveErrorSummary'),
     )
   } finally {
     localSaving.value = false

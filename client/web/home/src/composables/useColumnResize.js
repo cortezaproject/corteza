@@ -1,7 +1,7 @@
 import { onBeforeUnmount, ref } from 'vue'
 
-const STORAGE_KEY_MENU = 'two-column-menu-width'
-const STORAGE_KEY_NOTIFICATIONS = 'two-column-notifications-width'
+const STORAGE_KEY_MENU = 'home-column-menu-width'
+const STORAGE_KEY_NOTIFICATIONS = 'home-column-notifications-width'
 
 const DEFAULT_MENU_WIDTH = 260
 const DEFAULT_NOTIFICATIONS_WIDTH = 360

@@ -1,5 +1,6 @@
 <template>
   <Button
+    data-test-id="button-export-workflow"
     :label="$t('general.export')"
     :severity="severity"
     :size="size"

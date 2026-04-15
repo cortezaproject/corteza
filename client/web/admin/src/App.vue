@@ -21,6 +21,7 @@
           v-model:sidebar-expanded="expanded"
           :labels="{
             appMenu: $t('navigation.appMenu'),
+              home: $t('navigation.home'),
             helpBuyHuman: $t('navigation.help.buyHuman'),
             helpManageSubscription: $t('navigation.help.manageSubscription'),
             helpPackageDetails: $t('navigation.help.packageDetails'),

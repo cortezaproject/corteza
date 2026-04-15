@@ -35,6 +35,7 @@
         <div class="flex gap-2">
           <CRouterLinkButton
             v-if="canCreate"
+            data-test-id="button-create-workflow"
             :to="{ name: 'workflow.create' }"
             :label="$t('general.new-workflow')"
             icon="pi pi-plus"
@@ -42,6 +43,7 @@
           />
           <Button
             v-if="canCreate"
+            data-test-id="button-import-workflow"
             :label="$t('general.import.label')"
             icon="pi pi-upload"
             severity="secondary"
@@ -210,6 +212,7 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { saveAs } from 'file-saver'
 import { useLabelsStore } from '@/stores/labels'
+import { useWorkflowStore } from '@/stores/workflow'
 import Import from '@/components/Import.vue'
 import Export from '@/components/Export.vue'
 import NamespaceModuleSelector from '@/components/NamespaceModuleSelector.vue'
@@ -225,6 +228,7 @@ const $AutomationAPI = inject('$AutomationAPI')
 const $ComposeAPI = inject('$ComposeAPI')
 const $Auth = inject('$Auth')
 const labelsStore = useLabelsStore()
+const workflowStore = useWorkflowStore()
 
 // Dialog / popover visibility
 const showImportDialog = ref(false)
@@ -389,7 +393,8 @@ async function handleStatusChange(workflow) {
   const key = enabled ? 'enable' : 'disable'
   try {
     const w = await $AutomationAPI.workflowRead({ workflowID: workflow.workflowID })
-    await $AutomationAPI.workflowUpdate({ ...w, enabled })
+    const updated = await $AutomationAPI.workflowUpdate({ ...w, enabled })
+    workflowStore.updateInList(updated)
     toast.add({ severity: 'success', summary: t(`notification.list.${key}.success`), life: 3000 })
     filterList()
   } catch {
@@ -555,6 +560,7 @@ async function handleDelete(workflow) {
     await $AutomationAPI.workflowDelete({
       workflowID: workflow.workflowID,
     })
+    workflowStore.removeFromList(workflow.workflowID)
     toast.add({ severity: 'success', summary: t('notification.delete.success'), life: 3000 })
     filterList()
   } catch (e) {
@@ -566,9 +572,10 @@ async function handleDelete(workflow) {
 async function handleUndelete(workflow) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $AutomationAPI.workflowUndelete({
+    const restored = await $AutomationAPI.workflowUndelete({
       workflowID: workflow.workflowID,
     })
+    workflowStore.updateInList(restored)
     toast.add({ severity: 'success', summary: t('notification.undelete.success'), life: 3000 })
     filterList()
   } catch (e) {

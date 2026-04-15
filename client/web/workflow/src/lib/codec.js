@@ -194,6 +194,7 @@ export function decodeWorkflow (workflow, triggers = []) {
       position: { x: xywh[0], y: xywh[1] },
       zIndex: nodeType === 'visual' ? -1 : undefined,
       parentNode: vis.parent && vis.parent !== '1' ? String(vis.parent) : undefined,
+      extent: vis.parent && vis.parent !== '1' ? 'parent' : undefined,
       data: {
         stepID: String(stepID),
         kind: kind || '',
@@ -210,6 +211,26 @@ export function decodeWorkflow (workflow, triggers = []) {
         height: xywh[3] || undefined,
       },
     })
+  })
+
+  // 2b. Convert absolute → relative positions for children of visual parents.
+  // Corteza stores xywh in absolute canvas coordinates; VueFlow interprets a
+  // child's `position` as relative to its `parentNode`. Without this pass,
+  // nodes nested in a swimlane jump to the wrong spot on decode.
+  const nodeById = new Map(nodes.map(n => [n.id, n]))
+  nodes.forEach(n => {
+    if (!n.parentNode) return
+    const parent = nodeById.get(n.parentNode)
+    if (!parent) {
+      // Parent missing — treat as top-level to avoid orphaned relative coords.
+      n.parentNode = undefined
+      n.extent = undefined
+      return
+    }
+    n.position = {
+      x: (n.position?.x || 0) - (parent.position?.x || 0),
+      y: (n.position?.y || 0) - (parent.position?.y || 0),
+    }
   })
 
   // 3. Paths → workflow edges
@@ -259,9 +280,29 @@ export function encodeWorkflow (nodes, edges) {
     }
   })
 
+  // Resolve absolute positions: a child of a visual parent carries a position
+  // relative to the parent, but Corteza expects absolute xywh. Walk parents
+  // up to the root, summing offsets, and expose the result via `absPos`.
+  const nodeById = new Map(nodes.map(n => [n.id, n]))
+  function absolutePosition (node) {
+    let x = node.position?.x || 0
+    let y = node.position?.y || 0
+    let cur = node.parentNode ? nodeById.get(node.parentNode) : null
+    const guard = new Set()
+    while (cur && !guard.has(cur.id)) {
+      guard.add(cur.id)
+      x += cur.position?.x || 0
+      y += cur.position?.y || 0
+      cur = cur.parentNode ? nodeById.get(cur.parentNode) : null
+    }
+    return { x, y }
+  }
+
   // Encode nodes
   nodes.forEach(node => {
     const { data = {} } = node
+
+    const abs = absolutePosition(node)
 
     if (node.type === 'trigger' || data.kind === 'trigger') {
       // Trigger node → trigger entry
@@ -269,21 +310,27 @@ export function encodeWorkflow (nodes, edges) {
       const firstTarget = outEdges.length > 0 ? outEdges[0].target : '0'
 
       // Build trigger visual edges (same format the render() method expects)
-      const triggerEdges = outEdges.map(e => ({
-        parentID: e.source,
-        childID: e.target,
-        meta: {
-          label: e.label || '',
-          description: '',
-          visual: {
-            id: e.id,
-            value: e.label || '',
-            parent: node.parentNode || '1',
-            points: e.data?.points || [],
-            style: e.data?.style || '',
+      const triggerEdges = outEdges.map(e => {
+        const style =
+          e.sourceHandle || e.targetHandle
+            ? handlesToMxStyle(e.sourceHandle, e.targetHandle)
+            : e.data?.style || ''
+        return {
+          parentID: e.source,
+          childID: e.target,
+          meta: {
+            label: e.label || '',
+            description: '',
+            visual: {
+              id: e.id,
+              value: e.label || '',
+              parent: node.parentNode || '1',
+              points: e.data?.points || [],
+              style,
+            },
           },
-        },
-      }))
+        }
+      })
 
       triggers.push({
         ...(data.triggers || {}),
@@ -297,12 +344,7 @@ export function encodeWorkflow (nodes, edges) {
             id: node.id,
             value: data.label || '',
             defaultName: data.defaultName || false,
-            xywh: [
-              node.position?.x || 0,
-              node.position?.y || 0,
-              data.width || 200,
-              data.height || 80,
-            ],
+            xywh: [abs.x, abs.y, data.width || 200, data.height || 80],
             parent: node.parentNode || '1',
             edges: triggerEdges,
           },
@@ -326,8 +368,8 @@ export function encodeWorkflow (nodes, edges) {
             value: data.label || '',
             defaultName: data.defaultName || false,
             xywh: [
-              node.position?.x || 0,
-              node.position?.y || 0,
+              abs.x,
+              abs.y,
               data.width || styleInfo.width || 200,
               data.height || styleInfo.height || 80,
             ],
@@ -343,8 +385,14 @@ export function encodeWorkflow (nodes, edges) {
     // Skip edges that originate from a trigger node
     if (triggerNodeIds.has(edge.source)) return
 
-    // Reconstruct mxGraph style from VueFlow handles + original style
-    const edgeStyle = edge.data?.style || handlesToMxStyle(edge.sourceHandle, edge.targetHandle)
+    // Rebuild mxGraph style so that anchor changes (user dragged an edge to a
+    // different handle) survive the round-trip. If the user has an explicit
+    // handle, regenerate exit/entry coords from it; otherwise fall back to
+    // whatever style came in from the backend.
+    const edgeStyle =
+      edge.sourceHandle || edge.targetHandle
+        ? handlesToMxStyle(edge.sourceHandle, edge.targetHandle)
+        : edge.data?.style || handlesToMxStyle(edge.sourceHandle, edge.targetHandle)
 
     paths.push({
       parentID: edge.source,

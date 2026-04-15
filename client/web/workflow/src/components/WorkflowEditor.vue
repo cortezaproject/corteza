@@ -258,7 +258,7 @@
                 v-if="sidebar.showItem"
                 v-model:item="sidebar.item"
                 v-model:edges="sidebarEdges"
-                :out-edges="sidebar.outEdges"
+                :out-edges="sidebarOutEdges"
                 :is-subworkflow="!!workflow.meta.subWorkflow"
                 @update-value="setValue($event)"
                 @update-default-value="setValue($event, true)"
@@ -487,6 +487,8 @@ const toolbarTooltipStyle = ref({ top: '0px', left: '0px' })
 const drawerWidth = ref(380)
 const isResizingDrawer = ref(false)
 
+const editor = ref(null)
+
 /* ─── Composables ─── */
 const vfId = 'workflow-editor-flow'
 const {
@@ -527,9 +529,16 @@ onNodesInitialized(() => {
 const sidebar = ref({
   item: undefined,
   itemType: undefined,
-  outEdges: 0,
   show: false,
   showItem: false,
+})
+
+// Live out-edge count for the currently focused node. Recomputes as edges change,
+// so the Configurator stays in sync when connections are added/removed while open.
+const sidebarOutEdges = computed(() => {
+  const id = sidebar.value.item?.node?.id
+  if (!id) return 0
+  return edges.value.filter(e => e.source === id).length
 })
 
 const issuesModal = ref({
@@ -764,7 +773,7 @@ const toolbarItems = computed(() => {
     if (item.kind === 'hr') return item
     const styleInfo = getStyleFromKind(item) || {}
     const label = t(`steps.${styleInfo.style || item.kind}.label`, item.kind)
-    const tooltip = t(`steps.${styleInfo.style || item.kind}.tooltip`, '')
+    const tooltip = t(`steps.${styleInfo.style || item.kind}.tooltip`)
     return {
       ...item,
       ...styleInfo,
@@ -827,6 +836,13 @@ onMounted(() => {
   }
 
   document.addEventListener('keydown', keybinds)
+
+  // Ctrl/Cmd + wheel → zoom. Capture phase + passive:false so we can preventDefault
+  // reliably before VueFlow's internal handlers see the event.
+  if (editor.value) {
+    editor.value.addEventListener('wheel', onWheelZoom, { capture: true, passive: false })
+  }
+
   initialized.value = true
 })
 
@@ -834,7 +850,19 @@ onBeforeUnmount(() => {
   eventBus.off('trigger-updated', onTriggerUpdated)
   eventBus.off('change-detected', onEventBusChange)
   document.removeEventListener('keydown', keybinds)
+  if (editor.value) {
+    editor.value.removeEventListener('wheel', onWheelZoom, { capture: true })
+  }
 })
+
+function onWheelZoom(event) {
+  if (!(event.ctrlKey || event.metaKey)) return
+  event.preventDefault()
+  event.stopPropagation()
+  if (event.deltaY < 0) vfZoomIn()
+  else if (event.deltaY > 0) vfZoomOut()
+  zoomLevel.value = getViewport().zoom || zoomLevel.value
+}
 
 function onTriggerUpdated(node) {
   // Trigger label changed in configurator — refresh the node data
@@ -995,13 +1023,77 @@ function onPaneClick() {
 }
 
 function onNodeDragStop({ node }) {
+  // Visual swimlanes act as containers — drop detection reparents nodes whose
+  // centre falls inside a swimlane and detaches nodes dragged back out.
+  if (node.type !== 'visual') {
+    reparentInsideSwimlane(node)
+  }
   saveToHistory()
   emit('change-detected')
+}
+
+function getAbsolutePosition(node) {
+  let x = node.position?.x || 0
+  let y = node.position?.y || 0
+  let cur = node.parentNode ? nodes.value.find(n => n.id === node.parentNode) : null
+  const guard = new Set()
+  while (cur && !guard.has(cur.id)) {
+    guard.add(cur.id)
+    x += cur.position?.x || 0
+    y += cur.position?.y || 0
+    cur = cur.parentNode ? nodes.value.find(n => n.id === cur.parentNode) : null
+  }
+  return { x, y }
+}
+
+function reparentInsideSwimlane(node) {
+  const current = nodes.value.find(n => n.id === node.id)
+  if (!current) return
+
+  const abs = getAbsolutePosition(current)
+  const cx = abs.x + (current.data?.width || 200) / 2
+  const cy = abs.y + (current.data?.height || 80) / 2
+
+  let newParent = null
+  // Search in reverse so we pick innermost swimlane if nested
+  for (let i = nodes.value.length - 1; i >= 0; i--) {
+    const candidate = nodes.value[i]
+    if (candidate.id === current.id) continue
+    if (candidate.type !== 'visual' || candidate.data?.ref !== 'swimlane') continue
+    const pAbs = getAbsolutePosition(candidate)
+    const pw = candidate.data?.width || 400
+    const ph = candidate.data?.height || 240
+    if (cx >= pAbs.x && cx <= pAbs.x + pw && cy >= pAbs.y && cy <= pAbs.y + ph) {
+      newParent = candidate
+      break
+    }
+  }
+
+  const desiredParent = newParent?.id
+  if (current.parentNode === desiredParent) return
+
+  // Rebuild as a new node object so VueFlow picks up the parent change
+  const updated = {
+    ...current,
+    parentNode: desiredParent,
+    extent: desiredParent ? 'parent' : undefined,
+  }
+
+  // Recompute local position: absolute → new-parent-relative (or absolute).
+  if (desiredParent) {
+    const pAbs = getAbsolutePosition(newParent)
+    updated.position = { x: abs.x - pAbs.x, y: abs.y - pAbs.y }
+  } else {
+    updated.position = { x: abs.x, y: abs.y }
+  }
+
+  nodes.value = nodes.value.map(n => (n.id === current.id ? updated : n))
 }
 
 function onCanvasDrop(event) {
   const newNode = dndDrop(event)
   if (newNode) {
+    if (newNode.type !== 'visual') reparentInsideSwimlane(newNode)
     emit('change-detected')
     nextTick(() => {
       const sidebarItem = buildSidebarItem(newNode)
@@ -1061,8 +1153,6 @@ function buildSidebarItem(node) {
 }
 
 function sidebarReopen(item, itemType) {
-  sidebar.value.outEdges = (item.node.edges || []).length
-
   if (!sidebar.value.show) {
     sidebar.value.item = item
     sidebar.value.itemType = itemType
@@ -1175,12 +1265,14 @@ function keybinds(event) {
   if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
     event.preventDefault()
     undo()
+    nextTick(() => checkExistingTriggerPaths())
   }
 
   // Ctrl+Shift+Z
   if ((event.ctrlKey || event.metaKey) && event.key === 'z' && event.shiftKey) {
     event.preventDefault()
     redo()
+    nextTick(() => checkExistingTriggerPaths())
   }
 
   // Ctrl+C
@@ -1288,26 +1380,83 @@ function deleteSelected() {
 }
 
 /**
- * Renumber remaining edges of an exclusive gateway after deletion (#1).
- * e.g. #1 - If, #3 - Else (if) → #1 - If, #2 - Else (if)
+ * Keep parallel gateway `ref` (fork vs join) in sync with actual edge counts.
+ * Matches Corteza's mxGraph behaviour: one style (`gatewayParallel`), role
+ * inferred from in/out edge balance — join when in > out, otherwise fork.
+ */
+function reconcileParallelGateways() {
+  let mutated = false
+  nodes.value.forEach(n => {
+    if (n.data?.kind !== 'gateway') return
+    if (n.data?.ref !== 'fork' && n.data?.ref !== 'join') return
+    let inCount = 0
+    let outCount = 0
+    edges.value.forEach(e => {
+      if (e.source === n.id) outCount++
+      if (e.target === n.id) inCount++
+    })
+    const expected = inCount > outCount ? 'join' : 'fork'
+    if (n.data.ref !== expected) {
+      n.data = { ...n.data, ref: expected }
+      mutated = true
+    }
+  })
+  return mutated
+}
+
+watch(
+  edges,
+  () => {
+    reconcileParallelGateways()
+  },
+  { deep: false },
+)
+
+/**
+ * Relabel remaining out-edges of certain source kinds after deletion so their
+ * labels match the semantic slot (position-dependent). Covers:
+ *   - exclusive gateway:  #1 - If, #N - Else (if)
+ *   - iterator:           Body, End
+ *   - error-handler:      Try, Catch
  */
 function renumberGatewayEdges(sourceId) {
   const sourceNode = nodes.value.find(n => n.id === sourceId)
-  if (!sourceNode || sourceNode.data?.kind !== 'gateway' || sourceNode.data?.ref !== 'excl') return
+  if (!sourceNode) return
+  const kind = sourceNode.data?.kind
+  const ref = sourceNode.data?.ref
 
-  const gwEdges = edges.value.filter(e => e.source === sourceId)
-  gwEdges.forEach((e, idx) => {
-    e.label = idx === 0 ? '#1 - If' : `#${idx + 1} - Else (if)`
-  })
+  const outEdges = edges.value.filter(e => e.source === sourceId)
+
+  if (kind === 'gateway' && ref === 'excl') {
+    outEdges.forEach((e, idx) => {
+      e.label = idx === 0 ? '#1 - If' : `#${idx + 1} - Else (if)`
+    })
+  } else if (kind === 'iterator') {
+    outEdges.forEach((e, idx) => {
+      e.label = idx === 0 ? 'Body' : 'End'
+    })
+  } else if (kind === 'error-handler') {
+    outEdges.forEach((e, idx) => {
+      e.label = idx === 0 ? 'Try' : 'Catch'
+    })
+  }
 }
 
 /**
  * Prevent connections to/from visual (swimlane/content) nodes (#8).
+ * Also enforces trigger rules: triggers can only be sources, never targets,
+ * and each trigger may have at most one outgoing edge.
  */
 function isValidConnection(connection) {
   const sourceNode = nodes.value.find(n => n.id === connection.source)
   const targetNode = nodes.value.find(n => n.id === connection.target)
   if (sourceNode?.type === 'visual' || targetNode?.type === 'visual') return false
+  if (targetNode?.type === 'trigger') return false
+  if (sourceNode?.type === 'trigger') {
+    const existing = edges.value.some(e => e.source === connection.source)
+    if (existing) return false
+  }
+  if (connection.source && connection.source === connection.target) return false
   return true
 }
 
@@ -1624,7 +1773,13 @@ function renderTrace(firstStepID, trace = []) {
       const logParts = frames.map(
         f => `#${f.index + 1} - ${f.stepTime}ms${f.error ? ` (Error: ${f.error})` : ''}`,
       )
-      const log = logParts.join('\n')
+      const times = frames.map(f => Number(f.stepTime) || 0)
+      const sum = times.reduce((a, b) => a + b, 0)
+      const min = times.length ? Math.min(...times) : 0
+      const max = times.length ? Math.max(...times) : 0
+      const avg = times.length ? Math.round(sum / times.length) : 0
+      const header = `N=${times.length}  MIN=${min}ms  MAX=${max}ms  AVG=${avg}ms  SUM=${sum}ms`
+      const log = `${header}\n${logParts.join('\n')}`
 
       // Set trace state on node
       const node = nodes.value.find(n => n.data?.stepID === stepID || n.id === stepID)

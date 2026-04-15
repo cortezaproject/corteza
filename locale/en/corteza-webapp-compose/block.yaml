@@ -713,9 +713,16 @@ recordList:
     hidePermissionsButton: Hide permissions button
     hideReminderButton: Hide reminder button
     hideViewButton: Hide view button
+    inlineEditFields: Inline editable fields
     inlineEditLabel: Inline editing
+    inlineRecordEditAllowAddField: Allow adding fields when editing inline
     inlineRecordEditEnabled: Inline record editing
     inlineValueFiltering: Enable inline value filtering
+    ascending: Ascending
+    descending: Descending
+    fullPageNavigationHint: Full page navigation may impact performance on very large record sets
+    perPageHint: Displaying a large amount of records per page will impact performance, especially with record/user fields
+    enableRecordPageNavigationHint: Enabling next/previous navigation may impact performance on large record sets
     openRecordInEditMode: Open record in edit mode by default
     preset: Preset
     presetFilter: Preset filter

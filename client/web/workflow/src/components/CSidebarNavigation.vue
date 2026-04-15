@@ -29,14 +29,14 @@ const navItems = computed(() => [
   {
     _id: 'home',
     _parentId: '0',
-    _label: t('navigation.home', 'Home'),
+    _label: t('navigation.home'),
     _icon: 'pi pi-home',
     _route: { name: 'workflow.list' },
   },
   {
     _id: 'workflows',
     _parentId: '0',
-    _label: t('navigation.workflows', 'Workflows'),
+    _label: t('navigation.workflows'),
     _icon: 'pi pi-sitemap',
     _divider: true,
   },
@@ -49,7 +49,7 @@ const navItems = computed(() => [
     .map(w => ({
       _id: w.workflowID,
       _parentId: 'workflows',
-      _label: w.meta?.name || w.handle || t('workflow.untitled', 'Untitled'),
+      _label: w.meta?.name || w.handle || t('workflow.untitled'),
       _route: { name: 'workflow.edit', params: { workflowID: w.workflowID } },
     })),
 ])

@@ -9,6 +9,7 @@ help:
   manageSubscription: 'Manage Subscription'
   packageDetails: 'Package Details'
 appMenu: Menu
+home: Home
 automations: Automations
 appList:
   title: Menu

@@ -10,7 +10,7 @@
         text
         rounded
         size="small"
-        class="opacity-0 group-hover/title:opacity-100 transition-opacity !w-5 !h-5 !p-0 shrink-0"
+        class="!w-5 !h-5 !p-0 shrink-0"
       />
     </div>
   </Teleport>
@@ -29,6 +29,17 @@
         class="text-sm text-muted-color whitespace-pre-wrap px-1"
       >
         {{ editor.automation.value.meta.description }}
+      </div>
+
+      <!-- Run As -->
+      <div v-if="runAsUser" class="flex items-center gap-2 px-1">
+        <span class="text-sm text-muted-color">{{ $t('builder.canvas.runAs') }}</span>
+        <Tag
+          :value="runAsUser"
+          severity="secondary"
+          icon="pi pi-user"
+          class="border border-surface"
+        />
       </div>
 
       <div class="flex items-center gap-2 mt-2">
@@ -370,6 +381,7 @@
           @reorder-branches="handleReorderBranches"
           @update-arguments="handleUpdateArguments"
           @update-constraints="handleUpdateConstraints"
+          @update-input-schema="handleUpdateInputSchema"
           @toggle-reference="handleToggleReference"
           @update-gateway-type="handleUpdateGatewayType"
           @update-branch-expr="handleUpdateBranchExpr"
@@ -394,7 +406,7 @@
     <Dialog
       v-model:visible="showUnsavedDialog"
       modal
-      :header="$t('builder.unsavedChanges.header', 'Unsaved Changes Detected')"
+      :header="$t('builder.unsavedChanges.header')"
       :style="{ width: '40rem' }"
     >
       <div class="mb-4 text-color whitespace-pre-line">
@@ -409,14 +421,14 @@
       <template #footer>
         <div class="flex justify-end w-full h-full items-center gap-2">
           <Button
-            :label="$t('general.label.cancel', 'Cancel')"
+            :label="$t('general.label.cancel')"
             text
             size="small"
             severity="secondary"
             @click="showUnsavedDialog = false"
           />
           <Button
-            :label="$t('builder.saveAndRun', 'Save & Run')"
+            :label="$t('builder.saveAndRun')"
             icon="pi pi-save"
             severity="success"
             size="small"
@@ -436,6 +448,7 @@
       :initial-name="editor.name.value"
       :initial-description="editor.automation.value.meta?.description"
       :initial-labels="editor.automation.value.labels"
+      :initial-run-as="editor.automation.value.runAs"
       @saved="handleConfigSave"
     />
   </div>
@@ -454,7 +467,7 @@ import { components } from '@cortezaproject/corteza-vue-next'
 const { CToolbar } = components
 
 import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
-import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -478,6 +491,26 @@ const store = useAutomationStore()
 const editor = useFlowEditor()
 const { confirmDelete } = useConfirmDelete()
 const { t } = useI18n()
+
+const $SystemAPI = inject('$SystemAPI')
+const runAsUser = ref(null)
+
+watch(
+  () => editor.automation.value?.runAs,
+  async runAsID => {
+    if (!runAsID || runAsID === '0' || runAsID === 0) {
+      runAsUser.value = null
+      return
+    }
+    try {
+      const user = await $SystemAPI.userRead({ userID: runAsID })
+      runAsUser.value = user?.name || user?.email || user?.handle || null
+    } catch {
+      runAsUser.value = null
+    }
+  },
+  { immediate: true },
+)
 
 // VueFlow instance for viewport control and selection
 const {
@@ -526,13 +559,14 @@ const showUnsavedDialog = ref(false)
 // Config Modal State
 const showConfigDialog = ref(false)
 
-function handleConfigSave({ name, description, labels }) {
+function handleConfigSave({ name, description, labels, runAs }) {
   editor.name.value = name
   editor.automation.value.meta = {
     ...editor.automation.value.meta,
     description: description,
   }
   editor.automation.value.labels = labels || {}
+  editor.automation.value.runAs = runAs || '0'
   editor.save()
 }
 
@@ -893,6 +927,17 @@ function handleUpdateConstraints(constraints) {
   const node = editor.nodes.value.find(n => n.id === selected.id)
   if (node) {
     editor.updateNodeData(node.id, { constraints })
+  }
+}
+
+// Handle inputSchema updates from ConfigSidebar (agent trigger only)
+function handleUpdateInputSchema(inputSchema) {
+  const selected = getSelectedNodes.value?.[0]
+  if (!selected) return
+
+  const node = editor.nodes.value.find(n => n.id === selected.id)
+  if (node) {
+    editor.updateNodeData(node.id, { inputSchema })
   }
 }
 

@@ -22,7 +22,7 @@
             :to="{ name: 'namespace.manage' }"
             class="block p-2 text-sm text-muted-color hover:text-primary transition-colors text-center border-t"
           >
-            {{ $t('sidebar.namespaceSelector.manage', 'Manage') }}
+            {{ $t('sidebar.namespaceSelector.manage') }}
           </RouterLink>
         </template>
       </Select>

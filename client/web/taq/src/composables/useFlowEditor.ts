@@ -205,6 +205,7 @@ export function useFlowEditor() {
             resourceType: data.resourceType || existing?.resourceType || '',
             eventType: data.nodeType || existing?.eventType || '',
             constraints: data.constraints || existing?.constraints || [],
+            inputSchema: data.inputSchema || existing?.inputSchema || [],
             meta: {
               short: data.label,
               description: data.description || '',
@@ -295,6 +296,7 @@ export function useFlowEditor() {
 
       // Reload the flow to get proper IDs from backend
       const store = useAutomationStore()
+      store.updateInList(automation.value)
       const state = automationToVueFlow(automation.value, {
         functions: store.functions,
         triggers: store.triggers,
@@ -1054,6 +1056,28 @@ export function useFlowEditor() {
         // Look up trigger definition for properties
         const eventType = node.data?.nodeType
         const resourceType = node.data?.resourceType
+
+        // Agent trigger: properties come from the node's own inputSchema, not the catalog.
+        // Each TAQ declares its own params, so the catalog definition is empty.
+        if (eventType === 'onAgentic' || resourceType === 'automation:trigger:agentic') {
+          const schema = (node.data?.inputSchema as Array<{ name: string; type: string }> | undefined) || []
+          if (!schema.length) continue
+
+          upstream.push({
+            handle: node.data?.ref || ancestorId,
+            label: node.data?.label || 'Agent Invoked',
+            icon: node.data?.icon as IconDef | undefined,
+            properties: schema
+              .filter(p => p.name)
+              .map(p => ({
+                name: p.name,
+                sourceName: p.name,
+                types: p.type ? [p.type] : [],
+              })),
+          })
+          continue
+        }
+
         const triggerDef = store.triggers.find(
           t => t.eventType === eventType && (!resourceType || t.resourceType === resourceType),
         )

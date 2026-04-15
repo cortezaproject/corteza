@@ -397,9 +397,9 @@
                             v-if="!hasToolAllowFromName(tool.name)"
                             class="flex items-center gap-1.5"
                           >
-                            <i class="pi pi-lock-open text-xs text-muted-color" />
+                            <i class="pi pi-lock text-xs text-muted-color" />
                             <span class="text-xs text-muted-color">
-                              {{ $t('agent.editor.tools.unrestricted') }}
+                              {{ $t('agent.editor.tools.restricted') }}
                             </span>
                           </div>
                           <div v-else class="flex items-center gap-1.5 flex-wrap mt-0.5">
@@ -737,8 +737,8 @@
         <div class="flex flex-col gap-3">
           <CInputToggleCard
             :modelValue="hasToolAllow(editingToolForm)"
-            :label="$t('agent.editor.tools.restrictAccess')"
-            :description="$t('agent.editor.tools.restrictAccessHelp')"
+            :label="$t('agent.editor.tools.configureAccess')"
+            :description="$t('agent.editor.tools.configureAccessHelp')"
             @update:modelValue="toggleToolAllow(editingToolForm, $event)"
           />
 
@@ -841,6 +841,7 @@ import { useI18n } from 'vue-i18n'
 import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
 import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import { system } from '@cortezaproject/corteza-js-next'
 
 // Components (not globally registered)
 import { components } from '@cortezaproject/corteza-vue-next'
@@ -1004,100 +1005,15 @@ async function fetchTclMasterList() {
     loadingTcl.value = false
   }
 }
-const emptyAgent = () => ({
-  handle: '',
-  status: 'active',
-  meta: {
-    short: '',
-    description: '',
-    sidebarRoles: [],
-  },
-  behavior: {
-    systemPrompt: '',
-    guardrails: [],
-    treatyCLEnabled: false,
-    tclTemperature: 5,
-    tclArticles: [],
-    injectSystemContext: true,
-    knowledgeBases: [],
-  },
-  execution: {
-    model: {
-      llmProviderID: '0',
-      model: '',
-      temperature: 0.7,
-    },
-    limits: {
-      maxIterations: 10,
-      contextWindow: 10000,
-      outputTokens: 500,
-      timeout: '30s',
-      softLimitRatio: 0.8,
-    },
-  },
-  access: {
-    context: {
-      namespace: '',
-      module: '',
-    },
-    tools: [],
-    taqs: [],
-    workflows: [],
-    allow: [],
-  },
-  invocation: {
-    user: { enabled: true },
-    system: {
-      enabled: false,
-      serviceAccount: '0',
-      inputSchema: null,
-      outputFormat: '',
-    },
-  },
-})
-
 function applyAgentData(res) {
-  agent.value = {
-    ...emptyAgent(),
-    ...res,
-    meta: { ...emptyAgent().meta, ...(res.meta || {}) },
-    behavior: { ...emptyAgent().behavior, ...(res.behavior || {}) },
-    execution: {
-      model: { ...emptyAgent().execution.model, ...(res.execution?.model || {}) },
-      limits: { ...emptyAgent().execution.limits, ...(res.execution?.limits || {}) },
-    },
-    access: {
-      ...emptyAgent().access,
-      ...(res.access || {}),
-      context: { ...emptyAgent().access.context, ...(res.access?.context || {}) },
-    },
-    invocation: {
-      ...emptyAgent().invocation,
-      ...(res.invocation || {}),
-      user: { ...emptyAgent().invocation.user, ...(res.invocation?.user || {}) },
-      system: { ...emptyAgent().invocation.system, ...(res.invocation?.system || {}) },
-    },
-  }
-
-  if (!Array.isArray(agent.value.behavior.guardrails)) {
-    agent.value.behavior.guardrails = []
-  }
-
-  if (!agent.value.execution.model.llmProviderID) {
-    agent.value.execution.model.llmProviderID = '0'
-  }
-
-  agent.value.meta.sidebarRoles = agent.value.meta.sidebarRoles || []
-  agent.value.access.taqs = agent.value.access.taqs || []
-  agent.value.access.workflows = agent.value.access.workflows || []
-
+  agent.value = new system.Agent(res)
   initToolSelection()
 }
 
 async function loadAgent() {
   const agentID = route.params.agentID
   if (!agentID) {
-    agent.value = emptyAgent()
+    agent.value = new system.Agent()
     return
   }
 
@@ -1136,6 +1052,7 @@ async function handleSubmit() {
 
     if (isCreate.value) {
       const created = await $SystemAPI.agentCreate(payload)
+      agentStore.updateInList(created)
       $toast.toastSuccess(t('notification.agent.created'))
       router.push({ name: 'agent.edit', params: { agentID: created.agentID } })
     } else {
@@ -1143,6 +1060,7 @@ async function handleSubmit() {
         agentID: route.params.agentID,
         ...payload,
       })
+      agentStore.updateInList(updated)
       applyAgentData(updated)
       $toast.toastSuccess(t('notification.agent.saved'))
     }
@@ -1157,6 +1075,7 @@ async function handleSubmit() {
 async function handleDelete() {
   try {
     await $SystemAPI.agentDelete({ agentID: route.params.agentID })
+    agentStore.removeFromList(route.params.agentID)
     $toast.toastSuccess(t('notification.agent.deleted'))
     router.push({ name: 'root' })
   } catch (err) {
@@ -1298,18 +1217,8 @@ function initToolSelection() {
   // Wait for both agent and tools to be loaded
   if (!availableTools.value.length || loading.value) return
 
-  if (isCreate.value) {
-    // New agent: enable all tools by default (hints empty)
-    agent.value.access.tools = availableTools.value.map(t => ({
-      name: t.name,
-      hints: '',
-    }))
-    selectedTools.value = []
-  } else {
-    // Existing agent: select only the saved tools
-    const enabledNames = new Set((agent.value?.access?.tools || []).map(t => t.name))
-    selectedTools.value = availableTools.value.filter(t => enabledNames.has(t.name))
-  }
+  const enabledNames = new Set((agent.value?.access?.tools || []).map(t => t.name))
+  selectedTools.value = availableTools.value.filter(t => enabledNames.has(t.name))
 }
 
 const unselectedTools = computed(() => {

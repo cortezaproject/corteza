@@ -25,6 +25,13 @@ export interface ConversionCatalog {
 /**
  * Node data structure for VueFlow nodes
  */
+export interface InputSchemaParam {
+  name: string
+  type: string
+  required?: boolean
+  description?: string
+}
+
 export interface FlowNodeData {
   label: string
   description?: string
@@ -33,6 +40,7 @@ export interface FlowNodeData {
   config: Record<string, unknown> // Used by triggers (maps to trigger.input)
   arguments: Expr[] // Used by steps (maps to step.arguments)
   constraints?: TriggerConstraint[] // Used by triggers (maps to trigger.constraints)
+  inputSchema?: InputSchemaParam[] // Agent trigger: declared input params (maps to trigger.inputSchema)
   resourceType?: string // Trigger resource type (e.g., 'compose:record')
   ref: string // Reference back to automation step/trigger ref
   stepID?: string // Backend step ID
@@ -95,6 +103,7 @@ export function automationToVueFlow(
         config: trigger.input || {},
         arguments: [],
         constraints: trigger.constraints || [],
+        inputSchema: trigger.inputSchema || [],
         resourceType: trigger.resourceType || '',
         ref: trigger.handle || '',
         triggerID: trigger.triggerID,

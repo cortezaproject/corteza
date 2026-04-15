@@ -39,7 +39,7 @@
               :options="drillDownOptions"
               option-label="label"
               option-value="value"
-              :placeholder="$t('block.chart.drillDown.openInModal', 'Open in modal')"
+              :placeholder="$t('block.chart.drillDown.openInModal')"
               class="w-full"
               show-clear
             />
@@ -47,7 +47,7 @@
           </div>
 
           <div v-if="!drillDownBlockID" class="flex flex-col gap-1 mt-2">
-            <label class="text-primary font-medium text-sm">{{ $t('block.chart.drillDown.fields', 'Fields') }}</label>
+            <label class="text-primary font-medium text-sm">{{ $t('block.chart.drillDown.fields') }}</label>
             <CFieldPicker
               :all-fields="allModuleFields"
               :model-value="drillDownFields"

@@ -1,4 +1,5 @@
 appMenu: Menu
+home: Home
 help:
   documentation: Documentation
   feedback: Send feedback
@@ -20,7 +21,7 @@ appList:
   noApps: No applications found
   noResults: No results found
   search: Search applications
-  title: Apps
+  title: Menu
 search:
   label: Search
   placeholder: Search for records
@@ -31,5 +32,5 @@ search:
   recentSearches: Recent Searches
   clearHistory: Clear
   openInNewTab: Open in new tab
-  numberOfResults_one: "{{count}} record"
-  numberOfResults_other: "{{count}} records"
+  numberOfResults_one: '{{count}} record'
+  numberOfResults_other: '{{count}} records'

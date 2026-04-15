@@ -74,6 +74,7 @@ import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../CReferenceChip.vue'
 import { CFieldEditor } from '@cortezaproject/corteza-vue-next/src/components/field'
 import { components, useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import { systemFields as moduleSystemFields } from '@cortezaproject/corteza-js-next/src/compose/types/module'
 
 const { CInputDelete } = components
 
@@ -228,7 +229,7 @@ async function fetchModuleFields() {
     }
     const WRITABLE_SYSTEM_FIELDS = new Set(['ownedBy'])
 
-    const systemEntries = mod.systemFields()
+    const systemEntries = moduleSystemFields
       .filter(f => WRITABLE_SYSTEM_FIELDS.has(f.name))
       .map(f => ({
         name: f.name,

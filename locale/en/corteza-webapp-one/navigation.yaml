@@ -17,6 +17,7 @@ noPageTitle: No page title
 page: Pages
 publicPages: Public pages
 appMenu: Menu
+home: Home
 userSettings:
   changePassword: Change password
   logout: Logout

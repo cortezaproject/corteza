@@ -188,7 +188,7 @@ const availableCategories = computed(() => {
     // 1. Branches group (exclusive + inclusive)
     groupsMap['branches'] = {
       id: 'branches',
-      label: t('builder.nodePicker.categories.branches', 'Branches'),
+      label: t('builder.nodePicker.categories.branches'),
       icon: getGroupIcon('branches'),
       nodes: [
         {

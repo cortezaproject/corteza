@@ -23,14 +23,14 @@
       class="topbar-title flex flex-1 min-w-0 overflow-hidden whitespace-nowrap text-truncate items-center text-2xl font-medium text-color mb-0 ml-2"
     />
 
-    <div v-if="visiblePageButtons.length" class="flex items-center gap-2 ml-3">
+    <div v-if="visiblePageButtons.length" class="flex items-center gap-2 ml-2">
       <a
         v-for="(btn, i) in visiblePageButtons"
         :key="i"
         :href="btn.url"
         :target="btn.newTab ? '_blank' : '_self'"
         rel="noopener noreferrer"
-        class="no-underline"
+        class="no-underline shrink-0"
       >
         <Button
           v-tooltip.bottom="btn.description || undefined"
@@ -47,6 +47,16 @@
     </div>
 
     <div class="topbar-right flex items-center gap-1 ml-2">
+      <a v-if="!settings?.hideHomeButton" :href="homeURL" class="no-underline">
+        <Button
+          v-tooltip.bottom="labels.home || 'Home'"
+          icon="pi pi-home"
+          severity="secondary"
+          variant="text"
+          rounded
+        />
+      </a>
+
       <Button
         v-if="!hideAppSelector && !settings?.hideAppSelector"
         v-tooltip.bottom="labels.appMenu"
@@ -190,6 +200,8 @@ onBeforeUnmount(() => {
   if (window.__pageButtonsOrigPush) history.pushState = window.__pageButtonsOrigPush
   if (window.__pageButtonsOrigReplace) history.replaceState = window.__pageButtonsOrigReplace
 })
+
+const homeURL = computed(() => window.location.origin)
 
 const visiblePageButtons = computed(() => {
   const buttons = settings.value?.pageButtons || []

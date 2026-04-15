@@ -20,6 +20,32 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
     draggedItem.value = toolbarItem
     event.dataTransfer.effectAllowed = 'move'
     event.dataTransfer.setData('application/workflow-node', JSON.stringify(toolbarItem))
+
+    // Dashed node-sized preview — parity with Corteza's mxGraph drag ghost.
+    // The element must be attached to the DOM for setDragImage to rasterise it,
+    // so we append it off-screen, call setDragImage, then remove it on the next
+    // tick (by which point the browser has snapshotted it).
+    const styleInfo = getStyleFromKind(toolbarItem) || {}
+    const w = styleInfo.width || 200
+    const h = styleInfo.height || 80
+    const ghost = document.createElement('div')
+    ghost.style.position = 'absolute'
+    ghost.style.top = '-1000px'
+    ghost.style.left = '-1000px'
+    ghost.style.width = `${w}px`
+    ghost.style.height = `${h}px`
+    ghost.style.border = '2px dashed var(--p-primary-color, #3b82f6)'
+    ghost.style.borderRadius = '6px'
+    ghost.style.background = 'color-mix(in srgb, var(--p-primary-color, #3b82f6) 10%, transparent)'
+    ghost.style.boxSizing = 'border-box'
+    ghost.style.pointerEvents = 'none'
+    document.body.appendChild(ghost)
+    try {
+      event.dataTransfer.setDragImage(ghost, w / 2, h / 2)
+    } catch {
+      // setDragImage unsupported; fall back silently to the default preview
+    }
+    setTimeout(() => ghost.remove(), 0)
   }
 
   function onCanvasDragOver (event) {

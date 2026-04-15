@@ -37,7 +37,7 @@
       >
         <!-- Discovery & Federation Buttons -->
         <Button
-          :label="$t('module.edit.discoverySettings.title', 'Discovery')"
+          :label="$t('module.edit.discoverySettings.title')"
           icon="pi pi-globe"
           size="small"
           severity="secondary"
@@ -45,7 +45,7 @@
           @click="discoveryModal = true"
         />
         <Button
-          :label="$t('module.edit.federationSettings.title', 'Federation')"
+          :label="$t('module.edit.federationSettings.title')"
           icon="pi pi-share-alt"
           size="small"
           severity="secondary"
@@ -135,12 +135,12 @@
           <Tabs v-model:value="activeTab">
             <TabList class="rounded-t-lg overflow-x-auto whitespace-nowrap">
               <Tab value="fields">{{ $t('module.edit.fields.label') }}</Tab>
-              <Tab value="dal">{{ $t('module.edit.config.dal.title', 'Data Store') }}</Tab>
+              <Tab value="dal">{{ $t('module.edit.config.dal.title') }}</Tab>
               <Tab value="unique">
-                {{ $t('module.edit.config.uniqueValues.title', 'Unique Values') }}
+                {{ $t('module.edit.config.uniqueValues.title') }}
               </Tab>
               <Tab value="revisions">
-                {{ $t('module.edit.config.record-revisions.title', 'Record Revisions') }}
+                {{ $t('module.edit.config.record-revisions.title') }}
               </Tab>
               <Tab
                 v-if="hasIssues"
@@ -421,7 +421,7 @@ const permissionsMenuItems = computed(() => {
   if (!module.value) return []
   return [
     {
-      label: t('module.tooltip.permissions', 'Module Permissions'),
+      label: t('module.tooltip.permissions'),
       command: () => {
         openPermissions({
           resource: `corteza::compose:module/${module.value.namespaceID}/${module.value.moduleID}`,
@@ -431,7 +431,7 @@ const permissionsMenuItems = computed(() => {
       },
     },
     {
-      label: t('module.fieldPermissions', 'Field Permissions'),
+      label: t('module.fieldPermissions'),
       command: () => {
         openPermissions({
           resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/*`,
@@ -441,7 +441,7 @@ const permissionsMenuItems = computed(() => {
       },
     },
     {
-      label: t('module.recordPermissions', 'Record Permissions'),
+      label: t('module.recordPermissions'),
       command: () => {
         openPermissions({
           resource: `corteza::compose:record/${module.value.namespaceID}/${module.value.moduleID}/*`,

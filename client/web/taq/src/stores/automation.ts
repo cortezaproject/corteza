@@ -146,6 +146,18 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   /**
+   * Add or update an automation in the list
+   */
+  function updateInList(automation: NgAutomationInstance) {
+    const idx = list.value.findIndex(a => a.automationID === automation.automationID)
+    if (idx >= 0) {
+      list.value[idx] = automation
+    } else {
+      list.value.push(automation)
+    }
+  }
+
+  /**
    * Delete an automation
    */
   async function remove(api: AutomationAPI, automationID: string) {
@@ -215,6 +227,7 @@ export const useAutomationStore = defineStore('automation', () => {
     // Actions
     fetchList,
     create,
+    updateInList,
     remove,
     loadFunctions,
     loadTriggers,

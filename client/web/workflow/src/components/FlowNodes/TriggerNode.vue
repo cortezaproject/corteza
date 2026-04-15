@@ -122,7 +122,7 @@ const iconSrc = computed(() => {
   return styleInfo?.icon ? getIcon(styleInfo.icon) : ''
 })
 
-const stepTypeLabel = computed(() => t('steps.trigger.short', 'Trigger'))
+const stepTypeLabel = computed(() => t('steps.trigger.short'))
 
 const isEnabled = computed(() => {
   return props.data?.triggers?.enabled !== false

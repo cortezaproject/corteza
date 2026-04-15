@@ -6,3 +6,4 @@ sidebar:
   clearAllChats: Clear All Chats
   empty: How can I help you today?
   placeholder: Message...
+  noAgents: No assistant agents are configured for your account.

@@ -91,29 +91,22 @@
         class="mb-4"
       />
 
-      <!-- Standard Trigger form for generic trigger configuration -->
+      <!-- Input schema editor for the agent trigger (params the agent must pass) -->
+      <InputSchemaEditor
+        v-if="node.type === 'trigger' && node.data?.nodeType === 'onAgentic'"
+        :model-value="node.data?.inputSchema || []"
+        class="mb-4"
+        @update:model-value="onInputSchemaUpdate"
+      />
+
+      <!-- Trigger form for trigger configuration -->
       <TriggerForm
-        v-if="
-          node.type === 'trigger' &&
-          triggerDefinition?.segments?.length &&
-          !triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')
-        "
+        v-if="node.type === 'trigger' && triggerDefinition?.segments?.length"
         :trigger-def="triggerDefinition"
         :constraints="node.data?.constraints || []"
         @update:constraints="onConstraintsUpdate"
         class="mb-4"
       />
-
-      <!-- Trigger Schema Editor for dynamically defining inputs that the LLM resolves -->
-      <div
-        v-if="
-          node.type === 'trigger' &&
-          triggerDefinition?.resourceType?.startsWith('automation:trigger-definition:')
-        "
-        class="mb-4"
-      >
-        <TriggerSchemaEditor :trigger-def="triggerDefinition" />
-      </div>
 
       <!-- Branch configuration (only for branch nodes) -->
       <div v-if="node.type === 'branch'" class="mb-4">
@@ -229,8 +222,8 @@ import { conditionToShort } from '@/utils/taq-parser'
 import TaqIcon from '../common/TaqIcon.vue'
 import ConditionBuilder from './condition/ConditionBuilder.vue'
 import FunctionForm from './form/FunctionForm.vue'
+import InputSchemaEditor from './form/InputSchemaEditor.vue'
 import TriggerForm from './form/TriggerForm.vue'
-import TriggerSchemaEditor from './form/TriggerSchemaEditor.vue'
 
 const { CInputDelete } = components
 
@@ -258,6 +251,7 @@ const emit = defineEmits([
   'reorderBranches',
   'updateArguments',
   'updateConstraints',
+  'updateInputSchema',
   'toggleReference',
   'updateGatewayType',
   'updateBranchExpr',
@@ -332,6 +326,11 @@ function onArgumentsUpdate(args) {
 // Handle constraint updates from TriggerForm
 function onConstraintsUpdate(constraints) {
   emit('updateConstraints', constraints)
+}
+
+// Handle inputSchema updates from InputSchemaEditor (agent trigger only)
+function onInputSchemaUpdate(inputSchema) {
+  emit('updateInputSchema', inputSchema)
 }
 
 // Handle reference toggle from FunctionForm

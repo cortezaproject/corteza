@@ -149,12 +149,14 @@ import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import TaqConfigModal from '../components/common/TaqConfigModal.vue'
+import { useAutomationStore } from '@/stores/automation'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
 
 const router = useRouter()
 const { t } = useI18n()
+const automationStore = useAutomationStore()
 const { confirmDelete } = useConfirmDelete()
 
 const $toast = inject('$toast')
@@ -257,11 +259,8 @@ function onConfirmDelete(automation) {
 async function handleDelete(automation) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $AutomationAPI.ngAutomationDelete({
-      automationID: automation.automationID,
-    })
+    await automationStore.remove($AutomationAPI, automation.automationID)
     $toast.toastSuccess(t('notification.automation.delete.success'))
-    filterList()
   } catch (e) {
     console.error('Failed to delete automation:', e)
     $toast.toastErrorHandler(t('notification.automation.delete.error'))(e)

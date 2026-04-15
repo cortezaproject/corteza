@@ -18,65 +18,43 @@
       />
       <div class="flex-1 flex flex-col min-w-0">
         <!-- Header -->
-      <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
-        <span class="text-lg font-semibold text-color">{{ labels.title }}</span>
-        <Button
-          icon="pi pi-times"
-          severity="secondary"
-          variant="text"
-          rounded
-          size="small"
-          @click="close"
-        />
-      </div>
-
-      <!-- Search -->
-      <div class="p-4">
-        <CInputSearch v-model="query" :placeholder="labels.search" size="small" />
-      </div>
-
-      <!-- App List -->
-      <div v-if="areAppsVisible" class="flex-1 overflow-auto px-4 pb-4">
-        <div class="flex flex-col gap-2">
-          <a
-            v-for="app in apps"
-            :key="app.applicationID"
-            v-show="isAppVisible(app)"
-            :href="app.enabled ? getAppUrl(app) : '#'"
-            target="_self"
-            class="flex items-center gap-3 p-3 rounded-lg border border-surface hover:bg-emphasis hover:border-primary transition-all duration-150 no-underline text-color"
-            @click="!app.enabled && $event.preventDefault()"
-          >
-            <img
-              :src="getAppLogoUrl(app)"
-              :alt="app.unify?.name || app.name"
-              class="w-16 h-16 object-contain rounded-md shrink-0"
-              loading="lazy"
-            />
-            <span class="font-medium text-sm truncate">
-              {{ app.unify?.name || app.name }}
-            </span>
-          </a>
+        <div class="flex items-center gap-2 px-3 py-2 border-b border-surface shrink-0">
+          <i class="pi pi-th-large text-primary text-sm" />
+          <span class="font-semibold text-base text-color flex-1">{{ labels.title }}</span>
+          <Button
+            icon="pi pi-times"
+            severity="secondary"
+            variant="text"
+            rounded
+            size="small"
+            @click="close"
+          />
         </div>
-      </div>
 
-      <!-- Empty state -->
-      <div v-else class="flex-1 flex items-center justify-center px-4">
-        <span class="text-muted-color text-sm">
-          {{ query ? labels.noResults : labels.noApps }}
-        </span>
-      </div>
+        <!-- Search -->
+        <div class="p-4">
+          <CInputSearch v-model="query" :placeholder="labels.search" size="small" />
+        </div>
+
+        <!-- App List -->
+        <div class="flex-1 overflow-auto px-4 pb-4">
+          <CAppList
+            :query="query"
+            variant="list"
+            :no-apps-text="labels.noApps"
+            :no-results-text="labels.noResults"
+          />
+        </div>
       </div>
     </div>
   </Transition>
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, ref, watch } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
-import { useApplicationsStore } from '../../stores/useApplicationsStore'
+import CAppList from './CAppList.vue'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
-import { resolveAppLogoUrl } from '../../utils/appIcons'
 
 const visible = defineModel('visible', {
   type: Boolean,
@@ -90,35 +68,10 @@ const props = defineProps({
   },
 })
 
-const $SystemAPI = inject('$SystemAPI')
 const $eventBus = inject('$eventBus', null)
 
 const query = ref('')
-const applicationsStore = useApplicationsStore()
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
-
-const apps = computed(() => applicationsStore.unifyOnly)
-
-const normalizedQuery = computed(() => (query.value || '').trim().toUpperCase())
-
-const isAppVisible = app => {
-  const q = normalizedQuery.value
-  if (!q) return true
-  return (
-    (app.name?.toUpperCase() || '').includes(q) ||
-    (app.unify?.name?.toUpperCase() || '').includes(q)
-  )
-}
-
-const areAppsVisible = computed(() => apps.value.some(isAppVisible))
-
-const getAppLogoUrl = app => resolveAppLogoUrl(app, $SystemAPI.baseURL)
-
-const getAppUrl = app => {
-  const url = app.unify?.url || ''
-  if (!url || url.startsWith('/') || url.startsWith('http')) return url
-  return '/' + url
-}
 
 const close = () => {
   visible.value = false

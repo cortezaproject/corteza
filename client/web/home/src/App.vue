@@ -9,9 +9,11 @@
           hideAppSelector: true,
           hideAgentSidebar: true,
           hideNotifications: true,
+          hideHomeButton: true,
         }"
         :labels="{
           appMenu: $t('navigation.appMenu'),
+              home: $t('navigation.home'),
           helpBuyHuman: $t('navigation.help.buyHuman'),
           helpManageSubscription: $t('navigation.help.manageSubscription'),
           helpPackageDetails: $t('navigation.help.packageDetails'),
@@ -113,7 +115,7 @@ const loading = ref(true)
 const searchRef = ref(null)
 let realtimeClient
 
-const baseTitle = import.meta.env.VITE_APP_TITLE || 'Two'
+const baseTitle = import.meta.env.VITE_APP_TITLE || 'Home'
 watch(
   () => notificationsStore.unreadCount,
   count => {
@@ -125,7 +127,7 @@ onMounted(() => {
   const fetchPromise = Promise.all([
     applicationsStore.fetchApplications(),
     notificationsStore.fetchNotifications($SystemAPI),
-    workflowPromptsStore.update($AutomationAPI, 'two'),
+    workflowPromptsStore.update($AutomationAPI, 'home'),
   ])
   const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
 
@@ -139,7 +141,7 @@ onMounted(() => {
       const msg = JSON.parse(data)
       switch (msg['@type']) {
         case 'workflowSessionPrompt':
-          workflowPromptsStore.newPrompt(msg['@value'], 'two')
+          workflowPromptsStore.newPrompt(msg['@value'], 'home')
           break
         case 'workflowSessionResumed':
           workflowPromptsStore.clear(msg['@value'])

@@ -1,4 +1,5 @@
 appMenu: Menu
+home: Home
 appList:
   title: Menu
   search: Search...

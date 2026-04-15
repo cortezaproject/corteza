@@ -44,6 +44,17 @@ export interface TriggerConstraint {
 }
 
 /**
+ * Declared input parameter for the agent trigger.
+ * Matches backend NgAutomationTriggerParam.
+ */
+export interface NgAutomationTriggerParam {
+  name: string
+  type: string
+  required?: boolean
+  description?: string
+}
+
+/**
  * NgAutomationTrigger - defines what initiates an automation
  * Aligned with backend JSON structure
  */
@@ -55,6 +66,8 @@ export interface NgAutomationTrigger {
   eventType: string
   constraints?: TriggerConstraint[]
   input?: Record<string, unknown>
+  // Agent trigger only: declared params the caller must supply.
+  inputSchema?: NgAutomationTriggerParam[]
   meta?: { short?: string; description?: string; icon?: IconDef | string }
   createdAt?: string
   updatedAt?: string

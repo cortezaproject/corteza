@@ -107,6 +107,15 @@ fieldValueMap:
   addValue: Add value
   selectModuleFirst: Select a module first
 
+generalConfig:
+  header: General Configuration
+  runAs: Run as
+  runAsPlaceholder: Default (invoker)
+  runAsHint: When not set, the automation runs as whoever triggered it.
+
+canvas:
+  runAs: Run as
+
 configSidebar:
   node: Node
   noDescription: Add a description...
@@ -114,6 +123,27 @@ configSidebar:
   addElseIf: Add Else If Branch
   deleteNode: Delete Step
   end: End
+
+inputSchema:
+  title: Input schema
+  addParam: Add param
+  hint: Declare params the agent must pass. They become references available to downstream steps.
+  empty: No params defined yet.
+  name: Name
+  namePlaceholder: name
+  type: Type
+  required: Required
+  description: Description
+  descriptionPlaceholder: Optional hint for the agent
+  remove: Remove param
+  types:
+    string: String
+    number: Number
+    boolean: Boolean
+  errors:
+    nameRequired: Name is required
+    nameInvalid: Use letters, digits, underscore; must not start with digit
+    nameDuplicate: Duplicate name
 
 branch:
   if: If

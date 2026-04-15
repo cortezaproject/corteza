@@ -17,26 +17,18 @@
         @mousedown="startDrawerResize"
       />
       <div class="flex-1 flex flex-col min-w-0">
-      <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
-        <h3 class="m-0 text-lg font-semibold">
-          {{ $t('notifications.title') }}
-        </h3>
-
-        <Button
-          icon="pi pi-times"
-          severity="secondary"
-          variant="text"
-          rounded
-          size="small"
-          @click="isVisible = false"
-        />
-      </div>
-
-      <div class="flex min-h-0 flex-1 flex-col">
-        <div class="min-h-0 flex-1">
-          <Notifications />
-        </div>
-      </div>
+        <CNotificationsPanel>
+          <template #actions>
+            <Button
+              icon="pi pi-times"
+              severity="secondary"
+              variant="text"
+              rounded
+              size="small"
+              @click="isVisible = false"
+            />
+          </template>
+        </CNotificationsPanel>
       </div>
     </div>
   </Transition>
@@ -45,12 +37,13 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, watch } from 'vue'
 import { useNotificationsStore } from '../../stores/useNotificationsStore'
-import Notifications from './Notifications.vue'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
+import CNotificationsPanel from './CNotificationsPanel.vue'
 
 const notifications = useNotificationsStore()
 const $eventBus = inject('$eventBus', null)
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
+
 const isVisible = computed({
   get: () => notifications.visible,
   set: value => notifications.setVisible(value),

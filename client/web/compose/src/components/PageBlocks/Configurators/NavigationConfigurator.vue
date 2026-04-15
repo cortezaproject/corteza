@@ -51,7 +51,7 @@
     <Panel
       v-for="(item, index) in navItems"
       :key="index"
-      :header="item.options?.item?.label || $t('block.navigation.newItem', 'New item')"
+      :header="item.options?.item?.label || $t('block.navigation.newItem')"
       toggleable
     >
       <template #icons>
@@ -110,7 +110,7 @@
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target', 'Open in') }}</label>
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target') }}</label>
             <Select
               :model-value="item.options?.item?.target || 'sameTab'"
               :options="targetOptions"
@@ -125,13 +125,13 @@
         <!-- Compose Page type: page selector + options -->
         <template v-else-if="item.type === 'compose'">
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.composePage', 'Page') }}</label>
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.composePage') }}</label>
             <Select
               :model-value="item.options?.item?.pageID || null"
               :options="pageOptions"
               option-label="label"
               option-value="value"
-              :placeholder="$t('block.navigation.selectPage', 'Select page')"
+              :placeholder="$t('block.navigation.selectPage')"
               filter
               show-clear
               class="w-full"
@@ -139,7 +139,7 @@
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target', 'Open in') }}</label>
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target') }}</label>
             <Select
               :model-value="item.options?.item?.target || 'sameTab'"
               :options="targetOptions"
@@ -151,7 +151,7 @@
           </div>
           <CInputSwitch
             :model-value="!!item.options?.item?.displaySubPages"
-            :label="$t('block.navigation.displaySubPages', 'Show as dropdown with sub-pages')"
+            :label="$t('block.navigation.displaySubPages')"
             @update:model-value="updateNavItemOption(index, 'displaySubPages', $event)"
           />
         </template>
@@ -159,7 +159,7 @@
         <!-- Dropdown type: dropdown label + items -->
         <template v-else-if="item.type === 'dropdown'">
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownLabel', 'Dropdown button label') }}</label>
+            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownLabel') }}</label>
             <InputText
               :model-value="item.options?.item?.dropdown?.label || ''"
               class="w-full"
@@ -169,7 +169,7 @@
 
           <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between">
-              <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownItems', 'Items') }}</label>
+              <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownItems') }}</label>
               <Button
                 :label="$t('general.label.add')"
                 icon="pi pi-plus"
@@ -188,7 +188,7 @@
               <div class="flex items-center justify-between">
                 <CInputSwitch
                   :model-value="!!dItem.delimiter"
-                  :label="$t('block.navigation.delimiter', 'Separator')"
+                  :label="$t('block.navigation.delimiter')"
                   @update:model-value="updateDropdownItem(index, dIndex, 'delimiter', $event)"
                 />
                 <Button
@@ -296,8 +296,8 @@ const justifyOptions = [
 ]
 
 const targetOptions = [
-  { value: 'sameTab', label: t('block.navigation.sameTab', 'Same tab') },
-  { value: 'newTab', label: t('block.navigation.newTab', 'New tab') },
+  { value: 'sameTab', label: t('block.navigation.sameTab') },
+  { value: 'newTab', label: t('block.navigation.newTab') },
 ]
 
 const pageOptions = computed(() => {

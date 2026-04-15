@@ -65,7 +65,7 @@
       </Panel>
 
       <!-- Inline editing -->
-      <Panel :header="$t('block.record.inlineEdit.label', 'Inline Editing')" toggleable>
+      <Panel :header="$t('block.record.inlineEdit.label')" toggleable>
         <CInputSwitch
           v-model="inlineEditEnabled"
           :label="$t('block.record.inlineEdit.enabled')"

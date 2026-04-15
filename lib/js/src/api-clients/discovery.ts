@@ -1,25 +1,25 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 interface KV {
-  [header: string]: unknown;
+  [header: string]: unknown
 }
 
 interface Headers {
-  [header: string]: string;
+  [header: string]: string
 }
 
 interface Ctor {
-  baseURL?: string;
-  accessTokenFn?: () => string | undefined;
-  headers?: Headers;
+  baseURL?: string
+  accessTokenFn?: () => string | undefined
+  headers?: Headers
 }
 
 interface CortezaResponse {
-  error?: string;
-  response?: unknown;
+  error?: string
+  response?: unknown
 }
 
-function stdResolve (response: AxiosResponse<CortezaResponse>): KV|Promise<never> {
+function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)
   } else {
@@ -28,11 +28,11 @@ function stdResolve (response: AxiosResponse<CortezaResponse>): KV|Promise<never
 }
 
 export default class Discovery {
-  protected baseURL?: string;
-  protected accessTokenFn?: () => (string | undefined);
-  protected headers: Headers = {};
+  protected baseURL?: string
+  protected accessTokenFn?: () => string | undefined
+  protected headers: Headers = {}
 
-  constructor ({ baseURL, headers, accessTokenFn }: Ctor) {
+  constructor({ baseURL, headers, accessTokenFn }: Ctor) {
     this.baseURL = baseURL
     this.accessTokenFn = accessTokenFn
     this.headers = {
@@ -42,12 +42,12 @@ export default class Discovery {
     this.setHeaders(headers)
   }
 
-  setAccessTokenFn (fn: () => string | undefined): Discovery {
+  setAccessTokenFn(fn: () => string | undefined): Discovery {
     this.accessTokenFn = fn
     return this
   }
 
-  setHeaders (headers?: Headers): Discovery {
+  setHeaders(headers?: Headers): Discovery {
     if (typeof headers === 'object') {
       this.headers = headers
     }
@@ -55,7 +55,7 @@ export default class Discovery {
     return this
   }
 
-  setHeader (name: string, value: string | undefined): Discovery {
+  setHeader(name: string, value: string | undefined): Discovery {
     if (value === undefined) {
       delete this.headers[name]
     } else {
@@ -65,7 +65,7 @@ export default class Discovery {
     return this
   }
 
-  api (): AxiosInstance {
+  api(): AxiosInstance {
     const headers = { ...this.headers }
     const accessToken = this.accessTokenFn ? this.accessTokenFn() : undefined
     if (accessToken) {
@@ -79,17 +79,12 @@ export default class Discovery {
     })
   }
 
-  async query (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      query = '',
-      from,
-      size,
-      resourceTypes,
-    } = a || {}
+  async query(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query = '', from, size, resourceTypes } = a || {}
 
     const params = new URLSearchParams()
     if (resourceTypes && Array.isArray(resourceTypes)) {
-      (resourceTypes as string[]).forEach(t => params.append('resourceTypes', t))
+      ;(resourceTypes as string[]).forEach(t => params.append('resourceTypes', t))
     }
 
     if (from) params.append('from', String(from))
@@ -102,10 +97,15 @@ export default class Discovery {
       params,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  queryCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: () => Promise<KV>; cancel: () => void } {
+  queryCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: () => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 

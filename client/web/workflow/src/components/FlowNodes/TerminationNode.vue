@@ -58,7 +58,7 @@ const iconSrc = computed(() => {
   return styleInfo?.icon ? getIcon(styleInfo.icon) : ''
 })
 
-const stepTypeLabel = computed(() => t('steps.termination.short', 'Termination'))
+const stepTypeLabel = computed(() => t('steps.termination.short'))
 </script>
 
 <style scoped>
