@@ -70,6 +70,7 @@ jobs:
         with:
           name: webconsole-dist
           path: server/webconsole/dist
+          retention-days: 1
 
   server-build:
     name: 'Server Build'
@@ -98,6 +99,7 @@ jobs:
         with:
           name: server-build
           path: server/build/pkg/human-server
+          retention-days: 1
 
   discovery-server-build:
     name: 'Discovery Server Build'
@@ -117,6 +119,7 @@ jobs:
         with:
           name: discovery-server-build
           path: extra/server-discovery/build/pkg/human-server
+          retention-days: 1
 
   ########################################################################################################################
   # Libs
@@ -169,6 +172,7 @@ jobs:
         with:
           name: webapp-${{ matrix.app }}
           path: client/web/${{ matrix.app }}/dist
+          retention-days: 1
 
   ########################################################################################################################
   # Docker images
