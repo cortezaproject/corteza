@@ -6,7 +6,7 @@ import (
 
 agent: {
 	features: {
-		labels: false
+		labels: true
 	}
 
 	model: {

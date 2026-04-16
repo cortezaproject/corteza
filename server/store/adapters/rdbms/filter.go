@@ -154,6 +154,8 @@ func DefaultFilters() (f *extendedFilters) {
 
 			for k, v := range f.Filter {
 				if len(v) == 0 {
+					// Empty values means "has this label with any value"
+					keyConditions = append(keyConditions, goqu.C("name").Eq(k))
 					continue
 				}
 				valueCol := goqu.C("value")

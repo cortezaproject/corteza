@@ -30,11 +30,59 @@
       @page-change="handlePageChange"
       @row-click="onRowClick"
     >
+      <template #header>
+        <Button
+          :label="$t('system.labels.list.createLabel')"
+          icon="pi pi-plus"
+          size="small"
+          @click="showCreateDialog = true"
+        />
+      </template>
+
       <template #body-resourceCount="{ data }">
         <Tag :value="String(data.resourceCount || 0)" severity="secondary" rounded />
       </template>
     </CResourceList>
   </div>
+
+  <Dialog
+    v-model:visible="showCreateDialog"
+    :header="$t('system.labels.list.createLabel')"
+    modal
+    :style="{ width: '28rem' }"
+    @hide="newLabelName = ''"
+  >
+    <div class="flex flex-col gap-2 pt-2">
+      <label class="font-medium text-primary text-sm">
+        {{ $t('system.labels.editor.info.name') }}
+      </label>
+      <InputText
+        v-model="newLabelName"
+        :placeholder="$t('system.labels.create.namePlaceholder')"
+        autofocus
+        fluid
+        @keyup.enter="submitCreate"
+      />
+    </div>
+    <template #footer>
+      <div class="flex items-center justify-end gap-2">
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          text
+          size="small"
+          @click="showCreateDialog = false"
+        />
+        <Button
+          :label="$t('system.labels.list.createLabel')"
+          size="small"
+          icon="pi pi-arrow-right"
+          :disabled="!newLabelName.trim()"
+          @click="submitCreate"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup>
@@ -54,6 +102,8 @@ const router = useRouter()
 const $SystemAPI = inject('$SystemAPI')
 
 const resourceListRef = ref()
+const showCreateDialog = ref(false)
+const newLabelName = ref('')
 
 const fields = [
   {
@@ -79,13 +129,11 @@ function labelListCancellable(params) {
       const result = await response()
       const set = Array.isArray(result) ? result : result.set || []
 
-      // Add a synthetic row key since labels have no dedicated ID
       const enriched = set.map((item, idx) => ({
         ...item,
         _rowKey: `${item.kind || ''}_${item.name || ''}_${idx}`,
       }))
 
-      // Return in CResourceList expected shape
       if (Array.isArray(result)) {
         return enriched
       }
@@ -113,5 +161,15 @@ function onRowClick({ data }) {
       params: { labelID: encodeURIComponent(data.name) },
     })
   }
+}
+
+function submitCreate() {
+  const name = newLabelName.value.trim()
+  if (!name) return
+  showCreateDialog.value = false
+  router.push({
+    name: 'system.labels.edit',
+    params: { labelID: encodeURIComponent(name) },
+  })
 }
 </script>

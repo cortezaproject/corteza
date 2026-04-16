@@ -4,27 +4,39 @@
   </Teleport>
 
   <Teleport to="#topbar-tools" defer>
-    <ButtonGroup v-if="page" class="gap-1">
-      <Button
-        v-if="page.isRecordPage"
-        :label="$t('page.moduleEdit')"
-        icon="pi pi-database"
+    <div v-if="page" class="flex items-center gap-2">
+      <Select
+        v-if="layouts.length > 1"
+        :model-value="pageLayout?.pageLayoutID"
+        :options="layoutOptions"
+        option-label="label"
+        option-value="value"
         size="small"
-        @click="goToModuleEdit"
+        style="min-width: 200px"
+        @update:model-value="setLayout"
       />
-      <Button
-        :label="$t('page.edit.viewPage')"
-        icon="pi pi-eye"
-        size="small"
-        @click="goToViewPage"
-      />
-      <Button
-        v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-pencil"
-        size="small"
-        @click="goToEditPage"
-      />
-    </ButtonGroup>
+      <ButtonGroup class="gap-1">
+        <Button
+          v-if="page.isRecordPage"
+          :label="$t('page.moduleEdit')"
+          icon="pi pi-database"
+          size="small"
+          @click="goToModuleEdit"
+        />
+        <Button
+          :label="$t('page.edit.viewPage')"
+          icon="pi pi-eye"
+          size="small"
+          @click="goToViewPage"
+        />
+        <Button
+          v-tooltip.bottom="$t('navigation.editPage')"
+          icon="pi pi-pencil"
+          size="small"
+          @click="goToEditPage"
+        />
+      </ButtonGroup>
+    </div>
   </Teleport>
 
   <!-- Loading -->
@@ -88,6 +100,23 @@
 
         <div class="flex gap-2">
           <Button
+            v-if="pageLayout"
+            :label="$t('page.build.saveAsCopy')"
+            icon="pi pi-copy"
+            severity="secondary"
+            :loading="saving"
+            @click="handleSaveAsCopy"
+          />
+          <Button
+            v-if="pageLayout && layouts.length > 1"
+            v-tooltip.top="$t('page.build.layout.delete')"
+            icon="pi pi-trash"
+            severity="danger"
+            outlined
+            :loading="saving"
+            @click="showDeleteLayoutConfirm = true"
+          />
+          <Button
             :label="$t('general.label.save')"
             icon="pi pi-save"
             :loading="saving"
@@ -118,6 +147,34 @@
         </div>
       </template>
     </div>
+  </Dialog>
+
+  <!-- Delete Layout Confirmation Dialog -->
+  <Dialog
+    v-model:visible="showDeleteLayoutConfirm"
+    :header="$t('page.build.layout.delete')"
+    modal
+    :style="{ width: '400px' }"
+  >
+    <p>{{ $t('page.build.layout.delete.confirm') }}</p>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          size="small"
+          outlined
+          @click="showDeleteLayoutConfirm = false"
+        />
+        <Button
+          :label="$t('general.label.delete')"
+          severity="danger"
+          size="small"
+          :loading="saving"
+          @click="handleDeleteLayout"
+        />
+      </div>
+    </template>
   </Dialog>
 
   <!-- Block Configurator Dialog -->
@@ -395,6 +452,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
+import { useModuleStore } from '@/stores/module'
 import Grid from '@/components/PageBlocks/Grid.vue'
 
 // Block configurators — lazy imported
@@ -421,6 +479,7 @@ const router = useRouter()
 const $toast = inject('$toast')
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
+const moduleStore = useModuleStore()
 
 const props = defineProps({
   namespace: {
@@ -433,7 +492,9 @@ const props = defineProps({
 const loading = ref(false)
 const saving = ref(false)
 const page = ref(null)
+const layouts = ref([])
 const pageLayout = ref(null)
+const showDeleteLayoutConfirm = ref(false)
 const blocks = ref([])
 const showAddBlock = ref(false)
 const showConfigurator = ref(false)
@@ -460,6 +521,13 @@ const magnifyOptions = computed(() => [
 ])
 
 const isRecordPage = computed(() => !!page.value?.isRecordPage)
+
+const layoutOptions = computed(() =>
+  layouts.value.map(l => ({
+    value: l.pageLayoutID,
+    label: l.meta?.title || l.handle || l.pageLayoutID,
+  })),
+)
 
 // Custom ID validation: must be at least 2 chars, alphanumeric/underscore/dash, end with letter/number
 const customIDInvalid = computed(() => {
@@ -716,7 +784,9 @@ function cloneBlock(blockId) {
   try {
     const clonedRaw = JSON.parse(JSON.stringify(block))
     clonedRaw.blockID = '0'
-    clonedRaw.title = t('page.copyOf', { title: clonedRaw.title || clonedRaw.kind })
+    if (clonedRaw.title) {
+      clonedRaw.title = t('page.copyOf', { title: clonedRaw.title })
+    }
 
     // Reset tempID
     if (clonedRaw.meta) {
@@ -779,6 +849,109 @@ function saveBlockConfig() {
   pendingTabBlockIndex.value = null
 }
 
+function setLayout(layoutID) {
+  const layout = layouts.value.find(l => l.pageLayoutID === layoutID)
+  if (!layout) return
+
+  pageLayout.value = layout
+
+  // Update each block's xywh from the new layout (preserve all other block data)
+  for (const block of blocks.value) {
+    const blockID = getBlockId(block)
+    const layoutBlock = layout.blocks?.find(lb => lb.blockID === blockID)
+    if (layoutBlock?.xywh) {
+      block.xywh = [...layoutBlock.xywh]
+    }
+  }
+  gridRef.value?.rebuildLayout()
+}
+
+async function handleDeleteLayout() {
+  if (!pageLayout.value) return
+
+  showDeleteLayoutConfirm.value = false
+  saving.value = true
+
+  try {
+    await pageLayoutStore.delete(toRaw(pageLayout.value))
+    layouts.value = pageLayoutStore.getByPageID(page.value.pageID)
+
+    if (layouts.value.length > 0) {
+      pageLayout.value = layouts.value[0]
+      setLayout(layouts.value[0].pageLayoutID)
+    } else {
+      pageLayout.value = null
+    }
+
+    $toast.toastSuccess(t('notification.page.page-layout.delete.success'))
+  } catch (e) {
+    console.error('Failed to delete layout:', e)
+    $toast.toastDanger(t('notification.page.page-layout.delete.failed'))
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleSaveAsCopy() {
+  if (!pageLayout.value || !page.value) return
+
+  saving.value = true
+
+  try {
+    const currentTitle = pageLayout.value.meta?.title || ''
+    const layoutBlocks = blocks.value.map(b => ({
+      blockID: getBlockId(b),
+      xywh: b.xywh,
+    }))
+
+    const copy = {
+      ...toRaw(pageLayout.value),
+      pageLayoutID: '0',
+      namespaceID: page.value.namespaceID || props.namespace?.namespaceID,
+      pageID: page.value.pageID,
+      handle: '',
+      meta: {
+        ...pageLayout.value.meta,
+        title: currentTitle ? t('page.copyOf', { title: currentTitle }) : '',
+      },
+      blocks: layoutBlocks,
+    }
+
+    const created = await pageLayoutStore.create(copy)
+    layouts.value = pageLayoutStore.getByPageID(page.value.pageID)
+    setLayout(created.pageLayoutID)
+
+    $toast.toastSuccess(t('notification.page.page-layout.saveAsCopy.success'))
+  } catch (e) {
+    console.error('Failed to save layout as copy:', e)
+    $toast.toastDanger(t('notification.page.page-layout.saveAsCopy.failed'))
+  } finally {
+    saving.value = false
+  }
+}
+
+function validateRequiredFields() {
+  if (!page.value?.isRecordPage) return true
+
+  const mod = moduleStore.getByID(page.value.moduleID)
+  if (!mod?.fields?.length) return true
+
+  const required = new Set(mod.fields.filter(f => f.isRequired).map(f => f.name))
+  if (required.size === 0) return true
+
+  for (const block of blocks.value) {
+    if (block.kind !== 'Record') continue
+    const fields = block.options?.fields || []
+    // No field filter means all fields are shown
+    if (!fields.length) return true
+    for (const f of fields) {
+      required.delete(f.name)
+    }
+  }
+
+  return required.size === 0
+}
+
 async function loadPage() {
   const pageID = route.params.pageID
   if (!pageID) return
@@ -797,11 +970,12 @@ async function loadPage() {
       page.value = new compose.Page({ ...p })
     }
 
-    // Load page layout
-    const layouts = pageLayoutStore.getByPageID(pageID)
-    if (layouts.length > 0) {
-      pageLayout.value = layouts[0]
-    }
+    // Load all layouts for this page
+    layouts.value = pageLayoutStore.getByPageID(pageID)
+    // Keep current layout if still in the list, otherwise pick the first
+    const currentID = pageLayout.value?.pageLayoutID
+    const keepLayout = currentID && layouts.value.find(l => l.pageLayoutID === currentID)
+    pageLayout.value = keepLayout || layouts.value[0] || null
 
     // Initialize blocks — merge layout positions with page blocks
     if (page.value?.blocks) {
@@ -825,6 +999,11 @@ async function loadPage() {
 
 async function handleSave() {
   if (!page.value) return
+
+  // Warn if required module fields are not covered by any Record block
+  if (!validateRequiredFields()) {
+    $toast.toastWarning(t('notification.page.requiredFields.missing'))
+  }
 
   saving.value = true
 

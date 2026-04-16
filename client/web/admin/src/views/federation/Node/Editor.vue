@@ -29,7 +29,8 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField name="name" class="flex flex-col gap-2 md:col-span-2">
               <label for="name" class="font-medium text-primary">
-                {{ $t('federation.nodes.editor.info.name') }} *
+                {{ $t('federation.nodes.editor.info.name') }}
+                <span class="text-red-500">*</span>
               </label>
               <InputText
                 id="name"
@@ -44,7 +45,8 @@
 
             <FormField name="baseURL" class="flex flex-col gap-2 md:col-span-2">
               <label for="baseURL" class="font-medium text-primary">
-                {{ $t('federation.nodes.editor.info.baseURL') }} *
+                {{ $t('federation.nodes.editor.info.baseURL') }}
+                <span class="text-red-500">*</span>
               </label>
               <InputText
                 id="baseURL"
@@ -150,10 +152,11 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
 
@@ -167,6 +170,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const node = ref(null)
+const initialNode = ref(null)
 
 const uriDialogVisible = ref(false)
 const generatingURI = ref(false)
@@ -202,6 +206,7 @@ const resolver = ref(({ values }) => {
 async function loadNode() {
   if (!vueRoute.params.nodeID) {
     node.value = { name: '', baseURL: '', contact: '' }
+    initialNode.value = cloneDeep(node.value)
     return
   }
 
@@ -209,6 +214,7 @@ async function loadNode() {
   try {
     const raw = await $FederationAPI.nodeRead({ nodeID: vueRoute.params.nodeID })
     node.value = raw
+    initialNode.value = cloneDeep(node.value)
   } catch (e) {
     $toast.toastErrorHandler(t('federation.nodes.editor.fetch.error'))(e)
     router.push({ name: 'federation.nodes' })
@@ -218,7 +224,13 @@ async function loadNode() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -231,6 +243,8 @@ async function handleSubmit({ valid }) {
     if (isEdit.value) {
       payload.nodeID = node.value.nodeID
       await $FederationAPI.nodeUpdate(payload)
+      node.value = { ...node.value, ...payload }
+      initialNode.value = cloneDeep(node.value)
       $toast.toastSuccess(t('federation.nodes.editor.update.success'))
     } else {
       const created = await $FederationAPI.nodeCreate(payload)
@@ -277,6 +291,11 @@ function copyURI() {
   navigator.clipboard.writeText(generatedURI.value).catch(() => {})
   $toast.toastSuccess(t('general.label.copied'))
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!node.value && !!initialNode.value && !isEqual(node.value, initialNode.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => loadNode())
 watch(

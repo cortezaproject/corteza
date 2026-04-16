@@ -24,15 +24,6 @@
         size="small"
         @click="goToViewPage"
       />
-      <CPermissionsButton
-        v-if="page?.canGrant"
-        :resource="`corteza::compose:page/${page.namespaceID}/${page.pageID}`"
-        :title="page.title || page.handle || page.pageID"
-        :target="page.title || page.handle || page.pageID"
-        v-tooltip.bottom="$t('general.label.permissions')"
-        severity="secondary"
-        size="small"
-      />
     </ButtonGroup>
   </Teleport>
 
@@ -51,12 +42,24 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 overflow-auto flex flex-col gap-4">
+      <div v-if="isEdit && page?.canGrant" class="flex justify-end">
+        <CPermissionsButton
+          :resource="`corteza::compose:page/${page.namespaceID}/${page.pageID}`"
+          :title="page.title || page.handle || page.pageID"
+          :target="page.title || page.handle || page.pageID"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          severity="secondary"
+          size="small"
+        />
+      </div>
+
       <!-- General Panel -->
       <Panel :header="$t('general.label.general')" toggleable>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <FormField name="title" class="flex flex-col gap-2">
             <label for="title" class="font-medium text-primary">
               {{ $t('page.label.title') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="title" name="title" v-model="page.title" />
             <Message v-if="$form.title?.invalid" severity="error" size="small" variant="simple">
@@ -289,7 +292,14 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div class="flex flex-col gap-2">
           <label class="font-medium text-primary">{{ $t('page.page-layout.title') }}</label>
-          <InputText v-model="configLayout.meta.title" />
+          <InputGroup v-if="isRecordPage && configLayout.config.useTitle">
+            <InputGroupAddon>ƒ</InputGroupAddon>
+            <InputText
+              v-model="configLayout.meta.title"
+              :placeholder="$t('page.page-layout.title.expression.placeholder')"
+            />
+          </InputGroup>
+          <InputText v-else v-model="configLayout.meta.title" />
         </div>
         <div class="flex flex-col gap-2">
           <label class="font-medium text-primary">{{ $t('page.page-layout.handle') }}</label>
@@ -972,7 +982,13 @@ function onActionKindChange(action) {
 // ─── Save / Delete ──────────────────────────────────────────────────────────
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
   if (!canSave.value) return
 
   saving.value = true

@@ -49,9 +49,10 @@
 import Grid from '@/components/PageBlocks/Grid.vue'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { usePageStore } from '@/stores/page'
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@cortezaproject/corteza-js-next'
+import { fetchBlockID, usePageVisibility } from '@/composables/usePageVisibility'
 
 defineProps({
   namespace: {
@@ -64,50 +65,69 @@ const route = useRoute()
 const router = useRouter()
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
+const $SystemAPI = inject('$SystemAPI', null)
+const $auth = inject('$auth', null)
+
+const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $auth)
 
 const loading = ref(false)
 const page = ref(null)
 const layout = ref(null)
+const invisibleBlockIDs = ref(new Set())
 
 const positionedBlocks = computed(() => {
-  if (!page.value || !layout.value) {
-    // No layout — fall back to page blocks with their default xywh
-    if (page.value?.blocks?.length) {
-      return page.value.blocks
+  const blocks = (() => {
+    if (!page.value || !layout.value) {
+      // No layout — fall back to page blocks with their default xywh
+      if (page.value?.blocks?.length) {
+        return page.value.blocks
+      }
+      return []
     }
-    return []
-  }
 
-  // Merge layout block positions with page block definitions
-  return layout.value.blocks
-    .map(layoutBlock => {
-      const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
-      if (!pageBlock) return null
+    // Merge layout block positions with page block definitions
+    return layout.value.blocks
+      .map(layoutBlock => {
+        const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
+        if (!pageBlock) return null
 
-      // Clone page block and override xywh from layout
-      return compose.PageBlockMaker({
-        ...pageBlock,
-        xywh: layoutBlock.xywh || pageBlock.xywh,
+        // Clone page block and override xywh from layout
+        return compose.PageBlockMaker({
+          ...pageBlock,
+          xywh: layoutBlock.xywh || pageBlock.xywh,
+        })
       })
-    })
-    .filter(Boolean)
+      .filter(Boolean)
+  })()
+
+  // meta.hidden is handled by Grid (tab children must still reach TabsBlock via props.blocks)
+  // invisibleBlockIDs are blocks hidden by visibility expressions/roles — remove entirely
+  return blocks.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b)))
 })
 
-function loadPage() {
+async function loadPage() {
   const pageID = route.params.pageID
   if (!pageID) return
 
   loading.value = true
+  invisibleBlockIDs.value = new Set()
 
-  page.value = pageStore.getByID(pageID) || null
+  try {
+    page.value = pageStore.getByID(pageID) || null
 
-  if (page.value) {
-    // Get layouts for this page, pick the first one (no visibility expressions yet)
-    const layouts = pageLayoutStore.getByPageID(pageID)
-    layout.value = layouts.length > 0 ? layouts[0] : null
+    if (page.value) {
+      const layouts = pageLayoutStore.getByPageID(pageID)
+      const vars = buildExpressionVariables()
+      layout.value = await determineLayout(layouts, vars)
+
+      // Evaluate block visibility after layout is resolved
+      if (page.value.blocks?.length) {
+        invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
+      }
+    }
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
 }
 
 function goToBuilder() {

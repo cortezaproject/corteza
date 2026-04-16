@@ -55,11 +55,6 @@ const router = createRouter({
       component: () => import('../views/system/Label/List.vue'),
     },
     {
-      path: '/system/labels/new',
-      name: 'system.labels.create',
-      component: () => import('../views/system/Label/Editor.vue'),
-    },
-    {
       path: '/system/labels/:labelID',
       name: 'system.labels.edit',
       component: () => import('../views/system/Label/Editor.vue'),
@@ -308,6 +303,23 @@ const router = createRouter({
       path: '/automation/sessions/:sessionID',
       name: 'automation.sessions.view',
       component: () => import('../views/automation/Session/View.vue'),
+    },
+
+    // TAQ
+    {
+      path: '/automation/taq',
+      name: 'automation.taq',
+      component: () => import('../views/automation/Taq/List.vue'),
+    },
+    {
+      path: '/automation/taq/new',
+      name: 'automation.taq.create',
+      component: () => import('../views/automation/Taq/Editor.vue'),
+    },
+    {
+      path: '/automation/taq/:automationID',
+      name: 'automation.taq.edit',
+      component: () => import('../views/automation/Taq/Editor.vue'),
     },
 
     // Scripts

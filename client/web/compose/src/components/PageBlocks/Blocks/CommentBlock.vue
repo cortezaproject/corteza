@@ -674,6 +674,7 @@ async function submitComment() {
     newComment.value.content = ''
     newComment.value.replyTo = null
     newComment.value.attachmentIDs = []
+    contentInput.value?.clear()
 
     if (showNewestFirst.value) {
       await loadNewComments()

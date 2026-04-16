@@ -45,7 +45,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.name') }} *
+                      {{ $t('system.authclients.editor.info.name') }}
+                      <span class="text-red-500">*</span>
                     </label>
                     <InputText id="name" name="name" v-model="authClient.meta.name" />
                     <Message
@@ -318,11 +319,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import axios from 'axios'
 
 const { CInputDelete, CInputRole, CInputUser, CInputUserGroup } = components
@@ -338,6 +340,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const authClient = ref(null)
+const initialAuthClient = ref(null)
 const activeTab = ref('basic')
 
 // Local role lists with full role objects for display
@@ -540,6 +543,7 @@ async function loadAuthClient() {
   const authClientID = route.params.authClientID
   if (!authClientID) {
     authClient.value = new system.AuthClient({ enabled: true })
+    initialAuthClient.value = cloneDeep(authClient.value)
     redirectURIs.value = ['']
     return
   }
@@ -559,6 +563,7 @@ async function loadAuthClient() {
       loadRolesForList(authClient.value.security.prohibitedRoles, prohibitedRoles),
       loadRolesForList(authClient.value.security.forcedRoles, forcedRoles),
     ])
+    initialAuthClient.value = cloneDeep(authClient.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.authclient.fetch.error'))(e)
     router.push({ name: 'system.authClients' })
@@ -568,7 +573,14 @@ async function loadAuthClient() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    activeTab.value = 'basic'
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -589,6 +601,7 @@ async function handleSubmit({ valid }) {
       payload.clientID = authClient.value.authClientID
       const raw = await $SystemAPI.authClientUpdate(payload)
       authClient.value = new system.AuthClient(raw)
+      initialAuthClient.value = cloneDeep(authClient.value)
       $toast.toastSuccess(t('notification.authclient.update.success'))
     } else {
       const created = await $SystemAPI.authClientCreate(payload)
@@ -622,6 +635,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!authClient.value && !!initialAuthClient.value && !isEqual(authClient.value, initialAuthClient.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => loadAuthClient())
 watch(

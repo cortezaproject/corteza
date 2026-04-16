@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, inject, defineAsyncComponent } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject, defineAsyncComponent } from 'vue'
 import { compose } from '@cortezaproject/corteza-js-next'
 import numeral from 'numeral'
 import PageBlock from './PageBlock.vue'
@@ -244,6 +244,8 @@ async function refresh() {
     }, 300)
   }
 }
+
+watch(() => props.block.options, () => refresh(), { deep: true })
 
 onMounted(() => {
   refresh()

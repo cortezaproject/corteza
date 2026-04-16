@@ -638,6 +638,12 @@ function focus() {
   }
 }
 
+function clear() {
+  if (editor.value) {
+    editor.value.commands.setContent('', false)
+  }
+}
+
 function onDrop(event) {
   if (event.dataTransfer?.files?.length > 0) {
     event.preventDefault()
@@ -652,7 +658,7 @@ function onPaste(event) {
   }
 }
 
-defineExpose({ focus, editor, allEmojis })
+defineExpose({ focus, clear, editor, allEmojis })
 </script>
 
 <style>

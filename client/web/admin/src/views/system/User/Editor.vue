@@ -61,6 +61,7 @@
           <FormField name="email" class="flex flex-col gap-2">
             <label for="email" class="font-medium text-primary">
               {{ $t('system.users.editor.info.email') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="email" name="email" v-model="user.email" type="email" />
             <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
@@ -163,11 +164,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { useConfirm } from 'primevue/useconfirm'
 
 const { CInputDelete, CInputUserGroup } = components
@@ -191,6 +193,7 @@ const saving = ref(false)
 const deleting = ref(false)
 const suspending = ref(false)
 const user = ref(null)
+const initialUser = ref(null)
 
 // Lifted State for Tabs
 const passwords = ref({
@@ -242,6 +245,7 @@ async function loadUser() {
     // Preselect the default user group
     await fetchDefaultUserGroup()
 
+    initialUser.value = cloneDeep(user.value)
     return
   }
 
@@ -260,6 +264,7 @@ async function loadUser() {
     const ids = (memRes.set || []).map(m => m.roleID)
     initialMembershipIDs.value = new Set(ids)
     membershipIDs.value = new Set(ids)
+    initialUser.value = cloneDeep(user.value)
   } catch (e) {
     console.error('Failed to load user:', e)
     $toast.toastErrorHandler(t('notification.user.fetch.error'))(e)
@@ -290,7 +295,13 @@ async function fetchDefaultUserGroup() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   if (isEdit.value && !user.value?.canUpdateUser) return
 
@@ -308,6 +319,7 @@ async function handleSubmit({ valid }) {
       payload.userID = user.value.userID
       const raw = await $SystemAPI.userUpdate(payload)
       user.value = new system.User(raw)
+      initialUser.value = cloneDeep(user.value)
 
       // Handle Password if provided
       if (passwords.value.password) {
@@ -444,6 +456,11 @@ function confirmUnsuspend(event) {
     },
   })
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!user.value && !!initialUser.value && (!isEqual(user.value, initialUser.value) || !isEqual([...membershipIDs.value], [...initialMembershipIDs.value])),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 watch(
   () => route.params.userID,

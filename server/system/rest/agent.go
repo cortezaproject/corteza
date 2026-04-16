@@ -64,6 +64,7 @@ func (ctrl *Agent) List(ctx context.Context, r *request.AgentList) (interface{},
 			Query:   r.Query,
 			Handle:  r.Handle,
 			Status:  r.Status,
+			Labels:  r.Labels,
 			Deleted: filter.State(r.Deleted),
 		}
 	)
@@ -93,6 +94,7 @@ func (ctrl *Agent) Create(ctx context.Context, r *request.AgentCreate) (interfac
 			Execution:  r.Execution,
 			Access:     r.Access,
 			Invocation: r.Invocation,
+			Labels:     r.Labels,
 		}
 	)
 
@@ -118,6 +120,7 @@ func (ctrl *Agent) Update(ctx context.Context, r *request.AgentUpdate) (interfac
 			Access:     r.Access,
 			Invocation: r.Invocation,
 			UpdatedAt:  r.UpdatedAt,
+			Labels:     r.Labels,
 		}
 	)
 

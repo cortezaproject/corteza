@@ -47,7 +47,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.meta.short') }} *
+                      {{ $t('system.templates.editor.info.meta.short') }}
+                      <span class="text-red-500">*</span>
                     </label>
                     <InputText id="name" name="name" v-model="template.meta.short" />
                     <Message
@@ -169,11 +170,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import CCodeEditor from '@/components/Template/CCodeEditor.vue'
 import CTemplateToolbox from '@/components/Template/CTemplateToolbox.vue'
 import CTemplatePreview from '@/components/Template/CTemplatePreview.vue'
@@ -191,6 +193,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const template = ref(null)
+const initialTemplate = ref(null)
 const activeTab = ref('basic')
 const partials = ref([])
 
@@ -245,6 +248,7 @@ async function loadTemplate() {
   const templateID = route.params.templateID
   if (!templateID) {
     template.value = new system.Template({ type: 'text/html' })
+    initialTemplate.value = cloneDeep(template.value)
     return
   }
 
@@ -252,6 +256,7 @@ async function loadTemplate() {
   try {
     const raw = await $SystemAPI.templateRead({ templateID })
     template.value = new system.Template(raw)
+    initialTemplate.value = cloneDeep(template.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.template.fetch.error'))(e)
     router.push({ name: 'system.templates' })
@@ -261,7 +266,14 @@ async function loadTemplate() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    activeTab.value = 'basic'
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -278,6 +290,7 @@ async function handleSubmit({ valid }) {
       payload.templateID = template.value.templateID
       const raw = await $SystemAPI.templateUpdate(payload)
       template.value = new system.Template(raw)
+      initialTemplate.value = cloneDeep(template.value)
       $toast.toastSuccess(t('notification.template.update.success'))
     } else {
       const created = await $SystemAPI.templateCreate(payload)
@@ -308,6 +321,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!template.value && !!initialTemplate.value && !isEqual(template.value, initialTemplate.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => {
   loadTemplate()

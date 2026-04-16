@@ -3936,7 +3936,7 @@ export default class System {
   }
 
   labelListEndpoint(): string {
-    return 'undefined/label/'
+    return '/label/'
   }
 
   // Retrieve defined permissions
@@ -8328,7 +8328,7 @@ export default class System {
 
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, status, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8339,6 +8339,7 @@ export default class System {
       handle,
       status,
       deleted,
+      labels,
       limit,
       incTotal,
       pageCursor,
@@ -8371,7 +8372,7 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, meta, behavior, execution, access, invocation } = (a as KV) || {}
+    const { handle, status, labels, meta, behavior, execution, access, invocation } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -8380,6 +8381,7 @@ export default class System {
     cfg.data = {
       handle,
       status,
+      labels,
       meta,
       behavior,
       execution,
@@ -8451,7 +8453,7 @@ export default class System {
 
   // Update agent details
   async agentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID, handle, status, meta, behavior, execution, access, invocation, updatedAt } =
+    const { agentID, handle, status, labels, meta, behavior, execution, access, invocation, updatedAt } =
       (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
@@ -8466,6 +8468,7 @@ export default class System {
     cfg.data = {
       handle,
       status,
+      labels,
       meta,
       behavior,
       execution,

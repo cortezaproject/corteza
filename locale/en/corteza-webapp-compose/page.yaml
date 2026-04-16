@@ -1,6 +1,6 @@
 page-layout:
   layouts: Layouts
-  title: Title *
+  title: Title
   handle: Handle
   add: Add layout
   configure: 'Configure layout - "{title}"'
@@ -116,7 +116,7 @@ import: 'Import page(s):'
 instructions: Drag and drop pages to adjust the order and hierarchy
 invalid: Invalid configuration
 label:
-  title: Title *
+  title: Title
   cancel: Cancel
   description: Description
   handle: Handle

@@ -90,9 +90,8 @@ func Search(ctx context.Context, s store.Labels, kind string, f map[string]types
 			values = []string{v.Val}
 		} else if len(v.Values) > 0 {
 			values = v.Values
-		} else {
-			continue
 		}
+		// values stays nil when both are empty, meaning "has this label with any value"
 
 		set, _, err := store.SearchLabels(ctx, s, types.LabelFilter{Kind: kind, Filter: map[string][]string{k: values}, ResourceID: result})
 		if err != nil {

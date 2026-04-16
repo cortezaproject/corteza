@@ -78,18 +78,23 @@
 
           <Divider class="md:col-span-2" />
 
-          <div class="flex flex-col gap-2">
+          <FormField name="provider" class="flex flex-col gap-2">
             <label for="provider" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.provider') }} *
+              {{ $t('system.llmProviders.editor.info.provider') }}
+              <span class="text-red-500">*</span>
             </label>
             <Select
               id="provider"
+              name="provider"
               v-model="llmProvider.provider"
               :options="providerOptions"
               option-label="label"
               option-value="value"
             />
-          </div>
+            <Message v-if="$form.provider?.invalid" severity="error" size="small" variant="simple">
+              {{ $form.provider.error?.message }}
+            </Message>
+          </FormField>
 
           <div class="flex flex-col gap-1">
             <label for="promptURL" class="font-medium text-primary">
@@ -101,12 +106,16 @@
             </small>
           </div>
 
-          <div v-if="!isEdit" class="flex flex-col gap-2">
+          <FormField v-if="!isEdit" name="apiKey" class="flex flex-col gap-2">
             <label for="apiKey" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.apiKey') }} *
+              {{ $t('system.llmProviders.editor.info.apiKey') }}
+              <span class="text-red-500">*</span>
             </label>
-            <InputText id="apiKey" v-model="apiKey" />
-          </div>
+            <InputText id="apiKey" name="apiKey" v-model="apiKey" />
+            <Message v-if="$form.apiKey?.invalid" severity="error" size="small" variant="simple">
+              {{ $form.apiKey.error?.message }}
+            </Message>
+          </FormField>
         </div>
       </Panel>
     </div>
@@ -166,11 +175,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete, CInputModel } = components
 
@@ -187,6 +197,7 @@ const deleting = ref(false)
 const savingApiKey = ref(false)
 const apiKeyDialog = ref(false)
 const llmProvider = ref(null)
+const initialLlmProvider = ref(null)
 const apiKey = ref('')
 
 const isEdit = computed(() => !!route.params.llmProviderID)
@@ -216,10 +227,20 @@ const statusOptions = computed(() => [
 
 const initialValues = computed(() => ({
   handle: llmProvider.value?.handle || '',
+  provider: llmProvider.value?.provider || '',
+  ...(!isEdit.value ? { apiKey: apiKey.value || '' } : {}),
 }))
 
 const resolver = ref(({ values }) => {
   const errors = {}
+
+  if (!values.provider || values.provider.trim().length === 0) {
+    errors.provider = [{ message: t('general.label.required') }]
+  }
+
+  if (!isEdit.value && (!values.apiKey || values.apiKey.trim().length === 0)) {
+    errors.apiKey = [{ message: t('general.label.required') }]
+  }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
     errors.handle = [
@@ -239,6 +260,7 @@ async function loadLlmProvider() {
       provider: defaultProvider,
       config: { temperature: 0.7, promptURL: providerDefaultURLs[defaultProvider] || '' },
     })
+    initialLlmProvider.value = cloneDeep(llmProvider.value)
     return
   }
 
@@ -246,6 +268,7 @@ async function loadLlmProvider() {
   try {
     const raw = await $SystemAPI.llmProviderRead({ llmProviderID })
     llmProvider.value = new system.LlmProvider(raw)
+    initialLlmProvider.value = cloneDeep(llmProvider.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.llmProvider.fetch.error'))(e)
     router.push({ name: 'system.llmProviders' })
@@ -255,7 +278,13 @@ async function loadLlmProvider() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -271,6 +300,7 @@ async function handleSubmit({ valid }) {
       payload.llmProviderID = llmProvider.value.llmProviderID
       const raw = await $SystemAPI.llmProviderUpdate(payload)
       llmProvider.value = new system.LlmProvider(raw)
+      initialLlmProvider.value = cloneDeep(llmProvider.value)
       $toast.toastSuccess(t('notification.llmProvider.update.success'))
     } else {
       payload.apiKey = apiKey.value
@@ -366,6 +396,11 @@ watch(
     }
   },
 )
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!llmProvider.value && !!initialLlmProvider.value && !isEqual(llmProvider.value, initialLlmProvider.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => loadLlmProvider())
 watch(

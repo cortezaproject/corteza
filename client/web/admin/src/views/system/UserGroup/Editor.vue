@@ -32,6 +32,7 @@
           <FormField name="name" class="flex flex-col gap-2">
             <label for="name" class="font-medium text-primary">
               {{ $t('system.user-groups.editor.info.meta.short') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="name" name="name" v-model="userGroup.meta.short" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -134,11 +135,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import UserGroupMembers from '@/components/UserGroup/UserGroupMembers.vue'
 import UserGroupRoles from '@/components/UserGroup/UserGroupRoles.vue'
 
@@ -156,6 +158,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const userGroup = ref(null)
+const initialUserGroup = ref(null)
 
 // Computed
 const isEdit = computed(() => !!route.params.userGroupID)
@@ -204,6 +207,7 @@ async function loadUserGroup() {
   if (!userGroupID) {
     // Create new
     userGroup.value = new system.UserGroup({})
+    initialUserGroup.value = cloneDeep(userGroup.value)
     return
   }
 
@@ -211,6 +215,7 @@ async function loadUserGroup() {
   try {
     const raw = await $SystemAPI.userGroupRead({ userGroupID })
     userGroup.value = new system.UserGroup(raw)
+    initialUserGroup.value = cloneDeep(userGroup.value)
   } catch (e) {
     console.error('Failed to load user group:', e)
     $toast.toastErrorHandler(t('notification.userGroup.fetch.error'))(e)
@@ -221,7 +226,13 @@ async function loadUserGroup() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   if (isEdit.value && !userGroup.value?.canUpdateUserGroup) return
 
@@ -237,6 +248,7 @@ async function handleSubmit({ valid }) {
       payload.userGroupID = userGroup.value.userGroupID
       const raw = await $SystemAPI.userGroupUpdate(payload)
       userGroup.value = new system.UserGroup(raw)
+      initialUserGroup.value = cloneDeep(userGroup.value)
       $toast.toastSuccess(t('notification.userGroup.update.success'))
     } else {
       const created = await $SystemAPI.userGroupCreate(payload)
@@ -286,6 +298,11 @@ async function handleUndelete() {
     saving.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!userGroup.value && !!initialUserGroup.value && !isEqual(userGroup.value, initialUserGroup.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 watch(
   () => route.params.userGroupID,

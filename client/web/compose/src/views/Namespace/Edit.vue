@@ -12,15 +12,6 @@
         :disabled="!namespace?.enabled"
         @click="visitNamespace"
       />
-      <CPermissionsButton
-        v-if="namespace?.canGrant"
-        :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
-        :title="namespace.name || namespace.slug || namespace.namespaceID"
-        :target="namespace.name || namespace.slug || namespace.namespaceID"
-        v-tooltip.bottom="$t('general.label.permissions')"
-        severity="secondary"
-        size="small"
-      />
     </div>
   </Teleport>
 
@@ -39,14 +30,24 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 overflow-auto">
-      <div v-if="isEdit && namespace?.canExportNamespace" class="flex justify-end gap-2 mb-4">
+      <div v-if="isEdit && (namespace?.canExportNamespace || namespace?.canGrant)" class="flex justify-end gap-2 mb-4">
         <Button
+          v-if="namespace?.canExportNamespace"
           :label="$t('namespace.export')"
           icon="pi pi-download"
           size="small"
           severity="secondary"
           outlined
           @click="exportNamespace"
+        />
+        <CPermissionsButton
+          v-if="namespace?.canGrant"
+          :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
+          :title="namespace.name || namespace.slug || namespace.namespaceID"
+          :target="namespace.name || namespace.slug || namespace.namespaceID"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          severity="secondary"
+          size="small"
         />
       </div>
 
@@ -58,6 +59,7 @@
               <FormField name="name" class="flex flex-col gap-2 flex-1">
                 <label for="name" class="font-medium text-primary">
                   {{ $t('namespace.name.label') }}
+                  <span class="text-red-500">*</span>
                 </label>
                 <InputText
                   id="name"
@@ -217,7 +219,7 @@ import { useNamespaceStore } from '@/stores/namespace'
 import { compose } from '@cortezaproject/corteza-js-next'
 import { components, useFileUpload, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
 import { cloneDeep, isEqual } from 'lodash-es'
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
 const { CInputDelete, CFileDropZone, CInputLabel } = components
 import { useI18n } from 'vue-i18n'
@@ -335,7 +337,13 @@ async function loadNamespace() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
   if (!canSave.value) return
 
   saving.value = true

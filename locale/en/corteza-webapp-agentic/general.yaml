@@ -8,6 +8,8 @@ label:
   yes: Yes
   no: No
   permissions: Permissions
+notification:
+  formErrors: Please review and correct the highlighted errors.
 editor:
   unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 resourceList:

@@ -41,7 +41,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
             <label for="name" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.name') }} *
+              {{ $t('system.roles.editor.info.name') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="name" name="name" v-model="role.name" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -188,11 +189,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components, usePermissions } from '@cortezaproject/corteza-vue-next'
+import { components, usePermissions, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import RoleMembers from '@/components/Role/RoleMembers.vue'
 import RolePermissionClone from '@/components/Role/RolePermissionClone.vue'
 
@@ -210,6 +212,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const role = ref(null)
+const initialRole = ref(null)
 const memberIDs = ref(new Set())
 const initialMemberIDs = ref(new Set())
 const showCloneDialog = ref(false)
@@ -270,6 +273,7 @@ async function loadRole() {
   if (!roleID) {
     // Create new
     role.value = new system.Role({ meta: { context: { expr: '', resourceTypes: [] } } })
+    initialRole.value = cloneDeep(role.value)
     memberIDs.value = new Set()
     initialMemberIDs.value = new Set()
     return
@@ -298,6 +302,7 @@ async function loadRole() {
       memberIDs.value = new Set()
       initialMemberIDs.value = new Set()
     }
+    initialRole.value = cloneDeep(role.value)
   } catch (e) {
     console.error('Failed to load role:', e)
     $toast.toastErrorHandler(t('notification.role.fetch.error'))(e)
@@ -308,7 +313,13 @@ async function loadRole() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   if (isEdit.value && !role.value?.canUpdateRole) return
 
@@ -324,6 +335,7 @@ async function handleSubmit({ valid }) {
       payload.roleID = role.value.roleID
       const raw = await $SystemAPI.roleUpdate(payload)
       role.value = new system.Role(raw)
+      initialRole.value = cloneDeep(role.value)
 
       // Sync member changes
       if (!isContextual.value) {
@@ -420,6 +432,11 @@ async function handleUnarchive() {
     saving.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!role.value && !!initialRole.value && (!isEqual(role.value, initialRole.value) || !isEqual([...memberIDs.value], [...initialMemberIDs.value])),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 watch(
   () => route.params.roleID,

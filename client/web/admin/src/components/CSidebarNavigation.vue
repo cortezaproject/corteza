@@ -199,6 +199,13 @@ const navItems = computed(() => [
     _icon: 'pi pi-bolt',
   },
   {
+    _id: 'automation-taq',
+    _parentId: 'automation',
+    _label: t('navigation.automation.items.taq'),
+    _icon: 'pi pi-microchip-ai',
+    _route: { name: 'automation.taq' },
+  },
+  {
     _id: 'automation-workflows',
     _parentId: 'automation',
     _label: t('navigation.automation.items.workflows'),

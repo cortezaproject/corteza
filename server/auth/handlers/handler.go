@@ -432,7 +432,7 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 
 func (h *AuthHandlers) bgStylesData() string {
 	if h.Settings.BackgroundUI.BackgroundImageSrcUrl == "" {
-		return fmt.Sprintf("background: url(%s/release-background.jpg) no-repeat top; %s",
+		return fmt.Sprintf("background: url(%s/release-background.png) no-repeat top; %s",
 			GetLinks().Assets, h.Settings.BackgroundUI.Styles)
 	}
 

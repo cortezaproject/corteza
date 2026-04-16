@@ -1668,6 +1668,7 @@ endpoints:
               required: true
               title: Application order
   - title: Labels
+    path: ''
     entrypoint: label
     authentication: []
     apis:

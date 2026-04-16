@@ -47,7 +47,7 @@ edit:
     calculateLabelCount: Calculate how many labels can be shown
     defaultValueFootnote: Use this value for missing dimension values
     defaultValueLabel: Default value
-    fieldLabel: Field *
+    fieldLabel: Field
     fieldPlaceholder: Select a dimension field
     function:
       placeholder: Select dimension modifier (bucket size)
@@ -92,7 +92,7 @@ edit:
   metric:
     title: Metrics
     add: Add metric
-    fieldLabel: Field *
+    fieldLabel: Field
     fieldPlaceholder: Select metric field
     fillArea: Fill area below the line
     fixTooltips: Always show labels
@@ -156,7 +156,7 @@ edit:
     output:
       bar: Bar
       doughnut: Doughnut
-      label: Chart type *
+      label: Chart type
       line: Line
       pie: Pie
       scatter: Scatter
@@ -165,7 +165,7 @@ edit:
     relativePrecision: 'Precision:'
     cumulative: Cumulative
   module:
-    label: Module *
+    label: Module
     placeholder: Pick a module
     title: Data Source
   title: Chart builder
@@ -264,7 +264,7 @@ edit:
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 createLabel: New Chart
-name: Chart name *
+name: Chart name
 handle: Handle
 generalSettings: General settings
 navigation:

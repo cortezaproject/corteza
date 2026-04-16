@@ -202,7 +202,13 @@ async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) 
 }
 
 async function handleSave({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
   if (!record.value) return
 
   isSaving.value = true

@@ -57,6 +57,7 @@ automation:
     permissions: Permissions
     scripts: Corredor Scripts
     sessions: Sessions
+    taq: TAQ
     workflows: Workflows
 
 federation:

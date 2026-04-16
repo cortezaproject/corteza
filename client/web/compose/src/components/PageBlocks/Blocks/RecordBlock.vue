@@ -468,9 +468,27 @@ async function evaluateExpressions() {
   const expressions = {}
   const record = activeRecord.value
   const serialized = record?.serialize ? record.serialize() : {}
+  const isNew = ctx?.isNew?.value ?? false
+  const isEditMode = ctx ? ctx.mode.value !== 'view' && !isNew : false
   const variables = {
     user: $auth?.user || {},
     record: serialized,
+    screen: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      userAgent: navigator.userAgent,
+      breakpoint: (() => {
+        const w = window.innerWidth
+        if (w >= 1200) return 'lg'
+        if (w >= 996) return 'md'
+        if (w >= 768) return 'sm'
+        if (w >= 480) return 'xs'
+        return 'xxs'
+      })(),
+    },
+    isView: !isEditMode && !isNew,
+    isCreate: isNew,
+    isEdit: isEditMode,
   }
 
   fieldConditions.forEach(({ field, condition }) => {

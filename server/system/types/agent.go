@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -17,6 +18,8 @@ type (
 		Handle   string `json:"handle"`
 		Status   string `json:"status"`
 		Revision int    `json:"revision"`
+
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Meta       AgentMeta       `json:"meta"`
 		Behavior   AgentBehavior   `json:"behavior"`
@@ -134,6 +137,9 @@ type (
 		Query   string   `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
+
+		LabeledIDs []uint64                         `json:"-"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

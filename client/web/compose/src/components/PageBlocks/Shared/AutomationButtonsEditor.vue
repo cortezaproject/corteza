@@ -248,11 +248,11 @@ const normalizedButtons = computed(() =>
 
 const availableTriggers = computed(() => {
   const existingKeys = normalizedButtons.value.map(b => {
-    if (b.automationID) return `taq-${b.automationID}`
+    if (b.automationID) return `taq-${b.automationID}-${b.triggerHandle}`
     return b.workflowID ? `${b.workflowID}-${b.stepID}` : b.script
   })
   return triggerButtons.value.filter(t => {
-    const key = t.isTAQ ? `taq-${t.automationID}` : `${t.workflowID}-${t.stepID}`
+    const key = t.isTAQ ? `taq-${t.automationID}-${t.triggerHandle}` : `${t.workflowID}-${t.stepID}`
     return !existingKeys.includes(key)
   })
 })

@@ -5,16 +5,6 @@
 
   <div class="flex flex-col h-full">
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <!-- Basic Info Panel -->
-      <Panel :header="$t('system.labels.editor.info.title')" toggleable :collapsed="false">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.labels.editor.info.name') }}
-          </label>
-          <InputText :model-value="labelName" disabled />
-        </div>
-      </Panel>
-
       <!-- Namespaces with this label -->
       <Panel :header="$t('system.labels.editor.namespaces.title')" toggleable>
         <CResourceTable
@@ -397,9 +387,7 @@ const nsFields = [
 async function fetchNamespaces() {
   nsLoading.value = true
   try {
-    const labelFilter = {}
-    labelFilter[labelName.value] = ''
-    const result = await $ComposeAPI.namespaceList({ labels: labelFilter, limit: 100 })
+    const result = await $ComposeAPI.namespaceList({ labels: `${labelName.value}=`, limit: 100 })
     nsItems.value = result.set || []
   } catch (e) {
     console.error('Failed to load namespaces:', e)
@@ -451,13 +439,8 @@ const agentFields = [{ key: 'name', header: t('system.labels.editor.agents.colum
 async function fetchAgents() {
   agentLoading.value = true
   try {
-    // Agents don't support label filtering — fetch all and filter client-side
-    const result = await $SystemAPI.agentList({ limit: 200 })
-    const set = result.set || []
-    agentItems.value = set.filter(a => {
-      if (!a.labels || typeof a.labels !== 'object') return false
-      return Object.prototype.hasOwnProperty.call(a.labels, labelName.value)
-    })
+    const result = await $SystemAPI.agentList({ labels: `${labelName.value}=`, limit: 100 })
+    agentItems.value = result.set || []
   } catch (e) {
     console.error('Failed to load agents:', e)
     agentItems.value = []
@@ -507,9 +490,7 @@ const taqFields = [
 async function fetchAutomations() {
   taqLoading.value = true
   try {
-    const labelFilter = {}
-    labelFilter[labelName.value] = ''
-    const result = await $AutomationAPI.ngAutomationList({ labels: labelFilter, limit: 100 })
+    const result = await $AutomationAPI.ngAutomationList({ labels: `${labelName.value}=`, disabled: 1, limit: 100 })
     taqItems.value = result.set || []
   } catch (e) {
     console.error('Failed to load automations:', e)

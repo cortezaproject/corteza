@@ -6,6 +6,12 @@
  * and component definitions used throughout the Corteza applications.
  */
 
+// Asset module declarations
+declare module '*.png' {
+  const src: string
+  export default src
+}
+
 // Vue SFC module declaration
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'

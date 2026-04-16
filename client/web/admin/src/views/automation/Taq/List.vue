@@ -1,13 +1,13 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('list.title') }}</span>
+    <span>{{ $t('automation.taq.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
     <CResourceList
       ref="resourceListRef"
       primary-key="automationID"
-      :fields="listFields"
+      :fields="fields"
       :items="items"
       :filter="filter"
       :sorting="sorting"
@@ -15,29 +15,35 @@
       :loading="loading"
       :action-items="getActionsMenuItems"
       :translations="{
-        searchPlaceholder: $t('list.filterForm.query.placeholder'),
+        searchPlaceholder: $t('automation.taq.list.filterForm.query.placeholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('list.new'),
-        resourcePlural: $t('list.title'),
+        resourceSingle: $t('automation.taq.list.new'),
+        resourcePlural: $t('automation.taq.list.title'),
       }"
       clickable
       class="h-full"
       @update:filter="Object.assign(filter, $event)"
       @sort="handleSort"
-      @row-click="handleRowClick"
+      @row-click="
+        ({ data }) =>
+          $router.push({
+            name: 'automation.taq.edit',
+            params: { automationID: data.automationID },
+          })
+      "
       @page-change="handlePageChange"
     >
       <template #header>
         <div class="flex gap-2">
           <Button
-            :label="$t('list.new')"
+            :label="$t('automation.taq.list.new')"
             icon="pi pi-plus"
             size="small"
-            @click="openCreateDialog"
+            @click="$router.push({ name: 'automation.taq.create' })"
           />
 
           <CPermissionsButton
@@ -50,7 +56,7 @@
 
       <template #body-name="{ data }">
         <div class="flex flex-col">
-          <span>{{ data.meta?.short || $t('list.untitled') }}</span>
+          <span>{{ data.meta?.short || '—' }}</span>
           <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
             {{ data.meta.description }}
           </span>
@@ -59,13 +65,13 @@
 
       <template #body-enabled="{ data }">
         <Tag
-          :value="data.enabled ? $t('list.active') : $t('list.disabled')"
+          :value="data.enabled ? $t('general.label.enabled') : $t('general.label.disabled')"
           :severity="data.enabled ? 'success' : 'secondary'"
         />
       </template>
 
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-createdAt="{ data }">
+        {{ locFullDateTime(data.createdAt) }}
       </template>
 
       <template #filter>
@@ -83,188 +89,142 @@
       <div class="flex flex-col gap-4 p-2 w-64">
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">
-            {{ $t('list.filterForm.deleted.label') }}
+            {{ $t('automation.taq.list.filterForm.deleted.label') }}
           </span>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
             <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('list.filterForm.excluded.label') }}
+              {{ $t('automation.taq.list.filterForm.excluded.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
             <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('list.filterForm.inclusive.label') }}
+              {{ $t('automation.taq.list.filterForm.inclusive.label') }}
             </label>
           </div>
           <div class="flex items-center gap-2">
             <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
             <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('list.filterForm.disabled.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.disabled" inputId="dis0" value="0" />
-            <label for="dis0" class="text-sm cursor-pointer">
-              {{ $t('list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.disabled" inputId="dis1" value="1" />
-            <label for="dis1" class="text-sm cursor-pointer">
-              {{ $t('list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.disabled" inputId="dis2" value="2" />
-            <label for="dis2" class="text-sm cursor-pointer">
-              {{ $t('list.filterForm.exclusive.label') }}
+              {{ $t('automation.taq.list.filterForm.exclusive.label') }}
             </label>
           </div>
         </div>
       </div>
     </Popover>
-
-    <!-- Create TAQ Dialog -->
-    <TaqConfigModal v-model:visible="showCreateDialog" mode="create" />
   </div>
 </template>
 
 <script setup>
+import { computed, inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   components,
   filters,
   useConfirmDelete,
+  usePermissions,
   useRBACStore,
   useResourceList,
-  usePermissions,
 } from '@cortezaproject/corteza-vue-next'
-import { computed, inject, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import TaqConfigModal from '../components/common/TaqConfigModal.vue'
-import { useAutomationStore } from '@/stores/automation'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
 
-const router = useRouter()
 const { t } = useI18n()
-const automationStore = useAutomationStore()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('automation/', 'grant'))
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
-const $Auth = inject('$Auth')
-const rbac = useRBACStore()
-const canGrant = computed(() => rbac.can('automation/', 'grant'))
-const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
-
-// Filter menu
 const filterMenu = ref()
+
 function toggleFilterMenu(event) {
   filterMenu.value.toggle(event)
 }
 
-// Column definitions
-const listFields = [
+const fields = [
   {
     key: 'name',
     sortable: false,
-    header: t('list.columns.name'),
+    header: t('automation.taq.list.columns.name'),
+  },
+  {
+    key: 'handle',
+    sortable: true,
+    header: t('automation.taq.list.columns.handle'),
   },
   {
     key: 'enabled',
     sortable: false,
-    header: t('list.columns.enabled'),
+    header: t('automation.taq.list.columns.enabled'),
   },
   {
-    key: 'updatedAt',
+    key: 'createdAt',
     sortable: true,
-    header: t('list.columns.updatedAt'),
+    header: t('automation.taq.list.columns.createdAt'),
     class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
+    pt: { columnHeaderContent: 'justify-end' },
   },
 ]
 
-// Resource list composable
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
-  useResourceList(params => $AutomationAPI.ngAutomationListCancellable(params), {
-    filter: { query: '', deleted: '0', disabled: '1' },
+  useResourceList(params => $AutomationAPI.ngAutomationListCancellable({ ...params }), {
+    filter: { query: '', deleted: '0' },
     sorting: { sortBy: 'createdAt', sortDesc: true },
     pagination: { limit: 50 },
   })
 
-// Create dialog state
-const showCreateDialog = ref(false)
+function getActionsMenuItems(item) {
+  const menuItems = []
 
-function openCreateDialog() {
-  showCreateDialog.value = true
-}
-
-// Row click navigation
-function handleRowClick({ data }) {
-  router.push(`/builder/${data.automationID}`)
-}
-
-// Actions menu methods
-function getActionsMenuItems(automation) {
-  const items = []
-
-  if (automation.canGrant || canGrant.value) {
-    items.push({
+  if (item.canGrant) {
+    menuItems.push({
       label: t('general.label.permissions'),
       icon: 'pi pi-lock',
       command: () => {
-        resourceListRef.value?.hideActionsMenu?.()
+        resourceListRef.value.hideActionsMenu()
         openPermissions({
-          resource: `corteza::automation:ng-automation/${automation.automationID}`,
-          title: automation.meta?.short || automation.automationID,
+          resource: `corteza::automation:ng-automation/${item.automationID}`,
+          title: item.meta?.short || item.handle || item.automationID,
+          target: item.meta?.short || item.handle || item.automationID,
         })
       },
     })
   }
 
-  if (automation.canDeleteNgAutomation) {
-    if (items.length > 0) items.push({ separator: true })
-    items.push({
+  if (item.canDeleteNgAutomation) {
+    if (menuItems.length > 0) menuItems.push({ separator: true })
+    menuItems.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
       class: 'text-red-500',
-      command: () => onConfirmDelete(automation),
+      command: () => onConfirmDelete(item),
     })
   }
 
-  return items
+  return menuItems
 }
 
-function onConfirmDelete(automation) {
+function onConfirmDelete(item) {
   confirmDelete({
     message: t('general.confirm.delete'),
-    header: automation.meta?.short || t('list.untitled'),
-    onConfirm: () => handleDelete(automation),
+    header: item.meta?.short || item.handle || item.automationID,
+    onConfirm: () => handleDelete(item),
   })
 }
 
-async function handleDelete(automation) {
+async function handleDelete(item) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await automationStore.remove($AutomationAPI, automation.automationID)
-    $toast.toastSuccess(t('notification.automation.delete.success'))
+    await $AutomationAPI.ngAutomationDelete({ automationID: item.automationID })
+    $toast.toastSuccess(t('notification.taq.delete.success'))
     filterList()
   } catch (e) {
-    console.error('Failed to delete automation:', e)
-    $toast.toastErrorHandler(t('notification.automation.delete.error'))(e)
+    $toast.toastErrorHandler(t('notification.taq.delete.error'))(e)
   }
 }
 </script>

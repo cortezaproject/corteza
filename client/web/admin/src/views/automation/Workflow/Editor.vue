@@ -31,7 +31,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="name" class="flex flex-col gap-2">
             <label for="name" class="font-medium text-primary">
-              {{ $t('automation.workflows.editor.info.name') }} *
+              {{ $t('automation.workflows.editor.info.name') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="name" name="name" v-model="workflow.meta.name" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -122,12 +123,13 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, nextTick, onMounted, ref } from 'vue'
 import WorkflowTriggers from '@/components/Workflow/WorkflowTriggers.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
 
@@ -142,6 +144,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const workflow = ref(null)
+const initialWorkflow = ref(null)
 const triggers = ref([])
 
 const isEdit = computed(() => !!route.params.workflowID)
@@ -175,6 +178,7 @@ async function loadWorkflow() {
   const workflowID = route.params.workflowID
   if (!workflowID) {
     workflow.value = new automation.Workflow({ enabled: true, trace: false, meta: {} })
+    initialWorkflow.value = cloneDeep(workflow.value)
     return
   }
 
@@ -182,6 +186,7 @@ async function loadWorkflow() {
   try {
     const raw = await $AutomationAPI.workflowRead({ workflowID })
     workflow.value = new automation.Workflow(raw)
+    initialWorkflow.value = cloneDeep(workflow.value)
 
     // Load triggers for the workflow
     const triggersResult = await $AutomationAPI.triggerList({ workflowID })
@@ -195,7 +200,13 @@ async function loadWorkflow() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
   if (isEdit.value && !workflow.value?.canUpdateWorkflow) return
 
   saving.value = true
@@ -211,6 +222,7 @@ async function handleSubmit({ valid }) {
       payload.workflowID = workflow.value.workflowID
       const raw = await $AutomationAPI.workflowUpdate(payload)
       workflow.value = new automation.Workflow(raw)
+      initialWorkflow.value = cloneDeep(workflow.value)
       $toast.toastSuccess(t('notification.workflow.update.success'))
     } else {
       const created = await $AutomationAPI.workflowCreate(payload)
@@ -240,6 +252,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!workflow.value && !!initialWorkflow.value && !isEqual(workflow.value, initialWorkflow.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => {
   loadWorkflow()

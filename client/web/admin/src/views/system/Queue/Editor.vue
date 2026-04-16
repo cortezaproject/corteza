@@ -28,7 +28,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="queue" class="flex flex-col gap-2">
             <label for="queue" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.name') }} *
+              {{ $t('system.queues.editor.info.name') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="queue" name="queue" v-model="queue.queue" />
             <Message v-if="$form.queue?.invalid" severity="error" size="small" variant="simple">
@@ -38,7 +39,8 @@
 
           <FormField name="consumer" class="flex flex-col gap-2">
             <label for="consumer" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.consumer') }} *
+              {{ $t('system.queues.editor.info.consumer') }}
+              <span class="text-red-500">*</span>
             </label>
             <Select
               id="consumer"
@@ -132,10 +134,11 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
 
@@ -150,6 +153,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const queue = ref(null)
+const initialQueue = ref(null)
 
 const consumerOptions = computed(() => [
   { label: t('system.queues.editor.info.consumerOptions.store'), value: 'store' },
@@ -210,6 +214,7 @@ async function loadQueue() {
   const queueID = route.params.queueID
   if (!queueID) {
     queue.value = newQueue()
+    initialQueue.value = cloneDeep(queue.value)
     return
   }
 
@@ -225,6 +230,7 @@ async function loadQueue() {
         dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
       },
     }
+    initialQueue.value = cloneDeep(queue.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.queue.fetch.error'))(e)
     router.push({ name: 'system.queues' })
@@ -234,7 +240,13 @@ async function loadQueue() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -256,6 +268,7 @@ async function handleSubmit({ valid }) {
           dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
         },
       }
+      initialQueue.value = cloneDeep(queue.value)
       $toast.toastSuccess(t('notification.queue.update.success'))
     } else {
       const created = await $SystemAPI.queuesCreate(payload)
@@ -281,6 +294,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!queue.value && !!initialQueue.value && !isEqual(queue.value, initialQueue.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => loadQueue())
 watch(

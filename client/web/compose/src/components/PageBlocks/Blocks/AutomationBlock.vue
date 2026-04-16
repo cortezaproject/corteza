@@ -80,13 +80,15 @@ async function handleButton(btn, index) {
       if (props.namespace?.namespaceID) {
         input.namespace = { '@type': 'ComposeNamespace', '@value': props.namespace }
       }
+      if (props.page?.pageID) {
+        input.page = { '@type': 'ComposePage', '@value': props.page }
+      }
       if (props.record?.recordID) {
         input.record = { '@type': 'ComposeRecord', '@value': props.record }
       }
 
       await $AutomationAPI.ngAutomationExec({
         automationID: btn.automationID,
-        entryPoint: btn.triggerHandle || btn.entryPoint,
         input,
       })
     } else if (btn.workflowID && $AutomationAPI) {

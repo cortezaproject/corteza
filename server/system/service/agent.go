@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/label"
 
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
@@ -50,6 +51,10 @@ func (svc *agent) FindByID(ctx context.Context, ID uint64) (a *types.Agent, err 
 			return AgentErrNotAllowedToRead()
 		}
 
+		if err = label.Load(ctx, svc.store, a); err != nil {
+			return err
+		}
+
 		return nil
 	}()
 
@@ -73,6 +78,10 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 		prepareTCL(&new.Behavior)
 
 		if err = store.CreateAgent(ctx, svc.store, new); err != nil {
+			return
+		}
+
+		if err = label.Create(ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -107,6 +116,10 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 		prepareTCL(&upd.Behavior)
 
 		if err = store.UpdateAgent(ctx, svc.store, upd); err != nil {
+			return
+		}
+
+		if err = label.Update(ctx, svc.store, upd); err != nil {
 			return
 		}
 
@@ -176,7 +189,29 @@ func (svc *agent) Search(ctx context.Context, filter types.AgentFilter) (set typ
 			return AgentErrNotAllowedToSearch()
 		}
 
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.Agent{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
+
 		if set, f, err = store.SearchAgents(ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(ctx, svc.store, toLabeledAgents(set)...); err != nil {
 			return err
 		}
 
@@ -184,6 +219,19 @@ func (svc *agent) Search(ctx context.Context, filter types.AgentFilter) (set typ
 	}()
 
 	return set, f, err
+}
+
+func toLabeledAgents(set types.AgentSet) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }
 
 

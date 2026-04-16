@@ -1,55 +1,80 @@
 applications:
-  - name: Namespaces
-    (envoy): { skipIf: "!missing" }
+  - name: Home
+    (envoy): { skipIf: '!missing' }
     enabled: true
+    weight: 1
+    unify:
+      listed: false
+      icon: applications/default-app.png
+      logo: applications/default-app.png
+      url: home/
+
+  - name: Projects (Labels)
+    (envoy): { skipIf: '!missing' }
+    enabled: true
+    weight: 2
     unify:
       listed: true
-      icon: applications/low-code-platform.png
-      logo: applications/low-code-platform.png
+      icon: applications/projects.png
+      logo: applications/projects.png
+      url: admin/labels
+
+  - name: Agentic
+    (envoy): { skipIf: '!missing' }
+    enabled: true
+    weight: 3
+    unify:
+      listed: true
+      icon: applications/agentic.png
+      logo: applications/agentic.png
+      url: agentic/
+
+  - name: Automation (TAQ)
+    (envoy): { skipIf: '!missing' }
+    enabled: true
+    weight: 4
+    unify:
+      listed: true
+      icon: applications/taq.png
+      logo: applications/taq.png
+      url: taq/
+
+  - name: Namespaces
+    (envoy): { skipIf: '!missing' }
+    enabled: true
+    weight: 5
+    unify:
+      listed: true
+      icon: applications/namespaces.png
+      logo: applications/namespaces.png
       url: compose/
 
   - name: Admin Area
-    (envoy): { skipIf: "!missing" }
+    (envoy): { skipIf: '!missing' }
     enabled: true
+    weight: 6
     unify:
       listed: true
       icon: applications/admin-area.png
       logo: applications/admin-area.png
       url: admin/
 
-  - name: Workflows
-    (envoy): { skipIf: "!missing" }
-    enabled: true
+  - name: Automation (Workflows)
+    (envoy): { skipIf: '!missing' }
+    enabled: false
+    weight: 7
     unify:
-      listed: true
+      listed: false
       icon: applications/workflows.png
       logo: applications/workflows.png
       url: workflow/
 
-  - name: Automation
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      url: taq/
-
-  - name: Agentic
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      url: agentic/
-
   - name: One
-    (envoy): { skipIf: "!missing" }
-    enabled: true
+    (envoy): { skipIf: '!missing' }
+    enabled: false
+    weight: 8
     unify:
-      listed: true
+      listed: false
+      icon: applications/default-app.png
+      logo: applications/default-app.png
       url: one/
-
-  - name: Home
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      url: home/

@@ -251,7 +251,7 @@ general:
   label:
     attributes: Attributes
     handle: Handle
-    name: Module Name *
+    name: Module Name
     permissions: Permissions
     title: Title
     type: Type

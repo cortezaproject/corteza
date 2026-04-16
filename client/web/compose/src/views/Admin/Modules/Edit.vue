@@ -159,6 +159,7 @@
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
                       {{ $t('module.general.label.name') }}
+                      <span class="text-red-500">*</span>
                     </label>
                     <InputText
                       id="name"
@@ -708,7 +709,14 @@ function onFieldSave(updatedField) {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    activeTab.value = 'fields'
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
   if (!canSave.value) return
 
   saving.value = true

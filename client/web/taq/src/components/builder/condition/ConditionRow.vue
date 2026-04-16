@@ -177,14 +177,16 @@ function makeFieldDef(kind = 'String', options = {}) {
 }
 
 const resolvedFieldDef = vueRef(makeFieldDef())
+const userChangedSymbol = vueRef(false)
 
 // Derived for use in onValueChange typing logic
 const resolvedVariableType = computed(() => resolvedFieldDef.value.kind)
 
 watch(resolvedVariableType, (newKind, oldKind) => {
-  if (oldKind && newKind !== oldKind && !hasValueRef.value) {
+  if (oldKind && newKind !== oldKind && !hasValueRef.value && userChangedSymbol.value) {
     onClearValue()
   }
+  userChangedSymbol.value = false
 })
 
 watchEffect(async () => {
@@ -290,6 +292,7 @@ function cloneNode(node) {
 // --- Event handlers ---
 
 function onSymbolChange(val) {
+  userChangedSymbol.value = true
   const newNode = cloneNode(props.node)
   if (!newNode.args) newNode.args = [null, null]
   newNode.args[0] = { symbol: val, meta: {} }
@@ -307,6 +310,7 @@ function onClearVariable() {
 }
 
 function onVariableRefEdit(val) {
+  userChangedSymbol.value = true
   const newNode = cloneNode(props.node)
   if (!newNode.args) newNode.args = [null, null]
   const scope = newNode.args[0]?.meta?.scope || ''

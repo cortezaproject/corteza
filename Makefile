@@ -1,6 +1,6 @@
 .PHONY: dev dev-all test lint fresh audit codegen tag ftag
 
-WEB_APPS := admin agentic compose one taq home
+WEB_APPS := admin agentic compose one taq home workflow
 
 codegen:
 	@echo "---Running codegen---"
@@ -15,6 +15,7 @@ dev-all:
 	@trap 'kill 0' EXIT; \
 	(cd $(CURDIR)/server && $(MAKE) watch) & \
 	$(foreach app,$(WEB_APPS),(cd $(CURDIR)/client/web/$(app) && pnpm run dev) & ) \
+	(sleep 4 && ss -tlnp | awk '/127\.0\.0\.1:51/{split($$4,a,":");print a[2]}' | sort | while read port; do cmd.exe /c start "http://localhost:$$port" </dev/null; sleep 2; done) & \
 	wait
 
 test:

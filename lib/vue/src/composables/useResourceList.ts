@@ -148,10 +148,17 @@ export function useResourceList<T = any>(
 
     const sort = sortBy ? `${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
 
+    const filterParams: Record<string, any> = {}
+    for (const [key, value] of Object.entries(filter)) {
+      if (value !== null && value !== undefined && value !== '') {
+        filterParams[key] = value
+      }
+    }
+
     return {
       limit,
       sort: pageCursor ? undefined : sort,
-      ...filter,
+      ...filterParams,
       pageCursor,
       incTotal: !pageCursor || !!tempQuery,
     }
@@ -168,10 +175,9 @@ export function useResourceList<T = any>(
         sortBy: sorting.sortBy || '',
         sortDesc: sorting.sortDesc?.toString() || 'false',
         ...Object.fromEntries(
-          Object.entries(filter).map(([key, value]) => [
-            key,
-            typeof value === 'boolean' ? value.toString() : value?.toString() || '',
-          ]),
+          Object.entries(filter)
+            .filter(([, value]) => value !== null && value !== undefined && value !== '')
+            .map(([key, value]) => [key, typeof value === 'boolean' ? value.toString() : String(value)]),
         ),
         page: page.toString(),
         pageCursor: pageCursor || '',

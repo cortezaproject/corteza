@@ -158,6 +158,7 @@
 
 <script setup>
 import Grid from '@/components/PageBlocks/Grid.vue'
+import { fetchBlockID, usePageVisibility } from '@/composables/usePageVisibility'
 import { useModuleStore } from '@/stores/module'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { usePageStore } from '@/stores/page'
@@ -196,8 +197,12 @@ const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const $SystemAPI = inject('$SystemAPI', null)
 const $auth = inject('$auth', {})
 const $eventBus = inject('$eventBus', null)
+
+const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $auth)
+
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const moduleStore = useModuleStore()
@@ -207,6 +212,7 @@ const formRef = ref(null)
 const serverErrors = ref({})
 
 const loading = ref(false)
+const invisibleBlockIDs = ref(new Set())
 
 const recordNavigation = computed(() => {
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
@@ -291,24 +297,30 @@ provide('$fileUploadContext', {
 })
 
 const positionedBlocks = computed(() => {
-  if (!page.value || !layout.value) {
-    if (page.value?.blocks?.length) {
-      return page.value.blocks
-    }
-    return []
-  }
-
-  return layout.value.blocks
-    .map(layoutBlock => {
-      const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
-      if (!pageBlock) return null
-
-      return {
-        ...pageBlock,
-        xywh: layoutBlock.xywh || pageBlock.xywh,
+  const blocks = (() => {
+    if (!page.value || !layout.value) {
+      if (page.value?.blocks?.length) {
+        return page.value.blocks
       }
-    })
-    .filter(Boolean)
+      return []
+    }
+
+    return layout.value.blocks
+      .map(layoutBlock => {
+        const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
+        if (!pageBlock) return null
+
+        return {
+          ...pageBlock,
+          xywh: layoutBlock.xywh || pageBlock.xywh,
+        }
+      })
+      .filter(Boolean)
+  })()
+
+  // meta.hidden is handled by Grid (tab children must still reach TabsBlock via props.blocks)
+  // invisibleBlockIDs are blocks hidden by visibility expressions/roles — remove entirely
+  return blocks.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b)))
 })
 
 const navigating = ref(null) // 'prev' | 'next' | null
@@ -346,6 +358,7 @@ async function loadPage() {
   loading.value = true
   record.value = null
   pristineRecord.value = null
+  invisibleBlockIDs.value = new Set()
 
   try {
     page.value = pageStore.getByID(pageID) || null
@@ -363,7 +376,8 @@ async function loadPage() {
       }
 
       const layouts = pageLayoutStore.getByPageID(pageID)
-      layout.value = layouts.length > 0 ? layouts[0] : null
+      const vars = buildExpressionVariables({ isRecordPage: true, mode: mode.value })
+      layout.value = await determineLayout(layouts, vars)
 
       const moduleID = page.value.moduleID
       if (moduleID) {
@@ -425,10 +439,38 @@ async function loadPage() {
         }
       }
     }
+
+    // Evaluate block visibility before revealing content (no flash)
+    if (page.value?.blocks?.length) {
+      const vars = buildExpressionVariables({
+        record: record.value,
+        isRecordPage: true,
+        mode: mode.value,
+      })
+      invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
+    }
   } finally {
     loading.value = false
   }
 }
+
+let _blockVisibilityTimer = null
+async function evaluateBlockVisibility() {
+  if (!page.value?.blocks?.length) return
+  // Debounce rapid changes (e.g. mode switch, record swap)
+  clearTimeout(_blockVisibilityTimer)
+  _blockVisibilityTimer = setTimeout(async () => {
+    const vars = buildExpressionVariables({
+      record: record.value,
+      isRecordPage: true,
+      mode: mode.value,
+    })
+    invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
+  }, 300)
+}
+
+// Re-evaluate when mode switches (view ↔ edit) or record reference changes
+watch([record, mode], evaluateBlockVisibility, { deep: false })
 
 function resolver() {
   const errors = {}
@@ -467,7 +509,13 @@ async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) 
 }
 
 async function handleSave({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
   if (!record.value || !page.value) return
 
   isSaving.value = true

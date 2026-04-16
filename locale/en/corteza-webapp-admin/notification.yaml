@@ -204,6 +204,18 @@ gateway:
     purge:
       success: Requests purged
       error: Requests purge failed
+taq:
+  fetch:
+    error: TAQ fetch failed
+  create:
+    success: TAQ created
+    error: TAQ create failed
+  update:
+    success: TAQ updated
+    error: TAQ update failed
+  delete:
+    success: TAQ deleted
+    error: TAQ delete failed
 workflow:
   fetch:
     error: Workflow fetch failed

@@ -1857,4 +1857,43 @@ export default class Automation {
     const { automationID, executionID } = a || {}
     return `/ng-automation/${automationID}/execution/${executionID}/trace`
   }
+
+  // List all ng automation execution sessions
+  async ngAutomationAllExecutions(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID, eventType, resourceType, status } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.ngAutomationAllExecutionsEndpoint(),
+    }
+    cfg.params = {
+      automationID,
+      eventType,
+      resourceType,
+      status,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationAllExecutionsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationAllExecutions(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationAllExecutionsEndpoint(): string {
+    return '/ng-automation/executions'
+  }
 }

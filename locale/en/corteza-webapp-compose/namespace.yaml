@@ -11,7 +11,7 @@ import:
   back: Back
   import: Import
   slug:
-    label: Short name *
+    label: Short name
 description:
   label: Namespace description
   placeholder: Enter namespace description
@@ -39,7 +39,7 @@ logo:
   preview: Preview
   reset: Reset
 name:
-  label: Full namespace name *
+  label: Full namespace name
   placeholder: Enter namespace name
 noResults: No namespaces found
 searchPlaceholder: Search namespaces

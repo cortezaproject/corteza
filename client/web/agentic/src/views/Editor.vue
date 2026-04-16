@@ -8,7 +8,14 @@
     <ProgressSpinner />
   </div>
 
-  <div v-else-if="agent" class="flex flex-col h-full overflow-hidden">
+  <Form
+    v-else-if="agent"
+    v-slot="$form"
+    :resolver="resolver"
+    :initialValues="initialValues"
+    @submit="handleSubmit"
+    class="flex flex-col h-full overflow-hidden"
+  >
     <div class="container mx-auto p-4 flex-1 overflow-hidden min-h-0 flex flex-col gap-4">
       <div v-if="!isCreate" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
@@ -202,28 +209,25 @@
 
                 <Panel :header="$t('agent.editor.panels.behavior')" toggleable>
                   <div class="grid grid-cols-1 gap-4">
-                    <div class="flex flex-col gap-1">
+                    <FormField name="systemPrompt" class="flex flex-col gap-1">
                       <label for="systemPrompt" class="font-medium text-primary">
                         {{ $t('agent.editor.systemPrompt.label') }}
                         <span class="text-red-500">*</span>
                       </label>
                       <Textarea
                         id="systemPrompt"
+                        name="systemPrompt"
                         v-model="agent.behavior.systemPrompt"
                         rows="6"
                         autoResize
-                        :invalid="submitted && !agent.behavior.systemPrompt?.trim()"
                       />
-                      <small
-                        v-if="submitted && !agent.behavior.systemPrompt?.trim()"
-                        class="text-red-500"
-                      >
-                        {{ $t('agent.editor.systemPrompt.required') }}
-                      </small>
+                      <Message v-if="$form.systemPrompt?.invalid" severity="error" size="small" variant="simple">
+                        {{ $form.systemPrompt.error?.message }}
+                      </Message>
                       <small v-else class="text-muted-color">
                         {{ $t('agent.editor.systemPrompt.help') }}
                       </small>
-                    </div>
+                    </FormField>
 
                     <!-- Guardrails -->
                     <div class="flex flex-col gap-1">
@@ -838,15 +842,15 @@
             @confirm="handleDelete"
           />
           <Button
+            type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
             :loading="saving"
-            @click="handleSubmit"
           />
         </div>
       </div>
     </div>
-  </div>
+  </Form>
 </template>
 
 <script setup>
@@ -891,7 +895,6 @@ const composeStore = useComposeResourceStore()
 
 const loading = ref(false)
 const saving = ref(false)
-const submitted = ref(false)
 const agent = ref(null)
 const initialAgent = ref(null)
 const activeTab = ref('config')
@@ -1034,6 +1037,18 @@ function applyAgentData(res) {
   initToolSelection()
 }
 
+const initialValues = computed(() => ({
+  systemPrompt: agent.value?.behavior?.systemPrompt || '',
+}))
+
+const resolver = ref(({ values }) => {
+  const errors = {}
+  if (!values.systemPrompt || values.systemPrompt.trim().length === 0) {
+    errors.systemPrompt = [{ message: t('agent.editor.systemPrompt.required') }]
+  }
+  return { errors }
+})
+
 async function loadAgent() {
   const agentID = route.params.agentID
   if (!agentID) {
@@ -1057,11 +1072,13 @@ async function loadAgent() {
   }
 }
 
-async function handleSubmit() {
-  submitted.value = true
-
-  if (!agent.value.behavior.systemPrompt?.trim()) {
+async function handleSubmit({ valid }) {
+  if (!valid) {
     activeTab.value = 'config'
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
     return
   }
 

@@ -52,9 +52,23 @@
 
           <div v-if="session.createdBy" class="flex flex-col gap-1">
             <span class="text-xs text-muted-color">
-              {{ $t('automation.sessions.editor.info.createdBy') }}
+              {{ $t('automation.sessions.editor.info.createdByUserName') }}
             </span>
-            <span class="font-mono text-sm">{{ session.createdBy }}</span>
+            <span class="font-mono text-sm">{{ createdByName }}</span>
+          </div>
+
+          <div v-if="session.eventType" class="flex flex-col gap-1">
+            <span class="text-xs text-muted-color">
+              {{ $t('automation.sessions.editor.info.eventType') }}
+            </span>
+            <span class="font-mono text-sm">{{ session.eventType }}</span>
+          </div>
+
+          <div v-if="session.resourceType" class="flex flex-col gap-1">
+            <span class="text-xs text-muted-color">
+              {{ $t('automation.sessions.editor.info.resourceType') }}
+            </span>
+            <span class="font-mono text-sm">{{ session.resourceType }}</span>
           </div>
         </div>
       </Panel>
@@ -80,14 +94,23 @@
           severity="secondary"
           @click="$router.push({ name: 'automation.sessions' })"
         />
-        <Button
-          v-if="isActive"
-          :label="$t('automation.sessions.editor.info.cancel')"
-          icon="pi pi-times"
-          severity="danger"
-          :loading="canceling"
-          @click="handleCancel"
-        />
+        <div class="flex gap-2">
+          <Button
+            v-if="session.workflowID"
+            :label="$t('automation.sessions.editor.info.openWorkflow')"
+            icon="pi pi-arrow-right"
+            severity="secondary"
+            @click="$router.push({ name: 'automation.workflows.edit', params: { workflowID: session.workflowID } })"
+          />
+          <Button
+            v-if="isActive"
+            :label="$t('automation.sessions.editor.info.cancel')"
+            icon="pi pi-times"
+            severity="danger"
+            :loading="canceling"
+            @click="handleCancel"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -107,14 +130,20 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
+const $SystemAPI = inject('$SystemAPI')
 
 const loading = ref(false)
 const canceling = ref(false)
 const session = ref(null)
+const user = ref(null)
 
-const isActive = computed(() => {
-  return session.value && ['pending', 'started'].includes(session.value.status)
+const createdByName = computed(() => {
+  if (!user.value) return session.value?.createdBy
+  const { name, username, email, userID } = user.value
+  return name || username || email || `<@${userID}>`
 })
+
+const isActive = computed(() => session.value && !session.value.completedAt)
 
 function statusSeverity(status) {
   switch (status) {
@@ -136,6 +165,13 @@ async function loadSession() {
   loading.value = true
   try {
     session.value = await $AutomationAPI.sessionRead({ sessionID: route.params.sessionID })
+    if (session.value.createdBy) {
+      try {
+        user.value = await $SystemAPI.userRead({ userID: session.value.createdBy })
+      } catch {
+        // non-fatal, fall back to raw ID
+      }
+    }
   } catch (e) {
     $toast.toastErrorHandler(t('notification.session.fetch.error'))(e)
     router.push({ name: 'automation.sessions' })

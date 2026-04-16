@@ -47,7 +47,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField name="name" class="flex flex-col gap-2">
                     <label for="name" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.name.label') }} *
+                      {{ $t('system.data-sources.editor.basic.form.name.label') }}
+                      <span class="text-red-500">*</span>
                     </label>
                     <InputText id="name" name="name" v-model="dataSource.meta.name" />
                     <Message
@@ -147,11 +148,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
 
@@ -167,6 +169,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const dataSource = ref(null)
+const initialDataSource = ref(null)
 const activeTab = ref('basic')
 const rawDalConfig = ref('{}')
 
@@ -232,6 +235,7 @@ async function loadDataSource() {
   if (!connectionID) {
     dataSource.value = new system.DalConnection({})
     initRawFields()
+    initialDataSource.value = cloneDeep(dataSource.value)
     return
   }
 
@@ -240,6 +244,7 @@ async function loadDataSource() {
     const raw = await $SystemAPI.dalConnectionRead({ connectionID })
     dataSource.value = new system.DalConnection(raw)
     initRawFields()
+    initialDataSource.value = cloneDeep(dataSource.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.data-source.fetch.error'))(e)
     router.push({ name: 'system.dataSources' })
@@ -249,7 +254,14 @@ async function loadDataSource() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    activeTab.value = 'basic'
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -266,6 +278,7 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.dalConnectionUpdate(payload)
       dataSource.value = new system.DalConnection(raw)
       initRawFields()
+      initialDataSource.value = cloneDeep(dataSource.value)
       $toast.toastSuccess(t('notification.data-source.update.success'))
     } else {
       const created = await $SystemAPI.dalConnectionCreate(payload)
@@ -299,6 +312,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!dataSource.value && !!initialDataSource.value && !isEqual(dataSource.value, initialDataSource.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 onMounted(() => loadDataSource())
 

@@ -12,6 +12,30 @@ import (
 )
 
 // SetLabel adds new label to label map
+func (m *Agent) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m Agent) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (Agent) LabelResourceKind() string {
+	return "agent"
+}
+
+// GetLabels adds new label to label map
+func (m Agent) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *Application) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)

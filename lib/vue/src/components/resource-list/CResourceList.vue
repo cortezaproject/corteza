@@ -34,6 +34,7 @@
       <div class="flex-1 overflow-auto min-h-0 min-w-0 flex flex-col h-full w-full">
         <DataTable
           v-model:selection="selected"
+          v-model:expandedRows="expandedRows"
           :dataKey="primaryKey"
           :value="items"
           :loading="loading"
@@ -63,6 +64,7 @@
           </template>
 
           <Column v-if="selectable" selectionMode="multiple" headerStyle="width: 3rem" />
+          <Column v-if="expandable" :expander="true" style="width: 3rem" />
           <Column
             v-for="field in computedFields"
             :key="field.key"
@@ -108,7 +110,11 @@
             </template>
           </Column>
 
-          <template #footer>
+          <template v-if="expandable" #expansion="slotProps">
+            <slot name="expansion" :data="slotProps.data" />
+          </template>
+
+          <template v-if="!hidePagination" #footer>
             <div class="flex items-center flex-wrap gap-2 px-3 py-2">
               <div class="flex items-center text-sm">
                 <span v-if="!hideTotal" class="whitespace-nowrap">
@@ -218,6 +224,10 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  expandable: {
+    type: Boolean,
+    default: false,
+  },
   clickable: {
     type: Boolean,
     default: false,
@@ -276,6 +286,7 @@ const props = defineProps({
 
 const { t } = useI18n()
 const selected = ref([])
+const expandedRows = ref([])
 
 // -- Actions menu --
 const actionsMenuRef = ref()

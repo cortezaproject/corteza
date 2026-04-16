@@ -1,24 +1,18 @@
 import defaultAppIcon from '../assets/default-app.png'
 import adminAreaIcon from '../assets/admin-area.png'
-import discoveryIcon from '../assets/discovery.png'
-import lowCodeCrmIcon from '../assets/low-code-crm-app.png'
-import lowCodePlatformIcon from '../assets/low-code-platform.png'
-import lowCodeServiceIcon from '../assets/low-code-service-solution-app.png'
-import privacyIcon from '../assets/privacy.png'
-import reporterIcon from '../assets/reporter.png'
-import videoConferenceIcon from '../assets/video-conference.png'
+import agenticIcon from '../assets/agentic.png'
+import namespacesIcon from '../assets/namespaces.png'
+import projectsIcon from '../assets/projects.png'
+import taqIcon from '../assets/taq.png'
 import workflowsIcon from '../assets/workflows.png'
 
 export const appIconMap: Record<string, string> = {
   'applications/default-app.png': defaultAppIcon,
   'applications/admin-area.png': adminAreaIcon,
-  'applications/discovery.png': discoveryIcon,
-  'applications/low-code-crm-app.png': lowCodeCrmIcon,
-  'applications/low-code-platform.png': lowCodePlatformIcon,
-  'applications/low-code-service-solution-app.png': lowCodeServiceIcon,
-  'applications/privacy.png': privacyIcon,
-  'applications/reporter.png': reporterIcon,
-  'applications/video-conference.png': videoConferenceIcon,
+  'applications/agentic.png': agenticIcon,
+  'applications/namespaces.png': namespacesIcon,
+  'applications/projects.png': projectsIcon,
+  'applications/taq.png': taqIcon,
   'applications/workflows.png': workflowsIcon,
 }
 

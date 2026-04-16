@@ -899,7 +899,7 @@ comment:
     label: Title field
     footnote: Field value will be used as record title
   contentField:
-    label: Content field *
+    label: Content field
     footnote: Field value will be used as record content
   replyField:
     label: Reply field

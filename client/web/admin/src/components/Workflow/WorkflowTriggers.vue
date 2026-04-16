@@ -38,9 +38,9 @@ const props = defineProps({
 })
 
 const triggerFields = [
-  { key: 'resourceType', header: t('automation.workflows.editor.triggers.resourceType') },
-  { key: 'eventType', header: t('automation.workflows.editor.triggers.eventType') },
-  { key: 'constraints', header: t('automation.workflows.editor.triggers.constraints') },
+  { key: 'resourceType', header: t('automation.workflows.editor.triggers.columns.resourceType') },
+  { key: 'eventType', header: t('automation.workflows.editor.triggers.columns.eventType') },
+  { key: 'constraints', header: t('automation.workflows.editor.triggers.columns.constraints') },
 ]
 
 function formatResourceType(rt) {

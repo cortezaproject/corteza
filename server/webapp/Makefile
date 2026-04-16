@@ -5,7 +5,7 @@ WGET_FLAGS   ?= -q
 TAR          ?= tar
 TAR_FLAGS    ?= -xzmok
 RELEASE_PAGE ?= https://releases.cortezaproject.org/files
-APPS         ?= admin compose workflow reporter discovery privacy
+APPS         ?= admin compose workflow reporter discovery
 ALL_APPS     ?= $(APPS) one
 VERSION      ?= $(shell git describe --tags --abbrev=0)
 PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
@@ -24,7 +24,6 @@ install-packages: $(PACKAGES)
 	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-workflow-$(VERSION).tar.gz -C public/workflow
 	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-reporter-$(VERSION).tar.gz -C public/reporter
 	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-discovery-$(VERSION).tar.gz -C public/discovery
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-privacy-$(VERSION).tar.gz -C public/privacy
 
 download: $(PACKAGES)
 
@@ -40,7 +39,6 @@ install-fresh: build
 	@ cp -r $(SOURCE_LOC)workflow/dist  public/workflow
 	@ cp -r $(SOURCE_LOC)reporter/dist  public/reporter
 	@ cp -r $(SOURCE_LOC)discovery/dist public/discovery
-	@ cp -r $(SOURCE_LOC)privacy/dist 	public/privacy
 
 build: $(SOURCES)
 

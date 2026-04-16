@@ -764,12 +764,16 @@ labels:
   list:
     title: Labels
     resourceSingle: label
+    createLabel: New Label
     columns:
+
       name: Name
       resources: Resources
     filterForm:
       query:
         placeholder: Filter labels by name
+  create:
+    namePlaceholder: Enter label name...
   editor:
     title: Label Details
     info:

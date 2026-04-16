@@ -11,6 +11,8 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -59,6 +61,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) deleted agents
 		Deleted uint
 
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]labelTypes.LabelValue
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -90,6 +97,11 @@ type (
 		//
 		// Agent status
 		Status string
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]labelTypes.LabelValue
 
 		// Meta POST parameter
 		//
@@ -169,6 +181,11 @@ type (
 		//
 		// Last update (or creation) date
 		UpdatedAt *time.Time
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	AgentDelete struct {
@@ -231,6 +248,7 @@ func (r AgentList) Auditable() map[string]interface{} {
 		"handle":     r.Handle,
 		"status":     r.Status,
 		"deleted":    r.Deleted,
+		"labels":     r.Labels,
 		"limit":      r.Limit,
 		"incTotal":   r.IncTotal,
 		"pageCursor": r.PageCursor,
@@ -329,6 +347,17 @@ func (r *AgentList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["sort"]; ok && len(val) > 0 {
 			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -774,6 +803,18 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
+				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
+				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -860,6 +901,18 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
 			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

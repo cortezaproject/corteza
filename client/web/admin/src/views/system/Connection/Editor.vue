@@ -50,6 +50,7 @@
                     <FormField name="name" class="flex flex-col gap-2">
                       <label for="name" class="font-medium text-primary">
                         {{ $t('system.connections.editor.info.name') }}
+                        <span class="text-red-500">*</span>
                       </label>
                       <InputText id="name" name="name" v-model="connection.meta.short" />
                       <Message
@@ -291,6 +292,7 @@
           <FormField name="name" class="flex flex-col gap-2">
             <label for="ccName" class="font-medium text-primary">
               {{ $t('system.configuredConnections.editor.info.name') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText id="ccName" name="name" v-model="activeConfiguredConnection.name" />
             <Message v-if="$modalForm.name?.invalid" severity="error" size="small" variant="simple">
@@ -417,7 +419,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch, reactive } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@cortezaproject/corteza-js-next'
@@ -426,7 +428,9 @@ import {
   filters,
   useConfirmDelete,
   useResourceList,
+  useUnsavedGuard,
 } from '@cortezaproject/corteza-vue-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete, CResourceList } = components
 const { locFullDateTime } = filters
@@ -444,6 +448,8 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const connection = ref(null)
+const initialConnection = ref(null)
+const initialRawJSON = ref(null)
 const activeTab = ref('general')
 
 const configuredConnectionModal = ref(false)
@@ -820,7 +826,13 @@ function createConfiguredConnection() {
 }
 
 async function handleConfiguredConnectionSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   savingConfiguredConnection.value = true
 
@@ -872,6 +884,8 @@ async function loadConnection() {
       },
     })
     initJSONFields()
+    initialConnection.value = cloneDeep(connection.value)
+    initialRawJSON.value = cloneDeep(rawJSON)
     return
   }
 
@@ -880,6 +894,8 @@ async function loadConnection() {
     const raw = await $SystemAPI.connectionRead({ connectionID })
     connection.value = new system.Connection(raw)
     initJSONFields()
+    initialConnection.value = cloneDeep(connection.value)
+    initialRawJSON.value = cloneDeep(rawJSON)
   } catch (e) {
     console.error('Failed to load connection:', e)
     $toast.toastErrorHandler(t('notification.connection.fetch.error'))(e)
@@ -894,7 +910,14 @@ async function loadConnection() {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    activeTab.value = 'general'
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   if (isEdit.value && !connection.value?.canUpdateConnection) return
 
@@ -922,6 +945,8 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.connectionUpdate(payload)
       connection.value = new system.Connection(raw)
       initJSONFields()
+      initialConnection.value = cloneDeep(connection.value)
+      initialRawJSON.value = cloneDeep(rawJSON)
       $toast.toastSuccess(t('notification.connection.update.success'))
     } else {
       const created = await $SystemAPI.connectionCreate(payload)
@@ -954,6 +979,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!connection.value && !!initialConnection.value && (!isEqual(connection.value, initialConnection.value) || !isEqual({ ...rawJSON }, initialRawJSON.value)),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 // Lifecycle
 onMounted(() => {

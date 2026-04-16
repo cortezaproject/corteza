@@ -46,6 +46,21 @@ sessions:
       state: State
       status: Status
       workflowID: WorkflowID
+    tabs:
+      taq: TAQ
+      workflow: Workflows
+    taqColumns:
+      automationID: Automation ID
+      duration: Duration
+      executionID: Execution ID
+      startedAt: Started At
+    taqStatus:
+      cancelled: Cancelled
+      completed: Completed
+      created: Created
+      failed: Failed
+      paused: Paused
+      running: Running
     filterForm:
       all:
         label: All
@@ -77,6 +92,45 @@ sessions:
     loading: Loading sessions
     title: Sessions
 
+taq:
+  editor:
+    info:
+      delete: Delete
+      description: Description
+      enabled: Enabled
+      handle: Handle
+      invalidHandle: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Name
+      openBuilder: Open in Builder
+      title: Basic information
+    meta:
+      createdAt: Created at
+      id: ID
+      title: Details
+      updatedAt: Updated at
+    title:
+      create: Create TAQ
+      edit: Edit TAQ
+  list:
+    columns:
+      createdAt: Created
+      enabled: Enabled
+      handle: Handle
+      name: Name
+    filterForm:
+      deleted:
+        label: Deleted TAQs
+      excluded:
+        label: Without deleted
+      exclusive:
+        label: Only deleted
+      inclusive:
+        label: Including deleted
+      query:
+        placeholder: Filter TAQs by name
+    new: New TAQ
+    title: TAQ
+
 workflows:
   editor:
     info:
@@ -88,7 +142,7 @@ workflows:
       handle: Handle
       invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       id: ID
-      name: Name *
+      name: Name
       description: Description
       trace: Trace
       traceHint: Enable trace logging for debugging
@@ -103,6 +157,7 @@ workflows:
       edit: Edit workflow
     triggers:
       and: and
+      empty: No triggers configured
       columns:
         constraints: Constraints
         eventType: Event

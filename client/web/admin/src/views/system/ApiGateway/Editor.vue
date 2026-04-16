@@ -29,7 +29,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField name="endpoint" class="flex flex-col gap-2 md:col-span-2">
             <label for="endpoint" class="font-medium text-primary">
-              {{ $t('system.apigw.editor.info.endpoint') }} *
+              {{ $t('system.apigw.editor.info.endpoint') }}
+              <span class="text-red-500">*</span>
             </label>
             <InputText
               id="endpoint"
@@ -243,11 +244,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
 import { NoID } from '@cortezaproject/corteza-js-next'
+import { cloneDeep, isEqual } from 'lodash-es'
 import CFilterParamsEditor from '@/components/ApiGateway/CFilterParamsEditor.vue'
 
 const { CInputDelete } = components
@@ -264,6 +266,7 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const route_ = ref(null)
+const initialRoute_ = ref(null)
 
 // Filter state
 const activeStep = ref(0)
@@ -343,6 +346,7 @@ async function loadRoute() {
   const routeID = vueRoute.params.routeID
   if (!routeID) {
     route_.value = newRoute()
+    initialRoute_.value = cloneDeep(route_.value)
     return
   }
 
@@ -353,6 +357,7 @@ async function loadRoute() {
       ...raw,
       meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
     }
+    initialRoute_.value = cloneDeep(route_.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.gateway.fetch.error'))(e)
     router.push({ name: 'system.apiGateway' })
@@ -564,7 +569,13 @@ async function onFiltersSubmit() {
 // --- Route CRUD ---
 
 async function handleSubmit({ valid }) {
-  if (!valid) return
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    nextTick(() => {
+      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return
+  }
 
   saving.value = true
   try {
@@ -583,6 +594,7 @@ async function handleSubmit({ valid }) {
         ...raw,
         meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
       }
+      initialRoute_.value = cloneDeep(route_.value)
       $toast.toastSuccess(t('notification.gateway.update.success'))
     } else {
       const created = await $SystemAPI.apigwRouteCreate(payload)
@@ -608,6 +620,11 @@ async function handleDelete() {
     deleting.value = false
   }
 }
+
+useUnsavedGuard({
+  isDirty: () => !saving.value && !deleting.value && !!route_.value && !!initialRoute_.value && !isEqual(route_.value, initialRoute_.value),
+  messageKey: 'general.editor.unsavedChanges',
+})
 
 // --- Lifecycle ---
 
