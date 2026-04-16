@@ -99,7 +99,7 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	url := provider.Config.PromptURL + "/messages"
+	url := provider.Config.PromptURL + "/v1/messages"
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
@@ -156,7 +156,7 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 }
 
 func fetchAnthropicModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, anthropicAPIVersion string) ([]string, error) {
-	url := provider.Config.PromptURL + "/models"
+	url := provider.Config.PromptURL + "/v1/models"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
