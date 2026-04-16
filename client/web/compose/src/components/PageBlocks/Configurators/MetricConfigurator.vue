@@ -197,33 +197,6 @@
               </div>
             </div>
 
-            <!-- Font size -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.editStyle.fontSize') }}
-              </label>
-              <div class="flex items-center gap-2">
-                <InputNumber
-                  :model-value="
-                    metric.valueStyle?.fontSize ? Number(metric.valueStyle.fontSize) : 30
-                  "
-                  :min="1"
-                  :step="1"
-                  suffix=" px"
-                  class="w-full"
-                  @update:model-value="onStyleChange(metric, 'fontSize', $event)"
-                />
-                <Button
-                  icon="pi pi-undo"
-                  severity="secondary"
-                  text
-                  rounded
-                  size="small"
-                  :title="$t('block.metric.editStyle.resetToDefault')"
-                  @click="onStyleChange(metric, 'fontSize', 30)"
-                />
-              </div>
-            </div>
           </div>
 
           <!-- Change Indicator -->
@@ -408,7 +381,6 @@ function addMetric() {
       valueStyle: {
         backgroundColor: undefined,
         color: undefined,
-        fontSize: undefined,
       },
       drillDown: {
         enabled: false,
@@ -463,7 +435,6 @@ function onStyleChange(metric, key, value) {
     metric.valueStyle = {
       backgroundColor: undefined,
       color: undefined,
-      fontSize: undefined,
     }
   }
   metric.valueStyle[key] = value

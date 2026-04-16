@@ -267,7 +267,9 @@ const fieldModule = computed(() => {
 
 // The active record: use reference record (if reference field), context record (if ctx available), builder record, or local record
 const activeRecord = computed(() => {
-  if (options.value.referenceField && referenceRecord.value) {
+  // When a reference field is configured, only show the referenced record — never fall back
+  // to the page's own record (which would show unrelated data when the selector is empty).
+  if (options.value.referenceField) {
     return referenceRecord.value
   }
   if (isBuilder.value) {
@@ -360,6 +362,12 @@ function canFieldBeEdited(field) {
 
 function isFieldEditable(field) {
   if (!field) return false
+
+  // Reference record blocks are always read-only; only inline edit applies.
+  if (options.value.referenceField) {
+    return activeEditFieldNames.value.includes(field.name)
+  }
+
   if (isBuilder.value) return true
 
   if (isOnEditPage.value) {
@@ -572,7 +580,7 @@ async function loadReferenceRecord() {
   if (!mod) return
 
   const { referenceField } = options.value
-  const currentRecord = isEditing.value ? ctx.record.value : localRecord.value
+  const currentRecord = ctx?.record?.value || localRecord.value
   if (!currentRecord || !pageModule.value) return
 
   const field = pageModule.value.fields.find(f => f.fieldID === referenceField)
@@ -716,7 +724,7 @@ watch(
 watch(
   () => {
     if (!options.value.referenceField || !pageModule.value) return null
-    const rec = isEditing.value ? ctx?.record?.value : localRecord.value
+    const rec = ctx?.record?.value || localRecord.value
     if (!rec) return null
     const field = pageModule.value.fields.find(f => f.fieldID === options.value.referenceField)
     return field ? rec.values[field.name] : null

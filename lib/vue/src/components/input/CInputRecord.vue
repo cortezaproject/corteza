@@ -1,6 +1,6 @@
 <template>
   <Select
-    :model-value="modelValue"
+    :model-value="modelValue || null"
     @update:model-value="onSelect"
     :options="options"
     option-label="label"
@@ -235,7 +235,10 @@ function goToPage(next) {
 }
 
 function onSelect(recordID) {
-  emit('update:modelValue', recordID || null)
+  // Emit '' for cleared state so setValue treats it as "length === 0" (clear the field).
+  // PrimeVue emits null on clear but '' would make it think a value is selected,
+  // so we translate at the boundary here.
+  emit('update:modelValue', recordID ?? '')
 }
 
 async function loadRecordById(recordID) {

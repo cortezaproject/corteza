@@ -212,9 +212,13 @@ const selectedModule = computed(() => {
 // Reference module (resolved from the reference field's target module)
 const referenceModule = ref(null)
 
+// Local ref so fieldPickerModule reacts immediately on selection, without waiting
+// for the parent to process the update:block emit and push props back down.
+const localReferenceFieldID = ref(props.block.options?.referenceField || null)
+
 // The module used for the field picker: reference module (if set) or the page's module
 const fieldPickerModule = computed(() => {
-  if (referenceField.value && referenceModule.value) {
+  if (localReferenceFieldID.value && referenceModule.value) {
     return referenceModule.value
   }
   return selectedModule.value
@@ -264,51 +268,84 @@ const recordSelectorFields = computed(() => {
 })
 
 const referenceField = computed({
-  get: () => props.block.options?.referenceField || null,
-  set: v => {
-    updateReferenceModule(v)
-  },
+  get: () => localReferenceFieldID.value,
+  set: v => updateReferenceModule(v),
 })
 
-// When selecting a reference field, resolve the target module and set referenceModuleID
-function updateReferenceModule(fieldID) {
-  if (!fieldID) {
-    // Cleared — reset reference field, module, and fields
-    updateOptions('referenceField', null)
-    updateOptions('referenceModuleID', null)
-    referenceModule.value = null
+function resolveReferenceModule(moduleID) {
+  if (!moduleID || moduleID === '0') return
+  // Use synchronous cache lookup first to avoid an async tick before fieldPickerModule updates
+  const cached = moduleStore.getByID(moduleID)
+  if (cached) {
+    referenceModule.value = cached
     return
   }
+  moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
+    referenceModule.value = mod
+  })
+}
+
+// When selecting a reference field, resolve the target module and persist to block options
+function updateReferenceModule(fieldID) {
+  if (!fieldID) {
+    localReferenceFieldID.value = null
+    referenceModule.value = null
+    emit('update:block', {
+      ...props.block,
+      options: { ...props.block.options, referenceField: null, referenceModuleID: null, fields: [] },
+    })
+    return
+  }
+
+  localReferenceFieldID.value = fieldID
 
   const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
   const moduleID = field?.options?.moduleID
 
-  if (moduleID) {
-    moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
-      referenceModule.value = mod
-      updateOptions('referenceField', fieldID)
-      updateOptions('referenceModuleID', mod.moduleID)
-      // Reset fields when reference module changes
-      updateOptions('fields', [])
-    })
+  if (moduleID && moduleID !== '0') {
+    // Synchronous cache hit: emit everything in one shot
+    const cached = moduleStore.getByID(moduleID)
+    if (cached) {
+      referenceModule.value = cached
+      emit('update:block', {
+        ...props.block,
+        options: { ...props.block.options, referenceField: fieldID, referenceModuleID: moduleID, fields: [] },
+      })
+    } else {
+      // Async fetch: still emit referenceField now so it's not lost,
+      // then include both keys again in the follow-up emit once we have the module.
+      emit('update:block', {
+        ...props.block,
+        options: { ...props.block.options, referenceField: fieldID, fields: [] },
+      })
+      moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
+        referenceModule.value = mod
+        // Re-emit with referenceField included to avoid stale-props clobber
+        emit('update:block', {
+          ...props.block,
+          options: { ...props.block.options, referenceField: fieldID, referenceModuleID: mod.moduleID, fields: [] },
+        })
+      })
+    }
   } else {
-    updateOptions('referenceField', fieldID)
+    emit('update:block', {
+      ...props.block,
+      options: { ...props.block.options, referenceField: fieldID, fields: [] },
+    })
   }
 }
 
-// On mount, resolve existing reference field
+// On mount (and when selectedModule becomes available), restore reference module from saved options
 watch(
-  () => props.block.options?.referenceField,
-  fieldID => {
-    if (fieldID && selectedModule.value) {
-      const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
-      const moduleID = field?.options?.moduleID
-      if (moduleID) {
-        moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
-          referenceModule.value = mod
-        })
-      }
+  [() => props.block.options?.referenceField, selectedModule],
+  ([fieldID]) => {
+    localReferenceFieldID.value = fieldID || null
+    if (!fieldID || !selectedModule.value) {
+      if (!fieldID) referenceModule.value = null
+      return
     }
+    const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
+    resolveReferenceModule(field?.options?.moduleID)
   },
   { immediate: true },
 )

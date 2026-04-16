@@ -1081,7 +1081,7 @@ function goToViewPage() {
       router.push({
         name: 'page.record',
         params: {
-          slug: props.namespace.slug,
+          slug: route.params.slug,
           pageID: page.value.pageID,
           recordID: '0',
         },

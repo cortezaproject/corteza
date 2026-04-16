@@ -71,7 +71,6 @@ const valueStyle = computed(() => {
   const s = props.metric.valueStyle || {}
   const d = {}
   if (s.color && s.color !== 'transparent') d.color = s.color
-  if (s.fontSize) d.fontSize = s.fontSize + 'px'
   return d
 })
 
@@ -102,11 +101,17 @@ const formattedChange = computed(() => {
 <style scoped>
 .metric-item {
   min-height: 0;
+  container-type: size;
 }
 
 .metric-value {
-  font-size: 30px;
-  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  font-size: min(90cqw, 60cqh);
+  line-height: 1;
   letter-spacing: -0.02em;
 }
 
