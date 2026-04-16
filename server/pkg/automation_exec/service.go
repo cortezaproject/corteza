@@ -36,6 +36,7 @@ type (
 		GetExecution(ctx context.Context, executableID, executionID id.ID, revision int) (*types.Execution, error)
 		GetTrace(ctx context.Context, executableID, executionID id.ID, revision int) ([]types.StackFrame, error)
 		ListExecutionsByExecutable(ctx context.Context, executableID id.ID) ([]*types.Execution, error)
+		ListExecutions(ctx context.Context) ([]*types.Execution, error)
 	}
 
 	runtimeManagerAPI interface {
@@ -166,6 +167,46 @@ func (s *automationService) ListExecutions(ctx context.Context, exeID id.ID, rev
 	return out, nil
 }
 
+func (s *automationService) ListAllExecutions(ctx context.Context, f types.ExecutionFilter) ([]*types.ExecutionResult, error) {
+	execs, err := s.led.ListExecutions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// build automationID set for O(1) lookup
+	aidSet := make(map[string]struct{}, len(f.AutomationID))
+	for _, a := range f.AutomationID {
+		aidSet[a] = struct{}{}
+	}
+	statusSet := make(map[string]struct{}, len(f.Status))
+	for _, s := range f.Status {
+		statusSet[s] = struct{}{}
+	}
+
+	out := make([]*types.ExecutionResult, 0, len(execs))
+	for _, exec := range execs {
+		if len(aidSet) > 0 {
+			if _, ok := aidSet[exec.ExecutableID.String()]; !ok {
+				continue
+			}
+		}
+		if f.EventType != "" && exec.EventType != f.EventType {
+			continue
+		}
+		if f.ResourceType != "" && exec.ResourceType != f.ResourceType {
+			continue
+		}
+		if len(statusSet) > 0 {
+			if _, ok := statusSet[string(exec.Status)]; !ok {
+				continue
+			}
+		}
+		out = append(out, s.prepMetaResponse(exec))
+	}
+
+	return out, nil
+}
+
 func (s *automationService) prepMetaResponse(exec *types.Execution) *types.ExecutionResult {
 	out := &types.ExecutionResult{
 		ExecutionID:  exec.ID,
@@ -174,6 +215,8 @@ func (s *automationService) prepMetaResponse(exec *types.Execution) *types.Execu
 		Status:       exec.Status,
 		StartedAt:    exec.CreatedAt,
 		EndedAt:      exec.EndedAt,
+		EventType:    exec.EventType,
+		ResourceType: exec.ResourceType,
 	}
 
 	if exec.EndedAt != nil {

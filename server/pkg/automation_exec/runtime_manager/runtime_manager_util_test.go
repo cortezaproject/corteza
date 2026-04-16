@@ -38,7 +38,7 @@ type mockLedger struct {
 	failedErr       error
 }
 
-func (m *mockLedger) RegisterExecution(_ context.Context, _, _ id.ID, _ int) error {
+func (m *mockLedger) RegisterExecution(_ context.Context, _, _ id.ID, _ int, _ types.ExecutionParams) error {
 	m.mu.Lock()
 	m.registerCalled++
 	m.mu.Unlock()

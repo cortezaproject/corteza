@@ -75,6 +75,7 @@ type (
 
 		GetExecutionTrace(ctx context.Context, exeID id.ID, rev int, execID id.ID) ([]execTypes.StackFrame, error)
 		ListExecutions(ctx context.Context, exeID id.ID, rev int) ([]*execTypes.ExecutionResult, error)
+		ListAllExecutions(ctx context.Context, f execTypes.ExecutionFilter) ([]*execTypes.ExecutionResult, error)
 	}
 
 	ngAutomationUpdateHandler func(ctx context.Context, ns *types.NgAutomation) (ngAutomationChanges, error)
@@ -326,8 +327,10 @@ func (svc *ngAutomation) UndeleteByID(ctx context.Context, ngAutomationID uint64
 
 func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
 	executionID, err = svc.execEngine.Execute(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
-		EntryPoint: p.EntryPoint,
-		Input:      p.Input,
+		EntryPoint:   p.EntryPoint,
+		Input:        p.Input,
+		EventType:    p.EventType,
+		ResourceType: p.ResourceType,
 	})
 	if err != nil {
 		return
@@ -361,8 +364,10 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 	}
 
 	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
-		EntryPoint: entryPoint,
-		Input:      p.Input,
+		EntryPoint:   entryPoint,
+		Input:        p.Input,
+		EventType:    p.EventType,
+		ResourceType: p.ResourceType,
 	})
 	if err != nil {
 		return
@@ -387,6 +392,10 @@ func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID, execution
 	}
 
 	return
+}
+
+func (svc *ngAutomation) GetAllExecutions(ctx context.Context, f execTypes.ExecutionFilter) ([]*execTypes.ExecutionResult, error) {
+	return svc.execEngine.ListAllExecutions(ctx, f)
 }
 
 func (svc ngAutomation) uniqueCheck(ctx context.Context, res *types.NgAutomation) (err error) {

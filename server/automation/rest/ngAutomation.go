@@ -28,6 +28,7 @@ type (
 			ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error)
 			GetExecutions(ctx context.Context, automationID uint64) ([]*execTypes.ExecutionResult, error)
 			GetExecutionTrace(ctx context.Context, exeID, executionID uint64, rev int) ([]execTypes.StackFrame, error)
+			GetAllExecutions(ctx context.Context, f execTypes.ExecutionFilter) ([]*execTypes.ExecutionResult, error)
 		}
 
 		// cross-link with compose service to load module on resolved records
@@ -171,6 +172,15 @@ func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) 
 
 func (ctrl NgAutomation) Executions(ctx context.Context, r *request.NgAutomationExecutions) (interface{}, error) {
 	return ctrl.svc.GetExecutions(ctx, r.AutomationID)
+}
+
+func (ctrl NgAutomation) AllExecutions(ctx context.Context, r *request.NgAutomationAllExecutions) (interface{}, error) {
+	return ctrl.svc.GetAllExecutions(ctx, execTypes.ExecutionFilter{
+		AutomationID: r.AutomationID,
+		EventType:    r.EventType,
+		ResourceType: r.ResourceType,
+		Status:       r.Status,
+	})
 }
 
 func (ctrl NgAutomation) ExecutionTrace(ctx context.Context, r *request.NgAutomationExecutionTrace) (interface{}, error) {

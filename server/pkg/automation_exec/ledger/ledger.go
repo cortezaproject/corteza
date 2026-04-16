@@ -25,7 +25,7 @@ func Ledger(log *zap.Logger) *ledger {
 	}
 }
 
-func (l *ledger) RegisterExecution(ctx context.Context, executableID, executionID id.ID, revision int) error {
+func (l *ledger) RegisterExecution(ctx context.Context, executableID, executionID id.ID, revision int, params types.ExecutionParams) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -44,6 +44,8 @@ func (l *ledger) RegisterExecution(ctx context.Context, executableID, executionI
 		Status:       types.StatusCreated,
 		CreatedAt:    now,
 		UpdatedAt:    now,
+		EventType:    params.EventType,
+		ResourceType: params.ResourceType,
 		Events:       make([]types.StepEvent, 0),
 	}
 

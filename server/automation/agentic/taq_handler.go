@@ -31,8 +31,6 @@ func TAQHandler(reg toolRegistrar) *taqHandler {
 	return h
 }
 
-
-
 func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_lookup",
@@ -124,7 +122,10 @@ func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		return nil, err
 	}
 
-	params := autoTypes.NgAutomationExecParams{}
+	params := autoTypes.NgAutomationExecParams{
+		EventType:    "onAgentic",
+		ResourceType: "automation:trigger:agentic",
+	}
 
 	if ep, ok := args["entryPoint"].(string); ok && ep != "" {
 		params.EntryPoint = ep

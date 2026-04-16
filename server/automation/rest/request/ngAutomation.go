@@ -282,6 +282,28 @@ type (
 		// Execution ID
 		ExecutionID uint64 `json:",string"`
 	}
+
+	NgAutomationAllExecutions struct {
+		// AutomationID GET parameter
+		//
+		// Filter by automation ID
+		AutomationID []string
+
+		// EventType GET parameter
+		//
+		// Filter by event type
+		EventType string
+
+		// ResourceType GET parameter
+		//
+		// Filter by resource type
+		ResourceType string
+
+		// Status GET parameter
+		//
+		// Filter by status
+		Status []string
+	}
 )
 
 // NewNgAutomationList request
@@ -1521,6 +1543,87 @@ func (r *NgAutomationExecutionTrace) Fill(req *http.Request) (err error) {
 			return err
 		}
 
+	}
+
+	return err
+}
+
+// NewNgAutomationAllExecutions request
+func NewNgAutomationAllExecutions() *NgAutomationAllExecutions {
+	return &NgAutomationAllExecutions{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationAllExecutions) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"automationID": r.AutomationID,
+		"eventType":    r.EventType,
+		"resourceType": r.ResourceType,
+		"status":       r.Status,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationAllExecutions) GetAutomationID() []string {
+	return r.AutomationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationAllExecutions) GetEventType() string {
+	return r.EventType
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationAllExecutions) GetResourceType() string {
+	return r.ResourceType
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationAllExecutions) GetStatus() []string {
+	return r.Status
+}
+
+// Fill processes request and fills internal variables
+func (r *NgAutomationAllExecutions) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["automationID[]"]; ok {
+			r.AutomationID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["automationID"]; ok {
+			r.AutomationID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["eventType"]; ok && len(val) > 0 {
+			r.EventType, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resourceType"]; ok && len(val) > 0 {
+			r.ResourceType, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["status[]"]; ok {
+			r.Status, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["status"]; ok {
+			r.Status, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err

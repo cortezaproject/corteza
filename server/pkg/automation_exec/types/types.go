@@ -111,6 +111,9 @@ type (
 		UpdatedAt    time.Time
 		EndedAt      *time.Time
 
+		EventType    string
+		ResourceType string
+
 		Error error
 
 		Trace []StackFrame
@@ -159,8 +162,17 @@ type (
 	}
 
 	ExecutionParams struct {
-		EntryPoint string
-		Input      *expr.Vars
+		EntryPoint   string
+		Input        *expr.Vars
+		EventType    string
+		ResourceType string
+	}
+
+	ExecutionFilter struct {
+		AutomationID []string
+		EventType    string
+		ResourceType string
+		Status       []string
 	}
 
 	ExecutionResult struct {
@@ -172,6 +184,8 @@ type (
 		StartedAt    time.Time  `json:"startedAt"`
 		EndedAt      *time.Time `json:"endedAt,omitempty"`
 		Duration     string     `json:"duration"`
+		EventType    string     `json:"eventType,omitempty"`
+		ResourceType string     `json:"resourceType,omitempty"`
 	}
 )
 

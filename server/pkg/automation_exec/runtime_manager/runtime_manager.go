@@ -63,7 +63,7 @@ type Ledger interface {
 
 	IsExecutableInUse(ctx context.Context, executableID id.ID, rev int) (bool, error)
 
-	RegisterExecution(ctx context.Context, executableID, executionID id.ID, rev int) error
+	RegisterExecution(ctx context.Context, executableID, executionID id.ID, rev int, params types.ExecutionParams) error
 }
 
 type Governor interface {
@@ -197,7 +197,7 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 
 	eid := id.MustNumID(id.Next())
 
-	err = rm.ledger.RegisterExecution(ctx, executableID, eid, revision)
+	err = rm.ledger.RegisterExecution(ctx, executableID, eid, revision, params)
 	if err != nil {
 		return id.Zero(), err
 	}

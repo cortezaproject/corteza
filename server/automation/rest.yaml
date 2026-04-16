@@ -735,3 +735,14 @@ endpoints:
           path:
             - { name: automationID, type: uint64, required: true, title: 'NgAutomation ID' }
             - { name: executionID, type: uint64, required: true, title: 'Execution ID' }
+
+      - name: allExecutions
+        method: GET
+        title: List all ng automation execution sessions
+        path: '/executions'
+        parameters:
+          get:
+            - { name: automationID, type: '[]string', title: 'Filter by automation ID' }
+            - { name: eventType, type: string, title: 'Filter by event type' }
+            - { name: resourceType, type: string, title: 'Filter by resource type' }
+            - { name: status, type: '[]string', title: 'Filter by status' }

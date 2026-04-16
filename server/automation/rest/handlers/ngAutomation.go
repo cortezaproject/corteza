@@ -29,6 +29,7 @@ type (
 		Exec(context.Context, *request.NgAutomationExec) (interface{}, error)
 		Executions(context.Context, *request.NgAutomationExecutions) (interface{}, error)
 		ExecutionTrace(context.Context, *request.NgAutomationExecutionTrace) (interface{}, error)
+		AllExecutions(context.Context, *request.NgAutomationAllExecutions) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -43,6 +44,7 @@ type (
 		Exec           func(http.ResponseWriter, *http.Request)
 		Executions     func(http.ResponseWriter, *http.Request)
 		ExecutionTrace func(http.ResponseWriter, *http.Request)
+		AllExecutions  func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -208,6 +210,22 @@ func NewNgAutomation(h NgAutomationAPI) *NgAutomation {
 
 			api.Send(w, r, value)
 		},
+		AllExecutions: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNgAutomationAllExecutions()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.AllExecutions(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -224,5 +242,6 @@ func (h NgAutomation) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 		r.Post("/ng-automation/{automationID}/exec", h.Exec)
 		r.Get("/ng-automation/{automationID}/executions", h.Executions)
 		r.Get("/ng-automation/{automationID}/execution/{executionID}/trace", h.ExecutionTrace)
+		r.Get("/ng-automation/executions", h.AllExecutions)
 	})
 }

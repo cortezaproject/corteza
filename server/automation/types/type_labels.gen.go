@@ -59,7 +59,6 @@ func (m Trigger) LabelResourceID() uint64 {
 	return m.ID
 }
 
-
 // SetLabel adds new label to label map
 func (m *Workflow) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
