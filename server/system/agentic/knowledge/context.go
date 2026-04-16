@@ -23,6 +23,7 @@ type (
 	}
 )
 
+// @todo we probably need to make this more efficient to reduce DB access
 func BuildContext(ctx context.Context, kbStore KnowledgeBaseStore, ns NamespaceLookup, mod ModuleLookup, ids []uint64) string {
 	if len(ids) == 0 || ns == nil || mod == nil {
 		return ""

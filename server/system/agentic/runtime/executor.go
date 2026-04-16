@@ -28,23 +28,22 @@ const (
 )
 
 func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, error) {
-	// 1. Load and validate agent
-	agent, err := r.registry.Get(ctx, req.AgentID)
+	agent, err := r.loadAgent(ctx, req)
 	if err != nil {
-		return nil, errAgentNotFound(req.AgentID)
-	}
-
-	if err := validateAgent(agent); err != nil {
 		return nil, err
 	}
 
-	// Dynamic invocation schema population
-	if agent.Invocation.System.Enabled && (agent.Invocation.System.InputSchema == nil || len(agent.Invocation.System.InputSchema) == 0) {
-		agent.Invocation.System.InputSchema = r.computeInputSchema(ctx, agent)
+	// Pre-fetch all TAQ infos once to avoid N+1 lookups across tool building,
+	// system prompt generation, and input schema computation.
+	taqInfos := r.loadTAQInfos(ctx, agent)
+
+	// For system invocable agents, try to assure input schema
+	if agent.Invocation.System.Enabled && len(agent.Invocation.System.InputSchema) == 0 {
+		agent.Invocation.System.InputSchema = r.computeInputSchema(agent, taqInfos)
 	}
 
 	// 2. Get available tools
-	tools, err := r.getAvailableTools(ctx, agent)
+	tools, err := r.getAvailableTools(ctx, agent, taqInfos)
 	if err != nil {
 		return nil, err
 	}
@@ -63,37 +62,32 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		})
 	}
 
-	// Observability setup
-	traceID := sid()
-	agentIDStr := strconv.FormatUint(agent.ID, 10)
-	convIDStr := strconv.FormatUint(conversation.ID, 10)
-	userIDStr := strconv.FormatUint(auth.GetIdentityFromContext(ctx).Identity(), 10)
-	rootSpanID := sid()
+	tc := newTraceCtx(ctx, agent.ID, conversation.ID)
 	rootStartedAt := time.Now()
 
 	r.emitEvent(observability.AgentEvent{
 		ID:             sid(),
-		TraceID:        traceID,
-		SpanID:         rootSpanID,
+		TraceID:        tc.TraceID,
+		SpanID:         tc.SpanID,
 		Timestamp:      time.Now(),
 		Event:          "agent.invoked",
-		AgentID:        agentIDStr,
-		UserID:         userIDStr,
-		ConversationID: convIDStr,
+		AgentID:        tc.AgentID,
+		UserID:         tc.UserID,
+		ConversationID: tc.ConvID,
 		Details:        map[string]any{"input": req.Input},
 	})
 
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
-	systemPrompt := r.buildSystemPrompt(ctx, agent)
+	systemPrompt := r.buildSystemPrompt(ctx, agent, taqInfos)
 	r.emitSpan(observability.AgentSpan{
 		ID:             sid(),
-		ParentID:       rootSpanID,
-		TraceID:        traceID,
+		ParentID:       tc.SpanID,
+		TraceID:        tc.TraceID,
 		Name:           "prompt.build",
-		AgentID:        agentIDStr,
-		UserID:         userIDStr,
-		ConversationID: convIDStr,
+		AgentID:        tc.AgentID,
+		UserID:         tc.UserID,
+		ConversationID: tc.ConvID,
 		StartedAt:      promptBuildStart,
 		EndedAt:        time.Now(),
 		Status:         observability.StatusOK,
@@ -102,8 +96,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	// 5. Execution Loop
 	execResult, runErr := r.runExecutionLoop(
-		ctx, agent, conversation, systemPrompt, tools,
-		traceID, rootSpanID, agentIDStr, userIDStr, convIDStr,
+		ctx, agent, conversation, systemPrompt, tools, tc,
 	)
 
 	// End root span
@@ -112,12 +105,12 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		rootStatus = observability.StatusError
 	}
 	r.emitSpan(observability.AgentSpan{
-		ID:             rootSpanID,
-		TraceID:        traceID,
+		ID:             tc.SpanID,
+		TraceID:        tc.TraceID,
 		Name:           "agent.run",
-		AgentID:        agentIDStr,
-		UserID:         userIDStr,
-		ConversationID: convIDStr,
+		AgentID:        tc.AgentID,
+		UserID:         tc.UserID,
+		ConversationID: tc.ConvID,
 		StartedAt:      rootStartedAt,
 		EndedAt:        time.Now(),
 		Status:         rootStatus,
@@ -131,13 +124,13 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		decisions = execResult.Decisions
 		r.emitEvent(observability.AgentEvent{
 			ID:             sid(),
-			TraceID:        traceID,
-			SpanID:         rootSpanID,
+			TraceID:        tc.TraceID,
+			SpanID:         tc.SpanID,
 			Timestamp:      time.Now(),
 			Event:          "agent.completed",
-			AgentID:        agentIDStr,
-			UserID:         userIDStr,
-			ConversationID: convIDStr,
+			AgentID:        tc.AgentID,
+			UserID:         tc.UserID,
+			ConversationID: tc.ConvID,
 			Details: map[string]any{
 				"totalTokens": execResult.Usage.ContextWindow - execResult.InitialTokens,
 				"toolCalls":   len(execResult.ExecutedTools),
@@ -168,12 +161,26 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	return resp, nil
 }
 
-func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent) ([]Tool, error) {
+func (r *runtime) loadTAQInfos(ctx context.Context, agent *types.Agent) map[uint64]*autoTypes.NgAutomation {
+	infos := make(map[uint64]*autoTypes.NgAutomation, len(agent.Access.TAQs))
+	for _, tac := range agent.Access.TAQs {
+		if tac.ID == 0 {
+			continue
+		}
+		if info, err := r.taqService.LookupByID(ctx, tac.ID); err == nil {
+			infos[tac.ID] = info
+		}
+	}
+	return infos
+}
+
+func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation) ([]Tool, error) {
 	var tools []Tool
 	allowedToolNames := make([]string, len(agent.Access.Tools))
 	for i, t := range agent.Access.Tools {
 		allowedToolNames[i] = t.Name
 	}
+
 	baseTools, err := r.mcp.GetTools(ctx, allowedToolNames)
 	if err != nil {
 		return nil, errMCP(err)
@@ -184,8 +191,9 @@ func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent) ([]
 		if tac.ID == 0 {
 			continue
 		}
-		info, err := r.taqService.LookupByID(ctx, tac.ID)
-		if err != nil {
+
+		info, ok := taqInfos[tac.ID]
+		if !ok {
 			continue
 		}
 
@@ -210,7 +218,7 @@ func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent) ([]
 	return tools, nil
 }
 
-func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent) string {
+func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation) string {
 	now := time.Now()
 	systemPrompt := fmt.Sprintf("Current date and time: %s\n\n", now.Format("2006-01-02 15:04:05 MST")) + agent.Behavior.SystemPrompt
 	if agent.Behavior.InjectSystemContext {
@@ -244,15 +252,15 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent) str
 	}
 
 	if len(agent.Access.TAQs) > 0 || len(agent.Access.Workflows) > 0 {
-		systemPrompt += "\n\n## AVAILABLE AUTOMATIONS\n\nYou have access to execute the following TAQs and Workflows. The internal IDs below are for tool calls only — NEVER mention or display them to the user. When referring to an automation, use its name or description. When the user asks to trigger one: (1) use automation_taq_lookup or automation_workflow_lookup to fetch its details, (2) always ask the user if they want to provide any input — if the lookup reveals specific input fields ask for those, otherwise ask generically — (3) only execute after the user has responded about inputs, using the internal-id as a string (e.g. \"123456\"). If the execution returns an empty result, do not retry — inform the user that the automation ran but returned no output, and ask if they want to provide additional details or try again.\n"
+		systemPrompt += "\n\n## AVAILABLE TAQs AND WORKFLOWS\n\nYou have access to execute the following TAQs and Workflows. The internal IDs below are for tool calls only — NEVER mention or display them to the user. When referring to a TAQ or Workflow, use its name or description. When the user asks to trigger one: (1) use automation_taq_lookup or automation_workflow_lookup to fetch its details, (2) always ask the user if they want to provide any input — if the lookup reveals specific input fields ask for those, otherwise ask generically — (3) only execute after the user has responded about inputs, using the internal-id as a string (e.g. \"123456\"). If the execution returns an empty result, do not retry — inform the user that the TAQ or Workflow ran but returned no output, and ask if they want to provide additional details or try again.\n"
 		if len(agent.Access.TAQs) > 0 {
 			systemPrompt += "\n### TAQs:\n"
 			for _, t := range agent.Access.TAQs {
 				if t.ID == 0 {
 					continue
 				}
-				info, err := r.taqService.LookupByID(ctx, t.ID)
-				if err != nil {
+				info, ok := taqInfos[t.ID]
+				if !ok {
 					continue
 				}
 
@@ -332,7 +340,7 @@ func (r *runtime) runExecutionLoop(
 	conversation *types.AiConversation,
 	systemPrompt string,
 	tools []Tool,
-	traceID, rootSpanID, agentIDStr, userIDStr, convIDStr string,
+	tc traceCtx,
 ) (*executionResult, error) {
 	limits := agent.Execution.Limits
 	maxIterations := limits.MaxIterations
@@ -376,12 +384,12 @@ func (r *runtime) runExecutionLoop(
 
 		llmSpan := observability.AgentSpan{
 			ID:             llmSpanID,
-			ParentID:       rootSpanID,
-			TraceID:        traceID,
+			ParentID:       tc.SpanID,
+			TraceID:        tc.TraceID,
 			Name:           "llm.chat",
-			AgentID:        agentIDStr,
-			UserID:         userIDStr,
-			ConversationID: convIDStr,
+			AgentID:        tc.AgentID,
+			UserID:         tc.UserID,
+			ConversationID: tc.ConvID,
 			StartedAt:      llmStart,
 			EndedAt:        time.Now(),
 		}
@@ -412,8 +420,8 @@ func (r *runtime) runExecutionLoop(
 
 		if len(llmResp.ToolCalls) > 0 {
 			toolNames := make([]string, len(llmResp.ToolCalls))
-			for j, tc := range llmResp.ToolCalls {
-				toolNames[j] = tc.Name
+			for j, call := range llmResp.ToolCalls {
+				toolNames[j] = call.Name
 			}
 			d := DecisionInfo{
 				Iteration: i + 1,
@@ -425,13 +433,13 @@ func (r *runtime) runExecutionLoop(
 			decisions = append(decisions, d)
 			r.emitEvent(observability.AgentEvent{
 				ID:             sid(),
-				TraceID:        traceID,
-				SpanID:         rootSpanID,
+				TraceID:        tc.TraceID,
+				SpanID:         tc.SpanID,
 				Timestamp:      time.Now(),
 				Event:          "agent.decision",
-				AgentID:        agentIDStr,
-				UserID:         userIDStr,
-				ConversationID: convIDStr,
+				AgentID:        tc.AgentID,
+				UserID:         tc.UserID,
+				ConversationID: tc.ConvID,
 				Details:        map[string]any{"iteration": d.Iteration, "decision": d.Decision, "tools": d.Tools},
 			})
 
@@ -441,7 +449,7 @@ func (r *runtime) runExecutionLoop(
 				ToolCalls: toAiToolCalls(llmResp.ToolCalls),
 			})
 
-			results, infos := r.executeTools(ctx, agent, llmResp.ToolCalls, traceID, rootSpanID, agentIDStr, userIDStr, convIDStr)
+			results, infos := r.executeTools(ctx, agent, llmResp.ToolCalls, tc)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 
@@ -467,13 +475,13 @@ func (r *runtime) runExecutionLoop(
 			decisions = append(decisions, d)
 			r.emitEvent(observability.AgentEvent{
 				ID:             sid(),
-				TraceID:        traceID,
-				SpanID:         rootSpanID,
+				TraceID:        tc.TraceID,
+				SpanID:         tc.SpanID,
 				Timestamp:      time.Now(),
 				Event:          "agent.decision",
-				AgentID:        agentIDStr,
-				UserID:         userIDStr,
-				ConversationID: convIDStr,
+				AgentID:        tc.AgentID,
+				UserID:         tc.UserID,
+				ConversationID: tc.ConvID,
 				Details:        map[string]any{"iteration": d.Iteration, "decision": d.Decision},
 			})
 
@@ -485,12 +493,12 @@ func (r *runtime) runExecutionLoop(
 			})
 			r.emitSpan(observability.AgentSpan{
 				ID:             sid(),
-				ParentID:       rootSpanID,
-				TraceID:        traceID,
+				ParentID:       tc.SpanID,
+				TraceID:        tc.TraceID,
 				Name:           "agent.respond",
-				AgentID:        agentIDStr,
-				UserID:         userIDStr,
-				ConversationID: convIDStr,
+				AgentID:        tc.AgentID,
+				UserID:         tc.UserID,
+				ConversationID: tc.ConvID,
 				StartedAt:      respondStart,
 				EndedAt:        time.Now(),
 				Status:         observability.StatusOK,
@@ -567,20 +575,20 @@ func (u *Usage) accumulate(other Usage) {
 }
 
 // executeTools runs each tool call and returns conversation messages + telemetry info.
-func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, traceID, parentSpanID, agentID, userID, convID string) ([]types.AiConversationMessage, []ToolCallInfo) {
+func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, tc traceCtx) ([]types.AiConversationMessage, []ToolCallInfo) {
 	var (
 		messages []types.AiConversationMessage
 		infos    []ToolCallInfo
 	)
 
-	for _, tc := range calls {
+	for _, call := range calls {
 		start := time.Now()
 
 		policyStart := time.Now()
-		policyArgs := policy.MapValues(tc.Args)
-		if strings.HasPrefix(tc.Name, "compose_") && r.nsModResolver != nil {
-			ns, _ := tc.Args["namespace"].(string)
-			mod, _ := tc.Args["module"].(string)
+		policyArgs := policy.MapValues(call.Args)
+		if strings.HasPrefix(call.Name, "compose_") && r.nsModResolver != nil {
+			ns, _ := call.Args["namespace"].(string)
+			mod, _ := call.Args["module"].(string)
 			// Always derive IDs from handles — ignore any direct namespaceID/moduleID
 			// the LLM may have hallucinated (those aren't schema parameters).
 			delete(policyArgs, "namespaceID")
@@ -591,11 +599,11 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 					// Fail early — don't let an unresolvable namespace fall through to the
 					// wildcard policy path. Return a descriptive error so the LLM can self-correct.
 					errMsg := resolveErr.Error()
-					infos = append(infos, ToolCallInfo{Tool: tc.Name, Args: tc.Args, Error: errMsg})
+					infos = append(infos, ToolCallInfo{Tool: call.Name, Args: call.Args, Error: errMsg})
 					messages = append(messages, types.AiConversationMessage{
 						Role: "tool",
 						ToolResults: []types.AiConversationToolResult{
-							{CallID: tc.ID, Data: errMsg, Error: errMsg},
+							{CallID: call.ID, Data: errMsg, Error: errMsg},
 						},
 					})
 					continue
@@ -606,24 +614,24 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		}
 		// If the agent passed a TAQ/workflow handle or name instead of numeric ID,
 		// resolve it so the policy check always sees the numeric ID.
-		if tc.Name == "automation_taq_exec" {
-			policyArgs["taq"] = r.resolveTAQRef(ctx, fmt.Sprintf("%v", tc.Args["taq"]))
+		if call.Name == "automation_taq_exec" {
+			policyArgs["taq"] = r.resolveTAQRef(ctx, fmt.Sprintf("%v", call.Args["taq"]))
 		}
-		if tc.Name == "automation_workflow_exec" {
-			policyArgs["workflow"] = r.resolveWorkflowRef(ctx, fmt.Sprintf("%v", tc.Args["workflow"]))
+		if call.Name == "automation_workflow_exec" {
+			policyArgs["workflow"] = r.resolveWorkflowRef(ctx, fmt.Sprintf("%v", call.Args["workflow"]))
 		}
-		decision := policy.Evaluate(agent, tc.Name, policyArgs)
+		decision := policy.Evaluate(agent, call.Name, policyArgs)
 		policySpan := observability.AgentSpan{
 			ID:             sid(),
-			ParentID:       parentSpanID,
-			TraceID:        traceID,
+			ParentID:       tc.SpanID,
+			TraceID:        tc.TraceID,
 			Name:           "policy.evaluate",
-			AgentID:        agentID,
-			UserID:         userID,
-			ConversationID: convID,
+			AgentID:        tc.AgentID,
+			UserID:         tc.UserID,
+			ConversationID: tc.ConvID,
 			StartedAt:      policyStart,
 			EndedAt:        time.Now(),
-			Attributes:     map[string]any{"tool": tc.Name, "allowed": decision.Allowed, "reason": decision.Reason},
+			Attributes:     map[string]any{"tool": call.Name, "allowed": decision.Allowed, "reason": decision.Reason},
 		}
 		if decision.Allowed {
 			policySpan.Status = observability.StatusOK
@@ -635,25 +643,25 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		if !decision.Allowed {
 			r.emitEvent(observability.AgentEvent{
 				ID:             sid(),
-				TraceID:        traceID,
-				SpanID:         parentSpanID,
+				TraceID:        tc.TraceID,
+				SpanID:         tc.SpanID,
 				Timestamp:      time.Now(),
 				Event:          "tool.denied",
-				AgentID:        agentID,
-				UserID:         userID,
-				ConversationID: convID,
-				Details:        map[string]any{"tool": tc.Name, "reason": decision.Reason},
+				AgentID:        tc.AgentID,
+				UserID:         tc.UserID,
+				ConversationID: tc.ConvID,
+				Details:        map[string]any{"tool": call.Name, "reason": decision.Reason},
 			})
 			infos = append(infos, ToolCallInfo{
-				Tool:  tc.Name,
-				Args:  tc.Args,
+				Tool:  call.Name,
+				Args:  call.Args,
 				Error: decision.Reason,
 			})
 			denialMsg := "Access denied: " + decision.Reason + ". Do not retry this tool call, attempt alternatives, or create records to work around this denial. Continue with the original task using only the tools you are permitted to use."
 			messages = append(messages, types.AiConversationMessage{
 				Role: "tool",
 				ToolResults: []types.AiConversationToolResult{
-					{CallID: tc.ID, Data: denialMsg, Error: denialMsg},
+					{CallID: call.ID, Data: denialMsg, Error: denialMsg},
 				},
 			})
 			continue
@@ -661,21 +669,21 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 
 		r.emitEvent(observability.AgentEvent{
 			ID:             sid(),
-			TraceID:        traceID,
-			SpanID:         parentSpanID,
+			TraceID:        tc.TraceID,
+			SpanID:         tc.SpanID,
 			Timestamp:      time.Now(),
 			Event:          "tool.called",
-			AgentID:        agentID,
-			UserID:         userID,
-			ConversationID: convID,
-			Details:        map[string]any{"tool": tc.Name, "args": decision.SanitizedArgs},
+			AgentID:        tc.AgentID,
+			UserID:         tc.UserID,
+			ConversationID: tc.ConvID,
+			Details:        map[string]any{"tool": call.Name, "args": decision.SanitizedArgs},
 		})
 
-		executeToolName := tc.Name
+		executeToolName := call.Name
 		executeArgs := decision.SanitizedArgs
 
-		if strings.HasPrefix(tc.Name, "automation_") && !strings.HasPrefix(tc.Name, "automation_taq_") && !strings.HasPrefix(tc.Name, "automation_workflow_") {
-			idStr := strings.TrimPrefix(tc.Name, "automation_")
+		if strings.HasPrefix(call.Name, "automation_") && !strings.HasPrefix(call.Name, "automation_taq_") && !strings.HasPrefix(call.Name, "automation_workflow_") {
+			idStr := strings.TrimPrefix(call.Name, "automation_")
 			if _, err := strconv.ParseUint(idStr, 10, 64); err == nil {
 				executeToolName = "automation_taq_exec"
 				executeArgs = map[string]any{
@@ -690,15 +698,15 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 
 		toolSpan := observability.AgentSpan{
 			ID:             sid(),
-			ParentID:       parentSpanID,
-			TraceID:        traceID,
+			ParentID:       tc.SpanID,
+			TraceID:        tc.TraceID,
 			Name:           "tool.execute",
-			AgentID:        agentID,
-			UserID:         userID,
-			ConversationID: convID,
+			AgentID:        tc.AgentID,
+			UserID:         tc.UserID,
+			ConversationID: tc.ConvID,
 			StartedAt:      start,
 			EndedAt:        time.Now(),
-			Attributes:     map[string]any{"tool": tc.Name},
+			Attributes:     map[string]any{"tool": call.Name},
 		}
 
 		if execErr != nil {
@@ -711,26 +719,26 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 
 		r.emitEvent(observability.AgentEvent{
 			ID:             sid(),
-			TraceID:        traceID,
-			SpanID:         parentSpanID,
+			TraceID:        tc.TraceID,
+			SpanID:         tc.SpanID,
 			Timestamp:      time.Now(),
 			Event:          "tool.completed",
-			AgentID:        agentID,
-			UserID:         userID,
-			ConversationID: convID,
-			Details:        map[string]any{"tool": tc.Name, "durationMs": duration},
+			AgentID:        tc.AgentID,
+			UserID:         tc.UserID,
+			ConversationID: tc.ConvID,
+			Details:        map[string]any{"tool": call.Name, "durationMs": duration},
 		})
 
 		resultData, _ := json.Marshal(sanitizeToolResult(result))
 
 		toolResult := types.AiConversationToolResult{
-			CallID: tc.ID,
+			CallID: call.ID,
 			Data:   string(resultData),
 		}
 
 		info := ToolCallInfo{
-			Tool:       tc.Name,
-			Args:       tc.Args,
+			Tool:       call.Name,
+			Args:       call.Args,
 			Result:     result,
 			DurationMs: duration,
 		}
@@ -787,6 +795,26 @@ func (r *runtime) emitEvent(event observability.AgentEvent) {
 
 func sid() string {
 	return strconv.FormatUint(id.Next(), 10)
+}
+
+// traceCtx bundles the string IDs that are threaded through every observability
+// call within a single agent run, so they don't have to be passed individually.
+type traceCtx struct {
+	TraceID string
+	SpanID  string // root span for this run
+	AgentID string
+	UserID  string
+	ConvID  string
+}
+
+func newTraceCtx(ctx context.Context, agentID, convID uint64) traceCtx {
+	return traceCtx{
+		TraceID: sid(),
+		SpanID:  sid(),
+		AgentID: strconv.FormatUint(agentID, 10),
+		UserID:  strconv.FormatUint(auth.GetIdentityFromContext(ctx).Identity(), 10),
+		ConvID:  strconv.FormatUint(convID, 10),
+	}
 }
 
 // scopeFields returns a compact field list from an expr.Vars scope, e.g. "{name (String), email (String)}".
@@ -938,11 +966,11 @@ func (r *runtime) hasDirectInvokeTrigger(ctx context.Context, a *autoTypes.NgAut
 	return false
 }
 
-func (r *runtime) computeInputSchema(ctx context.Context, agent *types.Agent) json.RawMessage {
+func (r *runtime) computeInputSchema(agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation) json.RawMessage {
 	// If the agent specifies a direct-invoke TAQ, use its InputSchema
 	for _, t := range agent.Access.TAQs {
-		info, err := r.taqService.LookupByID(ctx, t.ID)
-		if err != nil {
+		info, ok := taqInfos[t.ID]
+		if !ok {
 			continue
 		}
 
@@ -1007,7 +1035,7 @@ func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.Ng
 		title = name
 	}
 
-	desc := fmt.Sprintf("Executes the %q automation.", title)
+	desc := fmt.Sprintf("Executes the %q TAQ.", title)
 	if taq.Meta != nil && taq.Meta.Description != "" {
 		desc += "\n\nDescription:\n" + taq.Meta.Description
 	}
@@ -1023,4 +1051,17 @@ func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.Ng
 		Description: desc,
 		InputSchema: inputSchema,
 	}
+}
+
+func (r *runtime) loadAgent(ctx context.Context, req *AgentRequest) (*types.Agent, error) {
+	agent, err := r.registry.Get(ctx, req.AgentID)
+	if err != nil {
+		return nil, errAgentNotFound(req.AgentID)
+	}
+
+	if err := validateAgent(agent); err != nil {
+		return nil, err
+	}
+
+	return agent, err
 }
