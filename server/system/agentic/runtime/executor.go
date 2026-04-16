@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
@@ -17,7 +18,6 @@ import (
 	"github.com/cortezaproject/corteza/server/system/agentic/policy"
 	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
 	"github.com/cortezaproject/corteza/server/system/types"
-	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
 )
 
 //go:embed human.md
@@ -671,7 +671,21 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			Details:        map[string]any{"tool": tc.Name, "args": decision.SanitizedArgs},
 		})
 
-		result, execErr := r.mcp.ExecuteTool(ctx, tc.Name, decision.SanitizedArgs)
+		executeToolName := tc.Name
+		executeArgs := decision.SanitizedArgs
+
+		if strings.HasPrefix(tc.Name, "automation_") && !strings.HasPrefix(tc.Name, "automation_taq_") && !strings.HasPrefix(tc.Name, "automation_workflow_") {
+			idStr := strings.TrimPrefix(tc.Name, "automation_")
+			if _, err := strconv.ParseUint(idStr, 10, 64); err == nil {
+				executeToolName = "automation_taq_exec"
+				executeArgs = map[string]any{
+					"taq":   idStr,
+					"input": decision.SanitizedArgs,
+				}
+			}
+		}
+
+		result, execErr := r.mcp.ExecuteTool(ctx, executeToolName, executeArgs)
 		duration := int(time.Since(start).Milliseconds())
 
 		toolSpan := observability.AgentSpan{
@@ -686,6 +700,7 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			EndedAt:        time.Now(),
 			Attributes:     map[string]any{"tool": tc.Name},
 		}
+
 		if execErr != nil {
 			toolSpan.Status = observability.StatusError
 			toolSpan.Error = execErr

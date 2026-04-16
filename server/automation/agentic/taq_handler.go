@@ -60,6 +60,16 @@ func (h *taqHandler) register() {
 		"Get TAQ execution trace",
 		h.executionTrace,
 	)
+
+	h.reg.RegisterHiddenTool(
+		mcp.NewTool("automation_taq_exec",
+			mcp.WithDescription("Execute a TAQ"),
+			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string")),
+			mcp.WithString("entryPoint", mcp.Description("Optional specific trigger handle")),
+		),
+		"Execute TAQ",
+		h.exec,
+	)
 }
 
 func (h *taqHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
