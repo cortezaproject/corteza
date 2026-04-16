@@ -53,40 +53,55 @@
       <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
         <template #content>
           <div class="flex flex-col gap-5 p-5">
-            <!-- Name -->
-            <FormField name="name" class="flex flex-col gap-2">
-              <label for="name" class="font-medium text-primary">
-                {{ $t('namespace.name.label') }}
-              </label>
-              <InputText
-                id="name"
-                name="name"
-                v-model="namespace.name"
-                :placeholder="$t('namespace.name.placeholder')"
-              />
-              <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-                {{ $form.name.error?.message }}
-              </Message>
-            </FormField>
+            <!-- Name + Slug inline -->
+            <div class="flex gap-4">
+              <FormField name="name" class="flex flex-col gap-2 flex-1">
+                <label for="name" class="font-medium text-primary">
+                  {{ $t('namespace.name.label') }}
+                </label>
+                <InputText
+                  id="name"
+                  name="name"
+                  v-model="namespace.name"
+                  :placeholder="$t('namespace.name.placeholder')"
+                />
+                <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
+                  {{ $form.name.error?.message }}
+                </Message>
+              </FormField>
 
-            <!-- Slug -->
-            <FormField name="slug" class="flex flex-col gap-2">
-              <label for="slug" class="font-medium text-primary">
-                {{ $t('namespace.slug.label') }}
-              </label>
-              <InputText
-                id="slug"
-                name="slug"
-                v-model="namespace.slug"
-                :placeholder="$t('namespace.slug.placeholder')"
+              <FormField name="slug" class="flex flex-col gap-2 flex-1">
+                <label for="slug" class="font-medium text-primary">
+                  {{ $t('namespace.slug.label') }}
+                </label>
+                <InputText
+                  id="slug"
+                  name="slug"
+                  v-model="namespace.slug"
+                  :placeholder="$t('namespace.slug.placeholder')"
+                />
+                <small class="text-muted-color">
+                  {{ $t('namespace.slug.description') }}
+                </small>
+                <Message v-if="$form.slug?.invalid" severity="error" size="small" variant="simple">
+                  {{ $form.slug.error?.message }}
+                </Message>
+              </FormField>
+            </div>
+
+            <!-- Labels -->
+            <div class="flex flex-col gap-2">
+              <label class="font-medium text-primary">{{ $t('namespace.labels.label') }}</label>
+              <CInputLabel
+                v-model="namespace.labels"
+                :placeholder="$t('namespace.labels.placeholder')"
+                :create-label="$t('namespace.labels.createNew')"
+                :create-dialog-label="$t('namespace.labels.dialogCreate')"
+                :name-label="$t('namespace.labels.name')"
+                :save-btn-label="$t('general.label.save')"
+                :cancel-btn-label="$t('general.label.cancel')"
               />
-              <small class="text-muted-color">
-                {{ $t('namespace.slug.description') }}
-              </small>
-              <Message v-if="$form.slug?.invalid" severity="error" size="small" variant="simple">
-                {{ $form.slug.error?.message }}
-              </Message>
-            </FormField>
+            </div>
 
             <!-- Enabled -->
             <div class="flex items-center gap-2">
@@ -97,13 +112,13 @@
             <Divider />
 
             <!-- Logo -->
-            <div class="flex items-center gap-2">
-              <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
-              <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
-            </div>
-
-            <div v-if="namespace.meta.logoEnabled" class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
+                <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
+              </div>
               <CFileDropZone
+                v-if="namespace.meta.logoEnabled"
                 accept="image/*"
                 :uploading="logoUploading"
                 :error="logoError"
@@ -152,6 +167,7 @@
               <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
               <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
             </div>
+
           </div>
         </template>
       </Card>
@@ -203,7 +219,7 @@ import { components, useFileUpload, useUnsavedGuard } from '@cortezaproject/cort
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 
-const { CInputDelete, CFileDropZone } = components
+const { CInputDelete, CFileDropZone, CInputLabel } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -212,6 +228,7 @@ const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const $Settings = inject('$Settings')
 const namespaceStore = useNamespaceStore()
 
 // State
@@ -231,12 +248,13 @@ useUnsavedGuard({
 const { uploading: logoUploading, uploadError: logoError, uploadFileRaw: uploadLogoRaw, reset: resetLogoUpload } = useFileUpload()
 
 const logoPreviewUrl = computed(() => {
-  if (!namespace.value?.meta?.logo) return ''
-  const logo = namespace.value.meta.logo
-  // If it's already a full URL, use it directly
-  if (logo.startsWith('http')) return logo
-  // Otherwise construct URL from attachment endpoint
-  return $ComposeAPI.baseURL + logo
+  const logo = namespace.value?.meta?.logo
+  if (logo) {
+    if (logo.startsWith('http')) return logo
+    return $ComposeAPI.baseURL + logo
+  }
+  // Fall back to global main logo (same as namespace list view)
+  return $Settings.attachment('ui.mainLogo') || ''
 })
 
 // Computed
@@ -327,11 +345,13 @@ async function handleSubmit({ valid }) {
       slug: namespace.value.slug,
       enabled: namespace.value.enabled,
       meta: namespace.value.meta,
+      labels: namespace.value.labels || {},
     }
 
     if (isEdit.value) {
       payload.namespaceID = namespace.value.namespaceID
-      await namespaceStore.update(payload)
+      const updated = await namespaceStore.update(payload)
+      namespace.value = new compose.Namespace({ ...updated })
       initialNamespace.value = cloneDeep(namespace.value)
       $toast.toastSuccess(t('notification.namespace.saved'))
     } else {

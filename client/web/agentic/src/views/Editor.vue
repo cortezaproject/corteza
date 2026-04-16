@@ -78,6 +78,21 @@
                       />
                       <small class="text-muted-color">{{ $t('agent.editor.status.help') }}</small>
                     </div>
+                    <div class="flex flex-col gap-1">
+                      <label class="font-medium text-primary">
+                        {{ $t('agent.editor.labels.label') }}
+                      </label>
+                      <CInputLabel
+                        v-model="agent.labels"
+                        :placeholder="$t('agent.editor.labels.placeholder')"
+                        :create-label="$t('agent.editor.labels.createNew')"
+                        :create-dialog-label="$t('agent.editor.labels.dialogCreate')"
+                        :name-label="$t('agent.editor.labels.name')"
+                        :save-btn-label="$t('general.label.save')"
+                        :cancel-btn-label="$t('general.label.cancel')"
+                      />
+                      <small class="text-muted-color">{{ $t('agent.editor.labels.help') }}</small>
+                    </div>
                   </div>
                 </Panel>
 
@@ -861,6 +876,7 @@ const {
   CResourceList,
   CInputNamespace,
   CInputModule,
+  CInputLabel,
 } = components
 
 const route = useRoute()

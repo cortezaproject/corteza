@@ -91,68 +91,18 @@
     </div>
 
     <!-- Chat -->
-    <div v-else class="flex min-h-0 flex-1 flex-col">
-      <div class="flex-1 overflow-y-auto p-3 space-y-4 flex flex-col" ref="chatContainer">
-        <template v-if="activeConversation && filteredMessages.length > 0">
-          <div
-            v-for="(msg, index) in filteredMessages"
-            :key="index"
-            class="flex flex-col max-w-[90%]"
-            :class="msg.role === 'user' ? 'self-end items-end' : 'self-start items-start'"
-          >
-            <div
-              class="px-3 py-2 rounded-2xl shadow-sm text-sm"
-              :class="
-                msg.role === 'user'
-                  ? 'bg-primary text-primary-contrast'
-                  : 'bg-surface text-color border border-surface-border'
-              "
-            >
-              <div
-                v-if="msg.role === 'agent'"
-                class="markdown-body"
-                v-html="renderMarkdown(msg.content)"
-              />
-              <div v-else class="whitespace-pre-wrap">{{ msg.content }}</div>
-            </div>
-          </div>
-        </template>
-        <div
-          v-else
-          class="flex h-full items-center justify-center text-muted-color p-4 text-center text-sm flex-1"
-        >
-          {{ $t('agent.sidebar.empty') }}
-        </div>
-
-        <div v-if="executing" class="self-start items-start mt-auto">
-          <div class="px-3 py-2 rounded-2xl shadow-sm text-sm bg-surface text-color border border-surface-border flex gap-1 items-center h-[34px]">
-            <span class="w-1.5 h-1.5 bg-muted-color rounded-full animate-bounce" />
-            <span class="w-1.5 h-1.5 bg-muted-color rounded-full animate-bounce" style="animation-delay: 0.2s" />
-            <span class="w-1.5 h-1.5 bg-muted-color rounded-full animate-bounce" style="animation-delay: 0.4s" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Input -->
-      <div class="p-3 border-t border-surface flex items-end gap-2 shrink-0 bg-surface">
-        <Textarea
-          v-model="chatInput"
-          autoResize
-          rows="1"
-          class="flex-1 text-sm block"
-          style="min-height: 2.5rem; max-height: 10rem"
-          :placeholder="$t('agent.sidebar.placeholder')"
-          @keydown.enter.prevent="sendMessage"
-          :disabled="executing || !agentStore.activeAgentID"
-        />
-        <Button
-          icon="pi pi-send"
-          @click="sendMessage"
-          :disabled="!chatInput.trim() || executing || !agentStore.activeAgentID"
-          :loading="executing"
-        />
-      </div>
-    </div>
+    <CChatMessages
+      v-else
+      ref="chatMessagesRef"
+      :messages="filteredMessages"
+      :executing="executing"
+      :disabled="!agentStore.activeAgentID"
+      :placeholder="$t('agent.sidebar.placeholder')"
+      :thinking-label="$t('agent.sidebar.thinking')"
+      @send="onSend"
+    >
+      <template #empty>{{ $t('agent.sidebar.empty') }}</template>
+    </CChatMessages>
   </div>
 </template>
 
@@ -160,6 +110,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useAgentSidebarStore } from '../../stores/useAgentSidebarStore'
 import { useI18n } from 'vue-i18n'
+import CChatMessages from './CChatMessages.vue'
 
 const { t } = useI18n()
 
@@ -217,30 +168,20 @@ const hasStartedConversations = computed(() =>
   conversations.value.some((c: any) => c.messages.length > 0),
 )
 
-const chatInput = ref('')
 const executing = ref(false)
-const chatContainer = ref<HTMLElement | null>(null)
+const chatMessagesRef = ref<InstanceType<typeof CChatMessages> | null>(null)
 
-const scrollToBottom = async () => {
-  await nextTick()
-  if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-  }
-}
+watch(activeConversationIndex, () => {
+  nextTick(() => chatMessagesRef.value?.scrollToBottom())
+})
 
-watch(activeConversationIndex, () => scrollToBottom())
-
-const sendMessage = async () => {
-  if (!chatInput.value.trim() || executing.value || !agentStore.activeAgentID) return
-
-  const input = chatInput.value
-  chatInput.value = ''
+async function onSend(input: string) {
+  if (!agentStore.activeAgentID) return
 
   const currentAgentID = agentStore.activeAgentID
   agentStore.addMessage(currentAgentID, { role: 'user', content: input })
 
   executing.value = true
-  scrollToBottom()
 
   try {
     const activeConv = activeConversation.value as any
@@ -263,42 +204,6 @@ const sendMessage = async () => {
     agentStore.addMessage(currentAgentID, { role: 'agent', content: 'Error: ' + err.message })
   } finally {
     executing.value = false
-    scrollToBottom()
   }
 }
-
-function renderMarkdown(text: string) {
-  if (!text) return ''
-
-  let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-
-  html = html.replace(
-    /```(\w*)\n([\s\S]*?)```/g,
-    '<pre class="bg-surface p-2 rounded my-2 overflow-x-auto text-xs font-mono border border-surface-border"><code>$2</code></pre>',
-  )
-  html = html.replace(
-    /`([^`]+)`/g,
-    '<code class="bg-surface px-1 py-0.5 rounded text-xs font-mono border border-surface-border">$1</code>',
-  )
-  html = html.replace(/^### (.+)$/gm, '<h4 class="font-bold mt-2 mb-1">$1</h4>')
-  html = html.replace(/^## (.+)$/gm, '<h3 class="font-bold text-base mt-2 mb-1">$1</h3>')
-  html = html.replace(/^# (.+)$/gm, '<h2 class="font-bold text-lg mt-2 mb-1">$1</h2>')
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  html = html.replace(/^[*-] (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-  html = html.replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal">$1</li>')
-  html = html.replace(/\n\n/g, '</p><p class="my-1">')
-  html = html.replace(/\n/g, '<br>')
-
-  return `<div class="prose-sm">${html}</div>`
-}
 </script>
-
-<style scoped>
-.markdown-body :deep(p) {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-.markdown-body :deep(p:first-child) { margin-top: 0; }
-.markdown-body :deep(p:last-child) { margin-bottom: 0; }
-</style>

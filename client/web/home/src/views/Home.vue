@@ -1,11 +1,7 @@
 <template>
   <div class="flex h-full p-3 gap-0 overflow-hidden bg-surface-ground">
-
     <!-- ── Apps column (left) ──────────────────────────────── -->
-    <div
-      class="column-panel flex flex-col shrink-0"
-      :style="{ width: menuWidth + 'px' }"
-    >
+    <div class="column-panel flex flex-col shrink-0" :style="{ width: menuWidth + 'px' }">
       <div class="flex items-center gap-2 px-3 py-2 border-b border-surface shrink-0">
         <i class="pi pi-th-large text-primary text-sm" />
         <span class="font-semibold text-base text-color">{{ $t('home.column.apps') }}</span>
@@ -26,10 +22,7 @@
     </div>
 
     <!-- ── Resize handle: menu / agent ──────────────────────── -->
-    <div
-      class="resize-handle group"
-      @mousedown="startMenuResize"
-    >
+    <div class="resize-handle group" @mousedown="startMenuResize">
       <div class="resize-handle-bar group-hover:opacity-100" />
     </div>
 
@@ -39,29 +32,19 @@
     </div>
 
     <!-- ── Resize handle: agent / notifications ──────────────── -->
-    <div
-      class="resize-handle group"
-      @mousedown="startNotificationsResize"
-    >
+    <div class="resize-handle group" @mousedown="startNotificationsResize">
       <div class="resize-handle-bar group-hover:opacity-100" />
     </div>
 
     <!-- ── Notifications column (right) ─────────────────────── -->
-    <div
-      class="column-panel flex flex-col shrink-0"
-      :style="{ width: notificationsWidth + 'px' }"
-    >
+    <div class="column-panel flex flex-col shrink-0" :style="{ width: notificationsWidth + 'px' }">
       <CNotificationsPanel />
     </div>
-
   </div>
 </template>
 
 <script setup>
-import {
-  components,
-  useNotificationsStore,
-} from '@cortezaproject/corteza-vue-next'
+import { components, useNotificationsStore } from '@cortezaproject/corteza-vue-next'
 import { ref } from 'vue'
 import { useColumnResize } from '../composables/useColumnResize'
 
@@ -73,7 +56,8 @@ const appsQuery = ref('')
 useNotificationsStore()
 
 // ── Column resize ────────────────────────────────────────────
-const { menuWidth, notificationsWidth, startMenuResize, startNotificationsResize } = useColumnResize()
+const { menuWidth, notificationsWidth, startMenuResize, startNotificationsResize } =
+  useColumnResize()
 </script>
 
 <style scoped>

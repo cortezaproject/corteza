@@ -22,3 +22,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
 }
+
+.p-multiselect-label {
+  flex-wrap: wrap;
+}

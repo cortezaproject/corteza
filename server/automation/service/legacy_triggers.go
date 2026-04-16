@@ -97,6 +97,8 @@ func init() {
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "play"},
 			},
 			Properties:  recordProperties(),
+			Segments:    recordSegments(),
+			Constraints: recordConstraints(),
 		},
 		types.ConstructTrigger{
 			ResourceType: "system",

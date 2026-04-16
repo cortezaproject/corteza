@@ -1,6 +1,11 @@
 <template>
   <!-- App items -->
-  <div v-if="areAppsVisible" :class="containerClass">
+  <TransitionGroup
+    v-if="areAppsVisible"
+    :class="containerClass"
+    tag="div"
+    move-class="transition-transform duration-300 ease-in-out"
+  >
     <a
       v-for="(app, index) in filteredApps"
       :key="app.applicationID"
@@ -51,7 +56,7 @@
         </Card>
       </template>
     </a>
-  </div>
+  </TransitionGroup>
 
   <!-- Empty state -->
   <div v-else :class="emptyClass">

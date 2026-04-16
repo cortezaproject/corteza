@@ -80,6 +80,13 @@ manage:
       slug: Short name
       changedAt: Last change
 
+labels:
+  label: Labels
+  placeholder: Select label to add...
+  createNew: Create new
+  dialogCreate: Create Label
+  name: Name
+
 sidebar:
   configure: Namespace pages
   hide: Hide sidebar on namespace public pages

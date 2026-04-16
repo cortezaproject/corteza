@@ -4,14 +4,8 @@
       class="flex items-center gap-2 group/title hover:bg-surface-hover px-2 py-1 rounded-border cursor-pointer -ml-2 transition-colors"
       @click="showConfigDialog = true"
     >
-      <span class="font-semibold">{{ editor.name.value }}</span>
-      <Button
-        icon="pi pi-pencil"
-        text
-        rounded
-        size="small"
-        class="!w-5 !h-5 !p-0 shrink-0"
-      />
+      {{ editor.name.value }}
+      <Button icon="pi pi-pencil" text rounded size="small" class="!w-5 !h-5 !p-0 shrink-0" />
     </div>
   </Teleport>
 

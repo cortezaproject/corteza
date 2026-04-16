@@ -31,16 +31,13 @@
 
     <RouterLink
       v-if="currentNamespaceObject?.canUpdateNamespace"
-      :to="{ name: 'namespace.edit', params: { slug: currentNamespaceObject.slug || currentNamespaceObject.namespaceID } }"
+      :to="{
+        name: 'namespace.edit',
+        params: { slug: currentNamespaceObject.slug || currentNamespaceObject.namespaceID },
+      }"
       v-tooltip.top="$t('sidebar.editNamespace')"
     >
-      <Button
-        icon="pi pi-pencil"
-        size="small"
-        text
-        rounded
-        severity="secondary"
-      />
+      <Button icon="pi pi-pencil" size="small" text rounded severity="secondary" />
     </RouterLink>
   </div>
 </template>
@@ -48,17 +45,15 @@
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
 import { computed, inject } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const $Settings = inject('$Settings')
 const namespaceStore = useNamespaceStore()
 
 const enabledNamespaces = computed(() => {
-  return namespaceStore.set.filter(ns => ns.enabled)
+  return namespaceStore.set.filter(ns => ns.enabled).sort((a, b) => a.name.localeCompare(b.name))
 })
 
 const canManageNamespaces = computed(() => {

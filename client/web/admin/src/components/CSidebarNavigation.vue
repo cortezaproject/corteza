@@ -65,7 +65,7 @@ const navItems = computed(() => [
   {
     _id: 'labels',
     _parentId: 'system',
-    _label: 'Families (Labels)',
+    _label: 'Projects (Labels)',
     _icon: 'pi pi-tags',
     _route: { name: 'system.labels' },
   },

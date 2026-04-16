@@ -109,6 +109,7 @@ export class Agent {
   public handle = ''
   public status = 'active'
   public revision = 0
+  public labels: Record<string, string> = {}
 
   public meta: AgentMeta = {
     short: '',
@@ -183,6 +184,10 @@ export class Agent {
     Apply(this, o, String, 'handle', 'status')
     Apply(this, o, Number, 'revision')
     Apply(this, o, Boolean, 'canGrant', 'canUpdateAgent', 'canDeleteAgent')
+
+    if (IsOf(o, 'labels')) {
+      this.labels = { ...o.labels }
+    }
 
     if (IsOf(o, 'meta')) {
       this.meta = {

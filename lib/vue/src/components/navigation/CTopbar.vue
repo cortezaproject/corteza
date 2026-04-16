@@ -18,28 +18,30 @@
       </template>
     </div>
 
-    <div
-      id="topbar-title"
-      class="topbar-title flex flex-1 min-w-0 overflow-hidden whitespace-nowrap text-truncate items-center text-2xl font-medium text-color mb-0 ml-2"
-    />
+    <div class="topbar-title-area flex flex-1 min-w-0 items-center gap-2 ml-2">
+      <div
+        id="topbar-title"
+        class="topbar-title flex items-center min-w-0 overflow-hidden whitespace-nowrap text-truncate text-2xl font-medium text-color mb-0"
+      />
 
-    <div v-if="visiblePageButtons.length" class="flex items-center gap-2 ml-2">
-      <a
-        v-for="(btn, i) in visiblePageButtons"
-        :key="i"
-        :href="btn.url"
-        :target="btn.newTab ? '_blank' : '_self'"
-        rel="noopener noreferrer"
-        class="no-underline shrink-0"
-      >
-        <Button
-          v-tooltip.bottom="btn.description || undefined"
-          :label="btn.label"
-          severity="secondary"
-          outlined
-          size="small"
-        />
-      </a>
+      <div v-if="visiblePageButtons.length" class="flex items-center gap-2">
+        <a
+          v-for="(btn, i) in visiblePageButtons"
+          :key="i"
+          :href="btn.url"
+          :target="btn.newTab ? '_blank' : '_self'"
+          rel="noopener noreferrer"
+          class="no-underline shrink-0"
+        >
+          <Button
+            v-tooltip.bottom="btn.description || undefined"
+            :label="btn.label"
+            severity="secondary"
+            outlined
+            size="small"
+          />
+        </a>
+      </div>
     </div>
 
     <div id="topbar-tools" class="topbar-tools tools-wrapper ml-auto flex items-center gap-2">
@@ -442,11 +444,14 @@ const logout = () => {
     row-gap: 0.25rem;
   }
 
-  .topbar-title {
+  .topbar-title-area {
     order: 99;
     flex-basis: 100%;
     margin-left: 0;
     padding-left: 0.5rem;
+  }
+
+  .topbar-title {
     font-size: 1.25rem;
   }
 

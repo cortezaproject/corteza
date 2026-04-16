@@ -121,13 +121,18 @@ async function openRecordNotification() {
     // Modal
     if (openMode === 'modal') {
       if (hasComposeRoute) {
+        const modalQuery = {
+          recordPageID: pageID,
+          recordID: recID,
+          ...(edit ? { edit: '1' } : {}),
+        }
+        // If targeting a different namespace, navigate there first so RecordModal
+        // opens in the correct namespace context with its page store populated.
+        if (route.params.slug !== slug) {
+          return router.push({ name: 'pages', params: { slug }, query: modalQuery })
+        }
         return router.push({
-          query: {
-            ...route.query,
-            recordPageID: pageID,
-            recordID: recID,
-            ...(edit ? { edit: '1' } : {}),
-          },
+          query: { ...route.query, ...modalQuery },
         })
       }
 

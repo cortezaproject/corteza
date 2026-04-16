@@ -3,78 +3,19 @@
     <!-- Chat area -->
     <div class="flex-1 flex flex-col border-r border-surface min-w-0">
       <slot name="header"></slot>
-      <div class="flex-1 p-4 overflow-y-auto flex flex-col gap-4">
-        <template v-for="(msg, index) in visibleMessages" :key="index">
-          <div
-            v-if="['user', 'agent', 'assistant'].includes(msg.role)"
-            class="flex flex-col gap-1"
-            :class="msg.role === 'user' ? 'items-end' : 'items-start'"
-          >
-            <div
-              :ref="
-                el => {
-                  if (msg.traceIndex !== undefined) {
-                    if (msg.role === 'agent' || msg.role === 'assistant') chatMsgRefs[msg.traceIndex] = el
-                    else if (msg.role === 'user') chatPromptRefs[msg.traceIndex] = el
-                  }
-                }
-              "
-              :class="[
-                'p-3 xl:p-4 rounded-xl max-w-[85%] text-sm md:text-base transition-all duration-200',
-                msg.role === 'user'
-                  ? 'bg-primary text-primary-contrast shadow-sm whitespace-pre-wrap'
-                  : 'bg-emphasis text-color shadow-sm',
-                msg.role === 'user' ? 'cursor-pointer' : '',
-                ['agent', 'assistant'].includes(msg.role) ? 'cursor-pointer hover:shadow-md' : '',
-                selectedTraceIndex === msg.traceIndex &&
-                selectedTraceType === (msg.role === 'user' ? 'prompt' : 'response')
-                  ? 'ring-2 ring-primary ring-offset-1'
-                  : '',
-              ]"
-              @click="
-                msg.traceIndex !== undefined
-                  ? selectTrace(
-                      msg.traceIndex,
-                      msg.role === 'user' ? 'prompt' : 'response',
-                    )
-                  : null
-              "
-            >
-              <div
-                v-if="['agent', 'assistant'].includes(msg.role)"
-                class="rt-content"
-                v-html="renderMarkdown(msg.content)"
-              />
-              <template v-else>{{ msg.content }}</template>
-            </div>
-          </div>
-        </template>
-        <div v-if="executing" class="flex items-start">
-          <div
-            class="bg-emphasis text-color shadow-sm p-3 rounded-xl flex items-center gap-2 text-sm"
-          >
-            <ProgressSpinner style="width: 16px; height: 16px" strokeWidth="4" />
-            <span class="text-muted-color">
-              {{ $t('agent.editor.playground.thinking') }}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div class="p-3 border-t border-surface flex gap-2 shrink-0 bg-surface" v-if="!readonly">
-        <InputText
-          v-model="chatInput"
-          :placeholder="$t('agent.editor.playground.placeholder')"
-          class="flex-1"
-          @keyup.enter="sendChatMessage"
-          :disabled="isCreate || executing"
-        />
-        <Button
-          icon="pi pi-send"
-          @click="sendChatMessage"
-          :disabled="isCreate || executing || !chatInput.trim()"
-          :loading="executing"
-        />
-      </div>
+      <CChatMessages
+        ref="chatMessagesRef"
+        :messages="visibleMessages"
+        :executing="executing"
+        :readonly="readonly"
+        :disabled="isCreate"
+        :placeholder="$t('agent.editor.playground.placeholder')"
+        :thinking-label="$t('agent.editor.playground.thinking')"
+        :selected-trace-index="selectedTraceIndex"
+        :selected-trace-type="selectedTraceType"
+        @send="sendChatMessage"
+        @trace-select="selectTrace"
+      />
     </div>
 
     <!-- Structured trace panel -->
@@ -425,6 +366,8 @@
 /* eslint-disable vue/no-mutating-props */
 import { ref, inject, nextTick, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components } from '@cortezaproject/corteza-vue-next'
+const { CChatMessages } = components
 
 const props = defineProps({
   agent: {
@@ -458,24 +401,19 @@ const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')
 
 const executing = ref(false)
-const chatInput = ref('')
 const contextExpanded = ref(false)
 
 const selectedTraceIndex = ref(null)
 const selectedTraceType = ref(null)
-const chatMsgRefs = ref({})
-const chatPromptRefs = ref({})
+const chatMessagesRef = ref(null)
 const traceCardRefs = ref({})
 const traceScrollContainer = ref(null)
 
 const expandedTools = ref(new Set())
 const expandedReasoning = ref(new Set())
 
-async function sendChatMessage() {
-  if (!chatInput.value.trim() || executing.value) return
-
-  const input = chatInput.value
-  chatInput.value = ''
+async function sendChatMessage(input) {
+  if (!input || executing.value) return
 
   props.conversation.messages.push({ role: 'user', content: input, traceIndex: props.conversation.traceHistory.length })
   executing.value = true
@@ -597,11 +535,7 @@ function selectMessage(traceIndex, type = 'response') {
   } else {
     selectedTraceIndex.value = traceIndex
     selectedTraceType.value = type
-    nextTick(() => {
-      const refs = type === 'prompt' ? chatPromptRefs : chatMsgRefs
-      const msgEl = refs.value[traceIndex]
-      if (msgEl) msgEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    })
+    // CChatMessages watches selectedTraceIndex/selectedTraceType and scrolls the bubble into view
   }
 }
 
@@ -619,44 +553,5 @@ function selectTrace(traceIndex, type = 'response') {
   }
 }
 
-// Simple markdown rendering
-function renderMarkdown(text) {
-  if (!text) return ''
 
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-
-  // Code blocks
-  html = html.replace(/```([\s\S]*?)```/g, (match, p1) => {
-    return `<pre class="bg-surface-ground p-3 rounded-lg overflow-x-auto text-sm font-mono my-2 text-color border border-surface shadow-sm"><code>${p1.trim()}</code></pre>`
-  })
-
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code class="bg-surface-ground px-1.5 py-0.5 rounded text-sm font-mono text-primary border border-surface shadow-sm">$1</code>')
-
-  // Bold
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-
-  // Italic
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-
-  // Headers
-  html = html.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold mt-3 mb-1 text-primary-emphasis">$1</h3>')
-  html = html.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold mt-4 mb-2 pb-1 border-b border-surface text-primary-emphasis">$1</h2>')
-  html = html.replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold mt-5 mb-3 pb-1 border-b border-surface text-primary-emphasis">$1</h1>')
-
-  // Lists
-  html = html.replace(/^\s*[-*+]\s+(.*)$/gim, '<li class="ml-4 list-disc marker:text-primary">$1</li>')
-  html = html.replace(/(<li.*<\/li>)\n(<li.*<\/li>)/g, '$1$2')
-  html = html.replace(/(<li.*<\/li>)/g, '<ul class="my-2 space-y-1 text-color">$1</ul>')
-  html = html.replace(/<\/ul>\n<ul[^>]*>/g, '')
-
-  // Line breaks
-  html = html.replace(/\n\n/g, '</p><p class="my-2 text-color">')
-  html = html.replace(/\n/g, '<br>')
-
-  return `<div class="prose-sm max-w-none break-words">${html}</div>`
-}
 </script>
