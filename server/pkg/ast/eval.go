@@ -211,8 +211,22 @@ func evalRef(node *ASTNode, scope map[string]*expr.Vars) (expr.TypedValue, error
 // compareValues compares two TypedValues numerically or as strings.
 // Returns negative, zero, or positive.
 func compareValues(a, b expr.TypedValue) (int, error) {
-	av := a.Get()
-	bv := b.Get()
+	var av, bv interface{}
+	if a != nil {
+		av = a.Get()
+	}
+	if b != nil {
+		bv = b.Get()
+	}
+	if av == nil && bv == nil {
+		return 0, nil
+	}
+	if av == nil || bv == nil {
+		if av == nil {
+			return -1, nil
+		}
+		return 1, nil
+	}
 
 	// Try numeric comparison first
 	af, aerr := cast.ToFloat64E(av)
