@@ -201,9 +201,13 @@ func (h *recordHandler) moduleLookup(ctx context.Context, req mcp.CallToolReques
 func parseValues(raw interface{}) (map[string]string, error) {
 	switch v := raw.(type) {
 	case string:
-		var m map[string]string
-		if err := json.Unmarshal([]byte(v), &m); err != nil {
+		var raw map[string]interface{}
+		if err := json.Unmarshal([]byte(v), &raw); err != nil {
 			return nil, fmt.Errorf("invalid values JSON: %w", err)
+		}
+		m := make(map[string]string, len(raw))
+		for k, val := range raw {
+			m[k] = fmt.Sprintf("%v", val)
 		}
 		return m, nil
 	case map[string]interface{}:
