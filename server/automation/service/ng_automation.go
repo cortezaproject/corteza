@@ -21,6 +21,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	sysAutomation "github.com/cortezaproject/corteza/server/system/automation"
 
 	"github.com/cortezaproject/corteza/server/store"
 	"go.uber.org/zap"
@@ -326,6 +327,16 @@ func (svc *ngAutomation) UndeleteByID(ctx context.Context, ngAutomationID uint64
 }
 
 func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
+	atm, loadErr := loadNgAutomation(ctx, svc.store, automationID)
+	if loadErr != nil {
+		return id.Zero(), loadErr
+	}
+
+	p.Input, err = svc.injectIdentities(ctx, atm.RunAs, p.Input)
+	if err != nil {
+		return
+	}
+
 	executionID, err = svc.execEngine.Execute(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
 		EntryPoint:   p.EntryPoint,
 		Input:        p.Input,
@@ -363,6 +374,11 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 		}
 	}
 
+	p.Input, err = svc.injectIdentities(ctx, atm.RunAs, p.Input)
+	if err != nil {
+		return
+	}
+
 	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
 		EntryPoint:   entryPoint,
 		Input:        p.Input,
@@ -374,6 +390,44 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 	}
 
 	return
+}
+
+// injectIdentities resolves the invoker (from ctx) and runner (from runAsID, defaulting
+// to invoker) to full *system/types.User values and injects them as typed expr vars
+// into the execution input scope.
+func (svc *ngAutomation) injectIdentities(ctx context.Context, runAsID uint64, input *expr.Vars) (*expr.Vars, error) {
+	sysCtx := intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+
+	if input == nil {
+		input = &expr.Vars{}
+	}
+
+	invokerIdentity := intAuth.GetIdentityFromContext(ctx)
+	invokerUser, err := DefaultUser.FindByAny(sysCtx, invokerIdentity.Identity())
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve invoker user: %w", err)
+	}
+
+	invokerExpr, err := sysAutomation.NewUser(invokerUser)
+	if err != nil {
+		return nil, err
+	}
+	_ = input.AssignFieldValue("invoker", invokerExpr)
+
+	runnerExpr := invokerExpr
+	if runAsID > 0 {
+		runnerUser, err := DefaultUser.FindByAny(sysCtx, runAsID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve runner user: %w", err)
+		}
+		runnerExpr, err = sysAutomation.NewUser(runnerUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_ = input.AssignFieldValue("runner", runnerExpr)
+
+	return input, nil
 }
 
 func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64) ([]*execTypes.ExecutionResult, error) {
