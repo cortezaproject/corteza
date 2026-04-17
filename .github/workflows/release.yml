@@ -80,7 +80,9 @@ jobs:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
-        with: { go-version: '${{ env.GO_VERSION }}' }
+        with:
+          go-version: '${{ env.GO_VERSION }}'
+          cache-dependency-path: server/go.sum
       - name: 'Download webconsole dist'
         uses: actions/download-artifact@v8
         with:
@@ -108,7 +110,9 @@ jobs:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
-        with: { go-version: '${{ env.GO_VERSION }}' }
+        with:
+          go-version: '${{ env.GO_VERSION }}'
+          cache-dependency-path: extra/server-discovery/go.sum
       - name: 'Copy essentials'
         run: cp *.md DCO LICENSE extra/server-discovery/
       - name: 'Build discovery server binary'
