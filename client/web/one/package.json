@@ -1,6 +1,6 @@
 {
   "name": "corteza-webapp-one",
-  "version": "2026.4.0-rc.1-dev.16",
+  "version": "2026.4.0",
   "private": true,
   "type": "module",
   "scripts": {
