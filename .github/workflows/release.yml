@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with: { node-version: '${{ env.NODE_VERSION }}' }
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         if: ${{ !env.ACT }}
         with:
           path: ~/.npm
@@ -66,7 +66,7 @@ jobs:
         working-directory: server/webconsole
         run: yarn build
       - name: 'Upload webconsole dist'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: webconsole-dist
           path: server/webconsole/dist
@@ -79,10 +79,10 @@ jobs:
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with: { go-version: '${{ env.GO_VERSION }}' }
       - name: 'Download webconsole dist'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: webconsole-dist
           path: server/webconsole/dist
@@ -95,7 +95,7 @@ jobs:
         working-directory: server
         run: make release-clean release
       - name: 'Upload server build'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: server-build
           path: server/build/pkg/human-server
@@ -107,7 +107,7 @@ jobs:
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with: { go-version: '${{ env.GO_VERSION }}' }
       - name: 'Copy essentials'
         run: cp *.md DCO LICENSE extra/server-discovery/
@@ -115,7 +115,7 @@ jobs:
         working-directory: extra/server-discovery
         run: make release-clean release BUILD_FLAVOUR=human
       - name: 'Upload discovery server build'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: discovery-server-build
           path: extra/server-discovery/build/pkg/human-server
@@ -168,7 +168,7 @@ jobs:
         working-directory: client/web/${{ matrix.app }}
         run: pnpm build
       - name: 'Upload web app build'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: webapp-${{ matrix.app }}
           path: client/web/${{ matrix.app }}/dist
@@ -185,13 +185,13 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: 'Download server build'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: server-build
           path: .docker-build/server
 
       - name: 'Download all webapp builds'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: webapp-*
           path: .docker-build/webapp
@@ -232,7 +232,7 @@ jobs:
             .
 
       - name: 'Login'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -258,7 +258,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: 'Download discovery server build'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: discovery-server-build
           path: extra/server-discovery/.docker-build/server
@@ -279,7 +279,7 @@ jobs:
             extra/server-discovery
 
       - name: 'Login'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
