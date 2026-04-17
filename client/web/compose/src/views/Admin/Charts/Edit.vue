@@ -471,7 +471,7 @@ async function handleSave() {
     }
   } catch (e) {
     console.error('Failed to save chart:', e)
-    $toast.toastDanger(t('notification.chart.updateFailed'))
+    $toast.toastErrorHandler(t('notification.chart.updateFailed'))(e)
   } finally {
     processing.value = false
     processingSave.value = false
@@ -501,7 +501,7 @@ async function handleClone() {
     router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
   } catch (e) {
     console.error('Failed to clone chart:', e)
-    $toast.toastDanger(t('notification.chart.createFailed'))
+    $toast.toastErrorHandler(t('notification.chart.createFailed'))(e)
   } finally {
     processing.value = false
     processingClone.value = false
@@ -519,7 +519,7 @@ async function handleDelete() {
     router.push({ name: 'admin.charts' })
   } catch (e) {
     console.error('Failed to delete chart:', e)
-    $toast.toastDanger(t('notification.chart.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.chart.deleteFailed'))(e)
   } finally {
     processing.value = false
     processingDelete.value = false

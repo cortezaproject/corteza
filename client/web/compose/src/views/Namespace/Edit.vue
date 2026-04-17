@@ -373,7 +373,7 @@ async function handleSubmit({ valid }) {
     }
   } catch (e) {
     console.error('Failed to save namespace:', e)
-    $toast.toastDanger(t('notification.namespace.saveFailed'))
+    $toast.toastErrorHandler(t('notification.namespace.saveFailed'))(e)
   } finally {
     saving.value = false
   }
@@ -395,7 +395,7 @@ async function handleClone() {
     })
   } catch (e) {
     console.error('Failed to clone namespace:', e)
-    $toast.toastDanger(t('notification.namespace.cloneFailed'))
+    $toast.toastErrorHandler(t('notification.namespace.cloneFailed'))(e)
   } finally {
     cloning.value = false
   }
@@ -409,7 +409,7 @@ async function handleDelete() {
     router.push({ name: 'namespace.manage' })
   } catch (e) {
     console.error('Failed to delete namespace:', e)
-    $toast.toastDanger(t('notification.namespace.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.namespace.deleteFailed'))(e)
   } finally {
     deleting.value = false
   }

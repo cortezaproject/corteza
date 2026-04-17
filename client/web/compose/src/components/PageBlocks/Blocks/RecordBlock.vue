@@ -414,10 +414,10 @@ async function saveInlineEdits() {
     Object.keys(localDirtyValues).forEach(k => delete localDirtyValues[k])
   } catch (e) {
     console.error('Failed to save inline edits:', e)
-    $toast?.toastDanger(
+    $toast?.toastErrorHandler(
       t('block.record.inlineEdit.saveError'),
       t('block.record.inlineEdit.saveErrorSummary'),
-    )
+    )(e)
   } finally {
     localSaving.value = false
   }

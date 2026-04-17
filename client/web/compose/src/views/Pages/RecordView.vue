@@ -587,9 +587,9 @@ async function handleSave({ valid }) {
       await nextTick()
       formRef.value?.validate()
     } else {
-      $toast.toastDanger(
+      $toast.toastErrorHandler(
         t(isNew.value ? 'notification.record.createFailed' : 'notification.record.updateFailed'),
-      )
+      )(e)
     }
   } finally {
     isSaving.value = false
@@ -692,7 +692,7 @@ async function handleDelete() {
     }
   } catch (e) {
     console.error('Failed to delete record:', e)
-    $toast.toastDanger(t('notification.record.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
   } finally {
     deleting.value = false
   }

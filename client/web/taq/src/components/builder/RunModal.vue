@@ -189,7 +189,7 @@ async function run() {
     }
   } catch (err) {
     console.error('[RunModal] Error fetching context references:', err)
-    $toast?.toastDanger(t('builder.toast.scopeError.detail'), t('builder.toast.scopeError.summary'))
+    $toast?.toastErrorHandler(t('builder.toast.scopeError.detail'), t('builder.toast.scopeError.summary'))(err)
     return
   } finally {
     isFetchingContext.value = false

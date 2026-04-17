@@ -117,7 +117,7 @@ async function handleButton(btn, index) {
     }
   } catch (e) {
     console.error('Automation execution failed:', e)
-    $toast?.toastDanger(t('block.automation.executionFailed'))
+    $toast?.toastErrorHandler(t('block.automation.executionFailed'))(e)
   } finally {
     processingIDs.value = processingIDs.value.filter(id => id !== index)
   }

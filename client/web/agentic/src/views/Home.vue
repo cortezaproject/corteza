@@ -232,7 +232,7 @@ async function handleDelete(agent) {
     filterList()
   } catch (e) {
     console.error('Failed to delete agent:', e)
-    $toast.toastDanger(t('notification.agent.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.agent.deleteFailed'))(e)
   }
 }
 
@@ -265,7 +265,7 @@ async function handleDuplicate(agent) {
     })
   } catch (e) {
     console.error('Failed to duplicate agent:', e)
-    $toast.toastDanger(t('notification.agent.duplicateFailed'))
+    $toast.toastErrorHandler(t('notification.agent.duplicateFailed'))(e)
   }
 }
 
@@ -279,7 +279,7 @@ async function handleUndelete(agent) {
     filterList()
   } catch (e) {
     console.error('Failed to restore agent:', e)
-    $toast.toastDanger(t('notification.agent.restoreFailed'))
+    $toast.toastErrorHandler(t('notification.agent.restoreFailed'))(e)
   }
 }
 </script>

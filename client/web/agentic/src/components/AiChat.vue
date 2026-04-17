@@ -456,7 +456,7 @@ async function sendChatMessage(input) {
     selectedTraceIndex.value = props.conversation.traceHistory.length - 1
   } catch (err) {
     console.error(err)
-    $toast.toastDanger(t('notification.agent.execFailed'))
+    $toast.toastErrorHandler(t('notification.agent.execFailed'))(err)
     props.conversation.messages.push({ role: 'agent', content: 'Error: ' + err.message })
     props.conversation.traceHistory.push({ error: err.message })
   } finally {

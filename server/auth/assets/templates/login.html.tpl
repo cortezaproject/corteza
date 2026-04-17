@@ -85,9 +85,9 @@
 		</div>
 		{{ end }}
 	</form>
-	<div class="row text-center px-3 pb-3">
+	<div class="d-flex text-center px-3 pb-3 justify-content-around">
         {{ if .settings.PasswordResetEnabled }}
-        <div class="col cols-6">
+        <div>
             <a
 							data-test-id="link-request-password-reset"
 							href="{{ links.RequestPasswordReset }}"
@@ -97,7 +97,7 @@
         </div>
         {{ end }}
         {{ if .settings.SignupEnabled }}
-        <div class="col cols-6">
+        <div>
             <a
 							data-test-id="link-signup"
 							href="{{ links.Signup }}"

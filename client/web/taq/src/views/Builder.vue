@@ -16,7 +16,7 @@
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
     <!-- Top-left overlay actions -->
-    <div class="absolute top-1 left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
+    <div class="absolute top-2 left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
       <!-- Optional Description -->
       <div
         v-if="editor.automation.value.meta?.description"
@@ -25,18 +25,7 @@
         {{ editor.automation.value.meta.description }}
       </div>
 
-      <!-- Run As -->
-      <div v-if="runAsUser" class="flex items-center gap-2 px-1">
-        <span class="text-sm text-muted-color">{{ $t('builder.canvas.runAs') }}</span>
-        <Tag
-          :value="runAsUser"
-          severity="secondary"
-          icon="pi pi-user"
-          class="border border-surface"
-        />
-      </div>
-
-      <div class="flex items-center gap-2 mt-2">
+      <div class="flex items-start gap-2 mt-2">
         <!-- Main toggle/run card -->
         <div
           class="flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm"
@@ -87,6 +76,24 @@
           severity="secondary"
           class="bg-surface shadow-sm !border-surface"
         />
+      </div>
+
+      <!-- Run As card -->
+      <div
+        class="flex items-center gap-2 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm w-fit mt-2"
+      >
+        <label for="taq-run-as" class="text-sm text-muted-color whitespace-nowrap">
+          {{ $t('builder.canvas.runAs') }}
+        </label>
+        <div class="w-64">
+          <CInputUser
+            input-id="taq-run-as"
+            :model-value="runAsModel"
+            @update:model-value="updateRunAs"
+            :placeholder="$t('builder.generalConfig.runAsPlaceholder')"
+            size="small"
+          />
+        </div>
       </div>
 
       <!-- Execution result card (below the toolbar card) -->
@@ -453,7 +460,7 @@ import { useFlowEditor } from '@/composables/useFlowEditor'
 import { useAutomationStore } from '@/stores/automation'
 import { components } from '@cortezaproject/corteza-vue-next'
 
-const { CToolbar } = components
+const { CToolbar, CInputUser } = components
 
 import { useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
@@ -486,25 +493,14 @@ useUnsavedGuard({
   messageKey: 'general.editor.unsavedChanges',
 })
 
-const $SystemAPI = inject('$SystemAPI')
-const runAsUser = ref(null)
+const runAsModel = computed(() => {
+  const v = editor.automation.value?.runAs
+  return !v || v === '0' || v === 0 ? null : v
+})
 
-watch(
-  () => editor.automation.value?.runAs,
-  async runAsID => {
-    if (!runAsID || runAsID === '0' || runAsID === 0) {
-      runAsUser.value = null
-      return
-    }
-    try {
-      const user = await $SystemAPI.userRead({ userID: runAsID })
-      runAsUser.value = user?.name || user?.email || user?.handle || null
-    } catch {
-      runAsUser.value = null
-    }
-  },
-  { immediate: true },
-)
+function updateRunAs(val) {
+  editor.automation.value.runAs = val || '0'
+}
 
 // VueFlow instance for viewport control and selection
 const {

@@ -263,7 +263,7 @@ async function handleDelete(chart) {
     filterList()
   } catch (e) {
     console.error('Failed to delete chart:', e)
-    $toast.toastDanger(t('notification.chart.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.chart.deleteFailed'))(e)
   }
 }
 

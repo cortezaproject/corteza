@@ -173,7 +173,7 @@ async function onNodeDrop(event) {
     await pageStore.load({ namespaceID: props.namespace.namespaceID, force: true })
   } catch (e) {
     console.error('Failed to reorder pages:', e)
-    $toast.toastDanger(t('page.pageMoveFailed'))
+    $toast.toastErrorHandler(t('page.pageMoveFailed'))(e)
   }
 }
 

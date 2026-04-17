@@ -255,7 +255,7 @@ async function handleSave({ valid }) {
       await nextTick()
       formRef.value?.validate()
     } else {
-      $toast.toastDanger(t('notification.record.createFailed'))
+      $toast.toastErrorHandler(t('notification.record.createFailed'))(e)
     }
   } finally {
     isSaving.value = false

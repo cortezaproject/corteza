@@ -347,7 +347,7 @@ async function handleDeleteNamespace(data) {
     fetchNamespaces()
   } catch (e) {
     console.error('Failed to delete namespace:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.deleteError'))
+    $toast?.toastErrorHandler(t('system.labels.editor.toast.deleteError'))(e)
   }
 }
 
@@ -358,7 +358,7 @@ async function handleDeleteAgent(data) {
     fetchAgents()
   } catch (e) {
     console.error('Failed to delete agent:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.deleteError'))
+    $toast?.toastErrorHandler(t('system.labels.editor.toast.deleteError'))(e)
   }
 }
 
@@ -369,7 +369,7 @@ async function handleDeleteAutomation(data) {
     fetchAutomations()
   } catch (e) {
     console.error('Failed to delete automation:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.deleteError'))
+    $toast?.toastErrorHandler(t('system.labels.editor.toast.deleteError'))(e)
   }
 }
 
@@ -411,7 +411,7 @@ async function createNamespace() {
     await $ComposeAPI.namespaceCreate({
       name: nsForm.name.trim(),
       slug: nsForm.slug.trim() || undefined,
-      enabled: false,
+      enabled: true,
       meta: {},
       labels,
     })
@@ -422,7 +422,7 @@ async function createNamespace() {
     fetchNamespaces()
   } catch (e) {
     console.error('Failed to create namespace:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.createError'))
+    $toast?.toastErrorHandler(t('system.labels.editor.toast.createError'))(e)
   } finally {
     nsCreating.value = false
   }
@@ -470,7 +470,7 @@ async function createAgent() {
     fetchAgents()
   } catch (e) {
     console.error('Failed to create agent:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.createError'))
+    $toast?.toastErrorHandler(t('system.labels.editor.toast.createError'))(e)
   } finally {
     agentCreating.value = false
   }
@@ -525,7 +525,7 @@ async function createAutomation() {
     fetchAutomations()
   } catch (e) {
     console.error('Failed to create automation:', e)
-    $toast?.toastDanger(t('system.labels.editor.toast.createError'))
+    $toast?.toastErrorHandler(t('system.labels.editor.toast.createError'))(e)
   } finally {
     taqCreating.value = false
   }

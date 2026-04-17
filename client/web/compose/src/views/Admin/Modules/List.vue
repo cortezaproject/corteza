@@ -240,7 +240,7 @@ async function handleDelete(module) {
     filterList() // Refresh the list
   } catch (e) {
     console.error('Failed to delete module:', e)
-    $toast.toastDanger(t('notification.module.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.module.deleteFailed'))(e)
   }
 }
 

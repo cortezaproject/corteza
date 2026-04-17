@@ -30,7 +30,7 @@ dialog:
     name: TAQ Name
     description: Description
     namePlaceholder: Enter TAQ name...
-    descriptionPlaceholder: What does this automation do? (optional)
+    descriptionPlaceholder: What does this automation do?
     nameRequired: Name is required
     labels: Labels
     labelsPlaceholder: Select label to add...

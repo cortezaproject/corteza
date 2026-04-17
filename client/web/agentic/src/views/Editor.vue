@@ -1,7 +1,9 @@
 <template>
   <Teleport to="#topbar-title" defer>
     <span v-if="isCreate">{{ $t('agent.editor.titleCreate') }}</span>
-    <span v-else class="font-semibold">{{ agent?.meta?.short || agent?.handle || $t('agent.editor.titleEdit') }}</span>
+    <span v-else class="font-semibold">
+      {{ agent?.meta?.short || agent?.handle || $t('agent.editor.titleEdit') }}
+    </span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">
@@ -127,14 +129,18 @@
                       <div class="flex items-center justify-between">
                         <label for="temperature" class="font-medium text-primary">
                           {{ $t('agent.editor.temperature.label') }}
-                          <span v-if="temperatureEnabled">({{ agent.execution.model.temperature }})</span>
+                          <span v-if="temperatureEnabled">
+                            ({{ agent.execution.model.temperature }})
+                          </span>
                         </label>
                         <ToggleSwitch
                           :model-value="temperatureEnabled"
                           @update:model-value="toggleTemperature"
                         />
                       </div>
-                      <small class="text-muted-color">{{ $t('agent.editor.temperature.help') }}</small>
+                      <small class="text-muted-color">
+                        {{ $t('agent.editor.temperature.help') }}
+                      </small>
                       <Slider
                         id="temperature"
                         v-model="agent.execution.model.temperature"
@@ -225,7 +231,12 @@
                         rows="6"
                         autoResize
                       />
-                      <Message v-if="$form.systemPrompt?.invalid" severity="error" size="small" variant="simple">
+                      <Message
+                        v-if="$form.systemPrompt?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
                         {{ $form.systemPrompt.error?.message }}
                       </Message>
                       <small v-else class="text-muted-color">
@@ -904,7 +915,11 @@ const initialAgent = ref(null)
 const activeTab = ref('config')
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !!agent.value && !!initialAgent.value && !isEqual(agent.value, initialAgent.value),
+  isDirty: () =>
+    !saving.value &&
+    !!agent.value &&
+    !!initialAgent.value &&
+    !isEqual(agent.value, initialAgent.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 
@@ -919,7 +934,11 @@ const activeConversation = computed(() => conversations.value[activeConvIndex.va
 
 const isCreate = computed(() => !route.params.agentID)
 
-const temperatureEnabled = computed(() => agent.value?.execution?.model?.temperature !== null && agent.value?.execution?.model?.temperature !== undefined)
+const temperatureEnabled = computed(
+  () =>
+    agent.value?.execution?.model?.temperature !== null &&
+    agent.value?.execution?.model?.temperature !== undefined,
+)
 
 const showHistoryDialog = ref(false)
 const loadingHistoryChat = ref(false)
@@ -1087,7 +1106,9 @@ async function handleSubmit({ valid }) {
     activeTab.value = 'config'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -1119,8 +1140,7 @@ async function handleSubmit({ valid }) {
     }
   } catch (err) {
     console.error(err)
-    const message = (err && err.message) ? err.message : t('notification.agent.saveFailed')
-    $toast.toastDanger(message)
+    $toast.toastErrorHandler(t('notification.agent.saveFailed'))(err)
   } finally {
     saving.value = false
   }
@@ -1135,7 +1155,7 @@ async function handleDelete() {
     router.push({ name: 'root' })
   } catch (err) {
     console.error(err)
-    $toast.toastDanger(t('notification.agent.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.agent.deleteFailed'))(err)
   }
 }
 

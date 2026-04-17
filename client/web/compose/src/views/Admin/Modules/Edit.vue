@@ -745,7 +745,7 @@ async function handleSubmit({ valid }) {
     }
   } catch (e) {
     console.error('Failed to save module:', e)
-    $toast.toastDanger(t('notification.module.saveFailed'))
+    $toast.toastErrorHandler(t('notification.module.saveFailed'))(e)
   } finally {
     saving.value = false
   }
@@ -769,7 +769,7 @@ async function handleClone() {
     })
   } catch (e) {
     console.error('Failed to clone module:', e)
-    $toast.toastDanger(t('notification.module.createFailed'))
+    $toast.toastErrorHandler(t('notification.module.createFailed'))(e)
   } finally {
     cloning.value = false
   }
@@ -784,7 +784,7 @@ async function handleDelete() {
     router.push({ name: 'admin.modules' })
   } catch (e) {
     console.error('Failed to delete module:', e)
-    $toast.toastDanger(t('notification.module.deleteFailed'))
+    $toast.toastErrorHandler(t('notification.module.deleteFailed'))(e)
   } finally {
     deleting.value = false
   }
@@ -830,7 +830,7 @@ async function handleRecordPageCreation() {
     $toast.toastSuccess(t('notification.page.created'))
   } catch (e) {
     console.error('Failed to create record page:', e)
-    $toast.toastDanger(t('notification.page.createFailed'))
+    $toast.toastErrorHandler(t('notification.page.createFailed'))(e)
   } finally {
     creatingRecordPage.value = false
   }
@@ -873,7 +873,7 @@ async function handleRecordListPageCreation() {
     $toast.toastSuccess(t('notification.page.created'))
   } catch (e) {
     console.error('Failed to create record list page:', e)
-    $toast.toastDanger(t('notification.page.createFailed'))
+    $toast.toastErrorHandler(t('notification.page.createFailed'))(e)
   } finally {
     creatingRecordListPage.value = false
   }
