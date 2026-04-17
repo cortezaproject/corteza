@@ -227,6 +227,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $AutomationAPI.workflowCreate(payload)
       $toast.toastSuccess(t('notification.workflow.create.success'))
+      markSaved()
       router.push({ name: 'automation.workflows.edit', params: { workflowID: created.workflowID } })
     }
   } catch (e) {
@@ -253,7 +254,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!workflow.value && !!initialWorkflow.value && !isEqual(workflow.value, initialWorkflow.value),
   messageKey: 'general.editor.unsavedChanges',
 })

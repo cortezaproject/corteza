@@ -94,7 +94,12 @@ async function loadData() {
       const roles = await Promise.all(
         ids.map(id => $SystemAPI.roleRead({ roleID: id }).catch(() => null)),
       )
-      currentRoles.value = roles.filter(Boolean).map(r => new system.Role(r))
+      const systemHandles = ['authenticated', 'anonymous', 'everyone']
+      currentRoles.value = roles
+        .filter(Boolean)
+        .filter(r => !systemHandles.includes((r.handle || '').toLowerCase()))
+        .filter(r => !(r.meta?.context?.expr || r.meta?.context?.resourceTypes?.length > 0))
+        .map(r => new system.Role(r))
     }
   } catch (e) {
     console.error('Failed to load roles:', e)

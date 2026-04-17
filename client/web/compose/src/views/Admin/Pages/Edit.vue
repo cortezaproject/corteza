@@ -588,7 +588,7 @@ const layouts = ref([])
 const initialLayouts = ref([])
 const removedLayouts = ref([])
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => {
     if (saving.value || deleting.value || cloning.value) return false
     if (!page.value || !initialPage.value) return false
@@ -1029,6 +1029,7 @@ async function handleSubmit({ valid }) {
       })
 
       $toast.toastSuccess(t('notification.page.created'))
+      markSaved()
       router.push({
         name: 'admin.pages.edit',
         params: { pageID: created.pageID },
@@ -1124,6 +1125,7 @@ async function handleClone() {
 
     const created = await pageStore.create(payload)
     $toast.toastSuccess(t('notification.page.created'))
+    markSaved()
     router.push({
       name: 'admin.pages.edit',
       params: { pageID: created.pageID },

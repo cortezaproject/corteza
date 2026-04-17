@@ -302,7 +302,7 @@ const {
 } = useResourceList(
   params => $AutomationAPI.workflowListCancellable({ ...params, labels: labelsFilter.value }),
   {
-    filter: { query: '', subWorkflow: '1', disabled: '0', deleted: '0' },
+    filter: { query: '', subWorkflow: '1', disabled: '1', deleted: '0' },
     sorting: { sortBy: 'createdAt', sortDesc: true },
     pagination: { limit: 50 },
   },

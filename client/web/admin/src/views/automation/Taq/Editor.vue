@@ -124,7 +124,6 @@
             @confirm="handleDelete"
           />
           <Button
-            v-if="!isEdit || taq.canUpdateNgAutomation"
             type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-save"
@@ -137,7 +136,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@cortezaproject/corteza-js-next'
@@ -241,7 +240,10 @@ async function handleSubmit({ valid }) {
       payload.steps = []
       payload.paths = []
       const created = await $AutomationAPI.ngAutomationCreate(payload)
+      taq.value = new automation.TAQ(created)
+      initialTaq.value = cloneDeep(taq.value)
       $toast.toastSuccess(t('notification.taq.create.success'))
+      markSaved()
       router.push({ name: 'automation.taq.edit', params: { automationID: created.automationID } })
     }
   } catch (e) {
@@ -266,7 +268,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () =>
     !saving.value &&
     !deleting.value &&
@@ -275,6 +277,15 @@ useUnsavedGuard({
     !isEqual(taq.value, initialTaq.value),
   messageKey: 'general.editor.unsavedChanges',
 })
+
+watch(
+  () => route.params.automationID,
+  (newID, oldID) => {
+    if (newID !== oldID) {
+      loadTaq()
+    }
+  },
+)
 
 onMounted(() => {
   loadTaq()

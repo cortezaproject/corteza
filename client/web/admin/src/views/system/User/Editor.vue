@@ -261,7 +261,7 @@ async function loadUser() {
 
     // Load initial roles if editing
     const memRes = await $SystemAPI.userMembershipList({ userID })
-    const ids = (memRes.set || []).map(m => m.roleID)
+    const ids = Array.isArray(memRes) ? memRes : (memRes.set || []).map(m => m.roleID)
     initialMembershipIDs.value = new Set(ids)
     membershipIDs.value = new Set(ids)
     initialUser.value = cloneDeep(user.value)
@@ -347,11 +347,12 @@ async function handleSubmit({ valid }) {
       $toast.toastSuccess(t('notification.user.update.success'))
     } else {
       const created = await $SystemAPI.userCreate(payload)
-      // Set the user instance to the newly created user to immediately populate the userID 
+      // Set the user instance to the newly created user to immediately populate the userID
       // preventing components like UserExternalAuth from fetching with an invalid ID
       // during the router transition.
       user.value = new system.User(created)
       $toast.toastSuccess(t('notification.user.create.success'))
+      markSaved()
       router.push({
         name: 'system.users.edit',
         params: { userID: created.userID },
@@ -457,7 +458,7 @@ function confirmUnsuspend(event) {
   })
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!user.value && !!initialUser.value && (!isEqual(user.value, initialUser.value) || !isEqual([...membershipIDs.value], [...initialMembershipIDs.value])),
   messageKey: 'general.editor.unsavedChanges',
 })

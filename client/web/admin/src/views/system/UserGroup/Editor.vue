@@ -62,8 +62,8 @@
             />
           </FormField>
 
-          <!-- Parent hierarchy (edit only, non-root groups) -->
-          <div v-if="isEdit && !userGroup.isRoot" class="md:col-span-2 flex flex-col gap-3">
+          <!-- Parent hierarchy (non-root groups) -->
+          <div v-if="!userGroup.isRoot" class="md:col-span-2 flex flex-col gap-3">
             <div class="flex items-center justify-between">
               <label class="font-medium text-primary">{{ $t('system.user-groups.editor.info.parents.title') }}</label>
               <Button icon="pi pi-plus" :label="$t('general.label.add')" text size="small" @click="addParent" />
@@ -205,8 +205,17 @@ function removeParent(i) {
 async function loadUserGroup() {
   const userGroupID = route.params.userGroupID
   if (!userGroupID) {
-    // Create new
     userGroup.value = new system.UserGroup({})
+    try {
+      const result = await $SystemAPI.userGroupList({ limit: 100 })
+      const groups = result?.set || []
+      const defaultGroup = groups.find(g => g.handle === 'default-root' || g.isRoot) || groups[0]
+      if (defaultGroup) {
+        userGroup.value.config = { path: [{ selfID: defaultGroup.userGroupID, name: '' }] }
+      }
+    } catch {
+      // silent — user can pick manually
+    }
     initialUserGroup.value = cloneDeep(userGroup.value)
     return
   }
@@ -253,6 +262,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.userGroupCreate(payload)
       $toast.toastSuccess(t('notification.userGroup.create.success'))
+      markSaved()
       router.push({
         name: 'system.userGroups.edit',
         params: { userGroupID: created.userGroupID },
@@ -299,7 +309,7 @@ async function handleUndelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!userGroup.value && !!initialUserGroup.value && !isEqual(userGroup.value, initialUserGroup.value),
   messageKey: 'general.editor.unsavedChanges',
 })

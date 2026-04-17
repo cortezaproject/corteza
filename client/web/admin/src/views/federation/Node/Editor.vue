@@ -249,6 +249,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $FederationAPI.nodeCreate(payload)
       $toast.toastSuccess(t('federation.nodes.editor.create.success'))
+      markSaved()
       router.push({ name: 'federation.nodes.edit', params: { nodeID: created.nodeID } })
     }
   } catch (e) {
@@ -292,7 +293,7 @@ function copyURI() {
   $toast.toastSuccess(t('general.label.copied'))
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!node.value && !!initialNode.value && !isEqual(node.value, initialNode.value),
   messageKey: 'general.editor.unsavedChanges',
 })

@@ -899,7 +899,7 @@ const agent = ref(null)
 const initialAgent = ref(null)
 const activeTab = ref('config')
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !!agent.value && !!initialAgent.value && !isEqual(agent.value, initialAgent.value),
   messageKey: 'general.editor.unsavedChanges',
 })
@@ -1096,6 +1096,7 @@ async function handleSubmit({ valid }) {
       const created = await $SystemAPI.agentCreate(payload)
       agentStore.updateInList(created)
       $toast.toastSuccess(t('notification.agent.created'))
+      markSaved()
       router.push({ name: 'agent.edit', params: { agentID: created.agentID } })
     } else {
       const updated = await $SystemAPI.agentUpdate({

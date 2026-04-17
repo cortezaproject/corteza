@@ -774,6 +774,7 @@ labels:
         placeholder: Filter labels by name
   create:
     namePlaceholder: Enter label name...
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
   editor:
     title: Label Details
     info:

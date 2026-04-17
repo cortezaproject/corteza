@@ -951,6 +951,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.connectionCreate(payload)
       $toast.toastSuccess(t('notification.connection.create.success'))
+      markSaved()
       router.push({
         name: 'system.connections.edit',
         params: { connectionID: created.connectionID },
@@ -980,7 +981,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!connection.value && !!initialConnection.value && (!isEqual(connection.value, initialConnection.value) || !isEqual({ ...rawJSON }, initialRawJSON.value)),
   messageKey: 'general.editor.unsavedChanges',
 })

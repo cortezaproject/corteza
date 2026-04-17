@@ -239,6 +239,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.applicationCreate(payload)
       $toast.toastSuccess(t('notification.application.create.success'))
+      markSaved()
       router.push({
         name: 'system.applications.edit',
         params: { applicationID: created.applicationID },
@@ -295,7 +296,7 @@ function onLogoClear() {
   resetLogoUpload()
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!application.value && !!initialApplication.value && !isEqual(application.value, initialApplication.value),
   messageKey: 'general.editor.unsavedChanges',
 })

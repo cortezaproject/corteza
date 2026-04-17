@@ -52,36 +52,50 @@
     :style="{ width: '28rem' }"
     @hide="newLabelName = ''"
   >
-    <div class="flex flex-col gap-2 pt-2">
-      <label class="font-medium text-primary text-sm">
-        {{ $t('system.labels.editor.info.name') }}
-      </label>
-      <InputText
-        v-model="newLabelName"
-        :placeholder="$t('system.labels.create.namePlaceholder')"
-        autofocus
-        fluid
-        @keyup.enter="submitCreate"
-      />
-    </div>
-    <template #footer>
-      <div class="flex items-center justify-end gap-2">
+    <Form
+      v-slot="$form"
+      :resolver="createResolver"
+      :initialValues="{ name: newLabelName }"
+      @submit="submitCreate"
+    >
+      <FormField name="name" class="flex flex-col gap-2 pt-2">
+        <label for="new-label-name" class="font-medium text-primary text-sm">
+          {{ $t('system.labels.editor.info.name') }}
+        </label>
+        <InputText
+          id="new-label-name"
+          name="name"
+          v-model="newLabelName"
+          :placeholder="$t('system.labels.create.namePlaceholder')"
+          autofocus
+          fluid
+        />
+        <Message
+          v-if="$form.name?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+        >
+          {{ $form.name.error?.message }}
+        </Message>
+      </FormField>
+
+      <div class="flex items-center justify-end gap-2 mt-4">
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
           text
           size="small"
+          type="button"
           @click="showCreateDialog = false"
         />
         <Button
-          :label="$t('system.labels.list.createLabel')"
+          :label="$t('general.label.save')"
           size="small"
-          icon="pi pi-arrow-right"
-          :disabled="!newLabelName.trim()"
-          @click="submitCreate"
+          type="submit"
         />
       </div>
-    </template>
+    </Form>
   </Dialog>
 </template>
 
@@ -163,8 +177,22 @@ function onRowClick({ data }) {
   }
 }
 
-function submitCreate() {
-  const name = newLabelName.value.trim()
+const HANDLE_PATTERN = /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/
+
+function createResolver({ values }) {
+  const errors = {}
+  const name = (values?.name || '').trim()
+  if (!name) {
+    errors.name = [{ message: t('general.label.required') }]
+  } else if (!HANDLE_PATTERN.test(name)) {
+    errors.name = [{ message: t('system.labels.create.invalid-handle-characters') }]
+  }
+  return { errors }
+}
+
+function submitCreate({ valid, values }) {
+  if (!valid) return
+  const name = (values?.name || newLabelName.value).trim()
   if (!name) return
   showCreateDialog.value = false
   router.push({

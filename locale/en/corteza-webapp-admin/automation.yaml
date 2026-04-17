@@ -120,6 +120,8 @@ taq:
     filterForm:
       deleted:
         label: Deleted TAQs
+      disabled:
+        label: Disabled TAQs
       excluded:
         label: Without deleted
       exclusive:
@@ -181,6 +183,8 @@ workflows:
     filterForm:
       deleted:
         label: Deleted workflows
+      disabled:
+        label: Disabled workflows
       excluded:
         label: Without
       exclusive:

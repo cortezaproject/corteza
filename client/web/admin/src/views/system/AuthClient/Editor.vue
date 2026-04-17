@@ -606,6 +606,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.authClientCreate(payload)
       $toast.toastSuccess(t('notification.authclient.create.success'))
+      markSaved()
       router.push({
         name: 'system.authClients.edit',
         params: { authClientID: created.authClientID },
@@ -636,7 +637,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!authClient.value && !!initialAuthClient.value && !isEqual(authClient.value, initialAuthClient.value),
   messageKey: 'general.editor.unsavedChanges',
 })

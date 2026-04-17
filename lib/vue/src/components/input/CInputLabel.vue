@@ -36,37 +36,50 @@
       modal
       :style="{ width: '28rem' }"
     >
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <label for="label-name" class="font-medium text-primary text-sm">
-            {{ nameLabel }}
-          </label>
-          <InputText
-            id="label-name"
-            v-model="dialogForm.name"
-            @keyup.enter="saveLabel"
-          />
+      <Form
+        v-slot="$form"
+        :resolver="dialogResolver"
+        :initialValues="dialogInitialValues"
+        @submit="onDialogSubmit"
+      >
+        <div class="flex flex-col gap-4">
+          <FormField name="name" class="flex flex-col gap-1">
+            <label for="label-name" class="font-medium text-primary text-sm">
+              {{ nameLabel }}
+            </label>
+            <InputText
+              id="label-name"
+              name="name"
+              v-model="dialogForm.name"
+            />
+            <Message
+              v-if="$form.name?.invalid"
+              severity="error"
+              size="small"
+              variant="simple"
+            >
+              {{ $form.name.error?.message }}
+            </Message>
+          </FormField>
         </div>
-      </div>
 
-      <template #footer>
-        <div class="flex items-center justify-end w-full gap-2">
+        <div class="flex items-center justify-end w-full gap-2 mt-4">
           <Button
             :label="cancelBtnLabel"
             severity="secondary"
             text
             size="small"
+            type="button"
             @click="dialogVisible = false"
           />
           <Button
             :label="saveBtnLabel"
             severity="primary"
             size="small"
-            @click="saveLabel"
-            :disabled="!dialogForm.name?.trim()"
+            type="submit"
           />
         </div>
-      </template>
+      </Form>
     </Dialog>
   </div>
 </template>
@@ -99,7 +112,14 @@ const props = defineProps({
   nameLabel: { type: String, default: 'Name' },
   saveBtnLabel: { type: String, default: 'Save' },
   cancelBtnLabel: { type: String, default: 'Cancel' },
+  requiredMessage: { type: String, default: 'Name is required' },
+  invalidHandleMessage: {
+    type: String,
+    default: 'Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number',
+  },
 })
+
+const HANDLE_PATTERN = /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -186,13 +206,27 @@ function onSelectionChange(selected) {
 
 // --- Dialog ---
 
+const dialogInitialValues = computed(() => ({ name: '' }))
+
+function dialogResolver({ values }) {
+  const errors = {}
+  const name = (values?.name || '').trim()
+  if (!name) {
+    errors.name = [{ message: props.requiredMessage }]
+  } else if (!HANDLE_PATTERN.test(name)) {
+    errors.name = [{ message: props.invalidHandleMessage }]
+  }
+  return { errors }
+}
+
 function openCreateDialog() {
   dialogForm.value = { name: '' }
   dialogVisible.value = true
 }
 
-function saveLabel() {
-  const name = dialogForm.value.name?.trim()
+function onDialogSubmit({ valid, values }) {
+  if (!valid) return
+  const name = (values?.name || dialogForm.value.name || '').trim()
   if (!name) return
 
   // Add to options if not already there

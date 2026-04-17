@@ -392,7 +392,7 @@ const module = ref(null)
 const initialModule = ref(null)
 const activeTab = ref('fields')
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !cloning.value && !!module.value && !!initialModule.value && !isEqual(module.value, initialModule.value),
   messageKey: 'general.editor.unsavedChanges',
 })
@@ -737,6 +737,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await moduleStore.create(payload)
       $toast.toastSuccess(t('notification.module.created'))
+      markSaved()
       router.push({
         name: 'admin.modules.edit',
         params: { moduleID: created.moduleID },

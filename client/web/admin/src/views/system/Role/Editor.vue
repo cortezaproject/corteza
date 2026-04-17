@@ -44,7 +44,7 @@
               {{ $t('system.roles.editor.info.name') }}
               <span class="text-red-500">*</span>
             </label>
-            <InputText id="name" name="name" v-model="role.name" />
+            <InputText id="name" name="name" v-model="role.name" :disabled="role.isClosed" />
             <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
               {{ $form.name.error?.message }}
             </Message>
@@ -54,7 +54,7 @@
             <label for="handle" class="font-medium text-primary">
               {{ $t('system.roles.editor.info.handle') }}
             </label>
-            <InputText id="handle" name="handle" v-model="role.handle" />
+            <InputText id="handle" name="handle" v-model="role.handle" :disabled="role.isClosed" />
             <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
               {{ $form.handle.error?.message }}
             </Message>
@@ -69,11 +69,12 @@
               name="description"
               v-model="role.meta.description"
               rows="3"
+              :disabled="role.isClosed"
             />
           </FormField>
 
           <!-- isContextual toggle -->
-          <div class="flex items-center gap-3">
+          <div v-if="!role.isClosed" class="flex items-center gap-3">
             <ToggleSwitch id="isContextual" v-model="isContextual" />
             <label for="isContextual" class="font-medium text-primary cursor-pointer">
               {{ $t('system.roles.editor.info.context.label') }}
@@ -82,7 +83,7 @@
 
           <!-- Contextual section (shown when isContextual) -->
           <div
-            v-if="isContextual"
+            v-if="isContextual && !role.isClosed"
             class="md:col-span-2 flex flex-col gap-4 p-4 border rounded-lg bg-surface"
           >
             <div class="flex flex-col gap-2">
@@ -111,7 +112,7 @@
       </Panel>
 
       <Panel
-        v-if="isEdit && !isContextual"
+        v-if="isEdit && !isContextual && !role.isClosed"
         :header="$t('system.roles.editor.members.title')"
         toggleable
         :collapsed="false"
@@ -133,7 +134,7 @@
           severity="secondary"
           @click="$router.push({ name: 'system.roles' })"
         />
-        <div class="flex gap-2">
+        <div v-if="!role.isClosed" class="flex gap-2">
           <CInputDelete
             v-if="isEdit && role.canDeleteRole && !role.deletedAt && !role.isSystem"
             :label="$t('system.roles.editor.info.delete')"
@@ -292,7 +293,7 @@ async function loadRole() {
       role.value.meta.context.expr || role.value.meta.context.resourceTypes?.length
     )
 
-    if (!isContextual.value) {
+    if (!isContextual.value && !role.value.isClosed) {
       // Load member IDs
       const membersResult = await $SystemAPI.roleMemberList({ roleID })
       const ids = new Set((membersResult?.set || membersResult || []).map(u => u.userID || u))
@@ -361,6 +362,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.roleCreate(payload)
       $toast.toastSuccess(t('notification.role.create.success'))
+      markSaved()
       router.push({
         name: 'system.roles.edit',
         params: { roleID: created.roleID },
@@ -433,7 +435,7 @@ async function handleUnarchive() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!role.value && !!initialRole.value && (!isEqual(role.value, initialRole.value) || !isEqual([...memberIDs.value], [...initialMemberIDs.value])),
   messageKey: 'general.editor.unsavedChanges',
 })

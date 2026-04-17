@@ -273,6 +273,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.queuesCreate(payload)
       $toast.toastSuccess(t('notification.queue.create.success'))
+      markSaved()
       router.push({ name: 'system.queues.edit', params: { queueID: created.queueID } })
     }
   } catch (e) {
@@ -295,7 +296,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!queue.value && !!initialQueue.value && !isEqual(queue.value, initialQueue.value),
   messageKey: 'general.editor.unsavedChanges',
 })

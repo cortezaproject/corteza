@@ -283,6 +283,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.dalConnectionCreate(payload)
       $toast.toastSuccess(t('notification.data-source.create.success'))
+      markSaved()
       router.push({
         name: 'system.dataSources.edit',
         params: { connectionID: created.connectionID },
@@ -313,7 +314,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!dataSource.value && !!initialDataSource.value && !isEqual(dataSource.value, initialDataSource.value),
   messageKey: 'general.editor.unsavedChanges',
 })

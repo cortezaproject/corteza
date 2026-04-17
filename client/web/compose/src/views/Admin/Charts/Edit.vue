@@ -262,7 +262,7 @@ const props = defineProps({
 const chart = ref(null)
 const initialChart = ref(null)
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !processingSave.value && !processingDelete.value && !processingClone.value && !!chart.value && !!initialChart.value && !isEqual(toRaw(chart.value), initialChart.value),
   messageKey: 'general.editor.unsavedChanges',
 })
@@ -461,6 +461,7 @@ async function handleSave() {
       chart.value = chartConstructor(created)
       initialChart.value = cloneDeep(toRaw(chart.value))
       $toast.toastSuccess(t('notification.chart.created'))
+      markSaved()
       router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
     } else {
       const updated = await chartStore.update(c)
@@ -496,6 +497,7 @@ async function handleClone() {
     chart.value = chartConstructor(created)
     initialChart.value = cloneDeep(toRaw(chart.value))
     $toast.toastSuccess(t('notification.chart.created'))
+    markSaved()
     router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
   } catch (e) {
     console.error('Failed to clone chart:', e)

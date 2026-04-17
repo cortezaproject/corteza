@@ -241,7 +241,7 @@ const cloning = ref(false)
 const namespace = ref(null)
 const initialNamespace = ref(null)
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!namespace.value && !!initialNamespace.value && !isEqual(namespace.value, initialNamespace.value),
   messageKey: 'general.editor.unsavedChanges',
 })
@@ -365,7 +365,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await namespaceStore.create(payload)
       $toast.toastSuccess(t('notification.namespace.saved'))
-      // Navigate to edit view
+      markSaved()
       router.push({
         name: 'namespace.edit',
         params: { slug: created.slug || created.namespaceID },
@@ -388,6 +388,7 @@ async function handleClone() {
       slug: '',
     })
     $toast.toastSuccess(t('notification.namespace.cloned'))
+    markSaved()
     router.push({
       name: 'namespace.edit',
       params: { slug: cloned.slug || cloned.namespaceID },

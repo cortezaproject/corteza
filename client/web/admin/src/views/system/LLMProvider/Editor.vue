@@ -306,6 +306,7 @@ async function handleSubmit({ valid }) {
       payload.apiKey = apiKey.value
       const created = await $SystemAPI.llmProviderCreate(payload)
       $toast.toastSuccess(t('notification.llmProvider.create.success'))
+      markSaved()
       router.push({
         name: 'system.llmProviders.edit',
         params: { llmProviderID: created.llmProviderID },
@@ -397,7 +398,7 @@ watch(
   },
 )
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!llmProvider.value && !!initialLlmProvider.value && !isEqual(llmProvider.value, initialLlmProvider.value),
   messageKey: 'general.editor.unsavedChanges',
 })

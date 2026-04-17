@@ -295,6 +295,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.templateCreate(payload)
       $toast.toastSuccess(t('notification.template.create.success'))
+      markSaved()
       router.push({ name: 'system.templates.edit', params: { templateID: created.templateID } })
     }
   } catch (e) {
@@ -322,7 +323,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!template.value && !!initialTemplate.value && !isEqual(template.value, initialTemplate.value),
   messageKey: 'general.editor.unsavedChanges',
 })

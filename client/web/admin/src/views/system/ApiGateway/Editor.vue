@@ -599,6 +599,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await $SystemAPI.apigwRouteCreate(payload)
       $toast.toastSuccess(t('notification.gateway.create.success'))
+      markSaved()
       router.push({ name: 'system.apiGateway.edit', params: { routeID: created.routeID } })
     }
   } catch (e) {
@@ -621,7 +622,7 @@ async function handleDelete() {
   }
 }
 
-useUnsavedGuard({
+const { markSaved } = useUnsavedGuard({
   isDirty: () => !saving.value && !deleting.value && !!route_.value && !!initialRoute_.value && !isEqual(route_.value, initialRoute_.value),
   messageKey: 'general.editor.unsavedChanges',
 })
