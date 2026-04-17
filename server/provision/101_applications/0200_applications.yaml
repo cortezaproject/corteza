@@ -17,7 +17,7 @@ applications:
       listed: true
       icon: applications/projects.png
       logo: applications/projects.png
-      url: admin/labels
+      url: admin/system/labels
 
   - name: Agentic
     (envoy): { skipIf: '!missing' }
