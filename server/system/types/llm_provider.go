@@ -36,7 +36,7 @@ type (
 	LLMProviderConfig struct {
 		PromptURL   string  `json:"promptURL"`
 		Model       string  `json:"model"`
-		Temperature float64 `json:"temperature"`
+		Temperature *float64 `json:"temperature,omitempty"`
 		Timeout     string  `json:"timeout"`
 	}
 

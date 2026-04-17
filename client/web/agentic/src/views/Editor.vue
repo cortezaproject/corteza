@@ -124,17 +124,21 @@
                       <small class="text-muted-color">{{ $t('agent.editor.model.help') }}</small>
                     </div>
                     <div class="flex flex-col gap-1">
-                      <label for="temperature" class="font-medium text-primary">
-                        {{ $t('agent.editor.temperature.label') }} ({{
-                          agent.execution.model.temperature
-                        }})
-                      </label>
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.temperature.help') }}
-                      </small>
+                      <div class="flex items-center justify-between">
+                        <label for="temperature" class="font-medium text-primary">
+                          {{ $t('agent.editor.temperature.label') }}
+                          <span v-if="temperatureEnabled">({{ agent.execution.model.temperature }})</span>
+                        </label>
+                        <ToggleSwitch
+                          :model-value="temperatureEnabled"
+                          @update:model-value="toggleTemperature"
+                        />
+                      </div>
+                      <small class="text-muted-color">{{ $t('agent.editor.temperature.help') }}</small>
                       <Slider
                         id="temperature"
                         v-model="agent.execution.model.temperature"
+                        :disabled="!temperatureEnabled"
                         :min="0"
                         :max="1"
                         :step="0.1"
@@ -915,6 +919,8 @@ const activeConversation = computed(() => conversations.value[activeConvIndex.va
 
 const isCreate = computed(() => !route.params.agentID)
 
+const temperatureEnabled = computed(() => agent.value?.execution?.model?.temperature !== null && agent.value?.execution?.model?.temperature !== undefined)
+
 const showHistoryDialog = ref(false)
 const loadingHistoryChat = ref(false)
 const selectedHistoryConversation = ref(null)
@@ -1007,6 +1013,10 @@ const tclArticleOptions = computed(() => {
 })
 
 const tclSortedArticleGroups = computed(() => tclArticleOptions.value)
+
+function toggleTemperature(enabled) {
+  agent.value.execution.model.temperature = enabled ? 0.7 : null
+}
 
 function toggleTclArticle(articleId, enabled) {
   if (enabled) {
@@ -1109,7 +1119,8 @@ async function handleSubmit({ valid }) {
     }
   } catch (err) {
     console.error(err)
-    $toast.toastDanger(t('notification.agent.saveFailed'))
+    const message = (err && err.message) ? err.message : t('notification.agent.saveFailed')
+    $toast.toastDanger(message)
   } finally {
     saving.value = false
   }

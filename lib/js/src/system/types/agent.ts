@@ -25,7 +25,7 @@ interface AgentBehavior {
 interface AgentExecutionModel {
   llmProviderID: string
   model: string
-  temperature: number
+  temperature: number | null
 }
 
 interface AgentExecutionLimits {
@@ -208,8 +208,13 @@ export class Agent {
     }
 
     if (IsOf(o, 'execution')) {
+      const m = o.execution?.model || {}
       this.execution = {
-        model: { ...this.execution.model, ...(o.execution?.model || {}) },
+        model: {
+          ...this.execution.model,
+          ...m,
+          temperature: 'temperature' in m ? m.temperature : (this.agentID ? null : this.execution.model.temperature),
+        },
         limits: { ...this.execution.limits, ...(o.execution?.limits || {}) },
       }
     }

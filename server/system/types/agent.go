@@ -59,7 +59,7 @@ type (
 	AgentExecutionModel struct {
 		LLMProviderID uint64  `json:"llmProviderID,string,omitempty"`
 		Model         string  `json:"model,omitempty"`
-		Temperature   float64 `json:"temperature"`
+		Temperature   *float64 `json:"temperature,omitempty"`
 	}
 
 	AgentExecutionLimits struct {

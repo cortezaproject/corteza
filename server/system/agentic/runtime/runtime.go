@@ -90,7 +90,7 @@ type (
 	LLMConfig struct {
 		ProviderID   uint64
 		Model        string
-		Temperature  float64
+		Temperature  *float64
 		OutputTokens int
 	}
 

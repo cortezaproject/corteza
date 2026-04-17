@@ -67,7 +67,7 @@ type (
 	}
 )
 
-func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
+func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
 	if model == "" {
 		model = provider.Config.Model
 	}
@@ -81,9 +81,8 @@ func promptOpenAI(ctx context.Context, provider *sysTypes.LlmProvider, cred *sys
 		req.Tools = toOpenAITools(tools)
 	}
 
-	if provider.Config.Temperature > 0 {
-		t := provider.Config.Temperature
-		req.Temperature = &t
+	if temperature != nil {
+		req.Temperature = temperature
 	}
 
 	if outputTokens > 0 {

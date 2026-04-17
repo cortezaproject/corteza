@@ -268,6 +268,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	if err != nil {
 		return fmt.Errorf("could not initialize LLM service: %w", err)
 	}
+	DefaultAgent.WithLLMValidator(DefaultLlmService)
 
 	DefaultMCPRegistry = agenticMcp.NewRegistry()
 

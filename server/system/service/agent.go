@@ -18,6 +18,7 @@ type (
 		actionlog actionlog.Recorder
 		store     store.Storer
 		ac        agentAccessController
+		llm       agentLLMValidator
 	}
 
 	agentAccessController interface {
@@ -27,6 +28,10 @@ type (
 		CanUpdateAgent(ctx context.Context, a *types.Agent) bool
 		CanDeleteAgent(ctx context.Context, a *types.Agent) bool
 	}
+
+	agentLLMValidator interface {
+		ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error
+	}
 )
 
 func Agent() *agent {
@@ -35,6 +40,11 @@ func Agent() *agent {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 	}
+}
+
+func (svc *agent) WithLLMValidator(v agentLLMValidator) *agent {
+	svc.llm = v
+	return svc
 }
 
 func (svc *agent) Get(ctx context.Context, ID uint64) (*types.Agent, error) {
@@ -75,6 +85,12 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 			new.Status = "active"
 		}
 
+		if new.Execution.Model.Temperature != nil && svc.llm != nil {
+			if err = svc.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
+				return
+			}
+		}
+
 		prepareTCL(&new.Behavior)
 
 		if err = store.CreateAgent(ctx, svc.store, new); err != nil {
@@ -112,6 +128,12 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 		upd.UpdatedAt = now()
 		upd.CreatedAt = existing.CreatedAt
 		upd.DeletedAt = existing.DeletedAt
+
+		if upd.Execution.Model.Temperature != nil && svc.llm != nil {
+			if err = svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
+				return
+			}
+		}
 
 		prepareTCL(&upd.Behavior)
 

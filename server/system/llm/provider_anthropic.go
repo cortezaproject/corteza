@@ -56,7 +56,7 @@ type (
 	}
 )
 
-func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, outputTokens int, messages []Message, tools []Tool, anthropicAPIVersion string) (*Response, error) {
+func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool, anthropicAPIVersion string) (*Response, error) {
 	if model == "" {
 		model = provider.Config.Model
 	}
@@ -68,9 +68,8 @@ func promptAnthropic(ctx context.Context, provider *sysTypes.LlmProvider, cred *
 		req.MaxTokens = &outputTokens
 	}
 
-	if provider.Config.Temperature > 0 {
-		t := provider.Config.Temperature
-		req.Temperature = &t
+	if temperature != nil {
+		req.Temperature = temperature
 	}
 
 	var (
@@ -278,6 +277,7 @@ func normalizeAnthropicStopReason(reason string) string {
 		return reason
 	}
 }
+
 
 func toMapStringAny(v any) (map[string]any, error) {
 	if m, ok := v.(map[string]any); ok {

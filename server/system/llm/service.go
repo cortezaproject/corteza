@@ -7,6 +7,7 @@ import (
 	"time"
 
 	rt "github.com/cortezaproject/corteza/server/system/agentic/runtime"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
@@ -252,9 +253,19 @@ func fetchModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysT
 	}
 }
 
+// ValidateTemperature sends a minimal request with temperature set to verify the model accepts it.
+// Returns a KindInvalidData error with the provider's message so callers can surface it directly.
+func (svc *Service) ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error {
+	_, err := svc.Prompt(ctx, providerID, model, temperature, 1, []Message{{Role: "user", Content: "hi"}}, nil)
+	if err != nil {
+		return errors.InvalidData(err.Error())
+	}
+	return nil
+}
+
 // Prompt resolves the provider and its credential, then forwards the conversation to the LLM.
 // If model is non-empty it overrides the provider's configured model without changing the DB record.
-func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
+func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
 	provider, err := store.LookupLlmProviderByID(ctx, svc.store, providerID)
 	if err != nil {
 		return nil, fmt.Errorf("could not resolve LLM provider: %w", err)
@@ -269,15 +280,21 @@ func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string,
 		return nil, fmt.Errorf("could not resolve credential for LLM provider: %w", err)
 	}
 
-	return svc.callProvider(ctx, provider, cred, model, outputTokens, messages, tools)
+	return svc.callProvider(ctx, provider, cred, model, temperature, outputTokens, messages, tools)
 }
 
-func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
+func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
+	// Agent-level temperature overrides provider default; fall back to provider if not set.
+	temp := temperature
+	if temp == nil {
+		temp = provider.Config.Temperature
+	}
+
 	switch provider.Provider {
 	case "anthropic":
-		return promptAnthropic(ctx, provider, cred, model, outputTokens, messages, tools, svc.anthropicAPIVersion)
+		return promptAnthropic(ctx, provider, cred, model, temp, outputTokens, messages, tools, svc.anthropicAPIVersion)
 	default:
-		return promptOpenAI(ctx, provider, cred, model, outputTokens, messages, tools)
+		return promptOpenAI(ctx, provider, cred, model, temp, outputTokens, messages, tools)
 	}
 }
 
@@ -303,7 +320,8 @@ func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.
 		}
 	}
 
-	resp, err := svc.Prompt(ctx, config.ProviderID, config.Model, config.OutputTokens, messages, llmTools)
+	resp, err := svc.Prompt(ctx, config.ProviderID, config.Model, config.Temperature, config.OutputTokens, messages, llmTools)
+
 	if err != nil {
 		return nil, err
 	}
