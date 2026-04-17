@@ -7,7 +7,8 @@ FROM ubuntu:22.04
 ARG SASS_VERSION=1.85.1
 ARG SASS_URL=https://github.com/sass/dart-sass/releases/download/${SASS_VERSION}/dart-sass-${SASS_VERSION}-linux-x64.tar.gz
 
-RUN apt-get -y update \
+RUN sed -i 's|archive.ubuntu.com|azure.archive.ubuntu.com|g; s|security.ubuntu.com|azure.archive.ubuntu.com|g' /etc/apt/sources.list \
+ && apt-get -y update \
  && apt-get -y install \
     ca-certificates \
     curl \

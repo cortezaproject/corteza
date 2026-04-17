@@ -3,7 +3,8 @@
 #   .docker-build/server/ - pre-built discovery server package
 FROM ubuntu:22.04
 
-RUN apt-get -y update \
+RUN sed -i 's|archive.ubuntu.com|azure.archive.ubuntu.com|g; s|security.ubuntu.com|azure.archive.ubuntu.com|g' /etc/apt/sources.list \
+ && apt-get -y update \
  && apt-get -y install \
     ca-certificates \
     curl \
