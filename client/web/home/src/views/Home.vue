@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { components, useNotificationsStore } from '@cortezaproject/corteza-vue-next'
+import { components, useNotificationsStore } from '@planetcrust/human-vue'
 import { ref } from 'vue'
 import { useColumnResize } from '../composables/useColumnResize'
 

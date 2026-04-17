@@ -111,9 +111,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { CInputColorPicker } = components
 
@@ -123,29 +123,24 @@ const DEFAULT_BADGE_BG_COLOR = '#09344EFF'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
 const selectTypeOptions = computed(() => {
   const allOptions = [
     { value: 'default', label: t('field.kind.select.optionType.default'), allowDuplicates: true },
     { value: 'multiple', label: t('field.kind.select.optionType.multiple'), onlyMulti: true },
     { value: 'each', label: t('field.kind.select.optionType.each'), allowDuplicates: true, onlyMulti: true },
-    { value: 'list', label: t(`field.kind.select.optionType.${props.field.isMulti ? 'checkbox' : 'radio'}`) },
+    { value: 'list', label: t(`field.kind.select.optionType.${field.value.isMulti ? 'checkbox' : 'radio'}`) },
   ]
 
-  if (props.field.isMulti) return allOptions
+  if (field.value.isMulti) return allOptions
   return allOptions.filter(o => !o.onlyMulti)
 })
 
 // Types where duplicates can be allowed
 const duplicatesAllowedTypes = ['default', 'each']
 const showAllowDuplicates = computed(() =>
-  duplicatesAllowedTypes.includes(props.field.options.selectType),
+  duplicatesAllowedTypes.includes(field.value.options.selectType),
 )
 
 const optionsList = ref([])
@@ -162,19 +157,19 @@ function makeOption(o = {}) {
 }
 
 onMounted(() => {
-  if (!props.field.options.selectType) {
-    props.field.options.selectType = 'default'
+  if (!field.value.options.selectType) {
+    field.value.options.selectType = 'default'
   }
-  if (!props.field.options.displayType) {
-    props.field.options.displayType = 'text'
+  if (!field.value.options.displayType) {
+    field.value.options.displayType = 'text'
   }
-  if (Array.isArray(props.field.options?.options)) {
-    optionsList.value = props.field.options.options.map(makeOption)
+  if (Array.isArray(field.value.options?.options)) {
+    optionsList.value = field.value.options.options.map(makeOption)
   }
 })
 
 watch(
-  () => props.field.options?.options,
+  () => field.value.options?.options,
   newOpts => {
     if (Array.isArray(newOpts) && newOpts.length !== optionsList.value.length) {
       optionsList.value = newOpts.map(makeOption)
@@ -184,8 +179,8 @@ watch(
 )
 
 function updateOptions() {
-  if (!props.field.options) props.field.options = {}
-  props.field.options.options = optionsList.value.map(o => ({
+  if (!field.value.options) field.value.options = {}
+  field.value.options.options = optionsList.value.map(o => ({
     value: o.value,
     text: o.text || o.value,
     style: {

@@ -23,14 +23,9 @@
 
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import { onBeforeMount, ref } from 'vue'
+import { ref } from 'vue'
 
 const capturedError = ref<string | undefined>(undefined)
-
-onBeforeMount(() => {
-  //
-})
-
 </script>
 
 <style lang="scss">

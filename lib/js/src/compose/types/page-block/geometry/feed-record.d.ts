@@ -14,6 +14,6 @@ export declare function RecordFeed(
   module: Module,
   namespace: Namespace,
   feed: Feed,
-  options?: {},
+  options?: Record<string, unknown>,
 ): Promise<any[]>
 export {}

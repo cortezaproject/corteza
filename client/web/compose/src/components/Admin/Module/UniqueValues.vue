@@ -130,30 +130,25 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps({
-  module: {
-    type: Object,
-    required: true,
-  },
-})
+const module = inject('moduleDraft')
 
 const { t } = useI18n()
 
 // Safely ensure config paths exist
-if (!props.module.config) props.module.config = {}
-if (!props.module.config.recordDeDup) {
-  props.module.config.recordDeDup = { enabled: false, rules: [] }
+if (!module.value.config) module.value.config = {}
+if (!module.value.config.recordDeDup) {
+  module.value.config.recordDeDup = { enabled: false, rules: [] }
 }
 
 const rules = computed({
   get() {
-    return props.module.config.recordDeDup.rules || []
+    return module.value.config.recordDeDup.rules || []
   },
   set(value) {
-    props.module.config.recordDeDup.rules = value
+    module.value.config.recordDeDup.rules = value
   },
 })
 
@@ -182,10 +177,10 @@ const multiValueOptions = computed(() => {
 })
 
 function addNewConstraint() {
-  if (!props.module.config.recordDeDup.rules) {
-    props.module.config.recordDeDup.rules = []
+  if (!module.value.config.recordDeDup.rules) {
+    module.value.config.recordDeDup.rules = []
   }
-  props.module.config.recordDeDup.rules.push({
+  module.value.config.recordDeDup.rules.push({
     name: '',
     strict: true,
     constraints: [],
@@ -194,7 +189,7 @@ function addNewConstraint() {
 
 function updateRuleConstraint(rule) {
   const currentFieldName = rule.currentField
-  const fieldObj = props.module.fields.find(({ name }) => name === currentFieldName)
+  const fieldObj = module.value.fields.find(({ name }) => name === currentFieldName)
   
   if (!fieldObj) {
     rule.currentField = undefined
@@ -219,11 +214,11 @@ function updateRuleConstraint(rule) {
 
 function filterFieldOptions(rule) {
   const selectedFields = rule.constraints ? rule.constraints.map(({ attribute }) => attribute) : []
-  return props.module.fields.filter(({ name }) => !selectedFields.includes(name))
+  return module.value.fields.filter(({ name }) => !selectedFields.includes(name))
 }
 
 function getField(attribute) {
-  const field = props.module.fields.find(({ name }) => name === attribute)
+  const field = module.value.fields.find(({ name }) => name === attribute)
   return field || {}
 }
 

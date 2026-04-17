@@ -84,14 +84,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
 // -- Sanitizers --
 const sanitizers = ref([])
@@ -107,17 +102,17 @@ function removeSanitizer(index) {
 }
 
 function syncSanitizers() {
-  if (!props.field.expressions) props.field.expressions = {}
-  props.field.expressions.sanitizers = [...sanitizers.value]
+  if (!field.value.expressions) field.value.expressions = {}
+  field.value.expressions.sanitizers = [...sanitizers.value]
 }
 
 // -- Validators --
 const validators = ref([])
 const disableDefaultValidators = computed({
-  get: () => props.field.expressions?.disableDefaultValidators || false,
+  get: () => field.value.expressions?.disableDefaultValidators || false,
   set: (val) => {
-    if (!props.field.expressions) props.field.expressions = {}
-    props.field.expressions.disableDefaultValidators = val
+    if (!field.value.expressions) field.value.expressions = {}
+    field.value.expressions.disableDefaultValidators = val
   },
 })
 
@@ -132,15 +127,15 @@ function removeValidator(index) {
 }
 
 function syncValidators() {
-  if (!props.field.expressions) props.field.expressions = {}
-  props.field.expressions.validators = validators.value.map(v => ({ ...v }))
+  if (!field.value.expressions) field.value.expressions = {}
+  field.value.expressions.validators = validators.value.map(v => ({ ...v }))
 }
 
 onMounted(() => {
-  if (!props.field.expressions) {
-    props.field.expressions = {}
+  if (!field.value.expressions) {
+    field.value.expressions = {}
   }
-  sanitizers.value = [...(props.field.expressions.sanitizers || [])]
-  validators.value = (props.field.expressions.validators || []).map(v => ({ ...v }))
+  sanitizers.value = [...(field.value.expressions.sanitizers || [])]
+  validators.value = (field.value.expressions.validators || []).map(v => ({ ...v }))
 })
 </script>

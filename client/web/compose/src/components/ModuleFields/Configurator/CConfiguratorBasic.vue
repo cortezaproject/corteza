@@ -134,42 +134,40 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { computed, inject, onMounted, ref, watch } from 'vue'
+import { compose } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 
 const { CFieldEditor } = components
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
+defineProps({
   namespace: {
     type: Object,
     default: null,
   },
 })
 
+const field = inject('fieldDraft')
+
 const sameDescription = ref(true)
 const sameHint = ref(true)
 
 // -- Default Value --
 const defaultValueEnabled = ref(false)
-const showDefaultValue = computed(() => !['File'].includes(props.field.kind))
+const showDefaultValue = computed(() => !['File'].includes(field.value.kind))
 
 const mockField = computed(() => {
-  const f = compose.ModuleFieldMaker(JSON.parse(JSON.stringify(props.field)))
+  const f = compose.ModuleFieldMaker(JSON.parse(JSON.stringify(field.value)))
   f.label = f.label || 'Default value'
   f.name = 'defValField'
   return f
 })
 
 const mockValue = computed(() => {
-  if (props.field.isMulti) {
-    return props.field.defaultValue.map(v => v.value).filter(v => v !== undefined && v !== null)
+  if (field.value.isMulti) {
+    return field.value.defaultValue.map(v => v.value).filter(v => v !== undefined && v !== null)
   }
-  return props.field.defaultValue[0]?.value || undefined
+  return field.value.defaultValue[0]?.value || undefined
 })
 
 function onMockValueChange(val) {
@@ -180,10 +178,10 @@ function onMockValueChange(val) {
     dv = [undefined]
   }
 
-  props.field.defaultValue = dv.map(v => {
+  field.value.defaultValue = dv.map(v => {
     let valueStr = v
     if (v !== undefined && v.toString) valueStr = v.toString()
-    const def = { name: props.field.name }
+    const def = { name: field.value.name }
     if (valueStr) def.value = valueStr
     return def
   })
@@ -192,10 +190,10 @@ function onMockValueChange(val) {
 // -- Value Expression --
 const showValueExpr = ref(false)
 const valueExpression = computed({
-  get: () => props.field.expressions?.value || '',
+  get: () => field.value.expressions?.value || '',
   set: (val) => {
-    if (!props.field.expressions) props.field.expressions = {}
-    props.field.expressions.value = val || undefined
+    if (!field.value.expressions) field.value.expressions = {}
+    field.value.expressions.value = val || undefined
   },
 })
 
@@ -203,27 +201,27 @@ const valueExpression = computed({
 
 // Initialize local state based on field options
 onMounted(() => {
-  if (!props.field.options.description) {
-    props.field.options.description = { view: '', edit: '' }
+  if (!field.value.options.description) {
+    field.value.options.description = { view: '', edit: '' }
   }
-  if (!props.field.options.hint) {
-    props.field.options.hint = { view: '', edit: '' }
+  if (!field.value.options.hint) {
+    field.value.options.hint = { view: '', edit: '' }
   }
 
-  sameDescription.value = typeof props.field.options.description.edit === 'undefined'
-  sameHint.value = typeof props.field.options.hint.edit === 'undefined'
+  sameDescription.value = typeof field.value.options.description.edit === 'undefined'
+  sameHint.value = typeof field.value.options.hint.edit === 'undefined'
 
   // Init default value
-  if (props.field.defaultValue && props.field.defaultValue.length > 0) {
+  if (field.value.defaultValue && field.value.defaultValue.length > 0) {
     defaultValueEnabled.value = true
   }
 
   // Init expressions
-  if (!props.field.expressions) {
-    props.field.expressions = {}
+  if (!field.value.expressions) {
+    field.value.expressions = {}
   }
-  
-  if (props.field.expressions.value && props.field.expressions.value.length > 0) {
+
+  if (field.value.expressions.value && field.value.expressions.value.length > 0) {
     showValueExpr.value = true
   }
 
@@ -232,23 +230,23 @@ onMounted(() => {
 // Sync default value back to field
 watch(defaultValueEnabled, (val) => {
   if (!val) {
-    props.field.defaultValue = []
+    field.value.defaultValue = []
   } else {
     showValueExpr.value = false
-    if (props.field.defaultValue.length === 0) {
-      props.field.defaultValue = [{ name: props.field.name, value: '' }]
+    if (field.value.defaultValue.length === 0) {
+      field.value.defaultValue = [{ name: field.value.name, value: '' }]
     }
   }
 })
 
 watch(showValueExpr, (val) => {
   if (val) {
-    props.field.isRequired = false
-    props.field.defaultValue = []
+    field.value.isRequired = false
+    field.value.defaultValue = []
     defaultValueEnabled.value = false
   } else {
-    if (props.field.expressions) {
-      props.field.expressions.value = undefined
+    if (field.value.expressions) {
+      field.value.expressions.value = undefined
     }
   }
 })
@@ -256,17 +254,17 @@ watch(showValueExpr, (val) => {
 // Sync description/hint states back to field object
 watch(sameDescription, val => {
   if (val) {
-    props.field.options.description.edit = undefined
+    field.value.options.description.edit = undefined
   } else {
-    props.field.options.description.edit = props.field.options.description.edit || ''
+    field.value.options.description.edit = field.value.options.description.edit || ''
   }
 })
 
 watch(sameHint, val => {
   if (val) {
-    props.field.options.hint.edit = undefined
+    field.value.options.hint.edit = undefined
   } else {
-    props.field.options.hint.edit = props.field.options.hint.edit || ''
+    field.value.options.hint.edit = field.value.options.hint.edit || ''
   }
 })
 </script>

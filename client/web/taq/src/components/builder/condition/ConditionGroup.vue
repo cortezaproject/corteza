@@ -82,11 +82,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import ConditionRow from './ConditionRow.vue'
-
-const { t } = useI18n()
 
 const props = defineProps({
   node: { type: Object, required: true },

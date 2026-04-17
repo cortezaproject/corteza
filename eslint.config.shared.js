@@ -29,6 +29,19 @@ export default [
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
 
+  // Let vue-eslint-parser route <script lang="ts"> blocks through tsParser
+  {
+    name: 'shared/vue-ts-parser',
+    files: ['**/*.vue'],
+    languageOptions: {
+      parserOptions: {
+        parser: tsParser,
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+    },
+  },
+
   // TypeScript configuration
   {
     name: 'shared/typescript',
@@ -89,7 +102,7 @@ export default [
       'vue/no-reserved-component-names': 'off',
 
       // Code quality rules
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-console': 'off',
     },
   },

@@ -58,7 +58,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject, defineAsyncComponent } from 'vue'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import numeral from 'numeral'
 import PageBlock from './PageBlock.vue'
 import MetricItem from './Metric/MetricItem.vue'

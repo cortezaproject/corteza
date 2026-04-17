@@ -1,5 +1,5 @@
-import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
-import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import type { IconDef } from '@planetcrust/human-js/src/automation/types/icon'
+import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
 
 // Default icon fallbacks (re-exported from shared lib)
 export const DEFAULT_TRIGGER_ICON: IconDef = DEFAULT_ICONS.TRIGGER
@@ -26,7 +26,7 @@ export const EVENT_ICONS: Record<string, IconDef> = {
 }
 
 // Helper to resolve trigger metadata taking resource type into context
-export function getTriggerMeta(eventType: string, resourceType?: string): { icon: IconDef } {
+export function getTriggerMeta(eventType: string, _resourceType?: string): { icon: IconDef } {
   // Icon maps based on the eventType
   return {
     icon: EVENT_ICONS[eventType] || DEFAULT_TRIGGER_ICON,

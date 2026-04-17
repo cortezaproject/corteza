@@ -1,0 +1,24 @@
+kind:
+  dateTime:
+    relative:
+      fewSecondsAgo: a few seconds ago
+      minutesAgo: '{n} minutes ago'
+      hoursAgo: '{n} hours ago'
+      daysAgo: '{n} days ago'
+      inFewSeconds: in a few seconds
+      inMinutes: 'in {n} minutes'
+      inHours: 'in {n} hours'
+      inDays: 'in {n} days'
+  geometry:
+    clickToPlaceMarker: 'Click to place/remove a marker'
+    geosearchInputPlaceholder: 'Enter address, place or postcode'
+    latitude: 'Latitude'
+    longitude: 'Longitude'
+    tooltip:
+      goToCurrentLocation: 'Go to current location'
+      openMap: 'Open map'
+      useCurrentLocation: 'Use current location'
+  record:
+    suggestionPlaceholder: 'Start typing to search for records'
+  user:
+    suggestionPlaceholder: 'Start typing to search for users by email or name'

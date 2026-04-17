@@ -8,9 +8,9 @@ interface UserLike {
 }
 
 interface UserStore {
-  findByID: { (id: string): UserLike | undefined }
-  storeUsers: { (users: UserLike[]): void }
-  resolveUsers: { (ids: string[]): Promise<void> }
+  findByID: { (_id: string): UserLike | undefined }
+  storeUsers: { (_users: UserLike[]): void }
+  resolveUsers: { (_ids: string[]): Promise<void> }
 }
 
 export function useUserResolver() {

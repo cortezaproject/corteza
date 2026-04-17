@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /**
  * Vue 3 Type Declarations for Corteza
  *
@@ -25,10 +24,10 @@ import type { EventBus } from './plugins/event-bus'
 import type { Settings } from './plugins/settings'
 
 // API Client types - import from declaration files
-import type AutomationAPI from '@cortezaproject/corteza-js-next/src/api-clients/automation'
-import type ComposeAPI from '@cortezaproject/corteza-js-next/src/api-clients/compose'
-import type FederationAPI from '@cortezaproject/corteza-js-next/src/api-clients/federation'
-import type SystemAPI from '@cortezaproject/corteza-js-next/src/api-clients/system'
+import type AutomationAPI from '@planetcrust/human-js/src/api-clients/automation'
+import type ComposeAPI from '@planetcrust/human-js/src/api-clients/compose'
+import type FederationAPI from '@planetcrust/human-js/src/api-clients/federation'
+import type SystemAPI from '@planetcrust/human-js/src/api-clients/system'
 
 // Augment Vue's ComponentCustomProperties for global properties
 declare module 'vue' {
@@ -70,13 +69,13 @@ declare module 'vue' {
     $Settings: Settings
     $eventBus: EventBus
     $toast: {
-      add: (options: unknown) => void;
-      addToast: (options: unknown) => void;
-      toastSuccess: (message: string, title?: string) => void;
-      toastWarning: (message: string, title?: string) => void;
-      toastInfo: (message: string, title?: string) => void;
-      toastDanger: (message: string, title?: string) => void;
-      toastErrorHandler: (prefix?: string, title?: string) => (err?: unknown) => string;
+      add: (options: unknown) => void
+      addToast: (options: unknown) => void
+      toastSuccess: (message: string, title?: string) => void
+      toastWarning: (message: string, title?: string) => void
+      toastInfo: (message: string, title?: string) => void
+      toastDanger: (message: string, title?: string) => void
+      toastErrorHandler: (prefix?: string, title?: string) => (err?: unknown) => string
     }
 
     /**
@@ -113,22 +112,22 @@ declare module 'vue' {
 declare global {
   interface Window {
     /**
-     * Corteza API base URL
+     * Human API base URL
      * Set in public/config.js
-     * @example 'https://corteza.example.com/api'
+     * @example 'https://human.example.com/api'
      */
-    CortezaAPI?: string
+    HumanAPI?: string
 
     /**
-     * Corteza Auth URL (optional, auto-derived from CortezaAPI if not set)
-     * @example 'https://corteza.example.com/auth'
+     * Corteza Auth URL (optional, auto-derived from HumanAPI if not set)
+     * @example 'https://human.example.com/auth'
      */
-    CortezaAuth?: string
+    HumanAuth?: string
 
     /**
-     * Corteza websocket URL (optional, auto-derived from CortezaAPI if not set)
+     * Corteza websocket URL (optional, auto-derived from HumanAPI if not set)
      */
-    CortezaWebsocket?: string
+    HumanWebsocket?: string
 
     /**
      * Corteza Webapp base URL (optional)

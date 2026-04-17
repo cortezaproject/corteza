@@ -1,79 +1,126 @@
 <template>
-  <div class="flex flex-col gap-4">
-    <div class="flex items-center gap-2">
-      <Checkbox
-        v-model="field.options.prefillWithCurrentLocation"
-        inputId="prefillLocation"
-        :binary="true"
-      />
-      <label for="prefillLocation" class="cursor-pointer">
-        {{ $t('field.kind.geometry.prefillWithCurrentLocation') }}
-      </label>
-    </div>
-    <div class="flex items-center gap-2">
-      <Checkbox
-        v-model="field.options.hideCurrentLocationButton"
-        inputId="hideLocationBtn"
-        :binary="true"
-      />
-      <label for="hideLocationBtn" class="cursor-pointer">
-        {{ $t('field.kind.geometry.hideCurrentLocationButton') }}
-      </label>
-    </div>
-    <div class="flex items-center gap-2">
-      <Checkbox
-        v-model="field.options.hideGeoSearch"
-        inputId="hideGeoSearch"
-        :binary="true"
-      />
-      <label for="hideGeoSearch" class="cursor-pointer">
-        {{ $t('field.kind.geometry.hideGeoSearch') }}
-      </label>
-    </div>
-
-    <!-- Map preview for setting initial zoom and position -->
+  <div class="flex flex-col gap-3">
+    <!-- Starting view: pan/zoom to set starting center and zoom -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">
-        {{ $t('field.kind.geometry.initialZoomAndPosition') }}
+      <label class="text-primary font-medium text-sm">
+        {{ $t('field.kind.geometry.startingView') }}
       </label>
       <CMap
         :center="center"
         :zoom="zoom"
-        hide-geo-search
-        hide-current-location-button
-        style="height: 50vh;"
-        @map-click="onMapUpdate"
+        :max-bounds="lockBounds ? lockedBounds : null"
+        :hide-geo-search="hideGeoSearch"
+        :hide-current-location-button="hideCurrentLocationButton"
+        style="height: 40vh;"
+        @update:center="onMapCenter"
+        @update:zoom="onMapZoom"
+        @update:bounds="onMapBounds"
+      />
+    </div>
+
+    <!-- Toggles -->
+    <div class="grid grid-cols-2 gap-3 items-start">
+      <CInputToggleCard
+        v-model="prefillWithCurrentLocation"
+        :label="$t('field.kind.geometry.prefillWithCurrentLocation')"
+        :description="$t('field.kind.geometry.prefillWithCurrentLocationDescription')"
+      />
+      <CInputToggleCard
+        v-model="hideCurrentLocationButton"
+        :label="$t('field.kind.geometry.hideCurrentLocationButton')"
+        :description="$t('field.kind.geometry.hideCurrentLocationButtonDescription')"
+      />
+      <CInputToggleCard
+        v-model="hideGeoSearch"
+        :label="$t('field.kind.geometry.hideGeoSearch')"
+        :description="$t('field.kind.geometry.hideGeoSearchDescription')"
+      />
+      <CInputToggleCard
+        :model-value="lockBounds"
+        :label="$t('field.kind.geometry.lockBounds')"
+        :description="$t('field.kind.geometry.lockBoundsDescription')"
+        @update:model-value="onLockBoundsToggle"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted } from 'vue'
-import CMap from '@cortezaproject/corteza-vue-next/src/components/map/CMap.vue'
+import { computed, inject, onMounted, ref } from 'vue'
+import { components } from '@planetcrust/human-vue'
+import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
+const { CInputToggleCard } = components
+
+const field = inject('fieldDraft')
+
+const center = computed(() => {
+  const c = field.value.options?.center
+  return Array.isArray(c) && c.length === 2 ? c : [30, 30]
 })
 
-const center = computed(() => props.field.options?.center || [30, 30])
-const zoom = computed(() => props.field.options?.zoom || 3)
+const zoom = computed(() => field.value.options?.zoom || 3)
 
-function onMapUpdate(e) {
-  // When loading the map, we can listen to zoom/center updates
-  // but CMap doesn't emit separate zoom/center events yet,
-  // so for now the map just lets users visualize the default position.
+function onMapCenter([lat, lng]) {
+  field.value.options.center = [
+    Math.round(lat * 1e6) / 1e6,
+    Math.round(lng * 1e6) / 1e6,
+  ]
+}
+
+function onMapZoom(z) {
+  field.value.options.zoom = z
+}
+
+const prefillWithCurrentLocation = computed({
+  get: () => !!field.value.options?.prefillWithCurrentLocation,
+  set: v => { field.value.options.prefillWithCurrentLocation = v },
+})
+
+const hideCurrentLocationButton = computed({
+  get: () => !!field.value.options?.hideCurrentLocationButton,
+  set: v => { field.value.options.hideCurrentLocationButton = v },
+})
+
+const hideGeoSearch = computed({
+  get: () => !!field.value.options?.hideGeoSearch,
+  set: v => { field.value.options.hideGeoSearch = v },
+})
+
+const lockBounds = computed(() => !!field.value.options?.lockBounds)
+
+const lockedBounds = computed(() => {
+  const b = field.value.options?.bounds
+  if (Array.isArray(b) && b.length === 2 && b.every(p => Array.isArray(p) && p.length === 2)) {
+    return b
+  }
+  return null
+})
+
+const currentMapBounds = ref(null)
+
+function onMapBounds(b) {
+  currentMapBounds.value = b
+}
+
+function onLockBoundsToggle(v) {
+  if (v) {
+    const b = currentMapBounds.value || lockedBounds.value
+    if (b) {
+      field.value.options.bounds = b
+    }
+    field.value.options.lockBounds = true
+  } else {
+    field.value.options.lockBounds = false
+  }
 }
 
 onMounted(() => {
-  if (!props.field.options.center) {
-    props.field.options.center = [30, 30]
+  if (!field.value.options.center) {
+    field.value.options.center = [30, 30]
   }
-  if (!props.field.options.zoom) {
-    props.field.options.zoom = 3
+  if (!field.value.options.zoom) {
+    field.value.options.zoom = 3
   }
 })
 </script>

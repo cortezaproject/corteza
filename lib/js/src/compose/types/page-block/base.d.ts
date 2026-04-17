@@ -30,7 +30,7 @@ export declare class PageBlock {
   title: string
   description: string
   xywh: number[]
-  options: {}
+  options: Record<string, unknown>
   meta: PageBlockMeta
   style: PageBlockStyle
   constructor(i?: PageBlockInput)

@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import { Args } from './args'
-import { CortezaTypes } from './args-corteza'
+import { HumanTypes } from './args-human'
 import { Module } from '../compose/types/module'
 
 describe('args', () => {
@@ -18,7 +18,7 @@ describe('args', () => {
 
   it('should use caster', () => {
     const module = { moduleID: '42' }
-    const args = new Args({ module }, CortezaTypes)
+    const args = new Args({ module }, HumanTypes)
     expect(args).to.haveOwnProperty('$module')
     expect(args).to.haveOwnProperty('rawModule')
     expect(args).property('$module').instanceOf(Module)
@@ -27,7 +27,7 @@ describe('args', () => {
 
   it('should properly handle pre-casted variables', () => {
     const module = new Module({ moduleID: '42' })
-    const args = new Args({ module }, CortezaTypes)
+    const args = new Args({ module }, HumanTypes)
     expect(args).to.haveOwnProperty('$module')
     expect(args).to.haveOwnProperty('rawModule')
     expect(args).property('$module').instanceOf(Module)

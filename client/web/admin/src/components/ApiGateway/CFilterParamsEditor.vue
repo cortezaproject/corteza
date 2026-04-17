@@ -9,7 +9,7 @@
         {{ getParamLabel(param.label) }}
         <a
           v-if="param.label === 'expr'"
-          href="https://docs.cortezaproject.org/corteza-docs/latest/integrator-guide/expr/index.html"
+          href="https://docs.planetcrust.io/human-docs/latest/integrator-guide/expr/index.html"
           target="_blank"
           class="ml-1 text-muted-color"
         >

@@ -58,17 +58,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
 const inputTypeOptions = computed(() => [
   { value: 'dateTime', label: t('field.kind.dateTime.type.options.dateTime') },
@@ -83,24 +78,24 @@ const constraintOptions = computed(() => [
 ])
 
 const inputType = computed(() => {
-  if (props.field.options.onlyDate) return 'date'
-  if (props.field.options.onlyTime) return 'time'
+  if (field.value.options.onlyDate) return 'date'
+  if (field.value.options.onlyTime) return 'time'
   return 'dateTime'
 })
 
 const constraintType = computed(() => {
-  if (props.field.options.onlyPastValues) return 'pastValuesOnly'
-  if (props.field.options.onlyFutureValues) return 'futureValuesOnly'
+  if (field.value.options.onlyPastValues) return 'pastValuesOnly'
+  if (field.value.options.onlyFutureValues) return 'futureValuesOnly'
   return 'all'
 })
 
 function onInputTypeChange(v) {
-  props.field.options.onlyDate = v === 'date'
-  props.field.options.onlyTime = v === 'time'
+  field.value.options.onlyDate = v === 'date'
+  field.value.options.onlyTime = v === 'time'
 }
 
 function onConstraintChange(v) {
-  props.field.options.onlyPastValues = v === 'pastValuesOnly'
-  props.field.options.onlyFutureValues = v === 'futureValuesOnly'
+  field.value.options.onlyPastValues = v === 'pastValuesOnly'
+  field.value.options.onlyFutureValues = v === 'futureValuesOnly'
 }
 </script>

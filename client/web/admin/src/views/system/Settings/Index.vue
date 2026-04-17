@@ -377,6 +377,53 @@
         </div>
       </Panel>
 
+      <!-- Federation -->
+      <Panel
+        :header="$t('system.settings.editor.federation.title')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
+        <CInputSwitch
+          v-model="settings['federation.enabled']"
+          :label="$t('system.settings.editor.federation.enabled')"
+          :description="$t('system.settings.editor.federation.description')"
+        />
+      </Panel>
+
+      <!-- Discovery -->
+      <Panel
+        :header="$t('system.settings.editor.discovery.title')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
+        <div class="flex flex-col gap-4">
+          <CInputSwitch
+            v-model="settings['discovery.enabled']"
+            :label="$t('system.settings.editor.discovery.enabled')"
+            :description="$t('system.settings.editor.discovery.description')"
+          />
+
+          <div
+            v-if="settings['discovery.enabled']"
+            class="flex flex-col gap-2"
+          >
+            <label class="font-medium text-sm text-primary">
+              {{ $t('system.settings.editor.discovery.resources.label') }}
+            </label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <CInputSwitch
+                v-for="k in discoveryResourceKeys"
+                :key="k.name"
+                v-model="settings[k.name]"
+                :label="$t(k.labelKey)"
+              />
+            </div>
+          </div>
+        </div>
+      </Panel>
+
       <!-- Provider editor dialog -->
       <Dialog
         v-model:visible="modal.open"
@@ -419,7 +466,7 @@
 import { computed, inject, onMounted, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isEqual } from 'lodash-es'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import ExternalStd from './auth/ExternalStd.vue'
 import ExternalOIDC from './auth/ExternalOIDC.vue'
 import ExternalSAML from './auth/ExternalSAML.vue'
@@ -435,6 +482,19 @@ const loading = ref(false)
 const saving = ref(false)
 const settings = reactive({})
 const passwordSecurityEnabled = ref(true)
+
+const discoveryResourceKeys = [
+  { name: 'discovery.system-users.enabled', labelKey: 'system.settings.editor.discovery.resources.system-users' },
+  { name: 'discovery.system-applications.enabled', labelKey: 'system.settings.editor.discovery.resources.system-applications' },
+  { name: 'discovery.system-roles.enabled', labelKey: 'system.settings.editor.discovery.resources.system-roles' },
+  { name: 'discovery.system-templates.enabled', labelKey: 'system.settings.editor.discovery.resources.system-templates' },
+  { name: 'discovery.automation-workflows.enabled', labelKey: 'system.settings.editor.discovery.resources.automation-workflows' },
+  { name: 'discovery.compose-namespaces.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-namespaces' },
+  { name: 'discovery.compose-charts.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-charts' },
+  { name: 'discovery.compose-pages.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-pages' },
+  { name: 'discovery.compose-modules.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-modules' },
+  { name: 'discovery.compose-records.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-records' },
+]
 
 function onEmailOtpToggle(v) {
   if (!v) settings['auth.multi-factor.email-otp.enforced'] = false
@@ -778,8 +838,16 @@ function getExternalChanges() {
 async function loadSettings() {
   loading.value = true
   try {
-    const result = await $SystemAPI.settingsList({ prefix: 'auth.' })
-    const allSettings = result || []
+    const [authResult, federationResult, discoveryResult] = await Promise.all([
+      $SystemAPI.settingsList({ prefix: 'auth.' }),
+      $SystemAPI.settingsList({ prefix: 'federation.' }),
+      $SystemAPI.settingsList({ prefix: 'discovery.' }),
+    ])
+    const allSettings = [
+      ...(authResult || []),
+      ...(federationResult || []),
+      ...(discoveryResult || []),
+    ]
 
     for (const s of allSettings) {
       settings[s.name] = parseValue(s.value)

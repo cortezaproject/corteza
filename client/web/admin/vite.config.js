@@ -17,11 +17,11 @@ function getVersion() {
   }
 }
 
-// Read CortezaAPI from public/config.js to derive proxy target
+// Read HumanAPI from public/config.js to derive proxy target
 function getServerUrl() {
   try {
     const config = readFileSync('./public/config.js', 'utf8')
-    const match = config.match(/window\.CortezaAPI\s*=\s*['"]([^'"]+)['"]/)
+    const match = config.match(/window\.HumanAPI\s*=\s*['"]([^'"]+)['"]/)
     if (match) {
       // Strip /api suffix to get server root
       return match[1].replace(/\/api\/?$/, '')

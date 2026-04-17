@@ -49,7 +49,7 @@
 <script setup>
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'

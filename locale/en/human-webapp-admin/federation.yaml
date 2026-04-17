@@ -1,0 +1,79 @@
+nodes:
+  editor:
+    create:
+      error: Federated node create failed
+      success: Federated node created
+    delete: Delete
+    delete.error: Federated node delete failed
+    delete.success: Federated node deleted
+    fetch.error: Federated node fetch failed
+    generateURI: Generate URI
+    generateURI.error: Failed to generate URI
+    generatedURI:
+      description: Share this URI with the administrator of another Human Federation Node to pair your networks.
+      title: Generated URI
+    update:
+      error: Federated node update failed
+      success: Federated node updated
+    generate:
+      body: '{userLabel} is sending you an invitation for Corteza Federated Network. To start sharing data between organizations, go to the admin panel of your Corteza application, click on "Federation" and select "Pair Federation Network" on top right corner. Copy the link below and await confirmation from another administrator.'
+      description: To add your organization to a federated network send an email invite or share the link below with an administrator of another organization.
+      hello: Hello,
+      invitation: Invitation to Federated Network
+      kindRegards: Kind regards, Corteza team.
+      notGenerated: Link not generated
+      sendEmail: Send Email
+      subject: 'Subject:'
+    generateUri: Generate Federation Link
+    info:
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      email: Admin Email
+      enabled: Enabled
+      baseURL: Base URL
+      baseURLInvalid: Base URL is not a valid URL
+      contact: Contact email
+      name: Server name
+      status: Status
+      tags:
+        label: Tags
+        placeholder: +Add
+      title: Basic information
+      undelete: Undelete
+      updatedAt: Updated at
+      url: Server URL
+    title:
+      create: Create Federated Node
+      edit: Edit Federated Node
+  list:
+    columns:
+      actions: ""
+      baseURL: Base URL
+      createdAt: Created
+      enabled: Enabled
+      name: Name
+      status: Status
+      tags: ""
+    filter:
+      query:
+        placeholder: Filter nodes by name
+    filterForm:
+      query:
+        label: Filter servers list
+        placeholder: Filter servers by name
+    loading: Loading federated nodes
+    new: New Federated Node
+    pair: Pair Node
+    title: Federated Networks
+    yaml: YAML
+  pair:
+    button: Pair
+    confirm: Confirm pending pair
+    confirmError: Failed to confirm pair
+    confirmSuccess: Pair confirmed
+    description: Paste the pairing URI from another Human Federation Node administrator.
+    error: Failed to pair node
+    success: Node paired
+    title: Pair Federated Node

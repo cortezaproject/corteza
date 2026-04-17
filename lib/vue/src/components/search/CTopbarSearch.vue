@@ -342,7 +342,6 @@ async function performSearch(q) {
     results.value = hits || []
   } catch (e) {
     if (axios.isCancel(e)) return
-    console.error('Search failed', e)
     results.value = []
   } finally {
     loading.value = false
@@ -406,8 +405,7 @@ async function onResultClick(hit) {
     } else {
       window.location.href = externalUrl
     }
-  } catch (e) {
-    console.error(e)
+  } catch {
     $toast?.add({ severity: 'error', summary: props.labels.recordRedirectError, life: 3000 })
   }
 }
@@ -428,8 +426,7 @@ async function onOpenNewTab(hit) {
     } else {
       window.open(externalUrl, '_blank', 'noopener')
     }
-  } catch (e) {
-    console.error(e)
+  } catch {
     $toast?.add({ severity: 'error', summary: props.labels.recordRedirectError, life: 3000 })
   }
 }

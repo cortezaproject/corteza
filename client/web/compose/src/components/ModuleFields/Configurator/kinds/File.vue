@@ -98,14 +98,10 @@
 </template>
 
 <script setup>
-import { components } from '@cortezaproject/corteza-vue-next'
+import { inject } from 'vue'
+import { components } from '@planetcrust/human-vue'
 
 const { CInputColorPicker } = components
 
-defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 </script>

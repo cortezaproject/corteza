@@ -220,28 +220,22 @@
       </div>
     </div>
 
-    <CConfiguratorMultiDelimiter :field="field" />
+    <CConfiguratorMultiDelimiter />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CConfiguratorMultiDelimiter from '../CConfiguratorMultiDelimiter.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import ProgressBar from 'primevue/progressbar'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
-const isProgress = computed(() => props.field.options?.display === 'progress')
+const isProgress = computed(() => field.value.options?.display === 'progress')
 
 const displayOptions = computed(() => [
   { value: 'number', label: t('field.kind.number.displayType.number') },
@@ -265,7 +259,7 @@ const formatOptions = computed(() => [
 ])
 
 const presetDescription = computed(() =>
-  t(`field.kind.number.presetFormats.description.${props.field.options.presetFormat || 'custom'}`),
+  t(`field.kind.number.presetFormats.description.${field.value.options.presetFormat || 'custom'}`),
 )
 
 const formatExamples = computed(() => [
@@ -279,7 +273,7 @@ const formatExamples = computed(() => [
 // Live example
 const liveExampleInput = ref(1234.56789)
 
-watch(() => props.field.options?.display, (display) => {
+watch(() => field.value.options?.display, (display) => {
   liveExampleInput.value = display === 'progress' ? 33.45679 : 1234.56789
 })
 
@@ -288,25 +282,25 @@ const liveExampleOutput = computed(() => {
   if (val === null || val === undefined) return ''
 
   if (isProgress.value) {
-    const min = parseFloat(props.field.options?.min || 0)
-    const max = parseFloat(props.field.options?.max || 100)
+    const min = parseFloat(field.value.options?.min || 0)
+    const max = parseFloat(field.value.options?.max || 100)
     const pct = max === min ? 0 : Math.round(((val - min) / (max - min)) * 100)
     return `${pct}%`
   }
 
   // Touch reactive dependencies so Vue recomputes when these change
-   
-  void (props.field.options?.format, props.field.options?.presetFormat,
-    props.field.options?.precision, props.field.options?.prefix, props.field.options?.suffix)
+
+  void (field.value.options?.format, field.value.options?.presetFormat,
+    field.value.options?.precision, field.value.options?.prefix, field.value.options?.suffix)
 
   // Use the field's formatValue method (from lib/js ModuleFieldNumber)
   // which handles numeral format strings, accounting mode, prefix, suffix
-  if (typeof props.field.formatValue === 'function') {
-    return props.field.formatValue(String(val))
+  if (typeof field.value.formatValue === 'function') {
+    return field.value.formatValue(String(val))
   }
 
   // Fallback
-  const { precision, prefix = '', suffix = '' } = props.field.options || {}
+  const { precision, prefix = '', suffix = '' } = field.value.options || {}
   const num = Number(val)
   if (isNaN(num)) return val
   const formatted = precision !== undefined ? num.toFixed(Number(precision)) : num.toLocaleString()
@@ -314,27 +308,27 @@ const liveExampleOutput = computed(() => {
 })
 
 function addThreshold() {
-  if (!props.field.options.thresholds) {
-    props.field.options.thresholds = []
+  if (!field.value.options.thresholds) {
+    field.value.options.thresholds = []
   }
-  props.field.options.thresholds.push({ value: 0, variant: 'success' })
+  field.value.options.thresholds.push({ value: 0, variant: 'success' })
 }
 
 function removeThreshold(index) {
   if (index > -1) {
-    props.field.options.thresholds.splice(index, 1)
+    field.value.options.thresholds.splice(index, 1)
   }
 }
 
 onMounted(() => {
-  if (!props.field.options.display) {
-    props.field.options.display = 'number'
+  if (!field.value.options.display) {
+    field.value.options.display = 'number'
   }
-  if (!props.field.options.presetFormat) {
-    props.field.options.presetFormat = 'custom'
+  if (!field.value.options.presetFormat) {
+    field.value.options.presetFormat = 'custom'
   }
-  if (!props.field.options.thresholds) {
-    props.field.options.thresholds = []
+  if (!field.value.options.thresholds) {
+    field.value.options.thresholds = []
   }
 })
 </script>

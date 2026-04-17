@@ -4,7 +4,7 @@
   </Teleport>
 
   <Teleport to="#topbar-tools" defer>
-    <div v-if="isEdit" class="flex gap-1">
+    <ButtonGroup v-if="isEdit" class="gap-1">
       <Button
         :label="$t('namespace.visit')"
         icon="pi pi-external-link"
@@ -12,7 +12,13 @@
         :disabled="!namespace?.enabled"
         @click="visitNamespace"
       />
-    </div>
+      <Button
+        icon="pi pi-cog"
+        size="small"
+        v-tooltip.bottom="$t('namespace.configure')"
+        @click="configureNamespace"
+      />
+    </ButtonGroup>
   </Teleport>
 
   <!-- Loading -->
@@ -216,8 +222,8 @@
 
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useFileUpload, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { compose } from '@planetcrust/human-js'
+import { components, useFileUpload, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
@@ -422,6 +428,13 @@ function visitNamespace() {
   })
 }
 
+function configureNamespace() {
+  router.push({
+    name: 'admin.modules',
+    params: { slug: namespace.value.slug || namespace.value.namespaceID },
+  })
+}
+
 function exportNamespace() {
   const params = {
     namespaceID: namespace.value.namespaceID,
@@ -452,7 +465,7 @@ async function onLogoSelect(files) {
       })
       namespace.value.meta.logo = url
     }
-  } catch (err) {
+  } catch {
     // logoError is set by composable
   }
 }

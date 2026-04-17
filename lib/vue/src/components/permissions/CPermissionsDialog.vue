@@ -404,8 +404,8 @@ async function autoSelectFirstRole() {
       currentRoleID.value = firstRole.roleID
       await fetchRules(firstRole.roleID)
     }
-  } catch (e) {
-    console.error('Failed to auto-select first role:', e)
+  } catch {
+    // silent
   }
 }
 
@@ -416,8 +416,7 @@ async function fetchPermissions() {
     const pp = await api.value.permissionsList()
     const resourceType = getResourceType(options.value.resource)
     permissions.value = (pp || []).filter(({ type }) => resourceType === type)
-  } catch (e) {
-    console.error('Failed to load permissions:', e)
+  } catch {
     permissions.value = []
   }
 }
@@ -445,8 +444,7 @@ async function fetchRules(roleID) {
     })
 
     initialRules.value = Object.fromEntries(rules.value.map(r => [r.operation, r.access]))
-  } catch (e) {
-    console.error('Failed to load rules:', e)
+  } catch {
     rules.value = []
   }
 }
@@ -458,8 +456,7 @@ async function evaluatePermissions({ roleID, userID }) {
     const resource = options.value.resource
     const result = await api.value.permissionsTrace({ resource, roleID, userID })
     return normalizeEvalRules(result)
-  } catch (e) {
-    console.error('Failed to evaluate permissions:', e)
+  } catch {
     return []
   }
 }
@@ -579,7 +576,6 @@ async function onSubmit() {
     // Re-evaluate all columns after save
     await reEvaluateAll()
   } catch (e) {
-    console.error('Failed to save permissions:', e)
     $toast.toastErrorHandler(t('permissions.ui.notification.save.failed'))(e)
   } finally {
     submitting.value = false

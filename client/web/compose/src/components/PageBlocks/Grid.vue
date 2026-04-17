@@ -224,6 +224,8 @@ defineExpose({ rebuildLayout })
 }
 
 .block-content {
+  position: relative;
   height: 100%;
+  isolation: isolate;
 }
 </style>

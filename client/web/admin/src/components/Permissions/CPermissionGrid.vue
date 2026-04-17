@@ -220,7 +220,7 @@
 <script setup>
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { kebabCase } from 'lodash-es'
 
 const { CInputRole } = components
@@ -507,9 +507,11 @@ function onAdd() {
       addDialogVisible.value = false
       return
     }
-    readPermissions({ roleID: rid, name }).then(() => {
-      setIncludedRoles(roles.value)
-    })
+    readPermissions({ roleID: rid, name })
+      .then(() => {
+        setIncludedRoles(roles.value)
+      })
+      .catch($toast.toastErrorHandler(t('permissions.ui.notification.save.failed')))
   } else if (mode === 'eval') {
     let uid = null
     let rids = []
@@ -528,9 +530,11 @@ function onAdd() {
       addDialogVisible.value = false
       return
     }
-    evaluatePermissions({ name, roleID: rids, userID: uid }).then(() => {
-      setIncludedRoles(roles.value)
-    })
+    evaluatePermissions({ name, roleID: rids, userID: uid })
+      .then(() => {
+        setIncludedRoles(roles.value)
+      })
+      .catch($toast.toastErrorHandler(t('permissions.ui.notification.save.failed')))
   }
 
   add.value = { mode: 'edit', roleID: null, userID: null, selectedRole: null, selectedRoles: [] }

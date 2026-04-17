@@ -90,7 +90,7 @@ import {
   CInputModule,
   CInputNamespace,
   CInputUser,
-} from '@cortezaproject/corteza-vue-next/src/components/input'
+} from '@planetcrust/human-vue/src/components/input'
 
 import InputText from 'primevue/inputtext'
 

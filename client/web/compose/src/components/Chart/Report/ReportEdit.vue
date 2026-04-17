@@ -275,17 +275,13 @@
 </template>
 
 <script setup>
-import { computed, toRaw } from 'vue'
+import { computed, inject, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 
 const { t } = useI18n()
 
 const props = defineProps({
-  report: {
-    type: Object,
-    required: true,
-  },
   chart: {
     type: Object,
     default: () => ({}),
@@ -308,7 +304,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:report'])
+const report = inject('reportDraft')
 
 // Translated options
 const metricAggregates = compose.chartUtil.aggregateFunctions.map(af => ({
@@ -339,31 +335,30 @@ const orientations = [
 
 // Computed properties
 const moduleID = computed({
-  get: () => props.report.moduleID,
+  get: () => report.value.moduleID,
   set: v => {
-    props.report.moduleID = v
-    emit('update:report', { ...toRaw(props.report), moduleID: v })
+    report.value.moduleID = v
   },
 })
 
 const reportFilter = computed({
-  get: () => props.report.filter,
+  get: () => report.value.filter,
   set: v => {
-    props.report.filter = v
+    report.value.filter = v
   },
 })
 
 const metrics = computed({
-  get: () => props.report.metrics || [],
+  get: () => report.value.metrics || [],
   set: v => {
-    props.report.metrics = v
+    report.value.metrics = v
   },
 })
 
 const dimensions = computed({
-  get: () => props.report.dimensions || [],
+  get: () => report.value.dimensions || [],
   set: v => {
-    props.report.dimensions = v
+    report.value.dimensions = v
   },
 })
 
@@ -385,7 +380,7 @@ const metricFields = computed(() => {
 const dimensionFields = computed(() => {
   if (!module.value) return []
   return [
-    ...module.value.fields.sort((a, b) => (a.label || a.name).localeCompare(b.label || b.name)),
+    ...[...module.value.fields].sort((a, b) => (a.label || a.name).localeCompare(b.label || b.name)),
     ...(module.value.systemFields
       ? module.value.systemFields().map(sf => {
           sf.label = t(`field.system.${sf.name}`)
@@ -418,12 +413,12 @@ const canAddMetric = computed(() => {
 })
 
 const legendVisible = computed({
-  get: () => !props.report.legend?.isHidden,
+  get: () => !report.value.legend?.isHidden,
   set: v => {
-    if (!props.report.legend) {
-      props.report.legend = {}
+    if (!report.value.legend) {
+      report.value.legend = {}
     }
-    props.report.legend.isHidden = !v
+    report.value.legend.isHidden = !v
   },
 })
 

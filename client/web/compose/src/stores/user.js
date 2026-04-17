@@ -1,4 +1,4 @@
-import { system } from '@cortezaproject/corteza-js-next'
+import { system } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, toRef } from 'vue'
 
@@ -9,10 +9,6 @@ export const useUserStore = defineStore('user', () => {
     pending: false,
     set: [],
   })
-
-  // Getters
-  const pending = computed(() => state.pending)
-  const set = computed(() => state.set)
 
   const findByID = computed(() => {
     return ID => state.set.find(({ userID }) => ID === userID)

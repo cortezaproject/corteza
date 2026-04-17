@@ -1,5 +1,5 @@
 import { ConstraintMaker, ConstraintMatcher } from './constraints'
-import { Event, HandlerFn, onManual, Trigger } from './shared'
+import { Event, HandlerFn, Trigger } from './shared'
 
 // Dummy handler, can be used for tests
 export async function DummyHandler(): Promise<undefined> {

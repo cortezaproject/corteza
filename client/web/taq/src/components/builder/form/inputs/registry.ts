@@ -10,7 +10,7 @@ import {
   CInputAgent,
   CInputSwitch,
   CInputCron,
-} from '@cortezaproject/corteza-vue-next/src/components/input'
+} from '@planetcrust/human-vue/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
 
 /**

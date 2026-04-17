@@ -156,7 +156,7 @@
     modal
     :style="{ width: '400px' }"
   >
-    <p>{{ $t('page.build.layout.delete.confirm') }}</p>
+    <p>{{ $t('page.build.layout.deleteConfirm') }}</p>
     <template #footer>
       <div class="flex justify-end gap-2">
         <Button
@@ -413,11 +413,9 @@
           <component
             :is="blockConfigurator"
             v-if="blockConfigurator"
-            :block="editingBlock"
             :namespace="namespace"
             :page="page"
             :blocks="blocks"
-            @update:block="onBlockConfigUpdate"
             @edit-tab-block="onEditTabBlock"
             @create-tab-block="onCreateTabBlock"
           />
@@ -446,10 +444,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, inject, markRaw, toRaw } from 'vue'
+import { ref, computed, watch, inject, provide, markRaw, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { useModuleStore } from '@/stores/module'
@@ -500,6 +498,8 @@ const showAddBlock = ref(false)
 const showConfigurator = ref(false)
 const editingBlock = ref(null)
 const editingBlockIndex = ref(-1)
+
+provide('blockDraft', editingBlock)
 const isNewBlock = ref(false)
 const gridRef = ref(null)
 const configuratorTab = ref('block')
@@ -834,10 +834,6 @@ function deleteBlock(blockId) {
     syncTabbedBlockVisibility()
     gridRef.value?.rebuildLayout()
   }
-}
-
-function onBlockConfigUpdate(updatedBlock) {
-  editingBlock.value = { ...editingBlock.value, ...updatedBlock }
 }
 
 function saveBlockConfig() {

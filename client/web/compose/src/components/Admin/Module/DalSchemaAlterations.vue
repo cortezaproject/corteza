@@ -89,7 +89,7 @@
 <script setup>
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { useConfirmDelete } from '@planetcrust/human-vue'
 
 const props = defineProps({
   modal: {
@@ -257,7 +257,9 @@ function stringifyParams(params) {
     if (params.attributeReEncode) return stringifyAttributeReEncodeParams(params.attributeReEncode)
     if (params.modelAdd) return stringifyModelAddParams(params.modelAdd)
     if (params.modelDelete) return stringifyModelDeleteParams(params.modelDelete)
-  } catch(e) {}
+  } catch {
+    // silent
+  }
   return t('module.edit.schemaAlterations.unknownType')
 }
 

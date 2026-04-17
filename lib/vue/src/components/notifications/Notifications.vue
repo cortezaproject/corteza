@@ -138,7 +138,7 @@ async function handleDelete(notificationID) {
   try {
     await notifications.deleteNotification($SystemAPI, String(notificationID))
     $toast?.toastSuccess?.(t('notifications.notificationDeleted'))
-  } catch (error) {
+  } catch {
     $toast?.toastDanger?.(t('notifications.notificationDeletedError'))
   }
 }
@@ -151,7 +151,7 @@ async function handleMarkAllAsRead() {
   try {
     await notifications.markAllAsRead($SystemAPI)
     $toast?.toastSuccess?.(t('notifications.allMarkedAsRead'))
-  } catch (error) {
+  } catch {
     $toast?.toastDanger?.(t('notifications.markAllAsReadError'))
   }
 }

@@ -106,7 +106,7 @@ import { useRouter } from 'vue-router'
 import {
   components,
   useResourceList,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 

@@ -83,7 +83,7 @@
 
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { computed, ref } from 'vue'
 const { CInputSearch, CRouterLinkButton } = components
 

@@ -13,11 +13,6 @@ interface Feed {
   options: FeedOptions
 }
 
-interface Range {
-  end: Date
-  start: Date
-}
-
 export async function RecordFeed(
   $ComposeAPI: ComposeAPI,
   module: Module,
@@ -32,7 +27,6 @@ export async function RecordFeed(
     query: feed.options.prefilter,
   }
 
-  const events: Array<any> = []
   return $ComposeAPI.recordList(params, options).then(({ set }) => {
     return (
       (set as Array<{ recordID: string }>)

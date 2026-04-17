@@ -9,7 +9,7 @@ import options from './CPromptOptions.vue'
 
 interface PromptDefinition {
   component?: Component;
-  handler?: (this: any, input: any) => void | Promise<void>;
+  handler?: (_this: any, _input: any) => void | Promise<void>;
   passive?: boolean;
 }
 

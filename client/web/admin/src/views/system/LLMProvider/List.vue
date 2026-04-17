@@ -69,7 +69,7 @@
 <script setup>
 import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, filters, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { components, filters, useConfirmDelete } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters

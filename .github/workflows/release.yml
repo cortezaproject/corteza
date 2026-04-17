@@ -17,7 +17,6 @@ env:
 
   SASS_VERSION: 1.85.1
 
-
 jobs:
   ########################################################################################################################
   # Server
@@ -47,24 +46,20 @@ jobs:
   server-web-console-build:
     name: 'Server Web Console Build'
     runs-on: ubuntu-22.04
+    needs: ['lib-test']
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with: { version: '${{ env.PNPM_VERSION }}' }
       - uses: actions/setup-node@v6
-        with: { node-version: '${{ env.NODE_VERSION }}' }
-      - uses: actions/cache@v5
-        if: ${{ !env.ACT }}
         with:
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('server/webconsole/yarn.lock') }}
-          restore-keys: ${{ runner.OS }}-node-
-      - name: 'Setup YARN'
-        run: npm install -g yarn @vue/cli-service
-      - name: 'Install dependencies'
+          node-version: '${{ env.NODE_VERSION }}'
+          cache: 'pnpm'
+      - name: 'Dependencies'
+        run: pnpm install --ignore-scripts && pnpm rebuild esbuild unrs-resolver vue-demi
+      - name: 'Build'
         working-directory: server/webconsole
-        run: yarn install
-      - name: 'Build Package'
-        working-directory: server/webconsole
-        run: yarn build
+        run: pnpm build
       - name: 'Upload webconsole dist'
         uses: actions/upload-artifact@v7
         with:
@@ -145,8 +140,29 @@ jobs:
         working-directory: lib/js
         run: pnpm test:unit
 
-  # lib/vue has no build or test scripts — it exports TypeScript source directly.
-  # Both libs are resolved via workspace:* protocol in the monorepo.
+  client-web-test:
+    name: 'Web client unit tests'
+    runs-on: ubuntu-22.04
+    needs: ['lib-test']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with: { version: '${{ env.PNPM_VERSION }}' }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '${{ env.NODE_VERSION }}'
+          cache: 'pnpm'
+      - name: 'Install dependencies'
+        run: pnpm install --ignore-scripts && pnpm rebuild esbuild unrs-resolver vue-demi
+      - name: 'Test lib/vue'
+        working-directory: lib/vue
+        run: pnpm test:unit
+      - name: 'Test compose'
+        working-directory: client/web/compose
+        run: pnpm test:unit run --passWithNoTests
+      - name: 'Test admin'
+        working-directory: client/web/admin
+        run: pnpm test:unit run --passWithNoTests
 
   ########################################################################################################################
   # Web clients
@@ -157,7 +173,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix: { app: [admin, agentic, compose, one, taq, home, workflow] }
-    needs: ['lib-test']
+    needs: ['lib-test', 'client-web-test']
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -227,6 +243,13 @@ jobs:
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
           fi
 
+      - name: 'Login'
+        uses: docker/login-action@v4
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: 'Build'
         run: |
           docker build \
@@ -234,13 +257,6 @@ jobs:
             --build-arg "SASS_VERSION=${{ env.SASS_VERSION }}" \
             --tag planetcrust/human:${{ env.DOCKER_IMAGE_TAG }} \
             .
-
-      - name: 'Login'
-        uses: docker/login-action@v4
-        if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 'Push ${{ env.DOCKER_IMAGE_TAG }}'
         if: ${{ !env.ACT }}
@@ -275,19 +291,19 @@ jobs:
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
           fi
 
-      - name: 'Build'
-        run: |
-          docker build \
-            --build-arg "VERSION=${{ env.DOCKER_IMAGE_TAG }}" \
-            --tag planetcrust/human-server-discovery:${{ env.DOCKER_IMAGE_TAG }} \
-            extra/server-discovery
-
       - name: 'Login'
         uses: docker/login-action@v4
         if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 'Build'
+        run: |
+          docker build \
+            --build-arg "VERSION=${{ env.DOCKER_IMAGE_TAG }}" \
+            --tag planetcrust/human-server-discovery:${{ env.DOCKER_IMAGE_TAG }} \
+            extra/server-discovery
 
       - name: 'Push ${{ env.DOCKER_IMAGE_TAG }}'
         if: ${{ !env.ACT }}

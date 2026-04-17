@@ -6,23 +6,20 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import AutomationButtonsEditor from '../Shared/AutomationButtonsEditor.vue'
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
-const buttons = computed(() => props.block.options?.buttons || [])
+const buttons = computed(() => block.value.options?.buttons || [])
 
 function onButtonsUpdate(next) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, buttons: next },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options.buttons = next
 }
 </script>

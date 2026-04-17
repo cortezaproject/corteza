@@ -1,0 +1,175 @@
+page-layout:
+  layouts: Layouts
+  title: Title
+  titleExpressionPlaceholder: Title expression
+  handle: Handle
+  add: Add layout
+  configure: 'Configure layout - "{title}"'
+  visibility: Visibility
+  general: General
+  useTitle: Use layout title
+  tooltip:
+    title: Use the layout title instead of the record page default. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    configure: Configure layout
+    builder: Open layout in builder
+    performance:
+      condition: Using visibility conditions will impact performance
+      requiredFields: Using required fields will impact performance
+  condition:
+    label: Condition
+    placeholder: When will the layout be shown
+    description:
+      record-page: 'You can use {0}, {1}, {2}, {3} inside  the expression, for example: {4} or {5}'
+      non-record-page: 'You can use {0}, {1} inside  the expression, for example: {2} or {3}'
+  roles:
+    label: Roles
+    placeholder: Pick roles that the layout will be shown to
+  recordToolbar:
+    label: Record toolbar
+    buttons:
+      label: Buttons
+      showBack: Show "Back" button
+      showDelete: Show "Delete" button
+      showClone: Show "Save as copy" button
+      showNew: Show "Add new" button
+      showEdit: Show "Edit" button
+      showSave: Show "Save" button
+    actions:
+      label: Actions
+      add: Add action
+      buttonLabel: Label
+      variant: Variant
+      visible: Visible
+      kind:
+        label: Type
+        toLayout: Redirect to layout
+        toURL: Redirect to URL
+      placement:
+        label: Placement
+        start: Start
+        center: Center
+        end: End
+      openIn:
+        label: Open in
+        sameTab: Same tab
+        newTab: New tab
+      toLayout:
+        label: Redirect to layout
+        placeholder: No layout selected
+      toURL:
+        label: Redirect to URL
+        placeholder: No URL specified
+  requiredFields:
+    label: Required fields
+    description: Define fields that should be required based on a condition
+    field: Field
+    condition: Condition
+    selectPlaceholder: Select a field
+    conditionPlaceholder: If no condition is set, the field will be required
+    help: 'You can use {0}, {1}, {2} inside the expression to define when a field should be required'
+
+block:
+  general:
+    label:
+      cancel: Cancel
+      noHandle: No handle
+      pageBuilder: Page builder
+      saveAndClose: Save and close
+    placeholder:
+      handle: Unique identifier (a - z, 0 - 9, underscore, dash)
+      sample: Sample
+    title: Add new block
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+changeBlock: Change existing block
+referencedBlock: This block is used in other layouts
+copyOf: 'Copy of {title}'
+build:
+  addBlock: Add block
+  selectBlockTitle: Select type of the new block
+  saveAsCopy: Save as copy
+  layout:
+    delete: Delete layout
+    deleteConfirm: Are you sure you want to delete this layout?
+edit:
+  create: Create page
+  edit: Edit page
+  otherOptions: Other options
+  pageDescription: Page description
+  pageInfo: Page information
+  settings: Settings
+  visible: Is page visible
+  deleteConfirm: Are you sure you want to delete this page?
+  parentPage: Parent page
+  noParent: No parent (top-level)
+  viewPage: View page
+  pageBuilder: Page builder
+  notifications:
+    enabled: Show record save notifications
+icon:
+  configure: Configure page icon
+  noIcon: No icon
+  page: Page icon
+  upload: Upload icon
+  list: Uploaded icons
+  delete: Delete selected icon
+url:
+  label: Or add URL to icon
+import: 'Import page(s):'
+instructions: Drag and drop pages to adjust the order and hierarchy
+invalid: Invalid configuration
+label:
+  title: Title
+  cancel: Cancel
+  description: Description
+  handle: Handle
+  pageBuilder: Page builder
+  permissions: Permissions
+  saveAndClose: Save and close
+  delete: Delete Block
+  createPage: Create page
+placeholder:
+  title: Page title (e.g. "Leads")
+loading: Loading
+moduleEdit: Edit module
+navigation:
+  page: Pages
+  viewPage: View Page
+  editModule: Edit module
+noBlock: No block added yet
+noPages: No pages
+createLabel: New Page
+searchPlaceholder: Search pages...
+notVisible: Hidden
+pageMoveFailed: Could not move this page
+reordered: Page reordered
+showSubPages: Expand sub-pages in the sidebar
+customTitle: Use custom title
+title: List of Pages
+tooltip:
+  view: View page
+  edit:
+    page: Edit page
+    block: Edit block
+  copy:
+    block: Copy block
+  clone:
+    block: Clone block
+  delete:
+    block: Delete block
+  preview-link: Preview link
+  saveAsCopy: Cannot duplicate record page
+view: View
+visible: Visible
+delete:
+  rebase: Update parent of sub-pages
+  cascade: Delete sub-pages
+public:
+  record:
+    create:
+      title: '{name} - Creating Record'
+    edit:
+      title: '{name} - Editing Record'
+    view:
+      title: '{name} - Viewing Record'
+    toolbar:
+      deleteConfirm: Are you sure you want to delete this record? This action cannot be undone.

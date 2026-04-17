@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <CInputSwitch
-      v-model="modelValue.enabled"
+      v-model="model.enabled"
       :label="$t('system.settings.editor.external.oidc.enabled')"
     />
 
@@ -10,7 +10,7 @@
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.oidc.handle') }}
         </label>
-        <InputText v-model="modelValue.handle" :disabled="!fresh" class="w-full" />
+        <InputText v-model="model.handle" :disabled="!fresh" class="w-full" />
       </div>
 
       <div class="flex flex-col gap-1">
@@ -20,21 +20,21 @@
         <span class="text-xs text-muted-color">
           {{ $t('system.settings.editor.external.oidc.issuerHint') }}
         </span>
-        <InputText v-model="modelValue.issuer" placeholder="https://issuer.tld" class="w-full" />
+        <InputText v-model="model.issuer" placeholder="https://issuer.tld" class="w-full" />
       </div>
 
       <div class="flex flex-col gap-1">
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.oidc.clientKey') }}
         </label>
-        <InputText v-model="modelValue.key" class="w-full" />
+        <InputText v-model="model.key" class="w-full" />
       </div>
 
       <div class="flex flex-col gap-1">
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.oidc.clientSecret') }}
         </label>
-        <InputText v-model="modelValue.secret" class="w-full" />
+        <InputText v-model="model.secret" class="w-full" />
       </div>
 
       <div class="flex flex-col gap-1 md:col-span-2">
@@ -45,14 +45,14 @@
           {{ $t('system.settings.editor.external.oidc.scopeHint') }}
         </span>
         <InputText
-          v-model="modelValue.scope"
+          v-model="model.scope"
           :placeholder="$t('system.settings.editor.external.oidc.scopePlaceholder')"
           class="w-full"
         />
       </div>
     </div>
 
-    <ExternalSecurity v-model="modelValue.security" />
+    <ExternalSecurity v-model="model.security" />
   </div>
 </template>
 
@@ -60,14 +60,9 @@
 import { computed } from 'vue'
 import ExternalSecurity from './ExternalSecurity.vue'
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: true,
-  },
-})
+const model = defineModel({ type: Object, required: true })
 
 const fresh = computed(() => {
-  return Object.prototype.hasOwnProperty.call(props.modelValue, 'fresh') && props.modelValue.fresh
+  return Object.prototype.hasOwnProperty.call(model.value, 'fresh') && model.value.fresh
 })
 </script>

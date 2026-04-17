@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ $t('ui.settings.editor.corteza-studio.title') }}</span>
+    <span>{{ $t('ui.settings.editor.human-studio.title') }}</span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">
@@ -11,7 +11,7 @@
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
       <!-- Branding section -->
       <Panel
-        :header="$t('ui.settings.editor.corteza-studio.branding.title')"
+        :header="$t('ui.settings.editor.human-studio.branding.title')"
         toggleable
         class="shadow mb-5"
       >
@@ -19,7 +19,7 @@
           <!-- Main Logo -->
           <div class="flex flex-col gap-2">
             <label class="font-medium text-sm text-primary">
-              {{ $t('ui.settings.editor.corteza-studio.mainLogo.title') }}
+              {{ $t('ui.settings.editor.human-studio.mainLogo.title') }}
             </label>
 
             <CFileDropZone
@@ -28,9 +28,9 @@
               :error="mainLogoError"
               :preview-url="mainLogoUrl"
               :clearable="mainLogoIsCustom"
-              :drop-label="$t('ui.settings.editor.corteza-studio.mainLogo.uploader.instructions')"
-              :uploading-label="$t('ui.settings.editor.corteza-studio.mainLogo.uploader.uploading')"
-              :label="$t('ui.settings.editor.corteza-studio.mainLogo.title')"
+              :drop-label="$t('ui.settings.editor.human-studio.mainLogo.uploader.instructions')"
+              :uploading-label="$t('ui.settings.editor.human-studio.mainLogo.uploader.uploading')"
+              :label="$t('ui.settings.editor.human-studio.mainLogo.title')"
               compact
               preview-max-width="100%"
               preview-max-height="200px"
@@ -42,7 +42,7 @@
           <!-- Icon Logo -->
           <div class="flex flex-col gap-2">
             <label class="font-medium text-sm text-primary">
-              {{ $t('ui.settings.editor.corteza-studio.iconLogo.title') }}
+              {{ $t('ui.settings.editor.human-studio.iconLogo.title') }}
             </label>
 
             <CFileDropZone
@@ -51,9 +51,9 @@
               :error="iconLogoError"
               :preview-url="iconLogoUrl"
               :clearable="iconLogoIsCustom"
-              :drop-label="$t('ui.settings.editor.corteza-studio.iconLogo.uploader.instructions')"
-              :uploading-label="$t('ui.settings.editor.corteza-studio.iconLogo.uploader.uploading')"
-              :label="$t('ui.settings.editor.corteza-studio.iconLogo.title')"
+              :drop-label="$t('ui.settings.editor.human-studio.iconLogo.uploader.instructions')"
+              :uploading-label="$t('ui.settings.editor.human-studio.iconLogo.uploader.uploading')"
+              :label="$t('ui.settings.editor.human-studio.iconLogo.title')"
               compact
               preview-max-width="100%"
               preview-max-height="200px"
@@ -65,7 +65,7 @@
       </Panel>
 
       <Panel
-        :header="$t('ui.settings.editor.corteza-studio.title')"
+        :header="$t('ui.settings.editor.human-studio.title')"
         toggleable
         :collapsed="false"
         class="shadow"
@@ -84,10 +84,10 @@
               <div v-if="theme.id !== 'general'" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <div v-for="key in themeVariableKeys" :key="key" class="flex flex-col gap-1">
                   <label class="font-medium text-sm text-primary">
-                    {{ $t(`ui.settings.editor.corteza-studio.theme.variables.${key}.label`) }}
+                    {{ $t(`ui.settings.editor.human-studio.theme.variables.${key}.label`) }}
                   </label>
                   <span class="text-xs text-muted-color">
-                    {{ $t(`ui.settings.editor.corteza-studio.theme.variables.${key}.description`) }}
+                    {{ $t(`ui.settings.editor.human-studio.theme.variables.${key}.description`) }}
                   </span>
                   <div class="flex items-center gap-2">
                     <CInputColorPicker
@@ -104,7 +104,7 @@
                       text
                       rounded
                       size="small"
-                      :title="$t('ui.settings.editor.corteza-studio.label.default')"
+                      :title="$t('ui.settings.editor.human-studio.label.default')"
                       @click="theme.variables[key] = theme.defaultVariables[key]"
                     />
                   </div>
@@ -114,7 +114,7 @@
               <!-- Custom CSS for all tabs -->
               <div class="flex flex-col gap-1">
                 <label class="font-medium text-sm text-primary">
-                  {{ $t('ui.settings.editor.corteza-studio.custom-css') }}
+                  {{ $t('ui.settings.editor.human-studio.custom-css') }}
                 </label>
                 <Textarea v-model="theme.customCSS" rows="16" class="w-full font-mono text-sm" />
               </div>
@@ -140,7 +140,7 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setThemes, useTheme, components, useFileUpload } from '@cortezaproject/corteza-vue-next'
+import { setThemes, useTheme, components, useFileUpload } from '@planetcrust/human-vue'
 
 const { CInputColorPicker, CFileDropZone } = components
 
@@ -206,21 +206,21 @@ const darkModeDefaults = {
 const themes = reactive([
   {
     id: 'general',
-    title: t('ui.settings.editor.corteza-studio.tabs.general'),
+    title: t('ui.settings.editor.human-studio.tabs.general'),
     variables: {},
     defaultVariables: {},
     customCSS: '',
   },
   {
     id: 'light',
-    title: t('ui.settings.editor.corteza-studio.tabs.light'),
+    title: t('ui.settings.editor.human-studio.tabs.light'),
     variables: { ...lightModeDefaults },
     defaultVariables: { ...lightModeDefaults },
     customCSS: '',
   },
   {
     id: 'dark',
-    title: t('ui.settings.editor.corteza-studio.tabs.dark'),
+    title: t('ui.settings.editor.human-studio.tabs.dark'),
     variables: { ...darkModeDefaults },
     defaultVariables: { ...darkModeDefaults },
     customCSS: '',
@@ -254,7 +254,7 @@ async function onMainLogoSelect(files) {
     await $Settings.fetch()
     refreshLogoUrls()
     $toast.toastSuccess(t('notification.settings.theming.update.success'))
-  } catch (err) {
+  } catch {
     // uploadError is set by composable
   }
 }
@@ -270,7 +270,7 @@ async function onIconLogoSelect(files) {
     await $Settings.fetch()
     refreshLogoUrls()
     $toast.toastSuccess(t('notification.settings.theming.update.success'))
-  } catch (err) {
+  } catch {
     // uploadError is set by composable
   }
 }

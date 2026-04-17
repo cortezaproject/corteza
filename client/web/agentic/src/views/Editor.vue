@@ -875,11 +875,11 @@ import { cloneDeep, isEqual } from 'lodash-es'
 
 import { useAgentStore } from '@/stores/agent'
 import { useRoute, useRouter } from 'vue-router'
-import { useComposeResourceStore, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
-import { system } from '@cortezaproject/corteza-js-next'
+import { useComposeResourceStore, useUnsavedGuard } from '@planetcrust/human-vue'
+import { system } from '@planetcrust/human-js'
 
 // Components (not globally registered)
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import AiChat from '@/components/AiChat.vue'
 
 const {
@@ -925,7 +925,6 @@ const { markSaved } = useUnsavedGuard({
 
 // Conversation tabs
 let convCounter = 1
-const contextExpanded = ref(false)
 const conversations = ref([
   { label: `Chat 1`, messages: [], conversationID: null, traceHistory: [], context: '' },
 ])
@@ -1093,7 +1092,7 @@ async function loadAgent() {
   try {
     const res = await $SystemAPI.agentRead({ agentID })
     applyAgentData(res)
-  } catch (err) {
+  } catch {
     $toast.toastDanger(t('notification.agent.loadFailed'))
     router.push({ name: 'root' })
   } finally {
@@ -1322,7 +1321,7 @@ async function resolveTaqName(id) {
   try {
     const res = await $AutomationAPI.ngAutomationRead({ automationID: id })
     loadedTaqNames.value[id] = res.meta?.short || res.handle || res.automationID
-  } catch (e) {
+  } catch {
     loadedTaqNames.value[id] = 'Unknown TAQ'
   }
 }
@@ -1345,7 +1344,7 @@ async function resolveWorkflowName(id) {
   try {
     const res = await $AutomationAPI.workflowRead({ workflowID: id })
     loadedWorkflowNames.value[id] = res.meta?.name || res.handle || res.workflowID
-  } catch (e) {
+  } catch {
     loadedWorkflowNames.value[id] = 'Unknown Workflow'
   }
 }
@@ -1404,11 +1403,6 @@ function removeWorkflow(idx) {
 function getToolHints(name) {
   const tool = agent.value.access.tools.find(t => t.name === name)
   return tool?.hints || ''
-}
-
-function setToolHints(name, value) {
-  const tool = agent.value.access.tools.find(t => t.name === name)
-  if (tool) tool.hints = value
 }
 
 // --- Tool configuration dialog helpers ---

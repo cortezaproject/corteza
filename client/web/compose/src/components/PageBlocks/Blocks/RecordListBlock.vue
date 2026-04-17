@@ -353,7 +353,7 @@
           :header="col.label"
           :sortable="!options.hideSorting && !options.editable && !col.isMulti"
         >
-          <template #body="{ data, index }">
+          <template #body="{ data }">
             <CFieldEditor
               v-if="shouldShowEditor(data, col)"
               :field="col"
@@ -567,8 +567,8 @@ import axios from 'axios'
 import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete, usePermissions } from '@cortezaproject/corteza-vue-next'
+import { compose } from '@planetcrust/human-js'
+import { components, useConfirmDelete, usePermissions } from '@planetcrust/human-vue'
 const { CFieldViewer, CFieldEditor, CInputSearch, CFieldPicker } = components
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
@@ -1017,7 +1017,7 @@ async function handleDenyInline(record, index) {
 async function handleSaveDirtyRecords() {
   if (!recordListModule.value) return
   // Collect: if rows selected, only those; otherwise all dirty
-  const toSave = records.value.filter((r, idx) => {
+  const toSave = records.value.filter((r) => {
     if (!showSaveAction(r)) return false
     if (selectedRecords.value.length > 0) {
       return selectedRecords.value.some(s => getRecordKey(s) === getRecordKey(r))
@@ -1200,7 +1200,7 @@ async function loadNavigationIDs() {
     })
     const ids = (response.set || []).map(r => r.recordID)
     recordStore.setNavigationIDs(ids)
-  } catch (e) {
+  } catch {
     // non-critical, ignore
   }
 }
@@ -1577,12 +1577,12 @@ async function deleteSelected() {
   }
 }
 
-const offRefetch = $eventBus?.on('refetch-records', () => fetchRecords(true))
+$eventBus?.on('refetch-records', () => fetchRecords(true))
 
 // Reload when module changes
 watch(
   () => recordListModule.value?.moduleID,
-  newID => {
+  () => {
     // Load persisted filters when module changes
     loadStoredFilter()
     fetchRecords(true)
@@ -1742,7 +1742,7 @@ function persistFilter() {
     } else {
       localStorage.removeItem(key)
     }
-  } catch (e) {
+  } catch {
     // localStorage not available
   }
 }
@@ -1754,7 +1754,7 @@ function loadStoredFilter() {
     if (stored) {
       recordListFilter.value = JSON.parse(stored)
     }
-  } catch (e) {
+  } catch {
     // localStorage not available or invalid data
   }
 }
@@ -1768,7 +1768,7 @@ const userPresets = ref([])
 try {
   const stored = localStorage.getItem(`recordListFilterPresets-${props.block.blockID}`)
   if (stored) userPresets.value = JSON.parse(stored)
-} catch (e) {
+} catch {
   // ignore
 }
 
@@ -1822,7 +1822,7 @@ function persistUserPresets() {
     } else {
       localStorage.removeItem(userPresetsKey.value)
     }
-  } catch (e) {
+  } catch {
     // localStorage not available
   }
 }

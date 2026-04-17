@@ -214,8 +214,8 @@
 </template>
 
 <script setup>
-import { components } from '@cortezaproject/corteza-vue-next'
-import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { components } from '@planetcrust/human-vue'
+import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { conditionToShort } from '@/utils/taq-parser'

@@ -125,7 +125,7 @@
 <script setup>
 import { ref, computed, watch, inject, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import PageBlock from './PageBlock.vue'
 import ChartRenderer from '../../Chart/ChartRenderer.vue'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))

@@ -1,12 +1,12 @@
-import { automation } from '@cortezaproject/corteza-js-next'
+import { automation } from '@planetcrust/human-js'
 import type {
   StackFrame,
   ExecutionResult,
   TraceStatus,
-} from '@cortezaproject/corteza-js-next/src/automation/types/trace'
-import { withMinDuration } from '@cortezaproject/corteza-vue-next'
-import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
-import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+} from '@planetcrust/human-js/src/automation/types/trace'
+import { withMinDuration } from '@planetcrust/human-vue'
+import type { IconDef } from '@planetcrust/human-js/src/automation/types/icon'
+import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
 import type { Edge, Node } from '@vue-flow/core'
 import { computed, inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

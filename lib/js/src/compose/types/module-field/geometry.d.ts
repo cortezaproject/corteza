@@ -2,6 +2,8 @@ import { Capabilities, ModuleField, Options } from './base'
 interface GeometryOptions extends Options {
   center: number[]
   zoom: number
+  bounds: number[][] | null
+  lockBounds: boolean
   multiDelimiter: string
   prefillWithCurrentLocation: boolean
   hideCurrentLocationButton: boolean

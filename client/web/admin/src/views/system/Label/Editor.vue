@@ -232,7 +232,7 @@
 import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
 
 const { CResourceTable } = components
 

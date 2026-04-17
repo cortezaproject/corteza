@@ -78,7 +78,7 @@
             severity="secondary"
             :disabled="!recordNavigation.prev || navigating !== null"
             :loading="navigating === 'prev'"
-            :title="$t('recordNavigation.prev')"
+            :title="$t('general.recordNavigation.prev')"
             @click="navigateToRecord(recordNavigation.prev, 'prev')"
           />
           <Button
@@ -86,7 +86,7 @@
             severity="secondary"
             :disabled="!recordNavigation.next || navigating !== null"
             :loading="navigating === 'next'"
-            :title="$t('recordNavigation.next')"
+            :title="$t('general.recordNavigation.next')"
             @click="navigateToRecord(recordNavigation.next, 'next')"
           />
         </div>
@@ -163,8 +163,8 @@ import { useModuleStore } from '@/stores/module'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { usePageStore } from '@/stores/page'
 import { useRecordStore } from '@/stores/record'
-import { compose, validator } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { compose, validator } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onBeforeUnmount, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'

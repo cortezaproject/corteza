@@ -87,8 +87,8 @@
 
 <script setup>
 import { ref, computed, watch, inject } from 'vue'
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { compose } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
 
 const { CFieldEditor } = components
@@ -222,8 +222,6 @@ async function handleBulkUpdate() {
   const serialized = mockRecord.serializeValues()
 
   fields.value.forEach(fieldName => {
-    const f = getField(fieldName)
-    // Add all values that match the field
     const fieldValues = serialized.filter(v => v.name === fieldName)
     if (fieldValues.length === 0) {
       values.push({ name: fieldName, value: '' })

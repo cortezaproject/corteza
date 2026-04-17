@@ -4,7 +4,7 @@
       <Select
         id="namespace-selector"
         :model-value="currentNamespaceObject"
-        :options="enabledNamespaces"
+        :options="selectOptions"
         option-label="name"
         data-key="namespaceID"
         :placeholder="$t('sidebar.namespaceSelector.placeholder')"
@@ -56,6 +56,14 @@ const enabledNamespaces = computed(() => {
   return namespaceStore.set.filter(ns => ns.enabled).sort((a, b) => a.name.localeCompare(b.name))
 })
 
+const selectOptions = computed(() => {
+  const current = currentNamespaceObject.value
+  if (current && !current.enabled) {
+    return [current, ...enabledNamespaces.value]
+  }
+  return enabledNamespaces.value
+})
+
 const canManageNamespaces = computed(() => {
   const { hideNamespaceListLink } = $Settings.get('compose.ui.sidebar', {})
   if (hideNamespaceListLink) return false
@@ -69,7 +77,7 @@ const currentNamespaceSlug = computed(() => {
 const currentNamespaceObject = computed(() => {
   const urlPart = currentNamespaceSlug.value
   return (
-    enabledNamespaces.value.find(ns => ns.slug === urlPart || ns.namespaceID === urlPart) || null
+    namespaceStore.set.find(ns => ns.slug === urlPart || ns.namespaceID === urlPart) || null
   )
 })
 

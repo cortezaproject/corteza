@@ -234,8 +234,7 @@
 
 <script>
 import base from './base.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
-import { objectSearchMaker } from '../../lib/filter'
+import { components } from '@planetcrust/human-vue'
 import { getConstraintNameLabel } from '../../lib/constraint'
 import { getDocumentationURL } from '../../lib/version'
 import { camelToTitle } from '../../lib/string'

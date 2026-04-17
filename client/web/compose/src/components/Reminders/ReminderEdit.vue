@@ -118,8 +118,8 @@
 <script setup>
 import { computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { system, NoID } from '@cortezaproject/corteza-js-next'
-import { components, filters } from '@cortezaproject/corteza-vue-next'
+import { system, NoID } from '@planetcrust/human-js'
+import { components, filters } from '@planetcrust/human-vue'
 
 const { CInputDateTime, CInputUser } = components
 const { locFullDateTime } = filters

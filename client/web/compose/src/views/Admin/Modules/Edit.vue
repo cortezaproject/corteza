@@ -37,6 +37,7 @@
       >
         <!-- Discovery & Federation Buttons -->
         <Button
+          v-if="discoveryEnabled"
           :label="$t('module.edit.discoverySettings.title')"
           icon="pi pi-globe"
           size="small"
@@ -45,6 +46,7 @@
           @click="discoveryModal = true"
         />
         <Button
+          v-if="federationEnabled"
           :label="$t('module.edit.federationSettings.title')"
           icon="pi pi-share-alt"
           size="small"
@@ -276,15 +278,15 @@
               </TabPanel>
 
               <TabPanel value="dal">
-                <DalSettings :module="module" />
+                <DalSettings />
               </TabPanel>
 
               <TabPanel value="unique">
-                <UniqueValues :module="module" />
+                <UniqueValues />
               </TabPanel>
 
               <TabPanel value="revisions">
-                <RecordRevisionsSettings :module="module" />
+                <RecordRevisionsSettings />
               </TabPanel>
 
               <TabPanel value="issues">
@@ -351,10 +353,10 @@
 <script setup>
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete, usePermissions, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { compose } from '@planetcrust/human-js'
+import { components, useConfirmDelete, usePermissions, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
 import DalSettings from '@/components/Admin/Module/DalSettings.vue'
 import UniqueValues from '@/components/Admin/Module/UniqueValues.vue'
@@ -390,6 +392,8 @@ const deleting = ref(false)
 const cloning = ref(false)
 const module = ref(null)
 const initialModule = ref(null)
+
+provide('moduleDraft', module)
 const activeTab = ref('fields')
 
 const { markSaved } = useUnsavedGuard({
@@ -412,6 +416,9 @@ const fieldTableRef = ref()
 
 // App State Defaults
 const $SystemAPI = inject('$SystemAPI')
+const $Settings = inject('$Settings')
+const federationEnabled = computed(() => $Settings?.get('federation.enabled', false))
+const discoveryEnabled = computed(() => $Settings?.get('discovery.enabled', false))
 const federationModal = ref(false)
 const discoveryModal = ref(false)
 const schemaModal = ref(false)
@@ -602,6 +609,7 @@ async function loadModule() {
       namespaceID: props.namespace?.namespaceID,
       fields: [],
     })
+    module.value.fields.forEach(ensureFieldKey)
     initialModule.value = cloneDeep(module.value)
     return
   }
@@ -618,6 +626,7 @@ async function loadModule() {
       })
       module.value = new compose.Module({ ...m })
     }
+    module.value.fields.forEach(ensureFieldKey)
     initialModule.value = cloneDeep(module.value)
 
     // Auto-trigger schema alterations check if module has issues (matching Corteza behavior)
@@ -732,6 +741,7 @@ async function handleSubmit({ valid }) {
       payload.moduleID = module.value.moduleID
       const updated = await moduleStore.update(payload)
       module.value = new compose.Module({ ...updated })
+      module.value.fields.forEach(ensureFieldKey)
       initialModule.value = cloneDeep(module.value)
       $toast.toastSuccess(t('notification.module.saved'))
     } else {

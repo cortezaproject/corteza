@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputUser from '../../input/CInputUser.vue'
 import { useUserResolver } from '../../../composables/useUserResolver'

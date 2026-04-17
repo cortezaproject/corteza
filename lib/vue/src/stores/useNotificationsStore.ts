@@ -1,14 +1,14 @@
-import { system } from '@cortezaproject/corteza-js-next'
+import { system } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 type SystemAPI = {
-  notificationList: (args: Record<string, unknown>) => Promise<any>;
-  notificationMarkAsRead: (args: { notificationID: string }) => Promise<unknown>;
-  notificationMarkAsUnread: (args: { notificationID: string }) => Promise<unknown>;
+  notificationList: (_args: Record<string, unknown>) => Promise<any>;
+  notificationMarkAsRead: (_args: { notificationID: string }) => Promise<unknown>;
+  notificationMarkAsUnread: (_args: { notificationID: string }) => Promise<unknown>;
   notificationMarkAllAsRead: () => Promise<unknown>;
   notificationMarkAllAsUnread: () => Promise<unknown>;
-  notificationDelete: (args: { notificationID: string }) => Promise<unknown>;
+  notificationDelete: (_args: { notificationID: string }) => Promise<unknown>;
 }
 
 export const useNotificationsStore = defineStore('notifications', () => {

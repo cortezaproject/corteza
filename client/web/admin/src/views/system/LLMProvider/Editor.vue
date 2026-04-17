@@ -178,11 +178,11 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { system } from '@cortezaproject/corteza-js-next'
-import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { system } from '@planetcrust/human-js'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
-const { CInputDelete, CInputModel } = components
+const { CInputDelete } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -217,12 +217,6 @@ const providerOptions = computed(() => [
   { label: 'Mistral', value: 'mistral' },
   { label: 'Anthropic', value: 'anthropic' },
   { label: t('system.llmProviders.editor.info.providerOther'), value: 'other' },
-])
-
-const statusOptions = computed(() => [
-  { label: t('system.llmProviders.editor.info.statusOptions.active'), value: 'active' },
-  { label: t('system.llmProviders.editor.info.statusOptions.inactive'), value: 'inactive' },
-  { label: t('system.llmProviders.editor.info.statusOptions.unauthorized'), value: 'unauthorized' },
 ])
 
 const initialValues = computed(() => ({

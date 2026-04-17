@@ -120,7 +120,7 @@
 import { computed, inject, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { filters } from '@cortezaproject/corteza-vue-next'
+import { filters } from '@planetcrust/human-vue'
 
 const { locFullDateTime } = filters
 

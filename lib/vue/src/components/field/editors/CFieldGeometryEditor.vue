@@ -59,6 +59,7 @@
         :center="mapCenter"
         :zoom="mapZoom"
         :markers="mapMarkers"
+        :max-bounds="lockedBounds"
         :hide-geo-search="field.options?.hideGeoSearch"
         :hide-current-location-button="field.options?.hideCurrentLocationButton"
         class="flex-1 min-h-0 w-full"
@@ -157,6 +158,15 @@ const mapCenter = computed(() => {
 const mapZoom = computed(() => {
   if (latitude.value != null && longitude.value != null) return 13
   return props.field.options?.zoom || 3
+})
+
+const lockedBounds = computed(() => {
+  if (!props.field.options?.lockBounds) return null
+  const b = props.field.options?.bounds
+  if (Array.isArray(b) && b.length === 2 && b.every(p => Array.isArray(p) && p.length === 2)) {
+    return b
+  }
+  return null
 })
 
 const mapMarkers = computed(() => {

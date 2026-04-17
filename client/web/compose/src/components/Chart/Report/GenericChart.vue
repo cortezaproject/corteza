@@ -1,10 +1,8 @@
 <template>
   <ReportEdit
-    :report="report"
     :chart="chart"
     :modules="modules"
     :supported-metrics="supportedMetrics"
-    @update:report="$emit('update:report', $event)"
   >
     <template #dimension-options-options="{ dimension, isTemporal }">
       <div
@@ -392,18 +390,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import ReportEdit from './ReportEdit.vue'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  report: {
-    type: Object,
-    required: true,
-  },
+defineProps({
   chart: {
     type: Object,
     default: () => ({}),
@@ -418,7 +412,7 @@ const props = defineProps({
   },
 })
 
-defineEmits(['update:report'])
+const report = inject('reportDraft')
 
 const ignoredCharts = ['funnel', 'gauge', 'radar']
 
@@ -456,19 +450,19 @@ const scatterSymbolOptions = [
 const { hasRelativeDisplay } = compose.chartUtil
 
 const logScale = computed({
-  get: () => props.report.yAxis?.axisType === 'logarithmic',
+  get: () => report.value.yAxis?.axisType === 'logarithmic',
   set: v => {
-    if (props.report.yAxis) {
-      props.report.yAxis.axisType = v ? 'logarithmic' : 'linear'
+    if (report.value.yAxis) {
+      report.value.yAxis.axisType = v ? 'logarithmic' : 'linear'
     }
   },
 })
 
 const axisRight = computed({
-  get: () => props.report.yAxis?.axisPosition === 'right',
+  get: () => report.value.yAxis?.axisPosition === 'right',
   set: v => {
-    if (props.report.yAxis) {
-      props.report.yAxis.axisPosition = v ? 'right' : 'left'
+    if (report.value.yAxis) {
+      report.value.yAxis.axisPosition = v ? 'right' : 'left'
     }
   },
 })

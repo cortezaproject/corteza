@@ -234,7 +234,7 @@
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import moment from 'moment'
-import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
+import { components, useFileUpload } from '@planetcrust/human-vue'
 
 const { CFileDropZone } = components
 

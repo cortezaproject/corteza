@@ -51,7 +51,7 @@ import { usePageLayoutStore } from '@/stores/page-layout'
 import { usePageStore } from '@/stores/page'
 import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import { fetchBlockID, usePageVisibility } from '@/composables/usePageVisibility'
 
 defineProps({

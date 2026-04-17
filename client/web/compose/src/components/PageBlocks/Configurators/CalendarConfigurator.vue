@@ -245,9 +245,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { computed, inject } from 'vue'
+import { compose } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@/stores/module'
 import { useI18n } from 'vue-i18n'
 
@@ -256,17 +256,16 @@ const { CInputColorPicker } = components
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const modules = computed(() => moduleStore.set || [])
 
-const localOptions = computed(() => props.block.options || {})
+const localOptions = computed(() => block.value.options || {})
 
 const availableViews = computed(() => compose.PageBlockCalendar.availableViews())
 
@@ -327,10 +326,8 @@ function updateHeader(key, value) {
 }
 
 function updateOption(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...localOptions.value, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 /**

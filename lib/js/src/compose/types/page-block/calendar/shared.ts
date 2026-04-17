@@ -1,7 +1,6 @@
 import hr from 'hex-rgb'
 
 const isLightThreshold = 100
-const bgAlpha = 1
 
 export const rgbaRegex = /^rgba\((\d+),.*?(\d+),.*?(\d+),.*?(\d*\.?\d*)\)$/
 

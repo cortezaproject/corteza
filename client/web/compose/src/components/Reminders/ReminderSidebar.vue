@@ -46,7 +46,7 @@
 import { computed, inject, onBeforeUnmount, watch } from 'vue'
 import { useReminderStore } from '@/stores/reminder'
 import ReminderManager from './ReminderManager.vue'
-import { useRightSidebarResize } from '@cortezaproject/corteza-vue-next'
+import { useRightSidebarResize } from '@planetcrust/human-vue'
 
 const store = useReminderStore()
 const $eventBus = inject('$eventBus', null)

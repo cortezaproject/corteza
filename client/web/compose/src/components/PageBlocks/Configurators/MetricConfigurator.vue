@@ -283,8 +283,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { ref, computed, inject, onMounted } from 'vue'
+import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@/stores/module'
 import { useI18n } from 'vue-i18n'
 
@@ -293,13 +293,12 @@ const { CInputColorPicker } = components
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const expandedMetric = ref(0)
 
@@ -349,21 +348,19 @@ function getMetricFields(moduleID) {
 }
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 const metrics = computed(() => {
-  return props.block.options?.metrics || []
+  return block.value.options?.metrics || []
 })
 
 function addMetric() {
   // Use the block's makeMetric() if available, otherwise create a default
   let newMetric
-  if (props.block.makeMetric) {
-    newMetric = props.block.makeMetric()
+  if (block.value.makeMetric) {
+    newMetric = block.value.makeMetric()
   } else {
     newMetric = {
       label: '',

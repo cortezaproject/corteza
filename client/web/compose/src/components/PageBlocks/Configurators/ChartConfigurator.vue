@@ -22,14 +22,14 @@
 
     <template v-if="chartID">
       <!-- Live filter -->
-      <CInputSwitch v-model="liveFilterEnabled" :label="$t('block.chart.enableLiveFilter')" />
+      <CInputToggleCard v-model="liveFilterEnabled" :label="$t('block.chart.enableLiveFilter')" />
 
       <Divider v-if="isDrillDownAvailable" />
 
       <div v-if="isDrillDownAvailable" class="flex flex-col gap-3">
         <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.chart.drillDown.label') }}</h5>
 
-        <CInputSwitch v-model="drillDownEnabled" :label="$t('block.chart.drillDown.enabled')" />
+        <CInputToggleCard v-model="drillDownEnabled" :label="$t('block.chart.drillDown.enabled')" />
 
         <template v-if="drillDownEnabled">
           <div class="flex flex-col gap-1">
@@ -67,61 +67,58 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import CInputChart from '@cortezaproject/corteza-vue-next/src/components/input/CInputChart.vue'
+import CInputChart from '@planetcrust/human-vue/src/components/input/CInputChart.vue'
 import { useModuleStore } from '@/stores/module'
-import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import { useComposeResourceStore } from '@planetcrust/human-vue'
 
 const router = useRouter()
 const { t } = useI18n()
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const moduleStore = useModuleStore()
 const composeResourceStore = useComposeResourceStore()
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 const chartID = computed({
-  get: () => props.block.options?.chartID,
+  get: () => block.value.options?.chartID,
   set: v => updateOptions('chartID', v),
 })
 
 const liveFilterEnabled = computed({
-  get: () => !!props.block.options?.liveFilterEnabled,
+  get: () => !!block.value.options?.liveFilterEnabled,
   set: v => updateOptions('liveFilterEnabled', v),
 })
 
 const drillDownEnabled = computed({
-  get: () => !!props.block.options?.drillDown?.enabled,
-  set: v => updateOptions('drillDown', { ...props.block.options?.drillDown, enabled: v }),
+  get: () => !!block.value.options?.drillDown?.enabled,
+  set: v => updateOptions('drillDown', { ...block.value.options?.drillDown, enabled: v }),
 })
 
 const drillDownBlockID = computed({
-  get: () => props.block.options?.drillDown?.blockID || '',
-  set: v => updateOptions('drillDown', { ...props.block.options?.drillDown, blockID: v }),
+  get: () => block.value.options?.drillDown?.blockID || '',
+  set: v => updateOptions('drillDown', { ...block.value.options?.drillDown, blockID: v }),
 })
 
 const drillDownFields = computed({
   get: () => {
-    const fields = props.block.options?.drillDown?.recordListOptions?.fields || []
+    const fields = block.value.options?.drillDown?.recordListOptions?.fields || []
     return fields.map(f => f.name ?? f)
   },
   set: v => {
-    const drillDown = props.block.options?.drillDown || {}
+    const drillDown = block.value.options?.drillDown || {}
     const recordListOptions = drillDown.recordListOptions || {}
     updateOptions('drillDown', {
       ...drillDown,
@@ -136,7 +133,7 @@ function onFieldPickerUpdate(names) {
 
 const selectedChart = ref(null)
 
-watch(() => props.block.options?.chartID, async (id) => {
+watch(() => block.value.options?.chartID, async (id) => {
   if (id && props.namespace?.namespaceID) {
     try {
       selectedChart.value = await composeResourceStore.resolveChart(props.namespace.namespaceID, id)

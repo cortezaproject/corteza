@@ -56,17 +56,17 @@
       </div>
 
       <!-- Calendar -->
-      <div ref="containerRef" class="flex-1 min-h-0 overflow-hidden">
+      <div ref="containerRef" class="flex-1 min-h-0 overflow-hidden relative">
         <div
           v-if="processing"
-          class="flex items-center justify-center h-full"
+          class="absolute inset-0 flex items-center justify-center z-10 bg-surface-0/50"
         >
           <ProgressSpinner style="width: 24px; height: 24px" />
         </div>
 
         <FullCalendar
-          v-show="!processing"
           ref="calendarRef"
+          class="h-full"
           :options="calendarOptions"
         />
       </div>
@@ -77,7 +77,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import PageBlock from './PageBlock.vue'
@@ -109,7 +109,6 @@ const events = ref([])
 
 const loaded = ref({ start: null, end: null })
 const refreshing = ref(false)
-const calendarHeight = ref(400)
 
 const options = computed(() => props.block.options || {})
 
@@ -134,7 +133,9 @@ const calendarOptions = computed(() => ({
   editable: false,
   dayMaxEvents: true,
   events: events.value,
-  height: calendarHeight.value,
+  height: '100%',
+  expandRows: true,
+  handleWindowResize: true,
   datesSet: onDatesSet,
   eventClick: handleEventClick,
 }))
@@ -285,19 +286,7 @@ watch(
   },
 )
 
-/**
- * Reads the containerRef's clientHeight and sets it as the FC height,
- * so the calendar fits exactly inside the block minus the header.
- */
-function updateCalendarHeight () {
-  const el = containerRef.value
-  if (el && el.clientHeight > 0) {
-    calendarHeight.value = el.clientHeight
-  }
-}
-
 let resizeObserver = null
-let sizeCheckInterval = null
 
 onMounted(() => {
   nextTick(() => {
@@ -308,58 +297,20 @@ onMounted(() => {
     }
   })
 
-  // FullCalendar renders before the page grid layout is complete.
-  // Poll updateSize until the container has stable dimensions.
-  let lastWidth = 0
-  let lastHeight = 0
-  let stableCount = 0
-  sizeCheckInterval = setInterval(() => {
-    const el = containerRef.value
-    if (!el) return
-
-    const w = el.clientWidth
-    const h = el.clientHeight
-    updateCalendarHeight()
-    calendarApi.value?.updateSize()
-
-    // Only count stable when the container actually has dimensions
-    if (w > 0 && h > 0 && w === lastWidth && h === lastHeight) {
-      stableCount++
-      if (stableCount >= 5) {
-        clearInterval(sizeCheckInterval)
-        sizeCheckInterval = null
-      }
-    } else {
-      stableCount = 0
-    }
-    lastWidth = w
-    lastHeight = h
-  }, 100)
-
-  // Watch container size changes (route switch, builder→view, window resize)
-  // Deferred to nextTick to ensure containerRef is rendered
+  // grid-layout-plus resizes the block via CSS transforms — no window resize fires.
+  // Observe container size so FullCalendar can recompute its internal layout.
   nextTick(() => {
-    if (containerRef.value) {
-      resizeObserver = new ResizeObserver(() => {
-        nextTick(() => {
-          updateCalendarHeight()
-          calendarApi.value?.updateSize()
-        })
-      })
-      resizeObserver.observe(containerRef.value)
-    }
+    if (!containerRef.value) return
+    resizeObserver = new ResizeObserver(() => {
+      calendarApi.value?.updateSize()
+    })
+    resizeObserver.observe(containerRef.value)
   })
 })
 
 onBeforeUnmount(() => {
-  if (sizeCheckInterval) {
-    clearInterval(sizeCheckInterval)
-    sizeCheckInterval = null
-  }
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
-  }
+  resizeObserver?.disconnect()
+  resizeObserver = null
   events.value = []
   loaded.value = { start: null, end: null }
   offRefetch?.()

@@ -1,4 +1,4 @@
-import { automation } from '@cortezaproject/corteza-js-next'
+import { automation } from '@planetcrust/human-js'
 
 export function pVal<T = unknown>(vars: automation.Vars, k: string, def?: T): T | undefined {
   if (vars && vars[k] && vars[k]['@value'] !== undefined) {

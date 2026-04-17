@@ -57,7 +57,7 @@ export function PropCast<T>(
 }
 
 /**
- * Tests if a given value looks like corteza ID
+ * Tests if a given value looks like a human ID
  * @param ID
  * @constructor
  */
@@ -156,7 +156,7 @@ export function Apply<DST, SRC, T extends keyof DST>(
   })
 }
 
-export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(
+export function ApplyWhitelisted<DST, SRC, _WL, T extends keyof DST>(
   dst: DST,
   src: SRC,
   whitelist: DST[T][],

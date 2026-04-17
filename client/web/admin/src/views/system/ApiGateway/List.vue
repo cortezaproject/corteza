@@ -159,7 +159,7 @@ import {
   useResourceList,
   useRBACStore,
   usePermissions,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters

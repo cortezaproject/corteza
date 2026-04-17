@@ -28,12 +28,12 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { CResourceTable } = components
 const { t } = useI18n()
 
-const props = defineProps({
+defineProps({
   triggers: { type: Array, default: () => [] },
 })
 

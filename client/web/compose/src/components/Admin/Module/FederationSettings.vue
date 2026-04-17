@@ -641,25 +641,17 @@ function persistModuleMappings(payload) {
 async function loadSharedModules(nodeID) {
   if (sharedModules.value[nodeID]) return
 
-  try {
-    const data = await $FederationAPI.manageStructureListAll({ nodeID, shared: 1 })
-    sharedModules.value[nodeID] = (data || []).map((d) => ({ ...d, updated: false }))
-  } catch (e) {
-    throw e
-  }
+  const data = await $FederationAPI.manageStructureListAll({ nodeID, shared: 1 })
+  sharedModules.value[nodeID] = (data || []).map((d) => ({ ...d, updated: false }))
 }
 
 async function loadExposedModules(nodeID) {
   if (exposedModules.value[nodeID]) return
 
-  try {
-    const data = await $FederationAPI.manageStructureListAll({ nodeID, exposed: 1 })
-    const exposedModule = (data || []).find(({ composeModuleID }) => composeModuleID === props.module.moduleID)
-    if (exposedModule) {
-      exposedModules.value[nodeID] = exposedModule
-    }
-  } catch (e) {
-    throw e
+  const data = await $FederationAPI.manageStructureListAll({ nodeID, exposed: 1 })
+  const exposedModule = (data || []).find(({ composeModuleID }) => composeModuleID === props.module.moduleID)
+  if (exposedModule) {
+    exposedModules.value[nodeID] = exposedModule
   }
 }
 
@@ -672,7 +664,9 @@ async function loadModuleMappings(nodeID) {
     try {
       const data = await $FederationAPI.manageStructureReadMappings({ nodeID, moduleID, composeModuleID: props.module.moduleID })
       mm[moduleID] = data
-    } catch (e) {}
+    } catch {
+      // silent
+    }
   }
 
   moduleMappings.value[nodeID] = mm

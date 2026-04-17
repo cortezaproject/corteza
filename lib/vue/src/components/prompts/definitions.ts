@@ -1,4 +1,4 @@
-import { automation } from '@cortezaproject/corteza-js-next'
+import { automation } from '@planetcrust/human-js'
 
 const variants = [
   { value: 'primary', text: 'Primary' },

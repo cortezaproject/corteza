@@ -14,7 +14,7 @@ import {
     ToastPlugin,
     getTheme,
     setThemes,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'

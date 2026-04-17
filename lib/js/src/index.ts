@@ -1,5 +1,5 @@
 /**
- * @cortezaproject/corteza-js-next
+ * @planetcrust/human-js
  *
  * Core JavaScript/TypeScript library for Corteza
  * Provides API clients, type definitions, utilities, and models

@@ -62,7 +62,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { filters } from '@cortezaproject/corteza-vue-next'
+import { filters } from '@planetcrust/human-vue'
 import { useReminderStore } from '@/stores/reminder'
 
 const router = useRouter()

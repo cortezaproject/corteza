@@ -42,8 +42,8 @@ onMounted(async () => {
     })
     
     agentStore.setAvailableAgents(configuredAgents)
-  } catch (err) {
-    console.warn('Failed to load agents for sidebar', err)
+  } catch {
+    // silent
   }
 })
 </script>

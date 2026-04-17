@@ -120,8 +120,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'send', input: string): void
-  (e: 'trace-select', traceIndex: number, type: 'prompt' | 'response'): void
+  (_e: 'send', _input: string): void
+  (_e: 'trace-select', _traceIndex: number, _type: 'prompt' | 'response'): void
 }>()
 
 const chatInput = ref('')

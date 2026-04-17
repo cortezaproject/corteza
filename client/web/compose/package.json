@@ -1,5 +1,5 @@
 {
-  "name": "corteza-webapp-compose",
+  "name": "human-webapp-compose",
   "version": "2026.4.0",
   "private": true,
   "type": "module",
@@ -11,9 +11,12 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
+  "devDependencies": {
+    "@planetcrust/human-test-utils": "workspace:*"
+  },
   "dependencies": {
-    "@cortezaproject/corteza-js-next": "workspace:*",
-    "@cortezaproject/corteza-vue-next": "workspace:*",
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*",
     "grid-layout-plus": "^1.1.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.0",

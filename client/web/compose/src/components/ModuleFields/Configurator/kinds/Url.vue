@@ -21,17 +21,13 @@
       <label for="outputPlain" class="cursor-pointer">{{ $t('field.kind.url.preventToLink') }}</label>
     </div>
 
-    <CConfiguratorMultiDelimiter :field="field" />
+    <CConfiguratorMultiDelimiter />
   </div>
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import CConfiguratorMultiDelimiter from '../CConfiguratorMultiDelimiter.vue'
 
-defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 </script>

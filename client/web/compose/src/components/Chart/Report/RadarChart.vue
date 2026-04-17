@@ -1,10 +1,8 @@
 <template>
   <ReportEdit
-    :report="report"
     :chart="chart"
     :modules="modules"
     :supported-metrics="-1"
-    @update:report="$emit('update:report', $event)"
   >
     <template #dimension-options="{ dimension }">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
@@ -109,10 +107,6 @@ const formatOptions = [
 ]
 
 defineProps({
-  report: {
-    type: Object,
-    required: true,
-  },
   chart: {
     type: Object,
     default: () => ({}),
@@ -122,8 +116,6 @@ defineProps({
     required: true,
   },
 })
-
-defineEmits(['update:report'])
 
 const radarShapes = [
   { value: 'polygon', text: t('chart.edit.metric.radar.shape.polygon') },

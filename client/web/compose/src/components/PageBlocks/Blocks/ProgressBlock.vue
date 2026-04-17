@@ -24,11 +24,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
-import { useI18n } from 'vue-i18n'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
-
-const { t } = useI18n()
 
 const props = defineProps({
   block: { type: Object, required: true },

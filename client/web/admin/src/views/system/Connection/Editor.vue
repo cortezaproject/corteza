@@ -422,14 +422,14 @@
 import { computed, inject, nextTick, onMounted, ref, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { system } from '@cortezaproject/corteza-js-next'
+import { system } from '@planetcrust/human-js'
 import {
   components,
   filters,
   useConfirmDelete,
   useResourceList,
   useUnsavedGuard,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete, CResourceList } = components

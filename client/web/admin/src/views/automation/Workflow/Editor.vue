@@ -127,8 +127,8 @@ import { computed, inject, nextTick, onMounted, ref } from 'vue'
 import WorkflowTriggers from '@/components/Workflow/WorkflowTriggers.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { automation } from '@cortezaproject/corteza-js-next'
-import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { automation } from '@planetcrust/human-js'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components

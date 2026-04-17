@@ -244,7 +244,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { isBetweenOperator } from '../../lib/record-filter'
 
 const { CFieldEditor } = components
@@ -345,13 +345,6 @@ const hasActiveFilters = computed(() => props.modelValue?.some(g => g.filter?.so
 
 const hasValidFilters = computed(() =>
   internalFilter.value?.some(g => g.filter?.some(f => f.name)),
-)
-
-const activeFilterCount = computed(() =>
-  (props.modelValue || []).reduce(
-    (count, g) => count + (g.filter?.filter(f => f.name)?.length || 0),
-    0,
-  ),
 )
 
 // --- Operators ---
@@ -483,10 +476,6 @@ function onPresetSelect(preset) {
     internalFilter.value = JSON.parse(JSON.stringify(preset.filter))
   }
   emit('load-preset', preset)
-}
-
-function loadPreset(preset) {
-  onPresetSelect(preset)
 }
 
 function deletePreset(index) {

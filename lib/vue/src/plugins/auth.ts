@@ -1,5 +1,4 @@
- 
-import { system } from '@cortezaproject/corteza-js-next'
+import { system } from '@planetcrust/human-js'
 import axios, { AxiosInstance } from 'axios'
 import type { App } from 'vue'
 import { Make } from '../libs/url'
@@ -27,9 +26,10 @@ const maxStartAttempts = 5
 // signature copied from dom definition
 
 type eventListenerSignature = <K extends keyof WindowEventMap>(
-  type: K,
-  listener: (this: Window, ev: WindowEventMap[K]) => any,
-  options?: boolean | AddEventListenerOptions,
+  _type: K,
+  // eslint-disable-next-line no-unused-vars
+  _listener: (this: Window, _ev: WindowEventMap[K]) => any,
+  _options?: boolean | AddEventListenerOptions,
 ) => void
 
 interface AuthInfo {
@@ -54,11 +54,6 @@ interface OAuth2TokenResponse {
   theme?: string
 }
 
-interface PluginOpts {
-  cortezaAuthURL: string
-  callbackURL: string
-}
-
 interface AuthCtor {
   app: string
 
@@ -70,7 +65,7 @@ interface AuthCtor {
   /**
    * where the auth backend is
    */
-  cortezaAuthURL: string
+  authURL: string
 
   /**
    * URL we'll be listening to for callbacks
@@ -109,10 +104,10 @@ interface AuthCtor {
 }
 
 interface Logger {
-  debug(...data: unknown[]): void
-  info(...data: unknown[]): void
-  error(...data: unknown[]): void
-  warn(...data: unknown[]): void
+  debug(..._data: unknown[]): void
+  info(..._data: unknown[]): void
+  error(..._data: unknown[]): void
+  warn(..._data: unknown[]): void
 }
 
 export class Auth {
@@ -135,7 +130,7 @@ export class Auth {
 
   readonly refreshFactor: number
   readonly verbose: boolean
-  readonly cortezaAuthURL: string
+  readonly authURL: string
   readonly callbackURL: string
   readonly location: Location
   readonly sessionStorage: Storage
@@ -153,13 +148,13 @@ export class Auth {
   private refreshTimeout?: number
   private expiresIn: number
 
-  private $emit?: (event: string, ...args: unknown[]) => unknown
-  private listeners = new Map<string, Set<(...args: unknown[]) => void>>()
+  private $emit?: (_event: string, ..._args: unknown[]) => unknown
+  private listeners = new Map<string, Set<(..._args: unknown[]) => void>>()
 
   constructor({
     app,
     verbose,
-    cortezaAuthURL,
+    authURL,
     callbackURL,
     entrypointURL,
     location,
@@ -173,7 +168,7 @@ export class Auth {
 
     this.app = app
     this.verbose = verbose
-    this.cortezaAuthURL = cortezaAuthURL
+    this.authURL = authURL
     this.callbackURL = callbackURL
     this.location = location
     this.sessionStorage = sessionStorage
@@ -184,29 +179,29 @@ export class Auth {
 
     this.log.debug('initialized auth plugin', {
       app,
-      cortezaAuthURL,
+      authURL,
       callbackURL,
       entrypointURL,
     })
   }
 
   // Vue 3 equivalent - setup emit function
-  setupEmitter(app: App): Auth {
+  setupEmitter(_app: App): Auth {
     this.$emit = (event, ...args): void => {
       this.listeners.get(event)?.forEach(listener => listener(...args))
     }
     return this
   }
 
-  on(event: string, listener: (...args: unknown[]) => void): () => void {
-    const set = this.listeners.get(event) ?? new Set<(...args: unknown[]) => void>()
+  on(event: string, listener: (..._args: unknown[]) => void): () => void {
+    const set = this.listeners.get(event) ?? new Set<(..._args: unknown[]) => void>()
     set.add(listener)
     this.listeners.set(event, set)
 
     return () => this.off(event, listener)
   }
 
-  off(event: string, listener: (...args: unknown[]) => void): void {
+  off(event: string, listener: (..._args: unknown[]) => void): void {
     const set = this.listeners.get(event)
     if (!set) {
       return
@@ -219,7 +214,7 @@ export class Auth {
   }
 
   get axios(): AxiosInstance {
-    return axios.create({ baseURL: this.cortezaAuthURL })
+    return axios.create({ baseURL: this.authURL })
   }
 
   /**
@@ -469,7 +464,7 @@ export class Auth {
 
     this.location.assign(
       Make({
-        url: `${this.cortezaAuthURL}/logout`,
+        url: `${this.authURL}/logout`,
         query: { back: this.location.toString() },
       }),
     )
@@ -495,7 +490,7 @@ export class Auth {
 
     this.location.assign(
       Make({
-        url: `${this.cortezaAuthURL}` + oauth2FlowURL,
+        url: `${this.authURL}` + oauth2FlowURL,
         query: {
           redirect_uri: this.callbackURL,
           scope: oauth2Scope,
@@ -718,7 +713,7 @@ export default {
     let {
       app: appName = '',
       rootApp = false,
-      cortezaAuthURL = '',
+      authURL = '',
       callbackURL = '',
       verbose = undefined,
       refreshFactor = 0.75,
@@ -728,40 +723,40 @@ export default {
       registerEventListener = window.addEventListener.bind(window),
     } = opts
 
-    if (!cortezaAuthURL) {
+    if (!authURL) {
       /**
-       * cortezaAuthURL not explicitly set, try to auto-configure from properties set on window variable
+       * authURL not explicitly set, try to auto-configure from properties set on window variable
        * (most likely through config.js)
        */
 
       // @ts-ignore
-      const { CortezaAPI = undefined, CortezaAuth = undefined } = window
+      const { HumanAPI = undefined, HumanAuth = undefined } = window
 
       switch (true) {
-        case !!CortezaAuth:
+        case !!HumanAuth:
           /**
            * Corteza authentication endpoints location is set explicitly:
            */
-          cortezaAuthURL = CortezaAuth
+          authURL = HumanAuth
           break
-        case !!CortezaAPI && /\/api$/.test(CortezaAPI):
+        case !!HumanAPI && /\/api$/.test(HumanAPI):
           /**
-           * Corteza API base-url is explicitly set and string ends with /api,
+           * Human API base-url is explicitly set and string ends with /api,
            * do a leap of faith and replace it with /auth, so that
-           * corteza.example.tld/api becomes corteza.example.tld/auth
+           * human.example.tld/api becomes human.example.tld/auth
            */
-          cortezaAuthURL = CortezaAPI.replace('/api', '/auth')
+          authURL = HumanAPI.replace('/api', '/auth')
           break
-        case !!CortezaAPI:
+        case !!HumanAPI:
           /**
-           * Corteza API base-url is explicitly set. Since it does not end with /api
+           * Human API base-url is explicitly set. Since it does not end with /api
            * we will assume api is served directly on root of that domain and we'll just append the /auth suffix
-           * so that corteza.example.tld becomes corteza.example.tld/auth
+           * so that human.example.tld becomes human.example.tld/auth
            */
-          cortezaAuthURL = CortezaAPI + '/auth'
+          authURL = HumanAPI + '/auth'
           break
         default:
-          throw new Error('failed to configure auth cortezaAuthURL')
+          throw new Error('failed to configure auth authURL')
       }
     }
 
@@ -775,7 +770,7 @@ export default {
       const callbackPath = 'auth/callback'
 
       if (CortezaWebapp) {
-        // construct redirect URL fallback from configured corteza webapp
+        // construct redirect URL fallback from configured human webapp
         callbackURL = Make({ url: `${CortezaWebapp}` })
       } else {
         // Try to get callbackURL from <base> tag's href value
@@ -811,7 +806,7 @@ export default {
     const authInstance = new Auth({
       app: appName,
       verbose,
-      cortezaAuthURL,
+      authURL,
       callbackURL,
       location,
       sessionStorage,

@@ -64,12 +64,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
 const $SystemAPI = inject('$SystemAPI')
 
@@ -79,7 +74,7 @@ const loadingRoles = ref(false)
 // Roles where duplicates can be allowed
 const duplicatesAllowedTypes = ['default', 'each']
 const showAllowDuplicates = computed(() =>
-  duplicatesAllowedTypes.includes(props.field.options.selectType),
+  duplicatesAllowedTypes.includes(field.value.options.selectType),
 )
 
 const selectTypeOptions = computed(() => [
@@ -90,14 +85,14 @@ const selectTypeOptions = computed(() => [
 
 // selectedRoles is initialized from field.options.roles (array of roleIDs)
 const selectedRoles = computed({
-  get: () => props.field.options.roles || [],
-  set: val => { props.field.options.roles = val },
+  get: () => field.value.options.roles || [],
+  set: val => { field.value.options.roles = val },
 })
 
 function onSelectTypeChange(val) {
   const allowDuplicates = duplicatesAllowedTypes.includes(val)
   if (!allowDuplicates) {
-    props.field.options.isUniqueMultiValue = true
+    field.value.options.isUniqueMultiValue = true
   }
 }
 

@@ -220,7 +220,7 @@
 <script setup>
 import { inject, reactive, ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, filters } from '@cortezaproject/corteza-vue-next'
+import { components, filters } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters

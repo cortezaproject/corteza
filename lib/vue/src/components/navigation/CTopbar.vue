@@ -241,17 +241,6 @@ watch(
   { immediate: true },
 )
 
-const documentationURL = computed(() => {
-  // eslint-disable-next-line no-undef
-  const [year, month] = VERSION.split('.')
-  return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/index.html`
-})
-
-const helpLinks = computed(() => {
-  const { helpLinks = [] } = settings.value || {}
-  return (helpLinks || []).filter(({ handle, url }) => handle && url)
-})
-
 const profileLinks = computed(() => {
   const { profileLinks = [] } = settings.value || {}
   return (profileLinks || []).filter(({ handle, url }) => handle && url)
@@ -335,7 +324,7 @@ const profileMenuItems = computed(() => {
   if (!settings.value?.hideProfileLink) {
     items.push({
       label: props.labels.userSettingsProfile,
-      url: $Auth.cortezaAuthURL,
+      url: $Auth.authURL,
       target: '_blank',
       icon: 'pi pi-user',
     })
@@ -344,7 +333,7 @@ const profileMenuItems = computed(() => {
   if (!settings.value?.hideChangePasswordLink) {
     items.push({
       label: props.labels.userSettingsChangePassword,
-      url: `${$Auth.cortezaAuthURL}/change-password`,
+      url: `${$Auth.authURL}/change-password`,
       target: '_blank',
       icon: 'pi pi-key',
     })

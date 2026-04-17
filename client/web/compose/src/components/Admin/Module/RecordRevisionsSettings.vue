@@ -29,16 +29,13 @@
 </template>
 
 <script setup>
-const props = defineProps({
-  module: {
-    type: Object,
-    required: true,
-  },
-})
+import { inject } from 'vue'
+
+const module = inject('moduleDraft')
 
 // Ensure config.recordRevisions exists safely
-if (!props.module.config) props.module.config = {}
-if (!props.module.config.recordRevisions) {
-  props.module.config.recordRevisions = { enabled: false, ident: '' }
+if (!module.value.config) module.value.config = {}
+if (!module.value.config.recordRevisions) {
+  module.value.config.recordRevisions = { enabled: false, ident: '' }
 }
 </script>

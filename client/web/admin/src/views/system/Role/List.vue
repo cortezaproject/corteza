@@ -137,7 +137,7 @@ import {
   usePermissions,
   useRBACStore,
   useResourceList,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

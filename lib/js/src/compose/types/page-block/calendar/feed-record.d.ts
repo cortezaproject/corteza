@@ -32,6 +32,6 @@ export declare function RecordFeed(
   namespace: Namespace,
   feed: Feed,
   range: Range,
-  options?: {},
+  options?: Record<string, unknown>,
 ): Promise<Event[]>
 export {}

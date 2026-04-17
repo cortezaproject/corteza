@@ -34,7 +34,7 @@ export default class GaugeChart extends BaseChart {
     return (d.meta?.steps || []).map(({ label }: any) => label)
   }
 
-  makeDataset(m: Metric, d: Dimension, data: Array<number | TemporalDataPoint>, alias: string) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number | TemporalDataPoint>, _alias: string) {
     const steps = d.meta?.steps || []
 
     data = this.datasetPostProc(data, m)
@@ -71,7 +71,7 @@ export default class GaugeChart extends BaseChart {
   }
 
   makeOptions(data: any) {
-    const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
+    const { colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
     const { datasets = [], themeVariables = {} } = data
     const {

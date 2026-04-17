@@ -25,7 +25,7 @@
           :sidebar-disabled="sidebarDisabled"
           :labels="{
             appMenu: $t('navigation.appMenu'),
-              home: $t('navigation.home'),
+            home: $t('navigation.home'),
             helpBuyHuman: $t('navigation.help.buyHuman'),
             helpManageSubscription: $t('navigation.help.manageSubscription'),
             helpPackageDetails: $t('navigation.help.packageDetails'),
@@ -71,7 +71,6 @@
               top: 'calc(var(--topbar-height) + 1rem)',
             },
           },
-          messageIcon: { class: 'hidden' },
         }"
       />
 
@@ -128,7 +127,7 @@ import {
   useRBACStore,
   useWorkflowPromptsStore,
   websocket,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'

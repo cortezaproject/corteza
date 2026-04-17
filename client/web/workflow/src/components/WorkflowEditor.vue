@@ -410,19 +410,18 @@ import { Background } from '@vue-flow/background'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject, markRaw } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 
 import { decodeWorkflow, encodeWorkflow } from '../lib/codec'
-import { getStyleFromKind, getKindFromStyle } from '../lib/style'
+import { getStyleFromKind } from '../lib/style'
 import { encodeInput } from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
-import { camelToTitle } from '../lib/string'
 import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
-import { NoID } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { NoID } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 
 import Configurator from './Configurator/index.vue'
 import WorkflowConfigurator from './Configurator/Workflow.vue'
@@ -500,7 +499,7 @@ const {
   onNodesInitialized,
 } = useVueFlow(vfId)
 
-const { saveToHistory, undo, redo, canUndo, canRedo } = useWorkflowHistory(nodes, edges)
+const { saveToHistory, undo, redo } = useWorkflowHistory(nodes, edges)
 const {
   onToolbarDragStart,
   onCanvasDragOver,
@@ -789,9 +788,13 @@ watch(
   () => workflow.value.runAs,
   (runAs = '0') => {
     if (runAs !== '0') {
-      $SystemAPI.userRead({ userID: runAs }).then(user => {
-        runAsUser.value = user
-      })
+      $SystemAPI.userRead({ userID: runAs })
+        .then(user => {
+          runAsUser.value = user
+        })
+        .catch(e => {
+          console.warn('Failed to resolve runAs user', runAs, e)
+        })
     } else {
       runAsUser.value = undefined
     }
@@ -988,7 +991,7 @@ function onNodeClick({ node, event }) {
   }
 }
 
-function onEdgeClick({ edge, event }) {
+function onEdgeClick({ edge }) {
   clearHighlights()
 
   // Build sidebar item for edge
@@ -1172,7 +1175,6 @@ function sidebarReopen(item, itemType) {
 function sidebarClose() {
   sidebar.value.show = false
   setTimeout(() => {
-    const nodeId = sidebar.value.item?.node?.id
     sidebar.value.showItem = false
     sidebar.value.item = undefined
     sidebar.value.itemType = undefined
@@ -1660,7 +1662,7 @@ async function testWorkflow(input = {}) {
 
   $AutomationAPI
     .workflowExec(testParams)
-    .then(({ sessionID, error: wfExecErr }) => {
+    .then(({ sessionID }) => {
       dryRun.value.sessionID = sessionID
 
       const pollSession = () => {

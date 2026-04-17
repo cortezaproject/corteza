@@ -265,7 +265,6 @@
 import base from './base.vue'
 import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
-import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
 import { getDocumentationURL } from '../../lib/version'
 import eventBus from '../../lib/eventBus'
 

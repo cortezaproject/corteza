@@ -12,11 +12,11 @@ import { useI18n } from 'vue-i18n'
 export function useSegmentForm(options: {
   segments: () => any[]
   parameters: () => any[]
-  getValue: (argumentName: string) => any
-  getAggregateValue: (argumentName: string) => any
-  onUpdate: (argumentName: string, value: any) => void
-  getReferenceInfo?: (argumentName: string) => { scope: string; source: string } | null
-  resolveReferenceValue?: (scope: string, source: string) => any
+  getValue: (_argumentName: string) => any
+  getAggregateValue: (_argumentName: string) => any
+  onUpdate: (_argumentName: string, _value: any) => void
+  getReferenceInfo?: (_argumentName: string) => { scope: string; source: string } | null
+  resolveReferenceValue?: (_scope: string, _source: string) => any
   upstreamResults?: () => any[]
 }) {
   const { t } = useI18n()
@@ -107,7 +107,7 @@ export function useSegmentForm(options: {
   /**
    * Build a human-readable label for a reference like "HTTP Request → response"
    */
-  function buildReferenceLabel(scope: string, source: string) {
+  function buildReferenceLabel(_scope: string, source: string) {
     return source
   }
 
@@ -131,7 +131,6 @@ export function useSegmentForm(options: {
             const referenceLabel = refInfo ? buildReferenceLabel(refInfo.scope, refInfo.source) : ''
 
             const inputOptions = element.input.options || []
-            const hasOptions = inputOptions.length > 0
 
             return {
               key: `input-${sIdx}-${secIdx}-${elIdx}`,

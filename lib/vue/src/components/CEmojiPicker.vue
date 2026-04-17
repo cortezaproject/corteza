@@ -54,7 +54,7 @@
 </template>
 
 <script>
-const STORAGE_KEY = 'corteza:emoji:frequently-used'
+const STORAGE_KEY = 'human:emoji:frequently-used'
 const MAX_FREQUENT = 18
 
 // Virtual scroll constants (px)

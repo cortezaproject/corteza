@@ -11,7 +11,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next/src/stores/useComposeResourceStore'
+import { useComposeResourceStore } from '@planetcrust/human-vue/src/stores/useComposeResourceStore'
 
 const { t } = useI18n()
 

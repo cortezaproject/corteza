@@ -51,10 +51,6 @@ function isModule(m?: unknown): m is Module {
   return !!m && IsOf<Module>(m, 'fields') && Array.isArray(m.fields) && m.fields.length > 0
 }
 
-function isRawValue(v: unknown): v is RawValue {
-  return IsOf<RawValue>(v, 'name')
-}
-
 /**
  * Record class will be used all over the place, user scripts, etc..
  *
@@ -418,7 +414,7 @@ export class Record {
   }
 
   public serialize(): Partial<Record> {
-    const { toJSON, ...values } = this.values
+    const { toJSON: _toJSON, ...values } = this.values
     return { ...this, values }
   }
 

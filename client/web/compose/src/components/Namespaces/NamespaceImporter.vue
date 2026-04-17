@@ -87,12 +87,10 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
+import { components, useFileUpload } from '@planetcrust/human-vue'
 
 const { CFileDropZone } = components
 
-const { t } = useI18n()
 const $ComposeAPI = inject('$ComposeAPI')
 
 const emit = defineEmits(['imported', 'failed'])
@@ -148,7 +146,7 @@ async function onFilesSelected(files) {
     const data = await uploadFileRaw(file, { url: endpoint, token })
     session.value = data
     step.value = 1
-  } catch (err) {
+  } catch {
     // uploadError is already set by the composable
   }
 }

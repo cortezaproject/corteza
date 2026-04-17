@@ -56,8 +56,8 @@
 <script setup>
 import { ref, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { system } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { system } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 
 const { CInputRole } = components
 

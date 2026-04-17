@@ -236,7 +236,7 @@ function onDragLeaveSelectedItem() {
   dropTargetIndex.value = -1
 }
 
-function onDropToSelected(event) {
+function onDropToSelected(_event) {
   if (!dragField.value) return
 
   if (dragSource.value === 'available') {

@@ -184,8 +184,8 @@
 </template>
 
 <script>
-import { components, useConfirmDelete } from '@cortezaproject/corteza-vue-next'
-import { automation } from '@cortezaproject/corteza-js-next'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
+import { automation } from '@planetcrust/human-js'
 import Import from '../Import.vue'
 import Export from '../Export.vue'
 import NamespaceModuleSelector from '../NamespaceModuleSelector.vue'

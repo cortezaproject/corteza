@@ -1,5 +1,5 @@
 {
-  "name": "corteza-webapp-workflow",
+  "name": "human-webapp-workflow",
   "version": "2026.4.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js-next": "workspace:*",
-    "@cortezaproject/corteza-vue-next": "workspace:*",
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*",
     "file-saver": "^2.0.5",
     "mitt": "^3.0.1",
     "@vue-flow/background": "^1.3.2",

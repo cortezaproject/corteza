@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <CInputSwitch
-      v-model="modelValue.enabled"
+      v-model="model.enabled"
       :label="$t('system.settings.editor.external.standard.enabled')"
     />
 
@@ -10,28 +10,23 @@
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.standard.clientKey') }}
         </label>
-        <InputText v-model="modelValue.key" :required="modelValue.enabled" class="w-full" />
+        <InputText v-model="model.key" :required="model.enabled" class="w-full" />
       </div>
 
       <div class="flex flex-col gap-1">
         <label class="font-medium text-sm">
           {{ $t('system.settings.editor.external.standard.clientSecret') }}
         </label>
-        <InputText v-model="modelValue.secret" :required="modelValue.enabled" class="w-full" />
+        <InputText v-model="model.secret" :required="model.enabled" class="w-full" />
       </div>
     </div>
 
-    <ExternalSecurity v-model="modelValue.security" />
+    <ExternalSecurity v-model="model.security" />
   </div>
 </template>
 
 <script setup>
 import ExternalSecurity from './ExternalSecurity.vue'
 
-defineProps({
-  modelValue: {
-    type: Object,
-    required: true,
-  },
-})
+const model = defineModel({ type: Object, required: true })
 </script>

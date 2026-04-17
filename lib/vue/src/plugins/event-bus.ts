@@ -1,6 +1,6 @@
 import type { App, InjectionKey, Plugin } from 'vue'
 
-export type EventHandler<T = unknown> = (payload?: T) => void
+export type EventHandler<T = unknown> = (_payload?: T) => void
 
 export class EventBus {
   private listeners = new Map<string, Set<EventHandler>>()

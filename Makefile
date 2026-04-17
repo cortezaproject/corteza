@@ -1,4 +1,4 @@
-.PHONY: dev dev-all test lint fresh audit codegen tag ftag
+.PHONY: dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := admin agentic compose one taq home workflow
 
@@ -18,11 +18,17 @@ dev-all:
 	(sleep 4 && ss -tlnp | awk '/127\.0\.0\.1:51/{split($$4,a,":");print a[2]}' | sort | while read port; do cmd.exe /c start "http://localhost:$$port" </dev/null; sleep 2; done) & \
 	wait
 
-test:
-	@echo "---Testing libs---"
-	@(cd $(CURDIR)/lib && make test) || (echo "Failed to test libs"; exit 1)
-	@echo "---Testing clients---"
-	@(cd $(CURDIR)/client && make test) || (echo "Failed to test clients"; exit 1)
+test: test-lib test-client test-server
+
+test-lib:
+	@echo "---Testing lib---"
+	@(cd $(CURDIR)/lib && make test) || (echo "Failed to test lib"; exit 1)
+
+test-client:
+	@echo "---Testing client---"
+	@(cd $(CURDIR)/client && make test) || (echo "Failed to test client"; exit 1)
+
+test-server:
 	@echo "---Testing server---"
 	@(cd $(CURDIR)/server && make test) || (echo "Failed to test server"; exit 1)
 

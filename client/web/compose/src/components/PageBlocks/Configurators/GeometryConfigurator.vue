@@ -1,132 +1,69 @@
 <template>
   <div class="flex flex-col gap-5">
-    <!-- Map Settings -->
     <div class="flex flex-col gap-3">
-      <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.geometry.mapSettings') }}</h5>
-
-      <div class="flex items-center gap-2">
-        <Checkbox v-model="hideGeoSearch" binary input-id="hideGeoSearch" />
-        <label for="hideGeoSearch" class="text-sm">{{ $t('block.geometry.hideGeoSearch') }}</label>
-      </div>
-
-      <div class="flex flex-col gap-1">
+      <!-- Starting View: pan/zoom to set starting center and zoom -->
+      <div class="flex flex-col gap-2">
         <label class="text-primary font-medium text-sm">
-          {{ $t('block.geometry.displayOption.label') }}
+          {{ $t('block.geometry.startingView') }}
         </label>
-        <Select
-          v-model="displayOption"
-          :options="displayOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
+        <CMap
+          :center="center"
+          :zoom="zoomStarting"
+          :min-zoom="zoomMin"
+          :max-zoom="zoomMax"
+          :max-bounds="lockBounds ? lockedBounds : null"
+          :hide-geo-search="hideGeoSearch"
+          hide-current-location-button
+          style="height: 40vh;"
+          @update:center="onMapCenter"
+          @update:zoom="onMapZoom"
+          @update:bounds="onMapBounds"
         />
       </div>
 
-      <!-- Center Coordinates -->
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.geometry.center') }}</label>
-        <div class="grid grid-cols-2 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.centerLat') }}</label>
-            <InputNumber
-              v-model="centerLat"
-              :min="-90"
-              :max="90"
-              :max-fraction-digits="6"
-              class="w-full"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.centerLng') }}</label>
-            <InputNumber
-              v-model="centerLng"
-              :min="-180"
-              :max="180"
-              :max-fraction-digits="6"
-              class="w-full"
-            />
-          </div>
+      <!-- Zoom min/max constraints -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.geometry.zoomMin') }}
+          </label>
+          <InputNumber
+            :model-value="zoomMin"
+            :min="1"
+            :max="20"
+            show-buttons
+            class="w-full"
+            @input="e => (zoomMin = e.value)"
+          />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.geometry.zoomMax') }}
+          </label>
+          <InputNumber
+            :model-value="zoomMax"
+            :min="1"
+            :max="20"
+            show-buttons
+            class="w-full"
+            @input="e => (zoomMax = e.value)"
+          />
         </div>
       </div>
 
-      <!-- Zoom -->
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.geometry.zoom') }}</label>
-        <div class="grid grid-cols-3 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.zoomStarting') }}</label>
-            <InputNumber v-model="zoomStarting" :min="1" :max="20" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.zoomMin') }}</label>
-            <InputNumber v-model="zoomMin" :min="1" :max="20" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-sm text-muted-color">{{ $t('block.geometry.zoomMax') }}</label>
-            <InputNumber v-model="zoomMax" :min="1" :max="20" class="w-full" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Lock Bounds -->
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <Checkbox v-model="lockBounds" binary input-id="lockBounds" />
-          <label for="lockBounds" class="text-sm">{{ $t('block.geometry.lockBounds') }}</label>
-        </div>
-
-        <template v-if="lockBounds">
-          <div class="grid grid-cols-2 gap-2">
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.geometry.boundsMinLat') }}
-              </label>
-              <InputNumber
-                v-model="boundsMinLat"
-                :min="-90"
-                :max="90"
-                :max-fraction-digits="6"
-                class="w-full"
-              />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.geometry.boundsMaxLat') }}
-              </label>
-              <InputNumber
-                v-model="boundsMaxLat"
-                :min="-90"
-                :max="90"
-                :max-fraction-digits="6"
-                class="w-full"
-              />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.geometry.boundsMinLng') }}
-              </label>
-              <InputNumber
-                v-model="boundsMinLng"
-                :min="-180"
-                :max="180"
-                :max-fraction-digits="6"
-                class="w-full"
-              />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.geometry.boundsMaxLng') }}
-              </label>
-              <InputNumber
-                v-model="boundsMaxLng"
-                :min="-180"
-                :max="180"
-                :max-fraction-digits="6"
-                class="w-full"
-              />
-            </div>
-          </div>
-        </template>
+      <!-- Toggles -->
+      <div class="grid grid-cols-2 gap-3 items-start">
+        <CInputToggleCard
+          v-model="hideGeoSearch"
+          :label="$t('block.geometry.hideGeoSearch')"
+          :description="$t('block.geometry.hideGeoSearchDescription')"
+        />
+        <CInputToggleCard
+          :model-value="lockBounds"
+          :label="$t('block.geometry.lockBounds')"
+          :description="$t('block.geometry.lockBoundsDescription')"
+          @update:model-value="onLockBoundsToggle"
+        />
       </div>
     </div>
 
@@ -134,16 +71,31 @@
 
     <!-- Feeds Section -->
     <div class="flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.geometry.feeds') }}</h5>
-        <Button
-          :label="$t('general.label.add')"
-          icon="pi pi-plus"
-          size="small"
-          severity="secondary"
-          @click="addFeed"
-        />
+      <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.geometry.feeds') }}</h5>
+
+      <div class="grid grid-cols-12 gap-3">
+        <div class="flex flex-col gap-1 col-span-6">
+          <label class="text-primary font-medium text-sm">
+            {{ $t('block.geometry.displayOption.label') }}
+          </label>
+          <Select
+            v-model="displayOption"
+            :options="displayOptions"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </div>
       </div>
+
+      <Button
+        :label="$t('block.geometry.addFeed')"
+        icon="pi pi-plus"
+        size="small"
+        severity="secondary"
+        class="self-start"
+        @click="addFeed"
+      />
 
       <div
         v-for="(feed, i) in feeds"
@@ -160,7 +112,7 @@
           <div class="flex flex-col gap-1">
             <label class="text-sm text-muted-color">{{ $t('block.geometry.feedModule') }}</label>
             <Select
-              :model-value="feed.moduleID || ''"
+              :model-value="feed.options?.moduleID || ''"
               :options="modules"
               option-label="name"
               option-value="moduleID"
@@ -168,7 +120,7 @@
               class="w-full"
               filter
               show-clear
-              @update:model-value="updateFeed(i, 'moduleID', $event)"
+              @update:model-value="updateFeedOption(i, 'moduleID', $event || '')"
             />
           </div>
 
@@ -179,13 +131,13 @@
             </label>
             <Select
               :model-value="feed.geometryField || ''"
-              :options="getAllFields(feed.moduleID)"
+              :options="getGeometryFields(feed.options?.moduleID)"
               option-label="label"
               option-value="name"
               class="w-full"
-              :disabled="!feed.moduleID"
+              :disabled="!feed.options?.moduleID"
               show-clear
-              @update:model-value="updateFeed(i, 'geometryField', $event)"
+              @update:model-value="updateFeed(i, 'geometryField', $event || '')"
             />
           </div>
 
@@ -196,13 +148,13 @@
             </label>
             <Select
               :model-value="feed.titleField || ''"
-              :options="getStringFields(feed.moduleID)"
+              :options="getStringFields(feed.options?.moduleID)"
               option-label="label"
               option-value="name"
               class="w-full"
-              :disabled="!feed.moduleID"
+              :disabled="!feed.options?.moduleID"
               show-clear
-              @update:model-value="updateFeed(i, 'titleField', $event)"
+              @update:model-value="updateFeed(i, 'titleField', $event || '')"
             />
           </div>
 
@@ -210,9 +162,9 @@
           <div class="flex flex-col gap-1">
             <label class="text-sm text-muted-color">{{ $t('block.geometry.feedColor') }}</label>
             <CInputColorPicker
-              :model-value="feed.color || '#09344E'"
+              :model-value="feed.options?.color || '#09344E'"
               show-text
-              @update:model-value="updateFeed(i, 'color', $event)"
+              @update:model-value="updateFeedOption(i, 'color', $event)"
             />
           </div>
         </div>
@@ -221,11 +173,11 @@
         <div class="flex flex-col gap-1">
           <label class="text-sm text-muted-color">{{ $t('block.geometry.feedPrefilter') }}</label>
           <Textarea
-            :model-value="feed.prefilter || ''"
+            :model-value="feed.options?.prefilter || ''"
             :placeholder="$t('block.geometry.feedPrefilterPlaceholder')"
             rows="2"
             class="w-full"
-            @update:model-value="updateFeed(i, 'prefilter', $event)"
+            @update:model-value="updateFeedOption(i, 'prefilter', $event || '')"
           />
         </div>
 
@@ -260,23 +212,23 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { computed, inject, ref } from 'vue'
+import { components } from '@planetcrust/human-vue'
+import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
 import { useModuleStore } from '@/stores/module'
 import { useI18n } from 'vue-i18n'
 
-const { CInputColorPicker } = components
+const { CInputColorPicker, CInputToggleCard } = components
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const modules = computed(() => moduleStore.set || [])
 
@@ -286,145 +238,140 @@ const displayOptions = [
   { value: 'modal', label: t('block.geometry.displayOption.modal') },
 ]
 
-function getAllFields(moduleID) {
+function getFields(moduleID) {
   if (!moduleID) return []
   const mod = moduleStore.getByID(moduleID)
-  if (!mod) return []
-  return (mod.fields || []).map(f => ({ name: f.name, label: f.label || f.name }))
+  return mod?.fields || []
+}
+
+function getGeometryFields(moduleID) {
+  return getFields(moduleID)
+    .filter(f => f.kind === 'Geometry')
+    .map(f => ({ name: f.name, label: f.label || f.name }))
 }
 
 function getStringFields(moduleID) {
-  if (!moduleID) return []
-  const mod = moduleStore.getByID(moduleID)
-  if (!mod) return []
-  return (mod.fields || [])
+  return getFields(moduleID)
     .filter(f => ['String', 'Email', 'Url'].includes(f.kind))
     .map(f => ({ name: f.name, label: f.label || f.name }))
 }
 
-function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
-}
-
-function updateMapOption(key, value) {
-  const map = { ...(props.block.options?.map || {}), [key]: value }
-  updateOptions('map', map)
+function updateOptions(patch) {
+  if (!block.value.options) block.value.options = {}
+  Object.assign(block.value.options, patch)
 }
 
 const hideGeoSearch = computed({
-  get: () => props.block.options?.hideGeoSearch || false,
-  set: v => updateOptions('hideGeoSearch', v),
+  get: () => block.value.options?.hideGeoSearch ?? true,
+  set: v => updateOptions({ hideGeoSearch: v }),
 })
 
 const displayOption = computed({
-  get: () => props.block.options?.displayOption || 'sameTab',
-  set: v => updateOptions('displayOption', v),
+  get: () => block.value.options?.displayOption || 'sameTab',
+  set: v => updateOptions({ displayOption: v }),
 })
 
-const centerLat = computed({
-  get: () => props.block.options?.map?.center?.[0] ?? 0,
-  set: v => {
-    const center = [...(props.block.options?.map?.center || [0, 0])]
-    center[0] = v
-    updateMapOption('center', center)
-  },
+// center: [lat, lng]
+const center = computed(() => {
+  const c = block.value.options?.center
+  return Array.isArray(c) && c.length === 2 ? c : [0, 0]
 })
 
-const centerLng = computed({
-  get: () => props.block.options?.map?.center?.[1] ?? 0,
-  set: v => {
-    const center = [...(props.block.options?.map?.center || [0, 0])]
-    center[1] = v
-    updateMapOption('center', center)
-  },
-})
+const zoomStarting = computed(() => block.value.options?.zoomStarting ?? 2)
 
-const zoomStarting = computed({
-  get: () => props.block.options?.map?.zoomStarting ?? 10,
-  set: v => updateMapOption('zoomStarting', v),
-})
+function onMapCenter([lat, lng]) {
+  updateOptions({
+    center: [
+      Math.round(lat * 1e6) / 1e6,
+      Math.round(lng * 1e6) / 1e6,
+    ],
+  })
+}
 
+function onMapZoom(z) {
+  updateOptions({ zoomStarting: z })
+}
 const zoomMin = computed({
-  get: () => props.block.options?.map?.zoomMin ?? 1,
-  set: v => updateMapOption('zoomMin', v),
+  get: () => block.value.options?.zoomMin ?? 1,
+  set: v => updateOptions({ zoomMin: v }),
 })
-
 const zoomMax = computed({
-  get: () => props.block.options?.map?.zoomMax ?? 18,
-  set: v => updateMapOption('zoomMax', v),
+  get: () => block.value.options?.zoomMax ?? 18,
+  set: v => updateOptions({ zoomMax: v }),
 })
 
-const lockBounds = computed({
-  get: () => props.block.options?.map?.lockBounds || false,
-  set: v => updateMapOption('lockBounds', v),
+const lockBounds = computed(() => !!block.value.options?.lockBounds)
+
+// bounds shape stored in options: [[swLat, swLng], [neLat, neLng]]
+const lockedBounds = computed(() => {
+  const b = block.value.options?.bounds
+  if (Array.isArray(b) && b.length === 2 && b.every(p => Array.isArray(p) && p.length === 2)) {
+    return b
+  }
+  return null
 })
 
-const boundsMinLat = computed({
-  get: () => props.block.options?.map?.bounds?.[0] ?? -90,
-  set: v => {
-    const bounds = [...(props.block.options?.map?.bounds || [-90, 90, -180, 180])]
-    bounds[0] = v
-    updateMapOption('bounds', bounds)
-  },
-})
+// Track the map's current viewport bounds (emitted by CMap on move/zoom)
+const currentMapBounds = ref(null)
 
-const boundsMaxLat = computed({
-  get: () => props.block.options?.map?.bounds?.[1] ?? 90,
-  set: v => {
-    const bounds = [...(props.block.options?.map?.bounds || [-90, 90, -180, 180])]
-    bounds[1] = v
-    updateMapOption('bounds', bounds)
-  },
-})
+function onMapBounds(b) {
+  currentMapBounds.value = b
+}
 
-const boundsMinLng = computed({
-  get: () => props.block.options?.map?.bounds?.[2] ?? -180,
-  set: v => {
-    const bounds = [...(props.block.options?.map?.bounds || [-90, 90, -180, 180])]
-    bounds[2] = v
-    updateMapOption('bounds', bounds)
-  },
-})
-
-const boundsMaxLng = computed({
-  get: () => props.block.options?.map?.bounds?.[3] ?? 180,
-  set: v => {
-    const bounds = [...(props.block.options?.map?.bounds || [-90, 90, -180, 180])]
-    bounds[3] = v
-    updateMapOption('bounds', bounds)
-  },
-})
+function onLockBoundsToggle(v) {
+  if (v) {
+    const b = currentMapBounds.value || lockedBounds.value
+    if (b) updateOptions({ lockBounds: true, bounds: b })
+    else updateOptions({ lockBounds: true })
+  } else {
+    updateOptions({ lockBounds: false })
+  }
+}
 
 // --- Feeds ---
-const feeds = computed(() => props.block.options?.feeds || [])
+const feeds = computed(() => block.value.options?.feeds || [])
+
+function writeFeeds(next) {
+  updateOptions({ feeds: next })
+}
 
 function addFeed() {
-  updateOptions('feeds', [
+  writeFeeds([
     ...feeds.value,
     {
-      moduleID: '',
-      geometryField: '',
+      resource: 'compose:record',
       titleField: '',
-      color: '#09344E',
-      prefilter: '',
+      geometryField: '',
       displayMarker: true,
       displayPolygon: false,
+      options: {
+        moduleID: '',
+        color: '#09344E',
+        prefilter: '',
+      },
     },
   ])
 }
 
 function removeFeed(i) {
-  const updated = [...feeds.value]
-  updated.splice(i, 1)
-  updateOptions('feeds', updated)
+  const next = [...feeds.value]
+  next.splice(i, 1)
+  writeFeeds(next)
 }
 
 function updateFeed(i, key, value) {
-  const updated = [...feeds.value]
-  updated[i] = { ...updated[i], [key]: value }
-  updateOptions('feeds', updated)
+  const next = [...feeds.value]
+  next[i] = { ...next[i], [key]: value }
+  writeFeeds(next)
+}
+
+function updateFeedOption(i, key, value) {
+  const next = [...feeds.value]
+  const feed = next[i]
+  next[i] = {
+    ...feed,
+    options: { ...(feed.options || {}), [key]: value },
+  }
+  writeFeeds(next)
 }
 </script>

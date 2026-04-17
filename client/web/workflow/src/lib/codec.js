@@ -4,7 +4,7 @@
  * decodeWorkflow  : (workflow, triggers) → { nodes, edges }
  * encodeWorkflow  : (nodes, edges)       → { steps, paths, triggers }
  */
-import { getStyleFromKind, getKindFromStyle } from './style'
+import { getStyleFromKind } from './style'
 
 /**
  * Map mxGraph edge style string to VueFlow sourceHandle / targetHandle IDs.

@@ -118,9 +118,13 @@ export default {
   },
 
   created () {
-    this.fetchNamespaces().then(() => {
-      this.initializeFromProps()
-    })
+    this.fetchNamespaces()
+      .then(() => {
+        this.initializeFromProps()
+      })
+      .catch(e => {
+        console.warn('Failed to initialize namespace/module selector', e)
+      })
   },
 
   methods: {
@@ -128,9 +132,13 @@ export default {
       this.namespace.values = this.namespaceLabels || []
 
       if (this.namespace.values.length > 0) {
-        this.fetchModules().then(() => {
-          this.module.values = this.moduleLabels || []
-        })
+        this.fetchModules()
+          .then(() => {
+            this.module.values = this.moduleLabels || []
+          })
+          .catch(e => {
+            console.warn('Failed to fetch modules', e)
+          })
       }
     },
 
@@ -199,7 +207,7 @@ export default {
       this.fetchNamespaces()
     }, 300),
 
-    searchModulesForNamespace: debounce(function (query, namespaceID) {
+    searchModulesForNamespace: debounce(function (query) {
       if (query !== this.module.filter.query) {
         this.module.filter.query = query
       }

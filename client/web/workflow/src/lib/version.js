@@ -22,5 +22,5 @@ export function parseVersion (version) {
 export function getDocumentationURL (path) {
   // eslint-disable-next-line no-undef
   const { year, month } = parseVersion(VERSION)
-  return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/${path}`
+  return `https://docs.planetcrust.io/human-docs/${year}.${month}/${path}`
 }

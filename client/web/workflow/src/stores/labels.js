@@ -27,7 +27,7 @@ export const useLabelsStore = defineStore('labels', () => {
       const name = namespace.name || namespace.slug || namespaceID
       namespaces[namespaceID] = name
       return name
-    } catch (error) {
+    } catch {
       namespaces[namespaceID] = namespaceID
       return namespaceID
     }
@@ -47,7 +47,7 @@ export const useLabelsStore = defineStore('labels', () => {
       const name = module.name || module.handle || moduleID
       modules[moduleID] = name
       return name
-    } catch (error) {
+    } catch {
       modules[moduleID] = moduleID
       return moduleID
     }

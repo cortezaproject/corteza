@@ -25,7 +25,7 @@
                 />
               </div>
 
-              <CInputSwitch
+              <CInputToggleCard
                 v-if="recordListModule"
                 v-model="editable"
                 v-tooltip.top="$t('block.recordList.record.inlineEditorAllow')"
@@ -101,11 +101,11 @@
             <Panel :header="$t('block.recordList.record.prefilterLabel')" toggleable>
               <div class="flex flex-col gap-3">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="showSearch"
                     :label="$t('block.recordList.record.prefilterHideSearch')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="showFiltering"
                     :label="$t('block.recordList.record.filterHide')"
                   />
@@ -148,7 +148,7 @@
 
                 <!-- Filter Presets -->
                 <div class="flex flex-col gap-3">
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="customFilterPresets"
                     :label="$t('block.recordList.record.enableFilterPresets')"
                   />
@@ -207,7 +207,7 @@
             <!-- Sorting -->
             <Panel :header="$t('block.recordList.record.presortLabel')" toggleable>
               <div class="flex flex-col gap-3">
-                <CInputSwitch
+                <CInputToggleCard
                   v-model="showSorting"
                   :label="$t('block.recordList.record.presortHideSort')"
                 />
@@ -216,7 +216,11 @@
                     {{ $t('block.recordList.record.presortInputLabel') }}
                   </label>
 
-                  <div v-for="(item, i) in presortItems" :key="i" class="flex items-center gap-2 flex-nowrap">
+                  <div
+                    v-for="(item, i) in presortItems"
+                    :key="i"
+                    class="flex items-center gap-2 flex-nowrap"
+                  >
                     <Select
                       :model-value="item.field"
                       :options="sortableFields"
@@ -263,11 +267,11 @@
             <!-- Paging -->
             <Panel :header="$t('block.recordList.record.pagingLabel')" toggleable>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <CInputSwitch
+                <CInputToggleCard
                   v-model="showPaging"
                   :label="$t('block.recordList.record.hidePaging')"
                 />
-                <CInputSwitch
+                <CInputToggleCard
                   v-model="fullPageNavigation"
                   v-tooltip.top="$t('block.recordList.record.fullPageNavigationHint')"
                   :label="$t('block.recordList.record.fullPageNavigation')"
@@ -282,11 +286,11 @@
                   </label>
                   <InputNumber v-model="perPage" :min="1" :max="1000" class="w-full" />
                 </div>
-                <CInputSwitch
+                <CInputToggleCard
                   v-model="showRecordPerPageOption"
                   :label="$t('block.recordList.record.showRecordPerPageOption')"
                 />
-                <CInputSwitch
+                <CInputToggleCard
                   v-model="showTotalCount"
                   :label="$t('block.recordList.record.showTotalCount')"
                 />
@@ -296,7 +300,7 @@
             <!-- Summaries -->
             <Panel :header="$t('block.recordList.record.summaries')" toggleable>
               <div class="flex flex-col gap-3">
-                <CInputSwitch
+                <CInputToggleCard
                   v-model="customSummaries"
                   :label="$t('block.recordList.record.enableSummaries')"
                 />
@@ -396,7 +400,7 @@
                       class="w-full"
                     />
                   </div>
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="showAddButton"
                     :label="$t('block.recordList.record.hideAddButton')"
                   />
@@ -413,46 +417,46 @@
                       :disabled="!showAddButton"
                     />
                   </div>
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="openRecordInEditMode"
                     :label="$t('block.recordList.record.openRecordInEditMode')"
                   />
-                  <CInputSwitch v-model="selectable" :label="$t('block.recordList.selectable')" />
-                  <CInputSwitch
+                  <CInputToggleCard v-model="selectable" :label="$t('block.recordList.selectable')" />
+                  <CInputToggleCard
                     v-model="showImport"
                     :label="$t('block.recordList.record.hideImportButton')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="allowExport"
                     :label="$t('block.recordList.export.allow')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="showConfigureFieldsButton"
                     :label="$t('block.recordList.hideConfigureFieldsButton')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="inlineRecordEditEnabled"
                     :label="$t('block.recordList.record.inlineRecordEditEnabled')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-if="inlineRecordEditEnabled"
                     v-model="inlineRecordEditAllowAddField"
                     :label="$t('block.recordList.record.inlineRecordEditAllowAddField')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="bulkRecordEditEnabled"
                     :label="$t('block.recordList.record.bulkRecordEditEnabled')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="inlineValueFiltering"
                     :label="$t('block.recordList.record.inlineValueFiltering')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="enableRecordPageNavigation"
                     v-tooltip.top="$t('block.recordList.record.enableRecordPageNavigationHint')"
                     :label="$t('block.recordList.record.enableRecordPageNavigation')"
                   />
-                  <CInputSwitch
+                  <CInputToggleCard
                     v-model="showDeletedRecordsOption"
                     :label="$t('block.recordList.record.showDeletedRecordsOption')"
                   />
@@ -561,7 +565,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 import RecordListFilter from '@/components/Common/RecordListFilter.vue'
@@ -570,12 +574,11 @@ import AutomationButtonsEditor from '../Shared/AutomationButtonsEditor.vue'
 const { t } = useI18n()
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const moduleStore = useModuleStore()
 const modules = computed(() => moduleStore.set || [])
@@ -611,28 +614,26 @@ const recordCreateOptions = [
 
 // Helper to update block options
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 // --- Computed options bindings ---
 
 const moduleID = computed({
-  get: () => props.block.options?.moduleID,
+  get: () => block.value.options?.moduleID,
   set: v => updateOptions('moduleID', v),
 })
 
 const editable = computed({
-  get: () => !!props.block.options?.editable,
+  get: () => !!block.value.options?.editable,
   set: v => updateOptions('editable', v),
 })
 
 // Field subset available for inline editing: selected display fields or all module fields
 const editableFieldSubset = computed(() => {
   if (!recordListModule.value) return []
-  const selected = props.block.options?.fields || []
+  const selected = block.value.options?.fields || []
   if (selected.length) {
     return allModuleFields.value.filter(f => selected.some(s => (s.name ?? s) === f.name))
   }
@@ -640,79 +641,79 @@ const editableFieldSubset = computed(() => {
 })
 
 const prefilter = computed({
-  get: () => props.block.options?.prefilter || '',
+  get: () => block.value.options?.prefilter || '',
   set: v => updateOptions('prefilter', v),
 })
 
 const perPage = computed({
-  get: () => props.block.options?.perPage ?? 20,
+  get: () => block.value.options?.perPage ?? 20,
   set: v => updateOptions('perPage', v),
 })
 
 const recordDisplayOption = computed({
-  get: () => props.block.options?.recordDisplayOption || 'sameTab',
+  get: () => block.value.options?.recordDisplayOption || 'sameTab',
   set: v => updateOptions('recordDisplayOption', v),
 })
 
 // Inverted toggles (show = !hide)
 const showSearch = computed({
-  get: () => !props.block.options?.hideSearch,
+  get: () => !block.value.options?.hideSearch,
   set: v => updateOptions('hideSearch', !v),
 })
 
 const showFiltering = computed({
-  get: () => !props.block.options?.hideFiltering,
+  get: () => !block.value.options?.hideFiltering,
   set: v => updateOptions('hideFiltering', !v),
 })
 
 const showSorting = computed({
-  get: () => !props.block.options?.hideSorting,
+  get: () => !block.value.options?.hideSorting,
   set: v => updateOptions('hideSorting', !v),
 })
 
 const showPaging = computed({
-  get: () => !props.block.options?.hidePaging,
+  get: () => !block.value.options?.hidePaging,
   set: v => updateOptions('hidePaging', !v),
 })
 
 const showAddButton = computed({
-  get: () => !props.block.options?.hideAddButton,
+  get: () => !block.value.options?.hideAddButton,
   set: v => updateOptions('hideAddButton', !v),
 })
 
 const showTotalCount = computed({
-  get: () => props.block.options?.showTotalCount !== false,
+  get: () => block.value.options?.showTotalCount !== false,
   set: v => updateOptions('showTotalCount', v),
 })
 
 const selectable = computed({
-  get: () => props.block.options?.selectable !== false,
+  get: () => block.value.options?.selectable !== false,
   set: v => updateOptions('selectable', v),
 })
 
 const showImport = computed({
-  get: () => !props.block.options?.hideImportButton,
+  get: () => !block.value.options?.hideImportButton,
   set: v => updateOptions('hideImportButton', !v),
 })
 
 const allowExport = computed({
-  get: () => props.block.options?.allowExport !== false,
+  get: () => block.value.options?.allowExport !== false,
   set: v => updateOptions('allowExport', v),
 })
 
 const showConfigureFieldsButton = computed({
-  get: () => !props.block.options?.hideConfigureFieldsButton,
+  get: () => !block.value.options?.hideConfigureFieldsButton,
   set: v => updateOptions('hideConfigureFieldsButton', !v),
 })
 
 const recordSelectorDisplayOption = computed({
-  get: () => props.block.options?.recordSelectorDisplayOption || 'sameTab',
+  get: () => block.value.options?.recordSelectorDisplayOption || 'sameTab',
   set: v => updateOptions('recordSelectorDisplayOption', v),
 })
 
 // --- refField ---
 const refField = computed({
-  get: () => props.block.options?.refField || null,
+  get: () => block.value.options?.refField || null,
   set: v => updateOptions('refField', v || undefined),
 })
 
@@ -733,7 +734,7 @@ const selectedInlineEditFieldNames = ref([])
 
 // Initialize field name refs from block options
 watch(
-  () => props.block.options?.fields,
+  () => block.value.options?.fields,
   fields => {
     if (fields?.length) {
       selectedFieldNames.value = fields.map(f => f.name ?? f)
@@ -743,7 +744,7 @@ watch(
 )
 
 watch(
-  () => props.block.options?.editFields,
+  () => block.value.options?.editFields,
   fields => {
     if (fields?.length) {
       selectedEditFieldNames.value = fields.map(f => f.name ?? f)
@@ -753,7 +754,7 @@ watch(
 )
 
 watch(
-  () => props.block.options?.searchableFields,
+  () => block.value.options?.searchableFields,
   fields => {
     if (fields?.length) {
       selectedSearchableFieldNames.value = fields.map(f => f.name ?? f)
@@ -765,7 +766,7 @@ watch(
 )
 
 watch(
-  () => props.block.options?.inlineEditFields,
+  () => block.value.options?.inlineEditFields,
   fields => {
     if (fields?.length) {
       selectedInlineEditFieldNames.value = fields.map(f => f.name ?? f)
@@ -804,15 +805,15 @@ function onFieldPickerUpdate(names) {
   selectedFieldNames.value = names
   updateOptions('fields', names)
   // Keep editFields restricted to still-selected display fields
-  if (props.block.options?.editFields?.length) {
-    const filtered = props.block.options.editFields.filter(ef =>
+  if (block.value.options?.editFields?.length) {
+    const filtered = block.value.options.editFields.filter(ef =>
       names.some(n => (ef.name ?? ef) === n),
     )
     updateOptions('editFields', filtered)
   }
   // Keep inlineEditFields restricted to still-selected display fields
-  if (props.block.options?.inlineEditFields?.length) {
-    const filtered = props.block.options.inlineEditFields.filter(ef =>
+  if (block.value.options?.inlineEditFields?.length) {
+    const filtered = block.value.options.inlineEditFields.filter(ef =>
       names.some(n => (ef.name ?? ef) === n),
     )
     updateOptions('inlineEditFields', filtered)
@@ -836,7 +837,7 @@ function onInlineEditFieldPickerUpdate(names) {
 
 // When module changes: reset fields + editable + refField
 watch(
-  () => props.block.options?.moduleID,
+  () => block.value.options?.moduleID,
   (newID, oldID) => {
     if (!oldID || newID === oldID) return
     updateOptions('fields', [])
@@ -849,7 +850,7 @@ watch(
 // Auto-pick refField when entering editable mode (first Record-kind field pointing to parent module)
 watch(editable, value => {
   if (!value || !recordListModule.value || !parentModule.value) return
-  if (props.block.options?.refField) return
+  if (block.value.options?.refField) return
   const match = recordListModule.value.fields?.find(
     f => f.kind === 'Record' && f.options?.moduleID === parentModule.value.moduleID,
   )
@@ -875,80 +876,80 @@ const moduleFieldOptions = computed(() => {
 
 // Row action buttons — use full keys matching the type definition
 const hideRecordViewButton = computed({
-  get: () => !!props.block.options?.hideRecordViewButton,
+  get: () => !!block.value.options?.hideRecordViewButton,
   set: v => updateOptions('hideRecordViewButton', v),
 })
 const hideRecordEditButton = computed({
-  get: () => !!props.block.options?.hideRecordEditButton,
+  get: () => !!block.value.options?.hideRecordEditButton,
   set: v => updateOptions('hideRecordEditButton', v),
 })
 const hideRecordCloneButton = computed({
-  get: () => !!props.block.options?.hideRecordCloneButton,
+  get: () => !!block.value.options?.hideRecordCloneButton,
   set: v => updateOptions('hideRecordCloneButton', v),
 })
 const hideRecordReminderButton = computed({
-  get: () => !!props.block.options?.hideRecordReminderButton,
+  get: () => !!block.value.options?.hideRecordReminderButton,
   set: v => updateOptions('hideRecordReminderButton', v),
 })
 const hideRecordPermissionsButton = computed({
-  get: () => !!props.block.options?.hideRecordPermissionsButton,
+  get: () => !!block.value.options?.hideRecordPermissionsButton,
   set: v => updateOptions('hideRecordPermissionsButton', v),
 })
 const hideRecordDeleteButton = computed({
-  get: () => !!props.block.options?.hideRecordDeleteButton,
+  get: () => !!block.value.options?.hideRecordDeleteButton,
   set: v => updateOptions('hideRecordDeleteButton', v),
 })
 
 // Inline editing
 const inlineRecordEditEnabled = computed({
-  get: () => !!props.block.options?.inlineRecordEditEnabled,
+  get: () => !!block.value.options?.inlineRecordEditEnabled,
   set: v => updateOptions('inlineRecordEditEnabled', v),
 })
 const inlineRecordEditAllowAddField = computed({
-  get: () => !!props.block.options?.inlineRecordEditAllowAddField,
+  get: () => !!block.value.options?.inlineRecordEditAllowAddField,
   set: v => updateOptions('inlineRecordEditAllowAddField', v),
 })
 const bulkRecordEditEnabled = computed({
-  get: () => props.block.options?.bulkRecordEditEnabled !== false,
+  get: () => block.value.options?.bulkRecordEditEnabled !== false,
   set: v => updateOptions('bulkRecordEditEnabled', v),
 })
 const inlineValueFiltering = computed({
-  get: () => !!props.block.options?.inlineValueFiltering,
+  get: () => !!block.value.options?.inlineValueFiltering,
   set: v => updateOptions('inlineValueFiltering', v),
 })
 const openRecordInEditMode = computed({
-  get: () => !!props.block.options?.openRecordInEditMode,
+  get: () => !!block.value.options?.openRecordInEditMode,
   set: v => updateOptions('openRecordInEditMode', v),
 })
 
 // Advanced display
 const showDeletedRecordsOption = computed({
-  get: () => !!props.block.options?.showDeletedRecordsOption,
+  get: () => !!block.value.options?.showDeletedRecordsOption,
   set: v => updateOptions('showDeletedRecordsOption', v),
 })
 const showRecordPerPageOption = computed({
-  get: () => !!props.block.options?.showRecordPerPageOption,
+  get: () => !!block.value.options?.showRecordPerPageOption,
   set: v => updateOptions('showRecordPerPageOption', v),
 })
 const fullPageNavigation = computed({
-  get: () => !!props.block.options?.fullPageNavigation,
+  get: () => !!block.value.options?.fullPageNavigation,
   set: v => updateOptions('fullPageNavigation', v),
 })
 const enableRecordPageNavigation = computed({
-  get: () => props.block.options?.enableRecordPageNavigation !== false,
+  get: () => block.value.options?.enableRecordPageNavigation !== false,
   set: v => updateOptions('enableRecordPageNavigation', v),
 })
 const addRecordDisplayOption = computed({
-  get: () => props.block.options?.addRecordDisplayOption || 'sameTab',
+  get: () => block.value.options?.addRecordDisplayOption || 'sameTab',
   set: v => updateOptions('addRecordDisplayOption', v),
 })
 
 // --- Filter presets (structured) ---
 const customFilterPresets = computed({
-  get: () => !!props.block.options?.customFilterPresets,
+  get: () => !!block.value.options?.customFilterPresets,
   set: v => updateOptions('customFilterPresets', v),
 })
-const filterPresets = computed(() => props.block.options?.filterPresets || [])
+const filterPresets = computed(() => block.value.options?.filterPresets || [])
 
 // Runtime expects filter as Array of groups; older configs may have stored a string.
 // Accept both and always hand Arrays to RecordListFilter.
@@ -973,10 +974,10 @@ function updateFilterPreset(i, key, value) {
 
 // --- Summaries ---
 const customSummaries = computed({
-  get: () => !!props.block.options?.customSummaries,
+  get: () => !!block.value.options?.customSummaries,
   set: v => updateOptions('customSummaries', v),
 })
-const summaries = computed(() => props.block.options?.summaries || [])
+const summaries = computed(() => block.value.options?.summaries || [])
 
 function addSummary() {
   updateOptions('summaries', [...summaries.value, { label: '', field: '', metric: '', roles: [] }])
@@ -1019,7 +1020,7 @@ function serializePresort(items) {
 }
 
 watch(
-  () => props.block.options?.presort,
+  () => block.value.options?.presort,
   raw => {
     presortItems.value = parsePresort(raw)
   },
@@ -1050,7 +1051,7 @@ const sortDirections = computed(() => [
 ])
 
 // --- Automation buttons (selection-level) ---
-const selectionButtons = computed(() => props.block.options?.selectionButtons || [])
+const selectionButtons = computed(() => block.value.options?.selectionButtons || [])
 
 function onSelectionButtonsUpdate(next) {
   updateOptions('selectionButtons', next)

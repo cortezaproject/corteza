@@ -111,18 +111,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
 const moduleStore = useModuleStore()
 
@@ -132,8 +127,8 @@ const nonQueryableFieldKinds = ['Number', 'Record', 'User', 'Bool', 'DateTime', 
 const moduleOptions = computed(() => moduleStore.set || [])
 
 const selectedModule = computed(() => {
-  if (!props.field.options.moduleID || props.field.options.moduleID === '0') return null
-  return moduleStore.getByID(props.field.options.moduleID) || null
+  if (!field.value.options.moduleID || field.value.options.moduleID === '0') return null
+  return moduleStore.getByID(field.value.options.moduleID) || null
 })
 
 const fieldOptions = computed(() => {
@@ -149,8 +144,8 @@ const queryFieldOptions = computed(() =>
 
 // Resolve the actual label field object from the selected module
 const labelField = computed(() => {
-  if (!props.field.options.labelField || !selectedModule.value) return null
-  return selectedModule.value.fields.find(f => f.name === props.field.options.labelField) || null
+  if (!field.value.options.labelField || !selectedModule.value) return null
+  return selectedModule.value.fields.find(f => f.name === field.value.options.labelField) || null
 })
 
 // Resolve the module that the label field points to (when label field is a Record type)
@@ -169,7 +164,7 @@ const labelFieldOptions = computed(() => {
 
 const duplicatesAllowedTypes = ['default', 'each']
 const showAllowDuplicates = computed(() =>
-  duplicatesAllowedTypes.includes(props.field.options.selectType),
+  duplicatesAllowedTypes.includes(field.value.options.selectType),
 )
 
 const selectTypeOptions = computed(() => [
@@ -179,20 +174,20 @@ const selectTypeOptions = computed(() => [
 ])
 
 function onModuleChange() {
-  props.field.options.labelField = ''
-  props.field.options.queryFields = []
-  props.field.options.prefilter = ''
+  field.value.options.labelField = ''
+  field.value.options.queryFields = []
+  field.value.options.prefilter = ''
 }
 
 function onLabelFieldChange() {
-  props.field.options.queryFields = []
-  props.field.options.prefilter = ''
-  props.field.options.recordLabelField = ''
+  field.value.options.queryFields = []
+  field.value.options.prefilter = ''
+  field.value.options.recordLabelField = ''
 }
 
 function onSelectTypeChange(val) {
   if (!duplicatesAllowedTypes.includes(val)) {
-    props.field.options.isUniqueMultiValue = true
+    field.value.options.isUniqueMultiValue = true
   }
 }
 </script>

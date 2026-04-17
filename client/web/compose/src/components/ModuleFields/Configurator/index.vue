@@ -27,22 +27,22 @@
       <TabPanels class="flex-1 overflow-y-auto w-full">
         <!-- General Settings -->
         <TabPanel value="basic" class="px-0">
-          <CConfiguratorBasic :field="mockField" :namespace="namespace" />
+          <CConfiguratorBasic :namespace="namespace" />
         </TabPanel>
 
         <!-- Field-Specific Settings -->
         <TabPanel v-if="hasKindSettings" value="kind" class="px-0">
-          <component :is="kindComponent" :field="mockField" />
+          <component :is="kindComponent" />
         </TabPanel>
 
         <!-- Multi-Value -->
         <TabPanel v-if="mockField.cap?.multi" value="multi" class="px-0">
-          <CConfiguratorMultiDelimiter :field="mockField" />
+          <CConfiguratorMultiDelimiter />
         </TabPanel>
 
         <!-- Validation -->
         <TabPanel value="validation" class="px-0">
-          <CConfiguratorValidation :field="mockField" />
+          <CConfiguratorValidation />
         </TabPanel>
       </TabPanels>
     </Tabs>
@@ -63,14 +63,11 @@
 </template>
 
 <script setup>
-import { compose } from '@cortezaproject/corteza-js-next'
-import { computed, ref, shallowRef, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { compose } from '@planetcrust/human-js'
+import { computed, provide, ref, shallowRef, watch } from 'vue'
 import CConfiguratorBasic from './CConfiguratorBasic.vue'
 import CConfiguratorValidation from './CConfiguratorValidation.vue'
 import CConfiguratorMultiDelimiter from './CConfiguratorMultiDelimiter.vue'
-
-const { t } = useI18n()
 
 const props = defineProps({
   visible: {
@@ -92,6 +89,8 @@ const emit = defineEmits(['update:visible', 'save'])
 const activeTab = ref('basic')
 const mockField = ref(null)
 const kindComponent = shallowRef(null)
+
+provide('fieldDraft', mockField)
 
 watch(
   () => props.visible,

@@ -1,6 +1,7 @@
 packages:
   - 'lib/*'
   - 'client/web/*'
+  - 'server/webconsole'
 
 onlyBuiltDependencies:
   - esbuild

@@ -8,7 +8,7 @@
           <InputText :model-value="moduleName" disabled class="w-full" />
         </div>
 
-        <CInputSwitch
+        <CInputToggleCard
           v-model="horizontalLayout"
           :label="$t('block.record.horizontalFormLayout')"
           :disabled="layoutMode === 'noWrap'"
@@ -66,7 +66,7 @@
 
       <!-- Inline editing -->
       <Panel :header="$t('block.record.inlineEdit.label')" toggleable>
-        <CInputSwitch
+        <CInputToggleCard
           v-model="inlineEditEnabled"
           :label="$t('block.record.inlineEdit.enabled')"
         />
@@ -88,7 +88,7 @@
             />
           </div>
 
-          <CInputSwitch
+          <CInputToggleCard
             v-model="recordSelectorShowAddRecordButton"
             :label="$t('block.record.recordSelectorCanAddRecord')"
           />
@@ -122,7 +122,7 @@
         </template>
 
         <div class="flex flex-col gap-3">
-          <CInputSwitch
+          <CInputToggleCard
             v-model="clearConditionalFieldsOnHide"
             :label="$t('block.record.fieldConditions.clearAllOnHide')"
           />
@@ -186,19 +186,23 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 
 const { t } = useI18n()
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
+
+function patchOptions(patch) {
+  if (!block.value.options) block.value.options = {}
+  Object.assign(block.value.options, patch)
+}
 
 const moduleStore = useModuleStore()
 
@@ -214,7 +218,7 @@ const referenceModule = ref(null)
 
 // Local ref so fieldPickerModule reacts immediately on selection, without waiting
 // for the parent to process the update:block emit and push props back down.
-const localReferenceFieldID = ref(props.block.options?.referenceField || null)
+const localReferenceFieldID = ref(block.value.options?.referenceField || null)
 
 // The module used for the field picker: reference module (if set) or the page's module
 const fieldPickerModule = computed(() => {
@@ -233,24 +237,21 @@ const fieldLayoutOptions = [
 ]
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  patchOptions({ [key]: value })
 }
 
 const inlineEditEnabled = computed({
-  get: () => !!props.block.options?.inlineRecordEditEnabled,
+  get: () => !!block.value.options?.inlineRecordEditEnabled,
   set: v => updateOptions('inlineRecordEditEnabled', v),
 })
 
 const horizontalLayout = computed({
-  get: () => !!props.block.options?.horizontalFieldLayoutEnabled,
+  get: () => !!block.value.options?.horizontalFieldLayoutEnabled,
   set: v => updateOptions('horizontalFieldLayoutEnabled', v),
 })
 
 const layoutMode = computed({
-  get: () => props.block.options?.recordFieldLayoutOption || 'default',
+  get: () => block.value.options?.recordFieldLayoutOption || 'default',
   set: v => {
     updateOptions('recordFieldLayoutOption', v)
     if (v === 'noWrap') {
@@ -280,9 +281,13 @@ function resolveReferenceModule(moduleID) {
     referenceModule.value = cached
     return
   }
-  moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
-    referenceModule.value = mod
-  })
+  moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID })
+    .then(mod => {
+      referenceModule.value = mod
+    })
+    .catch(e => {
+      console.warn('Failed to resolve reference module', moduleID, e)
+    })
 }
 
 // When selecting a reference field, resolve the target module and persist to block options
@@ -290,10 +295,7 @@ function updateReferenceModule(fieldID) {
   if (!fieldID) {
     localReferenceFieldID.value = null
     referenceModule.value = null
-    emit('update:block', {
-      ...props.block,
-      options: { ...props.block.options, referenceField: null, referenceModuleID: null, fields: [] },
-    })
+    patchOptions({ referenceField: null, referenceModuleID: null, fields: [] })
     return
   }
 
@@ -303,41 +305,29 @@ function updateReferenceModule(fieldID) {
   const moduleID = field?.options?.moduleID
 
   if (moduleID && moduleID !== '0') {
-    // Synchronous cache hit: emit everything in one shot
     const cached = moduleStore.getByID(moduleID)
     if (cached) {
       referenceModule.value = cached
-      emit('update:block', {
-        ...props.block,
-        options: { ...props.block.options, referenceField: fieldID, referenceModuleID: moduleID, fields: [] },
-      })
+      patchOptions({ referenceField: fieldID, referenceModuleID: moduleID, fields: [] })
     } else {
-      // Async fetch: still emit referenceField now so it's not lost,
-      // then include both keys again in the follow-up emit once we have the module.
-      emit('update:block', {
-        ...props.block,
-        options: { ...props.block.options, referenceField: fieldID, fields: [] },
-      })
-      moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID }).then(mod => {
-        referenceModule.value = mod
-        // Re-emit with referenceField included to avoid stale-props clobber
-        emit('update:block', {
-          ...props.block,
-          options: { ...props.block.options, referenceField: fieldID, referenceModuleID: mod.moduleID, fields: [] },
+      patchOptions({ referenceField: fieldID, fields: [] })
+      moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID })
+        .then(mod => {
+          referenceModule.value = mod
+          patchOptions({ referenceField: fieldID, referenceModuleID: mod.moduleID, fields: [] })
         })
-      })
+        .catch(e => {
+          console.warn('Failed to resolve reference module', moduleID, e)
+        })
     }
   } else {
-    emit('update:block', {
-      ...props.block,
-      options: { ...props.block.options, referenceField: fieldID, fields: [] },
-    })
+    patchOptions({ referenceField: fieldID, fields: [] })
   }
 }
 
 // On mount (and when selectedModule becomes available), restore reference module from saved options
 watch(
-  [() => props.block.options?.referenceField, selectedModule],
+  [() => block.value.options?.referenceField, selectedModule],
   ([fieldID]) => {
     localReferenceFieldID.value = fieldID || null
     if (!fieldID || !selectedModule.value) {
@@ -355,7 +345,7 @@ watch(
 const selectedFieldNames = ref([])
 
 watch(
-  () => props.block.options?.fields,
+  () => block.value.options?.fields,
   fields => {
     if (fields?.length) {
       selectedFieldNames.value = fields.map(f => f.name ?? f)
@@ -383,30 +373,14 @@ function onFieldPickerUpdate(names) {
   updateOptions('fields', names)
 }
 
-// --- Record display options visibility ---
-// Only show record display section when configured fields include Record-kind fields
-const isRecordFieldUsedConfigured = computed(() => {
-  if (!fieldPickerModule.value) return false
-  const configuredFields = props.block.options?.fields || []
-  if (configuredFields.length === 0) {
-    // No fields configured — check all module fields
-    return (fieldPickerModule.value.fields || []).some(f => f.kind === 'Record')
-  }
-  // Check if any configured field is of kind Record
-  const names = configuredFields.map(f => f.name ?? f)
-  return (fieldPickerModule.value.fields || [])
-    .filter(f => names.includes(f.name))
-    .some(f => f.kind === 'Record')
-})
-
 // --- Field conditions ---
 
 const fieldConditions = computed(() => {
-  return props.block.options?.fieldConditions || []
+  return block.value.options?.fieldConditions || []
 })
 
 const conditionFieldOptions = computed(() => {
-  const fields = props.block.options?.fields || []
+  const fields = block.value.options?.fields || []
   if (!fieldPickerModule.value) return []
 
   // Use configured fields if available, otherwise all module fields
@@ -450,22 +424,22 @@ const displayOptions = [
 ]
 
 const clearConditionalFieldsOnHide = computed({
-  get: () => !!props.block.options?.clearConditionalFieldsOnHide,
+  get: () => !!block.value.options?.clearConditionalFieldsOnHide,
   set: v => updateOptions('clearConditionalFieldsOnHide', v),
 })
 
 const recordSelectorDisplayOption = computed({
-  get: () => props.block.options?.recordSelectorDisplayOption || 'sameTab',
+  get: () => block.value.options?.recordSelectorDisplayOption || 'sameTab',
   set: v => updateOptions('recordSelectorDisplayOption', v),
 })
 
 const recordSelectorAddRecordDisplayOption = computed({
-  get: () => props.block.options?.recordSelectorAddRecordDisplayOption || 'sameTab',
+  get: () => block.value.options?.recordSelectorAddRecordDisplayOption || 'sameTab',
   set: v => updateOptions('recordSelectorAddRecordDisplayOption', v),
 })
 
 const recordSelectorShowAddRecordButton = computed({
-  get: () => !!props.block.options?.recordSelectorShowAddRecordButton,
+  get: () => !!block.value.options?.recordSelectorShowAddRecordButton,
   set: v => updateOptions('recordSelectorShowAddRecordButton', v),
 })
 </script>

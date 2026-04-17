@@ -1,4 +1,4 @@
-import { system } from '@cortezaproject/corteza-js'
+import { system } from '@planetcrust/human-js'
 import {
   loadAllDraftsFromStorage,
   saveDraftToStorage,
@@ -81,15 +81,15 @@ export default function () {
 
     actions: {
       async init (
-        { dispatch }: { dispatch: (action: string, payload?: any) => Promise<void> },
+        { dispatch }: { dispatch: (_action: string, _payload?: any) => Promise<void> },
         { resourceType }: { resourceType?: string },
       ): Promise<void> {
         await dispatch('loadAllDrafts', { resourceType })
       },
 
       async loadAllDrafts (
-        { commit, dispatch }: { commit: (mutation: string, payload?: any) => void; dispatch: (action: string, payload?: any) => Promise<void> },
-        { resourceType }: { resourceType?: string } = {},
+        { commit, dispatch }: { commit: (_mutation: string, _payload?: any) => void; dispatch: (_action: string, _payload?: any) => Promise<void> },
+        { resourceType: _resourceType }: { resourceType?: string } = {},
       ): Promise<void> {
         commit(types.SET_LOADING, true)
 
@@ -100,10 +100,10 @@ export default function () {
         }
       },
 
-      loadLocalDrafts ({ commit }: { commit: (mutation: string, payload?: any) => void }): void {
+      loadLocalDrafts ({ commit }: { commit: (_mutation: string, _payload?: any) => void }): void {
         const localDrafts = loadAllDraftsFromStorage()
 
-        localDrafts.forEach((revisionData, changeID) => {
+        localDrafts.forEach((revisionData, _changeID) => {
           const revision = new Revision(revisionData)
           const entry: DraftEntry = {
             revision,
@@ -114,7 +114,7 @@ export default function () {
       },
 
       saveDraft (
-        { commit }: { commit: (mutation: string, payload?: any) => void },
+        { commit }: { commit: (_mutation: string, _payload?: any) => void },
         { revision }: { revision: system.Revision },
       ): void {
         const changeID = String(revision.changeID)
@@ -128,7 +128,7 @@ export default function () {
       },
 
       async removeDraft (
-        { commit }: { commit: (mutation: string, payload?: any) => void },
+        { commit }: { commit: (_mutation: string, _payload?: any) => void },
         { changeID }: { changeID: string },
       ): Promise<void> {
         removeDraftFromStorage(changeID)
@@ -136,13 +136,13 @@ export default function () {
       },
 
       async clearDrafts (
-        { commit }: { commit: (mutation: string, payload?: any) => void },
+        { commit }: { commit: (_mutation: string, _payload?: any) => void },
       ): Promise<void> {
         clearAllDraftsFromStorage()
         commit(types.CLEAR_DRAFTS)
       },
 
-      toggleVisibility ({ commit, state }: { commit: (mutation: string, payload?: any) => void; state: DraftsState }): void {
+      toggleVisibility ({ commit, state }: { commit: (_mutation: string, _payload?: any) => void; state: DraftsState }): void {
         commit(types.setVisible, !state.visible)
       },
     },

@@ -13,7 +13,7 @@
         }"
         :labels="{
           appMenu: $t('navigation.appMenu'),
-              home: $t('navigation.home'),
+          home: $t('navigation.home'),
           helpBuyHuman: $t('navigation.help.buyHuman'),
           helpManageSubscription: $t('navigation.help.manageSubscription'),
           helpPackageDetails: $t('navigation.help.packageDetails'),
@@ -29,7 +29,9 @@
         :hide-logo="true"
       >
         <template
-          v-if="$Settings.get('discovery.enabled', false) && $Settings.get('ui.topbar.showSearch', true)"
+          v-if="
+            $Settings.get('discovery.enabled', false) && $Settings.get('ui.topbar.showSearch', true)
+          "
           #right-tools
         >
           <Button
@@ -65,7 +67,6 @@
             top: 'var(--topbar-height)',
           },
         },
-        messageIcon: { class: 'hidden' },
       }"
     />
 
@@ -94,7 +95,7 @@ import {
   useNotificationsStore,
   useWorkflowPromptsStore,
   websocket,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterView } from 'vue-router'
 const { CTopbar, CLoaderLogo, CPrompts, CTopbarSearch } = components

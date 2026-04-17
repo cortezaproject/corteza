@@ -1,4 +1,4 @@
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, toRef } from 'vue'
 
@@ -10,11 +10,6 @@ export const useNamespaceStore = defineStore('namespace', () => {
     pending: false,
     set: [],
   })
-
-  // Getters
-  const loading = computed(() => state.loading)
-  const pending = computed(() => state.pending)
-  const set = computed(() => state.set)
 
   const getByID = computed(() => {
     return ID => state.set.find(({ namespaceID }) => ID === namespaceID)

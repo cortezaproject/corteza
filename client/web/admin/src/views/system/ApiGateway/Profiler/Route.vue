@@ -34,7 +34,7 @@
 import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { CResourceTable } = components
 const route = useRoute()

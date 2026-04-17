@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 

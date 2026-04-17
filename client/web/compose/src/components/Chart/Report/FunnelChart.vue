@@ -1,10 +1,8 @@
 <template>
   <ReportEdit
-    :report="report"
     :chart="chart"
     :modules="modules"
     :supported-metrics="supportedMetrics"
-    @update:report="$emit('update:report', $event)"
   >
     <template #dimension-options="{ index, dimension, field }">
       <div v-if="showPicker(field)" class="grid grid-cols-1 gap-4 mt-4">
@@ -108,6 +106,7 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ReportEdit from './ReportEdit.vue'
 
@@ -118,11 +117,7 @@ const formatOptions = [
   { value: 'accounting', text: t('chart.edit.formatting.presetFormats.options.accounting') },
 ]
 
-const props = defineProps({
-  report: {
-    type: Object,
-    required: true,
-  },
+defineProps({
   chart: {
     type: Object,
     default: () => ({}),
@@ -137,7 +132,7 @@ const props = defineProps({
   },
 })
 
-defineEmits(['update:report'])
+const report = inject('reportDraft')
 
 function showPicker(field) {
   return field && field.kind === 'Select' && field.options?.options
@@ -147,11 +142,11 @@ function getOptions(dimension) {
   return fields.map(f => f.value)
 }
 function setOptions(index, field, values) {
-  if (!props.report.dimensions[index].meta) {
-    props.report.dimensions[index].meta = {}
+  if (!report.value.dimensions[index].meta) {
+    report.value.dimensions[index].meta = {}
   }
   const options = field.options?.options || []
-  props.report.dimensions[index].meta.fields = values.map(v => 
+  report.value.dimensions[index].meta.fields = values.map(v =>
     options.find(o => o.value === v)
   ).filter(Boolean)
 }

@@ -741,7 +741,7 @@
           "arguments": [
             {
               "target": "workflow",
-              "value": "corteza_api_auth",
+              "value": "human_api_auth",
               "type": "Handle"
             }
           ],
@@ -1088,7 +1088,7 @@
             },
             {
               "target": "apiToken",
-              "expr": "s.values.CortezaAuthToken",
+              "expr": "s.values.HumanAuthToken",
               "type": "String"
             },
             {

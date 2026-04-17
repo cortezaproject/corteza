@@ -171,7 +171,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import CommentReply from './CommentReply.vue'
-import { components, CEmojiPicker, emojiData } from '@cortezaproject/corteza-vue-next'
+import { components, CEmojiPicker, emojiData } from '@planetcrust/human-vue'
 
 const { CRichTextInput, CFieldViewer } = components
 

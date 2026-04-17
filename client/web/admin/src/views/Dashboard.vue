@@ -54,7 +54,7 @@
 <script setup>
 import { ref, inject, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { CChart } = components
 const { t } = useI18n()
@@ -123,8 +123,6 @@ const redPill = {
   class: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300',
   dotClass: 'bg-red-500',
 }
-const totalPill = { class: 'bg-highlight text-color', dotClass: 'bg-primary' }
-
 // ── Stat cards ──────────────────────────────────────────────
 const statCards = computed(() => [
   {
@@ -172,11 +170,6 @@ const statCards = computed(() => [
     statuses: [],
   },
 ])
-
-const activeCardLabel = computed(() => {
-  const card = statCards.value.find(c => c.key === activeCard.value)
-  return card ? card.label : ''
-})
 
 // ── Cheap count helper ──────────────────────────────────────
 async function fetchCount(apiCall) {

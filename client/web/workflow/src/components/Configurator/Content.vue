@@ -12,7 +12,7 @@
 
 <script>
 import base from './base.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 const { CRichTextInput } = components
 
 export default {

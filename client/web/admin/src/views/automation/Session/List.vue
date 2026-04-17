@@ -218,7 +218,7 @@
 <script setup>
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, filters, useResourceList } from '@cortezaproject/corteza-vue-next'
+import { components, filters, useResourceList } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters

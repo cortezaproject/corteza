@@ -89,7 +89,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { filters } from '@cortezaproject/corteza-vue-next'
+import { filters } from '@planetcrust/human-vue'
 
 const props = defineProps({
   reminders: {

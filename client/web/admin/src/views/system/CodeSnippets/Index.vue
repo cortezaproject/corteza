@@ -96,7 +96,7 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { CResourceTable } = components
 const { t } = useI18n()

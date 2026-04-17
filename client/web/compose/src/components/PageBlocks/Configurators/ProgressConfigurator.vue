@@ -281,20 +281,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const modules = computed(() => moduleStore.set || [])
 
@@ -328,155 +327,153 @@ function getNumberFields(moduleID) {
 }
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 function updateNestedOptions(section, key, value) {
-  const current = { ...(props.block.options?.[section] || {}) }
+  const current = { ...(block.value.options?.[section] || {}) }
   current[key] = value
   updateOptions(section, current)
 }
 
 function updateDisplay(key, value) {
-  const display = { ...props.block.options?.display, [key]: value }
+  const display = { ...block.value.options?.display, [key]: value }
   updateOptions('display', display)
 }
 
 // --- Value ---
 const useModuleValue = computed({
-  get: () => !!(props.block.options?.value?.moduleID),
+  get: () => !!(block.value.options?.value?.moduleID),
   set: v => {
-    if (!v) updateOptions('value', { ...props.block.options?.value, moduleID: '', field: '', operation: '', filter: '' })
+    if (!v) updateOptions('value', { ...block.value.options?.value, moduleID: '', field: '', operation: '', filter: '' })
   },
 })
 
 const fixedValue = computed({
-  get: () => props.block.options?.value?.default ?? 0,
+  get: () => block.value.options?.value?.default ?? 0,
   set: v => updateNestedOptions('value', 'default', v),
 })
 
 const valueModuleID = computed({
-  get: () => props.block.options?.value?.moduleID || '',
+  get: () => block.value.options?.value?.moduleID || '',
   set: v => updateNestedOptions('value', 'moduleID', v),
 })
 
 const valueField = computed({
-  get: () => props.block.options?.value?.field || '',
+  get: () => block.value.options?.value?.field || '',
   set: v => updateNestedOptions('value', 'field', v),
 })
 
 const valueOperation = computed({
-  get: () => props.block.options?.value?.operation || 'count',
+  get: () => block.value.options?.value?.operation || 'count',
   set: v => updateNestedOptions('value', 'operation', v),
 })
 
 const valueFilter = computed({
-  get: () => props.block.options?.value?.filter || '',
+  get: () => block.value.options?.value?.filter || '',
   set: v => updateNestedOptions('value', 'filter', v),
 })
 
 // --- Min Value ---
 const useModuleMinValue = computed({
-  get: () => !!(props.block.options?.minValue?.moduleID),
+  get: () => !!(block.value.options?.minValue?.moduleID),
   set: v => {
-    if (!v) updateOptions('minValue', { ...props.block.options?.minValue, moduleID: '', field: '', operation: '', filter: '' })
+    if (!v) updateOptions('minValue', { ...block.value.options?.minValue, moduleID: '', field: '', operation: '', filter: '' })
   },
 })
 
 const fixedMinValue = computed({
-  get: () => props.block.options?.minValue?.default ?? 0,
+  get: () => block.value.options?.minValue?.default ?? 0,
   set: v => updateNestedOptions('minValue', 'default', v),
 })
 
 const minValueModuleID = computed({
-  get: () => props.block.options?.minValue?.moduleID || '',
+  get: () => block.value.options?.minValue?.moduleID || '',
   set: v => updateNestedOptions('minValue', 'moduleID', v),
 })
 
 const minValueField = computed({
-  get: () => props.block.options?.minValue?.field || '',
+  get: () => block.value.options?.minValue?.field || '',
   set: v => updateNestedOptions('minValue', 'field', v),
 })
 
 const minValueOperation = computed({
-  get: () => props.block.options?.minValue?.operation || 'count',
+  get: () => block.value.options?.minValue?.operation || 'count',
   set: v => updateNestedOptions('minValue', 'operation', v),
 })
 
 const minValueFilter = computed({
-  get: () => props.block.options?.minValue?.filter || '',
+  get: () => block.value.options?.minValue?.filter || '',
   set: v => updateNestedOptions('minValue', 'filter', v),
 })
 
 // --- Max Value ---
 const useModuleMaxValue = computed({
-  get: () => !!(props.block.options?.maxValue?.moduleID),
+  get: () => !!(block.value.options?.maxValue?.moduleID),
   set: v => {
-    if (!v) updateOptions('maxValue', { ...props.block.options?.maxValue, moduleID: '', field: '', operation: '', filter: '' })
+    if (!v) updateOptions('maxValue', { ...block.value.options?.maxValue, moduleID: '', field: '', operation: '', filter: '' })
   },
 })
 
 const fixedMaxValue = computed({
-  get: () => props.block.options?.maxValue?.default ?? 100,
+  get: () => block.value.options?.maxValue?.default ?? 100,
   set: v => updateNestedOptions('maxValue', 'default', v),
 })
 
 const maxValueModuleID = computed({
-  get: () => props.block.options?.maxValue?.moduleID || '',
+  get: () => block.value.options?.maxValue?.moduleID || '',
   set: v => updateNestedOptions('maxValue', 'moduleID', v),
 })
 
 const maxValueField = computed({
-  get: () => props.block.options?.maxValue?.field || '',
+  get: () => block.value.options?.maxValue?.field || '',
   set: v => updateNestedOptions('maxValue', 'field', v),
 })
 
 const maxValueOperation = computed({
-  get: () => props.block.options?.maxValue?.operation || 'count',
+  get: () => block.value.options?.maxValue?.operation || 'count',
   set: v => updateNestedOptions('maxValue', 'operation', v),
 })
 
 const maxValueFilter = computed({
-  get: () => props.block.options?.maxValue?.filter || '',
+  get: () => block.value.options?.maxValue?.filter || '',
   set: v => updateNestedOptions('maxValue', 'filter', v),
 })
 
 // --- Display options ---
 const showValue = computed({
-  get: () => props.block.options?.display?.showValue !== false,
+  get: () => block.value.options?.display?.showValue !== false,
   set: v => updateDisplay('showValue', v),
 })
 
 const showRelative = computed({
-  get: () => props.block.options?.display?.showRelative || false,
+  get: () => block.value.options?.display?.showRelative || false,
   set: v => updateDisplay('showRelative', v),
 })
 
 const showProgress = computed({
-  get: () => props.block.options?.display?.showProgress || false,
+  get: () => block.value.options?.display?.showProgress || false,
   set: v => updateDisplay('showProgress', v),
 })
 
 const animated = computed({
-  get: () => props.block.options?.animated || false,
+  get: () => block.value.options?.animated || false,
   set: v => updateOptions('animated', v),
 })
 
 const striped = computed({
-  get: () => props.block.options?.striped || false,
+  get: () => block.value.options?.striped || false,
   set: v => updateOptions('striped', v),
 })
 
 const variant = computed({
-  get: () => props.block.options?.display?.variant || 'primary',
+  get: () => block.value.options?.display?.variant || 'primary',
   set: v => updateDisplay('variant', v),
 })
 
 // --- Thresholds ---
-const thresholds = computed(() => props.block.options?.thresholds || [])
+const thresholds = computed(() => block.value.options?.thresholds || [])
 
 function addThreshold() {
   updateOptions('thresholds', [...thresholds.value, { value: 50, variant: 'warning' }])

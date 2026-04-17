@@ -148,11 +148,11 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { system } from '@cortezaproject/corteza-js-next'
-import { components, useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { system } from '@planetcrust/human-js'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
@@ -160,7 +160,6 @@ const { CInputDelete } = components
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const { confirmDelete } = useConfirmDelete()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')

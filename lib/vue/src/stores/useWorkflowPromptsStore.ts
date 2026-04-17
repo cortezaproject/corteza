@@ -1,12 +1,12 @@
-import { automation } from '@cortezaproject/corteza-js-next'
+import { automation } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { promptDefinitions } from '../components/prompts'
 
 type AutomationAPI = {
   sessionListPrompts: () => Promise<any>;
-  sessionResumeState: (args: Record<string, unknown>) => Promise<unknown>;
-  sessionCancel: (args: Record<string, unknown>) => Promise<unknown>;
+  sessionResumeState: (_args: Record<string, unknown>) => Promise<unknown>;
+  sessionCancel: (_args: Record<string, unknown>) => Promise<unknown>;
 }
 
 function onlyFresh(existing: Array<automation.Prompt>, fresh: Array<automation.Prompt>): Array<automation.Prompt> {

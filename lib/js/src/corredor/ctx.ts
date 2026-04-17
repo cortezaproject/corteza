@@ -96,7 +96,7 @@ export class Ctx {
   get SystemAPI(): apiClients.System {
     if (!this.systemAPI) {
       if (!this.config?.cServers?.system) {
-        throw new Error('configuration for corteza system server missing')
+        throw new Error('configuration for human system server missing')
       }
 
       this.systemAPI = new apiClients.System({
@@ -114,7 +114,7 @@ export class Ctx {
   get ComposeAPI(): apiClients.Compose {
     if (!this.composeAPI) {
       if (!this.config?.cServers?.compose) {
-        throw new Error('configuration for corteza compose server missing')
+        throw new Error('configuration for human compose server missing')
       }
 
       this.composeAPI = new apiClients.Compose({

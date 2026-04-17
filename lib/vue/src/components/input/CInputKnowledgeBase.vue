@@ -448,8 +448,8 @@ async function saveKnowledgeBase() {
     }
 
     dialogVisible.value = false
-  } catch (e) {
-    console.error('Failed to save knowledge base:', e)
+  } catch {
+    // silent
   } finally {
     saving.value = false
   }
@@ -470,8 +470,8 @@ async function deleteKnowledgeBase() {
     emitValue()
 
     dialogVisible.value = false
-  } catch (e) {
-    console.error('Failed to delete knowledge base:', e)
+  } catch {
+    // silent
   } finally {
     saving.value = false
   }

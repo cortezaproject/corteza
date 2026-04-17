@@ -15,7 +15,7 @@
 <script setup>
 import { ref, watch, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { chartConstructor } from '../../lib/charts'
 import { useModuleStore } from '../../stores/module'
 

@@ -1,6 +1,6 @@
 <script>
 import Function from './Function.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 export default {
   extends: Function,

@@ -29,34 +29,29 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, inject, ref, onMounted } from 'vue'
 
-const props = defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+const field = inject('fieldDraft')
 
 const customDelimiter = ref('')
 
 const delimiterType = computed(() => {
-  const d = props.field.options?.multiDelimiter
+  const d = field.value.options?.multiDelimiter
   if (!d || d === ', ') return 'comma'
   if (d === '\n') return 'newline'
   return 'custom'
 })
 
 function setDelimiter(val) {
-  if (!props.field.options) props.field.options = {}
-  props.field.options.multiDelimiter = val
+  if (!field.value.options) field.value.options = {}
+  field.value.options.multiDelimiter = val
   if (delimiterType.value === 'custom') {
     customDelimiter.value = val
   }
 }
 
 onMounted(() => {
-  const d = props.field.options?.multiDelimiter
+  const d = field.value.options?.multiDelimiter
   if (d && d !== ', ' && d !== '\n') {
     customDelimiter.value = d
   }

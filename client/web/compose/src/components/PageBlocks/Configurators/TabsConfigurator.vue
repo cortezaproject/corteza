@@ -222,21 +222,22 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
 const { CResourceTable } = components
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
   blocks: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:block', 'edit-tab-block', 'create-tab-block'])
+const block = inject('blockDraft')
+
+const emit = defineEmits(['edit-tab-block', 'create-tab-block'])
 
 const appearanceOptions = [
   { value: 'tabs', label: t('block.tabs.style.appearanceTabs') },
@@ -265,7 +266,7 @@ const positionOptions = [
   { value: 'end', label: t('block.tabs.style.positionEnd') },
 ]
 
-const tabs = computed(() => props.block.options?.tabs || [])
+const tabs = computed(() => block.value.options?.tabs || [])
 
 const tabsTableRows = computed(() =>
   tabs.value.map((tab, index) => ({
@@ -299,23 +300,23 @@ const tableFields = computed(() => [
   },
 ])
 
-function getBlockId(block) {
-  return block.blockID && block.blockID !== '0' ? block.blockID : block.meta?.tempID || ''
+function getBlockId(b) {
+  return b.blockID && b.blockID !== '0' ? b.blockID : b.meta?.tempID || ''
 }
 
 function getBlockOptions(currentBlockID = '') {
   return (props.blocks || [])
-    .filter(block => {
-      const blockID = getBlockId(block)
+    .filter(b => {
+      const blockID = getBlockId(b)
       if (!blockID) return false
-      if (block.kind === 'Tabs') return false
-      if (blockID === getBlockId(props.block)) return false
+      if (b.kind === 'Tabs') return false
+      if (blockID === getBlockId(block.value)) return false
 
       // Keep the current selection available, but prevent picking blocks already used by other tabs.
       return blockID === currentBlockID || !tabs.value.some(tab => tab.blockID === blockID)
     })
-    .map(block => {
-      const blockID = getBlockId(block)
+    .map(b => {
+      const blockID = getBlockId(b)
       return {
         value: blockID,
         label: block.title || block.kind || blockID,
@@ -324,39 +325,37 @@ function getBlockOptions(currentBlockID = '') {
 }
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 function updateStyle(key, value) {
-  const style = { ...(props.block.options?.style || {}), [key]: value }
+  const style = { ...(block.value.options?.style || {}), [key]: value }
   updateOptions('style', style)
 }
 
 const appearance = computed({
-  get: () => props.block.options?.style?.appearance || 'tabs',
+  get: () => block.value.options?.style?.appearance || 'tabs',
   set: v => updateStyle('appearance', v),
 })
 
 const alignment = computed({
-  get: () => props.block.options?.style?.alignment || 'center',
+  get: () => block.value.options?.style?.alignment || 'center',
   set: v => updateStyle('alignment', v),
 })
 
 const justify = computed({
-  get: () => props.block.options?.style?.justify || 'justify',
+  get: () => block.value.options?.style?.justify || 'justify',
   set: v => updateStyle('justify', v),
 })
 
 const orientation = computed({
-  get: () => props.block.options?.style?.orientation || 'horizontal',
+  get: () => block.value.options?.style?.orientation || 'horizontal',
   set: v => updateStyle('orientation', v),
 })
 
 const position = computed({
-  get: () => props.block.options?.style?.position || 'start',
+  get: () => block.value.options?.style?.position || 'start',
   set: v => updateStyle('position', v),
 })
 

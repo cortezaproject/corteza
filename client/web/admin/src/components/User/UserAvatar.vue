@@ -95,11 +95,6 @@ const initials = computed(() => {
   return ''
 })
 
-function updateColor(field, value) {
-  const updatedMeta = { ...props.user.meta, [field]: value }
-  emit('update:user', { ...props.user, meta: updatedMeta })
-}
-
 async function handleFileChange(event) {
   const file = event.target.files?.[0]
   if (!file) return

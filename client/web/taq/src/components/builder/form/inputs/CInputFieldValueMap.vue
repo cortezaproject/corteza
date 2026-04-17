@@ -72,9 +72,9 @@
 import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../CReferenceChip.vue'
-import { CFieldEditor } from '@cortezaproject/corteza-vue-next/src/components/field'
-import { components, useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
-import { systemFields as moduleSystemFields } from '@cortezaproject/corteza-js-next/src/compose/types/module'
+import { CFieldEditor } from '@planetcrust/human-vue/src/components/field'
+import { components, useComposeResourceStore } from '@planetcrust/human-vue'
+import { systemFields as moduleSystemFields } from '@planetcrust/human-js/src/compose/types/module'
 
 const { CInputDelete } = components
 
@@ -100,8 +100,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'toggleRowReference'])
 const { t } = useI18n()
 const store = useComposeResourceStore()
-const injectedNodes = inject('taq-nodes', ref([]))
-
 const fields = ref([])
 const rows = ref([])
 const loading = ref(false)
@@ -253,7 +251,7 @@ async function fetchModuleFields() {
         })),
       ...systemEntries,
     ]
-  } catch (e) {
+  } catch {
     fields.value = []
   } finally {
     loading.value = false

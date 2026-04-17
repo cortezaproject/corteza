@@ -1,11 +1,9 @@
 <template>
   <ReportEdit
-    :report="report"
     :chart="chart"
     :modules="modules"
     :supported-metrics="1"
     :uses-dimensions-field="false"
-    @update:report="$emit('update:report', $event)"
   >
     <template #dimension-options="{ dimension }">
       <div class="px-0 mt-4">
@@ -151,10 +149,6 @@ const formatOptions = [
 ]
 
 defineProps({
-  report: {
-    type: Object,
-    required: true,
-  },
   chart: {
     type: Object,
     default: () => ({}),
@@ -164,8 +158,6 @@ defineProps({
     required: true,
   },
 })
-
-defineEmits(['update:report'])
 
 function addStep(dimension) {
   if (!dimension.meta) dimension.meta = {}

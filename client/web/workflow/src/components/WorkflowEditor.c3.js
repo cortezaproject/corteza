@@ -1,5 +1,5 @@
 import { default as component } from './WorkflowEditor.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 const { checkbox } = components.C3.controls
 
 const props = {

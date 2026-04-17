@@ -85,9 +85,9 @@ export default class FunnelChart extends BaseChart {
     datasets: {
       label: string
       data: any[]
-      formatting: {}
+      formatting: Record<string, unknown>
     }[]
-    tooltip: {}
+    tooltip: Record<string, unknown>
   }>
   isCumulative(): boolean
   defMetric(): Metric

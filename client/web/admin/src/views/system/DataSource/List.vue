@@ -114,7 +114,7 @@ import {
   filters,
   useConfirmDelete,
   useResourceList,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters

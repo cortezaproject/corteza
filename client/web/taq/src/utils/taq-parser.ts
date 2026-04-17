@@ -1,9 +1,9 @@
-import type { automation } from '@cortezaproject/corteza-js-next'
-import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import type { automation } from '@planetcrust/human-js'
+import type { IconDef } from '@planetcrust/human-js/src/automation/types/icon'
 import {
   DEFAULT_ICONS,
   normalizeIcon,
-} from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+} from '@planetcrust/human-js/src/automation/types/icon'
 import type { Edge, Node } from '@vue-flow/core'
 import dagre from 'dagre'
 

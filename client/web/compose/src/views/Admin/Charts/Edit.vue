@@ -120,11 +120,9 @@
               <component
                 :is="reportEditor"
                 v-if="chart && editReport"
-                :report="editReport"
                 :chart="chart"
                 :modules="modules"
                 :supported-metrics="1"
-                @update:report="onReportUpdate"
               />
 
               <Divider />
@@ -226,11 +224,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, inject, toRaw, markRaw } from 'vue'
+import { ref, computed, watch, inject, provide, toRaw, markRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
-import { compose, shared } from '@cortezaproject/corteza-js-next'
-import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { compose, shared } from '@planetcrust/human-js'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { chartConstructor } from '../../../lib/charts'
 import { useChartStore } from '../../../stores/chart'
@@ -323,6 +321,8 @@ const editReport = computed({
     }
   },
 })
+
+provide('reportDraft', editReport)
 
 const reportsValid = computed(() => {
   if (!chart.value?.config?.reports) return false
@@ -430,12 +430,6 @@ async function fetchChart() {
 function reporter(r = {}) {
   const { namespaceID } = props.namespace
   return $ComposeAPI.recordReport({ namespaceID, ...r })
-}
-
-function onReportUpdate(report) {
-  if (chart.value?.config?.reports) {
-    chart.value.config.reports.splice(editReportIndex.value, 1, report)
-  }
 }
 
 function refreshPreview() {

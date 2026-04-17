@@ -10,7 +10,7 @@ interface Rule {
 }
 
 interface APIClient {
-  permissionsEffective: (a?: Record<string, unknown>) => Promise<Rule[]>
+  permissionsEffective: (_a?: Record<string, unknown>) => Promise<Rule[]>
 }
 
 export const useRBACStore = defineStore('rbac', () => {

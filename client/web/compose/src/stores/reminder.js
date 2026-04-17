@@ -1,4 +1,4 @@
-import { system, NoID } from '@cortezaproject/corteza-js-next'
+import { system, NoID } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, toRef } from 'vue'
 

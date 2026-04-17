@@ -20,7 +20,7 @@ export default class Chart extends BaseChart {
     })
   }
 
-  makeDataset(m: Metric, d: Dimension, data: Array<number | TemporalDataPoint>, alias: string) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number | TemporalDataPoint>, _alias: string) {
     data = this.datasetPostProc(data, m)
 
     return {

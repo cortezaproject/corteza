@@ -7,6 +7,10 @@ const app = createApp(App)
 
 import { setupAndAuthenticate } from './plugins'
 // Await the async setup before mounting
-setupAndAuthenticate(app).then(() => {
-  app.mount('body')
-})
+setupAndAuthenticate(app)
+  .then(() => {
+    app.mount('body')
+  })
+  .catch(err => {
+    console.error('App setup failed', err)
+  })

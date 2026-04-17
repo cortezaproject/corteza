@@ -285,23 +285,23 @@ export class BaseChart {
     }
   }
 
-  processLabels(ll: Array<string>, d: Dimension) {
+  processLabels(ll: Array<string>, _d: Dimension) {
     return ll
   }
 
-  makeDataset(m: Metric, d: Dimension, data: Array<number | any>, alias: string) {
+  makeDataset(_m: Metric, _d: Dimension, _data: Array<number | any>, _alias: string) {
     throw new Error('method.makeDataset.notImplemented')
   }
 
-  makeOptions(data?: any) {
+  makeOptions(_data?: any) {
     throw new Error('method.makeOptions.notImplemented')
   }
 
-  plugins(mm: Array<Metric>) {
+  plugins(_mm: Array<Metric>) {
     throw new Error('method.plugins.notImplemented')
   }
 
-  baseChartType(datasets: Array<any>) {
+  baseChartType(_datasets: Array<any>) {
     throw new Error('method.baseChartType.notImplemented')
   }
 

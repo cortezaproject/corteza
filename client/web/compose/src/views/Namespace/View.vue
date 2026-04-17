@@ -34,8 +34,8 @@ import { useModuleStore } from '@/stores/module'
 import { useNamespaceStore } from '@/stores/namespace'
 import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
-import { compose, NoID } from '@cortezaproject/corteza-js-next'
-import { useMinDuration } from '@cortezaproject/corteza-vue-next'
+import { compose, NoID } from '@planetcrust/human-js'
+import { useMinDuration } from '@planetcrust/human-vue'
 import { inject, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -90,9 +90,18 @@ async function loadNamespace() {
       }
 
       if (!ns.enabled) {
-        $toast.toastWarning(t('notification.namespace.disabled'))
-        router.push({ name: 'root' })
-        return
+        const isAdminRoute = route.name?.toString().startsWith('admin.')
+        if (ns.canUpdateNamespace && isAdminRoute) {
+          // allow through — admin configuring a disabled namespace
+        } else if (ns.canUpdateNamespace) {
+          $toast.toastWarning(t('notification.namespace.disabled'))
+          router.push({ name: 'namespace.edit', params: { slug: props.slug } })
+          return
+        } else {
+          $toast.toastWarning(t('notification.namespace.disabled'))
+          router.push({ name: 'root' })
+          return
+        }
       }
 
       namespace.value = new compose.Namespace({ ...ns })
@@ -112,7 +121,6 @@ async function loadNamespace() {
 
 /**
  * Prepare namespace context by clearing and preloading all namespace-scoped stores.
- * Similar to old Corteza's prepareNamespace pattern.
  */
 async function prepareNamespace() {
   if (!namespace.value) return

@@ -31,7 +31,7 @@ export declare function PropCast<T>(
   prop: string,
 ): T | undefined
 /**
- * Tests if a given value looks like corteza ID
+ * Tests if a given value looks like a human ID
  * @param ID
  * @constructor
  */
@@ -51,13 +51,13 @@ interface ApplyCaster {
  *
  * A casting function can be used (see ApplyCaster) to modify the values before assigning them
  */
-export declare function Apply<DST, SRC, T extends keyof DST>(
+export declare function Apply<DST, SRC, _T extends keyof DST>(
   dst: DST,
   src: SRC,
   cast: ApplyCaster | keyof DST,
   ...props: (keyof DST)[]
 ): void
-export declare function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(
+export declare function ApplyWhitelisted<DST, SRC, _WL, T extends keyof DST>(
   dst: DST,
   src: SRC,
   whitelist: DST[T][],

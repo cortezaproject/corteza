@@ -14,7 +14,7 @@ export interface PermissionDialogOptions {
 export interface PermissionsContext {
   visible: Ref<boolean>
   options: Ref<PermissionDialogOptions | null>
-  open: (opts: PermissionDialogOptions) => void
+  open: (_opts: PermissionDialogOptions) => void
   close: () => void
 }
 

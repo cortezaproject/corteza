@@ -40,10 +40,7 @@
 </template>
 
 <script setup>
-defineProps({
-  field: {
-    type: Object,
-    required: true,
-  },
-})
+import { inject } from 'vue'
+
+const field = inject('fieldDraft')
 </script>

@@ -5,7 +5,7 @@ WEB_SUBDIRS := $(filter %/, $(wildcard $(CURDIR)/web/*/))
 test:
 	@for dir in $(WEB_SUBDIRS); do \
 		echo "---Testing $$dir---"; \
-		(cd $$dir && pnpm run test:unit) || (echo "Failed to test $$dir"; exit 1); \
+		(cd $$dir && pnpm run --if-present test:unit) || (echo "Failed to test $$dir"; exit 1); \
 	done
 
 lint:

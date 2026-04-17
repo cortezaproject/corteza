@@ -122,9 +122,9 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, useFileUpload } from '@cortezaproject/corteza-vue-next'
+import { components, useFileUpload } from '@planetcrust/human-vue'
 
 const { CInputColorPicker, CFileDropZone } = components
 
@@ -132,15 +132,14 @@ const { t } = useI18n()
 const $ComposeAPI = inject('$ComposeAPI')
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 // Upload state (from composable)
-const { uploading, uploadError, uploadFileRaw, reset: resetUpload } = useFileUpload()
+const { uploading, uploadError, uploadFileRaw } = useFileUpload()
 const attachmentMeta = reactive({})
 
 const modes = [
@@ -149,10 +148,8 @@ const modes = [
 ]
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 function formatSize(bytes) {
@@ -164,7 +161,7 @@ function formatSize(bytes) {
 }
 
 // Attachment IDs
-const attachmentIDs = computed(() => props.block.options?.attachments || [])
+const attachmentIDs = computed(() => block.value.options?.attachments || [])
 
 // Resolve attachment details for display
 async function resolveAttachments(ids) {
@@ -176,7 +173,7 @@ async function resolveAttachments(ids) {
     try {
       const att = await $ComposeAPI.attachmentRead({ kind: 'page', namespaceID, attachmentID: id })
       attachmentMeta[id] = { name: att.name, size: att.meta?.original?.size || 0 }
-    } catch (e) {
+    } catch {
       // If we can't resolve, just leave it
     }
   }
@@ -215,63 +212,63 @@ async function onFilesSelected(files) {
         updateOptions('attachments', updated)
       }
     }
-  } catch (err) {
+  } catch {
     // uploadError is already set by the composable
   }
 }
 
 const mode = computed({
-  get: () => props.block.options?.mode || 'list',
+  get: () => block.value.options?.mode || 'list',
   set: v => updateOptions('mode', v),
 })
 
 const hideFileName = computed({
-  get: () => !props.block.options?.hideFileName,
+  get: () => !block.value.options?.hideFileName,
   set: v => updateOptions('hideFileName', !v),
 })
 
 const clickToView = computed({
-  get: () => !!props.block.options?.clickToView,
+  get: () => !!block.value.options?.clickToView,
   set: v => updateOptions('clickToView', v),
 })
 
 const enableDownload = computed({
-  get: () => props.block.options?.enableDownload !== false,
+  get: () => block.value.options?.enableDownload !== false,
   set: v => updateOptions('enableDownload', v),
 })
 
 const height = computed({
-  get: () => props.block.options?.height || '',
+  get: () => block.value.options?.height || '',
   set: v => updateOptions('height', v),
 })
 
 const width = computed({
-  get: () => props.block.options?.width || '',
+  get: () => block.value.options?.width || '',
   set: v => updateOptions('width', v),
 })
 
 const maxHeight = computed({
-  get: () => props.block.options?.maxHeight || '',
+  get: () => block.value.options?.maxHeight || '',
   set: v => updateOptions('maxHeight', v),
 })
 
 const maxWidth = computed({
-  get: () => props.block.options?.maxWidth || '',
+  get: () => block.value.options?.maxWidth || '',
   set: v => updateOptions('maxWidth', v),
 })
 
 const borderRadius = computed({
-  get: () => props.block.options?.borderRadius || '',
+  get: () => block.value.options?.borderRadius || '',
   set: v => updateOptions('borderRadius', v),
 })
 
 const margin = computed({
-  get: () => props.block.options?.margin || '',
+  get: () => block.value.options?.margin || '',
   set: v => updateOptions('margin', v),
 })
 
 const backgroundColor = computed({
-  get: () => props.block.options?.backgroundColor || '',
+  get: () => block.value.options?.backgroundColor || '',
   set: v => updateOptions('backgroundColor', v),
 })
 </script>

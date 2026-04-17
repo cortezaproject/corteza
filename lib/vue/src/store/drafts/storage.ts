@@ -1,8 +1,8 @@
-import { system } from '@cortezaproject/corteza-js'
+import { system } from '@planetcrust/human-js'
 
 const { Revision } = system
 
-export const DRAFT_STORAGE_PREFIX = 'corteza:revision:draft:'
+export const DRAFT_STORAGE_PREFIX = 'human:revision:draft:'
 
 export function buildStorageKey (changeID: string): string {
   return `${DRAFT_STORAGE_PREFIX}${changeID}`

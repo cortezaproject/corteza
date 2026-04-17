@@ -191,7 +191,7 @@ function progressLabel(v) {
 }
 
 // CSS classes for the progress bar
-function progressBarClasses(v) {
+function progressBarClasses(_v) {
   const classes = []
   if (props.field.options?.animated) classes.push('animated')
   return classes

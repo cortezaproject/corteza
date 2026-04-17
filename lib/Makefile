@@ -12,7 +12,7 @@ test-js:
 
 test-vue:
 	@echo "---Testing vue---"
-	@(cd $(CURDIR)/vue && yarn test) || (echo "Failed to test vue"; exit 1)
+	@(cd $(CURDIR)/vue && pnpm test:unit) || (echo "Failed to test vue"; exit 1)
 
 lint:
 	@echo "---Linting js---"

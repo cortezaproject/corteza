@@ -23,11 +23,11 @@
 
 <script setup>
 import { usePageStore } from '@/stores/page'
-import { NoID } from '@cortezaproject/corteza-js-next'
+import { NoID } from '@planetcrust/human-js'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const props = defineProps({
+defineProps({
   namespace: {
     type: Object,
     required: true,

@@ -16,7 +16,7 @@
 
 <script setup>
 import { useAutomationStore } from '@/stores/automation'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

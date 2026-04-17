@@ -205,7 +205,7 @@ import {
   useConfirmDelete,
   useRBACStore,
   useResourceList,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { inject, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

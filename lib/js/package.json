@@ -1,5 +1,5 @@
 {
-  "name": "@cortezaproject/corteza-js-next",
+  "name": "@planetcrust/human-js",
   "description": "Corteza JavaScript/TypeScript libs",
   "version": "2026.4.0",
   "license": "Apache-2.0",
@@ -19,15 +19,15 @@
     "format:check": "prettier --check src/",
     "test:unit": "mocha",
     "test": "pnpm run test:unit",
-    "codegen": "node tools/codegen/corteza-api-client.js && prettier --write src/api-clients/*.ts && eslint --fix src/api-clients/*.ts"
+    "codegen": "node tools/codegen/human-api-client.js && prettier --write src/api-clients/*.ts && eslint --fix src/api-clients/*.ts"
   },
   "dependencies": {
-    "@isaacs/brace-expansion": "^5.0.0",
-    "axios": "^1.10.0",
+    "@isaacs/brace-expansion": "^5.0.1",
+    "axios": "^1.15.0",
     "hex-rgb": "^5.0.0",
-    "lodash-es": "^4.17.21",
+    "lodash-es": "^4.18.0",
     "minimalist": "^1.0.0",
-    "minimatch": "^10.0.3",
+    "minimatch": "^10.2.3",
     "moment": "2.30.1",
     "numeral": "^2.0.6",
     "pino": "^9.6.0"

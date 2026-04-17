@@ -76,8 +76,8 @@
 </template>
 
 <script setup>
-import { normalizeIcon } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
-import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { normalizeIcon } from '@planetcrust/human-js/src/automation/types/icon'
+import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TaqIcon from '../common/TaqIcon.vue'

@@ -95,8 +95,8 @@
 import { computed, inject, ref as vueRef, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../form/CReferenceChip.vue'
-import { CFieldEditor } from '@cortezaproject/corteza-vue-next/src/components/field'
-import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import { CFieldEditor } from '@planetcrust/human-vue/src/components/field'
+import { useComposeResourceStore } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
 const store = useComposeResourceStore()
@@ -248,7 +248,9 @@ watchEffect(async () => {
             }
             return
           }
-        } catch(e) {}
+        } catch {
+          // fall through to default field def
+        }
       }
     }
   }

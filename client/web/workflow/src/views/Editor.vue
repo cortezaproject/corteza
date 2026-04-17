@@ -18,9 +18,9 @@
 
 <script setup>
 import WorkflowEditor from '@/components/WorkflowEditor.vue'
-import { automation } from '@cortezaproject/corteza-js-next'
+import { automation } from '@planetcrust/human-js'
 import { throttle } from 'lodash-es'
-import { useRBACStore, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { useRBACStore, useUnsavedGuard } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -83,7 +83,7 @@ async function fetchWorkflow() {
   try {
     const wf = await $AutomationAPI.workflowRead({ workflowID: workflowID.value })
     workflow.value = new automation.Workflow(wf)
-  } catch (e) {
+  } catch {
     toast.add({ severity: 'error', summary: t('notification.failed-fetch-workflow'), life: 5000 })
   }
 }
@@ -92,7 +92,7 @@ async function fetchTriggers(wfID = workflowID.value) {
   try {
     const { set = [] } = await $AutomationAPI.triggerList({ workflowID: wfID, disabled: 1 })
     triggers.value = set
-  } catch (e) {
+  } catch {
     toast.add({ severity: 'error', summary: t('notification.failed-fetch-triggers'), life: 5000 })
   }
 }

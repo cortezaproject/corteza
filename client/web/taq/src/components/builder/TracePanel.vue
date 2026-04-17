@@ -59,17 +59,12 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   frame: { type: Object, default: null },
   executionError: { type: String, default: '' },
   stepName: { type: String, default: '' },
 })
-
-const emit = defineEmits(['close'])
-
-const { t } = useI18n()
 
 const hasError = computed(() => !!props.frame?.error || !!props.executionError)
 
@@ -81,10 +76,6 @@ const duration = computed(() => {
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(1)}s`
 })
-
-function handleClose() {
-  emit('close')
-}
 
 function formatJson(data) {
   if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {

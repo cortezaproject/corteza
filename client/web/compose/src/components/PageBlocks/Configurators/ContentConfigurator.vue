@@ -20,26 +20,23 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { computed, inject } from 'vue'
+import { components } from '@planetcrust/human-vue'
 
 const { CRichTextInput } = components
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const body = computed({
-  get: () => props.block.options?.body || '',
+  get: () => block.value.options?.body || '',
   set: v => {
-    emit('update:block', {
-      ...props.block,
-      options: { ...props.block.options, body: v },
-    })
+    if (!block.value.options) block.value.options = {}
+    block.value.options.body = v
   },
 })
 </script>

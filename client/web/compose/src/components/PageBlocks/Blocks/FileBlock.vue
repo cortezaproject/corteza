@@ -181,7 +181,7 @@ async function resolveAttachments(ids) {
         download: enableDownload.value && url ? url + '&download=1' : undefined,
         clickToView: clickToView.value,
       })
-    } catch (e) {
+    } catch {
       // Skip unresolvable attachments
     }
   }

@@ -1,5 +1,5 @@
 {
-  "name": "corteza-webapp-home",
+  "name": "human-webapp-home",
   "version": "2026.4.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js-next": "workspace:*",
-    "@cortezaproject/corteza-vue-next": "workspace:*"
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*"
   }
 }

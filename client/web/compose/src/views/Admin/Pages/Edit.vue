@@ -296,7 +296,7 @@
             <InputGroupAddon>ƒ</InputGroupAddon>
             <InputText
               v-model="configLayout.meta.title"
-              :placeholder="$t('page.page-layout.title.expression.placeholder')"
+              :placeholder="$t('page.page-layout.titleExpressionPlaceholder')"
             />
           </InputGroup>
           <InputText v-else v-model="configLayout.meta.title" />
@@ -551,10 +551,10 @@
 <script setup>
 import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
-import { compose, NoID } from '@cortezaproject/corteza-js-next'
-import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { compose, NoID } from '@planetcrust/human-js'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
 const { CInputDelete, CResourceTable } = components
 import { useI18n } from 'vue-i18n'

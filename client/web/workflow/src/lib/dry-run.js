@@ -1,4 +1,4 @@
-import { automation } from '@cortezaproject/corteza-js-next'
+import { automation } from '@planetcrust/human-js'
 
 export async function encodeInput (initialScope, ComposeAPI, SystemAPI) {
   const ev = { args: {} }
@@ -136,7 +136,7 @@ export async function encodeInput (initialScope, ComposeAPI, SystemAPI) {
   }
 
   // Add rest to args
-  Object.entries(initialScope).forEach(([key, value]) => {
+  Object.keys(initialScope).forEach(key => {
     if (!ev.args[key]) {
       ev.args[key] = {}
     }

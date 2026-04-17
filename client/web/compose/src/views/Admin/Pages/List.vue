@@ -61,8 +61,8 @@
 </template>
 
 <script setup>
-import { compose } from '@cortezaproject/corteza-js-next'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { compose } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

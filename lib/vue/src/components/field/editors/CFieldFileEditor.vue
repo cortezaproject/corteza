@@ -64,7 +64,7 @@ async function resolveAttachments(ids) {
         size: att.meta?.original?.size || 0,
         downloadUrl: att.url ? baseURL + att.url : '',
       }
-    } catch (e) {
+    } catch {
       // If we can't resolve, leave it as ID
     }
   }

@@ -1,4 +1,4 @@
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { inject, reactive, ref, toRef } from 'vue'
 import { useModuleStore } from './module'

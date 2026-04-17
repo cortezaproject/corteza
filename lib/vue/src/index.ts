@@ -9,7 +9,7 @@ export {
   DiscoveryAPIPlugin,
   FederationAPIPlugin,
   SystemAPIPlugin,
-} from './plugins/corteza-api'
+} from './plugins/human-api'
 export { I18nPlugin } from './plugins/i18n'
 export { SettingsPlugin } from './plugins/settings'
 export { PrimeVueComponentsPlugin } from './plugins/primevue-components'

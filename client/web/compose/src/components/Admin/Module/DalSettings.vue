@@ -100,25 +100,18 @@
 <script setup>
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { compose } from '@cortezaproject/corteza-js-next'
 import { moduleFieldStrategyConfig, systemFieldStrategyConfig, types } from './encoding-strategy'
 import DalFieldStoreEncoding from './DalFieldStoreEncoding.vue'
-
-const props = defineProps({
-  module: {
-    type: Object,
-    required: true,
-  },
-})
 
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const module = inject('moduleDraft')
 
 const PrimaryConnType = 'corteza::system:primary-dal-connection'
 
 // Initialize default system field encodings safely
-const initialSystemFieldEncoding = typeof props.module.config?.dal?.systemFieldEncoding === 'object' && props.module.config.dal.systemFieldEncoding !== null ? props.module.config.dal.systemFieldEncoding : {}
+const initialSystemFieldEncoding = typeof module.value.config?.dal?.systemFieldEncoding === 'object' && module.value.config.dal.systemFieldEncoding !== null ? module.value.config.dal.systemFieldEncoding : {}
 
 const sysFieldsBase = [
   { field: 'id', storeIdent: 'id', disabled: true },
@@ -162,11 +155,11 @@ const optionsGroups = [
 const moduleFieldDefaultEncodingStrategy = computed(() => types.JSON)
 
 watch(
-  () => props.module.fields,
+  () => module.value.fields,
   () => {
     moduleFields.value = []
 
-    for (const f of props.module.fields) {
+    for (const f of module.value.fields) {
       if (f.isSystem) continue; // Filter out system fields if they are mixed
       const a = {
         field: f.name,
@@ -185,7 +178,7 @@ watch(
     }
 
     moduleFieldEncoding.value = moduleFields.value.reduce((enc, { field }) => {
-      const f = props.module.fields.find(mf => mf.name === field)
+      const f = module.value.fields.find(mf => mf.name === field)
       if (f) {
         enc[field] = f.config?.dal?.encodingStrategy || {}
       }
@@ -216,15 +209,15 @@ async function fetchConnections() {
       label: c.meta?.name || c.handle || c.connectionID,
     }))
 
-    const connectionID = props.module.config?.dal?.connectionID
+    const connectionID = module.value.config?.dal?.connectionID
     if (!connectionID || connectionID === '0') {
       const primaryConnectionID = (connections.value.find(c => c.type === PrimaryConnType) || { connectionID: '0' }).connectionID
       
       // Ensure the config structures exist before mutating
-      if (!props.module.config) props.module.config = {}
-      if (!props.module.config.dal) props.module.config.dal = {}
+      if (!module.value.config) module.value.config = {}
+      if (!module.value.config.dal) module.value.config.dal = {}
       
-      props.module.config.dal.connectionID = primaryConnectionID
+      module.value.config.dal.connectionID = primaryConnectionID
     }
   } catch (e) {
     if ($toast && $toast.toastErrorHandler) {
@@ -244,7 +237,7 @@ function applyModuleFieldStrategyConfig(field, { strategy, config }) {
   moduleFieldEncoding.value = { ...moduleFieldEncoding.value, [field]: value }
 
   // update the original config
-  const moduleField = props.module.fields.find(mf => mf.name === field)
+  const moduleField = module.value.fields.find(mf => mf.name === field)
   if (moduleField) {
     if (!moduleField.config) moduleField.config = {}
     if (!moduleField.config.dal) moduleField.config.dal = {}
@@ -266,9 +259,9 @@ function applySystemFieldStrategyConfig(field, { strategy, config }) {
     return enc
   }, {})
 
-  if (!props.module.config) props.module.config = {}
-  if (!props.module.config.dal) props.module.config.dal = {}
-  props.module.config.dal.systemFieldEncoding = newEncoding
+  if (!module.value.config) module.value.config = {}
+  if (!module.value.config.dal) module.value.config.dal = {}
+  module.value.config.dal.systemFieldEncoding = newEncoding
 }
 
 function applySelectedSystemFields(event) {
@@ -287,8 +280,8 @@ function applySelectedSystemFields(event) {
   }, {})
 
   // Re-apply to the base module object
-  if (!props.module.config) props.module.config = {}
-  if (!props.module.config.dal) props.module.config.dal = {}
-  props.module.config.dal.systemFieldEncoding = { ...systemFieldEncoding.value }
+  if (!module.value.config) module.value.config = {}
+  if (!module.value.config.dal) module.value.config.dal = {}
+  module.value.config.dal.systemFieldEncoding = { ...systemFieldEncoding.value }
 }
 </script>

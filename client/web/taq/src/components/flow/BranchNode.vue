@@ -73,7 +73,7 @@
 import TaqIcon from '@/components/common/TaqIcon.vue'
 import StepPreviewPopover from '@/components/flow/StepPreviewPopover.vue'
 import { NODE_DIMENSIONS } from '@/utils/flow-constants'
-import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
 import { Handle, Position } from '@vue-flow/core'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

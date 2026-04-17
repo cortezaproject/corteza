@@ -306,6 +306,7 @@ export function queryToFilter(
 
 // Evaluates the given prefilter. Allows JS template literal expressions
 // such as id = ${recordID}
+// eslint-disable-next-line no-unused-vars
 export function evaluatePrefilter(prefilter, { record, user, recordID, ownerID, userID }) {
   return (function (prefilter) {
     return eval('`' + prefilter + '`')

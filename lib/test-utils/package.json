@@ -1,0 +1,22 @@
+{
+  "name": "@planetcrust/human-test-utils",
+  "version": "2026.4.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0",
+    "vue-i18n": "^11.0.0",
+    "vue-router": "^4.5.0",
+    "pinia": "^3.0.0",
+    "primevue": "^4.5.0",
+    "vitest": "^3.0.0",
+    "@vue/test-utils": "^2.4.0"
+  }
+}

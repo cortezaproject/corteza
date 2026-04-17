@@ -1,5 +1,5 @@
 {
-  "name": "corteza-webapp-admin",
+  "name": "human-webapp-admin",
   "version": "2026.4.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,11 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
+  "devDependencies": {
+    "@planetcrust/human-test-utils": "workspace:*"
+  },
   "dependencies": {
-    "@cortezaproject/corteza-js-next": "workspace:*",
-    "@cortezaproject/corteza-vue-next": "workspace:*"
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*"
   }
 }

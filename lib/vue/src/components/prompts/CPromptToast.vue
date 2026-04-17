@@ -30,7 +30,6 @@
 </template>
 
 <script setup lang="ts">
-import { automation } from '@cortezaproject/corteza-js-next'
 import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useWorkflowPromptsStore } from '../../stores/useWorkflowPromptsStore'
 import definitions from './kinds'

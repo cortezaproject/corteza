@@ -97,7 +97,7 @@
 import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { useAutomationStore } from '@/stores/automation'
 
 const { CInputLabel, CInputUser } = components
@@ -119,11 +119,15 @@ const $AutomationAPI = inject('$AutomationAPI')
 const $Auth = inject('$Auth')
 const automationStore = useAutomationStore()
 
+function normalizeRunAs(v) {
+  return !v || v === '0' || v === 0 ? null : v
+}
+
 const form = ref({
   name: props.initialName,
   description: props.initialDescription,
   labels: {},
-  runAs: props.initialRunAs || null,
+  runAs: normalizeRunAs(props.initialRunAs),
 })
 
 const nameError = ref('')
@@ -136,7 +140,7 @@ watch(
       form.value.name = props.initialName
       form.value.description = props.initialDescription || ''
       form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
-      form.value.runAs = props.initialRunAs || null
+      form.value.runAs = normalizeRunAs(props.initialRunAs)
     }
   },
 )
@@ -150,7 +154,7 @@ function resetForm() {
     form.value.name = props.initialName
     form.value.description = props.initialDescription || ''
     form.value.labels = props.initialLabels ? { ...props.initialLabels } : {}
-    form.value.runAs = props.initialRunAs || null
+    form.value.runAs = normalizeRunAs(props.initialRunAs)
   }
   nameError.value = ''
 }

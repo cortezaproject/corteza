@@ -104,20 +104,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const modules = computed(() => moduleStore.set || [])
 
@@ -142,39 +141,37 @@ const numberFieldOptions = computed(() => {
 })
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 const moduleID = computed({
-  get: () => props.block.options?.moduleID || '',
+  get: () => block.value.options?.moduleID || '',
   set: v => updateOptions('moduleID', v),
 })
 
 const labelField = computed({
-  get: () => props.block.options?.labelField || '',
+  get: () => block.value.options?.labelField || '',
   set: v => updateOptions('labelField', v),
 })
 
 const descriptionField = computed({
-  get: () => props.block.options?.descriptionField || '',
+  get: () => block.value.options?.descriptionField || '',
   set: v => updateOptions('descriptionField', v),
 })
 
 const positionField = computed({
-  get: () => props.block.options?.positionField || '',
+  get: () => block.value.options?.positionField || '',
   set: v => updateOptions('positionField', v),
 })
 
 const groupField = computed({
-  get: () => props.block.options?.groupField || '',
+  get: () => block.value.options?.groupField || '',
   set: v => updateOptions('groupField', v),
 })
 
 const group = computed({
-  get: () => props.block.options?.group || '',
+  get: () => block.value.options?.group || '',
   set: v => updateOptions('group', v),
 })
 
@@ -185,12 +182,12 @@ const displayOptions = [
 ]
 
 const displayOption = computed({
-  get: () => props.block.options?.displayOption || 'sameTab',
+  get: () => block.value.options?.displayOption || 'sameTab',
   set: v => updateOptions('displayOption', v),
 })
 
 const prefilter = computed({
-  get: () => props.block.options?.filter || '',
+  get: () => block.value.options?.filter || '',
   set: v => updateOptions('filter', v),
 })
 </script>

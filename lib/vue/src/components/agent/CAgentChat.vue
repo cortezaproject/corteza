@@ -109,12 +109,9 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useAgentSidebarStore } from '../../stores/useAgentSidebarStore'
-import { useI18n } from 'vue-i18n'
 import CChatMessages from './CChatMessages.vue'
 
-const { t } = useI18n()
-
-const props = defineProps({
+defineProps({
   titleFallback: {
     type: String,
     default: '',
@@ -139,8 +136,8 @@ onMounted(async () => {
       return userRoles.includes('2') || sidebarRoles.some((r: string) => userRoles.includes(r))
     })
     agentStore.setAvailableAgents(configuredAgents)
-  } catch (err) {
-    console.warn('Failed to load agents', err)
+  } catch {
+    // silent
   }
 })
 
@@ -200,7 +197,6 @@ async function onSend(input: string) {
 
     agentStore.addMessage(currentAgentID, { role: 'agent', content: outputContent })
   } catch (err: any) {
-    console.error('Agent execution error:', err)
     agentStore.addMessage(currentAgentID, { role: 'agent', content: 'Error: ' + err.message })
   } finally {
     executing.value = false

@@ -58,6 +58,9 @@ export default {
         .then(({ set }) => {
           this.workflowOptions = set.map(m => Object.freeze(m))
         })
+        .catch(e => {
+          console.warn('Failed to list workflows', e)
+        })
         .finally(() => {
           loading(false)
         })

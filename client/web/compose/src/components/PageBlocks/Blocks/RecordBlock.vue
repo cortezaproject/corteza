@@ -179,8 +179,8 @@
 import { computed, inject, onBeforeUnmount, reactive, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { components } from '@planetcrust/human-vue'
+import { compose } from '@planetcrust/human-js'
 const { CFieldViewer, CFieldEditor } = components
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
@@ -206,7 +206,6 @@ const route = useRoute()
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 const $SystemAPI = inject('$SystemAPI', null)
-const $ComposeAPI = inject('$ComposeAPI', null)
 const $auth = inject('$auth', {})
 const $toast = inject('$toast', null)
 
@@ -227,7 +226,6 @@ const hasActiveInlineEdits = computed(() => activeEditFieldNames.value.length > 
 
 // Field condition tracking
 const hiddenConditions = ref([]) // array of fieldIDs/names that should be hidden
-const evaluating = ref(false)
 
 // ResizeObserver state
 const resizeObserver = ref(null)

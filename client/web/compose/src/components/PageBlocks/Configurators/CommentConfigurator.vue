@@ -152,22 +152,23 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, inject, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
   record: { type: Object, default: undefined },
 })
 
+const block = inject('blockDraft')
+
 const moduleStore = useModuleStore()
 
-const options = computed(() => props.block.options)
+const options = computed(() => block.value.options)
 
 const modules = computed(() => moduleStore.set || [])
 

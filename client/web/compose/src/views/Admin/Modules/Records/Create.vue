@@ -48,7 +48,7 @@
 import Grid from '@/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
-import { compose, validator } from '@cortezaproject/corteza-js-next'
+import { compose, validator } from '@planetcrust/human-js'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'

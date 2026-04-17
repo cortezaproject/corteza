@@ -6,6 +6,8 @@ const kind = 'Geometry'
 interface GeometryOptions extends Options {
   center: number[]
   zoom: number
+  bounds: number[][] | null
+  lockBounds: boolean
   multiDelimiter: string
   prefillWithCurrentLocation: boolean
   hideCurrentLocationButton: boolean
@@ -17,6 +19,8 @@ const defaults = (): Readonly<GeometryOptions> =>
     ...defaultOptions(),
     center: [30, 30],
     zoom: 3,
+    bounds: null,
+    lockBounds: false,
     multiDelimiter: '\n',
     prefillWithCurrentLocation: false,
     hideCurrentLocationButton: false,
@@ -46,10 +50,15 @@ export class ModuleFieldGeometry extends ModuleField {
       'prefillWithCurrentLocation',
       'hideCurrentLocationButton',
       'hideGeoSearch',
+      'lockBounds',
     )
 
     if (o.center) {
       this.options.center = o.center
+    }
+
+    if (o.bounds !== undefined) {
+      this.options.bounds = o.bounds
     }
   }
 

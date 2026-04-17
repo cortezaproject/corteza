@@ -29,6 +29,7 @@
 <script setup>
 import { NodeResizer } from '@vue-flow/node-resizer'
 import '@vue-flow/node-resizer/dist/style.css'
+import { useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -37,7 +38,7 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['resize'])
+const { updateNodeData } = useVueFlow()
 
 const isSwimlane = computed(() => props.data?.ref === 'swimlane')
 const isContent = computed(() => props.data?.ref === 'content')
@@ -50,10 +51,7 @@ const nodeStyle = computed(() => {
 })
 
 function onResize ({ width, height }) {
-  if (props.data) {
-    props.data.width = width
-    props.data.height = height
-  }
+  updateNodeData(props.id, { width, height })
 }
 </script>
 

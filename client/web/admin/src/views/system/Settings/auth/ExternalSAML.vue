@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <CInputSwitch
-      v-model="modelValue.enabled"
+      v-model="model.enabled"
       :label="$t('system.settings.editor.external.saml.enabled')"
     />
 
@@ -12,7 +12,7 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.name') }}
       </span>
-      <InputText v-model="modelValue.name" class="w-full" />
+      <InputText v-model="model.name" class="w-full" />
     </div>
 
     <Divider />
@@ -24,7 +24,7 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.cert.public') }}
       </span>
-      <Textarea v-model="modelValue.cert" rows="4" class="w-full" />
+      <Textarea v-model="model.cert" rows="4" class="w-full" />
     </div>
 
     <div class="flex flex-col gap-1">
@@ -34,13 +34,13 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.cert.private') }}
       </span>
-      <Textarea v-model="modelValue.key" rows="4" class="w-full" />
+      <Textarea v-model="model.key" rows="4" class="w-full" />
     </div>
 
     <Divider />
 
     <CInputSwitch
-      v-model="modelValue['sign-requests']"
+      v-model="model['sign-requests']"
       :label="$t('system.settings.editor.external.saml.requests.sign-requests')"
       :description="$t('system.settings.editor.external.saml.desc.requests.sign-requests')"
     />
@@ -53,7 +53,7 @@
         {{ $t('system.settings.editor.external.saml.desc.requests.sign-method') }}
       </span>
       <Select
-        v-model="modelValue['sign-method']"
+        v-model="model['sign-method']"
         :options="signMethods"
         option-label="text"
         option-value="value"
@@ -70,7 +70,7 @@
         {{ $t('system.settings.editor.external.saml.desc.requests.binding') }}
       </span>
       <Select
-        v-model="modelValue['binding']"
+        v-model="model['binding']"
         :options="httpBindings"
         option-label="text"
         option-value="value"
@@ -88,7 +88,7 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.url') }}
       </span>
-      <InputText v-model="modelValue.idp.url" class="w-full" />
+      <InputText v-model="model.idp.url" class="w-full" />
     </div>
 
     <div class="flex flex-col gap-1">
@@ -98,7 +98,7 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.ident-name') }}
       </span>
-      <InputText v-model="modelValue.idp['ident-name']" class="w-full" />
+      <InputText v-model="model.idp['ident-name']" class="w-full" />
     </div>
 
     <div class="flex flex-col gap-1">
@@ -108,7 +108,7 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.ident-handle') }}
       </span>
-      <InputText v-model="modelValue.idp['ident-handle']" class="w-full" />
+      <InputText v-model="model.idp['ident-handle']" class="w-full" />
     </div>
 
     <div class="flex flex-col gap-1">
@@ -118,10 +118,10 @@
       <span class="text-xs text-muted-color">
         {{ $t('system.settings.editor.external.saml.desc.idp.ident-identifier') }}
       </span>
-      <InputText v-model="modelValue.idp['ident-identifier']" class="w-full" />
+      <InputText v-model="model.idp['ident-identifier']" class="w-full" />
     </div>
 
-    <ExternalSecurity v-model="modelValue.security" />
+    <ExternalSecurity v-model="model.security" />
   </div>
 </template>
 
@@ -131,12 +131,7 @@ import ExternalSecurity from './ExternalSecurity.vue'
 
 const { t } = useI18n()
 
-defineProps({
-  modelValue: {
-    type: Object,
-    required: true,
-  },
-})
+const model = defineModel({ type: Object, required: true })
 
 const signMethods = [
   { value: 'http://www.w3.org/2000/09/xmldsig#rsa-sha1', text: 'SHA1' },

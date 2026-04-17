@@ -226,16 +226,16 @@
 
 <script setup>
 import { ref, computed, watch, inject, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 import { useModuleStore } from '@/stores/module'
 import { useUserStore } from '@/stores/user'
 import { useRecordStore } from '@/stores/record'
 import PageBlock from './PageBlock.vue'
 import CommentItem from './Comment/CommentItem.vue'
 import CommentReply from './Comment/CommentReply.vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
-import { evaluatePrefilter, getFieldFilter, isFieldInFilter } from '../../../lib/record-filter'
+import { evaluatePrefilter, getFieldFilter } from '../../../lib/record-filter'
 
 const { CRichTextInput } = components
 

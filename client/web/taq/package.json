@@ -1,5 +1,5 @@
 {
-  "name": "corteza-webapp-taq",
+  "name": "human-webapp-taq",
   "version": "2026.4.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js-next": "workspace:*",
-    "@cortezaproject/corteza-vue-next": "workspace:*",
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*",
     "@vue-flow/background": "^1.3.2",
     "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.48.2",

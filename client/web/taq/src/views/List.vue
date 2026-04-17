@@ -144,7 +144,7 @@ import {
   useRBACStore,
   useResourceList,
   usePermissions,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -161,7 +161,6 @@ const { confirmDelete } = useConfirmDelete()
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
-const $Auth = inject('$Auth')
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('automation/', 'grant'))
 const { open: openPermissions } = usePermissions()

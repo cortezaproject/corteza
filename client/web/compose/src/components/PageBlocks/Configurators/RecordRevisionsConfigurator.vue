@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@/stores/module'
 
@@ -52,12 +52,11 @@ const { t } = useI18n()
 const moduleStore = useModuleStore()
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const sortOptions = [
   { value: 'desc', label: t('block.recordRevisions.configurator.sortDirection.desc') },
@@ -71,26 +70,24 @@ const selectedModule = computed(() => {
 })
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 const preload = computed({
-  get: () => props.block.options?.preload || false,
+  get: () => block.value.options?.preload || false,
   set: v => updateOptions('preload', v),
 })
 
 const sortDirection = computed({
-  get: () => (props.block.options?.sortDirection || 'desc').toLowerCase(),
+  get: () => (block.value.options?.sortDirection || 'desc').toLowerCase(),
   set: v => updateOptions('sortDirection', v),
 })
 
 // --- Field picker for displayedFields ---
 const selectedFieldNames = ref([])
 
-watch(() => props.block.options?.displayedFields, (fields) => {
+watch(() => block.value.options?.displayedFields, (fields) => {
   if (fields?.length) {
     selectedFieldNames.value = fields.map(f => (typeof f === 'string' ? f : f.name))
   }

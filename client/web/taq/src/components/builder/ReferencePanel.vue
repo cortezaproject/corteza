@@ -258,7 +258,7 @@
 
 <script setup>
 import { computed, reactive, watch, ref } from 'vue'
-import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+import { useComposeResourceStore } from '@planetcrust/human-vue'
 import TaqIcon from '@/components/common/TaqIcon.vue'
 
 const STRUCT_FIELDS = {

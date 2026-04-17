@@ -61,7 +61,7 @@ const visible = defineModel('visible', {
   default: false,
 })
 
-const props = defineProps({
+defineProps({
   labels: {
     type: Object,
     required: true,

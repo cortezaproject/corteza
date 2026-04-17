@@ -16,7 +16,7 @@
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
     <!-- Top-left overlay actions -->
-    <div class="absolute top-2 left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
+    <div class="absolute top-3 left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
       <!-- Optional Description -->
       <div
         v-if="editor.automation.value.meta?.description"
@@ -25,7 +25,7 @@
         {{ editor.automation.value.meta.description }}
       </div>
 
-      <div class="flex items-start gap-2 mt-2">
+      <div class="flex items-center gap-2">
         <!-- Main toggle/run card -->
         <div
           class="flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm"
@@ -79,13 +79,14 @@
       </div>
 
       <!-- Run As card -->
-      <div
-        class="flex items-center gap-2 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm w-fit mt-2"
-      >
-        <label for="taq-run-as" class="text-sm text-muted-color whitespace-nowrap">
-          {{ $t('builder.canvas.runAs') }}
-        </label>
-        <div class="w-64">
+      <div class="bg-surface rounded-lg border border-surface p-4 px-3 pb-3 shadow-sm w-fit">
+        <div class="relative w-64">
+          <label
+            for="taq-run-as"
+            class="absolute -top-2 left-2 px-1 text-xs font-medium text-primary bg-surface z-10 leading-none"
+          >
+            {{ $t('builder.canvas.runAs') }}
+          </label>
           <CInputUser
             input-id="taq-run-as"
             :model-value="runAsModel"
@@ -458,12 +459,12 @@ import '@vue-flow/core/dist/theme-default.css'
 
 import { useFlowEditor } from '@/composables/useFlowEditor'
 import { useAutomationStore } from '@/stores/automation'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 
 const { CToolbar, CInputUser } = components
 
-import { useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
-import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { useConfirmDelete, useUnsavedGuard } from '@planetcrust/human-vue'
+import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 

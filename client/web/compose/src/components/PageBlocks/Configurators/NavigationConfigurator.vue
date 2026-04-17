@@ -149,7 +149,7 @@
               @update:model-value="updateNavItemOption(index, 'target', $event)"
             />
           </div>
-          <CInputSwitch
+          <CInputToggleCard
             :model-value="!!item.options?.item?.displaySubPages"
             :label="$t('block.navigation.displaySubPages')"
             @update:model-value="updateNavItemOption(index, 'displaySubPages', $event)"
@@ -186,7 +186,7 @@
               class="border border-surface rounded-border p-2 flex flex-col gap-2"
             >
               <div class="flex items-center justify-between">
-                <CInputSwitch
+                <CInputToggleCard
                   :model-value="!!dItem.delimiter"
                   :label="$t('block.navigation.delimiter')"
                   @update:model-value="updateDropdownItem(index, dIndex, 'delimiter', $event)"
@@ -252,22 +252,21 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { usePageStore } from '@/stores/page'
 
-const { CInputColorPicker, CInputSwitch } = components
+const { CInputColorPicker, CInputToggleCard } = components
 
 const { t } = useI18n()
 
-const props = defineProps({
-  block: { type: Object, required: true },
+defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const pageStore = usePageStore()
 
@@ -307,28 +306,26 @@ const pageOptions = computed(() => {
   }))
 })
 
-const navItems = computed(() => props.block.options?.navigationItems || [])
+const navItems = computed(() => block.value.options?.navigationItems || [])
 
 const appearance = computed({
-  get: () => props.block.options?.display?.appearance || 'tabs',
-  set: v => updateOptions('display', { ...props.block.options?.display, appearance: v }),
+  get: () => block.value.options?.display?.appearance || 'tabs',
+  set: v => updateOptions('display', { ...block.value.options?.display, appearance: v }),
 })
 
 const alignment = computed({
-  get: () => props.block.options?.display?.alignment || 'left',
-  set: v => updateOptions('display', { ...props.block.options?.display, alignment: v }),
+  get: () => block.value.options?.display?.alignment || 'left',
+  set: v => updateOptions('display', { ...block.value.options?.display, alignment: v }),
 })
 
 const justify = computed({
-  get: () => props.block.options?.display?.justify || 'none',
-  set: v => updateOptions('display', { ...props.block.options?.display, justify: v }),
+  get: () => block.value.options?.display?.justify || 'none',
+  set: v => updateOptions('display', { ...block.value.options?.display, justify: v }),
 })
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 function addNavItem() {

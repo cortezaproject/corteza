@@ -4,7 +4,7 @@ export declare class DisplayElement {
   elementID: string
   name: string
   description: string
-  options: {}
+  options: Record<string, unknown>
   meta: {
     size: undefined
   }

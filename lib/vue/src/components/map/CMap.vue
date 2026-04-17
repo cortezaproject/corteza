@@ -25,22 +25,51 @@
       ref="mapRef"
       :zoom="effectiveZoom"
       :center="effectiveCenter"
+      :min-zoom="minZoom || undefined"
+      :max-zoom="maxZoom || undefined"
+      :max-bounds="maxBounds || undefined"
       :use-global-leaflet="false"
       class="w-full h-full"
       @click="onMapClick"
+      @update:center="onCenterUpdate"
+      @update:zoom="onZoomUpdate"
+      @update:bounds="onBoundsUpdate"
     >
       <LTileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; <a target='_blank' href='http://osm.org/copyright'>OpenStreetMap</a>"
       />
 
-      <!-- Markers -->
-      <LMarker
-        v-for="(marker, i) in validMarkers"
-        :key="`marker-${i}`"
-        :lat-lng="marker.latLng"
-        @click="onMarkerClick(i, marker)"
+      <!-- Polygons -->
+      <LPolygon
+        v-for="(polygon, i) in validPolygons"
+        :key="`polygon-${i}`"
+        :lat-lngs="polygon.latLngs"
+        :color="polygon.color || '#09344E'"
+        :fill-opacity="polygon.fillOpacity ?? 0.2"
       />
+
+      <!-- Markers -->
+      <template v-for="(marker, i) in validMarkers" :key="`marker-${i}`">
+        <LCircleMarker
+          v-if="marker.color"
+          :lat-lng="marker.latLng"
+          :radius="8"
+          :color="marker.color"
+          :fill-color="marker.color"
+          :fill-opacity="0.8"
+          @click="onMarkerClick(i, marker)"
+        >
+          <LTooltip v-if="marker.title">{{ marker.title }}</LTooltip>
+        </LCircleMarker>
+        <LMarker
+          v-else
+          :lat-lng="marker.latLng"
+          @click="onMarkerClick(i, marker)"
+        >
+          <LTooltip v-if="marker.title">{{ marker.title }}</LTooltip>
+        </LMarker>
+      </template>
 
       <!-- Geo search marker -->
       <LMarker v-if="geoSearchMarker" :lat-lng="geoSearchMarker" />
@@ -62,7 +91,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import 'leaflet/dist/leaflet.css'
-import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
+import { LMap, LTileLayer, LMarker, LCircleMarker, LPolygon, LTooltip } from '@vue-leaflet/vue-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons'
@@ -90,9 +119,32 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  minZoom: {
+    type: Number,
+    default: 0,
+  },
+  maxZoom: {
+    type: Number,
+    default: 0,
+  },
+  maxBounds: {
+    type: Array,
+    default: null,
+  },
+  polygons: {
+    type: Array,
+    default: () => [],
+  },
 })
 
-const emit = defineEmits(['map-click', 'marker-click', 'location-found'])
+const emit = defineEmits([
+  'map-click',
+  'marker-click',
+  'location-found',
+  'update:center',
+  'update:zoom',
+  'update:bounds',
+])
 
 const mapRef = ref(null)
 const rootRef = ref(null)
@@ -130,8 +182,49 @@ const validMarkers = computed(() =>
     })),
 )
 
+// Polygons: each entry { latLngs: [[lat,lng], ...], color?, fillOpacity? }
+const validPolygons = computed(() =>
+  (props.polygons || [])
+    .filter(p => Array.isArray(p?.latLngs) && p.latLngs.length >= 3)
+    .map(p => ({
+      ...p,
+      latLngs: p.latLngs.filter(
+        pt => Array.isArray(pt) && pt.length === 2 &&
+          typeof pt[0] === 'number' && typeof pt[1] === 'number',
+      ),
+    }))
+    .filter(p => p.latLngs.length >= 3),
+)
+
 function onMapClick(e) {
   emit('map-click', e)
+}
+
+function normalizeLatLng(center) {
+  if (Array.isArray(center) && center.length === 2) return [center[0], center[1]]
+  if (center && typeof center.lat === 'number') return [center.lat, center.lng]
+  return null
+}
+
+function onCenterUpdate(center) {
+  const next = normalizeLatLng(center)
+  if (!next) return
+  const cur = normalizeLatLng(props.center)
+  if (cur && cur[0] === next[0] && cur[1] === next[1]) return
+  emit('update:center', next)
+}
+
+function onZoomUpdate(zoom) {
+  if (zoom === props.zoom) return
+  emit('update:zoom', zoom)
+}
+
+function onBoundsUpdate(bounds) {
+  if (!bounds) return
+  const sw = typeof bounds.getSouthWest === 'function' ? bounds.getSouthWest() : bounds._southWest
+  const ne = typeof bounds.getNorthEast === 'function' ? bounds.getNorthEast() : bounds._northEast
+  if (!sw || !ne) return
+  emit('update:bounds', [[sw.lat, sw.lng], [ne.lat, ne.lng]])
 }
 
 function onMarkerClick(index, marker) {
@@ -199,7 +292,14 @@ function invalidateSize() {
   }
 }
 
-defineExpose({ invalidateSize })
+function fitBounds (bounds, options = {}) {
+  const map = mapRef.value?.leafletObject
+  if (map && Array.isArray(bounds) && bounds.length === 2) {
+    map.fitBounds(bounds, options)
+  }
+}
+
+defineExpose({ invalidateSize, fitBounds })
 
 // Auto-detect visibility/size changes via ResizeObserver.
 // When a map is inside a hidden container (tab, dialog, modal) and becomes

@@ -72,7 +72,7 @@ import {
   useRBACStore,
   useResourceList,
   usePermissions,
-} from '@cortezaproject/corteza-vue-next'
+} from '@planetcrust/human-vue'
 import NamespaceImporter from '@/components/Namespaces/NamespaceImporter.vue'
 import { useNamespaceStore } from '@/stores/namespace'
 import { computed, inject, onMounted, ref } from 'vue'

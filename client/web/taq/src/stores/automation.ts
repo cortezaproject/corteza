@@ -1,5 +1,5 @@
-import { automation } from '@cortezaproject/corteza-js-next'
-import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { automation } from '@planetcrust/human-js'
+import type { IconDef } from '@planetcrust/human-js/src/automation/types/icon'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -75,10 +75,10 @@ export interface AutomationTrigger {
 // API interface for type safety
 interface AutomationAPI {
   ngAutomationList: (
-    filter?: Record<string, unknown>,
+    _filter?: Record<string, unknown>,
   ) => Promise<{ set: Record<string, unknown>[] }>
-  ngAutomationCreate: (data: Record<string, unknown>) => Promise<Record<string, unknown>>
-  ngAutomationDelete: (params: { automationID: string }) => Promise<void>
+  ngAutomationCreate: (_data: Record<string, unknown>) => Promise<Record<string, unknown>>
+  ngAutomationDelete: (_params: { automationID: string }) => Promise<void>
   constructLibraryFunctions: () => Promise<{ set: AutomationFunction[] }>
   constructLibraryTriggers: () => Promise<{ set: AutomationTrigger[] }>
 }

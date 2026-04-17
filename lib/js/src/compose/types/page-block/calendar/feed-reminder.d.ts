@@ -24,6 +24,6 @@ export declare function ReminderFeed(
   user: User,
   feed: Feed,
   range: Range,
-  options?: {},
+  options?: Record<string, unknown>,
 ): Promise<Event[]>
 export {}

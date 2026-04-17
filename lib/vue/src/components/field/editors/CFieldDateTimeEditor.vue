@@ -30,7 +30,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue'])
+defineEmits(['update:modelValue'])
 
 const onlyDate = computed(() => !!props.field.options?.onlyDate)
 const timeOnly = computed(() => !!props.field.options?.onlyTime)

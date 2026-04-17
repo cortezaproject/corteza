@@ -3,35 +3,35 @@ import { Make } from './url'
 
 export interface RealtimeClientOptions {
   auth: Auth;
-  onMessage: (message: MessageEvent<string>) => void;
-  onError?: (event: Event) => void;
-  onOpen?: (socket: WebSocket) => void;
-  onClose?: (event: CloseEvent) => void;
+  onMessage: (_message: MessageEvent<string>) => void;
+  onError?: (_event: Event) => void;
+  onOpen?: (_socket: WebSocket) => void;
+  onClose?: (_event: CloseEvent) => void;
   reconnect?: boolean;
   reconnectAttempts?: number;
   reconnectDelay?: number;
 }
 
 export function endpoint(): string {
-  let { CortezaAPI, CortezaWebsocket, location } = window
+  let { HumanAPI, HumanWebsocket, location } = window
 
-  if (!CortezaWebsocket) {
-    const aux = new URL(Make({ url: `${CortezaAPI}/websocket` }))
+  if (!HumanWebsocket) {
+    const aux = new URL(Make({ url: `${HumanAPI}/websocket` }))
     aux.hash = ''
     aux.search = ''
-    CortezaWebsocket = aux.toString()
+    HumanWebsocket = aux.toString()
   }
 
   let proto: string
-  if (CortezaWebsocket.startsWith('//')) {
+  if (HumanWebsocket.startsWith('//')) {
     proto = location.protocol
   } else {
     const sep = '://'
-    ;[proto] = CortezaWebsocket.split(sep, 1)
-    CortezaWebsocket = CortezaWebsocket.substring(proto.length + sep.length)
+    ;[proto] = HumanWebsocket.split(sep, 1)
+    HumanWebsocket = HumanWebsocket.substring(proto.length + sep.length)
   }
 
-  return `${proto === 'https' ? 'wss' : 'ws'}://${CortezaWebsocket}`
+  return `${proto === 'https' ? 'wss' : 'ws'}://${HumanWebsocket}`
 }
 
 export class RealtimeClient {

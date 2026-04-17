@@ -137,7 +137,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components

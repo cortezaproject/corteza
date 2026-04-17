@@ -1,5 +1,5 @@
 export { Args, ArgsProxy } from './args'
-export { CortezaTypes } from './args-corteza'
+export { HumanTypes } from './args-human'
 export { Ctx } from './ctx'
 export type { Config } from './ctx'
 export * from './exec'

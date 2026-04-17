@@ -42,16 +42,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useModuleStore } from '@/stores/module'
 
 const props = defineProps({
-  block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:block'])
+const block = inject('blockDraft')
 
 const moduleStore = useModuleStore()
 
@@ -68,19 +67,17 @@ const urlFields = computed(() => {
 })
 
 function updateOptions(key, value) {
-  emit('update:block', {
-    ...props.block,
-    options: { ...props.block.options, [key]: value },
-  })
+  if (!block.value.options) block.value.options = {}
+  block.value.options[key] = value
 }
 
 const srcUrl = computed({
-  get: () => props.block.options?.src || props.block.options?.url || '',
+  get: () => block.value.options?.src || block.value.options?.url || '',
   set: v => updateOptions('src', v),
 })
 
 const srcField = computed({
-  get: () => props.block.options?.srcField || '',
+  get: () => block.value.options?.srcField || '',
   set: v => updateOptions('srcField', v),
 })
 

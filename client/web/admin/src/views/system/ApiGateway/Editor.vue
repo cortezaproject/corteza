@@ -247,8 +247,8 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useConfirmDelete, useUnsavedGuard } from '@cortezaproject/corteza-vue-next'
-import { NoID } from '@cortezaproject/corteza-js-next'
+import { components, useConfirmDelete, useUnsavedGuard } from '@planetcrust/human-vue'
+import { NoID } from '@planetcrust/human-js'
 import { cloneDeep, isEqual } from 'lodash-es'
 import CFilterParamsEditor from '@/components/ApiGateway/CFilterParamsEditor.vue'
 

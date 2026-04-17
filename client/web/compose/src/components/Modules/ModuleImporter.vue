@@ -95,7 +95,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { inject } from 'vue'
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@/stores/module'
 
 const { CFileDropZone } = components
@@ -171,7 +171,7 @@ async function onFilesSelected(files) {
       return { import: true, ...i }
     })
     step.value = 1
-  } catch (e) {
+  } catch {
     uploadError.value = t('notification.general.import.readingError')
   }
 }

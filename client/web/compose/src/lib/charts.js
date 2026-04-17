@@ -1,4 +1,4 @@
-import { compose } from '@cortezaproject/corteza-js-next'
+import { compose } from '@planetcrust/human-js'
 
 /**
  * Helper function to construct the proper chart sub type (if possible).
