@@ -3,9 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/federation/rest/request"
-	"github.com/cortezaproject/corteza/server/federation/service"
-	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/crusttech/human/server/federation/rest/request"
+	"github.com/crusttech/human/server/federation/service"
+	"github.com/crusttech/human/server/federation/types"
 )
 
 type (

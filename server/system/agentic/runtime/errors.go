@@ -1,6 +1,6 @@
 package runtime
 
-import "github.com/cortezaproject/corteza/server/pkg/errors"
+import "github.com/crusttech/human/server/pkg/errors"
 
 func errAgentNotFound(id uint64) error {
 	return errors.New(errors.KindNotFound, "agent not found",

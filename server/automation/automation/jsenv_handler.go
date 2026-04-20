@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/jsenv"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/jsenv"
 )
 
 type (

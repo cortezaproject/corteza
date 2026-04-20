@@ -1,7 +1,7 @@
 /**
  * @planetcrust/human-js
  *
- * Core JavaScript/TypeScript library for Corteza
+ * Core JavaScript/TypeScript library for Human
  * Provides API clients, type definitions, utilities, and models
  */
 

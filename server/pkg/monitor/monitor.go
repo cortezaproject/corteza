@@ -7,8 +7,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 var (

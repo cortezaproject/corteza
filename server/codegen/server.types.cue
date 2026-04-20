@@ -1,13 +1,13 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 [...schema.#codegen] &
 [
-	for cmp in app.corteza.components {
+	for cmp in app.human.components {
 		template: "gocode/types/$component_resources.go.tpl"
 		output:   "\(cmp.ident)/types/resources.gen.go"
 		payload: {
@@ -27,7 +27,7 @@ import (
 			]
 		}
 	},
-	for cmp in app.corteza.components {
+	for cmp in app.human.components {
 		template: "gocode/types/$component_getters_setters.go.tpl"
 		output:   "\(cmp.ident)/types/getters_setters.gen.go"
 		payload: {

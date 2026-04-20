@@ -8,11 +8,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/runtime"
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/automation_exec/runtime"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/modern-go/reflect2"
 	"go.uber.org/zap"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/eventbus"
 )
 
 type (

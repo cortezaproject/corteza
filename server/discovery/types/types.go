@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -20,7 +20,7 @@ type (
 	ResourceActivity struct {
 		ID uint64 `json:"activityID,string"`
 
-		// ResourceID of the corteza resource
+		// ResourceID of the human resource
 		ResourceID uint64 `json:"resourceID,string"`
 
 		// ResourceType

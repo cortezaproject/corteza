@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/compose/types"
+	automationTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/compose/types"
 )
 
 type (

@@ -1,8 +1,8 @@
 package event
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/system/types"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

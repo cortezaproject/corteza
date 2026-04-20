@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	pkgAst "github.com/cortezaproject/corteza/server/pkg/ast"
-	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	pkgAst "github.com/crusttech/human/server/pkg/ast"
+	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
 )
 
 type errorStep struct {

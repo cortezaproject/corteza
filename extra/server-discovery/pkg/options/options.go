@@ -2,7 +2,7 @@ package options
 
 type (
 	Options struct {
-		Corteza      CortezaOpt
+		Human      HumanOpt
 		ES           EsOpt
 		Indexer      IndexerOpt
 		Searcher     SearcherOpt
@@ -31,7 +31,7 @@ func Init() (opt *Options, err error) {
 		return
 	}
 
-	corteza, err := Corteza()
+	human, err := Human()
 	if err != nil {
 		return
 	}
@@ -42,7 +42,7 @@ func Init() (opt *Options, err error) {
 	}
 
 	return &Options{
-		Corteza:      *corteza,
+		Human:      *human,
 		ES:           *es,
 		Indexer:      *indexer,
 		Searcher:     *searcher,

@@ -9,9 +9,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/apigw"
+	"github.com/crusttech/human/server/pkg/apigw/profiler"
+	"github.com/crusttech/human/server/system/types"
 )
 
 var (

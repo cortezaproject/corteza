@@ -1,5 +1,5 @@
 import { Step, Block, FilterDefinition } from '../../reporter'
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface PartialReport extends Partial<
@@ -76,7 +76,7 @@ export class Report {
   }
 
   apply(r?: PartialReport): void {
-    Apply(this, r, CortezaID, 'reportID')
+    Apply(this, r, HumanID, 'reportID')
 
     Apply(this, r, String, 'handle')
 
@@ -110,7 +110,7 @@ export class Report {
     }
 
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, r, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, r, HumanID, 'createdBy', 'updatedBy', 'deletedBy')
     Apply(
       this,
       r,

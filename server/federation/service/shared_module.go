@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/errors"
 
-	composeService "github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/store"
+	composeService "github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/store"
 )
 
 type (

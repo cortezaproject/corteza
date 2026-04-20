@@ -7,16 +7,16 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/ql"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms"
+	"github.com/crusttech/human/server/pkg/ast"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/ql"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/store/adapters/rdbms"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/mysql"
-	_ "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/postgres"
-	_ "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+	_ "github.com/crusttech/human/server/store/adapters/rdbms/drivers/mysql"
+	_ "github.com/crusttech/human/server/store/adapters/rdbms/drivers/postgres"
+	_ "github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
 )
 
 type (

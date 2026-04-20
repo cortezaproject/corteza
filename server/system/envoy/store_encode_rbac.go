@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
 	"github.com/pkg/errors"
 )
 

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	sqlTypes "github.com/jmoiron/sqlx/types"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )

@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/crusttech/human/server/compose/types"
 )
 
 func Test_sanitizer_Run(t *testing.T) {
@@ -179,15 +179,15 @@ func Test_sanitizer_Run(t *testing.T) {
 			name:    "string escaping; a.href with javascript",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `<a href="javascript:document.location='https://cortezaproject.org/'">XSS</A>`,
+			input:   `<a href="javascript:document.location='https://planetcrust.com/'">XSS</A>`,
 			output:  "XSS",
 		},
 		{
 			name:    "string escaping; script with script",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `<script>document.write("<scri");</script>pt src="https://cortezaproject.org/script.js"></script>`,
-			output:  `pt src="https://cortezaproject.org/script.js">`,
+			input:   `<script>document.write("<scri");</script>pt src="https://planetcrust.com/script.js"></script>`,
+			output:  `pt src="https://planetcrust.com/script.js">`,
 		},
 		{
 			name:    "string escaping; inline styles unchanged",
@@ -200,7 +200,7 @@ func Test_sanitizer_Run(t *testing.T) {
 			name:    "string escaping; script with a",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `<script a=">'>" src="https://cortezaproject.org/xss.js"></script>`,
+			input:   `<script a=">'>" src="https://planetcrust.com/xss.js"></script>`,
 			output:  "",
 		},
 		{
@@ -214,7 +214,7 @@ func Test_sanitizer_Run(t *testing.T) {
 			name:    "string escaping; object",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `<object type="text/x-scriptlet" data="https://cortezaproject.org/xss.html"></object>`,
+			input:   `<object type="text/x-scriptlet" data="https://planetcrust.com/xss.html"></object>`,
 			output:  "",
 		},
 		{
@@ -284,7 +284,7 @@ func Test_sanitizer_Run(t *testing.T) {
 			name:    "string escaping; style",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `<style>@import 'https://cortezaproject.org/xss.css';</style>`,
+			input:   `<style>@import 'https://planetcrust.com/xss.css';</style>`,
 			output:  "",
 		},
 		{
@@ -312,15 +312,15 @@ func Test_sanitizer_Run(t *testing.T) {
 			name:    "string escaping; xss element",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `Hello <span class="><script src='https://cortezaproject.org/XSS.js'></script>">there</span> world.`,
+			input:   `Hello <span class="><script src='https://planetcrust.com/XSS.js'></script>">there</span> world.`,
 			output:  "Hello <span>there</span> world.",
 		},
 		{
 			name:    "string escaping; xss element",
 			kind:    "String",
 			options: map[string]interface{}{},
-			input:   `<tag1>cor<tag2></tag2>teza</tag1><tag1>server</tag1><tag2>123</tag2>`,
-			output:  "cortezaserver123",
+			input:   `<tag1>hu<tag2></tag2>man</tag1><tag1>server</tag1><tag2>123</tag2>`,
+			output:  "humanserver123",
 		},
 		{
 			name:    "string escaping; preserve necessary chars",

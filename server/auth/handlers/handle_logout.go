@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/crusttech/human/server/auth/request"
 	"github.com/markbates/goth/gothic"
 )
 

@@ -11,7 +11,7 @@ import { Attachment } from '../../shared'
 import { Compose as ComposeAPI } from '../../api-clients'
 import { Namespace, Record, Module, Page } from '../../compose'
 import { Values } from '../../compose/types/record'
-import { IsCortezaID } from '../../cast'
+import { IsHumanID } from '../../cast'
 import { IsOf } from '../../guards'
 
 const emailStyle = `
@@ -1008,7 +1008,7 @@ export default class ComposeHelper {
       }
 
       if (typeof module === 'string') {
-        if (IsCortezaID(module)) {
+        if (IsHumanID(module)) {
           // Looks like an ID
           return this.findModuleByID(module).catch((err = {}) => {
             if (err.message && err.message.indexOf('ModuleNotFound') >= 0) {
@@ -1083,7 +1083,7 @@ export default class ComposeHelper {
       }
 
       if (typeof ns === 'string') {
-        if (IsCortezaID(ns)) {
+        if (IsHumanID(ns)) {
           // Looks like an ID
           return this.findNamespaceByID(ns).catch((err = {}) => {
             if (err.message && err.message.indexOf('NamespaceNotFound') >= 0) {

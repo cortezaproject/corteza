@@ -180,7 +180,7 @@ export function decodeWorkflow (workflow, triggers = []) {
 
   // 2. Steps → workflow / termination / visual nodes
   const steps = workflow.steps || []
-  steps.forEach(({ stepID, kind, ref, meta, defaultName, arguments: args, results }) => {
+  steps.forEach(({ stepID, kind, ref, meta, defaultName, arguments: args, results, ...rest }) => {
     const vis = meta?.visual || {}
     const xywh = vis.xywh || [0, 0, 200, 80]
 
@@ -196,6 +196,7 @@ export function decodeWorkflow (workflow, triggers = []) {
       parentNode: vis.parent && vis.parent !== '1' ? String(vis.parent) : undefined,
       extent: vis.parent && vis.parent !== '1' ? 'parent' : undefined,
       data: {
+        ...rest,
         stepID: String(stepID),
         kind: kind || '',
         ref: ref || '',
@@ -214,7 +215,7 @@ export function decodeWorkflow (workflow, triggers = []) {
   })
 
   // 2b. Convert absolute → relative positions for children of visual parents.
-  // Corteza stores xywh in absolute canvas coordinates; VueFlow interprets a
+  // Human stores xywh in absolute canvas coordinates; VueFlow interprets a
   // child's `position` as relative to its `parentNode`. Without this pass,
   // nodes nested in a swimlane jump to the wrong spot on decode.
   const nodeById = new Map(nodes.map(n => [n.id, n]))
@@ -281,7 +282,7 @@ export function encodeWorkflow (nodes, edges) {
   })
 
   // Resolve absolute positions: a child of a visual parent carries a position
-  // relative to the parent, but Corteza expects absolute xywh. Walk parents
+  // relative to the parent, but Human expects absolute xywh. Walk parents
   // up to the root, summing offsets, and expose the result via `absPos`.
   const nodeById = new Map(nodes.map(n => [n.id, n]))
   function absolutePosition (node) {
@@ -353,7 +354,18 @@ export function encodeWorkflow (nodes, edges) {
     } else {
       // Regular step (workflow / termination / visual)
       const styleInfo = getStyleFromKind(data)
+      const {
+        highlighted: _highlighted,
+        traceState: _traceState,
+        traceLog: _traceLog,
+        width: _width,
+        height: _height,
+        label: _label,
+        description: _description,
+        ...stepConfig
+      } = data
       steps.push({
+        ...stepConfig,
         stepID: data.stepID || node.id,
         kind: data.kind || '',
         ref: data.ref || '',

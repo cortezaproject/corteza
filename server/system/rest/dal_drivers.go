@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/system/rest/request"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/system/rest/request"
 )
 
 type (

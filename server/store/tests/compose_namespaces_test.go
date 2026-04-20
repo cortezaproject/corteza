@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/store"
 	"github.com/stretchr/testify/require"
 )
 

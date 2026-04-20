@@ -7,15 +7,15 @@ import (
 	"math"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw/filter"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/filter/proxy"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline/chain"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/registry"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	f "github.com/cortezaproject/corteza/server/pkg/filter"
-	st "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/apigw/filter"
+	"github.com/crusttech/human/server/pkg/apigw/filter/proxy"
+	"github.com/crusttech/human/server/pkg/apigw/pipeline"
+	"github.com/crusttech/human/server/pkg/apigw/pipeline/chain"
+	"github.com/crusttech/human/server/pkg/apigw/profiler"
+	"github.com/crusttech/human/server/pkg/apigw/registry"
+	"github.com/crusttech/human/server/pkg/apigw/types"
+	f "github.com/crusttech/human/server/pkg/filter"
+	st "github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
@@ -249,7 +249,7 @@ func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
 		// If not, deny all requests, else use what is defined.
 		//
 		// If no auth should be used, explicitly opt out.
-		if _, isWebhook := r.meta.labels["corteza.webhookEvent"]; isWebhook {
+		if _, isWebhook := r.meta.labels["human.webhookEvent"]; isWebhook {
 			hasAuth := false
 			for _, rf := range regFilters {
 				if rf.Ref == "webhookAuth" {

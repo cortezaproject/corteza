@@ -3,8 +3,8 @@ package resource
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/compose/types"
+	systemTypes "github.com/crusttech/human/server/system/types"
 )
 
 func firstOkString(ss ...string) string {

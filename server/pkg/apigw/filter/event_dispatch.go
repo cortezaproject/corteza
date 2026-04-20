@@ -8,11 +8,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/j7s"
-	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
+	"github.com/crusttech/human/server/pkg/apigw/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/j7s"
+	sysEvent "github.com/crusttech/human/server/system/service/event"
 )
 
 type (

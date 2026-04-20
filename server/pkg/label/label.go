@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/pkg/str"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/str"
+	"github.com/crusttech/human/server/store"
 )
 
 type (

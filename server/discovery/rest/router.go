@@ -3,9 +3,9 @@ package rest
 import (
 	"github.com/go-chi/chi/v5"
 
-	"github.com/cortezaproject/corteza/server/discovery/rest/handlers"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/discovery/rest/handlers"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 func MountRoutes(discoveryOpts options.DiscoveryOpt) func(r chi.Router) {

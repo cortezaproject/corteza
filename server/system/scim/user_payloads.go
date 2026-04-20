@@ -3,11 +3,11 @@ package scim
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/handle"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/system/types"
 	"io"
 	"strconv"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 const (

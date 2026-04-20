@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/dal"
 )
 
 func Test_dal_codec_alias(t *testing.T) {

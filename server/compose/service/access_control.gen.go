@@ -9,12 +9,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	internalAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cast"
 	"strings"
 )

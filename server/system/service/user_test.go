@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	a "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
-	"github.com/cortezaproject/corteza/server/system/types"
+	a "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

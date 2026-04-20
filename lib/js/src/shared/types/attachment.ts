@@ -1,4 +1,4 @@
-import { CortezaID, NoID, ISO8601Date, Apply } from '../../cast'
+import { HumanID, NoID, ISO8601Date, Apply } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface Meta {
@@ -32,7 +32,7 @@ export class Attachment {
   }
 
   apply(i?: PartialAttachment): void {
-    Apply(this, i, CortezaID, 'attachmentID', 'ownerID')
+    Apply(this, i, HumanID, 'attachmentID', 'ownerID')
     Apply(this, i, String, 'name', 'url', 'previewUrl')
 
     if (IsOf(i, 'meta')) {

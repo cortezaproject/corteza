@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/system/service"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/system/service"
 )
 
 type RagClient struct {

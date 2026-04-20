@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/assets"
-	"github.com/cortezaproject/corteza/server/pkg/api"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/version"
-	"github.com/cortezaproject/corteza/server/webconsole"
+	"github.com/crusttech/human/server/assets"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/healthcheck"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/version"
+	"github.com/crusttech/human/server/webconsole"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
@@ -34,7 +34,7 @@ func waitingRoutes(log *zap.Logger, httpOpt options.HttpServerOpt) (r chi.Router
 		// For non GET requests, return 503 (service unavailable)
 		errors.ServeHTTPWithCode(w, r,
 			http.StatusServiceUnavailable,
-			fmt.Errorf("corteza server initializing"),
+			fmt.Errorf("human server initializing"),
 			true,
 		)
 	})
@@ -42,7 +42,7 @@ func waitingRoutes(log *zap.Logger, httpOpt options.HttpServerOpt) (r chi.Router
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		// Refresh the page in 15 seconds
 		w.Header().Set("Refresh", "15; url=/")
-		_, _ = fmt.Fprint(w, "Corteza server initializing\n\n")
+		_, _ = fmt.Fprint(w, "Human server initializing\n\n")
 		if httpOpt.EnableHealthcheckRoute {
 			healthcheck.Defaults().Run(r.Context()).WriteTo(w)
 		}
@@ -59,7 +59,7 @@ func shutdownRoutes() (r chi.Router) {
 		// For non GET requests, return 503 (service unavailable)
 		errors.ServeHTTPWithCode(w, r,
 			http.StatusServiceUnavailable,
-			fmt.Errorf("corteza server shutting down"),
+			fmt.Errorf("human server shutting down"),
 			true,
 		)
 	})
@@ -67,7 +67,7 @@ func shutdownRoutes() (r chi.Router) {
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		// Refresh the page in 15 seconds
 		w.Header().Set("Refresh", "15; url=/")
-		_, _ = fmt.Fprint(w, "corteza server shutting down")
+		_, _ = fmt.Fprint(w, "human server shutting down")
 	})
 
 	return
@@ -148,7 +148,7 @@ func mountServiceHandlers(r chi.Router, log *zap.Logger, opt options.HttpServerO
 			} else {
 				// warn only in waiting state to avoid repeated log messages
 				if state == waiting {
-					// warn the user regardless of what environment Corteza is running in.
+					// warn the user regardless of what environment Human is running in.
 					log.Warn("SECURITY RISK: web console is enabled and unprotected, set " +
 						"HTTP_SERVER_WEB_CONSOLE_USERNAME, HTTP_SERVER_WEB_CONSOLE_PASSWORD " +
 						"if not running in development environment!")
@@ -279,7 +279,7 @@ func handleStaticPages(log *zap.Logger, hOpt options.HttpServerOpt, aOpt options
 	links = append(links, fmt.Sprintf(linkTpl, aOpt.BaseURL, "Login"))
 
 	if hOpt.ApiEnabled {
-		links = append(links, fmt.Sprintf(linkTpl, "https://docs.cortezaproject.org/", "Documentation"))
+		links = append(links, fmt.Sprintf(linkTpl, "https://docs.planetcrust.com/", "Documentation"))
 	}
 
 	if hOpt.WebConsoleEnabled {

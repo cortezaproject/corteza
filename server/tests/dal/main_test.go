@@ -11,29 +11,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
 	"github.com/steinfletcher/apitest"
 
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/auth/handlers"
-	"github.com/cortezaproject/corteza/server/auth/request"
-	composeRest "github.com/cortezaproject/corteza/server/compose/rest"
-	composeService "github.com/cortezaproject/corteza/server/compose/service"
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/api/server"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/objstore/plain"
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
-	"github.com/cortezaproject/corteza/server/system/rest"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/auth/handlers"
+	"github.com/crusttech/human/server/auth/request"
+	composeRest "github.com/crusttech/human/server/compose/rest"
+	composeService "github.com/crusttech/human/server/compose/service"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/api/server"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/objstore/plain"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/crusttech/human/server/system/rest"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/afero"
@@ -55,7 +55,7 @@ type (
 )
 
 var (
-	testApp  *app.CortezaApp
+	testApp  *app.HumanApp
 	r        chi.Router
 	testUser *types.User
 	hh       *handlers.AuthHandlers
@@ -76,7 +76,7 @@ func InitTestApp() {
 	if testApp == nil {
 		ctx := cli.Context()
 
-		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.HumanApp) (err error) {
 			service.CurrentSettings.Auth.External.Enabled = true
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
@@ -101,7 +101,7 @@ func InitTestApp() {
 		}
 
 		if err := testApp.Activate(ctx); err != nil {
-			panic(fmt.Errorf("could not activate corteza: %v", err))
+			panic(fmt.Errorf("could not activate human: %v", err))
 		}
 
 	}

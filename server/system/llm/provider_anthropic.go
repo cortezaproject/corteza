@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
 type (

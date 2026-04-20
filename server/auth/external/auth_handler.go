@@ -3,8 +3,8 @@ package external
 import (
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/auth/saml"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/saml"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/crewjam/saml/samlsp"
 	"github.com/markbates/goth/gothic"
 )
@@ -60,7 +60,7 @@ func (eh *externalSamlAuthHandler) CompleteUserAuth(w http.ResponseWriter, r *ht
 		u = &types.ExternalAuthUser{}
 		u.Provider = "saml"
 
-		// get identifier for use with Corteza (email)
+		// get identifier for use with Human (email)
 		u.Email = eh.service.GuessIdentifier(sess.Attributes)
 
 		// try to get email from jwt claims

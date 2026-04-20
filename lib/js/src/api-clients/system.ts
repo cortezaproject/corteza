@@ -17,12 +17,12 @@ interface Ctor {
   headers?: Headers
 }
 
-interface CortezaResponse {
+interface HumanResponse {
   error?: string
   response?: unknown
 }
 
-function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
+function stdResolve(response: AxiosResponse<HumanResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)
   } else if (response.data.response) {
@@ -8328,7 +8328,7 @@ export default class System {
 
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, handle, status, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8339,7 +8339,6 @@ export default class System {
       handle,
       status,
       deleted,
-      labels,
       limit,
       incTotal,
       pageCursor,
@@ -8372,7 +8371,7 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, labels, meta, behavior, execution, access, invocation } = (a as KV) || {}
+    const { handle, status, meta, behavior, execution, access, invocation } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -8381,7 +8380,6 @@ export default class System {
     cfg.data = {
       handle,
       status,
-      labels,
       meta,
       behavior,
       execution,
@@ -8453,7 +8451,7 @@ export default class System {
 
   // Update agent details
   async agentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID, handle, status, labels, meta, behavior, execution, access, invocation, updatedAt } =
+    const { agentID, handle, status, meta, behavior, execution, access, invocation, updatedAt } =
       (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
@@ -8468,7 +8466,6 @@ export default class System {
     cfg.data = {
       handle,
       status,
-      labels,
       meta,
       behavior,
       execution,

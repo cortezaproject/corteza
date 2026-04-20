@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 

@@ -12,11 +12,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
-	"github.com/cortezaproject/corteza/server/system/types"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/y7s"
+	"github.com/crusttech/human/server/system/types"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"golang.org/x/text/language"
@@ -24,7 +24,7 @@ import (
 )
 
 type (
-	// YamlDecoder is responsible for decoding YAML documents into Corteza resources
+	// YamlDecoder is responsible for decoding YAML documents into Human resources
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder struct{}
 
@@ -344,7 +344,7 @@ func (d *auxYamlDoc) unmarshalApplicationMap(dctx documentContext, n *yaml.Node)
 }
 
 // unmarshalApplicationNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Application
 
@@ -625,7 +625,7 @@ func (d *auxYamlDoc) unmarshalExtendedFiltersSeq(dctx documentContext, n *yaml.N
 }
 
 // unmarshalApigwRouteNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.ApigwRoute
 
@@ -943,7 +943,7 @@ func (d *auxYamlDoc) unmarshalApigwFilterSeq(dctx documentContext, n *yaml.Node)
 //       Refer to the corresponding definition files to adjust if needed.
 
 // unmarshalApigwFilterNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.ApigwFilter
 
@@ -1209,7 +1209,7 @@ func (d *auxYamlDoc) unmarshalAuthClientMap(dctx documentContext, n *yaml.Node) 
 }
 
 // unmarshalAuthClientNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.AuthClient
 
@@ -1560,7 +1560,7 @@ func (d *auxYamlDoc) unmarshalQueueMap(dctx documentContext, n *yaml.Node) (out 
 }
 
 // unmarshalQueueNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Queue
 
@@ -1873,7 +1873,7 @@ func (d *auxYamlDoc) unmarshalReportMap(dctx documentContext, n *yaml.Node) (out
 }
 
 // unmarshalReportNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Report
 
@@ -2205,7 +2205,7 @@ func (d *auxYamlDoc) unmarshalRoleMap(dctx documentContext, n *yaml.Node) (out e
 }
 
 // unmarshalRoleNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Role
 
@@ -2461,7 +2461,7 @@ func (d *auxYamlDoc) unmarshalTemplateMap(dctx documentContext, n *yaml.Node) (o
 }
 
 // unmarshalTemplateNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Template
 
@@ -2736,7 +2736,7 @@ func (d *auxYamlDoc) unmarshalUserMap(dctx documentContext, n *yaml.Node) (out e
 }
 
 // unmarshalUserNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.User
 
@@ -3030,7 +3030,7 @@ func (d *auxYamlDoc) unmarshalDalConnectionMap(dctx documentContext, n *yaml.Nod
 }
 
 // unmarshalDalConnectionNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.DalConnection
 
@@ -3343,7 +3343,7 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelMap(dctx documentContext, n *ya
 }
 
 // unmarshalDalSensitivityLevelNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.DalSensitivityLevel
 

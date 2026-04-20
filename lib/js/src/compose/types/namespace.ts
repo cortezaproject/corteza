@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface Meta {
@@ -59,7 +59,7 @@ export class Namespace {
   apply(n?: PartialNamespace | Namespace): void {
     if (!n) return
 
-    Apply(this, n, CortezaID, 'namespaceID')
+    Apply(this, n, HumanID, 'namespaceID')
     Apply(this, n, String, 'name', 'slug')
 
     Apply(this, n, Boolean, 'enabled')

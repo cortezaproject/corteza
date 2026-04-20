@@ -7,8 +7,8 @@ package model
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/dal"
 )
 
 var ExposedModule = &dal.Model{

@@ -18,7 +18,7 @@ import (
 	handle: handle, ident: ident, expIdent: expIdent
 
 	component: #baseHandle | *"component"
-	platform:  #baseHandle | *"corteza"
+	platform:  #baseHandle | *"human"
 
 	// Fully qualified resource name
 	fqrt: #FQRT | *(platform + "::" + component + ":" + handle)

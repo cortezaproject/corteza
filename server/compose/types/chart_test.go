@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

@@ -1,8 +1,8 @@
 package rbac
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/slice"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/slice"
 )
 
 func merge(base RuleSet, new ...*Rule) (out RuleSet) {

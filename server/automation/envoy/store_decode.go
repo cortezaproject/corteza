@@ -3,11 +3,11 @@ package envoy
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
 )
 
 func (e StoreEncoder) prepare(ctx context.Context, p envoyx.EncodeParams, s store.Storer, rt string, nn envoyx.NodeSet) (err error) {

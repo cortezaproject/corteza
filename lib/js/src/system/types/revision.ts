@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 export type RevisionStatus = '' | 'draft'
@@ -42,7 +42,7 @@ export class Revision {
     if (!r) return
 
     Apply(this, r, String, 'changeID', 'resource')
-    Apply(this, r, CortezaID, 'userID', 'deletedBy')
+    Apply(this, r, HumanID, 'userID', 'deletedBy')
     Apply(this, r, ISO8601Date, 'timestamp', 'deletedAt')
     Apply(this, r, Number, 'revision')
     Apply(this, r, String, 'operation', 'status', 'comment')

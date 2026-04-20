@@ -3,9 +3,9 @@ package yaml
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/system/types"
 )
 
 func roleFromResource(r *resource.Role, cfg *EncoderConfig) *role {

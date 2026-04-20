@@ -353,7 +353,7 @@ const offRefetch = $eventBus?.on('refetch-records', refresh)
   padding: 0.5rem 0;
 }
 
-/* Today highlight matches Corteza's light blue */
+/* Today highlight matches Human's light blue */
 .calendar-container .fc .fc-day-today {
   background: var(--p-highlight-background) !important;
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	nx "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	nx "github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/ast"
+	"github.com/crusttech/human/server/pkg/expr"
 )
 
 // inclusiveGateway evaluates all conditions; activates every matching child as a

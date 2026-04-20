@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 type (

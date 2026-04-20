@@ -3,7 +3,7 @@ package policy
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
-	. "github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
-	"github.com/cortezaproject/corteza/server/system/types"
+	. "github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/wfexec"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

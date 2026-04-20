@@ -10,19 +10,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/locale"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/slice"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/slice"
+	"github.com/crusttech/human/server/store"
 )
 
 // Validator package provides tooling to validate
 // record and it's values against field constraints
 //
 // Structures and basic logic is similar to what we offer on the frontend
-// (see corteza-js/validator package) but with less features as there
+// (see human-js/validator package) but with less features as there
 // is no need for such level of interaction and dynamic we require on the frontend
 
 type (

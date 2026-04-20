@@ -1,13 +1,13 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 [...schema.#codegen] &
 [
-	for cmp in app.corteza.components {
+	for cmp in app.human.components {
 		template: "gocode/rbac/$component_types_rbac.go.tpl"
 		output:   "\(cmp.ident)/types/rbac.gen.go"
 		payload: {

@@ -3,7 +3,7 @@ package registry
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 func setupWithChecker(t *testing.T, checker usageChecker) (*registry, id.ID) {

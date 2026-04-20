@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/automation/rest/request"
-	"github.com/cortezaproject/corteza/server/automation/service"
-	"github.com/cortezaproject/corteza/server/automation/types"
-	cmpService "github.com/cortezaproject/corteza/server/compose/service"
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/api"
-	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/automation/rest/request"
+	"github.com/crusttech/human/server/automation/service"
+	"github.com/crusttech/human/server/automation/types"
+	cmpService "github.com/crusttech/human/server/compose/service"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/api"
+	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/modern-go/reflect2"
 )
 

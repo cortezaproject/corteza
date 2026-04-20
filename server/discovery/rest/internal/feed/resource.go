@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/discovery/service"
-	"github.com/cortezaproject/corteza/server/discovery/types"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/discovery/service"
+	"github.com/crusttech/human/server/discovery/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/options"
 
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/rbac"
 )
 
 type (

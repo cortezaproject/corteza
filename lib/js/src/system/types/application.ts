@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface PartialApplication extends Partial<
@@ -46,7 +46,7 @@ export class Application {
   }
 
   apply(r?: PartialApplication): void {
-    Apply(this, r, CortezaID, 'applicationID')
+    Apply(this, r, HumanID, 'applicationID')
     Apply(this, r, String, 'name')
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, r, Number, 'weight', 'ownerID')

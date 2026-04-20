@@ -6,21 +6,21 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/handle"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/slice"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/service/event"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	intAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/slice"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service/event"
+	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -1125,15 +1125,15 @@ func UpdateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, b
 	}
 
 	if countBypass == 0 {
-		log.Warn("no bypass roles registered, Corteza might not work as expected")
+		log.Warn("no bypass roles registered, Human might not work as expected")
 	}
 
 	if countAuth == 0 {
-		log.Warn("no roles for authentication users registered, Corteza might not work as expected")
+		log.Warn("no roles for authentication users registered, Human might not work as expected")
 	}
 
 	if countAnony == 0 {
-		log.Warn("no roles for anonymous users registered, Corteza might not work as expected")
+		log.Warn("no roles for anonymous users registered, Human might not work as expected")
 	}
 
 	ru.UpdateRoles(rr...)

@@ -1,7 +1,7 @@
 // @todo option to allow multiple entries
 // @todo option to allow duplicates
 import { ModuleField, Registry, Options, defaultOptions } from './base'
-import { Apply, CortezaID, NoID } from '../../../cast'
+import { Apply, HumanID, NoID } from '../../../cast'
 
 const kind = 'Record'
 
@@ -43,7 +43,7 @@ export class ModuleFieldRecord extends ModuleField {
     if (!o) return
     super.applyOptions(o)
 
-    Apply(this.options, o, CortezaID, 'moduleID')
+    Apply(this.options, o, HumanID, 'moduleID')
     Apply(
       this.options,
       o,

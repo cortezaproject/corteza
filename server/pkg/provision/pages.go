@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/service"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )

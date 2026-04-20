@@ -1,6 +1,6 @@
 package service
 
-import "github.com/cortezaproject/corteza/server/automation/types"
+import "github.com/crusttech/human/server/automation/types"
 
 func recordConstraints() []types.ConstructTriggerConstraint {
 	return []types.ConstructTriggerConstraint{

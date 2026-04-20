@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	automationModels "github.com/cortezaproject/corteza/server/automation/model"
-	composeModels "github.com/cortezaproject/corteza/server/compose/model"
-	federationModels "github.com/cortezaproject/corteza/server/federation/model"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
-	systemModels "github.com/cortezaproject/corteza/server/system/model"
+	automationModels "github.com/crusttech/human/server/automation/model"
+	composeModels "github.com/crusttech/human/server/compose/model"
+	federationModels "github.com/crusttech/human/server/federation/model"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/store/adapters/rdbms/ddl"
+	systemModels "github.com/crusttech/human/server/system/model"
 	"go.uber.org/zap"
 )
 
@@ -195,13 +195,13 @@ func renameColumn(ctx context.Context, s *Store, table string, from, to string) 
 	return nil
 }
 
-// tableNames returns table names that Corteza creates
+// tableNames returns table names that Human creates
 func tableNames() (tnames []string) {
-	cortezaModels := append(systemModels.Models(), composeModels.Models()...)
-	cortezaModels = append(cortezaModels, automationModels.Models()...)
-	cortezaModels = append(cortezaModels, federationModels.Models()...)
+	humanModels := append(systemModels.Models(), composeModels.Models()...)
+	humanModels = append(humanModels, automationModels.Models()...)
+	humanModels = append(humanModels, federationModels.Models()...)
 
-	for _, m := range cortezaModels {
+	for _, m := range humanModels {
 		tnames = append(tnames, m.Ident)
 	}
 

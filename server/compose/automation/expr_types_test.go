@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	aTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	aTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 )
 
@@ -694,7 +694,7 @@ func TestRecordValues_Omit(t *testing.T) {
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/compose/automation
+// pkg: github.com/crusttech/human/server/compose/automation
 // BenchmarkAssignToComposeRecordValues-12    	22131764	        53.22 ns/op	      96 B/op	       1 allocs/op
 // PASS
 func BenchmarkAssignToComposeRecordValues(b *testing.B) {
@@ -712,7 +712,7 @@ func BenchmarkAssignToComposeRecordValues(b *testing.B) {
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/compose/automation
+// pkg: github.com/crusttech/human/server/compose/automation
 // BenchmarkRecordFieldValuesAccess-12    	 1947148	       593.6 ns/op	     544 B/op	      19 allocs/op
 // PASS
 func BenchmarkRecordFieldValuesAccess(b *testing.B) {

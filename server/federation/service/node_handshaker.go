@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/crusttech/human/server/federation/types"
 )
 
 type (
@@ -28,7 +28,7 @@ func HttpHandshake(client httpNodeHandshaker) *httpNodeHandshake {
 
 // Init calls handshake init on a remote node via HTTP
 //
-// Called from node.Pair() and sends POST request to remote Corteza
+// Called from node.Pair() and sends POST request to remote Human
 // There, it is handled with node.HandshakeInit
 //
 // Fn is not part of the node struct to allow injection
@@ -50,7 +50,7 @@ func (h httpNodeHandshake) Init(ctx context.Context, n *types.Node, authToken st
 
 // Confirm calls handshake init on a remote node via HTTP
 //
-// Called from node.Confirm and sends POST request to remote Corteza
+// Called from node.Confirm and sends POST request to remote Human
 // There, it's handled with node.HandshakeComplete
 func (h httpNodeHandshake) Complete(ctx context.Context, n *types.Node, authToken string) error {
 	var (

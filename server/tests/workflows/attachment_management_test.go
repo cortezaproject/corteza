@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/crusttech/human/server/automation/types"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/stretchr/testify/require"
 )
 

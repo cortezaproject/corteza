@@ -25,8 +25,8 @@ var (
 // suppose build version is `20xx.x.x-dev-1` then database_name_{version} will be `database_name_20xx_x_x_dev_1`,
 //
 // IE. `BUILD_VERSION=20xx.x.x-dev-1` and
-// `DB_DSN=corteza:corteza@tcp(localhost:3306)/corteza_{version}?collation=utf8mb4_general_ci`
-// will be `DB_DSN=corteza:corteza@tcp(localhost:3306)/corteza_20xx_x_x_dev_1?collation=utf8mb4_general_ci`
+// `DB_DSN=human:human@tcp(localhost:3306)/human_{version}?collation=utf8mb4_general_ci`
+// will be `DB_DSN=human:human@tcp(localhost:3306)/human_20xx_x_x_dev_1?collation=utf8mb4_general_ci`
 func Connect(ctx context.Context, log *zap.Logger, dsn string, isDevelopment bool) (s Storer, err error) {
 	if isDevelopment {
 		if strings.Contains(dsn, "{version}") {

@@ -62,7 +62,7 @@ func DecodeURI(i string) (du *DecodedURI, err error) {
 
 func EncodeURI(ott, domain string, nodeID uint64) string {
 	u := url.URL{
-		Scheme: "corteza",
+		Scheme: "human",
 		User:   url.UserPassword(strconv.FormatUint(nodeID, 10), ott),
 		Host:   domain,
 	}

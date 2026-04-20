@@ -3,8 +3,8 @@ package request
 import (
 	"encoding/gob"
 
-	"github.com/cortezaproject/corteza/server/auth/settings"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/settings"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/gorilla/sessions"
 )
 

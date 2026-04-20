@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/dal"
 )
 
 // httpClient wraps http.httpClient with context support and convenience methods

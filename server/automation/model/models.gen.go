@@ -7,8 +7,8 @@ package model
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/dal"
 )
 
 var NgAutomation = &dal.Model{

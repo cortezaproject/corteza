@@ -1,12 +1,12 @@
 /**
- * EventBus handles all Corteza events on browser (!! not on corredor server !!)
+ * EventBus handles all Human events on browser (!! not on corredor server !!)
  *
  * Flow #1
  *  1. Corredor prepares a bundle that is loaded on a client
  *  2. Bundle provides a "callback" function that accepts EventBus object +
  *     all context information and configuration that is needed for
  *     handler registration
- * 3a. When a "Corteza event" is dispatched (Dispatch())
+ * 3a. When a "Human event" is dispatched (Dispatch())
  *     event-bus searches for handler and passes on event information
  * 3b. When manual event is executed (Exec())
  *     event-bus searches for handler and passes on event information

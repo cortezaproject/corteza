@@ -1,6 +1,6 @@
 /**
  * Reasons behind this small snippet:
- *  - backend is using uint64 as prefered type for handling CortezaID (of all things)
+ *  - backend is using uint64 as prefered type for handling HumanID (of all things)
  *  - JavaScript can not (without external help) deal with uint64
  *  - Backend's JSON marshaller converts uint64 to string
  *  - Backend's JSON unmarshaller raises error when given anything but string with a number inside
@@ -35,11 +35,11 @@ export declare function PropCast<T>(
  * @param ID
  * @constructor
  */
-export declare function IsCortezaID(ID: unknown): boolean
+export declare function IsHumanID(ID: unknown): boolean
 /**
  * @return {string}
  */
-export declare function CortezaID(value: unknown): string
+export declare function HumanID(value: unknown): string
 /**
  * Apply caster interface that satisfies basic casting functions + String, Number etc...
  */

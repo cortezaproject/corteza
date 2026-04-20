@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
+	"github.com/crusttech/human/server/pkg/envoyx/datasource"
 	"github.com/gabriel-vasile/mimetype"
 )
 

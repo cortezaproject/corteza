@@ -1,7 +1,7 @@
 package compose
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 component: schema.#component & {

@@ -3,7 +3,7 @@ package mapping
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/system/service"
+	"github.com/crusttech/human/server/system/service"
 )
 
 type (

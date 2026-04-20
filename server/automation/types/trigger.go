@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/sql"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (

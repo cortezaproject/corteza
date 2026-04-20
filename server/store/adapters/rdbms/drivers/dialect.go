@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
+	"github.com/crusttech/human/server/pkg/ast"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/doug-martin/goqu/v9/sqlgen"

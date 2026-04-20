@@ -165,7 +165,7 @@ function progressPt(v) {
   }
 }
 
-// Progress bar label (mirrors Corteza's CProgress.progressLabel)
+// Progress bar label (mirrors Human's CProgress.progressLabel)
 function progressLabel(v) {
   const opts = props.field.options || {}
   const min = parseFloat(opts.min || 0)

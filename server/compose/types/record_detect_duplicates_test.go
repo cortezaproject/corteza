@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
 )

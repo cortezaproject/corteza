@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	ftypes "github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/crusttech/human/server/compose/types"
+	ftypes "github.com/crusttech/human/server/federation/types"
 )
 
 type (

@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
 )
@@ -23,7 +23,7 @@ type (
 func NewSessionManager(store store.AuthSessions, opt options.AuthOpt, log *zap.Logger) *SessionManager {
 	m := &SessionManager{opt: opt, log: log}
 	m.cstore = store
-	m.sstore = CortezaSessionStore(store, opt)
+	m.sstore = HumanSessionStore(store, opt)
 	return m
 }
 

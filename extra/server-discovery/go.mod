@@ -1,9 +1,9 @@
-module github.com/cortezaproject/corteza/extra/server-discovery
+module github.com/crusttech/human/extra/server-discovery
 
 go 1.24.1
 
 require (
-	github.com/cortezaproject/corteza/server v0.0.0-00010101000000-000000000000
+	github.com/crusttech/human/server v0.0.0-00010101000000-000000000000
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/go-chi/chi/v5 v5.0.7
@@ -57,4 +57,4 @@ require (
 	moul.io/zapfilter v1.7.0 // indirect
 )
 
-replace github.com/cortezaproject/corteza/server => ../../server
+replace github.com/crusttech/human/server => ../../server

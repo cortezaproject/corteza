@@ -2,8 +2,8 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/discovery/rest/internal/documents"
-	"github.com/cortezaproject/corteza/server/discovery/rest/request"
+	"github.com/crusttech/human/server/discovery/rest/internal/documents"
+	"github.com/crusttech/human/server/discovery/rest/request"
 )
 
 type (

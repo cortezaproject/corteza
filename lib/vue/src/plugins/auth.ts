@@ -735,7 +735,7 @@ export default {
       switch (true) {
         case !!HumanAuth:
           /**
-           * Corteza authentication endpoints location is set explicitly:
+           * Human authentication endpoints location is set explicitly:
            */
           authURL = HumanAuth
           break
@@ -766,12 +766,12 @@ export default {
       }
 
       // @ts-ignore
-      const { CortezaWebapp = undefined } = window
+      const { HumanWebapp = undefined } = window
       const callbackPath = 'auth/callback'
 
-      if (CortezaWebapp) {
+      if (HumanWebapp) {
         // construct redirect URL fallback from configured human webapp
-        callbackURL = Make({ url: `${CortezaWebapp}` })
+        callbackURL = Make({ url: `${HumanWebapp}` })
       } else {
         // Try to get callbackURL from <base> tag's href value
         const baseTags = document.getElementsByTagName('base')

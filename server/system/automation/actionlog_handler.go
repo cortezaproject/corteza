@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	. "github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	. "github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/wfexec"
 )
 
 type (

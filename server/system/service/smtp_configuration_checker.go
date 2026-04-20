@@ -8,10 +8,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/mail"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/system/types"
+	intAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/mail"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/system/types"
 	gomail "gopkg.in/mail.v2"
 )
 

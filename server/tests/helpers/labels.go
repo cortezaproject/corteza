@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/store"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
 )

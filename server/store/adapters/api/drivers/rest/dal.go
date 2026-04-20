@@ -7,11 +7,11 @@ import (
 	"net/url"
 	"strings"
 
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	systemTypes "github.com/crusttech/human/server/system/types"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
-	apidal "github.com/cortezaproject/corteza/server/store/adapters/api/dal"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
+	apidal "github.com/crusttech/human/server/store/adapters/api/dal"
 )
 
 const (

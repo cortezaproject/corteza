@@ -1,5 +1,5 @@
 import lodash from 'lodash-es'
-import { Apply, CortezaID, NoID } from '../../../cast'
+import { Apply, HumanID, NoID } from '../../../cast'
 const { merge } = lodash
 
 export type PartialDisplayElement = Partial<DisplayElement>
@@ -25,7 +25,7 @@ export class DisplayElement {
     if (!de) return
 
     Apply(this, de, String, 'name', 'description')
-    Apply(this, de, CortezaID, 'elementID')
+    Apply(this, de, HumanID, 'elementID')
 
     if (de.options) {
       this.options = merge({}, this.options, de.options)

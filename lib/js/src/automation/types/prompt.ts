@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 
 export class Prompt {
   public ref = ''
@@ -12,7 +12,7 @@ export class Prompt {
   }
 
   apply(u?: Partial<Prompt>): void {
-    Apply(this, u, CortezaID, 'sessionID', 'stateID')
+    Apply(this, u, HumanID, 'sessionID', 'stateID')
     Apply(this, u, String, 'ref')
     Apply(this, u, ISO8601Date, 'createdAt')
 

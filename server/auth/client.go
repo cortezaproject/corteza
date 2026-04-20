@@ -3,10 +3,10 @@ package auth
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/handle"
-	"github.com/cortezaproject/corteza/server/store"
-	systemService "github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/store"
+	systemService "github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cast"
 )
 

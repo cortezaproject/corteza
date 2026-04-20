@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/auth/external"
-	"github.com/cortezaproject/corteza/server/auth/request"
-	"github.com/cortezaproject/corteza/server/auth/settings"
-	"github.com/cortezaproject/corteza/server/pkg/api"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/external"
+	"github.com/crusttech/human/server/auth/request"
+	"github.com/crusttech/human/server/auth/settings"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )

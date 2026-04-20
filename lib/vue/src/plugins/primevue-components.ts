@@ -130,7 +130,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     // Directives
     app.directive('tooltip', Tooltip)
 
-    // Corteza shared components
+    // Human shared components
     app.component('CInputSwitch', CInputSwitch)
     app.component('CInputRole', CInputRole)
     app.component('CFieldPicker', CFieldPicker)

@@ -10,11 +10,11 @@ package automation
 
 import (
 	"context"
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
-	"github.com/cortezaproject/corteza/server/system/types"
+	atypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/expr"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/wfexec"
+	"github.com/crusttech/human/server/system/types"
 )
 
 var _ wfexec.ExecResponse

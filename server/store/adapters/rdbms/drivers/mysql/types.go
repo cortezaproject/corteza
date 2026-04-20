@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers"
 )
 
 type (

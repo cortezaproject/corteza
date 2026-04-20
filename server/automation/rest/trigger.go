@@ -3,11 +3,11 @@ package rest
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/automation/rest/request"
-	"github.com/cortezaproject/corteza/server/automation/service"
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/api"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/automation/rest/request"
+	"github.com/crusttech/human/server/automation/service"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (

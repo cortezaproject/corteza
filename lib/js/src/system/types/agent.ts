@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface AgentMeta {
@@ -179,7 +179,7 @@ export class Agent {
   }
 
   apply(o?: PartialAgent): void {
-    Apply(this, o, CortezaID, 'agentID', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, o, HumanID, 'agentID', 'createdBy', 'updatedBy', 'deletedBy')
     Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, o, String, 'handle', 'status')
     Apply(this, o, Number, 'revision')

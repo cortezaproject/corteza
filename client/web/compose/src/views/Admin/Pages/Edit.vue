@@ -85,7 +85,7 @@
           <Textarea id="description" v-model="page.description" rows="4" auto-resize />
         </div>
 
-        <!-- Page Icon + Other Options (side by side like Corteza) -->
+        <!-- Page Icon + Other Options (side by side like Human) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <!-- Page Icon -->
           <div class="flex flex-col gap-2">
@@ -1020,7 +1020,7 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await pageStore.create(payload)
 
-      // Auto-create a primary layout for the new page (matching Corteza)
+      // Auto-create a primary layout for the new page (matching Human)
       await pageLayoutStore.create({
         namespaceID: props.namespace.namespaceID,
         pageID: created.pageID,

@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/store"
 	_ "github.com/joho/godotenv/autoload"
 )
 

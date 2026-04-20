@@ -2,12 +2,12 @@ package workflows
 
 import (
 	"context"
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/crusttech/human/server/automation/types"
 )
 
 func Test0016_kv_expressions_step(t *testing.T) {

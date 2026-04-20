@@ -184,7 +184,7 @@ async function reorderTree(nodes, parentID) {
   const namespaceID = props.namespace.namespaceID
   const pageIDs = nodes.map(n => n.key)
 
-  // First: update selfID on any reparented nodes (matching old Corteza approach)
+  // First: update selfID on any reparented nodes (matching old Human approach)
   for (const node of nodes) {
     if (node.data?.selfID !== parentID) {
       node.data.selfID = parentID

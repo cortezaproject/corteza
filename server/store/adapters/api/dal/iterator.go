@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/store/adapters/api/drivers"
 )
 
 type (

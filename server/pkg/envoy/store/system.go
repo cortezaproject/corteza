@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	pkgid "github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	pkgid "github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cast"
 )
 

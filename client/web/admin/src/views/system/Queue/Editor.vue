@@ -158,7 +158,7 @@ const initialQueue = ref(null)
 const consumerOptions = computed(() => [
   { label: t('system.queues.editor.info.consumerOptions.store'), value: 'store' },
   { label: t('system.queues.editor.info.consumerOptions.eventbus'), value: 'eventbus' },
-  { label: t('system.queues.editor.info.consumerOptions.corteza'), value: 'corteza' },
+  { label: t('system.queues.editor.info.consumerOptions.human'), value: 'corteza' },
   { label: t('system.queues.editor.info.consumerOptions.redis'), value: 'redis' },
 ])
 
@@ -200,7 +200,7 @@ const resolver = ref(({ values }) => {
 function newQueue() {
   return {
     queue: '',
-    consumer: 'corteza',
+    consumer: 'human',
     meta: {
       handler: '',
       poll_delay: '',

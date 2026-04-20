@@ -1,4 +1,4 @@
-import { Apply, CortezaID, NoID } from '../../cast'
+import { Apply, HumanID, NoID } from '../../cast'
 import { AreObjectsOf } from '../../guards'
 import { DisplayElement, DisplayElementMaker } from './display-elements'
 
@@ -17,7 +17,7 @@ export class Block {
     if (!p) return
 
     Apply(this, p, String, 'title', 'description', 'layout')
-    Apply(this, p, CortezaID, 'blockID')
+    Apply(this, p, HumanID, 'blockID')
 
     if (p.xywh) {
       if (!Array.isArray(p.xywh)) {

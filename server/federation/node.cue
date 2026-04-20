@@ -1,7 +1,7 @@
 package federation
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 node: {

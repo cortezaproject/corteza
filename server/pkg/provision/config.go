@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	se "github.com/cortezaproject/corteza/server/system/envoy"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	se "github.com/crusttech/human/server/system/envoy"
+	"github.com/crusttech/human/server/system/types"
 
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/rbac"
 
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/store"
 	"go.uber.org/zap"
 )
 
@@ -115,7 +115,7 @@ func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths st
 }
 
 // canImportConfig checks state of the store and
-// verifies if Corteza should be provisioned (ie config should be imported)
+// verifies if Human should be provisioned (ie config should be imported)
 func canImportConfig(ctx context.Context, s store.Storer) (bool, error) {
 	rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
 	return len(rr) == 0, err

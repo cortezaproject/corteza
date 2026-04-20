@@ -1,4 +1,4 @@
-import { Apply, CortezaID } from '../../../cast'
+import { Apply, HumanID } from '../../../cast'
 
 export class Button {
   // Used when referring to Corredor automation script
@@ -27,7 +27,7 @@ export class Button {
   constructor(b: Partial<Button>) {
     Apply(this, b, Boolean, 'enabled')
     Apply(this, b, String, 'label', 'variant', 'script', 'resourceType')
-    Apply(this, b, CortezaID, 'workflowID', 'stepID', 'automationID')
+    Apply(this, b, HumanID, 'workflowID', 'stepID', 'automationID')
   }
 }
 

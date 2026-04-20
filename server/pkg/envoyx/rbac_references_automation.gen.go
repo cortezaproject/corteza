@@ -7,7 +7,7 @@ package envoyx
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/crusttech/human/server/automation/types"
 )
 
 // AutomationWorkflowRbacReferences generates RBAC references

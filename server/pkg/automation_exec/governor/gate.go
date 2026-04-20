@@ -1,6 +1,6 @@
 package governor
 
-import "github.com/cortezaproject/corteza/server/pkg/id"
+import "github.com/crusttech/human/server/pkg/id"
 
 type (
 	gates struct {

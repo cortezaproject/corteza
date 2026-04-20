@@ -4,17 +4,17 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/errors"
 
-	cs "github.com/cortezaproject/corteza/server/compose/service"
-	ct "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
-	ss "github.com/cortezaproject/corteza/server/system/service"
-	st "github.com/cortezaproject/corteza/server/system/types"
+	cs "github.com/crusttech/human/server/compose/service"
+	ct "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
+	ss "github.com/crusttech/human/server/system/service"
+	st "github.com/crusttech/human/server/system/types"
 )
 
 type (

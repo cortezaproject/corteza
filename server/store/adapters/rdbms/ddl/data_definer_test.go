@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/stretchr/testify/require"
 )
 

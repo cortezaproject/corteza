@@ -9,7 +9,7 @@ import {
 } from './shared'
 import { System as SystemAPI } from '../../api-clients'
 import { User, Role, Application } from '../../system/'
-import { IsCortezaID } from '../../cast'
+import { IsHumanID } from '../../cast'
 
 interface SystemContext {
   SystemAPI: SystemAPI
@@ -372,7 +372,7 @@ export default class SystemHelper {
 
       if (typeof u === 'string') {
         try {
-          if (IsCortezaID(u)) {
+          if (IsHumanID(u)) {
             // Looks like an ID, try to find it and fall back to handle
             return await this.findUserByID(u)
           } else if (u.indexOf('@') > 0) {
@@ -422,7 +422,7 @@ export default class SystemHelper {
       }
 
       if (typeof r === 'string') {
-        if (IsCortezaID(r)) {
+        if (IsHumanID(r)) {
           // Looks like an ID, try to find it and fall back to handle
           return this.findRoleByID(r).catch(() => this.findRoleByHandle(r as string))
         }

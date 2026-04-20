@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
 )
 
 type (

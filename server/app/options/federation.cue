@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 federation: schema.#optionsGroup & {
@@ -23,7 +23,7 @@ federation: schema.#optionsGroup & {
 		}
 		host: {
 			type:         "string"
-			defaultValue: "local.cortezaproject.org"
+			defaultValue: "local.example.com"
 			description:  "Host that is used during node pairing, also included in invitation"
 		}
 		structure_monitor_interval: {

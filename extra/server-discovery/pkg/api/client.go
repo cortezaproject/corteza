@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
 )
 
 type (
@@ -41,7 +41,7 @@ type (
 	}
 )
 
-func Client(opt options.CortezaOpt, key, secret string) (c *client, err error) {
+func Client(opt options.HumanOpt, key, secret string) (c *client, err error) {
 	c = &client{baseUri: opt.BaseUrl, discoveryBaseUrl: opt.DiscoveryUrl}
 	c.credentials = &credentials{
 		authBaseUri: opt.AuthUrl,
@@ -88,7 +88,7 @@ func (c *client) Request(endpoint string) (req *http.Request, err error) {
 		return
 	}
 
-	req.Header.Set("User-Agent", "corteza-server-discovery/0.1")
+	req.Header.Set("User-Agent", "human-server-discovery/0.1")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.credentials.AccessToken))
 	return

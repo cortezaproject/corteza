@@ -8,29 +8,29 @@ import (
 	"path"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/automation/service"
-	autTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/directory"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/json"
-	envoyStore "github.com/cortezaproject/corteza/server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/store"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/automation/service"
+	autTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/csv"
+	"github.com/crusttech/human/server/pkg/envoy/directory"
+	"github.com/crusttech/human/server/pkg/envoy/json"
+	envoyStore "github.com/crusttech/human/server/pkg/envoy/store"
+	"github.com/crusttech/human/server/pkg/envoy/yaml"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/store"
+	sysTypes "github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	defApp   *app.CortezaApp
+	defApp   *app.HumanApp
 	defStore store.Storer
 	defDal   dal.FullService
 	eventBus = eventbus.New()
@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 	logger.SetDefault(logger.MakeDebugLogger())
 	ctx := context.Background()
 
-	defApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+	defApp = helpers.NewIntegrationTestApp(ctx, func(app *app.HumanApp) (err error) {
 		// some test suites require action-log enabled
 		app.Opt.ActionLog.WorkflowFunctionsEnabled = true
 		defStore = app.Store
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 	defDal = dal.Service()
 
 	if err := defApp.Activate(ctx); err != nil {
-		panic(fmt.Errorf("could not activate corteza: %v", err))
+		panic(fmt.Errorf("could not activate human: %v", err))
 	}
 
 	if err := defApp.InitExpr(ctx); err != nil {

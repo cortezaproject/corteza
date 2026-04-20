@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/messagebus"
-	mtypes "github.com/cortezaproject/corteza/server/pkg/messagebus/types"
-	"github.com/cortezaproject/corteza/server/system/service/event"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/messagebus"
+	mtypes "github.com/crusttech/human/server/pkg/messagebus/types"
+	"github.com/crusttech/human/server/system/service/event"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

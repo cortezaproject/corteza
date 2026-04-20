@@ -8,32 +8,32 @@ import (
 	"path"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/crusttech/human/server/pkg/apigw/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
 
-	"github.com/cortezaproject/corteza/server/app"
-	as "github.com/cortezaproject/corteza/server/automation/service"
-	"github.com/cortezaproject/corteza/server/pkg/api/server"
-	"github.com/cortezaproject/corteza/server/pkg/apigw"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/directory"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	es "github.com/cortezaproject/corteza/server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	ltype "github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/rest"
-	"github.com/cortezaproject/corteza/server/system/service"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/app"
+	as "github.com/crusttech/human/server/automation/service"
+	"github.com/crusttech/human/server/pkg/api/server"
+	"github.com/crusttech/human/server/pkg/apigw"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/csv"
+	"github.com/crusttech/human/server/pkg/envoy/directory"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	es "github.com/crusttech/human/server/pkg/envoy/store"
+	"github.com/crusttech/human/server/pkg/envoy/yaml"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/label"
+	ltype "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/rest"
+	"github.com/crusttech/human/server/system/service"
+	sysTypes "github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/steinfletcher/apitest"
@@ -52,7 +52,7 @@ type (
 )
 
 var (
-	testApp *app.CortezaApp
+	testApp *app.HumanApp
 	r       chi.Router
 
 	eventBus = eventbus.New()
@@ -66,7 +66,7 @@ func InitTestApp() {
 	ctx := cli.Context()
 
 	if testApp == nil {
-		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.HumanApp) (err error) {
 			service.DefaultStore, err = sqlite.ConnectInMemory(ctx)
 			if err != nil {
 				return err
@@ -78,7 +78,7 @@ func InitTestApp() {
 	}
 
 	if err := testApp.Activate(ctx); err != nil {
-		panic(fmt.Errorf("could not activate corteza: %v", err))
+		panic(fmt.Errorf("could not activate human: %v", err))
 	}
 
 	if r == nil {

@@ -1,5 +1,5 @@
 import lodash from 'lodash-es'
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { AreObjectsOf, IsOf } from '../../guards'
 import { PageBlock, PageBlockMaker } from './page-block'
 const { merge } = lodash
@@ -88,7 +88,7 @@ export class Page {
   apply(i?: PartialPage): void {
     if (!i) return
 
-    Apply(this, i, CortezaID, 'pageID', 'selfID', 'moduleID', 'namespaceID')
+    Apply(this, i, HumanID, 'pageID', 'selfID', 'moduleID', 'namespaceID')
     Apply(this, i, String, 'title', 'handle', 'description')
     Apply(this, i, Number, 'weight')
     Apply(this, i, Boolean, 'visible')

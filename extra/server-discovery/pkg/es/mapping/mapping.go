@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/reindex"
+	"github.com/crusttech/human/extra/server-discovery/pkg/es/reindex"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"go.uber.org/zap"
@@ -247,10 +247,10 @@ func (m *mapper) ConfigurationMapping(ctx context.Context) (err error) {
 		}
 	)
 	const (
-		CortezaConfigurationIndex = "corteza-configuration-test"
+		HumanConfigurationIndex = "human-configuration-test"
 	)
 
-	index := fmt.Sprintf(CortezaConfigurationIndex)
+	index := fmt.Sprintf(HumanConfigurationIndex)
 	esc := m.esClient
 
 	if err = json.NewEncoder(buf).Encode(configMap); err != nil {

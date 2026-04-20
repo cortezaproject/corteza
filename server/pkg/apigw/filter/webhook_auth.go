@@ -13,8 +13,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	pe "github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/apigw/types"
+	pe "github.com/crusttech/human/server/pkg/errors"
 )
 
 type (

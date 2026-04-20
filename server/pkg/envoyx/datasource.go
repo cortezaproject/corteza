@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/crusttech/human/server/pkg/envoyx/datasource"
+	"github.com/crusttech/human/server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 

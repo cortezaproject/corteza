@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	. "github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	"github.com/crusttech/human/server/compose/types"
+	. "github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/wfexec"
 )
 
 type (

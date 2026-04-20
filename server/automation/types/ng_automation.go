@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
+	"github.com/crusttech/human/server/pkg/ast"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (

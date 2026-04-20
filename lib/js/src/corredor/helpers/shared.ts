@@ -1,4 +1,4 @@
-import { CortezaID, NoID } from '../../cast'
+import { HumanID, NoID } from '../../cast'
 
 interface KV {
   [_: string]: unknown
@@ -57,7 +57,7 @@ export function extractID(value?: unknown, prop?: string): string {
     value = (value as { [_: string]: unknown })[prop]
   }
 
-  return CortezaID(value)
+  return HumanID(value)
 }
 
 export function isFresh(ID: string): boolean {

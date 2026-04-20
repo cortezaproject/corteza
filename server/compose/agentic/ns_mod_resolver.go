@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	cmpService "github.com/cortezaproject/corteza/server/compose/service"
-	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
+	cmpService "github.com/crusttech/human/server/compose/service"
+	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
 )
 
 type nsModResolver struct{}

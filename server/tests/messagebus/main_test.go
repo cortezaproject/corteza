@@ -7,19 +7,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/messagebus"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
-	"github.com/cortezaproject/corteza/server/system/service"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/messagebus"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/crusttech/human/server/system/service"
+	sysTypes "github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
@@ -36,7 +36,7 @@ type (
 )
 
 var (
-	testApp *app.CortezaApp
+	testApp *app.HumanApp
 	r       chi.Router
 
 	eventBus = eventbus.New()
@@ -60,7 +60,7 @@ func InitTestApp() {
 	if testApp == nil {
 		ctx := cli.Context()
 
-		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.HumanApp) (err error) {
 			service.DefaultStore, err = sqlite.ConnectInMemory(ctx)
 
 			if err != nil {

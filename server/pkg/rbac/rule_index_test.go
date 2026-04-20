@@ -150,7 +150,7 @@ func graby(rr []*Rule, want []int) (out []*Rule) {
 
 // goos: linux
 // goarch: amd64
-// pkg: github.com/cortezaproject/corteza/server/pkg/rbac
+// pkg: github.com/crusttech/human/server/pkg/rbac
 // cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
 // BenchmarkIndexBuild_100-12                 10000            102361 ns/op           88064 B/op       1271 allocs/op
 // BenchmarkIndexBuild_1000-12                 1149           1024872 ns/op          755375 B/op      11183 allocs/op

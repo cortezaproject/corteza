@@ -3,7 +3,7 @@ package types
 import (
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/errors"
 	"go.uber.org/zap"
 )
 

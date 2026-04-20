@@ -17,7 +17,7 @@ interface SurfacePalette {
   900: string
   950: string
 }
-interface CortezaThemeVariables {
+interface HumanThemeVariables {
   primary: string
   success: string
   warning: string
@@ -29,8 +29,8 @@ interface CortezaThemeVariables {
 }
 
 const defaultVariables: {
-  light: CortezaThemeVariables
-  dark: CortezaThemeVariables
+  light: HumanThemeVariables
+  dark: HumanThemeVariables
 } = {
   light: {
     primary: '#09344E',
@@ -208,7 +208,7 @@ export function getThemeVariables(theme: Theme) {
   }
 }
 
-function getSavedThemeVariables(theme: Theme): Partial<CortezaThemeVariables> {
+function getSavedThemeVariables(theme: Theme): Partial<HumanThemeVariables> {
   if (!Array.isArray(themes)) return {}
   const entry = themes.find((t: any) => t.id === theme)
   if (!entry?.values) return {}

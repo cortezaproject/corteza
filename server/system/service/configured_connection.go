@@ -10,21 +10,21 @@ import (
 	"strconv"
 	"strings"
 
-	automationService "github.com/cortezaproject/corteza/server/automation/service"
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/apigw"
-	a "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
-	restDriver "github.com/cortezaproject/corteza/server/store/adapters/api/drivers/rest"
-	"github.com/cortezaproject/corteza/server/system/types"
+	automationService "github.com/crusttech/human/server/automation/service"
+	atypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/apigw"
+	a "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/label"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
+	"github.com/crusttech/human/server/store/adapters/api/drivers/google"
+	restDriver "github.com/crusttech/human/server/store/adapters/api/drivers/rest"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -120,8 +120,8 @@ func (svc *configuredConnection) Create(ctx context.Context, new *types.Configur
 		if new.Labels == nil {
 			new.Labels = make(map[string]labelTypes.LabelValue)
 		}
-		new.Labels["corteza/connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(conn.ID, 10)}
-		new.Labels["corteza/connection-revision"] = labelTypes.LabelValue{Val: strconv.Itoa(conn.Revision)}
+		new.Labels["human/connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(conn.ID, 10)}
+		new.Labels["human/connection-revision"] = labelTypes.LabelValue{Val: strconv.Itoa(conn.Revision)}
 
 		if err = store.CreateConfiguredConnection(ctx, svc.store, new); err != nil {
 			return err
@@ -217,7 +217,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			res.Labels = make(map[string]labelTypes.LabelValue)
 		}
 
-		res.Labels["corteza/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
+		res.Labels["human/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
 
 		n := now()
 		res.UpdatedAt = n
@@ -623,9 +623,9 @@ func (svc *configuredConnection) provisionDAL(ctx context.Context, resolved *typ
 			},
 		},
 		Labels: map[string]string{
-			"corteza/connection-id":         strconv.FormatUint(resolved.ID, 10),
-			"corteza/connection-revision":   strconv.Itoa(resolved.Revision),
-			"corteza/configured-connection": strconv.FormatUint(conn.ID, 10),
+			"human/connection-id":         strconv.FormatUint(resolved.ID, 10),
+			"human/connection-revision":   strconv.Itoa(resolved.Revision),
+			"human/configured-connection": strconv.FormatUint(conn.ID, 10),
 		},
 	}
 
@@ -1162,10 +1162,10 @@ func (svc *configuredConnection) provisionWebhooks(ctx context.Context, resolved
 				Meta: types.ApigwRouteMeta{
 					Desc: fmt.Sprintf("Webhook: %s / %s", res.Handle, wh.Event),
 					Labels: map[string]labelTypes.LabelValue{
-						"corteza.connectionID": {Val: strconv.FormatUint(cc.ID, 10)},
-						"corteza.webhookEvent": {Val: wh.Event},
-						"corteza.resource":     {Val: res.Handle},
-						"corteza.connection":   {Val: resolved.Handle},
+						"human.connectionID": {Val: strconv.FormatUint(cc.ID, 10)},
+						"human.webhookEvent": {Val: wh.Event},
+						"human.resource":     {Val: res.Handle},
+						"human.connection":   {Val: resolved.Handle},
 					},
 				},
 				CreatedAt: *now(),

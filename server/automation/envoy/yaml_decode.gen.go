@@ -12,11 +12,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/y7s"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"golang.org/x/text/language"
@@ -24,7 +24,7 @@ import (
 )
 
 type (
-	// YamlDecoder is responsible for decoding YAML documents into Corteza resources
+	// YamlDecoder is responsible for decoding YAML documents into Human resources
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder struct{}
 
@@ -200,7 +200,7 @@ func (d *auxYamlDoc) unmarshalExtendedTriggersSeq(dctx documentContext, n *yaml.
 }
 
 // unmarshalWorkflowNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Workflow
 
@@ -547,7 +547,7 @@ func (d *auxYamlDoc) unmarshalTriggerSeq(dctx documentContext, n *yaml.Node) (ou
 //       Refer to the corresponding definition files to adjust if needed.
 
 // unmarshalTriggerNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Trigger
 

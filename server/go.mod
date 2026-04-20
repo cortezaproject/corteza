@@ -1,10 +1,10 @@
-module github.com/cortezaproject/corteza/server
+module github.com/crusttech/human/server
 
 go 1.24.1
 
-// This is useful when testing changes on corteza-locale
+// This is useful when testing changes on human-locale
 // and you do not want to push on every change in the locale repo
-// replace github.com/cortezaproject/corteza-locale => ../locale
+// replace github.com/crusttech/human-locale => ../locale
 
 require (
 	github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8

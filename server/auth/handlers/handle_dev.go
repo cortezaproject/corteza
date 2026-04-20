@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cortezaproject/corteza/server/auth/request"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/crusttech/human/server/auth/request"
+	"github.com/crusttech/human/server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 type (
 	EncoderAdapterActivityStreams struct{}
 )
 
-// Build an activity streams format from default internal Corteza
+// Build an activity streams format from default internal Human
 // payload, including the author, activitystreams metadata and paging
 // custom metadata
 func (a EncoderAdapterActivityStreams) BuildStructure(w io.Writer, o options.FederationOpt, p interface{}) (interface{}, error) {
@@ -84,7 +84,7 @@ func (a EncoderAdapterActivityStreams) BuildStructure(w io.Writer, o options.Fed
 	}, nil
 }
 
-// Build an activity streams format from default internal Corteza
+// Build an activity streams format from default internal Human
 // payload, including the author, activitystreams metadata and paging
 // custom metadata
 func (a EncoderAdapterActivityStreams) BuildData(w io.Writer, o options.FederationOpt, p interface{}) (interface{}, error) {

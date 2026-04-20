@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
+	"github.com/crusttech/human/server/store/adapters/api/drivers/google"
 )
 
 type sheetsWrapper struct {

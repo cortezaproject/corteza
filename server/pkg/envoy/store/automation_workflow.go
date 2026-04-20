@@ -3,10 +3,10 @@ package store
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/store"
 )
 
 type (

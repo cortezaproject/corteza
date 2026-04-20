@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/store"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
 )

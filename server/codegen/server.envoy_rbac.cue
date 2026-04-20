@@ -1,20 +1,20 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 	// "strings"
 )
 
 [...schema.#codegen] &
 [
-	for cmp in app.corteza.components {
+	for cmp in app.human.components {
 		template: "gocode/envoy/rbac_references_$component.go.tpl"
 		output:   "pkg/envoyx/rbac_references_\(cmp.ident).gen.go"
 		payload: {
 			package: "envoyx"
 			imports: [
-				"\"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\"",
+				"\"github.com/crusttech/human/server/\(cmp.ident)/types\"",
 			]
 
 			resources: [
@@ -36,13 +36,13 @@ import (
 		payload: {
 			package: "envoyx"
 			imports: [
-				for cmp in app.corteza.components {
-					"\(cmp.ident)Types \"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\""
+				for cmp in app.human.components {
+					"\(cmp.ident)Types \"github.com/crusttech/human/server/\(cmp.ident)/types\""
 				},
 			]
 
 			resources: [
-				for cmp in app.corteza.components for res in cmp.resources if res.rbac != _|_ {
+				for cmp in app.human.components for res in cmp.resources if res.rbac != _|_ {
 					importAlias: "\(cmp.ident)Types"
 					expIdent:    res.expIdent
 
@@ -54,7 +54,7 @@ import (
 					]
 				},
 
-				for cmp in app.corteza.components {
+				for cmp in app.human.components {
 					importAlias: "\(cmp.ident)Types"
 					expIdent:    cmp.expIdent
 
@@ -72,7 +72,7 @@ import (
 		payload: {
 			package: "resource"
 			resources: [
-				for cmp in app.corteza.components for res in cmp.resources if res.locale != _|_ {
+				for cmp in app.human.components for res in cmp.resources if res.locale != _|_ {
 					expIdent: "\(cmp.expIdent)\(res.expIdent)"
 					extended: res.locale.extended
 				},
@@ -87,13 +87,13 @@ import (
 		payload: {
 			package: "resource"
 			imports: [
-				for cmp in app.corteza.components for res in cmp.resources if res.locale != _|_ {
-					"\(cmp.ident)Types \"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\""
+				for cmp in app.human.components for res in cmp.resources if res.locale != _|_ {
+					"\(cmp.ident)Types \"github.com/crusttech/human/server/\(cmp.ident)/types\""
 				},
 			]
 
 			resources: [
-				for cmp in app.corteza.components for res in cmp.resources if res.locale != _|_ {
+				for cmp in app.human.components for res in cmp.resources if res.locale != _|_ {
 					importAlias:  "\(cmp.ident)Types"
 					typeConst:    "\(importAlias).\(res.expIdent)ResourceTranslationType"
 					resTrRefFunc: "\(cmp.expIdent)\(res.expIdent)ResourceTranslationReferences"
@@ -109,13 +109,13 @@ import (
 [
 	// wrapped with additional for loop to trim out templates with empty types list
 	for tpl in [
-		for cmp in app.corteza.components {
+		for cmp in app.human.components {
 			template: "gocode/envoy/resource_translation_references_$component.go.tpl"
 			output:   "pkg/envoy/resource/resource_translation_references_\(cmp.ident).gen.go"
 			payload: {
 				package: "resource"
 				imports: [
-					"\"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\"",
+					"\"github.com/crusttech/human/server/\(cmp.ident)/types\"",
 				]
 
 				resources: [

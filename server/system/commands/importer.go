@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/envoyx"
 )
 
 func Import(ctx context.Context, storeInit storeInitFnc, dalInit dalInitFnc, envoyInit envoyInitFnc) *cobra.Command {

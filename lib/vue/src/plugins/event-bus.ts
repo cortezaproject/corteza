@@ -35,7 +35,7 @@ export class EventBus {
   }
 }
 
-export const EventBusKey: InjectionKey<EventBus> = Symbol('CortezaEventBus')
+export const EventBusKey: InjectionKey<EventBus> = Symbol('HumanEventBus')
 
 export const EventBusPlugin: Plugin = {
   install(app: App) {

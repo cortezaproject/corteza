@@ -14,30 +14,30 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/compose/rest"
-	"github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/api/server"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/directory"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	envoyStore "github.com/cortezaproject/corteza/server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/objstore/plain"
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/compose/rest"
+	"github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/api/server"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/csv"
+	"github.com/crusttech/human/server/pkg/envoy/directory"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	envoyStore "github.com/crusttech/human/server/pkg/envoy/store"
+	"github.com/crusttech/human/server/pkg/envoy/yaml"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/objstore/plain"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
+	sysTypes "github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/afero"
@@ -64,7 +64,7 @@ type (
 )
 
 var (
-	testApp  *app.CortezaApp
+	testApp  *app.HumanApp
 	r        chi.Router
 	testUser *sysTypes.User
 
@@ -91,7 +91,7 @@ func InitTestApp() {
 	if testApp == nil {
 		ctx := cli.Context()
 
-		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.HumanApp) (err error) {
 			service.DefaultStore = app.Store
 			defStore = app.Store
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")

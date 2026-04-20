@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 
 )
 

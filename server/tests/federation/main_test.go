@@ -6,17 +6,17 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/federation/rest"
-	"github.com/cortezaproject/corteza/server/federation/service"
-	"github.com/cortezaproject/corteza/server/pkg/api/server"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/federation/rest"
+	"github.com/crusttech/human/server/federation/service"
+	"github.com/crusttech/human/server/pkg/api/server"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/logger"
+	sysTypes "github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/steinfletcher/apitest"
@@ -35,7 +35,7 @@ type (
 )
 
 var (
-	testApp *app.CortezaApp
+	testApp *app.HumanApp
 	r       chi.Router
 
 	eventBus = eventbus.New()
@@ -49,7 +49,7 @@ func InitTestApp() {
 	if testApp == nil {
 		ctx := cli.Context()
 
-		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.HumanApp) (err error) {
 			app.Opt.Federation.Enabled = true
 			service.DefaultLogger = app.Log
 			service.DefaultStore = app.Store

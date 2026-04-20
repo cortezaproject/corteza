@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 

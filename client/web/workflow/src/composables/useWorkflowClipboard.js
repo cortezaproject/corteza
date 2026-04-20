@@ -1,11 +1,11 @@
 /**
  * Copy / Cut / Paste composable for workflow nodes and edges.
  *
- * Behaviour parity with Corteza's mxGraph clipboard:
+ * Behaviour parity with Human's mxGraph clipboard:
  *   - selecting a swimlane implicitly copies every node nested inside it
  *   - edges between copied nodes are preserved; edges that cross the
  *     selection boundary are dropped
- *   - paste remaps IDs (incrementing integers, matching Corteza's scheme)
+ *   - paste remaps IDs (incrementing integers, matching Human's scheme)
  *   - paste offsets positions by 160px so copies don't stack exactly on the
  *     original
  *   - clipboard payload is also written to the system clipboard as JSON with

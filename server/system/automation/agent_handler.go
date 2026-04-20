@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

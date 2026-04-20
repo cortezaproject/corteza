@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 )
 

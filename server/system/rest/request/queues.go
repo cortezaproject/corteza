@@ -11,8 +11,8 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/payload"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"mime/multipart"

@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/crusttech/human/server/pkg/apigw/types"
 	"github.com/stretchr/testify/require"
 )
 

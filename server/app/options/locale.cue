@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 locale: schema.#optionsGroup & {
@@ -51,7 +51,7 @@ locale: schema.#optionsGroup & {
 		development_mode: {
 			type: "bool"
 			description: """
-				When enabled, Corteza reloads language files on every request
+				When enabled, Human reloads language files on every request
 				Enable this for debugging or developing.
 				"""
 		}

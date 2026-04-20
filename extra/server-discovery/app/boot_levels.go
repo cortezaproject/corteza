@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/indexer"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/auth"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/healthcheck"
-	"github.com/cortezaproject/corteza/extra/server-discovery/searcher"
+	"github.com/crusttech/human/extra/server-discovery/indexer"
+	"github.com/crusttech/human/extra/server-discovery/pkg/auth"
+	"github.com/crusttech/human/extra/server-discovery/pkg/es"
+	"github.com/crusttech/human/extra/server-discovery/pkg/healthcheck"
+	"github.com/crusttech/human/extra/server-discovery/searcher"
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 )
 
 // Setup configures all required services
-func (app *CortezaDiscoveryApp) Setup() (err error) {
+func (app *HumanDiscoveryApp) Setup() (err error) {
 	app.lvl = bootLevelSetup
 
 	hcd := healthcheck.Defaults()
@@ -33,7 +33,7 @@ func (app *CortezaDiscoveryApp) Setup() (err error) {
 }
 
 // InitStore initializes open search store and runs upgrade procedures
-func (app *CortezaDiscoveryApp) InitStore(ctx context.Context) (err error) {
+func (app *HumanDiscoveryApp) InitStore(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelStoreInitialized {
 		// Is store already initialised?
 		return nil
@@ -48,7 +48,7 @@ func (app *CortezaDiscoveryApp) InitStore(ctx context.Context) (err error) {
 
 // Provision instance with configuration and settings
 // by importing preset configurations and running autodiscovery procedures
-func (app *CortezaDiscoveryApp) Provision(ctx context.Context) (err error) {
+func (app *HumanDiscoveryApp) Provision(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelProvisioned {
 		return
 	}
@@ -62,7 +62,7 @@ func (app *CortezaDiscoveryApp) Provision(ctx context.Context) (err error) {
 }
 
 // InitServices initializes all services used
-func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
+func (app *HumanDiscoveryApp) InitServices(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelServicesInitialized {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
 
 	if app.Opt.Indexer.Enabled {
 		err = indexer.Initialize(ctx, app.Log, indexer.Config{
-			Corteza:      app.Opt.Corteza,
+			Human:      app.Opt.Human,
 			ES:           app.Opt.ES,
 			Indexer:      app.Opt.Indexer,
 			VectorSearch: app.Opt.VectorSearch,
@@ -95,7 +95,7 @@ func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
 
 	if app.Opt.Searcher.Enabled {
 		err = searcher.Initialize(ctx, app.Log, searcher.Config{
-			Corteza:    app.Opt.Corteza,
+			Human:    app.Opt.Human,
 			ES:         app.Opt.ES,
 			HttpServer: app.Opt.HTTPServer,
 			Searcher:   app.Opt.Searcher,
@@ -110,7 +110,7 @@ func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
 }
 
 // Activate start all internal services and watchers
-func (app *CortezaDiscoveryApp) Activate(ctx context.Context) (err error) {
+func (app *HumanDiscoveryApp) Activate(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelActivated {
 		return
 	}

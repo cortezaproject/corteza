@@ -2,7 +2,7 @@ package options
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 	"os"
 	"strings"
 )
@@ -11,9 +11,9 @@ type (
 	IndexerOpt struct {
 		Enabled bool
 		//HttpAddr             string
-		CortezaServerBaseUrl string
-		CortezaServerAuthUrl string
-		CortezaDiscoveryAPI  string
+		HumanServerBaseUrl string
+		HumanServerAuthUrl string
+		HumanDiscoveryAPI  string
 
 		Schemas []*schema
 	}
@@ -41,14 +41,14 @@ func Indexer() (o *IndexerOpt, err error) {
 
 		//o.HttpAddr = options.EnvString(indexerEnvKeyHttpAddr, "0.0.0.0:80")
 
-		//o.CortezaServerAuthUrl = options.EnvString(envKeyAuthUrl, baseUrl+"/auth")
-		//if o.CortezaServerAuthUrl == "" {
-		//	return fmt.Errorf("corteza Auth endpoint value empty, set it directly with %s or indirectly with %s", envKeyAuthUrl, envKeyBaseUrl)
+		//o.HumanServerAuthUrl = options.EnvString(envKeyAuthUrl, baseUrl+"/auth")
+		//if o.HumanServerAuthUrl == "" {
+		//	return fmt.Errorf("Human Auth endpoint value empty, set it directly with %s or indirectly with %s", envKeyAuthUrl, envKeyBaseUrl)
 		//}
 		//
-		//o.CortezaDiscoveryAPI = options.EnvString(envKeyDiscoveryUrl, baseUrl+"/api/discovery")
-		//if o.CortezaDiscoveryAPI == "" {
-		//	return fmt.Errorf("corteza Discovery API endpoint value empty, set it directly with %s or indirectly with %s", envKeyDiscoveryUrl, envKeyBaseUrl)
+		//o.HumanDiscoveryAPI = options.EnvString(envKeyDiscoveryUrl, baseUrl+"/api/discovery")
+		//if o.HumanDiscoveryAPI == "" {
+		//	return fmt.Errorf("Human Discovery API endpoint value empty, set it directly with %s or indirectly with %s", envKeyDiscoveryUrl, envKeyBaseUrl)
 		//}
 
 		//o.IndexInterval = options.EnvInt(indexerEnvKeyIndexInterval, 30)

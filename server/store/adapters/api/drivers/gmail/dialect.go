@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/api/drivers"
 )
 
 type (

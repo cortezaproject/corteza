@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface PartialConnection extends Partial<
@@ -85,7 +85,7 @@ export class Connection {
   }
 
   apply(c?: PartialConnection): void {
-    Apply(this, c, CortezaID, 'connectionID')
+    Apply(this, c, HumanID, 'connectionID')
     Apply(this, c, String, 'handle', 'status', 'createdBy', 'updatedBy', 'deletedBy')
     Apply(this, c, Number, 'revision')
 

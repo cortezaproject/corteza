@@ -5,25 +5,25 @@ import (
 	"fmt"
 	"sync"
 
-	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
+	composeCommands "github.com/crusttech/human/server/compose/commands"
 
-	authCommands "github.com/cortezaproject/corteza/server/auth/commands"
-	federationCommands "github.com/cortezaproject/corteza/server/federation/commands"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/api/server"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/store"
-	systemCommands "github.com/cortezaproject/corteza/server/system/commands"
+	authCommands "github.com/crusttech/human/server/auth/commands"
+	federationCommands "github.com/crusttech/human/server/federation/commands"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/api/server"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/store"
+	systemCommands "github.com/crusttech/human/server/system/commands"
 	"go.uber.org/zap"
 )
 
-// InitCLI function initializes basic Corteza subsystems
+// InitCLI function initializes basic Human subsystems
 // and sets-up the command line interface
-func (app *CortezaApp) InitCLI() {
+func (app *HumanApp) InitCLI() {
 	var (
 		ctx = cli.Context()
 
@@ -57,7 +57,7 @@ func (app *CortezaApp) InitCLI() {
 		"Load environmental variables from files and directories containing .env file.\n"+
 			"Values from loaded files DO NOT override existing variables from the environment.\n"+
 			"This flag can be used multiple times, values are loaded from all provided locations.\n"+
-			"If no paths are provided, corteza loads .env file from the current directory (equivalent to --env-file .)")
+			"If no paths are provided, human loads .env file from the current directory (equivalent to --env-file .)")
 
 	serveCmd := cli.ServeCommand(func() (err error) {
 		wg := &sync.WaitGroup{}
@@ -88,7 +88,7 @@ func (app *CortezaApp) InitCLI() {
 		}
 
 		if err = app.Activate(ctx); err != nil {
-			cli.HandleError(fmt.Errorf("could not start Corteza: %w", err))
+			cli.HandleError(fmt.Errorf("could not start Human: %w", err))
 			return nil
 		}
 
@@ -153,6 +153,6 @@ func (app *CortezaApp) InitCLI() {
 
 }
 
-func (app *CortezaApp) Execute() error {
+func (app *HumanApp) Execute() error {
 	return app.Command.Execute()
 }

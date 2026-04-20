@@ -2,8 +2,8 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
 	"testing"

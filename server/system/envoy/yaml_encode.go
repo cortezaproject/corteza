@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/y7s"
+	"github.com/crusttech/human/server/system/types"
 	"gopkg.in/yaml.v3"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/stretchr/testify/require"
 )
 

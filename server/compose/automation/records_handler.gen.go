@@ -10,10 +10,10 @@ package automation
 
 import (
 	"context"
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	atypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/wfexec"
 )
 
 var _ wfexec.ExecResponse
@@ -1513,7 +1513,7 @@ func (h recordsHandler) Report() *atypes.Function {
 				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
 					Label:       "Filter for records report",
-					Description: "Filter in CortezaQL format",
+					Description: "Filter in HumanQL format",
 				},
 			},
 		},

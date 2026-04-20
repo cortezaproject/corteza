@@ -3,8 +3,8 @@ package ledger
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/id"
 	"go.uber.org/zap"
 )
 

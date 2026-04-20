@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 )
 

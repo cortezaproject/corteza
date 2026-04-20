@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/id"
 
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/store/adapters/rdbms/ddl"
+	"github.com/crusttech/human/server/store/adapters/rdbms/ql"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers"
 	"github.com/jmoiron/sqlx"
 )
 
 type (
 	// connection provides (pkg/dal.Connection) interface to RDBMS implementation
 	//
-	// In other words: this allows Corteza to read Records from the supported SQL databases
+	// In other words: this allows Human to read Records from the supported SQL databases
 	connection struct {
 		mux    sync.RWMutex
 		models map[string]*model

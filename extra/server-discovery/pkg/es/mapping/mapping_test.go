@@ -2,7 +2,7 @@ package mapping
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 	"os"
 	"strings"
 	"testing"
@@ -14,8 +14,8 @@ type (
 		es       struct {
 			addresses []string
 		}
-		cortezaAuth         string
-		cortezaDiscoveryAPI string
+		humanAuth         string
+		humanDiscoveryAPI string
 		schemas             []*schema
 	}
 
@@ -44,7 +44,7 @@ func TestMappings(t *testing.T) {
 	//client, err := Es(cfg.es.addresses)
 	//req.NoError(err)
 	//
-	//api, err := indexer.ApiClient(cfg.cortezaDiscoveryAPI, cfg.cortezaAuth, cfg.schemas[0].clientKey, cfg.schemas[0].clientSecret)
+	//api, err := indexer.ApiClient(cfg.humanDiscoveryAPI, cfg.humanAuth, cfg.schemas[0].clientKey, cfg.schemas[0].clientSecret)
 	//req.NoError(err)
 	//
 	//err = Mappings(ctx, log, client, api, "private")
@@ -55,18 +55,18 @@ func TestMappings(t *testing.T) {
 func GetConfig() (*config, error) {
 	c := &config{}
 	return c, func() error {
-		baseUrl := options.EnvString("CORTEZA_SERVER_BASE_URL", "http://server:80")
+		baseUrl := options.EnvString("HUMAN_SERVER_BASE_URL", "http://server:80")
 
 		c.httpAddr = options.EnvString(envKeyHttpAddr, "127.0.0.1:3201")
 
-		c.cortezaAuth = options.EnvString("CORTEZA_SERVER_AUTH", baseUrl+"/auth")
-		if c.cortezaAuth == "" {
-			return fmt.Errorf("corteza Auth endpoint value empty, set it directly with CORTEZA_SERVER_AUTH or indirectly with CORTEZA_SERVER_BASE_URL")
+		c.humanAuth = options.EnvString("HUMAN_SERVER_AUTH", baseUrl+"/auth")
+		if c.humanAuth == "" {
+			return fmt.Errorf("Human Auth endpoint value empty, set it directly with HUMAN_SERVER_AUTH or indirectly with HUMAN_SERVER_BASE_URL")
 		}
 
-		c.cortezaDiscoveryAPI = options.EnvString("CORTEZA_SERVER_API_DISCOVERY", baseUrl+"/api/discovery")
-		if c.cortezaDiscoveryAPI == "" {
-			return fmt.Errorf("corteza Discovery API endpoint value empty, set it directly with CORTEZA_SERVER_AUTH or indirectly with CORTEZA_SERVER_API_DISCOVERY")
+		c.humanDiscoveryAPI = options.EnvString("HUMAN_SERVER_API_DISCOVERY", baseUrl+"/api/discovery")
+		if c.humanDiscoveryAPI == "" {
+			return fmt.Errorf("Human Discovery API endpoint value empty, set it directly with HUMAN_SERVER_AUTH or indirectly with HUMAN_SERVER_API_DISCOVERY")
 		}
 
 		for _, ar := range []string{"public", "protected", "private"} {

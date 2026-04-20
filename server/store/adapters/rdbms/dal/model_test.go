@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	. "github.com/cortezaproject/corteza/server/store/adapters/rdbms/dal"
+	"github.com/crusttech/human/server/pkg/ast"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/logger"
+	. "github.com/crusttech/human/server/store/adapters/rdbms/dal"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
 )

@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 )
 
-func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error) {
+func (app *HumanApp) initDAL(ctx context.Context, log *zap.Logger) (err error) {
 	// no-op - if DAL is already initialized
 	if dal.Initialized() {
 		return

@@ -1,5 +1,5 @@
 import lodash from 'lodash-es'
-import { Apply, CortezaID, NoID } from '../../../cast'
+import { Apply, HumanID, NoID } from '../../../cast'
 import { IsOf } from '../../../guards'
 const { merge } = lodash
 
@@ -152,7 +152,7 @@ export class ModuleField {
   public apply(f?: Partial<ModuleField>): void {
     if (!f) return
 
-    Apply(this, f, CortezaID, 'fieldID')
+    Apply(this, f, HumanID, 'fieldID')
     Apply(this, f, String, 'name', 'label', 'kind')
     Apply(this, f, Number, 'maxLength')
     Apply(this, f, Boolean, 'isRequired', 'isMulti', 'isSystem')

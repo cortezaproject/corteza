@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/automation/rest/request"
-	"github.com/cortezaproject/corteza/server/automation/service"
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/compose/automation"
-	cmpService "github.com/cortezaproject/corteza/server/compose/service"
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/api"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	"github.com/crusttech/human/server/automation/rest/request"
+	"github.com/crusttech/human/server/automation/service"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/compose/automation"
+	cmpService "github.com/crusttech/human/server/compose/service"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/wfexec"
 )
 
 type (
@@ -122,7 +122,7 @@ func (ctrl Session) ResumeState(ctx context.Context, r *request.SessionResumeSta
 	//
 	// Very naive approach for now.
 	//
-	// @note copied from https://github.com/cortezaproject/corteza/blob/2023.9.x/server/automation/rest/workflow.go#L189
+	// @note copied from https://github.com/crusttech/human/blob/2023.9.x/server/automation/rest/workflow.go#L189
 	//       copied to reduce the need for some dependency; should be good enough for now
 	r.Input.Each(func(k string, v expr.TypedValue) error {
 		switch c := v.(type) {

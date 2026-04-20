@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 type (
@@ -37,16 +37,16 @@ func Searcher() (*SearcherOpt, error) {
 	return o, func() error {
 		o.Enabled = options.EnvBool(searcherEnvKeyEnabled, true)
 
-		//o.CortezaServerBaseUrl = options.EnvString(envKeyBaseUrl, "http://server:80")
-		//if o.CortezaServerBaseUrl == "" {
-		//	return fmt.Errorf("endpoint URL for corteza (%s) is empty or missing", envKeyAuthUrl)
+		//o.HumanServerBaseUrl = options.EnvString(envKeyBaseUrl, "http://server:80")
+		//if o.HumanServerBaseUrl == "" {
+		//	return fmt.Errorf("endpoint URL for Human (%s) is empty or missing", envKeyAuthUrl)
 		//}
 
 		//o.HttpAddr = options.EnvString(searcherEnvKeyHttpAddr, "0.0.0.0:80")
 
-		//o.CortezaServerAuthUrl = options.EnvString(envKeyAuthUrl, o.CortezaServerBaseUrl+"/auth")
-		//if o.CortezaServerAuthUrl == "" {
-		//	return fmt.Errorf("endpoint URL for corteza auth (%s) is empty or missing", envKeyAuthUrl)
+		//o.HumanServerAuthUrl = options.EnvString(envKeyAuthUrl, o.HumanServerBaseUrl+"/auth")
+		//if o.HumanServerAuthUrl == "" {
+		//	return fmt.Errorf("endpoint URL for Human auth (%s) is empty or missing", envKeyAuthUrl)
 		//}
 
 		if tmp := os.Getenv(envKeyJwtSecret); tmp != "" {

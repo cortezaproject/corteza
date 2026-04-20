@@ -3,15 +3,15 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/options"
 	"go.uber.org/zap"
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/discovery/types"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/discovery/types"
+	"github.com/crusttech/human/server/store"
 )
 
 type (

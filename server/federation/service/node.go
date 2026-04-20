@@ -8,16 +8,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/errors"
 
-	"github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/service"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
 const (
@@ -494,7 +494,7 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 
 	if service.UserErrNotFound().Is(err) {
 		user := &sysTypes.User{
-			Email:  strconv.FormatUint(n.ID, 10) + "@federation.corteza",
+			Email:  strconv.FormatUint(n.ID, 10) + "@federation.human",
 			Handle: uHandle,
 		}
 
@@ -568,7 +568,7 @@ func (node) decodePairingURI(uri string) (*types.Node, error) {
 // that is used to identify remote federation server ID with pairing token
 //
 // URI structure:
-// corteza+federation://<node ID>:<pairing token>@<this-host-where-the-api-is></path-to-federation-api>?qs-meta-data
+// human+federation://<node ID>:<pairing token>@<this-host-where-the-api-is></path-to-federation-api>?qs-meta-data
 func (svc node) makePairingURI(n *types.Node) string {
 	uri := url.URL{
 		Scheme: "https",

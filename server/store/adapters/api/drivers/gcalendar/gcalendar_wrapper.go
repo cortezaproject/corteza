@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
+	"github.com/crusttech/human/server/store/adapters/api/drivers/google"
 )
 
 type calendarWrapper struct {

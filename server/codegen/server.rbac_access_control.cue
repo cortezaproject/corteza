@@ -1,19 +1,19 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
-	"github.com/cortezaproject/corteza/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
 )
 
 [...schema.#codegen] &
 [
-	for cmp in app.corteza.components {
+	for cmp in app.human.components {
 		template: "gocode/rbac/$component_access_control.go.tpl"
 		output:   "\(cmp.ident)/service/access_control.gen.go"
 		payload: {
 			package: "service"
 			imports: [
-				"\"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\"",
+				"\"github.com/crusttech/human/server/\(cmp.ident)/types\"",
 			]
 
 			// All known RBAC resources

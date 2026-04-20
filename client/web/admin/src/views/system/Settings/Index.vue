@@ -226,7 +226,7 @@
             </span>
             <InputText
               v-model="settings['auth.multi-factor.totp.issuer']"
-              placeholder="Corteza"
+              placeholder="Human"
               class="w-full"
             />
           </div>

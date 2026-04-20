@@ -1,5 +1,5 @@
 import { AreObjectsOf, IsOf } from '../../guards'
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { Module } from './module'
 import { Namespace } from './namespace'
 
@@ -159,9 +159,9 @@ export class Record {
       throw new Error('record and module namespace do not match')
     }
 
-    Apply(this, r, CortezaID, 'recordID', 'moduleID', 'namespaceID')
+    Apply(this, r, HumanID, 'recordID', 'moduleID', 'namespaceID')
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, r, CortezaID, 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, r, HumanID, 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
 
     Apply(this, r, Number, 'revision')
 

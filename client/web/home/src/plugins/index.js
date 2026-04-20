@@ -48,7 +48,7 @@ function setupPrimeVue(app, theme) {
   app.use(ConfirmationService)
   app.use(DialogService)
 
-  // Corteza toast wrapper
+  // Human toast wrapper
   app.use(ToastPlugin)
 
   // Register common PrimeVue components globally

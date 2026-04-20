@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/pkg/corredor"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/system/service/event"
+	"github.com/crusttech/human/server/pkg/corredor"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/system/service/event"
 )
 
 type (

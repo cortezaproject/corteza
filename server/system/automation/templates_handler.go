@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	. "github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
-	"github.com/cortezaproject/corteza/server/system/types"
+	. "github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/wfexec"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cast"
 )
 

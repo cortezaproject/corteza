@@ -3,7 +3,7 @@ package rbac
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/stretchr/testify/require"
 )
 

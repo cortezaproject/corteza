@@ -3,7 +3,7 @@ package gmail
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers/google"
+	"github.com/crusttech/human/server/store/adapters/api/drivers/google"
 )
 
 type gmailWrapper struct {

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 _allFeaturesDisabled: {
@@ -11,11 +11,11 @@ _allFeaturesDisabled: {
 	checkFn: false
 }
 
-resources: { [key=_]: {"handle": key, "component": "system", "platform": "corteza" } & schema.#PkgResource } & {
+resources: { [key=_]: {"handle": key, "component": "system", "platform": "human" } & schema.#PkgResource } & {
 	"rbac-rule": {
 		package: {
 			ident: "rbac"
-			import: "github.com/cortezaproject/corteza/server/pkg/rbac"
+			import: "github.com/crusttech/human/server/pkg/rbac"
 		}
 
 		ident: "rule"
@@ -72,7 +72,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 	"label": {
 		package: {
 			ident: "labels"
-			import: "github.com/cortezaproject/corteza/server/pkg/label/types"
+			import: "github.com/crusttech/human/server/pkg/label/types"
 		}
 
 		ident: "label"
@@ -157,7 +157,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 	"flag": {
 		package: {
 			ident: "flag"
-			import: "github.com/cortezaproject/corteza/server/pkg/flag/types"
+			import: "github.com/crusttech/human/server/pkg/flag/types"
 		}
 
 		ident: "flag"
@@ -231,7 +231,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 	"actionlog": {
 		package: {
 			ident: "actionlog"
-			import: "github.com/cortezaproject/corteza/server/pkg/actionlog"
+			import: "github.com/crusttech/human/server/pkg/actionlog"
 		}
 
 		ident: "action"
@@ -331,7 +331,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 	"resource-activity": {
 		package: {
 			ident: "discovery"
-			import: "github.com/cortezaproject/corteza/server/discovery/types"
+			import: "github.com/crusttech/human/server/discovery/types"
 		}
 
 		ident: "resourceActivity"

@@ -6,23 +6,23 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/assets"
-	automationRest "github.com/cortezaproject/corteza/server/automation/rest"
-	composeRest "github.com/cortezaproject/corteza/server/compose/rest"
-	discoveryRest "github.com/cortezaproject/corteza/server/discovery/rest"
-	"github.com/cortezaproject/corteza/server/docs"
-	federationRest "github.com/cortezaproject/corteza/server/federation/rest"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/crusttech/human/server/assets"
+	automationRest "github.com/crusttech/human/server/automation/rest"
+	composeRest "github.com/crusttech/human/server/compose/rest"
+	discoveryRest "github.com/crusttech/human/server/discovery/rest"
+	"github.com/crusttech/human/server/docs"
+	federationRest "github.com/crusttech/human/server/federation/rest"
+	"github.com/crusttech/human/server/pkg/logger"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/webapp"
-	systemRest "github.com/cortezaproject/corteza/server/system/rest"
-	"github.com/cortezaproject/corteza/server/system/scim"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/webapp"
+	systemRest "github.com/crusttech/human/server/system/rest"
+	"github.com/crusttech/human/server/system/scim"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
 
-func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
+func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 	var (
 		ho = app.Opt.HTTPServer
 	)

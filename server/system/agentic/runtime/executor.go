@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/system/agentic/knowledge"
-	"github.com/cortezaproject/corteza/server/system/agentic/observability"
-	"github.com/cortezaproject/corteza/server/system/agentic/policy"
-	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
-	"github.com/cortezaproject/corteza/server/system/types"
+	autoTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/system/agentic/knowledge"
+	"github.com/crusttech/human/server/system/agentic/observability"
+	"github.com/crusttech/human/server/system/agentic/policy"
+	"github.com/crusttech/human/server/system/agentic/tcl"
+	"github.com/crusttech/human/server/system/types"
 )
 
 //go:embed human.md

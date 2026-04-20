@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	h "github.com/cortezaproject/corteza/server/pkg/http"
+	h "github.com/crusttech/human/server/pkg/http"
 )
 
 type (

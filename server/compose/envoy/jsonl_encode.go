@@ -7,9 +7,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
-	"github.com/cortezaproject/corteza/server/pkg/j7s"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/envoyx/datasource"
+	"github.com/crusttech/human/server/pkg/j7s"
 )
 
 type (

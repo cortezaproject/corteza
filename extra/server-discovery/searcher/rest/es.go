@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -295,10 +295,10 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 	// Decide what indexes we can use
 	if userID == 0 {
 		// Missing, invalid, expired access token (JWT)
-		index.Prefix.Index.Value = "corteza-public-"
+		index.Prefix.Index.Value = "human-public-"
 	} else {
 		// Authenticated user
-		index.Prefix.Index.Value = "corteza-private-"
+		index.Prefix.Index.Value = "human-private-"
 
 		if !allowedRoleExist {
 			// Skip all documents that do not have baring roles in to allow list

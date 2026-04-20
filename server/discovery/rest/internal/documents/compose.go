@@ -6,16 +6,16 @@ import (
 	"strconv"
 	"strings"
 
-	cmpService "github.com/cortezaproject/corteza/server/compose/service"
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/discovery/service"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	sysService "github.com/cortezaproject/corteza/server/system/service"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	cmpService "github.com/crusttech/human/server/compose/service"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/discovery/service"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/rbac"
+	sysService "github.com/crusttech/human/server/system/service"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
 type (
@@ -493,7 +493,7 @@ func (d composeResources) recordValues(ctx context.Context, rec *cmpTypes.Record
 // getUrlToResource construct page url for compose resources
 func (d composeResources) getUrlToResource(page pageDetail) (url string) {
 	var (
-		host          = d.opt.CortezaDomain
+		host          = d.opt.HumanDomain
 		validNsSlung  = len(page.namespaceSlug) > 0
 		validModuleID = page.moduleID > 0
 		validRecord   = page.recordID > 0

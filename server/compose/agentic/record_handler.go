@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
-	cmpService "github.com/cortezaproject/corteza/server/compose/service"
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
+	cmpService "github.com/crusttech/human/server/compose/service"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )

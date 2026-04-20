@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 const (
 	ActivityStreamsStructure EncodingFormat = 0
-	CortezaInternalStructure EncodingFormat = 1
+	HumanInternalStructure EncodingFormat = 1
 	ActivityStreamsData      EncodingFormat = 2
-	CortezaInternalData      EncodingFormat = 3
+	HumanInternalData      EncodingFormat = 3
 )
 
 type (
@@ -41,16 +41,16 @@ func (e Encoder) Encode(payload interface{}, t EncodingFormat) error {
 		ea = &EncoderAdapterActivityStreams{}
 		resp, err = ea.BuildStructure(e.w, e.o, payload)
 		break
-	case CortezaInternalStructure:
-		ea = &EncoderAdapterCortezaInternal{}
+	case HumanInternalStructure:
+		ea = &EncoderAdapterHumanInternal{}
 		resp, err = ea.BuildStructure(e.w, e.o, payload)
 		break
 	case ActivityStreamsData:
 		ea = &EncoderAdapterActivityStreams{}
 		resp, err = ea.BuildData(e.w, e.o, payload)
 		break
-	case CortezaInternalData:
-		ea = &EncoderAdapterCortezaInternal{}
+	case HumanInternalData:
+		ea = &EncoderAdapterHumanInternal{}
 		resp, err = ea.BuildData(e.w, e.o, payload)
 		break
 	}

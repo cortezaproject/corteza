@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/mail"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

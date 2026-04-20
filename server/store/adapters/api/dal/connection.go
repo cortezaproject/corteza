@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/api/drivers"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
+	"github.com/crusttech/human/server/store/adapters/api/drivers"
+	"github.com/crusttech/human/server/store/adapters/rdbms/ql"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
 	// connection provides (pkg/dal.Connection) interface to HTTP implementation
 	//
-	// In other words: this allows Corteza to read Records from the REST API
+	// In other words: this allows Human to read Records from the REST API
 	connection struct {
 		mux    sync.RWMutex
 		models map[string]*model

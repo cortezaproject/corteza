@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/store"
 )
 
 func newComposeChartFromResource(res *resource.ComposeChart, cfg *EncoderConfig) resourceState {

@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	mtypes "github.com/cortezaproject/corteza/server/pkg/messagebus/types"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/pkg/id"
+	mtypes "github.com/crusttech/human/server/pkg/messagebus/types"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
 
@@ -28,7 +28,7 @@ func (h helper) repoMakeMessagebusQueue(consumer ...string) *types.Queue {
 	}
 
 	if len(consumer) == 0 {
-		res.Consumer = string(mtypes.ConsumerCorteza)
+		res.Consumer = string(mtypes.ConsumerHuman)
 	} else {
 		res.Consumer = consumer[0]
 	}

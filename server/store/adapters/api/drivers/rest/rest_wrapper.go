@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
 )
 
 type (

@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 agentic: schema.#optionsGroup & {
@@ -11,7 +11,7 @@ agentic: schema.#optionsGroup & {
 	options: {
 		mcp_server_name: {
 			description:  "MCP server name reported to clients."
-			defaultValue: "Corteza MCP"
+			defaultValue: "Human MCP"
 		}
 		mcp_server_version: {
 			description:  "MCP server version reported to clients."

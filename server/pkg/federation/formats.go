@@ -3,8 +3,8 @@ package federation
 import (
 	"time"
 
-	ct "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/federation/types"
+	ct "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/federation/types"
 )
 
 type (
@@ -54,12 +54,12 @@ type (
 		Items        interface{}                        `json:"items"`
 	}
 
-	listModuleResponseCortezaInternal struct {
+	listModuleResponseHumanInternal struct {
 		Filter *types.ExposedModuleFilter `json:"filter"`
 		Set    *types.ExposedModuleSet    `json:"set"`
 	}
 
-	listRecordResponseCortezaInternal struct {
+	listRecordResponseHumanInternal struct {
 		Filter *ct.RecordFilter `json:"filter"`
 		Set    *ct.RecordSet    `json:"set"`
 	}

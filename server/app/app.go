@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/auth/settings"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/llm"
-	mcpkg "github.com/cortezaproject/corteza/server/system/agentic/mcp"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/settings"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/llm"
+	mcpkg "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/spf13/cobra"
@@ -46,7 +46,7 @@ type (
 		http.Handler
 	}
 
-	CortezaApp struct {
+	HumanApp struct {
 		Opt *options.Options
 		lvl int
 		Log *zap.Logger
@@ -81,8 +81,8 @@ type (
 	}
 )
 
-func New() *CortezaApp {
-	app := &CortezaApp{
+func New() *HumanApp {
+	app := &HumanApp{
 		lvl: bootLevelWaiting,
 		Log: logger.Default(),
 	}
@@ -91,6 +91,6 @@ func New() *CortezaApp {
 	return app
 }
 
-func (app *CortezaApp) Options() *options.Options {
+func (app *HumanApp) Options() *options.Options {
 	return app.Opt
 }

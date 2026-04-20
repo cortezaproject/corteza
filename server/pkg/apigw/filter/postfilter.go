@@ -9,11 +9,11 @@ import (
 	"reflect"
 	"strings"
 
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	errors "github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	atypes "github.com/crusttech/human/server/automation/types"
+	agctx "github.com/crusttech/human/server/pkg/apigw/ctx"
+	"github.com/crusttech/human/server/pkg/apigw/types"
+	errors "github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/expr"
 )
 
 type (

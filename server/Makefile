@@ -17,7 +17,7 @@ RELEASE_NAME           = $(BUILD_NAME).tar.gz
 RELEASE_EXTRA_FILES   ?= LICENSE DCO .env.example
 RELEASE_PKEY          ?= .upload-rsa
 
-LDFLAGS_VERSION        = -X github.com/cortezaproject/corteza/server/pkg/version.Version=$(BUILD_VERSION)
+LDFLAGS_VERSION        = -X github.com/crusttech/human/server/pkg/version.Version=$(BUILD_VERSION)
 LDFLAGS_EXTRA         ?=
 LDFLAGS                = -ldflags "$(LDFLAGS_VERSION) $(LDFLAGS_EXTRA)"
 
@@ -54,10 +54,10 @@ DEV_MAILHOG_HTTP_ADDR ?= 8025
 
 GIN_ARG_LADDR ?= localhost
 GIN_ARG_PORT  ?= 3001
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --build cmd/corteza --immediate --bin build/gin-bin
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --build cmd/human --immediate --bin build/gin-bin
 
-GIN_CORTEZA_ENV_FILE ?= .env
-GIN_CORTEZA_BIN_ARGS ?= --env-file $(GIN_CORTEZA_ENV_FILE)
+GIN_HUMAN_ENV_FILE ?= .env
+GIN_HUMAN_BIN_ARGS ?= --env-file $(GIN_HUMAN_ENV_FILE)
 
 DOCKER                ?= docker
 
@@ -82,7 +82,7 @@ help:
 build: $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME)
 
 $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME):
-		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) $(GO) build $(LDFLAGS) -o $@ cmd/corteza/main.go
+		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) $(GO) build $(LDFLAGS) -o $@ cmd/human/main.go
 
 release: build $(BUILD_DEST_DIR)/$(RELEASE_NAME)
 
@@ -110,7 +110,7 @@ $(RELEASE_PKEY):
 # Development
 
 watch: $(GIN)
-	$(GIN) $(GIN_ARGS) -- $(GIN_CORTEZA_BIN_ARGS) serve
+	$(GIN) $(GIN_ARGS) -- $(GIN_HUMAN_BIN_ARGS) serve
 
 dev: watch # Alias for watch
 

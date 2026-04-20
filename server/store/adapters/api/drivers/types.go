@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )

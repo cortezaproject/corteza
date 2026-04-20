@@ -12,9 +12,9 @@ export const nonQueryableFieldKinds = [
 ]
 
 /**
- * Escapes special characters for Corteza QL string literals
+ * Escapes special characters for Human QL string literals
  *
- * Corteza QL uses backslash-based escaping within string literals (delimited by single quotes).
+ * Human QL uses backslash-based escaping within string literals (delimited by single quotes).
  * The QL lexer recognizes only two escape sequences:
  * - \' for single quote
  * - \\ for backslash

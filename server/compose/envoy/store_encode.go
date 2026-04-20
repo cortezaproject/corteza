@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/store"
 	"github.com/pkg/errors"
 )
 

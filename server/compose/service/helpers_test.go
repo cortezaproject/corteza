@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/store"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/store"
+	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

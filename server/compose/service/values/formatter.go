@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/logger"
 	"go.uber.org/zap"
 )
 

@@ -1,7 +1,7 @@
 /**
  * Incrementing ID generator for workflow nodes and edges.
  *
- * Mirrors Corteza's mxGraph behavior where IDs are simple incrementing
+ * Mirrors Human's mxGraph behavior where IDs are simple incrementing
  * integers: 2, 3, 4, ... (1 is reserved for the root/default parent).
  *
  * @param {Ref|Array} nodes - reactive nodes array (or .value)

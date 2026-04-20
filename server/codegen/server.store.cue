@@ -3,8 +3,8 @@ package codegen
 import (
 	"strings"
 	"list"
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 
@@ -194,28 +194,28 @@ _payload: {
 
 	imports: {
 		// per-component type imports
-		for cmp in app.corteza.components for res in cmp.resources if res.store != _|_ {
-			"github.com/cortezaproject/corteza/server/\(cmp.ident)/types": "\(cmp.ident)Type"
+		for cmp in app.human.components for res in cmp.resources if res.store != _|_ {
+			"github.com/crusttech/human/server/\(cmp.ident)/types": "\(cmp.ident)Type"
 		}
 
-		for res in app.corteza.resources if res.store != _|_ {
+		for res in app.human.resources if res.store != _|_ {
 			"\(res.package.import)": "\(res.package.ident)Type"
 		}
 
-		for cmp in app.corteza.components for res in cmp.resources for i in res.imports {
+		for cmp in app.human.components for res in cmp.resources for i in res.imports {
 			"\(i.import)": ""
 		}
 	}
 
 	types: {
 		// for each resource in every store with store and actions defined
-		for cmp in app.corteza.components for res in cmp.resources if res.store != _|_ {
+		for cmp in app.human.components for res in cmp.resources if res.store != _|_ {
 			// use _Store resource as a function (https://cuetorials.com/patterns/functions/)
 			// and pass res(ource) and type-package string in as "arguments"
 			"\(res.store.ident)": { _StoreResource & { "res": res, "typePkg": "\(cmp.ident)Type" } }.result
 		},
 
-		for res in app.corteza.resources if res.store != _|_ {
+		for res in app.human.resources if res.store != _|_ {
 			"\(res.store.ident)": { _StoreResource & { "res": res, "typePkg": "\(res.package.ident)Type" } }.result
 		}
 	}

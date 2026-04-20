@@ -3,7 +3,7 @@ package request
 import (
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/crusttech/human/server/pkg/payload"
 )
 
 type (

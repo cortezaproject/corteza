@@ -4,7 +4,7 @@ const uint64zeropad = '00000000000000000000'
 
 /**
  * Reasons behind this small snippet:
- *  - backend is using uint64 as prefered type for handling CortezaID (of all things)
+ *  - backend is using uint64 as prefered type for handling HumanID (of all things)
  *  - JavaScript can not (without external help) deal with uint64
  *  - Backend's JSON marshaller converts uint64 to string
  *  - Backend's JSON unmarshaller raises error when given anything but string with a number inside
@@ -61,7 +61,7 @@ export function PropCast<T>(
  * @param ID
  * @constructor
  */
-export function IsCortezaID(ID: unknown): boolean {
+export function IsHumanID(ID: unknown): boolean {
   if (typeof ID !== 'string') {
     return false
   }
@@ -76,7 +76,7 @@ export function IsCortezaID(ID: unknown): boolean {
 /**
  * @return {string}
  */
-export function CortezaID(value: unknown): string {
+export function HumanID(value: unknown): string {
   if (!value) {
     return NoID
   }
@@ -85,11 +85,11 @@ export function CortezaID(value: unknown): string {
     return value.toString()
   }
 
-  if (IsCortezaID(value)) {
+  if (IsHumanID(value)) {
     return value as string
   }
 
-  throw new Error('Invalid CortezaID value')
+  throw new Error('Invalid HumanID value')
 }
 
 /**
@@ -195,7 +195,7 @@ export function ApplyWhitelisted<DST, SRC, _WL, T extends keyof DST>(
 }
 
 export function makeIDSortable(ID?: string): string {
-  // We're using uint64 for CortezaID and JavaScript does not know how to handle this type
+  // We're using uint64 for HumanID and JavaScript does not know how to handle this type
   // natively. We get the value from backend as string anyway and we need to prefix
   // it with '0' to ensure string sorting does what we need it to.
   return uint64zeropad.substr((ID || '').length) + (ID || '')

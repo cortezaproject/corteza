@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
-	"github.com/cortezaproject/corteza/server/system/types"
+	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type mockConversationStore struct {

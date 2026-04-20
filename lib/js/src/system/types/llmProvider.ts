@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface PartialLlmProvider extends Partial<
@@ -59,7 +59,7 @@ export class LlmProvider {
   }
 
   apply(o?: PartialLlmProvider): void {
-    Apply(this, o, CortezaID, 'llmProviderID', 'credentialID')
+    Apply(this, o, HumanID, 'llmProviderID', 'credentialID')
     Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, o, String, 'handle', 'status', 'provider')
     Apply(this, o, Boolean, 'canUpdateLlmProvider', 'canDeleteLlmProvider', 'canGrant')
@@ -72,7 +72,7 @@ export class LlmProvider {
       this.config = { ...this.config, ...o.config }
     }
 
-    Apply(this, o, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, o, HumanID, 'createdBy', 'updatedBy', 'deletedBy')
   }
 
   clone(): LlmProvider {

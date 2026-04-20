@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/dalutils"
-	"github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/compose/service/values"
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/store"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/compose/dalutils"
+	"github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/compose/service/values"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/store"
+	systemTypes "github.com/crusttech/human/server/system/types"
 )
 
 var (

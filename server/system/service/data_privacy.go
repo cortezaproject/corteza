@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	a "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/service/event"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	a "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service/event"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

@@ -10,7 +10,7 @@ import {
   makeAlias,
 } from './util'
 
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../../cast'
 
 export type PartialChart = Partial<BaseChart>
 
@@ -101,7 +101,7 @@ export class BaseChart {
 
   merge(c: PartialChart) {
     let conf = { ...(c.config || {}) }
-    Apply(this, c, CortezaID, 'chartID', 'namespaceID')
+    Apply(this, c, HumanID, 'chartID', 'namespaceID')
     Apply(this, c, String, 'name', 'handle')
     Apply(this, c, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, c, Boolean, 'canUpdateChart', 'canDeleteChart', 'canGrant')

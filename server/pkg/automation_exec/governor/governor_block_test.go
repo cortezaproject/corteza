@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
 )
 
 // TL;DR: When an execution exhausts its per-execution budget, further requests block until the window resets.

@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/discovery/service"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/discovery/service"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/options"
 
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	sysService "github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/rbac"
+	sysService "github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (
@@ -91,8 +91,8 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string, user
 				Updated: makePartialChange(u.UpdatedAt),
 				Deleted: makePartialChange(u.DeletedAt),
 			}
-			if len(d.opt.CortezaDomain) > 0 && u.ID > 0 {
-				doc.Url = fmt.Sprintf("%s/admin/system/user/edit/%d", d.opt.CortezaDomain, u.ID)
+			if len(d.opt.HumanDomain) > 0 && u.ID > 0 {
+				doc.Url = fmt.Sprintf("%s/admin/system/user/edit/%d", d.opt.HumanDomain, u.ID)
 			}
 
 			allowedRoles, deniedRoles := d.rbac.SignificantRoles(u, "read")

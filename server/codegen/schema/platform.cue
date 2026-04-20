@@ -1,7 +1,7 @@
 package schema
 
 #platform: {
-	ident: #baseHandle | *"corteza"
+	ident: #baseHandle | *"human"
 
 	options: [...#optionsGroup]
 

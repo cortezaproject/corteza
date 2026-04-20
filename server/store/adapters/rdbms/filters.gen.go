@@ -7,16 +7,16 @@ package rdbms
 //
 
 import (
-	automationType "github.com/cortezaproject/corteza/server/automation/types"
-	composeType "github.com/cortezaproject/corteza/server/compose/types"
-	discoveryType "github.com/cortezaproject/corteza/server/discovery/types"
-	federationType "github.com/cortezaproject/corteza/server/federation/types"
-	actionlogType "github.com/cortezaproject/corteza/server/pkg/actionlog"
-	flagType "github.com/cortezaproject/corteza/server/pkg/flag/types"
-	labelsType "github.com/cortezaproject/corteza/server/pkg/label/types"
-	rbacType "github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
-	systemType "github.com/cortezaproject/corteza/server/system/types"
+	automationType "github.com/crusttech/human/server/automation/types"
+	composeType "github.com/crusttech/human/server/compose/types"
+	discoveryType "github.com/crusttech/human/server/discovery/types"
+	federationType "github.com/crusttech/human/server/federation/types"
+	actionlogType "github.com/crusttech/human/server/pkg/actionlog"
+	flagType "github.com/crusttech/human/server/pkg/flag/types"
+	labelsType "github.com/crusttech/human/server/pkg/label/types"
+	rbacType "github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers"
+	systemType "github.com/crusttech/human/server/system/types"
 	"github.com/doug-martin/goqu/v9"
 	"strings"
 )

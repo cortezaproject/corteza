@@ -1,16 +1,5 @@
 <template>
   <div class="flex flex-col">
-    <div
-      v-if="kind !== 'Content'"
-      class="configurator-section"
-    >
-      <div class="configurator-section__title">{{ $t('general.general') }}</div>
-      <basic
-        :item="item"
-        @update-value="$emit('update-value', $event)"
-      />
-    </div>
-
     <component
       :is="stepComponent"
       v-if="stepComponent"
@@ -25,13 +14,11 @@
 </template>
 <script>
 import base from './base.vue'
-import basic from './basic.vue'
 import * as Configurators from './loader'
 
 export default {
   components: {
     ...Configurators,
-    basic,
   },
 
   extends: base,

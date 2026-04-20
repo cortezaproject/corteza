@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	atypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
 )
 
 type (

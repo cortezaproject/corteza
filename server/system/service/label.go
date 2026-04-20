@@ -4,12 +4,12 @@ import (
 	"context"
 	"strconv"
 
-	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/store"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	automationTypes "github.com/crusttech/human/server/automation/types"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/store"
+	systemTypes "github.com/crusttech/human/server/system/types"
 )
 
 type (

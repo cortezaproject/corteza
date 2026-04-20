@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/slice"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/slice"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cobra"
 )
 

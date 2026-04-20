@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,5 +1,5 @@
 import lodash from 'lodash-es'
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 const { merge } = lodash
 
@@ -104,10 +104,10 @@ export class DalConnection {
   }
 
   apply(dc?: PartialDalConnection): void {
-    Apply(this, dc, CortezaID, 'connectionID')
+    Apply(this, dc, HumanID, 'connectionID')
     Apply(this, dc, String, 'handle', 'type')
     Apply(this, dc, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, dc, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, dc, HumanID, 'createdBy', 'updatedBy', 'deletedBy')
     Apply(this, dc, Boolean, 'canDeleteConnection', 'canManageDalConfig')
 
     if (IsOf(dc, 'meta')) {

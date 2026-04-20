@@ -1,8 +1,8 @@
 package store
 
 import (
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
 )
 
 type (

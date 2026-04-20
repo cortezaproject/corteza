@@ -10,10 +10,10 @@ package event
 
 import (
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/compose/automation"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/compose/automation"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/expr"
 )
 
 // dummy placing to simplify import generation logic

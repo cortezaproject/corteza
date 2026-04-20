@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	atypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/expr"
 )
 
 type (

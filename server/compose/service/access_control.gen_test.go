@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/stretchr/testify/require"
 )
 

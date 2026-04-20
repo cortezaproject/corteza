@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf, AreStrings } from '../../guards'
 
 interface PartialRole extends Partial<
@@ -54,7 +54,7 @@ export class Role {
   }
 
   apply(r?: PartialRole): void {
-    Apply(this, r, CortezaID, 'roleID')
+    Apply(this, r, HumanID, 'roleID')
 
     Apply(this, r, String, 'name', 'handle')
 

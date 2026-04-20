@@ -14,10 +14,10 @@ import (
 
 	"golang.org/x/net/html"
 
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
@@ -140,11 +140,11 @@ func serveConfig(r chi.Router, config webappConfig) {
 		w.Header().Add("Content-Type", "text/javascript")
 
 		const line = "window.%s = '%s';\n"
-		_, _ = fmt.Fprintf(w, line, "CortezaAPI", config.apiBaseUrl)
-		_, _ = fmt.Fprintf(w, line, "CortezaAuth", config.authBaseUrl)
-		_, _ = fmt.Fprintf(w, line, "CortezaWebapp", config.webappBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "HumanAPI", config.apiBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "HumanAuth", config.authBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "HumanWebapp", config.webappBaseUrl)
 		if len(config.discoveryApiBaseUrl) > 0 {
-			_, _ = fmt.Fprintf(w, line, "CortezaDiscoveryAPI", config.discoveryApiBaseUrl)
+			_, _ = fmt.Fprintf(w, line, "HumanDiscoveryAPI", config.discoveryApiBaseUrl)
 		}
 		if len(config.sentryUrl) > 0 {
 			_, _ = fmt.Fprintf(w, line, "SentryDSN", config.sentryUrl)
@@ -192,15 +192,15 @@ const snippetScripts = %s;
 if (snippetScripts !== null) {
 	snippetScripts.forEach(snippetScript => {
 		const scriptAttr = document.createElement("script");
-		
+
 		if (snippetScript.src) {
 			scriptAttr.src = snippetScript.src;
 		}
-		
+
 		if (snippetScript.integrity) {
 			scriptAttr.integrity = snippetScript.integrity;
 		}
-		
+
 		if (snippetScript.crossorigin) {
 			scriptAttr.crossOrigin = snippetScript.crossorigin;
 		}
@@ -208,9 +208,9 @@ if (snippetScripts !== null) {
 		if (snippetScript.content) {
 			scriptAttr.textContent = snippetScript.content;
 		}
-		
+
 		document.head.appendChild(scriptAttr);
-	});		
+	});
 }
 
             `, string(snippetScriptsJson))

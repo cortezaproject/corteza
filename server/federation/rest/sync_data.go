@@ -7,19 +7,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 
-	cs "github.com/cortezaproject/corteza/server/compose/service"
-	ct "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/federation/rest/request"
-	"github.com/cortezaproject/corteza/server/federation/service"
-	"github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/federation"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	ss "github.com/cortezaproject/corteza/server/system/service"
-	st "github.com/cortezaproject/corteza/server/system/types"
+	cs "github.com/crusttech/human/server/compose/service"
+	ct "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/federation/rest/request"
+	"github.com/crusttech/human/server/federation/service"
+	"github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/federation"
+	"github.com/crusttech/human/server/pkg/filter"
+	ss "github.com/crusttech/human/server/system/service"
+	st "github.com/crusttech/human/server/system/types"
 )
 
 type (
@@ -131,7 +131,7 @@ func (ctrl SyncData) ReadExposedInternal(ctx context.Context, r *request.SyncDat
 
 		fEncoder := federation.NewEncoder(w, service.DefaultOptions)
 
-		err = fEncoder.Encode(payload, federation.CortezaInternalData)
+		err = fEncoder.Encode(payload, federation.HumanInternalData)
 
 		if err != nil {
 			errors.ServeHTTP(w, req, err, false)

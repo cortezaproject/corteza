@@ -3,8 +3,8 @@ package mssql
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	rdbmsdal "github.com/cortezaproject/corteza/server/store/adapters/rdbms/dal"
+	"github.com/crusttech/human/server/pkg/dal"
+	rdbmsdal "github.com/crusttech/human/server/store/adapters/rdbms/dal"
 )
 
 func init() {

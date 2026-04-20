@@ -1,4 +1,4 @@
-import { Apply, CortezaID, NoID } from '../../../cast'
+import { Apply, HumanID, NoID } from '../../../cast'
 import { PageBlock, PageBlockInput, Registry } from './base'
 
 const kind = 'Comment'
@@ -44,7 +44,7 @@ export class PageBlockComment extends PageBlock {
 
   applyOptions(o?: Partial<Options>): void {
     if (!o) return
-    Apply(this.options, o, CortezaID, 'moduleID')
+    Apply(this.options, o, HumanID, 'moduleID')
     Apply(
       this.options,
       o,

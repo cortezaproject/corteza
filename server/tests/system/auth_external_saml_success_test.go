@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/auth/handlers"
-	"github.com/cortezaproject/corteza/server/auth/saml"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/handlers"
+	"github.com/crusttech/human/server/auth/saml"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	s "github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
 	"github.com/golang-jwt/jwt/v4"
@@ -149,7 +149,7 @@ func TestAuthExternalSAMLSuccess(t *testing.T) {
 	cookies = append(cookies, cookieTokenIDPtoSPAfterLogin)
 
 	// once everything is set and the external authentication via
-	// internal Corteza services is done, redirect to default path (profile)
+	// internal Human services is done, redirect to default path (profile)
 	t.Log("redirect to profile after session is created")
 
 	h.apiInit().

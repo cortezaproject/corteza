@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/system/rest/request"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/system/rest/request"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

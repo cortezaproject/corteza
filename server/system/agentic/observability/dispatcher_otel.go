@@ -22,7 +22,7 @@ type otelDispatcher struct {
 
 func NewOtelDispatcher(tp *sdktrace.TracerProvider) *otelDispatcher {
 	return &otelDispatcher{
-		tracer:       tp.Tracer("corteza.agent"),
+		tracer:       tp.Tracer("human.agent"),
 		tp:           tp,
 		events:       make(map[string][]AgentEvent),
 		pending:      make(map[string][]AgentSpan),

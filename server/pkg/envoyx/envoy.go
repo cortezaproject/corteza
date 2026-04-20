@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/expr"
 )
 
 type (
@@ -198,7 +198,7 @@ func (svc *Service) Bake(ctx context.Context, p EncodeParams, providers []Provid
 	return
 }
 
-// Encode encodes Corteza resources bases on the provided encode params
+// Encode encodes Human resources bases on the provided encode params
 //
 // use the BuildDepGraph function to build the default dependency graph.
 func (svc *Service) Encode(ctx context.Context, p EncodeParams, dg *DepGraph) (err error) {

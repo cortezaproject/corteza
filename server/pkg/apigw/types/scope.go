@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	h "github.com/cortezaproject/corteza/server/pkg/http"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	h "github.com/crusttech/human/server/pkg/http"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 type (

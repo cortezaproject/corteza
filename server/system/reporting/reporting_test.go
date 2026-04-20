@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/ast"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 

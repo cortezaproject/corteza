@@ -12,35 +12,35 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/aymerick/douceur/css
 github.com/aymerick/douceur/parser
-# github.com/cortezaproject/corteza/server v0.0.0-00010101000000-000000000000 => ../../server
+# github.com/crusttech/human/server v0.0.0-00010101000000-000000000000 => ../../server
 ## explicit; go 1.24.1
-github.com/cortezaproject/corteza/server/compose/types
-github.com/cortezaproject/corteza/server/pkg/api
-github.com/cortezaproject/corteza/server/pkg/ast
-github.com/cortezaproject/corteza/server/pkg/cast2
-github.com/cortezaproject/corteza/server/pkg/cli
-github.com/cortezaproject/corteza/server/pkg/dal
-github.com/cortezaproject/corteza/server/pkg/errors
-github.com/cortezaproject/corteza/server/pkg/expr
-github.com/cortezaproject/corteza/server/pkg/filter
-github.com/cortezaproject/corteza/server/pkg/geolocation
-github.com/cortezaproject/corteza/server/pkg/gvalfnc
-github.com/cortezaproject/corteza/server/pkg/handle
-github.com/cortezaproject/corteza/server/pkg/http
-github.com/cortezaproject/corteza/server/pkg/id
-github.com/cortezaproject/corteza/server/pkg/label/types
-github.com/cortezaproject/corteza/server/pkg/locale
-github.com/cortezaproject/corteza/server/pkg/logger
-github.com/cortezaproject/corteza/server/pkg/options
-github.com/cortezaproject/corteza/server/pkg/payload
-github.com/cortezaproject/corteza/server/pkg/ql
-github.com/cortezaproject/corteza/server/pkg/rand
-github.com/cortezaproject/corteza/server/pkg/slice
-github.com/cortezaproject/corteza/server/pkg/sql
-github.com/cortezaproject/corteza/server/pkg/str
-github.com/cortezaproject/corteza/server/pkg/version
-github.com/cortezaproject/corteza/server/pkg/xss
-github.com/cortezaproject/corteza/server/system/types
+github.com/crusttech/human/server/compose/types
+github.com/crusttech/human/server/pkg/api
+github.com/crusttech/human/server/pkg/ast
+github.com/crusttech/human/server/pkg/cast2
+github.com/crusttech/human/server/pkg/cli
+github.com/crusttech/human/server/pkg/dal
+github.com/crusttech/human/server/pkg/errors
+github.com/crusttech/human/server/pkg/expr
+github.com/crusttech/human/server/pkg/filter
+github.com/crusttech/human/server/pkg/geolocation
+github.com/crusttech/human/server/pkg/gvalfnc
+github.com/crusttech/human/server/pkg/handle
+github.com/crusttech/human/server/pkg/http
+github.com/crusttech/human/server/pkg/id
+github.com/crusttech/human/server/pkg/label/types
+github.com/crusttech/human/server/pkg/locale
+github.com/crusttech/human/server/pkg/logger
+github.com/crusttech/human/server/pkg/options
+github.com/crusttech/human/server/pkg/payload
+github.com/crusttech/human/server/pkg/ql
+github.com/crusttech/human/server/pkg/rand
+github.com/crusttech/human/server/pkg/slice
+github.com/crusttech/human/server/pkg/sql
+github.com/crusttech/human/server/pkg/str
+github.com/crusttech/human/server/pkg/version
+github.com/crusttech/human/server/pkg/xss
+github.com/crusttech/human/server/system/types
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -224,4 +224,4 @@ gopkg.in/yaml.v3
 # moul.io/zapfilter v1.7.0
 ## explicit; go 1.13
 moul.io/zapfilter
-# github.com/cortezaproject/corteza/server => ../../server
+# github.com/crusttech/human/server => ../../server

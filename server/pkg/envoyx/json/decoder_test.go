@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
+	"github.com/crusttech/human/server/pkg/envoyx/datasource"
 	"github.com/stretchr/testify/require"
 )
 

@@ -7,8 +7,8 @@ package model
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/system/types"
 )
 
 var Agent = &dal.Model{

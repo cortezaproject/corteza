@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	intAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
-	"github.com/cortezaproject/corteza/server/system/service/event"
+	"github.com/crusttech/human/server/system/service/event"
 )
 
 type (

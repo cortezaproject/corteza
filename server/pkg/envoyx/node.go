@@ -3,12 +3,12 @@ package envoyx
 import (
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/spf13/cast"
 )
 
 type (
-	// Node is a wrapper around a Corteza resource for use within Envoy
+	// Node is a wrapper around a Human resource for use within Envoy
 	Node struct {
 		Resource   resource
 		Datasource Datasource

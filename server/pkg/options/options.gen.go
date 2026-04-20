@@ -7,8 +7,8 @@ package options
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/pkg/version"
+	"github.com/crusttech/human/server/pkg/rand"
+	"github.com/crusttech/human/server/pkg/version"
 	"time"
 )
 
@@ -261,7 +261,7 @@ type (
 	DiscoveryOpt struct {
 		Enabled             bool   `env:"DISCOVERY_ENABLED"`
 		Debug               bool   `env:"DISCOVERY_DEBUG"`
-		CortezaDomain       string `env:"DISCOVERY_CORTEZA_DOMAIN"`
+		HumanDomain         string `env:"DISCOVERY_HUMAN_DOMAIN"`
 		BaseUrl             string `env:"DISCOVERY_BASE_URL"`
 		JwtSecret           string `env:"DISCOVERY_JWT_SECRET"`
 		EmbeddingsEnabled   bool   `env:"DISCOVERY_EMBEDDINGS_ENABLED"`
@@ -359,7 +359,7 @@ func HttpServer() (o *HttpServerOpt) {
 		Addr:                   ":80",
 		EnableHealthcheckRoute: true,
 		EnableVersionRoute:     true,
-		MetricsServiceLabel:    "corteza",
+		MetricsServiceLabel:    "human",
 		MetricsUsername:        "metrics",
 		MetricsPassword:        string(rand.Bytes(5)),
 		EnablePanicReporting:   true,
@@ -560,7 +560,7 @@ func Auth() (o *AuthOpt) {
 		CsrfEnabled:              true,
 		CsrfFieldName:            "same-site-authenticity-token",
 		CsrfCookieName:           "same-site-authenticity-token",
-		DefaultClient:            "corteza-webapp",
+		DefaultClient:            "human-webapp",
 		DefaultUserGroup:         "default-root",
 		DefaultSubUserGroup:      "default-sub-root",
 	}
@@ -682,7 +682,7 @@ func Eventbus() (o *EventbusOpt) {
 func Federation() (o *FederationOpt) {
 	o = &FederationOpt{
 		Label:                    "federated",
-		Host:                     "local.cortezaproject.org",
+		Host:                     "local.example.com",
 		StructureMonitorInterval: time.Minute * 2,
 		StructurePageSize:        1,
 		DataMonitorInterval:      time.Minute,
@@ -1187,7 +1187,7 @@ func Observability() (o *ObservabilityOpt) {
 // This function is auto-generated
 func Agentic() (o *AgenticOpt) {
 	o = &AgenticOpt{
-		McpServerName:       "Corteza MCP",
+		McpServerName:       "Human MCP",
 		McpServerVersion:    "v1",
 		AnthropicApiVersion: "2023-06-01",
 	}

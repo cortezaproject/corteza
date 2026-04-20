@@ -3,10 +3,10 @@ package runtime
 import (
 	"context"
 
-	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/system/agentic/knowledge"
-	"github.com/cortezaproject/corteza/server/system/agentic/observability"
-	"github.com/cortezaproject/corteza/server/system/types"
+	autoTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/system/agentic/knowledge"
+	"github.com/crusttech/human/server/system/agentic/observability"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

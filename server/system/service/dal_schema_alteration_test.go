@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 )
 
 func TestAppliableAlterations(t *testing.T) {

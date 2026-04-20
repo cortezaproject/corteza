@@ -2,9 +2,9 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/system/rest/request"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/rest/request"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

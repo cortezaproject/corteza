@@ -22,7 +22,7 @@ else
         API_HOST=${API_HOST:-"api.${VIRTUAL_HOST:-"${DOMAIN:-"localhost"}"}"}
         API_BASEURL=${API_FULL_URL:-"//${API_HOST}"}
 
-        echo "window.CortezaAPI = '${API_BASEURL}'" > "$prefix/config.js"
+        echo "window.HumanAPI = '${API_BASEURL}'" > "$prefix/config.js"
       fi
     fi
 

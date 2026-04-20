@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/locale"
 )
 
 func errUnauthorized() error {

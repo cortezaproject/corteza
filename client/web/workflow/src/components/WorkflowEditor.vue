@@ -230,29 +230,101 @@
           @mousedown="startDrawerResize"
         />
         <!-- Drawer content -->
-        <div class="flex-1 overflow-auto px-3 py-2">
+        <div class="flex-1 flex flex-col overflow-auto px-3 py-2">
           <!-- Header -->
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <img
-                v-if="getSidebarItemIcon"
-                :src="getSidebarItemIcon"
-                class="h-10 w-10 object-contain"
-              />
-              <h3 class="text-lg font-semibold text-color m-0">
-                {{ getSidebarItemType }}
-              </h3>
+          <div class="flex items-start justify-between pr-1 group/header">
+            <div class="flex items-center gap-3 flex-1 min-w-0 pr-2">
+              <div
+                class="w-10 h-10 rounded-border flex items-center justify-center shrink-0 bg-surface"
+              >
+                <img
+                  v-if="getSidebarItemIcon"
+                  :src="getSidebarItemIcon"
+                  class="h-6 w-6 object-contain"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div v-if="isEditingLabel" class="flex items-center gap-2">
+                  <InputText
+                    ref="labelInputRef"
+                    v-model="editLabelValue"
+                    size="small"
+                    class="w-full"
+                    @keyup.enter="saveLabel"
+                    @blur="saveLabel"
+                  />
+                </div>
+                <h3
+                  v-else
+                  class="text-lg font-semibold text-color truncate flex items-center gap-2 m-0"
+                >
+                  <span class="truncate">
+                    {{ getSelectedItem?.node?.value || getSidebarItemType }}
+                  </span>
+                  <Button
+                    icon="pi pi-pencil"
+                    text
+                    rounded
+                    size="small"
+                    class="opacity-0 group-hover/header:opacity-100 transition-opacity !w-6 !h-6 !p-0 shrink-0"
+                    @click="startEditLabel"
+                  />
+                </h3>
+                <div class="text-xs text-muted-color truncate">
+                  {{ getSidebarItemType
+                  }}<template v-if="getSelectedItem?.node?.id">
+                    · #{{ getSelectedItem.node.id }}
+                  </template>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
-              <span v-if="getSelectedItem?.node?.id" class="text-sm text-muted-color">
-                {{ getSelectedItem.node.id }}
-              </span>
-              <Button icon="pi pi-times" text rounded size="small" @click="sidebarClose()" />
+            <Button
+              icon="pi pi-times"
+              text
+              rounded
+              size="small"
+              class="shrink-0 mt-1"
+              @click="sidebarClose()"
+            />
+          </div>
+
+          <!-- Description (nodes only) -->
+          <div
+            v-if="sidebar.itemType !== 'edge'"
+            class="mt-2 mb-4 group/desc relative"
+          >
+            <div v-if="isEditingDescription">
+              <Textarea
+                ref="descriptionInputRef"
+                v-model="editDescriptionValue"
+                auto-resize
+                rows="2"
+                class="w-full text-sm"
+                @blur="saveDescription"
+              />
+            </div>
+            <div v-else class="flex items-start gap-2 min-h-6">
+              <div
+                class="text-sm whitespace-pre-wrap flex-1"
+                :class="
+                  sidebar.item?.node?.description ? 'text-color' : 'italic text-muted-color'
+                "
+              >
+                {{ sidebar.item?.node?.description || 'Add a description…' }}
+              </div>
+              <Button
+                icon="pi pi-pencil"
+                text
+                rounded
+                size="small"
+                class="opacity-0 group-hover/desc:opacity-100 transition-opacity !w-6 !h-6 !p-0 shrink-0"
+                @click="startEditDescription"
+              />
             </div>
           </div>
 
           <!-- Body -->
-          <div class="relative mb-4">
+          <div class="relative flex-1">
             <transition name="component-fade" mode="out-in">
               <configurator
                 v-if="sidebar.showItem"
@@ -267,13 +339,14 @@
           </div>
 
           <!-- Footer -->
-          <div class="mt-8 flex gap-2">
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              :loading="processingDelete"
-              @click="sidebarDelete()"
+          <div class="mt-6 pt-3 border-t border-surface flex flex-col gap-2">
+            <CInputDelete
+              :label="$t('general.label.delete')"
+              :message="$t('notification.delete-confirmation')"
+              :header="getSelectedItem?.node?.value || getSidebarItemType"
+              outlined
+              size="small"
+              @confirm="sidebarDelete()"
             />
             <div id="sidebar-footer" />
           </div>
@@ -422,6 +495,7 @@ import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
 import { NoID } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
+const { CInputDelete } = components
 
 import Configurator from './Configurator/index.vue'
 import WorkflowConfigurator from './Configurator/Workflow.vue'
@@ -532,6 +606,14 @@ const sidebar = ref({
   showItem: false,
 })
 
+// Inline edit state for sidebar header label / description
+const isEditingLabel = ref(false)
+const editLabelValue = ref('')
+const labelInputRef = ref(null)
+const isEditingDescription = ref(false)
+const editDescriptionValue = ref('')
+const descriptionInputRef = ref(null)
+
 // Live out-edge count for the currently focused node. Recomputes as edges change,
 // so the Configurator stays in sync when connections are added/removed while open.
 const sidebarOutEdges = computed(() => {
@@ -616,10 +698,12 @@ watch(
   { deep: true },
 )
 
-// Sync Configurator sidebar item mutations back to VueFlow nodes (#5 CRITICAL).
-// The Configurator directly mutates sidebar.item.config (arguments, results, ref, etc.)
-// and sidebar.item.triggers. Without this watcher, those changes are lost on save because
-// encodeWorkflow() reads from nodes.value, not sidebar.item.
+// Sync Configurator sidebar item mutations back to VueFlow nodes.
+// Configurators write freely to sidebar.item.config.* (per-kind fields like
+// delay duration, prompt payload, iterator iter/key, exec-workflow target,
+// gateway paths, expressions, etc.) — merge the full config back so nothing
+// is lost at save time. Runtime-only fields (trace, highlight) are excluded
+// so a re-render doesn't stomp them.
 watch(
   () => sidebar.value.item,
   newItem => {
@@ -627,44 +711,20 @@ watch(
     const node = nodes.value.find(n => n.id === newItem.node.id)
     if (!node) return
 
-    const config = newItem.config || {}
-    const changed = {}
+    const {
+      highlighted: _highlighted,
+      traceState: _traceState,
+      traceLog: _traceLog,
+      ...configData
+    } = newItem.config || {}
+    const merged = { ...node.data, ...configData }
 
-    // Sync config fields
-    if (
-      config.arguments &&
-      JSON.stringify(config.arguments) !== JSON.stringify(node.data.arguments)
-    ) {
-      changed.arguments = config.arguments
-    }
-    if (config.results && JSON.stringify(config.results) !== JSON.stringify(node.data.results)) {
-      changed.results = config.results
-    }
-    if (config.ref !== undefined && config.ref !== node.data.ref) {
-      changed.ref = config.ref
-    }
-    if (config.kind !== undefined && config.kind !== node.data.kind) {
-      changed.kind = config.kind
-    }
-    if (config.defaultName !== undefined && config.defaultName !== node.data.defaultName) {
-      changed.defaultName = config.defaultName
-    }
+    if (newItem.triggers) merged.triggers = newItem.triggers
+    if (newItem.node.value !== undefined) merged.label = newItem.node.value
+    if (newItem.node.description !== undefined) merged.description = newItem.node.description
 
-    // Sync triggers (for trigger nodes)
-    if (
-      newItem.triggers &&
-      JSON.stringify(newItem.triggers) !== JSON.stringify(node.data.triggers)
-    ) {
-      changed.triggers = newItem.triggers
-    }
-
-    // Sync label (from node.value)
-    if (newItem.node.value !== undefined && newItem.node.value !== node.data.label) {
-      changed.label = newItem.node.value
-    }
-
-    if (Object.keys(changed).length) {
-      node.data = { ...node.data, ...changed }
+    if (JSON.stringify(merged) !== JSON.stringify(node.data)) {
+      node.data = merged
     }
   },
   { deep: true },
@@ -1125,10 +1185,23 @@ function buildSidebarItem(node) {
   const { data = {} } = node
   const outEdges = edges.value.filter(e => e.source === node.id)
 
+  const {
+    highlighted: _highlighted,
+    traceState: _traceState,
+    traceLog: _traceLog,
+    width: _width,
+    height: _height,
+    label: _label,
+    description: _description,
+    triggers: _triggers,
+    ...configData
+  } = data
+
   return {
     node: {
       id: node.id,
       value: data.label || '',
+      description: data.description || '',
       edges: outEdges.map(e => ({
         id: e.id,
         value: e.label || '',
@@ -1144,6 +1217,7 @@ function buildSidebarItem(node) {
       style: getStyleFromKind(data)?.style || data.kind || '',
     },
     config: {
+      ...configData,
       stepID: node.id,
       kind: data.kind || '',
       ref: data.ref || '',
@@ -1232,6 +1306,44 @@ function setValue(value, defaultName = false) {
     }
   }
 
+  emit('change-detected')
+}
+
+/* ─── Sidebar header inline edit ─── */
+function startEditLabel() {
+  editLabelValue.value = sidebar.value.item?.node?.value || ''
+  isEditingLabel.value = true
+  nextTick(() => {
+    const input = labelInputRef.value?.$el?.querySelector?.('input') || labelInputRef.value?.$el
+    input?.focus?.()
+    input?.select?.()
+  })
+}
+
+function saveLabel() {
+  if (!isEditingLabel.value) return
+  isEditingLabel.value = false
+  const next = editLabelValue.value
+  if (next === sidebar.value.item?.node?.value) return
+  setValue(next, false)
+}
+
+function startEditDescription() {
+  editDescriptionValue.value = sidebar.value.item?.node?.description || ''
+  isEditingDescription.value = true
+  nextTick(() => {
+    const ta = descriptionInputRef.value?.$el?.querySelector?.('textarea') || descriptionInputRef.value?.$el
+    ta?.focus?.()
+  })
+}
+
+function saveDescription() {
+  if (!isEditingDescription.value) return
+  isEditingDescription.value = false
+  const next = editDescriptionValue.value
+  const item = sidebar.value.item
+  if (!item || next === item.node?.description) return
+  item.node.description = next
   emit('change-detected')
 }
 
@@ -1383,7 +1495,7 @@ function deleteSelected() {
 
 /**
  * Keep parallel gateway `ref` (fork vs join) in sync with actual edge counts.
- * Matches Corteza's mxGraph behaviour: one style (`gatewayParallel`), role
+ * Matches Human's mxGraph behaviour: one style (`gatewayParallel`), role
  * inferred from in/out edge balance — join when in > out, otherwise fork.
  */
 function reconcileParallelGateways() {
@@ -1455,7 +1567,12 @@ function isValidConnection(connection) {
   if (sourceNode?.type === 'visual' || targetNode?.type === 'visual') return false
   if (targetNode?.type === 'trigger') return false
   if (sourceNode?.type === 'trigger') {
-    const existing = edges.value.some(e => e.source === connection.source)
+    // Exclude self when the edge is already in the store (VueFlow re-validates
+    // on graph sync; without this, the just-added edge counts as "existing"
+    // and triggers EDGE_INVALID).
+    const existing = edges.value.some(
+      e => e.source === connection.source && e.id !== connection.id,
+    )
     if (existing) return false
   }
   if (connection.source && connection.source === connection.target) return false

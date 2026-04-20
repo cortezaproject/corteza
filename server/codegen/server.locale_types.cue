@@ -1,8 +1,8 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 	"strings"
 )
 
@@ -10,7 +10,7 @@ import (
 [
 	// wrapped with additional for loop to trim out templates with empty types list
 	for tpl in [
-		for cmp in app.corteza.components {
+		for cmp in app.human.components {
 			template: "gocode/locale/$component_types.go.tpl"
 			output:   "\(cmp.ident)/types/locale.gen.go"
 			payload: {

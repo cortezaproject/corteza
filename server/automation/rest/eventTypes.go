@@ -2,8 +2,8 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/automation/rest/request"
-	"github.com/cortezaproject/corteza/server/automation/service"
+	"github.com/crusttech/human/server/automation/rest/request"
+	"github.com/crusttech/human/server/automation/service"
 )
 
 type (

@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 export enum NotificationKind {
@@ -53,7 +53,7 @@ export class Notification {
   apply(n?: PartialNotification): void {
     if (!n) return
 
-    Apply(this, n, CortezaID, 'notificationID', 'recipient', 'createdBy')
+    Apply(this, n, HumanID, 'notificationID', 'recipient', 'createdBy')
     Apply(this, n, String, 'kind')
     Apply(this, n, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'readAt')
 

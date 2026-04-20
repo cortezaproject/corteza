@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

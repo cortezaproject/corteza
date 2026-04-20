@@ -22,8 +22,8 @@ GIN           = $(GOPATH)/bin/gin
 STATIK        = $(GOPATH)/bin/statik
 MODOUTDATED   = $(GOPATH)/bin/go-mod-outdated
 CUE           = $(GOPATH)/bin/cue
-CODEGEN       = $(GOPATH)/bin/corteza-codegen
-JSONTPLEXEC   = $(GOPATH)/bin/corteza-json-tpl-exec
+CODEGEN       = $(GOPATH)/bin/human-codegen
+JSONTPLEXEC   = $(GOPATH)/bin/human-json-tpl-exec
 
 PROTOC      = /usr/local/bin/protoc
 FSWATCH     = /usr/local/bin/fswatch
@@ -31,8 +31,8 @@ FSWATCH     = /usr/local/bin/fswatch
 # fswatch is intentionally left out...
 BINS         = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STATIK)
 
-# Corteza's tools
-CORTEZA_BINS = $(CODEGEN) $(JSONTPLEXEC)
+# Human's tools
+HUMAN_BINS = $(CODEGEN) $(JSONTPLEXEC)
 
 
 ########################################################################################################################
@@ -76,8 +76,8 @@ $(JSONTPLEXEC):
 clean-tools:
 	rm -f $(BINS)
 
-clean-corteza-tools:
-	rm -f $(CORTEZA_BINS)
+clean-human-tools:
+	rm -f $(HUMAN_BINS)
 
 ########################################################################################################################
 

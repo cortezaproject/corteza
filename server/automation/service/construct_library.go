@@ -3,7 +3,7 @@ package service
 import (
 	"sync"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/crusttech/human/server/automation/types"
 )
 
 type (

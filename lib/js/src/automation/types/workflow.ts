@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface Meta {
@@ -55,14 +55,14 @@ export class Workflow {
   }
 
   apply(w?: PartialWorkflow): void {
-    Apply(this, w, CortezaID, 'workflowID')
+    Apply(this, w, HumanID, 'workflowID')
     Apply(this, w, String, 'handle')
 
     Apply(this, w, Boolean, 'enabled', 'trace')
     Apply(this, w, Number, 'keepSessions')
 
     Apply(this, w, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, w, CortezaID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, w, HumanID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
 
     Apply(
       this,

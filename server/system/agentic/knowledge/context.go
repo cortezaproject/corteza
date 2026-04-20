@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
 type (

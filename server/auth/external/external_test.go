@@ -40,14 +40,14 @@ func Test_parseExternalProviderUrl(t *testing.T) {
 		},
 		{
 			"add schema",
-			args{"cortezaproject.org"},
-			mustParseURL("https://cortezaproject.org"),
+			args{"planetcrust.com"},
+			mustParseURL("https://planetcrust.com"),
 			false,
 		},
 		{
 			"add schema and remove well-known",
-			args{"cortezaproject.org/some-subdir/" + WellKnown},
-			mustParseURL("https://cortezaproject.org/some-subdir/"),
+			args{"planetcrust.com/some-subdir/" + WellKnown},
+			mustParseURL("https://planetcrust.com/some-subdir/"),
 			false,
 		},
 	}

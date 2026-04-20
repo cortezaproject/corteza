@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"testing"
 
-	cs "github.com/cortezaproject/corteza/server/compose/service"
-	ct "github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/federation/types"
-	ss "github.com/cortezaproject/corteza/server/system/service"
-	st "github.com/cortezaproject/corteza/server/system/types"
+	cs "github.com/crusttech/human/server/compose/service"
+	ct "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/federation/types"
+	ss "github.com/crusttech/human/server/system/service"
+	st "github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 

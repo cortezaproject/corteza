@@ -3,7 +3,7 @@ package resource
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 	"golang.org/x/text/language"
 )
 

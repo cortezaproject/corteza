@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/api"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/api"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"go.uber.org/zap"
@@ -16,7 +16,7 @@ import (
 
 type (
 	Config struct {
-		Corteza    options.CortezaOpt
+		Human    options.HumanOpt
 		ES         options.EsOpt
 		HttpServer options.HttpServerOpt
 		Searcher   options.SearcherOpt
@@ -45,7 +45,7 @@ func Initialize(_ context.Context, log *zap.Logger, c Config, esClient *elastics
 
 	DefaultEsClient = esClient
 
-	DefaultApiClient, err = api.Client(c.Corteza, c.Searcher.ClientKey, c.Searcher.ClientSecret)
+	DefaultApiClient, err = api.Client(c.Human, c.Searcher.ClientKey, c.Searcher.ClientSecret)
 	if err != nil {
 		return
 	}

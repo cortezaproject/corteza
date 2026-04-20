@@ -3,8 +3,8 @@ package consumer
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/messagebus/types"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/messagebus/types"
 )
 
 type (

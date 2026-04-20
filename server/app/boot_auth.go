@@ -3,13 +3,13 @@ package app
 import (
 	"context"
 	"fmt"
-	authHandlers "github.com/cortezaproject/corteza/server/auth/handlers"
-	"github.com/cortezaproject/corteza/server/auth/oauth2"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	authHandlers "github.com/crusttech/human/server/auth/handlers"
+	"github.com/crusttech/human/server/auth/oauth2"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-func (app *CortezaApp) initAuth(ctx context.Context) (err error) {
+func (app *HumanApp) initAuth(ctx context.Context) (err error) {
 	log := app.Log.Named("auth")
 
 	if app.Opt.Auth.DefaultClient != "" {

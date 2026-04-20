@@ -7,7 +7,7 @@ import (
 	"mime/multipart"
 	"net/url"
 
-	"github.com/cortezaproject/corteza/server/pkg/http"
+	"github.com/crusttech/human/server/pkg/http"
 )
 
 func FromURL(fileURL string) (io.ReadCloser, error) {

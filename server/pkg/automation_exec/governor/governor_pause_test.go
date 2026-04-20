@@ -3,7 +3,7 @@ package governor
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
 )
 
 // TL;DR: While paused, all requests block; ResumeAll opens the gate for all waiting requests.

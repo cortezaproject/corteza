@@ -2,15 +2,15 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/api"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
 	"mime/multipart"
 
-	"github.com/cortezaproject/corteza/server/compose/rest/request"
-	"github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/compose/rest/request"
+	"github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (

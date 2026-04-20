@@ -1,5 +1,5 @@
 import lodash from 'lodash-es'
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { PageBlock } from './page-block/base'
 import { Button } from './page-block/types'
 const { merge } = lodash
@@ -104,7 +104,7 @@ export class PageLayout {
   apply(pl?: PageLayoutInput): void {
     if (!pl) return
 
-    Apply(this, pl, CortezaID, 'pageLayoutID', 'namespaceID', 'pageID', 'ownedBy')
+    Apply(this, pl, HumanID, 'pageLayoutID', 'namespaceID', 'pageID', 'ownedBy')
     Apply(this, pl, String, 'handle')
     Apply(this, pl, Number, 'weight')
     Apply(this, pl, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')

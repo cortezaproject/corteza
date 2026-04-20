@@ -51,7 +51,7 @@ func TestTests(t *testing.T) {
 		{"func writer/req", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("foo")) }, `foo`},
 		{"custom struct", struct {
 			Name string `json:"name"`
-		}{"Corteza"}, `{"response":{"name":"Corteza"}}`},
+		}{"Human"}, `{"response":{"name":"Human"}}`},
 	}
 
 	for _, c := range cc {

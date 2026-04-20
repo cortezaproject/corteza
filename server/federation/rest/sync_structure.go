@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/federation/rest/request"
-	"github.com/cortezaproject/corteza/server/federation/service"
-	"github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/federation"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/federation/rest/request"
+	"github.com/crusttech/human/server/federation/service"
+	"github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/federation"
+	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
@@ -21,12 +21,12 @@ func (SyncStructure) New() *SyncStructure {
 }
 
 // ReadExposedInternal gets the exposed module info and serves
-// the internal Corteza format of the structure
+// the internal Human format of the structure
 func (ctrl SyncStructure) ReadExposedInternal(ctx context.Context, r *request.SyncStructureReadExposedInternal) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var (
 			err error
-			ef  federation.EncodingFormat = federation.CortezaInternalStructure
+			ef  federation.EncodingFormat = federation.HumanInternalStructure
 		)
 
 		w.Header().Add("Content-Type", "application/json")

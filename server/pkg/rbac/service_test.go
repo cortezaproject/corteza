@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/expr"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +22,7 @@ type (
 
 // goos: linux
 // goarch: amd64
-// pkg: github.com/cortezaproject/corteza/server/pkg/rbac
+// pkg: github.com/crusttech/human/server/pkg/rbac
 // cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
 // Benchmark_AccessCheck_role5_rule500-12            378988              3026 ns/op             615 B/op         16 allocs/op
 // Benchmark_AccessCheck_role5_rule1000-12           253071              4087 ns/op             615 B/op         16 allocs/op

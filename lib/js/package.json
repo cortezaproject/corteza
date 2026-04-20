@@ -1,6 +1,6 @@
 {
   "name": "@planetcrust/human-js",
-  "description": "Corteza JavaScript/TypeScript libs",
+  "description": "Human JavaScript/TypeScript libs",
   "version": "2026.4.1-dev.1",
   "license": "Apache-2.0",
   "type": "module",

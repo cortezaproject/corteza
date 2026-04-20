@@ -2,19 +2,19 @@ package service
 
 import (
 	"context"
-	cs "github.com/cortezaproject/corteza/server/compose/service"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/store"
-	ss "github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	cs "github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/store"
+	ss "github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 	"time"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (

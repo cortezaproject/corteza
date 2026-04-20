@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/auth"
 )
 
 type (

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/sentry"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/sentry"
 	"go.uber.org/zap"
 )
 

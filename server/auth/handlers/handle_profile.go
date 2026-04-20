@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/auth/request"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/request"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 )
 

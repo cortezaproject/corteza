@@ -1,7 +1,7 @@
 import lodash from 'lodash-es'
 const { merge } = lodash
 
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { AreObjects, AreStrings, IsOf } from '../../guards'
 import { ModuleField, ModuleFieldMaker } from './module-field'
 import { Namespace } from './namespace'
@@ -225,7 +225,7 @@ export class Module {
       throw new Error('module can not change namespace')
     }
 
-    Apply(this, m, CortezaID, 'moduleID', 'namespaceID')
+    Apply(this, m, HumanID, 'moduleID', 'namespaceID')
     Apply(this, m, String, 'name', 'handle')
 
     if (IsOf(m, 'fields')) {

@@ -11,15 +11,15 @@ import (
 	"io"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/y7s"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
 type (
-	// YamlEncoder is responsible for encoding Corteza resources into
+	// YamlEncoder is responsible for encoding Human resources into
 	// a YAML supported format
 	YamlEncoder struct{}
 )
@@ -28,7 +28,7 @@ const (
 	paramsKeyWriter = "writer"
 )
 
-// Encode encodes the given Corteza resources into some YAML supported format
+// Encode encodes the given Human resources into some YAML supported format
 //
 // Encoding should not do any additional processing apart from matching with
 // dependencies and runtime validation

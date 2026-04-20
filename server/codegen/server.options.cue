@@ -2,8 +2,8 @@ package codegen
 
 import (
 	"strings"
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 [...schema.#codegen] &
@@ -15,10 +15,10 @@ import (
 			package: "options"
 
 			// make unique list of packages we'll import
-			imports: [ for i in {for g in app.corteza.options for i in g.imports {"\(i)": i}} {i}]
+			imports: [ for i in {for g in app.human.options for i in g.imports {"\(i)": i}} {i}]
 
 			groups: [
-				for g in app.corteza.options {
+				for g in app.human.options {
 					func:   g.expIdent
 					struct: g.expIdent + "Opt"
 					options: [
@@ -47,7 +47,7 @@ import (
 		syntax:   ".env"
 		payload: {
 			groups: [
-				for g in app.corteza.options {
+				for g in app.human.options {
 					title: "# " + strings.Join(strings.Split(g.title, "\n"), "\n# ")
 
 					if (g.intro != _|_) {

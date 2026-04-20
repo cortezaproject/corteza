@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/automation/service"
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
+	"github.com/crusttech/human/server/automation/service"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/stretchr/testify/require"
 )
 

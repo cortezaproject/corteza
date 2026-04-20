@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"net/url"
 
-	"github.com/cortezaproject/corteza/server/auth/request"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/request"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 	"rsc.io/qr"
 )
@@ -120,7 +120,7 @@ func (h *AuthHandlers) mfaTotpConfigQR(req *request.AuthReq) (err error) {
 	}
 
 	if len(issuer) == 0 {
-		issuer = "Corteza"
+		issuer = "Human"
 	}
 
 	account := req.AuthUser.User.Email

@@ -26,7 +26,7 @@ const props = defineProps({
   },
 })
 
-// Use actual server-side issues from module.issues (matching Corteza behavior)
+// Use actual server-side issues from module.issues (matching Human behavior)
 const issues = computed(() => {
   return (props.module?.issues || [])
 })

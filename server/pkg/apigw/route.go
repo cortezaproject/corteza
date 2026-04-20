@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	actx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	h "github.com/cortezaproject/corteza/server/pkg/http"
+	actx "github.com/crusttech/human/server/pkg/apigw/ctx"
+	"github.com/crusttech/human/server/pkg/apigw/profiler"
+	"github.com/crusttech/human/server/pkg/apigw/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	h "github.com/crusttech/human/server/pkg/http"
 	"go.uber.org/zap"
 )
 

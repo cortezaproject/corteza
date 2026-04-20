@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/markbates/goth"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -53,8 +53,8 @@ func TestAuth_External(t *testing.T) {
 		ctx = context.Background()
 
 		// Create some virtual user and credentials
-		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now()}
-		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), SuspendedAt: now()}
+		validUser     = &types.User{Email: "valid@test.example.com", ID: nextID(), CreatedAt: *now()}
+		suspendedUser = &types.User{Email: "suspended@test.example.com", ID: nextID(), CreatedAt: *now(), SuspendedAt: now()}
 
 		freshProfileID = func() string {
 			return fmt.Sprintf("fresh-profile-id-%d", nextID())
@@ -91,12 +91,12 @@ func TestAuth_External(t *testing.T) {
 				nil},
 			{
 				"unknown profile",
-				types.ExternalAuthUser{goth.User{UserID: freshProfileID(), Provider: "-", Email: "fresh-from-foo@test.cortezaproject.org"}},
-				&types.User{Email: "fresh-from-foo@test.cortezaproject.org"},
+				types.ExternalAuthUser{goth.User{UserID: freshProfileID(), Provider: "-", Email: "fresh-from-foo@test.example.com"}},
+				&types.User{Email: "fresh-from-foo@test.example.com"},
 				nil},
 			{
 				"profile match by provider ID",
-				types.ExternalAuthUser{goth.User{UserID: fooCredentials.Credentials, Provider: fooCredentials.Kind, Email: "valid+2nd+email@test.cortezaproject.org"}},
+				types.ExternalAuthUser{goth.User{UserID: fooCredentials.Credentials, Provider: fooCredentials.Kind, Email: "valid+2nd+email@test.example.com"}},
 				validUser,
 				nil},
 		}
@@ -218,8 +218,8 @@ func TestAuth_InternalLogin(t *testing.T) {
 		ctx = context.Background()
 
 		validPass     = "this is a valid password !! 42"
-		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
-		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), SuspendedAt: now()}
+		validUser     = &types.User{Email: "valid@test.example.com", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+		suspendedUser = &types.User{Email: "suspended@test.example.com", ID: nextID(), CreatedAt: *now(), SuspendedAt: now()}
 
 		tests = []struct {
 			name     string
@@ -291,7 +291,7 @@ func TestAuth_createUserToken(t *testing.T) {
 		req = require.New(t)
 		ctx = context.Background()
 
-		validUser = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+		validUser = &types.User{Email: "valid@test.example.com", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
 
 		tests = []struct {
 			name string
@@ -355,7 +355,7 @@ func TestAuth_multiCreateUserTokenForPasswordReset(t *testing.T) {
 		req = require.New(t)
 		ctx = context.Background()
 
-		validUser = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+		validUser = &types.User{Email: "valid@test.example.com", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
 
 		// load credentials from token
 		t2c = func(token string) *types.Credential {

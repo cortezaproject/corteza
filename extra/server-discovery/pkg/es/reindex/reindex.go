@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
@@ -156,8 +156,8 @@ type (
 )
 
 const (
-	IndexTpl    = "corteza-%s-%s"
-	MarkerIndex = "corteza_indexer_state"
+	IndexTpl    = "human-%s-%s"
+	MarkerIndex = "human_indexer_state"
 	MarkerID    = "last_index_time"
 )
 
@@ -733,7 +733,7 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 	}
 
 	if isFirst {
-		startTime := time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) // Corteza start year
+		startTime := time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) // Human start year
 		if ri.esOpt.IndexBackFillMonths != 0 {
 			startTime = time.Now().AddDate(0, -ri.esOpt.IndexBackFillMonths, 0)
 		}
@@ -746,7 +746,7 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 
 		defer func() {
 			if err := ri.SaveLastIndexTime(ctx); err != nil {
-				ri.log.Error(fmt.Sprintf("failed to save indexer state to [corteza_indexer_state]: %s", err))
+				ri.log.Error(fmt.Sprintf("failed to save indexer state to [human_indexer_state]: %s", err))
 			}
 		}()
 	}

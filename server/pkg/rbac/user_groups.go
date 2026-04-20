@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/stack"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/stack"
 	"go.uber.org/zap"
 )
 

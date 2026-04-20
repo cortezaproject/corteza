@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/crusttech/human/server/federation/types"
 )
 
 type (

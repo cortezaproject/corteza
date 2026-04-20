@@ -2,7 +2,7 @@
 
 include Makefile.inc
 
-BUILD_FLAVOUR         ?= corteza
+BUILD_FLAVOUR         ?= human
 BUILD_TIME            ?= $(shell date +%FT%T%z)
 BUILD_VERSION         ?= $(shell git describe --tags --abbrev=0)
 BUILD_ARCH            ?= $(shell go env GOARCH)
@@ -17,7 +17,7 @@ RELEASE_NAME           = $(BUILD_NAME).tar.gz
 RELEASE_EXTRA_FILES   ?= LICENSE DCO .env.example
 RELEASE_PKEY          ?= .upload-rsa
 
-LDFLAGS_VERSION        = -X github.com/cortezaproject/corteza/server/pkg/version.Version=$(BUILD_VERSION)
+LDFLAGS_VERSION        = -X github.com/humanproject/human/server/pkg/version.Version=$(BUILD_VERSION)
 LDFLAGS_EXTRA         ?=
 LDFLAGS                = -ldflags "$(LDFLAGS_VERSION) $(LDFLAGS_EXTRA)"
 

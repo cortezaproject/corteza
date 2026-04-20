@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 // TL;DR: With MaxConcurrent=1, a second Start queues and only runs after the first finishes.

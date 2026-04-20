@@ -692,7 +692,7 @@ defineExpose({ focus, clear, editor, allEmojis })
   margin: 0;
 }
 
-/* Toolbar button styling — matches Corteza's 2.25rem */
+/* Toolbar button styling — matches Human's 2.25rem */
 .rt-toolbar-btn {
   width: 2.25rem !important;
   height: 2.25rem !important;

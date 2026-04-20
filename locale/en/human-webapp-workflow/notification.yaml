@@ -46,6 +46,7 @@ delete:
   success: Workflow deleted
   failed: Failed to delete workflow
   confirm: Are you sure you want to delete this workflow?
+'delete-confirmation': Are you sure you want to delete this?
 undelete:
   success: Workflow restored
   failed: Failed to restore workflow

@@ -1,10 +1,10 @@
 package rest
 
 import (
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/auth"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
-	"github.com/cortezaproject/corteza/extra/server-discovery/searcher/rest/handlers"
+	"github.com/crusttech/human/extra/server-discovery/pkg/auth"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/vectorsearch"
+	"github.com/crusttech/human/extra/server-discovery/searcher/rest/handlers"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )

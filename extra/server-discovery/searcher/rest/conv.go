@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	// corteza discovery results
+	// human discovery results
 	cdResults struct {
 		Total struct {
 			Value   int    `json:"value"`
@@ -64,7 +64,7 @@ type (
 	}
 )
 
-// conv converts results from the backend into corteza-discovery (jsonld-ish) format
+// conv converts results from the backend into human-discovery (jsonld-ish) format
 func conv(sr *esSearchResponse, aggregation *esSearchResponse, noHits bool, moduleMeta map[string][]string, nsHandleMap map[string]nsMeta, mHandleMap map[string]mMeta, page pagination) (out *cdResults, err error) {
 	if sr == nil {
 		return

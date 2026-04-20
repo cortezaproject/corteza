@@ -3,8 +3,8 @@ package documents
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/filter"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
 type (

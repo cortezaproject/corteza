@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
+	systemTypes "github.com/crusttech/human/server/system/types"
 )
 
 func (e StoreEncoder) prepareSetting(ctx context.Context, p envoyx.EncodeParams, s store.Storer, nn envoyx.NodeSet) (err error) {

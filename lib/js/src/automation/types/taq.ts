@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 import type { IconDef } from './icon'
 import type { Typed } from './values'
@@ -178,7 +178,7 @@ export class NgAutomation {
 
   apply(t?: PartialNgAutomation): void {
     if (IsOf(t, 'automationID')) {
-      Apply(this, t, CortezaID, 'automationID')
+      Apply(this, t, HumanID, 'automationID')
     }
 
     Apply(this, t, String, 'handle')
@@ -187,7 +187,7 @@ export class NgAutomation {
     Apply(this, t, Number, 'keepSessions')
 
     Apply(this, t, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, t, CortezaID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, t, HumanID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
 
     Apply(
       this,

@@ -11,8 +11,8 @@ package automation
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	. "github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/compose/types"
+	. "github.com/crusttech/human/server/pkg/expr"
 	"sync"
 )
 

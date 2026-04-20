@@ -5,8 +5,8 @@ import (
 	_ "embed"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 )
 

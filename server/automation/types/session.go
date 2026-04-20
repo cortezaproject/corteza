@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/sql"
+	"github.com/crusttech/human/server/pkg/sql"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/wfexec"
 )
 
 type (

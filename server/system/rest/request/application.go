@@ -11,9 +11,9 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/crusttech/human/server/pkg/label"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"io"

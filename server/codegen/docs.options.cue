@@ -1,8 +1,8 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza/server/app"
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/app"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 [...schema.#codegen] &
@@ -12,7 +12,7 @@ import (
 		output:   "src/modules/generated/partials/env-options.gen.adoc"
 		payload: {
 			groups: [
-				for g in app.corteza.options {
+				for g in app.human.options {
 					title: g.title
 					intro?: g.intro
 

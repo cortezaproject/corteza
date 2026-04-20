@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/crusttech/go-oidc"
 	"go.uber.org/zap"
 )
@@ -60,7 +60,7 @@ func AddProvider(ctx context.Context, log *zap.Logger, s store.SettingValues, ea
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //
-//	and move client registration to corteza codebase
+//	and move client registration to human codebase
 func DiscoverOidcProvider(ctx context.Context, log *zap.Logger, opt options.AuthOpt, name, url string) (eap *types.ExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
@@ -78,7 +78,7 @@ func DiscoverOidcProvider(ctx context.Context, log *zap.Logger, opt options.Auth
 	}
 
 	client, err = provider.RegisterClient(ctx, &oidc.ClientRegistration{
-		Name:          "Corteza",
+		Name:          "Human",
 		RedirectURIs:  []string{redirectUrl},
 		ResponseTypes: []string{"token id_token", "code"},
 	})

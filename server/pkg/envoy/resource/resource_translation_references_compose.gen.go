@@ -7,7 +7,7 @@ package resource
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/crusttech/human/server/compose/types"
 )
 
 // ComposeChartResourceTranslationReferences generates Locale references

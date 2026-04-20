@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 )
 
 func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, _ envoyx.DecodeParams, rt string, nodes map[string]*envoyx.Node, f envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {

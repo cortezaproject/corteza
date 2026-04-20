@@ -12,11 +12,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/y7s"
+	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"golang.org/x/text/language"
@@ -24,7 +24,7 @@ import (
 )
 
 type (
-	// YamlDecoder is responsible for decoding YAML documents into Corteza resources
+	// YamlDecoder is responsible for decoding YAML documents into Human resources
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder struct{}
 
@@ -248,7 +248,7 @@ func (d *auxYamlDoc) unmarshalChartMap(dctx documentContext, n *yaml.Node) (out 
 }
 
 // unmarshalChartNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Chart
 
@@ -582,7 +582,7 @@ func (d *auxYamlDoc) unmarshalExtendedSourceSeq(dctx documentContext, n *yaml.No
 }
 
 // unmarshalModuleNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Module
 
@@ -908,7 +908,7 @@ func (d *auxYamlDoc) unmarshalModuleFieldMap(dctx documentContext, n *yaml.Node)
 }
 
 // unmarshalModuleFieldNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.ModuleField
 
@@ -1264,7 +1264,7 @@ func (d *auxYamlDoc) unmarshalNamespaceMap(dctx documentContext, n *yaml.Node) (
 }
 
 // unmarshalNamespaceNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Namespace
 
@@ -1649,7 +1649,7 @@ func (d *auxYamlDoc) unmarshalExtendedPagesMap(dctx documentContext, n *yaml.Nod
 }
 
 // unmarshalPageNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Page
 
@@ -2043,7 +2043,7 @@ func (d *auxYamlDoc) unmarshalPageLayoutMap(dctx documentContext, n *yaml.Node) 
 }
 
 // unmarshalPageLayoutNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding Human type & Node
 func (d *auxYamlDoc) unmarshalPageLayoutNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.PageLayout
 

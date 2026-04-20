@@ -3,8 +3,8 @@ package event
 import (
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/eventbus"
 )
 
 // Match returns false if given conditions do not match event & resource internals

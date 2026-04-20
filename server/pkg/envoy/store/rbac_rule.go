@@ -3,9 +3,9 @@ package store
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

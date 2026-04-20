@@ -4,11 +4,12 @@ WGET         ?= wget
 WGET_FLAGS   ?= -q
 TAR          ?= tar
 TAR_FLAGS    ?= -xzmok
-RELEASE_PAGE ?= https://releases.cortezaproject.org/files
+# TODO: update to new releases endpoint when available
+# RELEASE_PAGE ?= https://releases.cortezaproject.org/files
 APPS         ?= admin compose workflow reporter discovery
 ALL_APPS     ?= $(APPS) one
 VERSION      ?= $(shell git describe --tags --abbrev=0)
-PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
+PACKAGES      = $(addprefix human-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
 SOURCE_LOC   ?= "../../webapp-"
 SOURCES       = $(addprefix $(SOURCE_LOC),$(ALL_APPS))
 
@@ -18,12 +19,12 @@ install-packages: $(PACKAGES)
 	$(info installing packages to public/)
 	@ rm -rf $(addprefix public/,$(APPS))
 	@ mkdir -p $(addprefix public/,$(APPS))
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-one-$(VERSION).tar.gz -C public
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-admin-$(VERSION).tar.gz -C public/admin
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-compose-$(VERSION).tar.gz -C public/compose
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-workflow-$(VERSION).tar.gz -C public/workflow
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-reporter-$(VERSION).tar.gz -C public/reporter
-	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-discovery-$(VERSION).tar.gz -C public/discovery
+	@ $(TAR) $(TAR_FLAGS) -f human-webapp-one-$(VERSION).tar.gz -C public
+	@ $(TAR) $(TAR_FLAGS) -f human-webapp-admin-$(VERSION).tar.gz -C public/admin
+	@ $(TAR) $(TAR_FLAGS) -f human-webapp-compose-$(VERSION).tar.gz -C public/compose
+	@ $(TAR) $(TAR_FLAGS) -f human-webapp-workflow-$(VERSION).tar.gz -C public/workflow
+	@ $(TAR) $(TAR_FLAGS) -f human-webapp-reporter-$(VERSION).tar.gz -C public/reporter
+	@ $(TAR) $(TAR_FLAGS) -f human-webapp-discovery-$(VERSION).tar.gz -C public/discovery
 
 download: $(PACKAGES)
 
@@ -50,4 +51,4 @@ clean:
 	@ rm -f $(PACKAGES)
 
 cleaner:
-	@ rm -rf public corteza-webapp-*.tar.gz
+	@ rm -rf public human-webapp-*.tar.gz

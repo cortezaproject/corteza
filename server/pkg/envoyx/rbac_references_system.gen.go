@@ -7,7 +7,7 @@ package envoyx
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 )
 
 // SystemApplicationRbacReferences generates RBAC references

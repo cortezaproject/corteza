@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (

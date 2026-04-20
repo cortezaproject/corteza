@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf, AreStrings } from '../../guards'
 
 interface PartialUserGroup extends Partial<
@@ -56,7 +56,7 @@ export class UserGroup {
   }
 
   apply(u?: PartialUserGroup): void {
-    Apply(this, u, CortezaID, 'userGroupID')
+    Apply(this, u, HumanID, 'userGroupID')
     Apply(this, u, String, 'handle')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
     Apply(

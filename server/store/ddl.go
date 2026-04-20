@@ -1,6 +1,6 @@
 package store
 
-import "github.com/cortezaproject/corteza/server/pkg/dal"
+import "github.com/crusttech/human/server/pkg/dal"
 
 type (
 	DDL interface {

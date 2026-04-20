@@ -22,7 +22,7 @@ func (svc *Service) encodeStore(ctx context.Context, dg *DepGraph, p EncodeParam
 	// Prepping
 	//
 	// @note this is ok for now but if we add things like importing into
-	//       multiple Cortezas at the same time, this won't be ok and each
+	//       multiple instances at the same time, this won't be ok and each
 	//       encoder should get it's own thing
 	for rt, nn := range depNodesByResourceType(dg.allNodes()...) {
 		for _, e := range svc.preparers[EncodeTypeStore] {

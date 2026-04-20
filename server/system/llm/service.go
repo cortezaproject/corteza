@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	rt "github.com/cortezaproject/corteza/server/system/agentic/runtime"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/store"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
+	rt "github.com/crusttech/human/server/system/agentic/runtime"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
 type (

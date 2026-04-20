@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	a "github.com/cortezaproject/corteza/server/pkg/auth"
+	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )

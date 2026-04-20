@@ -1,13 +1,13 @@
 package auth
 
 import (
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 )
 
 const (
-	ProvisionUserHandle  = "corteza-provisioner"
-	ServiceUserHandle    = "corteza-service"
-	FederationUserHandle = "corteza-federation"
+	ProvisionUserHandle  = "human-provisioner"
+	ServiceUserHandle    = "human-service"
+	FederationUserHandle = "human-federation"
 
 	BypassRoleHandle        = "super-admin"
 	AuthenticatedRoleHandle = "authenticated"

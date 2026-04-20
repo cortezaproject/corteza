@@ -1,8 +1,8 @@
 package codegen
 
 import (
-  "github.com/cortezaproject/corteza/server/app"
-  "github.com/cortezaproject/corteza/server/codegen/schema"
+  "github.com/crusttech/human/server/app"
+  "github.com/crusttech/human/server/codegen/schema"
 )
 
 
@@ -97,7 +97,7 @@ _dalModelFn: {
 [
   {
     template: "gocode/dal/$component_model.go.tpl"
-    output:   "system/model/corteza.gen.go"
+    output:   "system/model/human.gen.go"
     payload: {
       package: "model"
 
@@ -120,14 +120,14 @@ _dalModelFn: {
       }
     }
   },
-  for cmp in app.corteza.components {
+  for cmp in app.human.components {
     template: "gocode/dal/$component_model.go.tpl"
     output:   "\(cmp.ident)/model/models.gen.go"
     payload: {
       package: "model"
 
       imports: [
-        "\"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\"",
+        "\"github.com/crusttech/human/server/\(cmp.ident)/types\"",
       ]
 
       // Operation/resource validators, grouped by resource
@@ -141,7 +141,7 @@ _dalModelFn: {
     }
   },
 
-  for cmp in app.corteza.components {
+  for cmp in app.human.components {
     template: "gocode/dal/$component_init.go.tpl"
     output:   "\(cmp.ident)/model/init.gen.go"
     payload: {

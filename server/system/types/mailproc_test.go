@@ -17,28 +17,28 @@ func Test_mailProcMessage(t *testing.T) {
 	}{
 		{name: "basics",
 			input: `
-From: <sender@testing.cortezaproject.org>
-To: <rcpt@testing.cortezaproject.org>
+From: <sender@testing.example.com>
+To: <rcpt@testing.example.com>
 Subject: Customer service contact info
 Message-ID: <1234@local.machine.example>
 
-Ola Corteza!
+Ola Human!
 `,
 			wantOut: &MailMessage{
 				Date:    time.Time{},
 				Subject: "Customer service contact info",
 				Header: MailMessageHeader{
-					From: []*mail.Address{{Address: "sender@testing.cortezaproject.org"}},
-					To:   []*mail.Address{{Address: "rcpt@testing.cortezaproject.org"}},
+					From: []*mail.Address{{Address: "sender@testing.example.com"}},
+					To:   []*mail.Address{{Address: "rcpt@testing.example.com"}},
 
 					Raw: map[string][]string{
-						"From":       []string{"<sender@testing.cortezaproject.org>"},
-						"To":         []string{"<rcpt@testing.cortezaproject.org>"},
+						"From":       []string{"<sender@testing.example.com>"},
+						"To":         []string{"<rcpt@testing.example.com>"},
 						"Subject":    []string{"Customer service contact info"},
 						"Message-Id": []string{"<1234@local.machine.example>"},
 					},
 				},
-				RawBody: []byte(`Ola Corteza!`),
+				RawBody: []byte(`Ola Human!`),
 			}},
 	}
 

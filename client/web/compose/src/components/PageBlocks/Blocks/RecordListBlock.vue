@@ -682,7 +682,7 @@ function applyFieldPicker() {
   showFieldPickerModal.value = false
 }
 
-// Inline editing — Corteza-style dirty tracking
+// Inline editing — Human-style dirty tracking
 const dirtyRecords = reactive({})
 const activeInlineEdits = ref(new Map())
 const processingRecords = reactive({})
@@ -1103,7 +1103,7 @@ function abortPendingRequest() {
 
 /**
  * Build the evaluated prefilter string from block options,
- * matching Corteza's prepRecordList() logic.
+ * matching Human's prepRecordList() logic.
  *
  * - Evaluates template expressions (${recordID}, ${ownerID}, ${userID})
  * - Handles refField for parent record linking
@@ -1183,7 +1183,7 @@ const activeBulkQuery = computed(() => {
   return `recordID IN (${ids.join(',')})`
 })
 
-// Fetch a flat list of record IDs for prev/next navigation (mirrors Corteza's loadPaginationRecords)
+// Fetch a flat list of record IDs for prev/next navigation (mirrors Human's loadPaginationRecords)
 async function loadNavigationIDs() {
   if (!recordListModule.value) return
   try {

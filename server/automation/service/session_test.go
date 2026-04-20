@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	"github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/wfexec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -106,7 +106,7 @@ func TestSessionStackTraces(t *testing.T) {
 // Before:
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/automation/service
+// pkg: github.com/crusttech/human/server/automation/service
 // BenchmarkSessionStackTraces_1000-12                42758             28594 ns/op           87288 B/op         15 allocs/op
 // BenchmarkSessionStackTraces_10000-12                3430            348308 ns/op         1160442 B/op         23 allocs/op
 // BenchmarkSessionStackTraces_100000-12                229           5299188 ns/op        13317368 B/op         33 allocs/op
@@ -116,7 +116,7 @@ func TestSessionStackTraces(t *testing.T) {
 // After:
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/automation/service
+// pkg: github.com/crusttech/human/server/automation/service
 // BenchmarkSessionStackTraces_1000-12                40142             29860 ns/op             120 B/op          4 allocs/op
 // BenchmarkSessionStackTraces_10000-12                4387            264930 ns/op             120 B/op          4 allocs/op
 // BenchmarkSessionStackTraces_100000-12                447           2735284 ns/op             120 B/op          4 allocs/op

@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/gorilla/sessions"
 )
 
@@ -62,7 +62,7 @@ type (
 	//
 	// There is effortless way to extend token info that is created inside go-oauth2 lib
 	// so we'll attach this struct to (request's) context with middleware (see MountHttpRoutes)
-	// and unpack from context when token is created in CortezaTokenStore.Create()
+	// and unpack from context when token is created in HumanTokenStore.Create()
 	//
 	// ExtraReqInfo struct also serves as context value key!
 	ExtraReqInfo struct {

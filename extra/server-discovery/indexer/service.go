@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/api"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/mapping"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/reindex"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
+	"github.com/crusttech/human/extra/server-discovery/pkg/api"
+	"github.com/crusttech/human/extra/server-discovery/pkg/es"
+	"github.com/crusttech/human/extra/server-discovery/pkg/es/mapping"
+	"github.com/crusttech/human/extra/server-discovery/pkg/es/reindex"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/vectorsearch"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"go.uber.org/zap"
@@ -19,7 +19,7 @@ import (
 
 type (
 	Config struct {
-		Corteza      options.CortezaOpt
+		Human      options.HumanOpt
 		ES           options.EsOpt
 		Indexer      options.IndexerOpt
 		VectorSearch options.VectorSearchOpt
@@ -77,7 +77,7 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config, esClient *elasti
 	if len(schema.ClientKey) == 0 || len(schema.ClientSecret) == 0 {
 		return fmt.Errorf("client key and secret is missing")
 	}
-	DefaultApiClient, err = api.Client(c.Corteza, schema.ClientKey, schema.ClientSecret)
+	DefaultApiClient, err = api.Client(c.Human, schema.ClientKey, schema.ClientSecret)
 	if err != nil {
 		return
 	}

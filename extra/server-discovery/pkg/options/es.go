@@ -3,7 +3,7 @@ package options
 import (
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/options"
 )
 
 type (

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	. "github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
-	"github.com/cortezaproject/corteza/server/system/types"
+	intAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/expr"
+	. "github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/wfexec"
+	"github.com/crusttech/human/server/system/types"
 	sqlxtypes "github.com/jmoiron/sqlx/types"
 )
 

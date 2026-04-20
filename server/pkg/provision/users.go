@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/sass"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/sass"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -18,20 +18,20 @@ import (
 func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*types.User, err error) {
 	uu = types.UserSet{
 		&types.User{
-			Email:  "provision@corteza.local",
-			Name:   "Corteza Provisioner",
+			Email:  "provision@human.local",
+			Name:   "Human Provisioner",
 			Handle: auth.ProvisionUserHandle,
 			Kind:   types.SystemUser,
 		},
 		&types.User{
-			Email:  "service@corteza.local",
-			Name:   "Corteza Service",
+			Email:  "service@human.local",
+			Name:   "Human Service",
 			Handle: auth.ServiceUserHandle,
 			Kind:   types.SystemUser,
 		},
 		&types.User{
-			Email:  "federation@corteza.local",
-			Name:   "Corteza Federation",
+			Email:  "federation@human.local",
+			Name:   "Human Federation",
 			Handle: auth.FederationUserHandle,
 			Kind:   types.SystemUser,
 		},

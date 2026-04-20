@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
 	"go.uber.org/zap"
 )
 
@@ -110,7 +110,7 @@ func (embedder *embedder) GenerateEmbeddings(input string) ([]float64, error) {
 }
 
 func (embedder *embedder) ValidateEmbeddingDimensions(dimension int) (bool, error) {
-	embeddings, err := embedder.GenerateEmbeddings("Corteza")
+	embeddings, err := embedder.GenerateEmbeddings("Human")
 	if err != nil {
 		return false, err
 	}

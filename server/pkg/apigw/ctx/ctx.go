@@ -3,8 +3,8 @@ package ctx
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
-	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/crusttech/human/server/pkg/apigw/profiler"
+	"github.com/crusttech/human/server/pkg/apigw/types"
 )
 
 type (

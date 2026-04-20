@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/crusttech/human/server/pkg/payload"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/models"
@@ -72,7 +72,7 @@ var (
 // NewTokenIssuer initializes and returns new instance of JWT manager
 func NewTokenIssuer(opt ...IssuerOptFn) (issuer *tokenIssuer, err error) {
 	issuer = &tokenIssuer{
-		defaultRequest: &TokenRequest{Issuer: "cortezaproject.org"},
+		defaultRequest: &TokenRequest{Issuer: "example.com"},
 
 		store: func(ctx context.Context, request TokenRequest) error {
 			// elegantly handle unconfigured store

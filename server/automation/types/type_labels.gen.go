@@ -8,7 +8,7 @@ package types
 // Definitions file that controls how this file is generated:
 // automation/types/types.yaml
 import (
-	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 // SetLabel adds new label to label map

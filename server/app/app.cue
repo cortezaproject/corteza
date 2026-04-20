@@ -1,16 +1,16 @@
 package app
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
-	"github.com/cortezaproject/corteza/server/app/options"
-	"github.com/cortezaproject/corteza/server/system"
-	"github.com/cortezaproject/corteza/server/compose"
-	"github.com/cortezaproject/corteza/server/automation"
-	"github.com/cortezaproject/corteza/server/federation"
+	"github.com/crusttech/human/server/codegen/schema"
+	"github.com/crusttech/human/server/app/options"
+	"github.com/crusttech/human/server/system"
+	"github.com/crusttech/human/server/compose"
+	"github.com/crusttech/human/server/automation"
+	"github.com/crusttech/human/server/federation"
 )
 
-corteza: schema.#platform & {
-	"ident": "corteza"
+human: schema.#platform & {
+	"ident": "human"
 
 	"options": [
 		options.DB,

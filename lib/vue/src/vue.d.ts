@@ -1,8 +1,8 @@
 /**
- * Vue 3 Type Declarations for Corteza
+ * Vue 3 Type Declarations for Human
  *
  * This file provides TypeScript type augmentations for Vue's global properties
- * and component definitions used throughout the Corteza applications.
+ * and component definitions used throughout the Human applications.
  */
 
 // Asset module declarations
@@ -108,7 +108,7 @@ declare module 'vue' {
   }
 }
 
-// Extend Window interface for Corteza configuration
+// Extend Window interface for Human configuration
 declare global {
   interface Window {
     /**
@@ -119,21 +119,21 @@ declare global {
     HumanAPI?: string
 
     /**
-     * Corteza Auth URL (optional, auto-derived from HumanAPI if not set)
+     * Human Auth URL (optional, auto-derived from HumanAPI if not set)
      * @example 'https://human.example.com/auth'
      */
     HumanAuth?: string
 
     /**
-     * Corteza websocket URL (optional, auto-derived from HumanAPI if not set)
+     * Human websocket URL (optional, auto-derived from HumanAPI if not set)
      */
     HumanWebsocket?: string
 
     /**
-     * Corteza Webapp base URL (optional)
+     * Human Webapp base URL (optional)
      * Used for constructing callback URLs
      */
-    CortezaWebapp?: string
+    HumanWebapp?: string
 
     /**
      * Enable i18n pseudo mode for translation testing

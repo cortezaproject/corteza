@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/y7s"
 	"github.com/modern-go/reflect2"
 	"gopkg.in/yaml.v3"
 )

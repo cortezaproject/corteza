@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 HTTPServer: schema.#optionsGroup & {
@@ -9,7 +9,7 @@ HTTPServer: schema.#optionsGroup & {
 	title:  "HTTP Server"
 
 	imports: [
-		"\"github.com/cortezaproject/corteza/server/pkg/rand\"",
+		"\"github.com/crusttech/human/server/pkg/rand\"",
 	]
 
 	options: {
@@ -64,7 +64,7 @@ HTTPServer: schema.#optionsGroup & {
 			env:         "HTTP_METRICS"
 		}
 		metricsServiceLabel: {
-			defaultValue: "corteza"
+			defaultValue: "human"
 			description:  "Name for metrics endpoint."
 			env:          "HTTP_METRICS_NAME"
 		}
@@ -123,8 +123,8 @@ HTTPServer: schema.#optionsGroup & {
 			type:          "bool"
 			defaultGoExpr: "isSecure()"
 			description: """
-				Is SSL termination enabled in ingres, proxy or load balancer that is in front of Corteza?
-				By default, Corteza checks for presence of LETSENCRYPT_HOST environmental variable.
+				Is SSL termination enabled in ingres, proxy or load balancer that is in front of Human?
+				By default, Human checks for presence of LETSENCRYPT_HOST environmental variable.
 				This DOES NOT enable SSL termination in Cortreza!
 				"""
 			env: "HTTP_SSL_TERMINATED"
@@ -132,7 +132,7 @@ HTTPServer: schema.#optionsGroup & {
 
 		assets_path: {
 			description: """
-				Corteza will directly serve these assets (static files).
+				Human will directly serve these assets (static files).
 				When empty path is set (default value), embedded files are used.
 				"""
 		}
@@ -151,7 +151,7 @@ HTTPServer: schema.#optionsGroup & {
 			description: """
 				Password for the web console endpoint. When running in dev environment, password is not required.
 
-				Corteza intentionally sets default password to random chars to prevent security incidents.
+				Human intentionally sets default password to random chars to prevent security incidents.
 				"""
 		}
 	}

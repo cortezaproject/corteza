@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/crusttech/human/extra/server-discovery/pkg/options"
+	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"github.com/go-chi/chi/v5"
@@ -20,7 +20,7 @@ type (
 		Shutdown()
 	}
 
-	CortezaDiscoveryApp struct {
+	HumanDiscoveryApp struct {
 		Opt *options.Options
 		lvl int
 		Log *zap.Logger
@@ -35,8 +35,8 @@ var (
 	_ esutil.BulkIndexer
 )
 
-func New() (app *CortezaDiscoveryApp, err error) {
-	app = &CortezaDiscoveryApp{
+func New() (app *HumanDiscoveryApp, err error) {
+	app = &HumanDiscoveryApp{
 		Log: logger.MakeDebugLogger().WithOptions(zap.AddStacktrace(zap.PanicLevel)),
 	}
 	app.Opt, err = options.Init()
@@ -48,11 +48,11 @@ func New() (app *CortezaDiscoveryApp, err error) {
 	return
 }
 
-func (app CortezaDiscoveryApp) Serve(ctx context.Context) (err error) {
+func (app HumanDiscoveryApp) Serve(ctx context.Context) (err error) {
 	return
 }
 
-//func (app CortezaDiscoveryApp) InitService(ctx context.Context) (err error) {
+//func (app HumanDiscoveryApp) InitService(ctx context.Context) (err error) {
 //	// Initialize indexer service
 //	err = indexer.Initialize(ctx, app.Log, indexer.Config{
 //		ES:      app.Opt.ES,

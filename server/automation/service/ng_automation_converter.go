@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/automation/types"
-	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/ast"
-	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/automation/types"
+	automationTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/ast"
+	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/davecgh/go-spew/spew"
 )
 

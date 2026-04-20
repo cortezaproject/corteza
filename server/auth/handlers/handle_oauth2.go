@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/locale"
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/jwtauth"
@@ -21,13 +21,13 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/cast"
 
-	"github.com/cortezaproject/corteza/server/auth/request"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
-	systemService "github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/request"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/payload"
+	systemService "github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	"go.uber.org/zap"
 )
@@ -539,7 +539,7 @@ func SubSplit(ti oauth2def.TokenInfo, data map[string]interface{}) {
 	}
 }
 
-// Generates ID token that is part of OIDC flow for doing corteza-to-corteza auth
+// Generates ID token that is part of OIDC flow for doing human-to-human auth
 func generateIdToken(user *types.User, client *types.AuthClient, ti oauth2def.TokenInfo, baseURL string) (_ []byte, err error) {
 	token := jwt.New()
 	if err = token.Set(jwt.IssuerKey, baseURL); err != nil {

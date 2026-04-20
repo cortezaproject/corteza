@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface PartialTemplate extends Partial<
@@ -40,7 +40,7 @@ export class Template {
   }
 
   apply(r?: PartialTemplate): void {
-    Apply(this, r, CortezaID, 'templateID', 'ownerID')
+    Apply(this, r, HumanID, 'templateID', 'ownerID')
 
     Apply(this, r, String, 'handle', 'language', 'type', 'template')
     Apply(this, r, Boolean, 'partial', 'canDeleteTemplate')

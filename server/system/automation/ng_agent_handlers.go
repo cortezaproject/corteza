@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
-	agenticRuntime "github.com/cortezaproject/corteza/server/system/agentic/runtime"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/system/types"
+	atypes "github.com/crusttech/human/server/automation/types"
+	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

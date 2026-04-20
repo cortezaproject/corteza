@@ -5,14 +5,14 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/pkg/rbac
+// pkg: github.com/crusttech/human/server/pkg/rbac
 // cpu: Apple M3 Pro
 // BenchmarkAccess_100_10_1000-12                   1552434               755.3 ns/op           320 B/op         11 allocs/op
 // BenchmarkAccess_1000_100_10000-12                1314985              1053 ns/op             320 B/op         11 allocs/op

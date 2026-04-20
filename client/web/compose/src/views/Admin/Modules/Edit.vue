@@ -629,7 +629,7 @@ async function loadModule() {
     module.value.fields.forEach(ensureFieldKey)
     initialModule.value = cloneDeep(module.value)
 
-    // Auto-trigger schema alterations check if module has issues (matching Corteza behavior)
+    // Auto-trigger schema alterations check if module has issues (matching Human behavior)
     if ((module.value.issues || []).length > 0) {
       checkSchemaAlterations()
     }

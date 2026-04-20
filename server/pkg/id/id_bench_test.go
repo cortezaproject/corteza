@@ -7,7 +7,7 @@ import (
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/pkg/id
+// pkg: github.com/crusttech/human/server/pkg/id
 // cpu: Apple M3 Pro
 // BenchmarkIDCastingBase-12    	 2561474	       465.7 ns/op	     312 B/op	       8 allocs/op
 // PASS
@@ -38,7 +38,7 @@ func BenchmarkIDCastingBase(b *testing.B) {
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/pkg/id
+// pkg: github.com/crusttech/human/server/pkg/id
 // cpu: Apple M3 Pro
 // BenchmarkIDCasting-12    	 1284855	       866.6 ns/op	     528 B/op	      12 allocs/op
 // PASS

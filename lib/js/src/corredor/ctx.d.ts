@@ -28,7 +28,7 @@ interface CtxInitArgs {
  * Context accepts pre-assembled *API props or it construct them fly from passed config
  *
  * Naming convention for properties:
- *  - Corteza classes, high-level helpers, API clients are upper cased
+ *  - Human classes, high-level helpers, API clients are upper cased
  *  - low-level helpers are lower cased
  *  - simple scalar are lower cased
  *  - $authUser is the only one prefixed with the dollar sign for historical reasons

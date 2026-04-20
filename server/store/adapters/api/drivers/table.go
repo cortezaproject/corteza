@@ -1,7 +1,7 @@
 package drivers
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/dal"
 )
 
 type (

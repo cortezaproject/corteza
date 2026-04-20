@@ -1,5 +1,5 @@
 import lodash from 'lodash-es'
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 const { merge } = lodash
 
 interface KV {
@@ -38,10 +38,10 @@ export class Reminder {
   apply(r?: PartialReminder): void {
     if (!r) return
 
-    Apply(this, r, CortezaID, 'reminderID')
+    Apply(this, r, HumanID, 'reminderID')
     Apply(this, r, String, 'resource')
     Apply(this, r, Number, 'snoozeCount')
-    Apply(this, r, CortezaID, 'assignedTo', 'assignedBy', 'dismissedBy')
+    Apply(this, r, HumanID, 'assignedTo', 'assignedBy', 'dismissedBy')
 
     // @todo actions, options, payload... all 3?
     this.payload = merge({}, this.payload, r.payload)

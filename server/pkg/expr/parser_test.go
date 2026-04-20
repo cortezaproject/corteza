@@ -54,7 +54,7 @@ func TestGvalParser(t *testing.T) {
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// pkg: github.com/crusttech/human/server/pkg/expr
 // cpu: Apple M3 Pro
 // BenchmarkParsing-12    	  295779	      4052 ns/op	    4952 B/op	     133 allocs/op
 func BenchmarkParsing(b *testing.B) {
@@ -72,7 +72,7 @@ func BenchmarkParsing(b *testing.B) {
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// pkg: github.com/crusttech/human/server/pkg/expr
 // cpu: Apple M3 Pro
 // BenchmarkEval_short-12            886696              1344 ns/op             544 B/op         14 allocs/op
 // BenchmarkEval_med-12              299616              4020 ns/op            1280 B/op         36 allocs/op

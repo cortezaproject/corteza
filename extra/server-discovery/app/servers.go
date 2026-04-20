@@ -3,13 +3,13 @@ package app
 import (
 	"strings"
 
-	searcherRest "github.com/cortezaproject/corteza/extra/server-discovery/searcher/rest"
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	searcherRest "github.com/crusttech/human/extra/server-discovery/searcher/rest"
+	"github.com/crusttech/human/server/pkg/options"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
 
-func (app *CortezaDiscoveryApp) MountHttpRoutes(r chi.Router) {
+func (app *HumanDiscoveryApp) MountHttpRoutes(r chi.Router) {
 	var (
 		ho = app.Opt.HTTPServer
 	)

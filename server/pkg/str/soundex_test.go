@@ -65,7 +65,7 @@ func Test_soundex(t *testing.T) {
 
 // goos: darwin
 // goarch: arm64
-// pkg: github.com/cortezaproject/corteza/server/pkg/str
+// pkg: github.com/crusttech/human/server/pkg/str
 // BenchmarkSoundex_100_100-12               475930              2835 ns/op            3568 B/op         80 allocs/op
 // BenchmarkSoundex_1000_1000-12              30688             37494 ns/op          225458 B/op        657 allocs/op
 // BenchmarkSoundex_10000_10000-12              568           2023842 ns/op        25114459 B/op       6892 allocs/op

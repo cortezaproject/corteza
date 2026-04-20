@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
-	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
-	federationTypes "github.com/cortezaproject/corteza/server/federation/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	automationTypes "github.com/crusttech/human/server/automation/types"
+	composeTypes "github.com/crusttech/human/server/compose/types"
+	federationTypes "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/envoy"
+	"github.com/crusttech/human/server/pkg/envoy/resource"
+	systemTypes "github.com/crusttech/human/server/system/types"
 )
 
 func (n *rbacRule) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {

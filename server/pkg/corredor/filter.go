@@ -1,7 +1,7 @@
 package corredor
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/slice"
+	"github.com/crusttech/human/server/pkg/slice"
 	"strings"
 )
 

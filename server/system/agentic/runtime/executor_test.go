@@ -6,10 +6,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/cli"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

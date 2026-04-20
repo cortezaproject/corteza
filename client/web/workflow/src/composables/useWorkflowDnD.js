@@ -21,7 +21,7 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
     event.dataTransfer.effectAllowed = 'move'
     event.dataTransfer.setData('application/workflow-node', JSON.stringify(toolbarItem))
 
-    // Dashed node-sized preview — parity with Corteza's mxGraph drag ghost.
+    // Dashed node-sized preview — parity with Human's mxGraph drag ghost.
     // The element must be attached to the DOM for setDragImage to rasterise it,
     // so we append it off-screen, call setDragImage, then remove it on the next
     // tick (by which point the browser has snapshotted it).
@@ -99,7 +99,7 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
     position.x = Math.round(position.x / 8) * 8
     position.y = Math.round(position.y / 8) * 8
 
-    // Generate incrementing integer ID (like Corteza's mxGraph)
+    // Generate incrementing integer ID (like Human's mxGraph)
     const id = String(nextId(nodes, edges))
 
     let nodeType = 'workflow'

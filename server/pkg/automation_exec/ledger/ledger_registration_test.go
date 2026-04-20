@@ -3,7 +3,7 @@ package ledger
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
 )
 
 // TL;DR: A registered execution is stored with StatusCreated and an initialised events slice.

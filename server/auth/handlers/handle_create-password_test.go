@@ -7,11 +7,11 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/system/service"
+	"github.com/crusttech/human/server/system/service"
 
-	"github.com/cortezaproject/corteza/server/auth/request"
-	"github.com/cortezaproject/corteza/server/auth/settings"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/auth/request"
+	"github.com/crusttech/human/server/auth/settings"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 

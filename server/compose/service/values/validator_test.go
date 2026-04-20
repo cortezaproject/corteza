@@ -2,8 +2,8 @@ package values
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
@@ -215,12 +215,12 @@ func Test_validator_vSelect(t *testing.T) {
 			{
 				name: "valid value",
 				val:  "crust",
-				opt:  types.ModuleFieldOptions{"options": []string{"crust", "corteza"}},
+				opt:  types.ModuleFieldOptions{"options": []string{"crust", "human"}},
 			},
 			{
 				name: "valid value",
 				val:  "the rest",
-				opt:  types.ModuleFieldOptions{"options": []string{"crust", "corteza"}},
+				opt:  types.ModuleFieldOptions{"options": []string{"crust", "human"}},
 				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "the rest"}, Message: "record-field.errors.invalidValue"}),
 			},
 		}

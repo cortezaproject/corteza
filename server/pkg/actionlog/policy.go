@@ -1,6 +1,6 @@
 package actionlog
 
-import "github.com/cortezaproject/corteza/server/pkg/slice"
+import "github.com/crusttech/human/server/pkg/slice"
 
 type (
 	policyMatcher interface {

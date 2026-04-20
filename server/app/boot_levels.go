@@ -10,46 +10,46 @@ import (
 	"strings"
 	"time"
 
-	authService "github.com/cortezaproject/corteza/server/auth"
-	"github.com/cortezaproject/corteza/server/auth/saml"
-	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
-	autoAgentic "github.com/cortezaproject/corteza/server/automation/agentic"
-	autService "github.com/cortezaproject/corteza/server/automation/service"
-	cmpAgentic "github.com/cortezaproject/corteza/server/compose/agentic"
-	sysAgentic "github.com/cortezaproject/corteza/server/system/agentic"
-	cmpService "github.com/cortezaproject/corteza/server/compose/service"
-	cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
-	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
-	fedService "github.com/cortezaproject/corteza/server/federation/service"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/apigw"
-	apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/corredor"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
-	"github.com/cortezaproject/corteza/server/pkg/http"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/mail"
-	"github.com/cortezaproject/corteza/server/pkg/messagebus"
-	"github.com/cortezaproject/corteza/server/pkg/monitor"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/provision"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/scheduler"
-	"github.com/cortezaproject/corteza/server/pkg/sentry"
-	"github.com/cortezaproject/corteza/server/pkg/valuestore"
-	"github.com/cortezaproject/corteza/server/pkg/version"
-	"github.com/cortezaproject/corteza/server/pkg/websocket"
-	"github.com/cortezaproject/corteza/server/store"
-	mcpkg "github.com/cortezaproject/corteza/server/system/agentic/mcp"
-	"github.com/cortezaproject/corteza/server/system/agentic/observability"
-	"github.com/cortezaproject/corteza/server/system/service"
-	sysService "github.com/cortezaproject/corteza/server/system/service"
-	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
-	"github.com/cortezaproject/corteza/server/system/types"
+	authService "github.com/crusttech/human/server/auth"
+	"github.com/crusttech/human/server/auth/saml"
+	authSettings "github.com/crusttech/human/server/auth/settings"
+	autoAgentic "github.com/crusttech/human/server/automation/agentic"
+	autService "github.com/crusttech/human/server/automation/service"
+	cmpAgentic "github.com/crusttech/human/server/compose/agentic"
+	sysAgentic "github.com/crusttech/human/server/system/agentic"
+	cmpService "github.com/crusttech/human/server/compose/service"
+	cmpEvent "github.com/crusttech/human/server/compose/service/event"
+	discoveryService "github.com/crusttech/human/server/discovery/service"
+	fedService "github.com/crusttech/human/server/federation/service"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/apigw"
+	apigwTypes "github.com/crusttech/human/server/pkg/apigw/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/corredor"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/healthcheck"
+	"github.com/crusttech/human/server/pkg/http"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/mail"
+	"github.com/crusttech/human/server/pkg/messagebus"
+	"github.com/crusttech/human/server/pkg/monitor"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/provision"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/scheduler"
+	"github.com/crusttech/human/server/pkg/sentry"
+	"github.com/crusttech/human/server/pkg/valuestore"
+	"github.com/crusttech/human/server/pkg/version"
+	"github.com/crusttech/human/server/pkg/websocket"
+	"github.com/crusttech/human/server/store"
+	mcpkg "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/system/agentic/observability"
+	"github.com/crusttech/human/server/system/service"
+	sysService "github.com/crusttech/human/server/system/service"
+	sysEvent "github.com/crusttech/human/server/system/service/event"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -67,7 +67,7 @@ const (
 )
 
 // Setup configures all required services
-func (app *CortezaApp) Setup() (err error) {
+func (app *HumanApp) Setup() (err error) {
 	if app.lvl >= bootLevelSetup {
 		// Are basics already set-up?
 		return nil
@@ -110,7 +110,7 @@ func (app *CortezaApp) Setup() (err error) {
 
 		if app.Opt.Auth.SessionLifetime < time.Hour {
 			log.Warn("AUTH_SESSION_LIFETIME is set to less then an hour, this might not be what you want." +
-				"When user logs-in without 'remember-me',  AUTH_SESSION_LIFETIME is used to set a maximum time before session is expired if user does not interacts with Corteza. " +
+				"When user logs-in without 'remember-me',  AUTH_SESSION_LIFETIME is used to set a maximum time before session is expired if user does not interacts with Human. " +
 				"Recommended session lifetime value is between one hour (default) and a day")
 		}
 
@@ -190,7 +190,7 @@ func (app *CortezaApp) Setup() (err error) {
 }
 
 // InitStore initializes store backend(s) and runs upgrade procedures
-func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
+func (app *HumanApp) InitStore(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelStoreInitialized {
 		// Is store already initialised?
 		return nil
@@ -245,7 +245,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 
 // Provision instance with configuration and settings
 // by importing preset configurations and running autodiscovery procedures
-func (app *CortezaApp) Provision(ctx context.Context) (err error) {
+func (app *HumanApp) Provision(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelProvisioned {
 		return
 	}
@@ -295,7 +295,7 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 }
 
 // InitServices initializes all services used
-func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
+func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelServicesInitialized {
 		return nil
 	}
@@ -514,7 +514,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 }
 
 // Activate start all internal services and watchers
-func (app *CortezaApp) Activate(ctx context.Context) (err error) {
+func (app *HumanApp) Activate(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelActivated {
 		return
 	}
@@ -646,7 +646,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 }
 
 // Provisions and initializes system roles and users
-func (app *CortezaApp) initSystemEntities(ctx context.Context) (err error) {
+func (app *HumanApp) initSystemEntities(ctx context.Context) (err error) {
 	if app.systemEntitiesInitialized {
 		// make sure we do this once.
 		return nil
@@ -885,7 +885,7 @@ func initValuestore(opt *options.Options) {
 		vars[fmt.Sprintf("webapp.base-url.%s", k)] = v
 	}
 
-	for k, v := range cortezaEnvVars() {
+	for k, v := range humanEnvVars() {
 		vars[k] = v
 	}
 
@@ -893,13 +893,13 @@ func initValuestore(opt *options.Options) {
 	valuestore.SetGlobal(s)
 }
 
-// cortezaEnvVars returns a set of environment variables that should be passed
-// through to Corteza for use in workflows and elsewhere.
-func cortezaEnvVars() (vars map[string]string) {
+// humanEnvVars returns a set of environment variables that should be passed
+// through to Human for use in workflows and elsewhere.
+func humanEnvVars() (vars map[string]string) {
 	vars = make(map[string]string, 2)
 
 	for _, e := range os.Environ() {
-		if !strings.HasPrefix(strings.ToLower(e), "corteza_env") {
+		if !strings.HasPrefix(strings.ToLower(e), "human_env") {
 			continue
 		}
 

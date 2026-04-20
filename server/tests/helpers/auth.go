@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/steinfletcher/apitest"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/auth"
 )
 
 func BindAuthMiddleware(r chi.Router) {

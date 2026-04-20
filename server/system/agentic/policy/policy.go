@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/system/types"
 )
 
 // toolAliases mirrors the alias map in the mcp package.
@@ -144,7 +144,7 @@ func findWorkflow(agent *types.Agent, ref string) *types.AgentAccessWorkflow {
 	return nil
 }
 
-// buildResource constructs a Corteza resource identifier from the tool name and args.
+// buildResource constructs a Human resource identifier from the tool name and args.
 // Missing or zero-value segments are replaced with "*".
 func buildResource(tool string, args ValueGetter) string {
 	seg := func(key string) string {

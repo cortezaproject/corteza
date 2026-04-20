@@ -17,7 +17,7 @@ $(DEF_SERVER): $(CUE) $(JSONTPLEXEC)
 ifeq ("${DOCS_DIR}", "")
 $(DEF_DOCS):
 	@ echo "$(COLOUR_YELLOW)Skipping docs generation: DOCS_DIR is not set.$(COLOUR_END)"
-	@ echo "$Run task like this: make "$@" DOCS_DIR=/path/to/corteza-docs"
+	@ echo "$Run task like this: make "$@" DOCS_DIR=/path/to/human-docs"
 	@ echo ""
 else
 $(DEF_DOCS): $(CUE) $(JSONTPLEXEC)

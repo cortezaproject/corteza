@@ -3,8 +3,8 @@ package provision
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/compose/types"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/store"
 	"go.uber.org/zap"
 )
 

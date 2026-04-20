@@ -5,11 +5,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/dal"
+	"github.com/crusttech/human/server/store/adapters/rdbms/dal"
 
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/store/adapters/rdbms"
 	mssql "github.com/denisenkom/go-mssqldb"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/jmoiron/sqlx"

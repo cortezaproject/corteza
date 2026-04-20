@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/cortezaproject/corteza/extra/server-discovery/app"
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/api/server"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
+	"github.com/crusttech/human/extra/server-discovery/app"
+	"github.com/crusttech/human/extra/server-discovery/pkg/api/server"
+	"github.com/crusttech/human/server/pkg/cli"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"sync"

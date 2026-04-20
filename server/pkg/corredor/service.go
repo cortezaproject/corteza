@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/sentry"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/sentry"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -635,7 +635,7 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 		ptr := svc.eventRegistry.Register(func(ctx context.Context, ev eventbus.Event) (err error) {
 			// Is this compatible event?
 			if ce, ok := ev.(ScriptArgs); ok {
-				// Can only work with corteza compatible events
+				// Can only work with human compatible events
 				return svc.exec(ctx, script.Name, runAs, ce)
 			}
 

@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/cast2"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/j7s"
+	"github.com/crusttech/human/server/pkg/cast2"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/j7s"
 )
 
 type (

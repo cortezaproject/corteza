@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	ConsumerCorteza  ConsumerType = "corteza"
+	ConsumerHuman  ConsumerType = "human"
 	ConsumerNoop     ConsumerType = "noop"
 	ConsumerRedis    ConsumerType = "redis"
 	ConsumerStore    ConsumerType = "store"
@@ -22,7 +22,7 @@ type (
 
 func ConsumerTypes() []ConsumerType {
 	return []ConsumerType{
-		ConsumerCorteza,
+		ConsumerHuman,
 		ConsumerEventbus,
 		ConsumerRedis,
 		ConsumerStore,

@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	autoService "github.com/cortezaproject/corteza/server/automation/service"
-	autoTypes "github.com/cortezaproject/corteza/server/automation/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	autoService "github.com/crusttech/human/server/automation/service"
+	autoTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

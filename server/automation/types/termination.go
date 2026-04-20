@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	nx "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	nx "github.com/crusttech/human/server/pkg/automation_exec/types"
 )
 
 type (

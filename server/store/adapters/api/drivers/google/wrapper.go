@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
+	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
 )
 
 type (

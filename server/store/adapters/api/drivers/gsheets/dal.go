@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
-	apidal "github.com/cortezaproject/corteza/server/store/adapters/api/dal"
+	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
+	apidal "github.com/crusttech/human/server/store/adapters/api/dal"
 	"github.com/spf13/cast"
 )
 

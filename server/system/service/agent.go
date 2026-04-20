@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/errors"
 
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/label"
 
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/agentic/tcl"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/agentic/tcl"
+	"github.com/crusttech/human/server/system/types"
 )
 
 type (

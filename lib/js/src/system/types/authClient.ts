@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface PartialAuthClient extends Partial<
@@ -65,7 +65,7 @@ export class AuthClient {
   }
 
   apply(o?: PartialAuthClient): void {
-    Apply(this, o, CortezaID, 'authClientID')
+    Apply(this, o, HumanID, 'authClientID')
     Apply(this, o, ISO8601Date, 'validFrom', 'expiresAt', 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, o, String, 'handle', 'scope', 'redirectURI', 'validGrant')
     Apply(
@@ -90,7 +90,7 @@ export class AuthClient {
       }
     }
 
-    Apply(this, o, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, o, HumanID, 'createdBy', 'updatedBy', 'deletedBy')
   }
 
   clone(): AuthClient {

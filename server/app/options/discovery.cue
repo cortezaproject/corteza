@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/crusttech/human/server/codegen/schema"
 )
 
 discovery: schema.#optionsGroup & {
@@ -17,13 +17,13 @@ discovery: schema.#optionsGroup & {
 			defaultGoExpr: "false"
 			description:   "Enable discovery related activity info"
 		}
-		corteza_domain: {
+		human_domain: {
 			type:        "string"
-			description: "Indicates host of corteza compose webapp"
+			description: "Indicates host of human compose webapp"
 		}
 		base_url: {
 			type:        "string"
-			description: "Indicates host of corteza discovery server"
+			description: "Indicates host of human discovery server"
 		}
 		jwt_secret: {
 			type:        "string"

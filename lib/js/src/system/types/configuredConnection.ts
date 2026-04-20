@@ -1,4 +1,4 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 import { Connection } from './connection'
 
@@ -55,7 +55,7 @@ export class ConfiguredConnection {
   }
 
   apply(cc?: PartialConfiguredConnection): void {
-    Apply(this, cc, CortezaID, 'configurationID', 'connectionID')
+    Apply(this, cc, HumanID, 'configurationID', 'connectionID')
     Apply(this, cc, String, 'name', 'status', 'createdBy', 'updatedBy', 'deletedBy')
 
     Apply(this, cc, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')

@@ -11,10 +11,10 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
-	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
 )
@@ -1749,7 +1749,7 @@ func AuthErrMaxUserLimitReached(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("you have reached your user limit, contact your Corteza administrator", nil),
+		p.Format("you have reached your user limit, contact your Human administrator", nil),
 
 		errors.Meta("type", "maxUserLimitReached"),
 		errors.Meta("resource", "system:auth"),
