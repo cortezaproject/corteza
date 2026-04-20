@@ -2,13 +2,13 @@
 
 codegen:
 	@echo "---Running codegen---"
-	@(cd $(CURDIR)/js && yarn codegen) || (echo "Failed to run codegen"; exit 1)
+	@(cd $(CURDIR)/js && pnpm codegen) || (echo "Failed to run codegen"; exit 1)
 
 test: test-js test-vue
 
 test-js:
 	@echo "---Testing js---"
-	@(cd $(CURDIR)/js && yarn test) || (echo "Failed to test js"; exit 1)
+	@(cd $(CURDIR)/js && pnpm test) || (echo "Failed to test js"; exit 1)
 
 test-vue:
 	@echo "---Testing vue---"
@@ -16,8 +16,8 @@ test-vue:
 
 lint:
 	@echo "---Linting js---"
-	@(cd $(CURDIR)/js && yarn lint) || (echo "Failed to lint js"; exit 1)
+	@(cd $(CURDIR)/js && pnpm lint) || (echo "Failed to lint js"; exit 1)
 	@echo "---Linting vue---"
-	@(cd $(CURDIR)/vue && yarn lint) || (echo "Failed to lint vue"; exit 1)
+	@(cd $(CURDIR)/vue && pnpm lint) || (echo "Failed to lint vue"; exit 1)
 
 .DEFAULT_GOAL := dev

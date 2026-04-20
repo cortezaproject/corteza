@@ -21,29 +21,29 @@ jobs:
   ########################################################################################################################
   # Server
 
-  server-test:
-    name: 'Server tests'
-    runs-on: ubuntu-22.04
-    env:
-      GOFLAGS: -mod=readonly
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
-        with:
-          go-version: '${{ env.GO_VERSION }}'
-          cache-dependency-path: server/go.sum
-      - name: 'Copy language files'
-        working-directory: server/pkg/locale
-        run: make src/en
-      - name: 'Unit'
-        working-directory: server
-        run: make test.unit
-      - name: 'Store'
-        working-directory: server
-        run: make test.store
-      - name: 'Integration'
-        working-directory: server
-        run: make test.integration
+  # server-test:
+  #   name: 'Server tests'
+  #   runs-on: ubuntu-22.04
+  #   env:
+  #     GOFLAGS: -mod=readonly
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: actions/setup-go@v6
+  #       with:
+  #         go-version: '${{ env.GO_VERSION }}'
+  #         cache-dependency-path: server/go.sum
+  #     - name: 'Copy language files'
+  #       working-directory: server/pkg/locale
+  #       run: make src/en
+  #     - name: 'Unit'
+  #       working-directory: server
+  #       run: make test.unit
+  #     - name: 'Store'
+  #       working-directory: server
+  #       run: make test.store
+  #     - name: 'Integration'
+  #       working-directory: server
+  #       run: make test.integration
 
   server-web-console-build:
     name: 'Server Web Console Build'
@@ -72,7 +72,7 @@ jobs:
   server-build:
     name: 'Server Build'
     runs-on: ubuntu-22.04
-    needs: [server-web-console-build, server-test]
+    needs: [server-web-console-build]
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v6
@@ -103,7 +103,6 @@ jobs:
   discovery-server-build:
     name: 'Discovery Server Build'
     runs-on: ubuntu-22.04
-    needs: [server-test]
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v6

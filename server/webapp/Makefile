@@ -4,8 +4,6 @@ WGET         ?= wget
 WGET_FLAGS   ?= -q
 TAR          ?= tar
 TAR_FLAGS    ?= -xzmok
-# TODO: update to new releases endpoint when available
-# RELEASE_PAGE ?= https://releases.cortezaproject.org/files
 APPS         ?= admin compose workflow reporter discovery
 ALL_APPS     ?= $(APPS) one
 VERSION      ?= $(shell git describe --tags --abbrev=0)
