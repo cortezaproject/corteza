@@ -8,15 +8,16 @@
       'trigger-node--trace-success': data?.traceState === 'success',
       'trigger-node--trace-error': data?.traceState === 'error',
     }"
-    :style="{ width: '200px' }"
+    :style="{ width: '180px' }"
   >
-    <!-- Header -->
+    <!-- Header (icon + title + actions) -->
     <div class="trigger-node__header">
       <img v-if="iconSrc" :src="iconSrc" class="trigger-node__icon" />
-      <span class="trigger-node__type">{{ stepTypeLabel }}</span>
+      <span class="trigger-node__title" :title="data?.label || stepTypeLabel">
+        {{ data?.label || stepTypeLabel }}
+      </span>
 
       <div class="trigger-node__header-actions">
-        <!-- Test button -->
         <img
           v-if="canTest && !dryRunProcessing"
           :src="getIcon('play')"
@@ -24,30 +25,26 @@
           :title="$t('configurator.tooltip.run-workflow')"
           @click.stop="$emit('test', id)"
         />
-        <!-- Spinner -->
         <span v-if="dryRunProcessing && dryRunCellID === id" class="trigger-node__spinner" />
-        <!-- Cancel -->
         <img
           v-if="dryRunProcessing && dryRunCellID === id && dryRunSessionID"
           :src="getIcon('stop')"
           class="trigger-node__action-btn"
           @click.stop="$emit('cancel')"
         />
-        <!-- Issue badge -->
-        <img
-          v-if="hasIssues"
-          :src="getIcon('issue')"
-          class="trigger-node__issue"
-          @click.stop="$emit('open-issues', id)"
-        />
-        <!-- ID label -->
-        <span v-if="!hasIssues" class="trigger-node__id">{{ id }}</span>
+        <span class="trigger-node__id">{{ id }}</span>
       </div>
     </div>
 
-    <!-- Label row -->
-    <div class="trigger-node__label">
-      <span class="trigger-node__label-text">{{ data?.label || '/' }}</span>
+    <!-- Issue badge (top-right) -->
+    <div
+      v-if="hasIssues"
+      v-tooltip.top="{ value: issueTooltip, pt: { text: 'whitespace-pre-wrap text-xs' } }"
+      class="trigger-node__issue-badge"
+      :aria-label="$t('editor.issues')"
+      @click.stop="$emit('open-issues', id)"
+    >
+      <img :src="getIcon('issue')" class="trigger-node__issue-icon" alt="" />
     </div>
 
     <!-- Values table (trigger config preview) -->
@@ -67,22 +64,68 @@
       />
     </div>
 
-    <!-- Only source handles (triggers have no inputs) -->
-    <Handle type="source" :position="Position.Bottom" id="source-bottom" :style="{ left: '50%' }" />
+    <!-- Description (bottom) — falls back to a config-derived label
+         (resource · event) so the second row is never empty. -->
+    <div v-if="displayDescription" class="trigger-node__description">
+      {{ displayDescription }}
+    </div>
+
+    <!-- Source handles (triggers have no inputs). `:connectable="false"` once
+         the trigger is wired — Corteza rule: one outbound per trigger. -->
+    <Handle
+      type="source"
+      :position="Position.Top"
+      id="source-top"
+      :style="{ left: '50%' }"
+      :connectable="!hasOutgoingEdge"
+    />
+    <Handle
+      type="source"
+      :position="Position.Top"
+      id="source-top-left"
+      :style="{ left: '25%' }"
+      :connectable="!hasOutgoingEdge"
+    />
+    <Handle
+      type="source"
+      :position="Position.Top"
+      id="source-top-right"
+      :style="{ left: '75%' }"
+      :connectable="!hasOutgoingEdge"
+    />
+    <Handle
+      type="source"
+      :position="Position.Bottom"
+      id="source-bottom"
+      :style="{ left: '50%' }"
+      :connectable="!hasOutgoingEdge"
+    />
     <Handle
       type="source"
       :position="Position.Bottom"
       id="source-bottom-left"
       :style="{ left: '25%' }"
+      :connectable="!hasOutgoingEdge"
     />
     <Handle
       type="source"
       :position="Position.Bottom"
       id="source-bottom-right"
       :style="{ left: '75%' }"
+      :connectable="!hasOutgoingEdge"
     />
-    <Handle type="source" :position="Position.Right" id="source-right" />
-    <Handle type="source" :position="Position.Left" id="source-left" />
+    <Handle
+      type="source"
+      :position="Position.Right"
+      id="source-right"
+      :connectable="!hasOutgoingEdge"
+    />
+    <Handle
+      type="source"
+      :position="Position.Left"
+      id="source-left"
+      :connectable="!hasOutgoingEdge"
+    />
   </div>
 </template>
 
@@ -105,6 +148,7 @@ const props = defineProps({
   dryRunCellID: { type: String, default: '' },
   dryRunSessionID: { type: String, default: '' },
   currentTheme: { type: String, default: 'light' },
+  hasOutgoingEdge: { type: Boolean, default: false },
 })
 
 defineEmits(['test', 'cancel', 'open-issues'])
@@ -123,14 +167,40 @@ const iconSrc = computed(() => {
 })
 
 const stepTypeLabel = computed(() => t('steps.trigger.short'))
+const stepDescription = computed(() => t('steps.trigger.description'))
+
+const configLabel = computed(() => {
+  const trg = props.data?.triggers || {}
+  if (!trg.resourceType) return ''
+  const resourceLabel = trg.resourceType
+    .split(':')
+    .map(part =>
+      part
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' '),
+    )
+    .join(' - ')
+  const eventLabel = trg.eventType ? camelToTitle(trg.eventType.replace('on', '')) : ''
+  return eventLabel ? `${resourceLabel} · ${eventLabel}` : resourceLabel
+})
+
+const displayDescription = computed(
+  () => props.data?.description || configLabel.value || stepDescription.value,
+)
 
 const isEnabled = computed(() => {
   return props.data?.triggers?.enabled !== false
 })
 
-const hasIssues = computed(() => {
-  return !!(props.issues && props.issues[props.id])
+const nodeIssues = computed(() => {
+  const list = props.issues?.[props.id]
+  return Array.isArray(list) ? list : []
 })
+
+const hasIssues = computed(() => nodeIssues.value.length > 0)
+
+const issueTooltip = computed(() => nodeIssues.value.join('\n'))
 
 const encodeHTML = (value = '') => {
   if (!value) return value
@@ -199,10 +269,13 @@ const valueRows = computed(() => {
 
 <style scoped>
 .trigger-node {
+  display: flex;
+  flex-direction: column;
   background: var(--p-content-background);
   border: 1px solid var(--p-surface-border);
   border-radius: 5px;
-  width: 200px;
+  width: 180px;
+  min-height: 64px;
   box-shadow: var(--p-card-shadow);
   cursor: pointer;
   transition:
@@ -240,19 +313,25 @@ const valueRows = computed(() => {
   display: flex;
   align-items: center;
   padding: 4px 8px;
-  height: 36px;
+  height: 32px;
   color: var(--p-primary-color);
   font-weight: 500;
+  font-size: 13px;
 }
 
 .trigger-node__icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin-right: 6px;
 }
 
-.trigger-node__type {
+.trigger-node__title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--p-text-color);
 }
 
 .trigger-node__header-actions {
@@ -302,33 +381,36 @@ const valueRows = computed(() => {
   display: none;
 }
 
-.trigger-node__issue {
-  width: 20px;
-  cursor: pointer;
-}
-
-.trigger-node__label {
-  border-top: 1px solid var(--p-surface-border);
-  padding: 6px 8px;
-  min-height: 36px;
+.trigger-node__issue-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
+  justify-content: center;
   background: var(--p-content-background);
+  border-radius: 50%;
+  box-shadow: var(--p-card-shadow);
+  cursor: pointer;
+  z-index: 11;
 }
 
-.trigger-node__label-text {
-  text-align: left;
-  line-height: 18px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-  min-width: 0;
-  color: var(--p-text-color);
+.trigger-node__issue-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
 }
 
-.trigger-node:hover .trigger-node__label-text {
-  white-space: normal;
+.trigger-node__description {
+  border-top: 1px solid var(--p-surface-border);
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--p-text-muted-color);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .trigger-node__values {
@@ -336,7 +418,7 @@ const valueRows = computed(() => {
   position: absolute;
   top: calc(100% + 14px);
   left: 0;
-  width: 200px;
+  width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: 10;
@@ -376,15 +458,17 @@ const valueRows = computed(() => {
   height: 16px;
 }
 
-/* Hide handles by default */
+/* Hide handles by default. z-index:-1 tucks the circle behind the node so
+   only the outer half pokes past the border. */
 .trigger-node :deep(.vue-flow__handle) {
   opacity: 0;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
+  z-index: -1;
   transition: opacity 0.2s;
 }
 
-.trigger-node:hover :deep(.vue-flow__handle) {
+.trigger-node:hover :deep(.vue-flow__handle.connectable) {
   opacity: 1;
 }
 </style>

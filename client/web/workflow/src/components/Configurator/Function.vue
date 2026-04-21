@@ -4,9 +4,8 @@
   >
     <div
       v-if="showFunctionList"
-      class="configurator-section"
+      class="py-3"
     >
-      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div
         v-if="functionTypes.length"
         class="flex flex-col gap-3"
@@ -37,11 +36,12 @@
       </div>
     </div>
 
+    <Divider v-if="showFunctionList && args.length" />
+
     <div
       v-if="args.length"
-      class="configurator-section"
+      class="py-3"
     >
-      <div class="configurator-section__title">{{ $t('steps.function.configurator.arguments') }}</div>
       <div
         v-for="(a, index) in args"
         :key="index"
@@ -154,26 +154,18 @@
               :false-value="'value'"
               @change="valueTypeChanged(a.valueType, index)"
             />
-            <div class="flex items-center gap-1">
-              <span class="text-sm">{{ $t('steps.function.configurator.expression') }}</span>
-              <a
-                :href="documentationURL"
-                target="_blank"
-                class="text-muted-color hover:text-color"
-              >
-                <i class="pi pi-question-circle" />
-              </a>
-            </div>
+            <span class="text-sm">{{ $t('steps.function.configurator.expression') }}</span>
           </div>
         </div>
       </div>
     </div>
 
+    <Divider v-if="args.length && (expressionResults || results.length)" />
+
     <div
       v-if="expressionResults || results.length"
-      class="configurator-section"
+      class="py-3"
     >
-      <div class="configurator-section__title">{{ $t('steps.function.configurator.results') }}</div>
       <div v-if="results.length">
         <expression-table
           v-if="expressionResults"
@@ -265,7 +257,6 @@
 import base from './base.vue'
 import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
-import { getDocumentationURL } from '../../lib/version'
 import eventBus from '../../lib/eventBus'
 
 export default {
@@ -358,10 +349,6 @@ export default {
         return this.item.config.kind === 'iterator' && this.functionRef === 'loopDo'
       }
       return false
-    },
-
-    documentationURL () {
-      return getDocumentationURL('integrator-guide/expr/index.html')
     },
   },
 

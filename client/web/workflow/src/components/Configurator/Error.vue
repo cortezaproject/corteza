@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="configurator-section">
-      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div class="flex flex-col gap-1">
         <label class="font-medium text-primary">
           {{ $t('general.error-expression') }}

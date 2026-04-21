@@ -6,38 +6,71 @@
       'workflow-node--highlighted': data?.highlighted,
       'workflow-node--trace-success': data?.traceState === 'success',
       'workflow-node--trace-error': data?.traceState === 'error',
+      'workflow-node--hoverable': outCount === 0,
+      'workflow-node--connecting': isConnecting,
     }"
-    :style="{ width: '200px' }"
+    :style="{ width: '180px' }"
   >
-    <!-- Target handles (top + left) -->
-    <Handle type="target" :position="Position.Top" id="target-top" :style="{ left: '50%' }" />
-    <Handle type="target" :position="Position.Top" id="target-top-left" :style="{ left: '25%' }" />
-    <Handle type="target" :position="Position.Top" id="target-top-right" :style="{ left: '75%' }" />
-    <Handle type="target" :position="Position.Left" id="target-left" />
-    <Handle type="target" :position="Position.Bottom" id="target-bottom" :style="{ left: '50%' }" />
+    <!-- Target handles. `:connectable="false"` once the point is used so vue-flow
+         strips the `.connectable` class → CSS hover rule leaves it invisible
+         AND base styles set pointer-events: none. DOM stays so the edge
+         attached to it can still anchor. -->
+    <Handle
+      type="target"
+      :position="Position.Top"
+      id="target-top"
+      :style="{ left: '50%' }"
+      :connectable="!isTargetUsed('target-top')"
+    />
+    <Handle
+      type="target"
+      :position="Position.Top"
+      id="target-top-left"
+      :style="{ left: '25%' }"
+      :connectable="!isTargetUsed('target-top-left')"
+    />
+    <Handle
+      type="target"
+      :position="Position.Top"
+      id="target-top-right"
+      :style="{ left: '75%' }"
+      :connectable="!isTargetUsed('target-top-right')"
+    />
+    <Handle
+      type="target"
+      :position="Position.Left"
+      id="target-left"
+      :connectable="!isTargetUsed('target-left')"
+    />
+    <Handle
+      type="target"
+      :position="Position.Bottom"
+      id="target-bottom"
+      :style="{ left: '50%' }"
+      :connectable="!isTargetUsed('target-bottom')"
+    />
 
-    <!-- Header -->
+    <!-- Header (icon + title + id) -->
     <div class="workflow-node__header">
       <img v-if="iconSrc" :src="iconSrc" class="workflow-node__icon" />
-      <span class="workflow-node__type">{{ stepTypeLabel }}</span>
+      <span class="workflow-node__title" :title="data?.label || stepTypeLabel">
+        {{ data?.label || stepTypeLabel }}
+      </span>
 
       <div class="workflow-node__header-actions">
-        <!-- Test button (trigger only) -->
-        <!-- Issue badge -->
-        <img
-          v-if="hasIssues"
-          :src="issueIcon"
-          class="workflow-node__issue"
-          @click.stop="$emit('open-issues', id)"
-        />
-        <!-- ID label -->
-        <span v-if="!hasIssues" class="workflow-node__id">{{ id }}</span>
+        <span class="workflow-node__id">{{ id }}</span>
       </div>
     </div>
 
-    <!-- Label row -->
-    <div class="workflow-node__label">
-      <span class="workflow-node__label-text">{{ data?.label || '/' }}</span>
+    <!-- Issue badge (top-right) -->
+    <div
+      v-if="hasIssues"
+      v-tooltip.top="{ value: issueTooltip, pt: { text: 'whitespace-pre-wrap text-xs' } }"
+      class="workflow-node__issue-badge"
+      :aria-label="$t('editor.issues')"
+      @click.stop="$emit('open-issues', id)"
+    >
+      <img :src="issueIcon" class="workflow-node__issue-icon" alt="" />
     </div>
 
     <!-- Values table (arguments/results preview) -->
@@ -61,27 +94,53 @@
       />
     </div>
 
-    <!-- Source handles (bottom + right + left) -->
-    <Handle type="source" :position="Position.Bottom" id="source-bottom" :style="{ left: '50%' }" />
+    <!-- Description (bottom) — falls back to the sidebar's step-type label so
+         the second row is never empty. User-edited description overrides. -->
+    <div v-if="displayDescription" class="workflow-node__description">
+      {{ displayDescription }}
+    </div>
+
+    <!-- Source handles. `:connectable="false"` once the point is used or the
+         node has hit its outbound cap. Vue-flow strips `.connectable`, CSS
+         hides the dot on hover and disables pointer events. -->
+    <Handle
+      type="source"
+      :position="Position.Bottom"
+      id="source-bottom"
+      :style="{ left: '50%' }"
+      :connectable="!isSourceUsed('source-bottom')"
+    />
     <Handle
       type="source"
       :position="Position.Bottom"
       id="source-bottom-left"
       :style="{ left: '25%' }"
+      :connectable="!isSourceUsed('source-bottom-left')"
     />
     <Handle
       type="source"
       :position="Position.Bottom"
       id="source-bottom-right"
       :style="{ left: '75%' }"
+      :connectable="!isSourceUsed('source-bottom-right')"
     />
-    <Handle type="source" :position="Position.Right" id="source-right" />
-    <Handle type="source" :position="Position.Left" id="source-left" />
+    <Handle
+      type="source"
+      :position="Position.Right"
+      id="source-right"
+      :connectable="!isSourceUsed('source-right')"
+    />
+    <Handle
+      type="source"
+      :position="Position.Left"
+      id="source-left"
+      :connectable="!isSourceUsed('source-left')"
+    />
   </div>
 </template>
 
 <script setup>
-import { Handle, Position } from '@vue-flow/core'
+import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getStyleFromKind } from '../../lib/style'
@@ -94,7 +153,29 @@ const props = defineProps({
   functionTypes: { type: Array, default: () => [] },
   eventTypes: { type: Array, default: () => [] },
   currentTheme: { type: String, default: 'light' },
+  usedSourceHandles: { type: Array, default: () => [] },
+  usedTargetHandles: { type: Array, default: () => [] },
+  outCount: { type: Number, default: 0 },
 })
+
+// Outbound cap per step kind (mirrors isValidConnection in WorkflowEditor):
+// fork/excl/incl gateways accept unlimited out, iterator & error-handler take
+// 2 (Body+End / Try+Catch), everything else is 1. When the cap is reached,
+// hide every source handle so hover doesn't even offer a starting point.
+const maxOutbound = computed(() => {
+  const kind = props.data?.kind
+  const ref = props.data?.ref
+  if (kind === 'gateway' && ['fork', 'excl', 'incl'].includes(ref)) return Infinity
+  if (kind === 'iterator' || kind === 'error-handler') return 2
+  return 1
+})
+const outboundFull = computed(() => props.outCount >= maxOutbound.value)
+
+const isSourceUsed = id => outboundFull.value || props.usedSourceHandles.includes(id)
+const isTargetUsed = id => props.usedTargetHandles.includes(id)
+
+const { connectionStartHandle } = useVueFlow()
+const isConnecting = computed(() => !!connectionStartHandle.value)
 
 defineEmits(['open-issues'])
 
@@ -118,9 +199,16 @@ const stepTypeLabel = computed(() => {
   return t(`steps.${style}.short`, style)
 })
 
-const hasIssues = computed(() => {
-  return !!(props.issues && props.issues[props.id])
+const displayDescription = computed(() => props.data?.description || stepTypeLabel.value)
+
+const nodeIssues = computed(() => {
+  const list = props.issues?.[props.id]
+  return Array.isArray(list) ? list : []
 })
+
+const hasIssues = computed(() => nodeIssues.value.length > 0)
+
+const issueTooltip = computed(() => nodeIssues.value.join('\n'))
 
 /**
  * Build value rows for the values table preview.
@@ -227,10 +315,13 @@ const valueRows = computed(() => {
 
 <style scoped>
 .workflow-node {
+  display: flex;
+  flex-direction: column;
   background: var(--p-content-background);
   border: 1px solid var(--p-surface-border);
   border-radius: 5px;
-  width: 200px;
+  width: 180px;
+  min-height: 64px;
   box-shadow: var(--p-card-shadow);
   cursor: pointer;
   transition:
@@ -263,21 +354,26 @@ const valueRows = computed(() => {
   display: flex;
   align-items: center;
   padding: 4px 8px;
-  height: 36px;
+  height: 32px;
   color: var(--p-primary-color);
   font-weight: 500;
+  font-size: 13px;
 }
 
 .workflow-node__icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin-right: 6px;
   object-fit: contain;
 }
 
-.workflow-node__type {
+.workflow-node__title {
   flex: 1;
-  truncate: true;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--p-text-color);
 }
 
 .workflow-node__header-actions {
@@ -296,34 +392,36 @@ const valueRows = computed(() => {
   display: none;
 }
 
-.workflow-node__issue {
-  width: 20px;
-  cursor: pointer;
-}
-
-.workflow-node__label {
-  border-top: 1px solid var(--p-surface-border);
-  padding: 6px 8px;
-  min-height: 36px;
+.workflow-node__issue-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
+  justify-content: center;
   background: var(--p-content-background);
+  border-radius: 50%;
+  box-shadow: var(--p-card-shadow);
+  cursor: pointer;
+  z-index: 11;
 }
 
-.workflow-node__label-text {
-  text-align: left;
-  line-height: 18px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-  min-width: 0;
-  color: var(--p-text-color);
+.workflow-node__issue-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
 }
 
-.workflow-node:hover .workflow-node__label-text {
-  white-space: normal;
-  text-overflow: clip;
+.workflow-node__description {
+  border-top: 1px solid var(--p-surface-border);
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--p-text-muted-color);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .workflow-node__values {
@@ -331,7 +429,7 @@ const valueRows = computed(() => {
   position: absolute;
   top: calc(100% + 14px);
   left: 0;
-  width: 200px;
+  width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: 10;
@@ -371,15 +469,20 @@ const valueRows = computed(() => {
   height: 16px;
 }
 
-/* Hide handles by default, show on hover */
+/* Hide handles by default, show on hover. z-index:-1 tucks the circle behind
+   the node so only the outer half pokes past the border. */
 .workflow-node :deep(.vue-flow__handle) {
   opacity: 0;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
+  z-index: -1;
   transition: opacity 0.2s;
 }
 
-.workflow-node:hover :deep(.vue-flow__handle) {
+/* Show handles only when this node can still take a new outbound edge
+   (hover), or while a connection drag is in progress (drop target). */
+.workflow-node--hoverable:hover :deep(.vue-flow__handle.connectable),
+.workflow-node--connecting :deep(.vue-flow__handle.connectable) {
   opacity: 1;
 }
 </style>

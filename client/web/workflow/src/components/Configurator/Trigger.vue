@@ -1,7 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
     <div class="configurator-section">
-      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="font-medium text-primary">
@@ -57,15 +56,15 @@
       v-if="showConstraints"
       class="configurator-section"
     >
-      <div class="configurator-section__title">
-        {{ $t('steps.trigger.configurator.constraints') }}
+      <div class="flex items-center justify-between mb-2">
+        <label class="font-medium text-primary">
+          {{ $t('steps.trigger.configurator.constraints') }}
+        </label>
         <Button
           v-if="constraintNameTypes.length"
           :label="$t('steps.trigger.configurator.add-constraints')"
           severity="secondary"
           size="small"
-          text
-          class="ml-auto"
           @click="addConstraint()"
         />
       </div>
@@ -90,14 +89,16 @@
             <span class="truncate">{{ getConstraintNameLabel(c.name) }}</span>
             <span class="text-muted-color text-sm">{{ getConstraintOperatorLabel(c.op) }}</span>
             <span class="truncate flex-1 text-right">{{ c.values.join(' or ') }}</span>
-            <Button
+            <CInputDelete
               icon="pi pi-trash"
               severity="danger"
               text
-              rounded
               size="small"
               class="ml-2"
-              @click.stop="removeConstraint(index)"
+              :header="getConstraintNameLabel(c.name) || $t('general.label.delete')"
+              :message="$t('notification.delete-confirmation')"
+              @click.stop
+              @confirm="removeConstraint(index)"
             />
           </div>
 
@@ -156,13 +157,14 @@
                     class="flex-1"
                     @input="emitChange"
                   />
-                  <Button
+                  <CInputDelete
                     icon="pi pi-trash"
                     severity="danger"
                     text
-                    rounded
                     size="small"
-                    @click="c.values.splice(vIndex, 1)"
+                    :header="$t('general.label.delete')"
+                    :message="$t('notification.delete-confirmation')"
+                    @confirm="c.values.splice(vIndex, 1)"
                   />
                 </div>
               </div>
@@ -181,15 +183,8 @@
         v-else-if="item.triggers.constraints[0]"
         class="flex flex-col gap-1"
       >
-        <label class="flex items-center gap-2 font-medium text-primary">
+        <label class="font-medium text-primary">
           {{ item.triggers.eventType.replace('on', '') }}
-          <a
-            :href="intervalDocumentationURL"
-            target="_blank"
-            class="text-muted-color hover:text-color"
-          >
-            <i class="pi pi-question-circle" />
-          </a>
         </label>
 
         <CInputDateTime
@@ -216,7 +211,6 @@
       v-if="(eventType.properties || []).length"
       class="configurator-section"
     >
-      <div class="configurator-section__title">{{ $t('steps.trigger.configurator.initial-scope') }}</div>
       <DataTable
         :value="eventType.properties || []"
         class="border border-surface rounded-border"
@@ -236,14 +230,14 @@
 import base from './base.vue'
 import { components } from '@planetcrust/human-vue'
 import { getConstraintNameLabel } from '../../lib/constraint'
-import { getDocumentationURL } from '../../lib/version'
 import { camelToTitle } from '../../lib/string'
 import eventBus from '../../lib/eventBus'
-const { CInputDateTime } = components
+const { CInputDateTime, CInputDelete } = components
 
 export default {
   components: {
     CInputDateTime,
+    CInputDelete,
   },
 
   extends: base,
@@ -300,17 +294,13 @@ export default {
         { value: 'not like', text: this.$t('steps.trigger.configurator.not-like') },
       ]
     },
-
-    intervalDocumentationURL () {
-      return getDocumentationURL('integrator-guide/automation/workflows/index.html#deferred-interval')
-    },
   },
 
   async created () {
     if (!this.item.triggers) {
       this.item['triggers'] = {
-        resourceType: null,
-        eventType: null,
+        resourceType: 'system',
+        eventType: 'onManual',
         constraints: [],
         enabled: true,
       }

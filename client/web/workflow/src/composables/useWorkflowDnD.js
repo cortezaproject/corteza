@@ -125,6 +125,9 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
       position,
       zIndex: nodeType === 'visual' ? -1 : undefined,
       connectable: nodeType === 'visual' ? false : undefined,
+      style: nodeType === 'visual'
+        ? { width: `${nodeWidth}px`, height: `${nodeHeight}px` }
+        : undefined,
       data: {
         stepID: id,
         kind: item.kind || '',
@@ -143,8 +146,8 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
         ...(item.kind === 'trigger'
           ? {
               triggers: {
-                resourceType: null,
-                eventType: null,
+                resourceType: 'system',
+                eventType: 'onManual',
                 constraints: [],
                 enabled: true,
               },

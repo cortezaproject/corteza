@@ -1,7 +1,5 @@
 <template>
-  <div>
-    {{ $t('configurator.edge') }}
-  </div>
+  <div />
 </template>
 
 <script>

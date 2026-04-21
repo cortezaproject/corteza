@@ -1,7 +1,6 @@
 <template>
   <div v-if="['incl', 'excl'].includes(gatewayKind)">
     <div class="configurator-section">
-      <div class="configurator-section__title">{{ $t('configurator.configuration') }}</div>
       <div v-if="outEdges < 2" class="text-muted-color italic">
         {{ $t('steps.gateway.configurator.two-paths') }}
       </div>

@@ -7,87 +7,176 @@
 import { getStyleFromKind } from './style'
 
 /**
- * Map mxGraph edge style string to VueFlow sourceHandle / targetHandle IDs.
+ * Handle ↔ mxGraph exit/entry bidirectional map.
  *
- * mxGraph stores exit/entry positions like:
+ * mxGraph stores edge anchors as exit/entry fractional coordinates in the
+ * edge style string:
  *   "exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
  *
- * Available VueFlow handles per node:
- *   Source: source-bottom (50%), source-bottom-left (25%), source-bottom-right (75%),
- *           source-right, source-left
- *   Target: target-top (50%), target-top-left (25%), target-top-right (75%),
- *           target-left, target-bottom
+ * VueFlow uses named handle IDs on each node. The current FlowNode components
+ * expose a fixed set of handles (same IDs across workflow/trigger/termination
+ * — gateway/iterator are not distinguished at the DOM level, their "slots"
+ * are purely positional).
+ *
+ * Source handles:
+ *   source-bottom        (50%, bottom)
+ *   source-bottom-left   (25%, bottom)
+ *   source-bottom-right  (75%, bottom)
+ *   source-left          (0%,   mid)
+ *   source-right         (100%, mid)
+ *
+ * Target handles:
+ *   target-top           (50%, top)
+ *   target-top-left      (25%, top)
+ *   target-top-right     (75%, top)
+ *   target-left          (0%,   mid)
+ *   target-bottom        (50%, bottom)
+ *
+ * The map below is canonical: every handle ID has one exit/entry coord pair,
+ * and every coord pair decodes back to the same handle. Round-trip stability
+ * is enforced by encoding directly from the map (no coord tolerance logic).
  */
-function mxStyleToHandles (style) {
-  if (!style) return {}
-  const exitX = parseFloat(style.match(/exitX=([0-9.]+)/)?.[1] ?? -1)
-  const exitY = parseFloat(style.match(/exitY=([0-9.]+)/)?.[1] ?? -1)
-  const entryX = parseFloat(style.match(/entryX=([0-9.]+)/)?.[1] ?? -1)
-  const entryY = parseFloat(style.match(/entryY=([0-9.]+)/)?.[1] ?? -1)
-  const result = {}
+const HANDLE_TO_MX = {
+  'source-top':          { exitX: 0.5,  exitY: 0   },
+  'source-top-left':     { exitX: 0.25, exitY: 0   },
+  'source-top-right':    { exitX: 0.75, exitY: 0   },
+  'source-bottom':       { exitX: 0.5,  exitY: 1   },
+  'source-bottom-left':  { exitX: 0.25, exitY: 1   },
+  'source-bottom-right': { exitX: 0.75, exitY: 1   },
+  'source-right':        { exitX: 1,    exitY: 0.5 },
+  'source-left':         { exitX: 0,    exitY: 0.5 },
+  'target-top':          { entryX: 0.5,  entryY: 0 },
+  'target-top-left':     { entryX: 0.25, entryY: 0 },
+  'target-top-right':    { entryX: 0.75, entryY: 0 },
+  'target-left':         { entryX: 0,    entryY: 0.5 },
+  'target-right':        { entryX: 1,    entryY: 0.5 },
+  'target-bottom':       { entryX: 0.5,  entryY: 1   },
+  'target-bottom-left':  { entryX: 0.25, entryY: 1   },
+  'target-bottom-right': { entryX: 0.75, entryY: 1   },
+}
 
-  // Source handle mapping (exit position)
-  if (exitY >= 0) {
-    if (exitY <= 0.25) {
-      // Top exit → treat as right (VueFlow has no top source handle)
-      result.sourceHandle = 'source-right'
-    } else if (exitY >= 0.75) {
-      // Bottom exit
-      if (exitX <= 0.35) result.sourceHandle = 'source-bottom-left'
-      else if (exitX >= 0.65) result.sourceHandle = 'source-bottom-right'
-      else result.sourceHandle = 'source-bottom'
-    } else {
-      // Side exit (exitY ≈ 0.5)
-      if (exitX >= 0.5) result.sourceHandle = 'source-right'
-      else result.sourceHandle = 'source-left'
+// Reverse lookup built from HANDLE_TO_MX; the key is the rounded coord pair.
+// Using a canonical key guarantees decode → encode → decode returns the
+// same handle ID (Fix #1).
+const MX_TO_SOURCE_HANDLE = {}
+const MX_TO_TARGET_HANDLE = {}
+for (const [id, c] of Object.entries(HANDLE_TO_MX)) {
+  if (id.startsWith('source-')) {
+    MX_TO_SOURCE_HANDLE[`${c.exitX}|${c.exitY}`] = id
+  } else {
+    MX_TO_TARGET_HANDLE[`${c.entryX}|${c.entryY}`] = id
+  }
+}
+
+// Snap a fractional coord coming from a Corteza-written style string to the
+// nearest canonical value we know about. Without this an edge dragged in
+// mxGraph to, e.g., exitX=0.247 would decode as an unknown handle.
+function snapCoord (value, candidates) {
+  let best = candidates[0]
+  let bestDiff = Math.abs(value - best)
+  for (let i = 1; i < candidates.length; i++) {
+    const diff = Math.abs(value - candidates[i])
+    if (diff < bestDiff) {
+      best = candidates[i]
+      bestDiff = diff
     }
   }
+  return best
+}
 
-  // Target handle mapping (entry position)
-  if (entryY >= 0) {
-    if (entryY <= 0.25) {
-      // Top entry
-      if (entryX <= 0.35) result.targetHandle = 'target-top-left'
-      else if (entryX >= 0.65) result.targetHandle = 'target-top-right'
-      else result.targetHandle = 'target-top'
-    } else if (entryY >= 0.75) {
-      // Bottom entry
-      result.targetHandle = 'target-bottom'
-    } else {
-      // Side entry (entryY ≈ 0.5)
-      result.targetHandle = 'target-left'
-    }
+const SOURCE_X_CANDIDATES = [0, 0.25, 0.5, 0.75, 1]
+const SOURCE_Y_CANDIDATES = [0, 0.5, 1]
+const TARGET_X_CANDIDATES = [0, 0.25, 0.5, 0.75, 1]
+const TARGET_Y_CANDIDATES = [0, 0.5, 1]
+
+function mxStyleToHandles (style) {
+  if (!style) return {}
+  const exitXm = style.match(/exitX=([0-9.]+)/)
+  const exitYm = style.match(/exitY=([0-9.]+)/)
+  const entryXm = style.match(/entryX=([0-9.]+)/)
+  const entryYm = style.match(/entryY=([0-9.]+)/)
+  const result = {}
+
+  if (exitXm && exitYm) {
+    const x = snapCoord(parseFloat(exitXm[1]), SOURCE_X_CANDIDATES)
+    const y = snapCoord(parseFloat(exitYm[1]), SOURCE_Y_CANDIDATES)
+    const key = `${x}|${y}`
+    result.sourceHandle = MX_TO_SOURCE_HANDLE[key] || 'source-bottom'
+  }
+
+  if (entryXm && entryYm) {
+    const x = snapCoord(parseFloat(entryXm[1]), TARGET_X_CANDIDATES)
+    const y = snapCoord(parseFloat(entryYm[1]), TARGET_Y_CANDIDATES)
+    const key = `${x}|${y}`
+    result.targetHandle = MX_TO_TARGET_HANDLE[key] || 'target-top'
   }
 
   return result
 }
 
-/** Handle ID → mxGraph exit/entry positions */
-const HANDLE_TO_MX = {
-  'source-bottom': { exitX: 0.5, exitY: 1 },
-  'source-bottom-left': { exitX: 0.25, exitY: 1 },
-  'source-bottom-right': { exitX: 0.75, exitY: 1 },
-  'source-right': { exitX: 1, exitY: 0.5 },
-  'source-left': { exitX: 0, exitY: 0.5 },
-  'target-top': { entryX: 0.5, entryY: 0 },
-  'target-top-left': { entryX: 0.25, entryY: 0 },
-  'target-top-right': { entryX: 0.75, entryY: 0 },
-  'target-left': { entryX: 0, entryY: 0.5 },
-  'target-bottom': { entryX: 0.5, entryY: 1 },
-}
-
 /**
- * Reverse mapping: convert VueFlow handle IDs to mxGraph style string.
- * Used when encoding newly-drawn edges that have no original mxGraph style.
+ * Encode VueFlow handle IDs back into an mxGraph style string.
+ *
+ * If `baseStyle` is provided (an original Corteza-written style string like
+ * "edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;..."), we splice
+ * our canonical exit/entry values in, preserving any unknown properties so
+ * data written by Corteza mxGraph clients survives the round-trip.
  */
-function handlesToMxStyle (sourceHandle, targetHandle) {
+function handlesToMxStyle (sourceHandle, targetHandle, baseStyle = '') {
   const src = HANDLE_TO_MX[sourceHandle] || HANDLE_TO_MX['source-bottom']
   const tgt = HANDLE_TO_MX[targetHandle] || HANDLE_TO_MX['target-top']
-  const exitX = src.exitX ?? 0.5
-  const exitY = src.exitY ?? 1
-  const entryX = tgt.entryX ?? 0.5
-  const entryY = tgt.entryY ?? 0
-  return `exitX=${exitX};exitY=${exitY};exitDx=0;exitDy=0;entryX=${entryX};entryY=${entryY};entryDx=0;entryDy=0;`
+  const fresh = {
+    exitX: src.exitX ?? 0.5,
+    exitY: src.exitY ?? 1,
+    exitDx: 0,
+    exitDy: 0,
+    entryX: tgt.entryX ?? 0.5,
+    entryY: tgt.entryY ?? 0,
+    entryDx: 0,
+    entryDy: 0,
+  }
+
+  // Parse baseStyle into ordered key/value pairs so we can keep foreign
+  // properties in their original position.
+  const parts = []
+  const seen = new Set()
+  if (baseStyle) {
+    baseStyle.split(';').forEach(seg => {
+      if (!seg) return
+      const eq = seg.indexOf('=')
+      if (eq < 0) {
+        // bare token like "orthogonalEdgeStyle" — keep as-is
+        if (!seen.has(seg)) {
+          parts.push({ bare: seg })
+          seen.add(seg)
+        }
+        return
+      }
+      const key = seg.slice(0, eq)
+      const val = seg.slice(eq + 1)
+      if (Object.prototype.hasOwnProperty.call(fresh, key)) {
+        if (!seen.has(key)) {
+          parts.push({ key, value: String(fresh[key]) })
+          seen.add(key)
+        }
+      } else if (!seen.has(key)) {
+        parts.push({ key, value: val })
+        seen.add(key)
+      }
+    })
+  }
+
+  // Append any handle coords that weren't already present in baseStyle.
+  for (const [key, value] of Object.entries(fresh)) {
+    if (!seen.has(key)) {
+      parts.push({ key, value: String(value) })
+      seen.add(key)
+    }
+  }
+
+  return parts
+    .map(p => (p.bare ? p.bare : `${p.key}=${p.value}`))
+    .join(';') + ';'
 }
 
 /* ───────── DECODE ───────── */
@@ -113,11 +202,17 @@ export function decodeWorkflow (workflow, triggers = []) {
         kind: 'trigger',
         ref: '',
         label: vis.value || meta?.name || '',
-        description: '',
+        // Fix #5: trigger meta.description round-trips via node.data.description
+        description: meta?.description || '',
         arguments: [],
         results: [],
         defaultName: vis.defaultName || false,
         triggers: {
+          // Spread full server-side trigger config so fields required by the
+          // JS SDK update call (workflowID, ownedBy, updatedAt, …) survive the
+          // round-trip. Without these, triggerUpdate() throws synchronously on
+          // the second save and the user sees "configure-triggers".
+          ...triggerConfig,
           triggerID: triggerConfig.triggerID,
           resourceType: triggerConfig.resourceType || null,
           eventType: triggerConfig.eventType || null,
@@ -148,6 +243,7 @@ export function decodeWorkflow (workflow, triggers = []) {
           label: eVis.value || '',
           data: {
             expr: '',
+            description: edge?.meta?.description || '',
             parentID: String(vis.id),
             childID: String(edge.childID || stepID),
             highlighted: false,
@@ -184,9 +280,21 @@ export function decodeWorkflow (workflow, triggers = []) {
     const vis = meta?.visual || {}
     const xywh = vis.xywh || [0, 0, 200, 80]
 
+    // Fix #18: silently upgrade the deprecated `workflow` kind to `exec-workflow`.
+    // Corteza wrote this kind before the rename; data shape is identical, only
+    // the string changed. We warn once per occurrence so the operator sees it.
+    let stepKind = kind || ''
+    if (stepKind === 'workflow') {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[workflow codec] upgrading legacy step kind "workflow" → "exec-workflow" (stepID=${stepID})`,
+      )
+      stepKind = 'exec-workflow'
+    }
+
     let nodeType = 'workflow'
-    if (kind === 'termination') nodeType = 'termination'
-    else if (kind === 'visual') nodeType = 'visual'
+    if (stepKind === 'termination') nodeType = 'termination'
+    else if (stepKind === 'visual') nodeType = 'visual'
 
     nodes.push({
       id: String(vis.id || stepID),
@@ -195,12 +303,16 @@ export function decodeWorkflow (workflow, triggers = []) {
       zIndex: nodeType === 'visual' ? -1 : undefined,
       parentNode: vis.parent && vis.parent !== '1' ? String(vis.parent) : undefined,
       extent: vis.parent && vis.parent !== '1' ? 'parent' : undefined,
+      style: nodeType === 'visual'
+        ? { width: `${xywh[2] || 400}px`, height: `${xywh[3] || 240}px` }
+        : undefined,
       data: {
         ...rest,
         stepID: String(stepID),
-        kind: kind || '',
+        kind: stepKind,
         ref: ref || '',
         label: vis.value || meta?.label || '',
+        // Fix #5: persist meta.description through sidebar edits.
         description: meta?.description || '',
         arguments: args || [],
         results: results || [],
@@ -250,6 +362,7 @@ export function decodeWorkflow (workflow, triggers = []) {
       label: vis.value || meta?.label || '',
       data: {
         expr: expr || pathConfig.expr || '',
+        description: meta?.description || '',
         parentID: String(parentID),
         childID: String(childID),
         highlighted: false,
@@ -310,18 +423,22 @@ export function encodeWorkflow (nodes, edges) {
       const outEdges = edges.filter(e => e.source === node.id)
       const firstTarget = outEdges.length > 0 ? outEdges[0].target : '0'
 
-      // Build trigger visual edges (same format the render() method expects)
+      // Build trigger visual edges (same format the render() method expects).
+      // Fix #1: always re-emit canonical exit/entry coords derived from the
+      // current handle IDs, but preserve any other properties present in the
+      // original Corteza style string (orthogonalEdgeStyle, strokeColor, …).
       const triggerEdges = outEdges.map(e => {
+        const baseStyle = e.data?.style || ''
         const style =
           e.sourceHandle || e.targetHandle
-            ? handlesToMxStyle(e.sourceHandle, e.targetHandle)
-            : e.data?.style || ''
+            ? handlesToMxStyle(e.sourceHandle, e.targetHandle, baseStyle)
+            : (baseStyle || handlesToMxStyle(null, null))
         return {
           parentID: e.source,
           childID: e.target,
           meta: {
             label: e.label || '',
-            description: '',
+            description: e.data?.description || '',
             visual: {
               id: e.id,
               value: e.label || '',
@@ -340,6 +457,8 @@ export function encodeWorkflow (nodes, edges) {
         constraints: data.triggers?.constraints || [],
         meta: {
           name: data.label || '',
+          // Fix #5: trigger description persisted to server meta.description,
+          // matches the WorkflowStepMeta.Description field on the Go side.
           description: data.description || '',
           visual: {
             id: node.id,
@@ -364,16 +483,30 @@ export function encodeWorkflow (nodes, edges) {
         description: _description,
         ...stepConfig
       } = data
+
+      // Fix #18: encode only `exec-workflow`. If the in-memory model still
+      // carries the legacy `workflow` kind (e.g. after an import that bypassed
+      // decode), normalize it on the way out as well.
+      let outKind = data.kind || ''
+      if (outKind === 'workflow') {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[workflow codec] encoding legacy step kind "workflow" as "exec-workflow" (stepID=${data.stepID || node.id})`,
+        )
+        outKind = 'exec-workflow'
+      }
+
       steps.push({
         ...stepConfig,
         stepID: data.stepID || node.id,
-        kind: data.kind || '',
+        kind: outKind,
         ref: data.ref || '',
         defaultName: data.defaultName || false,
         arguments: data.arguments || [],
         results: data.results || [],
         meta: {
           label: data.label || '',
+          // Fix #5: step description persisted to WorkflowStepMeta.Description
           description: data.description || '',
           visual: {
             id: node.id,
@@ -397,14 +530,18 @@ export function encodeWorkflow (nodes, edges) {
     // Skip edges that originate from a trigger node
     if (triggerNodeIds.has(edge.source)) return
 
-    // Rebuild mxGraph style so that anchor changes (user dragged an edge to a
-    // different handle) survive the round-trip. If the user has an explicit
-    // handle, regenerate exit/entry coords from it; otherwise fall back to
-    // whatever style came in from the backend.
+    // Fix #1: rebuild mxGraph style so that anchor changes (user dragged an
+    // edge to a different handle) survive the round-trip. When handles are
+    // known, re-emit canonical exit/entry coords while preserving any
+    // non-handle properties from the previously-loaded style string so that
+    // Corteza-written edges (orthogonalEdgeStyle, strokeColor, rounded, …)
+    // aren't clobbered. When no handles are set, keep the original style so
+    // server-side geometry isn't lost.
+    const baseStyle = edge.data?.style || ''
     const edgeStyle =
       edge.sourceHandle || edge.targetHandle
-        ? handlesToMxStyle(edge.sourceHandle, edge.targetHandle)
-        : edge.data?.style || handlesToMxStyle(edge.sourceHandle, edge.targetHandle)
+        ? handlesToMxStyle(edge.sourceHandle, edge.targetHandle, baseStyle)
+        : (baseStyle || handlesToMxStyle(null, null))
 
     paths.push({
       parentID: edge.source,
@@ -412,7 +549,7 @@ export function encodeWorkflow (nodes, edges) {
       expr: edge.data?.expr || '',
       meta: {
         label: edge.label || '',
-        description: '',
+        description: edge.data?.description || '',
         visual: {
           id: edge.id,
           value: edge.label || '',

@@ -89,8 +89,9 @@ swimlane:
   short: Swimlane
   tooltip: Visually group steps
 termination:
-  label: Termination (End)
-  short: Termination
+  label: End (Termination)
+  short: End
+  description: Termination
   tooltip: Terminate workflow execution
 trigger:
   configurator:
@@ -112,8 +113,9 @@ trigger:
     select-operator: Select operator
     select-event-type: Select event type
     select-resource-type: Select resource type
-  label: Trigger (Start)
-  short: Trigger
+  label: Start (Trigger)
+  short: Start
+  description: Trigger
   tooltip: Trigger the workflow execution based on configuration
 tooltip:
   configure-step: Configure step

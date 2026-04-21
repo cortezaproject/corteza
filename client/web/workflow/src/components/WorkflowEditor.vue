@@ -159,15 +159,23 @@
         :pan-on-scroll="true"
         :zoom-on-scroll="false"
         :zoom-on-double-click="false"
-        :selection-key-code="null"
+        :selection-mode="SelectionMode.Partial"
+        :selection-key-code="true"
+        :multi-selection-key-code="'Shift'"
         :delete-key-code="null"
         :connection-mode="ConnectionMode.Loose"
+        :edges-updatable="true"
         :is-valid-connection="isValidConnection"
+        connection-line-type="smoothstep"
         class="vueflow-canvas"
         @connect="onConnect"
+        @edge-update="onEdgeUpdate"
+        @edge-update-start="onEdgeUpdateStart"
+        @edge-update-end="onEdgeUpdateEnd"
         @node-click="onNodeClick"
         @edge-click="onEdgeClick"
         @pane-click="onPaneClick"
+        @node-drag="onNodeDrag"
         @node-drag-stop="onNodeDragStop"
         @dragover="onCanvasDragOver"
         @drop="onCanvasDrop"
@@ -180,6 +188,9 @@
             :function-types="functionTypes"
             :event-types="eventTypes"
             :current-theme="currentTheme"
+            :used-source-handles="[...nodeConn(props.id).sources]"
+            :used-target-handles="[...nodeConn(props.id).targets]"
+            :out-count="nodeConn(props.id).outCount"
             @open-issues="openIssuesModal"
           />
         </template>
@@ -193,16 +204,22 @@
             :dry-run-cell-i-d="dryRun.cellID"
             :dry-run-session-i-d="dryRun.sessionID"
             :current-theme="currentTheme"
+            :has-outgoing-edge="nodeConn(props.id).outCount > 0"
             @test="startTest"
             @cancel="cancelWorkflow"
             @open-issues="openIssuesModal"
           />
         </template>
         <template #node-termination="props">
-          <TerminationNode v-bind="props" :current-theme="currentTheme" />
+          <TerminationNode
+            v-bind="props"
+            :current-theme="currentTheme"
+            :used-target-handles="[...nodeConn(props.id).targets]"
+            :in-count="nodeConn(props.id).inCount"
+          />
         </template>
         <template #node-visual="props">
-          <VisualNode v-bind="props" />
+          <VisualNode v-bind="props" :drop-target="dropTargetSwimlaneId === props.id" />
         </template>
         <template #edge-workflow="props">
           <FlowEdge v-bind="props" @update-label="onEdgeLabelUpdate" />
@@ -242,39 +259,17 @@
                   :src="getSidebarItemIcon"
                   class="h-6 w-6 object-contain"
                 />
+                <i
+                  v-else-if="sidebar.itemType === 'edge'"
+                  class="pi pi-arrow-right-arrow-left text-color"
+                />
               </div>
               <div class="flex-1 min-w-0">
-                <div v-if="isEditingLabel" class="flex items-center gap-2">
-                  <InputText
-                    ref="labelInputRef"
-                    v-model="editLabelValue"
-                    size="small"
-                    class="w-full"
-                    @keyup.enter="saveLabel"
-                    @blur="saveLabel"
-                  />
-                </div>
-                <h3
-                  v-else
-                  class="text-lg font-semibold text-color truncate flex items-center gap-2 m-0"
-                >
-                  <span class="truncate">
-                    {{ getSelectedItem?.node?.value || getSidebarItemType }}
-                  </span>
-                  <Button
-                    icon="pi pi-pencil"
-                    text
-                    rounded
-                    size="small"
-                    class="opacity-0 group-hover/header:opacity-100 transition-opacity !w-6 !h-6 !p-0 shrink-0"
-                    @click="startEditLabel"
-                  />
+                <h3 class="text-lg font-semibold text-color truncate m-0">
+                  {{ getSidebarItemType }}
                 </h3>
-                <div class="text-xs text-muted-color truncate">
-                  {{ getSidebarItemType
-                  }}<template v-if="getSelectedItem?.node?.id">
-                    · #{{ getSelectedItem.node.id }}
-                  </template>
+                <div v-if="getSelectedItem?.node?.id" class="text-xs text-muted-color truncate">
+                  #{{ getSelectedItem.node.id }}
                 </div>
               </div>
             </div>
@@ -288,43 +283,35 @@
             />
           </div>
 
-          <!-- Description (nodes only) -->
-          <div
-            v-if="sidebar.itemType !== 'edge'"
-            class="mt-2 mb-4 group/desc relative"
-          >
-            <div v-if="isEditingDescription">
-              <Textarea
-                ref="descriptionInputRef"
-                v-model="editDescriptionValue"
-                auto-resize
-                rows="2"
-                class="w-full text-sm"
-                @blur="saveDescription"
-              />
-            </div>
-            <div v-else class="flex items-start gap-2 min-h-6">
-              <div
-                class="text-sm whitespace-pre-wrap flex-1"
-                :class="
-                  sidebar.item?.node?.description ? 'text-color' : 'italic text-muted-color'
-                "
-              >
-                {{ sidebar.item?.node?.description || 'Add a description…' }}
-              </div>
-              <Button
-                icon="pi pi-pencil"
-                text
-                rounded
-                size="small"
-                class="opacity-0 group-hover/desc:opacity-100 transition-opacity !w-6 !h-6 !p-0 shrink-0"
-                @click="startEditDescription"
-              />
-            </div>
-          </div>
-
           <!-- Body -->
-          <div class="relative flex-1">
+          <div class="relative flex-1 mt-3">
+            <div v-if="sidebar.item" class="flex flex-col gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="font-medium text-primary text-sm" for="sidebar-name">
+                  {{ $t('general.label.name') }}
+                </label>
+                <InputText
+                  id="sidebar-name"
+                  :model-value="sidebar.item.node?.value || ''"
+                  class="w-full"
+                  @update:model-value="onSidebarNameChange"
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="font-medium text-primary text-sm" for="sidebar-description">
+                  {{ $t('general.description') }}
+                </label>
+                <Textarea
+                  id="sidebar-description"
+                  :model-value="sidebar.item.node?.description || ''"
+                  auto-resize
+                  rows="2"
+                  class="w-full"
+                  @update:model-value="onSidebarDescriptionChange"
+                />
+              </div>
+            </div>
+            <Divider v-if="sidebar.item" />
             <transition name="component-fade" mode="out-in">
               <configurator
                 v-if="sidebar.showItem"
@@ -478,7 +465,7 @@
 </template>
 
 <script setup>
-import { VueFlow, ConnectionMode, useVueFlow } from '@vue-flow/core'
+import { VueFlow, ConnectionMode, SelectionMode, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
@@ -606,13 +593,6 @@ const sidebar = ref({
   showItem: false,
 })
 
-// Inline edit state for sidebar header label / description
-const isEditingLabel = ref(false)
-const editLabelValue = ref('')
-const labelInputRef = ref(null)
-const isEditingDescription = ref(false)
-const editDescriptionValue = ref('')
-const descriptionInputRef = ref(null)
 
 // Live out-edge count for the currently focused node. Recomputes as edges change,
 // so the Configurator stays in sync when connections are added/removed while open.
@@ -621,6 +601,41 @@ const sidebarOutEdges = computed(() => {
   if (!id) return 0
   return edges.value.filter(e => e.source === id).length
 })
+
+// Tracks the edge currently being reconnected so its endpoints can be offered
+// again during the drag (otherwise the used-handle masks hide them).
+const edgeUpdatingId = ref(null)
+
+// Per-node map of used source/target handle ids — drives the FlowNodes' handle
+// visibility so a point that's already wired up doesn't offer a second connection
+// (Corteza parity: at most one edge per exit/entry point).
+const nodeConnections = computed(() => {
+  const map = {}
+  const ensure = id => {
+    if (!map[id]) map[id] = { sources: new Set(), targets: new Set(), outCount: 0, inCount: 0 }
+    return map[id]
+  }
+  edges.value.forEach(e => {
+    // Pretend the edge being reconnected isn't there yet so both endpoints can
+    // light up handles (including on its current node).
+    if (e.id === edgeUpdatingId.value) return
+    if (e.source) {
+      const s = ensure(e.source)
+      if (e.sourceHandle) s.sources.add(e.sourceHandle)
+      s.outCount++
+    }
+    if (e.target) {
+      const t = ensure(e.target)
+      if (e.targetHandle) t.targets.add(e.targetHandle)
+      t.inCount++
+    }
+  })
+  return map
+})
+
+function nodeConn(id) {
+  return nodeConnections.value[id] || { sources: new Set(), targets: new Set(), outCount: 0, inCount: 0 }
+}
 
 const issuesModal = ref({
   show: false,
@@ -708,6 +723,19 @@ watch(
   () => sidebar.value.item,
   newItem => {
     if (!newItem?.node?.id) return
+
+    if (sidebar.value.itemType === 'edge') {
+      const edge = edges.value.find(e => e.id === newItem.node.id)
+      if (!edge) return
+      const nextLabel = newItem.node.value || ''
+      const nextDesc = newItem.node.description || ''
+      if (edge.label !== nextLabel) edge.label = nextLabel
+      if ((edge.data?.description || '') !== nextDesc) {
+        edge.data = { ...edge.data, description: nextDesc }
+      }
+      return
+    }
+
     const node = nodes.value.find(n => n.id === newItem.node.id)
     if (!node) return
 
@@ -862,24 +890,20 @@ watch(
   { immediate: true },
 )
 
+// Combined watcher: triggers and workflow must update atomically, otherwise
+// render() decodes with a stale triggers.value (missing freshly-assigned
+// triggerID) and the next save re-creates triggers server-side → duplicate.
 watch(
-  () => props.workflowObject,
-  wf => {
+  [() => props.workflowObject, () => props.workflowTriggers],
+  ([wf, t]) => {
     if (wf.workflowID !== workflow.value.workflowID) {
       configuratorVisible.value = false
     }
     workflow.value = wf
+    triggers.value = t || []
     if (initialized.value) {
       nextTick(() => render(workflow.value))
     }
-  },
-  { immediate: true },
-)
-
-watch(
-  () => props.workflowTriggers,
-  t => {
-    triggers.value = t
   },
   { immediate: true },
 )
@@ -992,6 +1016,11 @@ function render(wf, initial = false) {
 /* ─── VueFlow Event Handlers ─── */
 
 function onConnect(connection) {
+  // Belt-and-suspenders: isValidConnection is the primary gate, but guard here
+  // too so a stray connect event (e.g. from click-to-connect paths) can't
+  // slip past the outbound-cap rule.
+  if (!isValidConnection(connection)) return
+
   const sourceNode = nodes.value.find(n => n.id === connection.source)
   const outCount = edges.value.filter(e => e.source === connection.source).length
 
@@ -1059,6 +1088,7 @@ function onEdgeClick({ edge }) {
     node: {
       id: edge.id,
       value: edge.label || '',
+      description: edge.data?.description || '',
       edge: true,
       source: {
         id: edge.source,
@@ -1085,7 +1115,42 @@ function onPaneClick() {
   clearHighlights()
 }
 
+// Tracks the swimlane currently under the dragged node so the swimlane can
+// paint a "drop target" highlight — cleared on drag stop.
+const dropTargetSwimlaneId = ref(null)
+
+function findSwimlaneUnder(node) {
+  const current = nodes.value.find(n => n.id === node.id)
+  if (!current) return null
+  const abs = getAbsolutePosition(current)
+  const cx = abs.x + (current.data?.width || 200) / 2
+  const cy = abs.y + (current.data?.height || 80) / 2
+  for (let i = nodes.value.length - 1; i >= 0; i--) {
+    const c = nodes.value[i]
+    if (c.id === current.id) continue
+    if (c.type !== 'visual' || c.data?.ref !== 'swimlane') continue
+    const pAbs = getAbsolutePosition(c)
+    const pw = c.data?.width || 400
+    const ph = c.data?.height || 240
+    if (cx >= pAbs.x && cx <= pAbs.x + pw && cy >= pAbs.y && cy <= pAbs.y + ph) return c
+  }
+  return null
+}
+
+function onNodeDrag({ node }) {
+  if (node.type === 'visual') {
+    dropTargetSwimlaneId.value = null
+    return
+  }
+  const swim = findSwimlaneUnder(node)
+  // Only highlight when the drop would actually change parenting — if the node
+  // is already a child of that swimlane, no visual feedback is needed.
+  const current = nodes.value.find(n => n.id === node.id)
+  dropTargetSwimlaneId.value = swim && current?.parentNode !== swim.id ? swim.id : null
+}
+
 function onNodeDragStop({ node }) {
+  dropTargetSwimlaneId.value = null
   // Visual swimlanes act as containers — drop detection reparents nodes whose
   // centre falls inside a swimlane and detaches nodes dragged back out.
   if (node.type !== 'visual') {
@@ -1135,11 +1200,13 @@ function reparentInsideSwimlane(node) {
   const desiredParent = newParent?.id
   if (current.parentNode === desiredParent) return
 
-  // Rebuild as a new node object so VueFlow picks up the parent change
+  // Rebuild as a new node object so VueFlow picks up the parent change.
+  // `extent` is intentionally left unset so the user can later drag the node
+  // back out of the swimlane without the child being clipped to parent bounds.
   const updated = {
     ...current,
     parentNode: desiredParent,
-    extent: desiredParent ? 'parent' : undefined,
+    extent: undefined,
   }
 
   // Recompute local position: absolute → new-parent-relative (or absolute).
@@ -1309,40 +1376,19 @@ function setValue(value, defaultName = false) {
   emit('change-detected')
 }
 
-/* ─── Sidebar header inline edit ─── */
-function startEditLabel() {
-  editLabelValue.value = sidebar.value.item?.node?.value || ''
-  isEditingLabel.value = true
-  nextTick(() => {
-    const input = labelInputRef.value?.$el?.querySelector?.('input') || labelInputRef.value?.$el
-    input?.focus?.()
-    input?.select?.()
-  })
+/* ─── Sidebar name / description inputs ─── */
+function onSidebarNameChange(value) {
+  // setValue handles both edges (writes edge.label) and nodes (writes node.data.label
+  // + flips defaultName off so per-kind auto-naming stops stomping user input).
+  if (value === sidebar.value.item?.node?.value) return
+  setValue(value ?? '', false)
 }
 
-function saveLabel() {
-  if (!isEditingLabel.value) return
-  isEditingLabel.value = false
-  const next = editLabelValue.value
-  if (next === sidebar.value.item?.node?.value) return
-  setValue(next, false)
-}
-
-function startEditDescription() {
-  editDescriptionValue.value = sidebar.value.item?.node?.description || ''
-  isEditingDescription.value = true
-  nextTick(() => {
-    const ta = descriptionInputRef.value?.$el?.querySelector?.('textarea') || descriptionInputRef.value?.$el
-    ta?.focus?.()
-  })
-}
-
-function saveDescription() {
-  if (!isEditingDescription.value) return
-  isEditingDescription.value = false
-  const next = editDescriptionValue.value
+function onSidebarDescriptionChange(value) {
   const item = sidebar.value.item
-  if (!item || next === item.node?.description) return
+  if (!item?.node) return
+  const next = value ?? ''
+  if (next === item.node.description) return
   item.node.description = next
   emit('change-detected')
 }
@@ -1564,19 +1610,97 @@ function renumberGatewayEdges(sourceId) {
 function isValidConnection(connection) {
   const sourceNode = nodes.value.find(n => n.id === connection.source)
   const targetNode = nodes.value.find(n => n.id === connection.target)
+  const updatingId = edgeUpdatingId.value
   if (sourceNode?.type === 'visual' || targetNode?.type === 'visual') return false
   if (targetNode?.type === 'trigger') return false
+  if (sourceNode?.type === 'termination') return false
+  // Termination accepts a single inbound path (it's an end-point).
+  if (targetNode?.type === 'termination') {
+    const existingIn = edges.value.filter(
+      e => e.target === connection.target
+        && e.id !== connection.id
+        && e.id !== updatingId,
+    ).length
+    if (existingIn >= 1) return false
+  }
+  // Outbound cap — most kinds have a single outbound path. Multi-outbound
+  // kinds: gateway (fork/excl/incl), iterator (Body+End), error-handler (Try+Catch).
+  // Trigger (1 out) is handled below; join gateways also cap at 1.
+  const sKind = sourceNode?.data?.kind
+  const sRef = sourceNode?.data?.ref
+  if (sourceNode && sourceNode.type !== 'trigger') {
+    const isFork = sKind === 'gateway' && ['fork', 'excl', 'incl'].includes(sRef)
+    const isIterator = sKind === 'iterator'
+    const isErrorHandler = sKind === 'error-handler'
+    const maxOut = isFork ? Infinity : (isIterator || isErrorHandler) ? 2 : 1
+    const existingOut = edges.value.filter(
+      e => e.source === connection.source
+        && e.id !== connection.id
+        && e.id !== updatingId,
+    ).length
+    if (existingOut >= maxOut) return false
+  }
   if (sourceNode?.type === 'trigger') {
     // Exclude self when the edge is already in the store (VueFlow re-validates
     // on graph sync; without this, the just-added edge counts as "existing"
-    // and triggers EDGE_INVALID).
+    // and triggers EDGE_INVALID). Also exclude the edge currently being
+    // reconnected so it can move to a different handle on the same trigger.
     const existing = edges.value.some(
-      e => e.source === connection.source && e.id !== connection.id,
+      e => e.source === connection.source
+        && e.id !== connection.id
+        && e.id !== updatingId,
     )
     if (existing) return false
   }
   if (connection.source && connection.source === connection.target) return false
+  // One edge per source handle. Exclude the edge being reconnected so it can
+  // land on a different handle of the same node.
+  if (connection.source && connection.sourceHandle) {
+    const existingFromHandle = edges.value.some(
+      e => e.source === connection.source
+        && e.sourceHandle === connection.sourceHandle
+        && e.id !== connection.id
+        && e.id !== updatingId,
+    )
+    if (existingFromHandle) return false
+  }
+  // One edge per target handle.
+  if (connection.target && connection.targetHandle) {
+    const existingToHandle = edges.value.some(
+      e => e.target === connection.target
+        && e.targetHandle === connection.targetHandle
+        && e.id !== connection.id
+        && e.id !== updatingId,
+    )
+    if (existingToHandle) return false
+  }
   return true
+}
+
+function onEdgeUpdateStart({ edge }) {
+  edgeUpdatingId.value = edge?.id || null
+}
+
+function onEdgeUpdateEnd() {
+  edgeUpdatingId.value = null
+}
+
+/**
+ * Reconnect an existing edge to a new source/target/handle. Rewires in place,
+ * preserves edge id, label and style; the codec re-derives mxStyle on save.
+ */
+function onEdgeUpdate({ edge, connection }) {
+  edges.value = edges.value.map(e => {
+    if (e.id !== edge.id) return e
+    return {
+      ...e,
+      source: connection.source,
+      target: connection.target,
+      sourceHandle: connection.sourceHandle ?? null,
+      targetHandle: connection.targetHandle ?? null,
+    }
+  })
+  saveToHistory()
 }
 
 /* ─── Toolbar tooltip ─── */
@@ -2130,7 +2254,6 @@ defineExpose({
 /* Simple div-based sections with border-bottom separators */
 .configurator-section {
   border-bottom: 1px solid var(--p-surface-border, var(--p-content-border-color));
-  padding: 0.75rem 0;
 }
 
 .configurator-section:last-child {

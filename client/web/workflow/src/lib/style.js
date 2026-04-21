@@ -18,120 +18,120 @@ const kindToStyle = {
   },
 
   expressions: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'expressions',
     style: 'expressions',
   },
 
   function: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'function',
     style: 'function',
   },
 
   iterator: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'iterator',
     style: 'iterator',
   },
 
   'exec-workflow': {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'exec-workflow',
     style: 'exec-workflow',
   },
 
   break: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'break',
     style: 'break',
   },
 
   continue: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'continue',
     style: 'continue',
   },
 
   trigger: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'trigger',
     style: 'trigger',
   },
 
   'error-handler': {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'error-handler',
     style: 'error-handler',
   },
 
   error: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'error',
     style: 'error',
   },
 
   termination: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'termination',
     style: 'termination',
   },
 
   gatewayExcl: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'gateway-exclusive',
     style: 'gatewayExclusive',
   },
 
   gatewayIncl: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'gateway-inclusive',
     style: 'gatewayInclusive',
   },
 
   gatewayFork: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'gateway-parallel',
     style: 'gatewayParallel',
   },
 
   gatewayJoin: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'gateway-parallel',
     style: 'gatewayParallel',
   },
 
   prompt: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'prompt',
     style: 'prompt',
   },
 
   delay: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'delay',
     style: 'delay',
   },
 
   debug: {
-    width: 200,
-    height: 80,
+    width: 180,
+    height: 64,
     icon: 'debug',
     style: 'debug',
   },

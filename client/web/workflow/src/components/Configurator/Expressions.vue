@@ -1,15 +1,16 @@
 <template>
   <div>
     <div class="configurator-section">
-      <div class="configurator-section__title">
-        {{ $t('steps.expressions.label') }}
-        <a
-          :href="documentationURL"
-          target="_blank"
-          class="text-muted-color hover:text-color ml-auto"
-        >
-          <i class="pi pi-question-circle" />
-        </a>
+      <div class="flex items-center justify-between mb-2">
+        <label class="font-medium text-primary">
+          {{ $t('steps.expressions.label') }}
+        </label>
+        <Button
+          :label="$t('steps.expressions.configurator.add-expression')"
+          severity="secondary"
+          size="small"
+          @click="addArgument()"
+        />
       </div>
 
       <div v-if="hasArguments">
@@ -23,15 +24,6 @@
         />
       </div>
     </div>
-
-    <Teleport to="#sidebar-footer">
-      <Button
-        :label="$t('steps.expressions.configurator.add-expression')"
-        severity="primary"
-        size="small"
-        @click="addArgument()"
-      />
-    </Teleport>
 
     <Dialog
       :visible="!!expressionEditor.currentExpression"
@@ -71,7 +63,6 @@
 import base from './base.vue'
 import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
-import { getDocumentationURL } from '../../lib/version'
 import eventBus from '../../lib/eventBus'
 
 export default {
@@ -127,10 +118,6 @@ export default {
     hasArguments () {
       const { config } = this.item || {}
       return (config && (config.arguments || []).length) || []
-    },
-
-    documentationURL () {
-      return getDocumentationURL('integrator-guide/expr/index.html')
     },
   },
 
