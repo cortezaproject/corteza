@@ -2,12 +2,14 @@
   <div
     class="flex items-center gap-3 p-3 border border-surface rounded-lg transition-colors"
     :class="[
-      dimWhenOff && !modelValue ? 'opacity-50' : '',
       disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis',
     ]"
     @click="!disabled && $emit('update:modelValue', !modelValue)"
   >
-    <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+    <div
+      class="flex flex-col gap-0.5 flex-1 min-w-0"
+      :class="textOpacityClass"
+    >
       <span class="font-medium text-primary text-sm">
         <slot name="label">{{ label }}</slot>
       </span>
@@ -17,16 +19,18 @@
     </div>
     <ToggleSwitch
       :modelValue="modelValue"
-      :disabled="disabled"
       class="shrink-0"
+      :class="disabled ? 'opacity-50 pointer-events-none' : ''"
       @click.stop
-      @update:modelValue="$emit('update:modelValue', $event)"
+      @update:modelValue="!disabled && $emit('update:modelValue', $event)"
     />
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
@@ -47,7 +51,17 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  dim: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 defineEmits(['update:modelValue'])
+
+const textOpacityClass = computed(() => {
+  if (props.dim) return 'opacity-50'
+  if (props.dimWhenOff && !props.modelValue) return 'opacity-50'
+  return ''
+})
 </script>

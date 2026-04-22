@@ -27,18 +27,20 @@ type (
 		Delete(context.Context, *request.AgentDelete) (interface{}, error)
 		Undelete(context.Context, *request.AgentUndelete) (interface{}, error)
 		Exec(context.Context, *request.AgentExec) (interface{}, error)
+		RegenerateWidgetKey(context.Context, *request.AgentRegenerateWidgetKey) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Agent struct {
-		TclMasterList func(http.ResponseWriter, *http.Request)
-		List          func(http.ResponseWriter, *http.Request)
-		Create        func(http.ResponseWriter, *http.Request)
-		Read          func(http.ResponseWriter, *http.Request)
-		Update        func(http.ResponseWriter, *http.Request)
-		Delete        func(http.ResponseWriter, *http.Request)
-		Undelete      func(http.ResponseWriter, *http.Request)
-		Exec          func(http.ResponseWriter, *http.Request)
+		TclMasterList       func(http.ResponseWriter, *http.Request)
+		List                func(http.ResponseWriter, *http.Request)
+		Create              func(http.ResponseWriter, *http.Request)
+		Read                func(http.ResponseWriter, *http.Request)
+		Update              func(http.ResponseWriter, *http.Request)
+		Delete              func(http.ResponseWriter, *http.Request)
+		Undelete            func(http.ResponseWriter, *http.Request)
+		Exec                func(http.ResponseWriter, *http.Request)
+		RegenerateWidgetKey func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -172,6 +174,22 @@ func NewAgent(h AgentAPI) *Agent {
 
 			api.Send(w, r, value)
 		},
+		RegenerateWidgetKey: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAgentRegenerateWidgetKey()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.RegenerateWidgetKey(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -186,5 +204,6 @@ func (h Agent) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.
 		r.Delete("/agents/{agentID}", h.Delete)
 		r.Post("/agents/{agentID}/undelete", h.Undelete)
 		r.Post("/agents/{agentID}/exec", h.Exec)
+		r.Post("/agents/{agentID}/chatbot/regenerate-key", h.RegenerateWidgetKey)
 	})
 }

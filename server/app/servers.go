@@ -17,7 +17,9 @@ import (
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/pkg/webapp"
 	systemRest "github.com/crusttech/human/server/system/rest"
+	widgetRest "github.com/crusttech/human/server/system/rest/widget"
 	"github.com/crusttech/human/server/system/scim"
+	systemService "github.com/crusttech/human/server/system/service"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
@@ -89,6 +91,18 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 			r.Route("/automation", automationRest.MountRoutes())
 			r.Route("/compose", composeRest.MountRoutes())
 			r.Route("/websocket", app.WsServer.MountRoutes)
+
+			// Public chatbot widget API (/api/widget/v1/*) — no admin token
+			// validator, auth is per-session JWT. Mounted here so every
+			// front-end origin configured on an Agent can reach it.
+			widgetCtrl := widgetRest.New(
+				systemService.DefaultStore,
+				systemService.DefaultObsBus,
+				systemService.DefaultAgenticRuntime,
+				systemService.DefaultAiConversation,
+				app.Opt.Auth.Secret,
+			)
+			widgetCtrl.MountRoutes(r)
 			if app.McpServer != nil {
 				r.Route("/mcp", app.McpServer.MountRoutes)
 			}
@@ -114,6 +128,10 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 			var fullpathGateway = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "gateway")
 			r.Handle("/gateway*", http.StripPrefix(fullpathGateway, app.ApigwService))
 		})
+
+		// Chatbot widget bundle served at /widget.js from the webapp build dir.
+		// Public resource, cache-friendly, CORS * (loaded as <script>).
+		r.Handle("/widget.js", widgetRest.WidgetJSHandler(ho.WebappBaseDir))
 	}()
 
 	func() {

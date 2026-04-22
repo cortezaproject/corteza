@@ -60,8 +60,20 @@ var (
 	fixesPost = []func(context.Context, *Store) error{
 		fix_2024_09_05_addRelResourceRoleMembershipColumn,
 		fix_2024_09_05_addUserGroupReferenceToUser,
+		fix_2026_04_00_addChatbotColumnToAgents,
 	}
 )
+
+func fix_2026_04_00_addChatbotColumnToAgents(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"agents",
+		&dal.Attribute{
+			Ident: "Chatbot",
+			Type:  &dal.TypeJSON{DefaultValue: "{}"},
+			Store: &dal.CodecAlias{Ident: "chatbot"},
+		},
+	)
+}
 
 func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Context, s *Store) (err error) {
 	type (

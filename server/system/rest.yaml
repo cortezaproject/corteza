@@ -3433,6 +3433,12 @@ endpoints:
                 title: Agent invocation,
                 parser: 'types.ParseAgentInvocation',
               }
+            - {
+                type: 'types.AgentChatbot',
+                name: chatbot,
+                title: Agent chatbot,
+                parser: 'types.ParseAgentChatbot',
+              }
       - name: read
         method: GET
         title: Read agent details
@@ -3481,6 +3487,12 @@ endpoints:
                 parser: 'types.ParseAgentInvocation',
               }
             - {
+                type: 'types.AgentChatbot',
+                name: chatbot,
+                title: Agent chatbot,
+                parser: 'types.ParseAgentChatbot',
+              }
+            - {
                 type: '*time.Time',
                 name: updatedAt,
                 required: false,
@@ -3515,6 +3527,13 @@ endpoints:
                 required: false,
                 title: Conversation ID for multi-turn,
               }
+      - name: regenerateWidgetKey
+        method: POST
+        title: Regenerate chatbot widget key
+        path: '/{agentID}/chatbot/regenerate-key'
+        parameters:
+          path:
+            - { type: uint64, name: agentID, required: true, title: Agent ID }
 
   - title: LLM Providers
     path: '/llm-providers'

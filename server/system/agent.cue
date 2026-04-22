@@ -52,6 +52,12 @@ agent: {
 				omitSetter: true
 				omitGetter: true
 			}
+			chatbot: {
+				goType: "types.AgentChatbot"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

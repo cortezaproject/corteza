@@ -24,8 +24,11 @@ editor:
   titleEdit: Edit Agent
   tabs:
     config: Configuration
-    exec: Playground
+    exec: Inspect
     history: History
+    chatbot: Chatbot
+  split:
+    chatPlaceholder: Save the agent to start chatting.
   panels:
     general: General
     behavior: Behavior
@@ -170,31 +173,157 @@ editor:
   outputFormat:
     label: Output Format
     help: Expected output format for system invocations (e.g. JSON schema)
-  playground:
+  chat:
     placeholder: Send a message...
-    traceTitle: Execution Trace
-    emptyTrace: No execution trace yet...
     newConversation: New Conversation
-    traceIteration: 'Iteration'
-    traceExecution: 'Execution'
-    tracePrompt: 'Prompt'
-    traceAgentResponse: 'Agent Response'
-    traceTokens: 'tokens'
-    traceContextTokens: 'context tokens'
-    traceToolCall: 'Tool Call'
-    traceResponse: 'Response'
-    traceIn: 'in'
-    traceOut: 'out'
-    traceSteps: '{count} step | {count} steps'
-    traceArgs: 'Arguments'
-    traceResult: 'Result'
-    traceCopy: 'Copy'
-    traceTotalTokens: 'total tokens'
-    traceExecutions: 'executions'
-    traceContext: 'System Context'
+    thinking: Thinking...
     toggleRawJson: 'Toggle raw JSON'
     tokenUsage: '{input} in / {output} out / {total} total tokens'
-    thinking: Thinking...
+
+  inspect:
+    title: Inspect
+    empty: No execution trace yet...
+    noActiveChat: No active chat selected
+    iteration: 'Iteration'
+    execution: 'Execution'
+    prompt: 'Prompt'
+    agentResponse: 'Agent Response'
+    tokens: 'tokens'
+    contextTokens: 'context tokens'
+    toolCall: 'Tool Call'
+    response: 'Response'
+    in: 'in'
+    out: 'out'
+    steps: '{count} step | {count} steps'
+    args: 'Arguments'
+    result: 'Result'
+    copy: 'Copy'
+    totalTokens: 'total tokens'
+    executions: 'executions'
+    context: 'System Context'
+
+  chatbot:
+    panels:
+      general: General
+      styling: Styling
+      scenarios: Scenarios
+      origins: Allowed origins
+      handoff: Handoff (preview)
+      preview: Live preview
+    preview:
+      description: Live preview of the widget as it would appear in the bottom-right corner of an embedding page. Messages here are mocked — no real agent call.
+    enabled:
+      label: Enable chatbot
+      help: Turn the embeddable widget on or off for this agent
+    widgetKey:
+      label: Widget key
+      help: Use this key in the embed snippet. Regenerating invalidates all open sessions.
+      notGenerated: Not generated yet — enable and save the agent
+      copy: Copy widget key
+      copied: Widget key copied
+      regenerate: Regenerate widget key
+      regenerateConfirm: This invalidates all active chat sessions. Continue?
+    embed:
+      label: Embed snippet
+      copy: Copy snippet
+      copied: Embed snippet copied
+    sessionTTL:
+      label: Session TTL
+      help: Duration, e.g. 2h, 24h
+    origins:
+      add: Add origin
+      help: Only these origins can load the widget. Use * to allow all.
+    handoff:
+      preview: Data persisted but not routed yet — operator inbox ships in a later iteration.
+      enabled:
+        label: Enable handoff
+        help: Allow the widget to request a live operator (stub — no routing yet)
+      targetRoles:
+        label: Target roles
+    styling:
+      logo:
+        label: Logo
+        help: Shown in the chat header.
+        placeholder: Drop image or click to upload
+      title:
+        label: Title
+        help: Header text of the chat panel.
+      fontFamily:
+        label: Font family
+        help: Leave empty to match host page.
+      colors: Colors
+      color:
+        background: Background
+        text: Text
+        userBubble: User message
+        agentBubble: Agent message
+      colorHelp:
+        background: Panel background.
+        text: Agent and body text.
+        userBubble: Message background.
+        agentBubble: Message background.
+      typography: Typography
+      fontSize:
+        base: Text size
+        heading: Heading size
+      fontSizeHelp:
+        base: Message and body text.
+        heading: Header title.
+      buttonTitle: Launcher button
+      button:
+        icon:
+          label: Icon
+          help: Shown on the floating button. Upload a custom image or use the default.
+          placeholder: Drop image or click to upload
+          visible: Visible
+        label:
+          label: Button label
+          help: Text displayed inline on the launcher button next to the icon.
+        color:
+          label: Button color
+          help: Button and header background.
+        colorText:
+          label: Button text color
+          help: Icon and label on the button.
+        size:
+          label: Button size
+          help: Button diameter.
+        shape:
+          label: Button shape
+          help: Circle or rounded square.
+          circle: Circle
+          square: Square
+    scenarios:
+      description: Scenarios define the visitor journey as a chain of steps. Each step is one type — a static message, a form, or the live conversation.
+      list: Scenarios
+      add: Add scenario
+      empty: No scenarios yet. Add one to get started.
+      unnamed: (unnamed)
+      selectHint: Select a scenario to edit
+      id: ID
+      handle: Handle
+      name: Name
+      type: Type
+      typeLabels:
+        staticMessage: Static message
+        conversation: Conversation
+        form: Form
+      static:
+        message: Message
+        isMarkdown: Render as Markdown
+        autoAdvance: Auto-advance delay (ms)
+      conversation:
+        placeholder: Input placeholder
+        initialPrompt: Initial prompt (optional)
+        typingIndicator: Show typing indicator
+      form:
+        fields: Fields
+        fieldName: Field name
+        fieldLabel: Field label
+        fieldType: Type
+        fieldRequired: Required
+        submitLabel: Submit button label
+        empty: No fields yet. Add one above.
 
   history:
     columns:

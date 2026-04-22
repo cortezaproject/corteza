@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@planetcrust/human-js": "workspace:*",
-    "@planetcrust/human-vue": "workspace:*"
+    "@planetcrust/human-vue": "workspace:*",
+    "human-webapp-chatbot": "workspace:*"
   }
 }

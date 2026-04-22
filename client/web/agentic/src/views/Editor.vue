@@ -12,739 +12,783 @@
 
   <Form
     v-else-if="agent"
+    ref="formRef"
     v-slot="$form"
     :resolver="resolver"
     :initialValues="initialValues"
     @submit="handleSubmit"
     class="flex flex-col h-full overflow-hidden"
   >
-    <div class="container mx-auto p-4 flex-1 overflow-hidden min-h-0 flex flex-col gap-4">
-      <div v-if="!isCreate" class="flex justify-end gap-2 shrink-0">
-        <CPermissionsButton
-          v-tooltip.bottom="$t('general.label.permissions')"
-          :resource="`corteza::system:agent/${agent.agentID}`"
-          :title="agent.meta?.short || agent.handle || agent.agentID"
-          :target="agent.meta?.short || agent.handle || agent.agentID"
-        />
-      </div>
-      <Card
-        :pt="{
-          body: { class: 'p-0 h-full flex flex-col' },
-          content: { class: 'p-0 h-full flex flex-col min-h-0' },
-        }"
-        class="flex-1 min-h-0 overflow-hidden"
-      >
-        <template #content>
-          <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
-            <TabList class="rounded-t-lg shrink-0">
-              <Tab value="config">{{ $t('agent.editor.tabs.config') }}</Tab>
-              <Tab value="exec">{{ $t('agent.editor.tabs.exec') }}</Tab>
-              <Tab value="history" v-if="!isCreate">{{ $t('agent.editor.tabs.history') }}</Tab>
-            </TabList>
+    <div class="flex-1 flex flex-row min-h-0 overflow-hidden">
+      <div class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden">
+        <Card
+          :pt="{
+            body: { class: 'p-0 h-full flex flex-col' },
+            content: { class: 'p-0 h-full flex flex-col min-h-0' },
+          }"
+          class="flex-1 min-h-0 overflow-hidden"
+        >
+          <template #content>
+            <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
+              <div class="flex items-center shrink-0 rounded-t-lg">
+                <TabList class="flex-1 min-w-0 rounded-t-lg">
+                  <Tab value="config">{{ $t('agent.editor.tabs.config') }}</Tab>
+                  <Tab value="exec">{{ $t('agent.editor.tabs.exec') }}</Tab>
+                  <Tab value="chatbot">{{ $t('agent.editor.tabs.chatbot') }}</Tab>
+                  <Tab value="history" v-if="!isCreate">{{ $t('agent.editor.tabs.history') }}</Tab>
+                </TabList>
+                <div
+                  v-if="!isCreate"
+                  class="shrink-0 px-2 border-b border-surface self-stretch flex items-center"
+                >
+                  <CPermissionsButton
+                    v-tooltip.bottom="$t('general.label.permissions')"
+                    :resource="`corteza::system:agent/${agent.agentID}`"
+                    :title="agent.meta?.short || agent.handle || agent.agentID"
+                    :target="agent.meta?.short || agent.handle || agent.agentID"
+                  />
+                </div>
+              </div>
 
-            <TabPanels class="flex-1 min-h-0 p-0">
-              <TabPanel value="config" class="h-full p-4 flex flex-col gap-4 overflow-auto">
-                <Panel :header="$t('agent.editor.panels.general')" toggleable>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                      <label for="name" class="font-medium text-primary">
-                        {{ $t('agent.editor.name.label') }}
-                      </label>
-                      <InputText id="name" v-model="agent.meta.short" />
-                      <small class="text-muted-color">{{ $t('agent.editor.name.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="handle" class="font-medium text-primary">
-                        {{ $t('agent.editor.handle.label') }}
-                      </label>
-                      <InputText id="handle" v-model="agent.handle" />
-                      <small class="text-muted-color">{{ $t('agent.editor.handle.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1 md:col-span-2">
-                      <label for="description" class="font-medium text-primary">
-                        {{ $t('agent.editor.description.label') }}
-                      </label>
-                      <Textarea
-                        id="description"
-                        v-model="agent.meta.description"
-                        rows="3"
-                        autoResize
-                      />
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.description.help') }}
-                      </small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="status" class="font-medium text-primary">
-                        {{ $t('agent.editor.status.label') }}
-                      </label>
-                      <Select
-                        id="status"
-                        v-model="agent.status"
-                        :options="statusOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                      />
-                      <small class="text-muted-color">{{ $t('agent.editor.status.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label class="font-medium text-primary">
-                        {{ $t('agent.editor.labels.label') }}
-                      </label>
-                      <CInputLabel
-                        v-model="agent.labels"
-                        :placeholder="$t('agent.editor.labels.placeholder')"
-                        :create-label="$t('agent.editor.labels.createNew')"
-                        :create-dialog-label="$t('agent.editor.labels.dialogCreate')"
-                        :name-label="$t('agent.editor.labels.name')"
-                        :save-btn-label="$t('general.label.save')"
-                        :cancel-btn-label="$t('general.label.cancel')"
-                      />
-                      <small class="text-muted-color">{{ $t('agent.editor.labels.help') }}</small>
-                    </div>
-                  </div>
-                </Panel>
-
-                <Panel :header="$t('agent.editor.panels.execution')" toggleable>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                      <label for="provider" class="font-medium text-primary">
-                        {{ $t('agent.editor.provider.label') }}
-                      </label>
-                      <CInputLLM id="provider" v-model="agent.execution.model.llmProviderID" />
-                      <small class="text-muted-color">{{ $t('agent.editor.provider.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="model" class="font-medium text-primary">
-                        {{ $t('agent.editor.model.label') }}
-                      </label>
-                      <CInputModel
-                        id="model"
-                        v-model="agent.execution.model.model"
-                        :llmProviderID="agent.execution.model.llmProviderID"
-                      />
-                      <small class="text-muted-color">{{ $t('agent.editor.model.help') }}</small>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <div class="flex items-center justify-between">
-                        <label for="temperature" class="font-medium text-primary">
-                          {{ $t('agent.editor.temperature.label') }}
-                          <span v-if="temperatureEnabled">
-                            ({{ agent.execution.model.temperature }})
-                          </span>
-                        </label>
-                        <ToggleSwitch
-                          :model-value="temperatureEnabled"
-                          @update:model-value="toggleTemperature"
-                        />
-                      </div>
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.temperature.help') }}
-                      </small>
-                      <Slider
-                        id="temperature"
-                        v-model="agent.execution.model.temperature"
-                        :disabled="!temperatureEnabled"
-                        :min="0"
-                        :max="1"
-                        :step="0.1"
-                        class="w-full mt-2"
-                      />
-                    </div>
-
-                    <!-- Execution limits -->
-                    <div class="md:col-span-2">
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="flex flex-col gap-1">
-                          <label for="maxIterations" class="font-medium text-primary">
-                            {{ $t('agent.editor.maxIterations.label') }}
-                          </label>
-                          <InputNumber
-                            id="maxIterations"
-                            v-model="agent.execution.limits.maxIterations"
-                            mode="decimal"
-                            :useGrouping="false"
-                            :min="1"
-                            :max="50"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.maxIterations.help') }}
-                          </small>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="contextWindow" class="font-medium text-primary">
-                            {{ $t('agent.editor.contextWindow.label') }}
-                          </label>
-                          <InputNumber
-                            id="contextWindow"
-                            v-model="agent.execution.limits.contextWindow"
-                            mode="decimal"
-                            :useGrouping="false"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.contextWindow.help') }}
-                          </small>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="outputTokens" class="font-medium text-primary">
-                            {{ $t('agent.editor.outputTokens.label') }}
-                          </label>
-                          <InputNumber
-                            id="outputTokens"
-                            v-model="agent.execution.limits.outputTokens"
-                            mode="decimal"
-                            :useGrouping="false"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.outputTokens.help') }}
-                          </small>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="timeout" class="font-medium text-primary">
-                            {{ $t('agent.editor.timeout.label') }}
-                          </label>
-                          <InputText
-                            id="timeout"
-                            v-model="agent.execution.limits.timeout"
-                            placeholder="30s"
-                          />
-                          <small class="text-muted-color">
-                            {{ $t('agent.editor.timeout.help') }}
-                          </small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Panel>
-
-                <Panel :header="$t('agent.editor.panels.behavior')" toggleable>
-                  <div class="grid grid-cols-1 gap-4">
-                    <FormField name="systemPrompt" class="flex flex-col gap-1">
-                      <label for="systemPrompt" class="font-medium text-primary">
-                        {{ $t('agent.editor.systemPrompt.label') }}
-                        <span class="text-red-500">*</span>
-                      </label>
-                      <Textarea
-                        id="systemPrompt"
-                        name="systemPrompt"
-                        v-model="agent.behavior.systemPrompt"
-                        rows="6"
-                        autoResize
-                      />
-                      <Message
-                        v-if="$form.systemPrompt?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                      >
-                        {{ $form.systemPrompt.error?.message }}
-                      </Message>
-                      <small v-else class="text-muted-color">
-                        {{ $t('agent.editor.systemPrompt.help') }}
-                      </small>
-                    </FormField>
-
-                    <!-- Guardrails -->
-                    <div class="flex flex-col gap-1">
-                      <label class="font-medium text-primary">
-                        {{ $t('agent.editor.guardrails.label') }}
-                      </label>
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.guardrails.help') }}
-                      </small>
-                      <div class="flex flex-col gap-2 mt-2">
-                        <div
-                          v-for="(rule, idx) in agent.behavior.guardrails"
-                          :key="idx"
-                          class="flex items-center gap-2"
-                        >
-                          <InputText
-                            v-model="agent.behavior.guardrails[idx]"
-                            class="flex-1"
-                            :placeholder="$t('agent.editor.guardrails.placeholder')"
-                          />
-                          <Button
-                            icon="pi pi-trash"
-                            severity="danger"
-                            text
-                            size="small"
-                            @click="removeGuardrail(idx)"
-                          />
-                        </div>
-                        <div>
-                          <Button
-                            :label="$t('agent.editor.guardrails.add')"
-                            icon="pi pi-plus"
-                            severity="secondary"
-                            outlined
-                            size="small"
-                            @click="addGuardrail"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Panel>
-
-                <Panel :header="$t('agent.editor.panels.tcl')" toggleable>
-                  <div class="flex flex-col gap-3">
-                    <CInputToggleCard
-                      v-model="agent.behavior.treatyCLEnabled"
-                      :label="$t('agent.editor.tcl.enabledLabel')"
-                      :description="$t('agent.editor.tcl.enabledHelp')"
-                    />
-
-                    <template v-if="agent.behavior.treatyCLEnabled">
+              <TabPanels class="flex-1 min-h-0 p-0">
+                <TabPanel value="config" class="h-full p-4 flex flex-col gap-4 overflow-auto">
+                  <Panel :header="$t('agent.editor.panels.general')" toggleable>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div class="flex flex-col gap-1">
-                        <label class="font-medium text-primary">
-                          {{ $t('agent.editor.tcl.temperature.label') }} ({{
-                            agent.behavior.tclTemperature
-                          }})
+                        <label for="name" class="font-medium text-primary">
+                          {{ $t('agent.editor.name.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.name.help') }}</small>
+                        <InputText id="name" v-model="agent.meta.short" />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label for="handle" class="font-medium text-primary">
+                          {{ $t('agent.editor.handle.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.handle.help') }}</small>
+                        <InputText id="handle" v-model="agent.handle" />
+                      </div>
+                      <div class="flex flex-col gap-1 md:col-span-2">
+                        <label for="description" class="font-medium text-primary">
+                          {{ $t('agent.editor.description.label') }}
                         </label>
                         <small class="text-muted-color">
-                          {{ $t('agent.editor.tcl.temperature.help') }}
+                          {{ $t('agent.editor.description.help') }}
+                        </small>
+                        <Textarea
+                          id="description"
+                          v-model="agent.meta.description"
+                          rows="3"
+                          autoResize
+                        />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label for="status" class="font-medium text-primary">
+                          {{ $t('agent.editor.status.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.status.help') }}</small>
+                        <Select
+                          id="status"
+                          v-model="agent.status"
+                          :options="statusOptions"
+                          optionLabel="label"
+                          optionValue="value"
+                        />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.labels.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.labels.help') }}</small>
+                        <CInputLabel
+                          v-model="agent.labels"
+                          :placeholder="$t('agent.editor.labels.placeholder')"
+                          :create-label="$t('agent.editor.labels.createNew')"
+                          :create-dialog-label="$t('agent.editor.labels.dialogCreate')"
+                          :name-label="$t('agent.editor.labels.name')"
+                          :save-btn-label="$t('general.label.save')"
+                          :cancel-btn-label="$t('general.label.cancel')"
+                        />
+                      </div>
+                    </div>
+                  </Panel>
+
+                  <Panel :header="$t('agent.editor.panels.execution')" toggleable>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="flex flex-col gap-1">
+                        <label for="provider" class="font-medium text-primary">
+                          {{ $t('agent.editor.provider.label') }}
+                        </label>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.provider.help') }}
+                        </small>
+                        <CInputLLM id="provider" v-model="agent.execution.model.llmProviderID" />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label for="model" class="font-medium text-primary">
+                          {{ $t('agent.editor.model.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.model.help') }}</small>
+                        <CInputModel
+                          id="model"
+                          v-model="agent.execution.model.model"
+                          :llmProviderID="agent.execution.model.llmProviderID"
+                        />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <div class="flex items-center justify-between">
+                          <label for="temperature" class="font-medium text-primary">
+                            {{ $t('agent.editor.temperature.label') }}
+                            <span v-if="temperatureEnabled">
+                              ({{ agent.execution.model.temperature }})
+                            </span>
+                          </label>
+                          <ToggleSwitch
+                            :model-value="temperatureEnabled"
+                            @update:model-value="toggleTemperature"
+                          />
+                        </div>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.temperature.help') }}
                         </small>
                         <Slider
-                          v-model="agent.behavior.tclTemperature"
-                          :min="1"
-                          :max="10"
-                          :step="1"
+                          id="temperature"
+                          v-model="agent.execution.model.temperature"
+                          :disabled="!temperatureEnabled"
+                          :min="0"
+                          :max="1"
+                          :step="0.1"
                           class="w-full mt-2"
                         />
                       </div>
 
-                      <div class="flex flex-col gap-1">
-                        <label class="font-medium text-primary">
-                          {{ $t('agent.editor.tcl.articles.label') }}
-                        </label>
-                        <small class="text-muted-color">
-                          {{ $t('agent.editor.tcl.articles.help') }}
-                        </small>
-                      </div>
-
-                      <div
-                        v-for="group in tclSortedArticleGroups"
-                        :key="group.treatyLabel"
-                        class="flex flex-col gap-2 mt-2"
-                      >
-                        <span
-                          class="text-sm font-semibold text-muted-color uppercase tracking-wide"
-                        >
-                          {{ group.treatyLabel }}
-                        </span>
-                        <CInputToggleCard
-                          v-for="article in group.items"
-                          :key="article.id"
-                          :modelValue="agent.behavior.tclArticles.includes(article.id)"
-                          :label="article.label"
-                          :description="article.interpretation"
-                          :disabled="article.hardwired"
-                          dimWhenOff
-                          @update:modelValue="toggleTclArticle(article.id, $event)"
-                        />
-                      </div>
-                    </template>
-                  </div>
-                </Panel>
-
-                <Panel :header="$t('agent.editor.panels.knowledgeBase')" toggleable>
-                  <div class="flex flex-col gap-3">
-                    <div class="flex flex-col gap-1">
-                      <label class="font-medium text-primary">
-                        {{ $t('agent.editor.knowledgeBases.label') }}
-                      </label>
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.knowledgeBases.help') }}
-                      </small>
-                      <CInputKnowledgeBase
-                        v-model="agent.behavior.knowledgeBases"
-                        :placeholder="$t('agent.editor.knowledgeBases.placeholder')"
-                        :create-label="$t('agent.editor.knowledgeBases.createNew')"
-                        :create-dialog-label="$t('agent.editor.knowledgeBases.dialogCreate')"
-                        :edit-label="$t('agent.editor.knowledgeBases.dialogEdit')"
-                        :title-label="$t('agent.editor.knowledgeBases.title')"
-                        :description-label="$t('agent.editor.knowledgeBases.description')"
-                        :description-help="$t('agent.editor.knowledgeBases.descriptionHelp')"
-                        :compose-context-label="$t('agent.editor.knowledgeBases.composeContext')"
-                        :namespace-placeholder="
-                          $t('agent.editor.knowledgeBases.namespacePlaceholder')
-                        "
-                        :modules-placeholder="$t('agent.editor.knowledgeBases.modulesPlaceholder')"
-                        :add-namespace-label="$t('agent.editor.knowledgeBases.addNamespace')"
-                        :save-label="$t('general.label.save')"
-                        :cancel-label="$t('general.label.cancel')"
-                      />
-                    </div>
-
-                    <!-- System Context as a KB-style entry in the list -->
-                    <CInputToggleCard
-                      v-model="agent.behavior.injectSystemContext"
-                      :label="$t('agent.editor.injectSystemContext.label')"
-                      :description="$t('agent.editor.injectSystemContext.help')"
-                    />
-                  </div>
-                </Panel>
-                <Panel :header="$t('agent.editor.panels.tools')" toggleable>
-                  <div class="flex flex-col gap-3">
-                    <div class="flex flex-col gap-1">
-                      <label class="font-medium text-primary">
-                        {{ $t('agent.editor.tools.label') }}
-                      </label>
-                      <small class="text-muted-color">{{ $t('agent.editor.tools.help') }}</small>
-                    </div>
-
-                    <Select
-                      v-model="toolPickerSelection"
-                      :options="unselectedTools"
-                      option-label="description"
-                      :placeholder="$t('agent.editor.tools.selectPlaceholder')"
-                      :loading="loadingTools"
-                      class="w-full"
-                      filter
-                      fluid
-                      showClear
-                      @update:model-value="onToolPickerSelect"
-                    >
-                      <template #option="{ option }">
-                        <span>{{ option.title }}</span>
-                      </template>
-                    </Select>
-
-                    <div v-if="selectedTools.length" class="flex flex-col gap-2">
-                      <div
-                        v-for="(tool, toolIdx) in selectedTools"
-                        :key="tool.name"
-                        class="flex items-center gap-3 p-3 border border-surface rounded-lg"
-                      >
-                        <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-                          <span class="font-medium text-color text-sm truncate">
-                            {{ tool.title }}
-                          </span>
-                          <small
-                            v-if="getToolHints(tool.name)"
-                            class="text-muted-color text-xs truncate"
-                          >
-                            {{ getToolHints(tool.name) }}
-                          </small>
-                          <!-- Access info -->
-                          <div
-                            v-if="!hasToolAllowFromName(tool.name)"
-                            class="flex items-center gap-1.5"
-                          >
-                            <i class="pi pi-lock text-xs text-muted-color" />
-                            <span class="text-xs text-muted-color">
-                              {{ $t('agent.editor.tools.restricted') }}
-                            </span>
+                      <!-- Execution limits -->
+                      <div class="md:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div class="flex flex-col gap-1">
+                            <label for="maxIterations" class="font-medium text-primary">
+                              {{ $t('agent.editor.maxIterations.label') }}
+                            </label>
+                            <small class="text-muted-color">
+                              {{ $t('agent.editor.maxIterations.help') }}
+                            </small>
+                            <InputNumber
+                              id="maxIterations"
+                              v-model="agent.execution.limits.maxIterations"
+                              mode="decimal"
+                              :useGrouping="false"
+                              :min="1"
+                              :max="50"
+                            />
                           </div>
-                          <div v-else class="flex items-center gap-1.5 flex-wrap mt-0.5">
-                            <i class="pi pi-lock text-xs text-muted-color" />
-                            <template
-                              v-for="detail in getToolAllowDetails(tool.name)"
-                              :key="detail.namespaceID"
-                            >
-                              <Tag severity="secondary" rounded>
-                                <template #default>
-                                  <span class="text-xs">
-                                    {{ detail.namespaceName }}
-                                    <span v-if="detail.modules.length" class="text-muted-color">
-                                      · {{ detail.modules.join(', ') }}
-                                    </span>
-                                    <span v-else class="text-muted-color">
-                                      · {{ $t('agent.editor.tools.allModules') }}
-                                    </span>
-                                  </span>
-                                </template>
-                              </Tag>
-                            </template>
+                          <div class="flex flex-col gap-1">
+                            <label for="contextWindow" class="font-medium text-primary">
+                              {{ $t('agent.editor.contextWindow.label') }}
+                            </label>
+                            <small class="text-muted-color">
+                              {{ $t('agent.editor.contextWindow.help') }}
+                            </small>
+                            <InputNumber
+                              id="contextWindow"
+                              v-model="agent.execution.limits.contextWindow"
+                              mode="decimal"
+                              :useGrouping="false"
+                            />
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <label for="outputTokens" class="font-medium text-primary">
+                              {{ $t('agent.editor.outputTokens.label') }}
+                            </label>
+                            <small class="text-muted-color">
+                              {{ $t('agent.editor.outputTokens.help') }}
+                            </small>
+                            <InputNumber
+                              id="outputTokens"
+                              v-model="agent.execution.limits.outputTokens"
+                              mode="decimal"
+                              :useGrouping="false"
+                            />
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <label for="timeout" class="font-medium text-primary">
+                              {{ $t('agent.editor.timeout.label') }}
+                            </label>
+                            <small class="text-muted-color">
+                              {{ $t('agent.editor.timeout.help') }}
+                            </small>
+                            <InputText
+                              id="timeout"
+                              v-model="agent.execution.limits.timeout"
+                              placeholder="30s"
+                            />
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  </Panel>
 
-                        <div class="flex items-center gap-1 shrink-0">
-                          <Button
-                            icon="pi pi-pencil"
-                            severity="secondary"
-                            text
-                            size="small"
-                            @click="openToolDialog(toolIdx)"
+                  <Panel :header="$t('agent.editor.panels.behavior')" toggleable>
+                    <div class="grid grid-cols-1 gap-4">
+                      <FormField name="systemPrompt" class="flex flex-col gap-1">
+                        <label for="systemPrompt" class="font-medium text-primary">
+                          {{ $t('agent.editor.systemPrompt.label') }}
+                          <span class="text-red-500">*</span>
+                        </label>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.systemPrompt.help') }}
+                        </small>
+                        <Textarea
+                          id="systemPrompt"
+                          name="systemPrompt"
+                          v-model="agent.behavior.systemPrompt"
+                          rows="6"
+                          autoResize
+                        />
+                        <Message
+                          v-if="$form.systemPrompt?.invalid"
+                          severity="error"
+                          size="small"
+                          variant="simple"
+                        >
+                          {{ $form.systemPrompt.error?.message }}
+                        </Message>
+                      </FormField>
+
+                      <!-- Guardrails -->
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.guardrails.label') }}
+                        </label>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.guardrails.help') }}
+                        </small>
+                        <div class="flex flex-col gap-2 mt-2">
+                          <div
+                            v-for="(rule, idx) in agent.behavior.guardrails"
+                            :key="idx"
+                            class="flex items-center gap-2"
+                          >
+                            <InputText
+                              v-model="agent.behavior.guardrails[idx]"
+                              class="flex-1"
+                              :placeholder="$t('agent.editor.guardrails.placeholder')"
+                            />
+                            <Button
+                              icon="pi pi-trash"
+                              severity="danger"
+                              text
+                              size="small"
+                              @click="removeGuardrail(idx)"
+                            />
+                          </div>
+                          <div>
+                            <Button
+                              :label="$t('agent.editor.guardrails.add')"
+                              icon="pi pi-plus"
+                              severity="secondary"
+                              outlined
+                              size="small"
+                              @click="addGuardrail"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Panel>
+
+                  <Panel :header="$t('agent.editor.panels.tcl')" toggleable>
+                    <div class="flex flex-col gap-3">
+                      <CInputToggleCard
+                        v-model="agent.behavior.treatyCLEnabled"
+                        :label="$t('agent.editor.tcl.enabledLabel')"
+                        :description="$t('agent.editor.tcl.enabledHelp')"
+                      />
+
+                      <template v-if="agent.behavior.treatyCLEnabled">
+                        <div class="flex flex-col gap-1">
+                          <label class="font-medium text-primary">
+                            {{ $t('agent.editor.tcl.temperature.label') }} ({{
+                              agent.behavior.tclTemperature
+                            }})
+                          </label>
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.tcl.temperature.help') }}
+                          </small>
+                          <Slider
+                            v-model="agent.behavior.tclTemperature"
+                            :min="1"
+                            :max="10"
+                            :step="1"
+                            class="w-full mt-2"
                           />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                          <label class="font-medium text-primary">
+                            {{ $t('agent.editor.tcl.articles.label') }}
+                          </label>
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.tcl.articles.help') }}
+                          </small>
+                        </div>
+
+                        <div
+                          v-for="group in tclSortedArticleGroups"
+                          :key="group.treatyLabel"
+                          class="flex flex-col gap-2 mt-2"
+                        >
+                          <span
+                            class="text-sm font-semibold text-muted-color uppercase tracking-wide"
+                          >
+                            {{ group.treatyLabel }}
+                          </span>
+                          <CInputToggleCard
+                            v-for="article in group.items"
+                            :key="article.id"
+                            :modelValue="agent.behavior.tclArticles.includes(article.id)"
+                            :label="article.label"
+                            :description="article.interpretation"
+                            :disabled="article.hardwired"
+                            dimWhenOff
+                            @update:modelValue="toggleTclArticle(article.id, $event)"
+                          />
+                        </div>
+                      </template>
+                    </div>
+                  </Panel>
+
+                  <Panel :header="$t('agent.editor.panels.knowledgeBase')" toggleable>
+                    <div class="flex flex-col gap-3">
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.knowledgeBases.label') }}
+                        </label>
+                        <small class="text-muted-color">
+                          {{ $t('agent.editor.knowledgeBases.help') }}
+                        </small>
+                        <CInputKnowledgeBase
+                          v-model="agent.behavior.knowledgeBases"
+                          :placeholder="$t('agent.editor.knowledgeBases.placeholder')"
+                          :create-label="$t('agent.editor.knowledgeBases.createNew')"
+                          :create-dialog-label="$t('agent.editor.knowledgeBases.dialogCreate')"
+                          :edit-label="$t('agent.editor.knowledgeBases.dialogEdit')"
+                          :title-label="$t('agent.editor.knowledgeBases.title')"
+                          :description-label="$t('agent.editor.knowledgeBases.description')"
+                          :description-help="$t('agent.editor.knowledgeBases.descriptionHelp')"
+                          :compose-context-label="$t('agent.editor.knowledgeBases.composeContext')"
+                          :namespace-placeholder="
+                            $t('agent.editor.knowledgeBases.namespacePlaceholder')
+                          "
+                          :modules-placeholder="
+                            $t('agent.editor.knowledgeBases.modulesPlaceholder')
+                          "
+                          :add-namespace-label="$t('agent.editor.knowledgeBases.addNamespace')"
+                          :save-label="$t('general.label.save')"
+                          :cancel-label="$t('general.label.cancel')"
+                        />
+                      </div>
+
+                      <!-- System Context as a KB-style entry in the list -->
+                      <CInputToggleCard
+                        v-model="agent.behavior.injectSystemContext"
+                        :label="$t('agent.editor.injectSystemContext.label')"
+                        :description="$t('agent.editor.injectSystemContext.help')"
+                      />
+                    </div>
+                  </Panel>
+                  <Panel :header="$t('agent.editor.panels.tools')" toggleable>
+                    <div class="flex flex-col gap-3">
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.tools.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.tools.help') }}</small>
+                      </div>
+
+                      <Select
+                        v-model="toolPickerSelection"
+                        :options="unselectedTools"
+                        option-label="description"
+                        :placeholder="$t('agent.editor.tools.selectPlaceholder')"
+                        :loading="loadingTools"
+                        class="w-full"
+                        filter
+                        fluid
+                        showClear
+                        @update:model-value="onToolPickerSelect"
+                      >
+                        <template #option="{ option }">
+                          <span>{{ option.title }}</span>
+                        </template>
+                      </Select>
+
+                      <div v-if="selectedTools.length" class="flex flex-col gap-2">
+                        <div
+                          v-for="(tool, toolIdx) in selectedTools"
+                          :key="tool.name"
+                          class="flex items-center gap-3 p-3 border border-surface rounded-lg"
+                        >
+                          <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <span class="font-medium text-color text-sm truncate">
+                              {{ tool.title }}
+                            </span>
+                            <small
+                              v-if="getToolHints(tool.name)"
+                              class="text-muted-color text-xs truncate"
+                            >
+                              {{ getToolHints(tool.name) }}
+                            </small>
+                            <!-- Access info -->
+                            <div
+                              v-if="!hasToolAllowFromName(tool.name)"
+                              class="flex items-center gap-1.5"
+                            >
+                              <i class="pi pi-lock text-xs text-muted-color" />
+                              <span class="text-xs text-muted-color">
+                                {{ $t('agent.editor.tools.restricted') }}
+                              </span>
+                            </div>
+                            <div v-else class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <i class="pi pi-lock text-xs text-muted-color" />
+                              <template
+                                v-for="detail in getToolAllowDetails(tool.name)"
+                                :key="detail.namespaceID"
+                              >
+                                <Tag severity="secondary" rounded>
+                                  <template #default>
+                                    <span class="text-xs">
+                                      {{ detail.namespaceName }}
+                                      <span v-if="detail.modules.length" class="text-muted-color">
+                                        · {{ detail.modules.join(', ') }}
+                                      </span>
+                                      <span v-else class="text-muted-color">
+                                        · {{ $t('agent.editor.tools.allModules') }}
+                                      </span>
+                                    </span>
+                                  </template>
+                                </Tag>
+                              </template>
+                            </div>
+                          </div>
+
+                          <div class="flex items-center gap-1 shrink-0">
+                            <Button
+                              icon="pi pi-pencil"
+                              severity="secondary"
+                              text
+                              size="small"
+                              @click="openToolDialog(toolIdx)"
+                            />
+                            <Button
+                              icon="pi pi-trash"
+                              severity="danger"
+                              text
+                              size="small"
+                              @click="removeTool(tool)"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <Divider class="my-4" />
+
+                      <!-- TAQs -->
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.taqs.label') }}
+                        </label>
+                        <small class="text-muted-color">{{ $t('agent.editor.taqs.help') }}</small>
+                      </div>
+
+                      <CInputTAQ
+                        v-model="taqPickerSelection"
+                        :placeholder="$t('agent.editor.taqs.selectPlaceholder')"
+                        @update:model-value="onTaqPickerSelect"
+                      />
+
+                      <div v-if="agent.access.taqs?.length" class="flex flex-col gap-2">
+                        <div
+                          v-for="(taq, idx) in agent.access.taqs"
+                          :key="taq.id"
+                          class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
+                        >
+                          <div class="flex flex-col gap-1 flex-1 min-w-0">
+                            <span class="font-medium text-color text-sm truncate">
+                              {{ loadedTaqNames[taq.id] || $t('general.label.loading') }}
+                            </span>
+                            <InputText
+                              v-model="agent.access.taqs[idx].description"
+                              class="w-full mt-1"
+                              size="small"
+                              :placeholder="$t('agent.editor.taqs.descriptionPlaceholder')"
+                            />
+                          </div>
                           <Button
                             icon="pi pi-trash"
                             severity="danger"
                             text
                             size="small"
-                            @click="removeTool(tool)"
+                            class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                            @click="removeTaq(idx)"
                           />
                         </div>
                       </div>
-                    </div>
 
-                    <Divider class="my-4" />
+                      <Divider class="my-4" />
 
-                    <!-- TAQs -->
-                    <div class="flex flex-col gap-1">
-                      <label class="font-medium text-primary">
-                        {{ $t('agent.editor.taqs.label') }}
-                      </label>
-                      <small class="text-muted-color">{{ $t('agent.editor.taqs.help') }}</small>
-                    </div>
-
-                    <CInputTAQ
-                      v-model="taqPickerSelection"
-                      :placeholder="$t('agent.editor.taqs.selectPlaceholder')"
-                      @update:model-value="onTaqPickerSelect"
-                    />
-
-                    <div v-if="agent.access.taqs?.length" class="flex flex-col gap-2">
-                      <div
-                        v-for="(taq, idx) in agent.access.taqs"
-                        :key="taq.id"
-                        class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
-                      >
-                        <div class="flex flex-col gap-1 flex-1 min-w-0">
-                          <span class="font-medium text-color text-sm truncate">
-                            {{ loadedTaqNames[taq.id] || $t('general.label.loading') }}
-                          </span>
-                          <InputText
-                            v-model="agent.access.taqs[idx].description"
-                            class="w-full mt-1"
-                            size="small"
-                            :placeholder="$t('agent.editor.taqs.descriptionPlaceholder')"
-                          />
-                        </div>
-                        <Button
-                          icon="pi pi-trash"
-                          severity="danger"
-                          text
-                          size="small"
-                          class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                          @click="removeTaq(idx)"
-                        />
-                      </div>
-                    </div>
-
-                    <Divider class="my-4" />
-
-                    <!-- Workflows -->
-                    <div class="flex flex-col gap-1">
-                      <label class="font-medium text-primary">
-                        {{ $t('agent.editor.workflows.label') }}
-                      </label>
-                      <small class="text-muted-color">
-                        {{ $t('agent.editor.workflows.help') }}
-                      </small>
-                    </div>
-
-                    <CInputWorkflow
-                      v-model="workflowPickerSelection"
-                      :placeholder="$t('agent.editor.workflows.selectPlaceholder')"
-                      @update:model-value="onWorkflowPickerSelect"
-                    />
-
-                    <div v-if="agent.access.workflows?.length" class="flex flex-col gap-2">
-                      <div
-                        v-for="(workflow, idx) in agent.access.workflows"
-                        :key="workflow.id"
-                        class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
-                      >
-                        <div class="flex flex-col gap-1 flex-1 min-w-0">
-                          <span class="font-medium text-color text-sm truncate">
-                            {{ loadedWorkflowNames[workflow.id] || $t('general.label.loading') }}
-                          </span>
-                          <InputText
-                            v-model="agent.access.workflows[idx].description"
-                            class="w-full mt-1"
-                            size="small"
-                            :placeholder="$t('agent.editor.workflows.descriptionPlaceholder')"
-                          />
-                        </div>
-                        <Button
-                          icon="pi pi-trash"
-                          severity="danger"
-                          text
-                          size="small"
-                          class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                          @click="removeWorkflow(idx)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Panel>
-
-                <Panel :header="$t('agent.editor.panels.invocation')" toggleable>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- User Invocation Group -->
-                    <div class="flex flex-col gap-4">
-                      <CInputToggleCard
-                        v-model="agent.invocation.user.enabled"
-                        :label="$t('agent.editor.userEnabled.label')"
-                        :description="$t('agent.editor.userEnabled.help')"
-                      />
-
-                      <div
-                        class="flex flex-col gap-1"
-                        :class="{
-                          'opacity-50 pointer-events-none': !agent.invocation.user.enabled,
-                        }"
-                      >
-                        <label for="sidebarRoles" class="font-medium text-primary">
-                          {{ $t('agent.editor.sidebarRoles.label') }}
+                      <!-- Workflows -->
+                      <div class="flex flex-col gap-1">
+                        <label class="font-medium text-primary">
+                          {{ $t('agent.editor.workflows.label') }}
                         </label>
-                        <CInputRole
-                          id="sidebarRoles"
-                          v-model="agent.meta.sidebarRoles"
-                          :multiple="true"
-                          :disabled="!agent.invocation.user.enabled"
-                        />
                         <small class="text-muted-color">
-                          {{ $t('agent.editor.sidebarRoles.help') }}
+                          {{ $t('agent.editor.workflows.help') }}
                         </small>
                       </div>
-                    </div>
 
-                    <!-- System Invocation Group -->
-                    <div class="flex flex-col gap-4">
-                      <CInputToggleCard
-                        v-model="agent.invocation.system.enabled"
-                        :label="$t('agent.editor.systemEnabled.label')"
-                        :description="$t('agent.editor.systemEnabled.help')"
+                      <CInputWorkflow
+                        v-model="workflowPickerSelection"
+                        :placeholder="$t('agent.editor.workflows.selectPlaceholder')"
+                        @update:model-value="onWorkflowPickerSelect"
                       />
 
-                      <div
-                        class="flex flex-col gap-1"
-                        :class="{
-                          'opacity-50 pointer-events-none': !agent.invocation.system.enabled,
-                        }"
-                      >
-                        <label for="serviceAccount" class="font-medium text-primary">
-                          {{ $t('agent.editor.serviceAccount.label') }}
-                        </label>
-                        <CInputUser
-                          id="serviceAccount"
-                          v-model="agent.invocation.system.serviceAccount"
-                          :disabled="!agent.invocation.system.enabled"
-                        />
-                        <small class="text-muted-color">
-                          {{ $t('agent.editor.serviceAccount.help') }}
-                        </small>
-                      </div>
-                    </div>
-                  </div>
-                </Panel>
-              </TabPanel>
-
-              <TabPanel value="exec" class="h-full p-0 flex flex-row overflow-hidden">
-                <AiChat
-                  :key="activeConvIndex"
-                  :agent="agent"
-                  :conversation="activeConversation"
-                  :isCreate="isCreate"
-                >
-                  <template #header>
-                    <div
-                      class="flex items-center gap-0 border-b border-surface shrink-0 bg-surface-ground px-2"
-                    >
-                      <div class="flex items-center gap-0 flex-1 overflow-x-auto">
-                        <button
-                          v-for="(conv, idx) in conversations"
-                          :key="idx"
-                          class="flex items-center gap-1.5 p-3 text-sm border-b-2 whitespace-nowrap transition-colors"
-                          :class="
-                            activeConvIndex === idx
-                              ? 'border-primary text-primary font-medium'
-                              : 'border-transparent text-muted-color hover:text-color hover:border-surface'
-                          "
-                          @click="activeConvIndex = idx"
+                      <div v-if="agent.access.workflows?.length" class="flex flex-col gap-2">
+                        <div
+                          v-for="(workflow, idx) in agent.access.workflows"
+                          :key="workflow.id"
+                          class="group flex items-start gap-3 p-3 border border-surface rounded-lg hover:bg-emphasis transition-colors"
                         >
-                          <i class="pi pi-comments text-xs" />
-                          <span>{{ conv.label }}</span>
-                          <i
-                            v-if="conversations.length > 1"
-                            class="pi pi-times text-xs opacity-50 hover:opacity-100 ml-1"
-                            @click.stop="closeConversation(idx)"
+                          <div class="flex flex-col gap-1 flex-1 min-w-0">
+                            <span class="font-medium text-color text-sm truncate">
+                              {{ loadedWorkflowNames[workflow.id] || $t('general.label.loading') }}
+                            </span>
+                            <InputText
+                              v-model="agent.access.workflows[idx].description"
+                              class="w-full mt-1"
+                              size="small"
+                              :placeholder="$t('agent.editor.workflows.descriptionPlaceholder')"
+                            />
+                          </div>
+                          <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            size="small"
+                            class="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                            @click="removeWorkflow(idx)"
                           />
-                        </button>
+                        </div>
                       </div>
-                      <Button
-                        icon="pi pi-plus"
-                        text
-                        severity="secondary"
-                        size="small"
-                        @click="addConversation"
-                        :disabled="isCreate"
-                        class="shrink-0"
-                      />
                     </div>
-                  </template>
-                </AiChat>
-              </TabPanel>
+                  </Panel>
 
-              <TabPanel value="history" class="h-full p-4 flex flex-col gap-4 overflow-auto">
-                <CResourceList
-                  :items="agentConversations"
-                  :fields="historyTableFields"
-                  :loading="loadingConversations"
-                  primary-key="aiConversationID"
-                  :pagination="pagingConversations"
-                  :sorting="sortingConversations"
-                  :filter="filterConversations"
-                  hide-search
-                  clickable
-                  :translations="{
-                    showingPagination: 'general.resourceList.pagination.showing',
-                    singlePluralPagination: 'general.resourceList.pagination.single',
-                    prevPagination: $t('general.resourceList.pagination.prev'),
-                    nextPagination: $t('general.resourceList.pagination.next'),
-                    recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-                    resourceSingle: $t('agent.editor.history.resourceSingle'),
-                    resourcePlural: $t('agent.editor.history.resourcePlural'),
-                  }"
-                  @row-click="openHistoryChat($event)"
-                  @page-change="onConversationsPageChange"
-                  @sort="onConversationsSort"
-                  class="w-full border border-surface rounded-xl"
-                >
-                  <template #empty>
-                    {{ $t('agent.editor.history.empty') }}
-                  </template>
-                  <template #body-snippet="{ data }">
-                    <span class="text-color truncate block max-w-[250px] xl:max-w-[400px]">
-                      {{ getWarningSnippet(data.messages) }}
-                    </span>
-                  </template>
-                  <template #body-createdAt="{ data }">
-                    {{ data.createdAt ? new Date(data.createdAt).toLocaleString() : '' }}
-                  </template>
-                </CResourceList>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </template>
-      </Card>
-    </div>
+                  <Panel :header="$t('agent.editor.panels.invocation')" toggleable>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- User Invocation Group -->
+                      <div class="flex flex-col gap-4">
+                        <CInputToggleCard
+                          v-model="agent.invocation.user.enabled"
+                          :label="$t('agent.editor.userEnabled.label')"
+                          :description="$t('agent.editor.userEnabled.help')"
+                        />
 
-    <!-- History Dialog -->
-    <Dialog
-      v-model:visible="showHistoryDialog"
-      :header="$t('agent.editor.tabs.history')"
-      modal
-      class="max-w-[70vw] w-full"
-      :style="{ height: '80vh' }"
-      :pt="{
-        content: { class: 'p-0 flex flex-col h-full overflow-hidden' },
-      }"
-    >
-      <div v-if="loadingHistoryChat" class="flex items-center justify-center p-4 h-full">
-        <ProgressSpinner />
+                        <div
+                          class="flex flex-col gap-1"
+                          :class="{
+                            'opacity-50 pointer-events-none': !agent.invocation.user.enabled,
+                          }"
+                        >
+                          <label for="sidebarRoles" class="font-medium text-primary">
+                            {{ $t('agent.editor.sidebarRoles.label') }}
+                          </label>
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.sidebarRoles.help') }}
+                          </small>
+                          <CInputRole
+                            id="sidebarRoles"
+                            v-model="agent.meta.sidebarRoles"
+                            :multiple="true"
+                            :disabled="!agent.invocation.user.enabled"
+                          />
+                        </div>
+                      </div>
+
+                      <!-- System Invocation Group -->
+                      <div class="flex flex-col gap-4">
+                        <CInputToggleCard
+                          v-model="agent.invocation.system.enabled"
+                          :label="$t('agent.editor.systemEnabled.label')"
+                          :description="$t('agent.editor.systemEnabled.help')"
+                        />
+
+                        <div
+                          class="flex flex-col gap-1"
+                          :class="{
+                            'opacity-50 pointer-events-none': !agent.invocation.system.enabled,
+                          }"
+                        >
+                          <label for="serviceAccount" class="font-medium text-primary">
+                            {{ $t('agent.editor.serviceAccount.label') }}
+                          </label>
+                          <small class="text-muted-color">
+                            {{ $t('agent.editor.serviceAccount.help') }}
+                          </small>
+                          <CInputUser
+                            id="serviceAccount"
+                            v-model="agent.invocation.system.serviceAccount"
+                            :disabled="!agent.invocation.system.enabled"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </Panel>
+                </TabPanel>
+
+                <TabPanel value="exec" class="h-full p-0 overflow-hidden">
+                  <AiTrace
+                    :key="'trace-' + activeConvIndex"
+                    :agent="agent"
+                    :conversation="activeConversation"
+                  />
+                </TabPanel>
+
+                <TabPanel value="chatbot" class="h-full p-4 flex flex-col gap-4 overflow-auto">
+                  <ChatbotTab
+                    :chatbot="agent.chatbot"
+                    :agentID="agent.agentID"
+                    @regenerate-key="handleRegenerateKey"
+                  />
+                </TabPanel>
+
+                <TabPanel value="history" class="h-full p-4 flex flex-col gap-4 overflow-auto">
+                  <CResourceList
+                    :items="agentConversations"
+                    :fields="historyTableFields"
+                    :loading="loadingConversations"
+                    primary-key="aiConversationID"
+                    :pagination="pagingConversations"
+                    :sorting="sortingConversations"
+                    :filter="filterConversations"
+                    hide-search
+                    clickable
+                    :translations="{
+                      showingPagination: 'general.resourceList.pagination.showing',
+                      singlePluralPagination: 'general.resourceList.pagination.single',
+                      prevPagination: $t('general.resourceList.pagination.prev'),
+                      nextPagination: $t('general.resourceList.pagination.next'),
+                      recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+                      resourceSingle: $t('agent.editor.history.resourceSingle'),
+                      resourcePlural: $t('agent.editor.history.resourcePlural'),
+                    }"
+                    @row-click="openHistoryChat($event)"
+                    @page-change="onConversationsPageChange"
+                    @sort="onConversationsSort"
+                    class="w-full border border-surface rounded-xl"
+                  >
+                    <template #empty>
+                      {{ $t('agent.editor.history.empty') }}
+                    </template>
+                    <template #body-snippet="{ data }">
+                      <span class="text-color truncate block max-w-[250px] xl:max-w-[400px]">
+                        {{ getWarningSnippet(data.messages) }}
+                      </span>
+                    </template>
+                    <template #body-createdAt="{ data }">
+                      {{ data.createdAt ? new Date(data.createdAt).toLocaleString() : '' }}
+                    </template>
+                  </CResourceList>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </template>
+        </Card>
       </div>
-      <AiChat
-        v-else-if="selectedHistoryConversation"
-        :agent="agent"
-        :conversation="selectedHistoryConversation"
-        :isCreate="false"
-        :showTrace="false"
-        :readonly="true"
-      />
-    </Dialog>
+
+      <!-- Resize handle -->
+      <div v-if="showChat" class="resize-handle group" @mousedown="startChatResize">
+        <div class="resize-handle-bar group-hover:opacity-100" />
+      </div>
+
+      <!-- Right: permanent chatbox -->
+      <div
+        v-if="showChat"
+        class="shrink-0 flex flex-col p-4 pl-0 overflow-hidden"
+        :style="{ width: chatWidth + 'px' }"
+      >
+        <Card
+          :pt="{
+            body: { class: 'p-0 h-full flex flex-col' },
+            content: { class: 'p-0 h-full flex flex-col min-h-0' },
+          }"
+          class="flex-1 min-h-0 overflow-hidden"
+        >
+          <template #content>
+            <div v-if="activeTab === 'chatbot'" class="h-full flex flex-col min-h-0">
+              <div class="px-4 py-3 border-b border-surface shrink-0 font-medium text-sm">
+                {{ $t('agent.editor.chatbot.panels.preview') }}
+              </div>
+              <ChatbotPreview
+                :chatbot="agent.chatbot"
+                :agentID="agent.agentID || ''"
+                class="flex-1 min-h-0"
+              />
+            </div>
+            <div
+              v-else-if="isCreate"
+              class="flex items-center justify-center h-full p-6 text-muted-color text-sm text-center"
+            >
+              {{ $t('agent.editor.split.chatPlaceholder') }}
+            </div>
+            <AiChat
+              v-else
+              :key="activeConvIndex"
+              :agent="agent"
+              :conversation="activeConversation"
+              :isCreate="isCreate"
+              :showTrace="false"
+            >
+              <template #header>
+                <div
+                  class="flex items-center gap-0 border-b border-surface shrink-0 bg-surface-ground"
+                >
+                  <div class="flex items-center gap-0 flex-1 overflow-x-auto">
+                    <button
+                      v-for="(conv, idx) in conversations"
+                      :key="idx"
+                      type="button"
+                      class="flex items-center gap-1.5 p-3 text-sm border-b-2 whitespace-nowrap transition-colors"
+                      :class="
+                        activeConvIndex === idx
+                          ? 'border-primary text-primary font-medium'
+                          : 'border-transparent text-muted-color hover:text-color hover:border-surface'
+                      "
+                      @click="activeConvIndex = idx"
+                    >
+                      <i class="pi pi-comments text-xs" />
+                      <span>{{ conv.label }}</span>
+                      <i
+                        v-if="conversations.length > 1"
+                        class="pi pi-times text-xs opacity-50 hover:opacity-100 ml-1"
+                        @click.stop="closeConversation(idx)"
+                      />
+                    </button>
+                  </div>
+                  <Button
+                    icon="pi pi-plus"
+                    text
+                    severity="secondary"
+                    size="small"
+                    @click="addConversation"
+                    :disabled="isCreate"
+                    class="shrink-0 mr-1"
+                  />
+                </div>
+              </template>
+            </AiChat>
+          </template>
+        </Card>
+      </div>
+    </div>
 
     <!-- Tool Configuration Dialog -->
     <Dialog
@@ -857,10 +901,11 @@
             @confirm="handleDelete"
           />
           <Button
-            type="submit"
+            type="button"
             :label="$t('general.label.save')"
             icon="pi pi-save"
             :loading="saving"
+            @click="submitForm"
           />
         </div>
       </div>
@@ -881,6 +926,10 @@ import { system } from '@planetcrust/human-js'
 // Components (not globally registered)
 import { components } from '@planetcrust/human-vue'
 import AiChat from '@/components/AiChat.vue'
+import AiTrace from '@/components/AiTrace.vue'
+import ChatbotTab from '@/views/Editor/ChatbotTab.vue'
+import ChatbotPreview from '@/views/Editor/ChatbotPreview.vue'
+import { useEditorSplit } from '@/composables/useEditorSplit'
 
 const {
   CInputLLM,
@@ -913,6 +962,13 @@ const saving = ref(false)
 const agent = ref(null)
 const initialAgent = ref(null)
 const activeTab = ref('config')
+const formRef = ref(null)
+
+function submitForm() {
+  formRef.value?.submit?.()
+}
+
+const { chatWidth, showChat, startChatResize } = useEditorSplit()
 
 const { markSaved } = useUnsavedGuard({
   isDirty: () =>
@@ -931,6 +987,13 @@ const conversations = ref([
 const activeConvIndex = ref(0)
 const activeConversation = computed(() => conversations.value[activeConvIndex.value])
 
+watch(
+  () => activeConversation.value?.traceHistory?.length || 0,
+  (len, prev) => {
+    if (len > 0 && (prev || 0) === 0) activeTab.value = 'exec'
+  },
+)
+
 const isCreate = computed(() => !route.params.agentID)
 
 const temperatureEnabled = computed(
@@ -938,10 +1001,6 @@ const temperatureEnabled = computed(
     agent.value?.execution?.model?.temperature !== null &&
     agent.value?.execution?.model?.temperature !== undefined,
 )
-
-const showHistoryDialog = ref(false)
-const loadingHistoryChat = ref(false)
-const selectedHistoryConversation = ref(null)
 
 const historyTableFields = computed(() => [
   {
@@ -962,29 +1021,32 @@ function getWarningSnippet(messages) {
 async function openHistoryChat(event) {
   const rowData = event.data || event
   if (!rowData.aiConversationID) return
-  showHistoryDialog.value = true
-  loadingHistoryChat.value = true
-  selectedHistoryConversation.value = null
 
   try {
     const res = await $SystemAPI.aiConversationRead({ aiConversationID: rowData.aiConversationID })
-    if (res && res.messages) {
-      if (!res.traceHistory) res.traceHistory = []
-      selectedHistoryConversation.value = res
-    } else {
-      selectedHistoryConversation.value = {
-        ...rowData,
-        messages: rowData.messages || [],
-        traceHistory: [],
-      }
+    const messages = res?.messages || rowData.messages || []
+    const convID = res?.aiConversationID || rowData.aiConversationID
+    const existingIdx = conversations.value.findIndex(
+      c => (c.conversationID || c.aiConversationID) === convID,
+    )
+    if (existingIdx >= 0) {
+      activeConvIndex.value = existingIdx
+      return
     }
+    const snippet = getWarningSnippet(messages).slice(0, 24)
+    conversations.value.push({
+      label: snippet || 'History',
+      messages,
+      conversationID: convID,
+      aiConversationID: convID,
+      traceHistory: res?.traceHistory || [],
+      context: res?.context || '',
+    })
+    activeConvIndex.value = conversations.value.length - 1
   } catch (e) {
     if (e.message !== 'canceled') {
       $toast.toastDanger(t('agent.editor.history.loadError'))
-      showHistoryDialog.value = false
     }
-  } finally {
-    loadingHistoryChat.value = false
   }
 }
 
@@ -1048,6 +1110,34 @@ function toggleTclArticle(articleId, enabled) {
   }
 }
 
+function defaultTclArticleIds() {
+  const ids = []
+  for (const group of tclArticleOptions.value) {
+    for (const a of group.items) {
+      if (a.defaultSelected || a.hardwired) ids.push(a.id)
+    }
+  }
+  return ids
+}
+
+function applyTclArticleDefaults() {
+  const defaults = defaultTclArticleIds()
+  const current = agent.value.behavior.tclArticles || []
+  const merged = Array.from(new Set([...current, ...defaults]))
+  agent.value.behavior.tclArticles = merged
+}
+
+watch(
+  () => agent.value?.behavior?.treatyCLEnabled,
+  (enabled, prev) => {
+    if (enabled && !prev) applyTclArticleDefaults()
+  },
+)
+
+watch(tclArticleOptions, () => {
+  if (agent.value?.behavior?.treatyCLEnabled) applyTclArticleDefaults()
+})
+
 async function fetchTclMasterList() {
   loadingTcl.value = true
   try {
@@ -1085,9 +1175,7 @@ async function loadAgent() {
     return
   }
 
-  // Only show spinner on first load; subsequent switches update values in-place
-  const isFirstLoad = !agent.value
-  if (isFirstLoad) loading.value = true
+  loading.value = true
 
   try {
     const res = await $SystemAPI.agentRead({ agentID })
@@ -1096,7 +1184,7 @@ async function loadAgent() {
     $toast.toastDanger(t('notification.agent.loadFailed'))
     router.push({ name: 'root' })
   } finally {
-    if (isFirstLoad) loading.value = false
+    loading.value = false
   }
 }
 
@@ -1145,6 +1233,17 @@ async function handleSubmit({ valid }) {
   }
 }
 
+async function handleRegenerateKey() {
+  if (!route.params.agentID) return
+  try {
+    const updated = await $SystemAPI.agentRegenerateWidgetKey({ agentID: route.params.agentID })
+    applyAgentData(updated)
+    $toast.toastSuccess(t('agent.editor.chatbot.widgetKey.regenerated'))
+  } catch (err) {
+    $toast.toastErrorHandler(t('agent.editor.chatbot.widgetKey.regenerateFailed'))(err)
+  }
+}
+
 async function handleDelete() {
   try {
     await $SystemAPI.agentDelete({ agentID: route.params.agentID })
@@ -1186,23 +1285,6 @@ function removeGuardrail(index) {
   agent.value.behavior.guardrails.splice(index, 1)
 }
 
-// Watch for agentID changes (handles both initial mount and sidebar navigation)
-watch(
-  () => route.params.agentID,
-  () => {
-    // Reset editor state for the new agent
-    convCounter = 1
-    conversations.value = [
-      { label: `Chat 1`, messages: [], conversationID: null, traceHistory: [], context: '' },
-    ]
-    activeConvIndex.value = 0
-    activeTab.value = 'config'
-
-    loadAgent()
-  },
-  { immediate: true },
-)
-
 const agentConversations = ref([])
 const loadingConversations = ref(false)
 
@@ -1218,6 +1300,29 @@ const pagingConversations = ref({
   prevPage: '',
   page: 1,
 })
+
+// Watch for agentID changes (handles both initial mount and sidebar navigation)
+watch(
+  () => route.params.agentID,
+  () => {
+    // Reset editor state for the new agent
+    convCounter = 1
+    conversations.value = [
+      { label: `Chat 1`, messages: [], conversationID: null, traceHistory: [], context: '' },
+    ]
+    activeConvIndex.value = 0
+    activeTab.value = 'config'
+    agentConversations.value = []
+    filterConversations.value = {}
+    sortingConversations.value = { sortBy: 'createdAt', sortDesc: true }
+    editingToolForm.value = null
+    editingToolIndex.value = -1
+    toolDialogVisible.value = false
+
+    loadAgent()
+  },
+  { immediate: true },
+)
 
 async function loadConversations() {
   if (!agent.value || !agent.value.agentID) return
@@ -1523,3 +1628,23 @@ function onToolAllowNamespaceChange(rule, namespaceID) {
   rule.moduleIDs = []
 }
 </script>
+
+<style scoped>
+.resize-handle {
+  width: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ew-resize;
+}
+
+.resize-handle-bar {
+  width: 2px;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: var(--p-content-border-color);
+  opacity: 0.4;
+  transition: opacity 150ms;
+}
+</style>

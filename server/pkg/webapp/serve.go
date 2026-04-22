@@ -193,21 +193,13 @@ if (snippetScripts !== null) {
 	snippetScripts.forEach(snippetScript => {
 		const scriptAttr = document.createElement("script");
 
-		if (snippetScript.src) {
-			scriptAttr.src = snippetScript.src;
-		}
-
-		if (snippetScript.integrity) {
-			scriptAttr.integrity = snippetScript.integrity;
-		}
-
-		if (snippetScript.crossorigin) {
-			scriptAttr.crossOrigin = snippetScript.crossorigin;
-		}
-
-		if (snippetScript.content) {
-			scriptAttr.textContent = snippetScript.content;
-		}
+		Object.keys(snippetScript).forEach(k => {
+			if (k === "content") {
+				scriptAttr.textContent = snippetScript[k];
+			} else {
+				scriptAttr.setAttribute(k, snippetScript[k]);
+			}
+		});
 
 		document.head.appendChild(scriptAttr);
 	});
@@ -255,13 +247,15 @@ func traverseScriptsNode(n *html.Node) []scriptAttrs {
 	if n.Type == html.ElementNode && n.Data == "script" {
 		script := scriptAttrs{}
 		for _, attr := range n.Attr {
-			switch attr.Key {
-			case "src":
-				script["src"] = attr.Val
-			case "integrity":
-				script["integrity"] = attr.Val
-			case "crossorigin":
-				script["crossorigin"] = attr.Val
+			k := attr.Key
+			switch k {
+			case "src", "integrity", "crossorigin", "async", "defer",
+				"type", "nomodule", "referrerpolicy", "nonce", "id":
+				script[k] = attr.Val
+			default:
+				if strings.HasPrefix(k, "data-") {
+					script[k] = attr.Val
+				}
 			}
 		}
 

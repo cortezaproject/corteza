@@ -4,6 +4,7 @@
     <slot name="trigger" :toggle="toggle" :color="modelValue">
       <button
         ref="swatchBtn"
+        type="button"
         class="c-color-swatch"
         :style="swatchStyle"
         @click="toggle"

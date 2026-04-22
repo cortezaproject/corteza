@@ -49,6 +49,7 @@ type (
 		Execution  systemType.AgentExecution  `db:"execution"`
 		Access     systemType.AgentAccess     `db:"access"`
 		Invocation systemType.AgentInvocation `db:"invocation"`
+		Chatbot    systemType.AgentChatbot    `db:"chatbot"`
 		CreatedAt  time.Time                  `db:"created_at"`
 		UpdatedAt  *time.Time                 `db:"updated_at"`
 		DeletedAt  *time.Time                 `db:"deleted_at"`
@@ -874,6 +875,7 @@ func (aux *auxAgent) encode(res *systemType.Agent) (_ error) {
 	aux.Execution = res.Execution
 	aux.Access = res.Access
 	aux.Invocation = res.Invocation
+	aux.Chatbot = res.Chatbot
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -897,6 +899,7 @@ func (aux auxAgent) decode() (res *systemType.Agent, _ error) {
 	res.Execution = aux.Execution
 	res.Access = aux.Access
 	res.Invocation = aux.Invocation
+	res.Chatbot = aux.Chatbot
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -920,6 +923,7 @@ func (aux *auxAgent) scan(row scanner) error {
 		&aux.Execution,
 		&aux.Access,
 		&aux.Invocation,
+		&aux.Chatbot,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

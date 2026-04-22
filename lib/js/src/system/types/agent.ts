@@ -96,6 +96,60 @@ interface AgentInvocation {
   system: AgentInvocationSystem
 }
 
+interface AgentChatbotFontSizes {
+  base: string
+  small: string
+  heading: string
+}
+
+interface AgentChatbotColors {
+  primary: string
+  primaryText: string
+  background: string
+  text: string
+  userBubble: string
+  agentBubble: string
+}
+
+interface AgentChatbotLauncher {
+  iconURL: string
+  iconVisible: boolean
+  label: string
+  buttonLabel: string
+  size: string
+  shape: string
+}
+
+interface AgentChatbotStyling {
+  logoURL: string
+  fontFamily: string
+  fontSizes: AgentChatbotFontSizes
+  colors: AgentChatbotColors
+  launcher: AgentChatbotLauncher
+}
+
+interface AgentChatbotScenario {
+  id: string
+  name: string
+  type: string
+  config: unknown
+}
+
+interface AgentChatbotHandoff {
+  enabled: boolean
+  targetRoles: string[]
+}
+
+interface AgentChatbot {
+  enabled: boolean
+  widgetKey: string
+  allowedOrigins: string[]
+  sessionTTL: string
+  handoff: AgentChatbotHandoff
+  styling: AgentChatbotStyling
+  scenarios: AgentChatbotScenario[]
+}
+
 interface PartialAgent extends Partial<
   Omit<Agent, 'createdAt' | 'updatedAt' | 'deletedAt'>
 > {
@@ -160,6 +214,39 @@ export class Agent {
       inputSchema: null,
       outputFormat: '',
     },
+  }
+
+  public chatbot: AgentChatbot = {
+    enabled: false,
+    widgetKey: '',
+    allowedOrigins: [],
+    sessionTTL: '2h',
+    handoff: {
+      enabled: false,
+      targetRoles: [],
+    },
+    styling: {
+      logoURL: '',
+      fontFamily: '',
+      fontSizes: { base: '14px', small: '12px', heading: '16px' },
+      colors: {
+        primary: '#09344E',
+        primaryText: '#ffffff',
+        background: '#ffffff',
+        text: '#111827',
+        userBubble: '#09344E',
+        agentBubble: '#f4f4f5',
+      },
+      launcher: {
+        iconURL: '',
+        iconVisible: true,
+        label: '',
+        buttonLabel: '',
+        size: '56px',
+        shape: 'circle',
+      },
+    },
+    scenarios: [],
   }
 
   public createdAt?: Date = undefined
@@ -232,6 +319,30 @@ export class Agent {
       this.invocation = {
         user: { ...this.invocation.user, ...(o.invocation?.user || {}) },
         system: { ...this.invocation.system, ...(o.invocation?.system || {}) },
+      }
+    }
+
+    if (IsOf(o, 'chatbot')) {
+      const cb = o.chatbot || {}
+      this.chatbot = {
+        ...this.chatbot,
+        ...cb,
+        allowedOrigins: Array.isArray(cb.allowedOrigins) ? cb.allowedOrigins : this.chatbot.allowedOrigins,
+        handoff: {
+          ...this.chatbot.handoff,
+          ...(cb.handoff || {}),
+          targetRoles: Array.isArray(cb.handoff?.targetRoles)
+            ? cb.handoff.targetRoles
+            : this.chatbot.handoff.targetRoles,
+        },
+        styling: {
+          ...this.chatbot.styling,
+          ...(cb.styling || {}),
+          fontSizes: { ...this.chatbot.styling.fontSizes, ...((cb.styling || {}).fontSizes || {}) },
+          colors: { ...this.chatbot.styling.colors, ...((cb.styling || {}).colors || {}) },
+          launcher: { ...this.chatbot.styling.launcher, ...((cb.styling || {}).launcher || {}) },
+        },
+        scenarios: Array.isArray(cb.scenarios) ? cb.scenarios : this.chatbot.scenarios,
       }
     }
   }

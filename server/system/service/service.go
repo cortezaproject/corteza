@@ -72,6 +72,10 @@ type (
 )
 
 var (
+	// DefaultObsBus is the agentic observability bus, exposed so that
+	// surface-level integrations (chatbot widget SSE) can attach dispatchers.
+	DefaultObsBus *observability.Bus
+
 	DefaultObjectStore objstore.Store
 
 	// DefaultStore is an interface to storage backend(s)
@@ -271,6 +275,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAgent.WithLLMValidator(DefaultLlmService)
 
 	DefaultMCPRegistry = agenticMcp.NewRegistry()
+
+	DefaultObsBus = c.ObsBus
 
 	DefaultAgenticRuntime = agenticRuntime.Runtime(
 		DefaultAgent,

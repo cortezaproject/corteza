@@ -8371,7 +8371,7 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, meta, behavior, execution, access, invocation } = (a as KV) || {}
+    const { handle, status, meta, behavior, execution, access, invocation, chatbot } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -8385,6 +8385,7 @@ export default class System {
       execution,
       access,
       invocation,
+      chatbot,
     }
     return this.api()
       .request(cfg)
@@ -8451,7 +8452,7 @@ export default class System {
 
   // Update agent details
   async agentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID, handle, status, meta, behavior, execution, access, invocation, updatedAt } =
+    const { agentID, handle, status, meta, behavior, execution, access, invocation, chatbot, updatedAt } =
       (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
@@ -8471,6 +8472,7 @@ export default class System {
       execution,
       access,
       invocation,
+      chatbot,
       updatedAt,
     }
     return this.api()
@@ -8619,6 +8621,42 @@ export default class System {
   agentExecEndpoint(a: KV): string {
     const { agentID } = a || {}
     return `/agents/${agentID}/exec`
+  }
+
+  // Regenerate chatbot widget key (invalidates live widget sessions)
+  async agentRegenerateWidgetKey(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { agentID } = (a as KV) || {}
+    if (!agentID) {
+      throw Error('field agentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.agentRegenerateWidgetKeyEndpoint({ agentID }),
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  agentRegenerateWidgetKeyCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.agentRegenerateWidgetKey(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  agentRegenerateWidgetKeyEndpoint(a: KV): string {
+    const { agentID } = a || {}
+    return `/agents/${agentID}/chatbot/regenerate-key`
   }
 
   // List LLM providers
