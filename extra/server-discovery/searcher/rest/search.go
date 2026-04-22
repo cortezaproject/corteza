@@ -84,6 +84,8 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		namespaceAggs = r.GetNamespaceAggs()
 		moduleAggs    = r.GetModuleAggs()
 		resourceTypes = r.GetResourceTypes()
+		namespaceIDs  = r.GetNamespaceIDs()
+		moduleIDs     = r.GetModuleIDs()
 		validDumpRaw  = r.GetDumpRaw() != ""
 
 		page          pagination
@@ -102,9 +104,17 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 
 		nsHandleMap = make(map[string]nsMeta)
 		mHandleMap  = make(map[string]mMeta)
+
+		searchMode string
 	)
 
 	esc := searcher.DefaultEsClient
+
+	if r.GetSearchMode() != "" {
+		searchMode = r.GetSearchMode()
+	} else {
+		searchMode = s.searchMode
+	}
 
 	results, page, err = esSearch(ctx, log, esc, searchParams{
 		title:         "results",
@@ -114,10 +124,12 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		size:          size,
 		moduleAggs:    moduleAggs,
 		namespaceAggs: namespaceAggs,
+		namespaceIDs:  namespaceIDs,
+		moduleIDs:     moduleIDs,
 		dumpRaw:       validDumpRaw,
 		allowedRoles:  allowedRoles,
 		embedder:      s.embedder,
-		searchMode:    s.searchMode,
+		searchMode:    searchMode,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute search: %w", err)

@@ -14,6 +14,9 @@ type (
 		Rt            []string
 		NamespaceAggs []string
 		ModuleAggs    []string
+		NamespaceIDs  []string
+		ModuleIDs     []string
+		SearchMode    string
 		DumpRaw       string
 	}
 )
@@ -32,6 +35,9 @@ func (r SearchResources) Auditable() map[string]interface{} {
 		"namespaceAggs": r.NamespaceAggs,
 		"resourceTypes": r.Rt,
 		"moduleAggs":    r.ModuleAggs,
+		"namespaceIDs":  r.NamespaceIDs,
+		"moduleIDs":     r.ModuleIDs,
+		"searchMode":    r.SearchMode,
 		"dump":          r.DumpRaw,
 	}
 }
@@ -58,6 +64,18 @@ func (r SearchResources) GetNamespaceAggs() []string {
 
 func (r SearchResources) GetModuleAggs() []string {
 	return r.ModuleAggs
+}
+
+func (r SearchResources) GetNamespaceIDs() []string {
+	return r.NamespaceIDs
+}
+
+func (r SearchResources) GetModuleIDs() []string {
+	return r.ModuleIDs
+}
+
+func (r SearchResources) GetSearchMode() string {
+	return r.SearchMode
 }
 
 func (r SearchResources) GetDumpRaw() string {
@@ -122,6 +140,37 @@ func (r *SearchResources) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok = tmp["moduleAggs"]; ok {
 			r.ModuleAggs, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := tmp["namespaceID[]"]; ok {
+			r.NamespaceIDs, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok = tmp["namespaceID"]; ok {
+			r.NamespaceIDs, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := tmp["moduleID[]"]; ok {
+			r.ModuleIDs, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok = tmp["moduleID"]; ok {
+			r.ModuleIDs, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := tmp["searchMode"]; ok && len(val) > 0 {
+			r.SearchMode, err = val[0], nil
 			if err != nil {
 				return err
 			}

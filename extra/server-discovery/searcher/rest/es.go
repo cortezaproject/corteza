@@ -216,6 +216,8 @@ type (
 		query         string
 		moduleAggs    []string
 		namespaceAggs []string
+		namespaceIDs  []string
+		moduleIDs     []string
 		dumpRaw       bool
 		from          int
 		size          int
@@ -290,6 +292,36 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 			Filter  []interface{} `json:"filter,omitempty"`
 			MustNot []interface{} `json:"must_not,omitempty"`
 		}{}
+	}
+
+	// filter by namespace IDs if provided
+	if len(p.namespaceIDs) > 0 {
+		query.Query.Bool.Filter = append(query.Query.Bool.Filter, map[string]interface{}{
+			"nested": map[string]interface{}{
+				"path":       "namespace",
+				"score_mode": "none",
+				"query": map[string]interface{}{
+					"terms": map[string]interface{}{
+						"namespace.namespaceID": p.namespaceIDs,
+					},
+				},
+			},
+		})
+	}
+
+	// filter by module IDs if provided
+	if len(p.moduleIDs) > 0 {
+		query.Query.Bool.Filter = append(query.Query.Bool.Filter, map[string]interface{}{
+			"nested": map[string]interface{}{
+				"path":       "module",
+				"score_mode": "none",
+				"query": map[string]interface{}{
+					"terms": map[string]interface{}{
+						"module.moduleID": p.moduleIDs,
+					},
+				},
+			},
+		})
 	}
 
 	// Decide what indexes we can use
