@@ -174,7 +174,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: true
-      matrix: { app: [admin, agentic, compose, one, taq, home, workflow] }
+      matrix: { app: [admin, agentic, compose, one, taq, home, workflow, chatbot] }
     needs: ['client-web-test']
     steps:
       - uses: actions/checkout@v6
@@ -223,7 +223,7 @@ jobs:
         run: |
           mkdir -p .docker-build/webapp-merged
           ROOT_APP="${WEB_ROOT_APP:-home}"
-          for app in admin agentic compose one taq home workflow; do
+          for app in admin agentic compose one taq home workflow chatbot; do
             if [ -d ".docker-build/webapp/webapp-${app}" ]; then
               if [ "$app" = "$ROOT_APP" ]; then
                 cp -r .docker-build/webapp/webapp-${app}/* .docker-build/webapp-merged/

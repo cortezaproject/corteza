@@ -3,7 +3,7 @@ package {{ .package }}
 {{ template "gocode/header-gentext.tpl" }}
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/cast2"
+	"github.com/crusttech/human/server/pkg/cast2"
 )
 
 {{ range .resources }}

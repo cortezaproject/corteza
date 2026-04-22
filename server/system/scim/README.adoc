@@ -1,4 +1,4 @@
-= SCIM Support for Corteza
+= SCIM Support
 
 Here is a bare minimum support for SCIM.
 

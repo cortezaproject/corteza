@@ -41,14 +41,11 @@
             icon="pi pi-plus"
             size="small"
           />
-          <Button
+          <Import
             v-if="canCreate"
             data-test-id="button-import-workflow"
-            :label="$t('general.import.label')"
-            icon="pi pi-upload"
-            severity="secondary"
-            size="small"
-            @click="showImportDialog = true"
+            :disabled="importProcessing"
+            @import="importJSON"
           />
           <Export :workflows="workflowIDs" size="small" severity="secondary" />
 
@@ -123,15 +120,6 @@
         />
       </template>
     </CResourceList>
-
-    <Dialog
-      v-model:visible="showImportDialog"
-      :header="$t('general.import.label')"
-      :style="{ width: '450px' }"
-      modal
-    >
-      <Import :key="showImportDialog" :disabled="importProcessing" @import="importJSON" />
-    </Dialog>
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-72">
@@ -231,7 +219,6 @@ const labelsStore = useLabelsStore()
 const workflowStore = useWorkflowStore()
 
 // Dialog / popover visibility
-const showImportDialog = ref(false)
 const filterMenu = ref()
 const importProcessing = ref(false)
 
@@ -488,7 +475,6 @@ async function importJSON(workflows = []) {
     })
   }
 
-  showImportDialog.value = false
   importProcessing.value = false
   filterList()
 }

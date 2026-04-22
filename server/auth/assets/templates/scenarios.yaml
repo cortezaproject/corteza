@@ -18,20 +18,20 @@ login:
       PasswordResetEnabled: true
       ExternalEnabled: true
     providers:
-      - { Label: Google,   Handle: google,   Icon: google }
+      - { Label: Google, Handle: google, Icon: google }
       - { Label: Facebook, Handle: facebook, Icon: facebook }
-      - { Label: GitHub,  Handle: github,  Icon: github }
-      - { Label: Corteza,  Handle: corteza,  Icon: shield-lock }
+      - { Label: GitHub, Handle: github, Icon: github }
+      - { Label: Human, Handle: human, Icon: shield-lock }
 
   Only external:
     settings:
       PasswordResetEnabled: true
       ExternalEnabled: true
     providers:
-      - { Label: Google,   Handle: google,   Icon: google }
+      - { Label: Google, Handle: google, Icon: google }
       - { Label: Facebook, Handle: facebook, Icon: facebook }
-      - { Label: GitHub,  Handle: github,  Icon: github }
-      - { Label: Corteza,  Handle: corteza,  Icon: shield-lock }
+      - { Label: GitHub, Handle: github, Icon: github }
+      - { Label: Human, Handle: human, Icon: shield-lock }
 
   Without signup and pass reset:
     settings:
@@ -50,7 +50,7 @@ login:
       LocalEnabled: true
     form:
       email: some.email@example.tld
-      error: "There was an error..."
+      error: 'There was an error...'
 
 security:
   Default:
@@ -84,7 +84,7 @@ mfa:
   With error:
     emailOtpPending: true
     form:
-      emailOtpError: "There was an error..."
+      emailOtpError: 'There was an error...'
   With alerts (toast):
     alerts:
       - Text: booya
@@ -94,7 +94,6 @@ mfa:
         Type: danger
       - Text: Primary toast
         Type: primary
-
 
 mfa-totp:
   Default:
@@ -107,20 +106,20 @@ mfa-totp-disable:
   Default: {}
   With error:
     form:
-      error: "There was an error..."
+      error: 'There was an error...'
 
 logout:
   Default:
     link: '#'
   With error:
     form:
-      error: "There was an error..."
+      error: 'There was an error...'
 
 signup:
   Default: {}
   With error:
     form:
-      error: "There was an error..."
+      error: 'There was an error...'
 
 reset-password:
   Default: {}
@@ -129,7 +128,7 @@ request-password-reset:
   Default: {}
   With error:
     form:
-      error: "There was an error..."
+      error: 'There was an error...'
 
 password-reset-requested:
   Default: {}
@@ -183,19 +182,19 @@ change-password:
   Default: {}
   With error:
     form:
-      error: "There was an error..."
+      error: 'There was an error...'
 
 create-password:
   Default: {}
   With error:
     form:
-      error: "There was an error..."
+      error: 'There was an error...'
 
 authorized-clients:
   Empty: {}
   Full:
     authorizedClients:
-      - Name: Corteza Web Applications
+      - Name: Web Applications
       - Name: Matrix Chat server
       - Name: Company's Wordpress
 

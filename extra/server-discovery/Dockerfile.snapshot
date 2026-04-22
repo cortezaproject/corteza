@@ -5,7 +5,7 @@ ENV BUILD_OS=linux
 ENV BUILD_ARCH=amd64
 ENV BUILD_VERSION=latest
 
-WORKDIR /corteza
+WORKDIR /human
 
 COPY . ./
 
@@ -24,19 +24,19 @@ ENV STORAGE_PATH "/data"
 #ENV CORREDOR_ADDR "corredor:80"
 #ENV HTTP_ADDR "0.0.0.0:80"
 #ENV HTTP_WEBAPP_ENABLED "false"
-ENV PATH "/corteza/bin:${PATH}"
+ENV PATH "/human/bin:${PATH}"
 
-WORKDIR /corteza
+WORKDIR /human
 
 VOLUME /data
 
-COPY --from=build-stage /corteza/build/pkg/corteza-server ./
+COPY --from=build-stage /human/build/pkg/human-server ./
 
 HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
     CMD curl --silent --fail --fail-early http://127.0.0.1:80/healthcheck || exit 1
 
 EXPOSE 80
 
-ENTRYPOINT ["./bin/corteza-server"]
+ENTRYPOINT ["./bin/human-server"]
 
 #CMD ["serve-api"]

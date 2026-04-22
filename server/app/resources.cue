@@ -11,7 +11,7 @@ _allFeaturesDisabled: {
 	checkFn: false
 }
 
-resources: { [key=_]: {"handle": key, "component": "system", "platform": "human" } & schema.#PkgResource } & {
+resources: { [key=_]: {"handle": key, "component": "system", "platform": "corteza" } & schema.#PkgResource } & {
 	"rbac-rule": {
 		package: {
 			ident: "rbac"

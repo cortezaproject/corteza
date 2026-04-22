@@ -24,7 +24,7 @@ import (
 )
 
 type (
-	// YamlDecoder is responsible for decoding YAML documents into Human resources
+	// YamlDecoder is responsible for decoding YAML documents into resources
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder struct{}
 
@@ -248,7 +248,7 @@ func (d *auxYamlDoc) unmarshalChartMap(dctx documentContext, n *yaml.Node) (out 
 }
 
 // unmarshalChartNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Human type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Chart
 
@@ -582,7 +582,7 @@ func (d *auxYamlDoc) unmarshalExtendedSourceSeq(dctx documentContext, n *yaml.No
 }
 
 // unmarshalModuleNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Human type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Module
 
@@ -908,7 +908,7 @@ func (d *auxYamlDoc) unmarshalModuleFieldMap(dctx documentContext, n *yaml.Node)
 }
 
 // unmarshalModuleFieldNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Human type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.ModuleField
 
@@ -1264,7 +1264,7 @@ func (d *auxYamlDoc) unmarshalNamespaceMap(dctx documentContext, n *yaml.Node) (
 }
 
 // unmarshalNamespaceNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Human type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Namespace
 
@@ -1649,7 +1649,7 @@ func (d *auxYamlDoc) unmarshalExtendedPagesMap(dctx documentContext, n *yaml.Nod
 }
 
 // unmarshalPageNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Human type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.Page
 
@@ -2043,7 +2043,7 @@ func (d *auxYamlDoc) unmarshalPageLayoutMap(dctx documentContext, n *yaml.Node) 
 }
 
 // unmarshalPageLayoutNode is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Human type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshalPageLayoutNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.PageLayout
 

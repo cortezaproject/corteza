@@ -1,15 +1,15 @@
 prefix: compose
 
 imports:
-  - github.com/cortezaproject/corteza/server/compose/types
+  - github.com/crusttech/human/server/compose/types
 
 params:
   moduleLookup: &moduleLookup
     required: true
     types:
-      - { wf: ID,               }
-      - { wf: Handle,           }
-      - { wf: ComposeModule,    suffix: res }
+      - { wf: ID }
+      - { wf: Handle }
+      - { wf: ComposeModule, suffix: res }
     meta:
       label: Module to set record type
       description: |-
@@ -20,20 +20,20 @@ params:
   namespaceLookup: &namespaceLookup
     required: true
     types:
-      - { wf: ID,               }
-      - { wf: Handle,           }
+      - { wf: ID }
+      - { wf: Handle }
       - { wf: ComposeNamespace, suffix: res }
 
   recordLookup: &recordLookup
     required: true
     types:
-      - { wf: ID,               }
-      - { wf: ComposeRecord,    suffix: res }
+      - { wf: ID }
+      - { wf: ComposeRecord, suffix: res }
 
   record: &record
     required: true
     types:
-      - { wf: ComposeRecord,    }
+      - { wf: ComposeRecord }
 
   rvRecord: &rvRecord
     wf: ComposeRecord
@@ -93,8 +93,8 @@ params:
     module: *moduleLookup
 
 labels: &labels
-  record: "step,workflow"
-  compose: "step,workflow"
+  record: 'step,workflow'
+  compose: 'step,workflow'
 
 functions:
   lookup:
@@ -105,8 +105,8 @@ functions:
       <<: *labels
     params:
       namespace: *namespaceLookup
-      module:    *moduleLookup
-      record:    *recordLookup
+      module: *moduleLookup
+      record: *recordLookup
     results:
       record: *rvRecord
 
@@ -120,9 +120,9 @@ functions:
       records:
         <<: *rvRecord
         isArray: true
-      total:          *rvTotal
-      nextPage:       *rvPageCursor
-      prevPage:       *rvPageCursor
+      total: *rvTotal
+      nextPage: *rvPageCursor
+      prevPage: *rvPageCursor
       pageNavigation: *rvPageNavigation
 
   first:
@@ -152,8 +152,8 @@ functions:
     params: *filterParams
     results:
       record: *rvRecord
-      index:  *rvIndex
-      total:  *rvTotal
+      index: *rvIndex
+      total: *rvTotal
 
   new:
     meta:
@@ -163,7 +163,7 @@ functions:
       <<: *labels
     params:
       namespace: *namespaceLookup
-      module:    *moduleLookup
+      module: *moduleLookup
     results:
       record: *rvRecord
 
@@ -185,7 +185,7 @@ functions:
       short: Compose record create
     labels:
       <<: *labels
-      create: "step"
+      create: 'step'
     params:
       record:
         <<: *record
@@ -198,7 +198,7 @@ functions:
       short: Compose record update
     labels:
       <<: *labels
-      update: "step"
+      update: 'step'
     params:
       record:
         <<: *record
@@ -211,7 +211,7 @@ functions:
       short: Compose record delete
     labels:
       <<: *labels
-      delete: "step"
+      delete: 'step'
     params:
       module:
         <<: *moduleLookup
@@ -221,13 +221,11 @@ functions:
         required: false
       record: *recordLookup
 
-#  undelete:
-#    meta:
-#      short: Recovers deleted record by ID
-#    params:
-#      record: *recordLookup
-
-
+  #  undelete:
+  #    meta:
+  #      short: Recovers deleted record by ID
+  #    params:
+  #      record: *recordLookup
 
   report:
     meta:
@@ -237,28 +235,28 @@ functions:
       <<: *labels
     params:
       namespace: *namespaceLookup
-      module:    *moduleLookup
+      module: *moduleLookup
       metrics:
         required: true
-        types: [ { wf: String } ]
+        types: [{ wf: String }]
         meta:
           label: Metrics for records report
           description: |-
             List of comma delimited expressions with aggregation functions (count, sum, min, avg)
       dimensons:
         required: true
-        types: [ { wf: String } ]
+        types: [{ wf: String }]
         meta:
           label: Dimensons for records report
           description: |-
-             List of comma delimited dimension (i.e.: group by) expressions or fields
+            List of comma delimited dimension (i.e.: group by) expressions or fields
       filter:
         required: true
-        types: [ { wf: String } ]
+        types: [{ wf: String }]
         meta:
           label: Filter for records report
           description: |-
-            Filter in CortezaQL format
+            Filter in QL format
     results:
       report:
         wf: Any

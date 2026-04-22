@@ -11,9 +11,9 @@ package {{ .Package }}
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/locale"
 {{- range .Import }}
     {{ normalizeImport . }}
 {{- end }}

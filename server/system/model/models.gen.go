@@ -81,14 +81,6 @@ var Agent = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Chatbot",
-			Type: &dal.TypeJSON{
-				DefaultValue: "{}",
-			},
-			Store: &dal.CodecAlias{Ident: "chatbot"},
-		},
-
-		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
@@ -1170,6 +1162,178 @@ var AuthSession = &dal.Model{
 			Fields: []*dal.IndexField{
 				{
 					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
+var Chatbot = &dal.Model{
+	Ident:        "chatbots",
+	ResourceType: types.ChatbotResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "Name", Sortable: true,
+			Type:  &dal.TypeText{Length: 512},
+			Store: &dal.CodecAlias{Ident: "name"},
+		},
+
+		&dal.Attribute{
+			Ident: "Enabled",
+			Type:  &dal.TypeBoolean{},
+			Store: &dal.CodecAlias{Ident: "enabled"},
+		},
+
+		&dal.Attribute{
+			Ident: "WidgetKey",
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "widget_key"},
+		},
+
+		&dal.Attribute{
+			Ident: "AllowedOrigins",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "allowed_origins"},
+		},
+
+		&dal.Attribute{
+			Ident: "SessionTTL",
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "session_ttl"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handoff",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "handoff"},
+		},
+
+		&dal.Attribute{
+			Ident: "Styling",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "styling"},
+		},
+
+		&dal.Attribute{
+			Ident: "Scenarios",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "scenarios"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "chatbots_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Handle",
+					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "chatbots_uniqueWidgetKey",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "widget_key != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "WidgetKey",
 				},
 			},
 		},
@@ -3686,6 +3850,7 @@ func init() {
 		AuthConfirmedClient,
 		AuthOa2token,
 		AuthSession,
+		Chatbot,
 		ConfiguredConnection,
 		Connection,
 		Credential,

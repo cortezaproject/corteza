@@ -29,6 +29,16 @@ applications:
       logo: applications/agentic.png
       url: agentic/
 
+  - name: Chatbot
+    (envoy): { skipIf: '!missing' }
+    enabled: true
+    weight: 4
+    unify:
+      listed: true
+      icon: applications/agentic.png
+      logo: applications/agentic.png
+      url: chatbot/
+
   - name: Automation (TAQ)
     (envoy): { skipIf: '!missing' }
     enabled: true

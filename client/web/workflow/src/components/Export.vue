@@ -2,6 +2,7 @@
   <Button
     data-test-id="button-export-workflow"
     :label="$t('general.export')"
+    icon="pi pi-download"
     :severity="severity"
     :size="size"
     @click="jsonExport(workflows)"

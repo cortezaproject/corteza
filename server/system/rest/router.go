@@ -61,6 +61,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewAiConversation(AiConversation{}.New()).MountRoutes(r)
 			handlers.NewLlmProvider(LlmProvider{}.New()).MountRoutes(r)
 			handlers.NewKnowledgeBase(KnowledgeBase{}.New()).MountRoutes(r)
+			handlers.NewChatbot(Chatbot{}.New()).MountRoutes(r)
 		})
 	}
 }

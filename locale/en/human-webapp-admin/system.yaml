@@ -410,7 +410,7 @@ authclients:
       cUrl: Example cURL
       accessToken: Access token
       generateAccessToken: Generate access token
-      discovery: Allow client access to Corteza Discovery API on behalf of user
+      discovery: Allow client access to Discovery API on behalf of user
       openid: Allow client to use OIDC and verify the user's identity
     new: New Auth Client
     permissions: Permissions
@@ -768,7 +768,7 @@ email:
 
       tlsInsecure:
         label: Allow use of invalid certificates
-        description: Suppress error if Corteza can not verify the TLS certificate used by SMTP server.
+        description: Suppress error if the system can not verify the TLS certificate used by SMTP server.
 
       tlsServerName:
         label: TLS Server name
@@ -842,7 +842,7 @@ queues:
       consumerOptions:
         eventbus: Event Bus
         store: Store
-        corteza: Human
+        human: Human
         redis: Redis
       createdAt: Created at
       createdBy: Created by
@@ -1154,9 +1154,9 @@ settings:
             binding: The type of HTTP binding to use on AuthNRequest, defaults to HTTP Redirect (GET)
           idp:
             url: Location of IdP metadata
-            ident-handle: Name of the IdP field used for filling Corteza user handle or nickname
-            ident-identifier: Name of the IdP field used for filling and matching Corteza user email
-            ident-name: Name of the IdP field used for filling Corteza user full name
+            ident-handle: Name of the IdP field used for filling user handle or nickname
+            ident-identifier: Name of the IdP field used for filling and matching user email
+            ident-name: Name of the IdP field used for filling user full name
 
       security:
         title: Security
@@ -1173,12 +1173,12 @@ settings:
     federation:
       title: Federation
       enabled: Enable federation
-      description: Enable federation nodes and sharing resources with other Corteza instances
+      description: Enable federation nodes and sharing resources with other instances
 
     discovery:
       title: Discovery
       enabled: Enable discovery
-      description: Enable Corteza Discovery API so indexed resources can be searched
+      description: Enable Discovery API so indexed resources can be searched
       resources:
         label: Indexable resources
         system-users: System users

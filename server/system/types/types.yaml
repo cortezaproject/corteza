@@ -47,6 +47,9 @@ types:
   DataPrivacyRequestComment: {}
   LlmProvider: {}
   PrivacyDalConnection:
-  Agent: {}
+  Agent:
+    labelResourceType: agent
   AiConversation: {}
   KnowledgeBase: {}
+  Chatbot:
+    labelResourceType: chatbot

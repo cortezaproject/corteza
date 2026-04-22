@@ -19,7 +19,7 @@ import (
 )
 
 type (
-	// YamlEncoder is responsible for encoding Human resources into
+	// YamlEncoder is responsible for encoding resources into
 	// a YAML supported format
 	YamlEncoder struct{}
 )
@@ -28,7 +28,7 @@ const (
 	paramsKeyWriter = "writer"
 )
 
-// Encode encodes the given Human resources into some YAML supported format
+// Encode encodes the given resources into some YAML supported format
 //
 // Encoding should not do any additional processing apart from matching with
 // dependencies and runtime validation

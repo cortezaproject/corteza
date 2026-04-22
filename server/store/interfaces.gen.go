@@ -59,6 +59,7 @@ type (
 		AutomationSessions
 		AutomationTriggers
 		AutomationWorkflows
+		Chatbots
 		ComposeAttachments
 		ComposeCharts
 		ComposeModules
@@ -295,6 +296,20 @@ type (
 		TruncateAutomationWorkflows(ctx context.Context) error
 		LookupAutomationWorkflowByID(ctx context.Context, id uint64) (*automationType.Workflow, error)
 		LookupAutomationWorkflowByHandle(ctx context.Context, handle string) (*automationType.Workflow, error)
+	}
+
+	Chatbots interface {
+		SearchChatbots(ctx context.Context, f systemType.ChatbotFilter) (systemType.ChatbotSet, systemType.ChatbotFilter, error)
+		CreateChatbot(ctx context.Context, rr ...*systemType.Chatbot) error
+		UpdateChatbot(ctx context.Context, rr ...*systemType.Chatbot) error
+		UpsertChatbot(ctx context.Context, rr ...*systemType.Chatbot) error
+		DeleteChatbot(ctx context.Context, rr ...*systemType.Chatbot) error
+
+		DeleteChatbotByID(ctx context.Context, id uint64) error
+		TruncateChatbots(ctx context.Context) error
+		LookupChatbotByID(ctx context.Context, id uint64) (*systemType.Chatbot, error)
+		LookupChatbotByHandle(ctx context.Context, handle string) (*systemType.Chatbot, error)
+		LookupChatbotByWidgetKey(ctx context.Context, widgetKey string) (*systemType.Chatbot, error)
 	}
 
 	ComposeAttachments interface {
@@ -1774,6 +1789,82 @@ func LookupAutomationWorkflowByID(ctx context.Context, s AutomationWorkflows, id
 // This function is auto-generated
 func LookupAutomationWorkflowByHandle(ctx context.Context, s AutomationWorkflows, handle string) (*automationType.Workflow, error) {
 	return s.LookupAutomationWorkflowByHandle(ctx, handle)
+}
+
+// SearchChatbots returns all matching Chatbots from store
+//
+// This function is auto-generated
+func SearchChatbots(ctx context.Context, s Chatbots, f systemType.ChatbotFilter) (systemType.ChatbotSet, systemType.ChatbotFilter, error) {
+	return s.SearchChatbots(ctx, f)
+}
+
+// CreateChatbot creates one or more Chatbots in store
+//
+// This function is auto-generated
+func CreateChatbot(ctx context.Context, s Chatbots, rr ...*systemType.Chatbot) error {
+	return s.CreateChatbot(ctx, rr...)
+}
+
+// UpdateChatbot updates one or more (existing) Chatbots in store
+//
+// This function is auto-generated
+func UpdateChatbot(ctx context.Context, s Chatbots, rr ...*systemType.Chatbot) error {
+	return s.UpdateChatbot(ctx, rr...)
+}
+
+// UpsertChatbot creates new or updates existing one or more Chatbots in store
+//
+// This function is auto-generated
+func UpsertChatbot(ctx context.Context, s Chatbots, rr ...*systemType.Chatbot) error {
+	return s.UpsertChatbot(ctx, rr...)
+}
+
+// DeleteChatbot deletes one or more Chatbots from store
+//
+// This function is auto-generated
+func DeleteChatbot(ctx context.Context, s Chatbots, rr ...*systemType.Chatbot) error {
+	return s.DeleteChatbot(ctx, rr...)
+}
+
+// DeleteChatbotByID deletes one or more Chatbots from store
+//
+// This function is auto-generated
+func DeleteChatbotByID(ctx context.Context, s Chatbots, id uint64) error {
+	return s.DeleteChatbotByID(ctx, id)
+}
+
+// TruncateChatbots Deletes all Chatbots from store
+//
+// This function is auto-generated
+func TruncateChatbots(ctx context.Context, s Chatbots) error {
+	return s.TruncateChatbots(ctx)
+}
+
+// LookupChatbotByID searches for chatbot by ID
+//
+// It also returns deleted chatbots.
+//
+// This function is auto-generated
+func LookupChatbotByID(ctx context.Context, s Chatbots, id uint64) (*systemType.Chatbot, error) {
+	return s.LookupChatbotByID(ctx, id)
+}
+
+// LookupChatbotByHandle searches for chatbot by handle
+//
+// It returns only valid chatbots (not deleted)
+//
+// This function is auto-generated
+func LookupChatbotByHandle(ctx context.Context, s Chatbots, handle string) (*systemType.Chatbot, error) {
+	return s.LookupChatbotByHandle(ctx, handle)
+}
+
+// LookupChatbotByWidgetKey searches for chatbot by widget key
+//
+// It returns only valid chatbots (not deleted)
+//
+// This function is auto-generated
+func LookupChatbotByWidgetKey(ctx context.Context, s Chatbots, widgetKey string) (*systemType.Chatbot, error) {
+	return s.LookupChatbotByWidgetKey(ctx, widgetKey)
 }
 
 // SearchComposeAttachments returns all matching ComposeAttachments from store

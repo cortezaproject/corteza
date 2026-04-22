@@ -98,11 +98,6 @@ type (
 		// Agent status
 		Status string
 
-		// Labels POST parameter
-		//
-		// Labels
-		Labels map[string]labelTypes.LabelValue
-
 		// Meta POST parameter
 		//
 		// Agent meta
@@ -128,10 +123,10 @@ type (
 		// Agent invocation
 		Invocation types.AgentInvocation
 
-		// Chatbot POST parameter
+		// Labels POST parameter
 		//
-		// Agent chatbot
-		Chatbot types.AgentChatbot
+		// Labels
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	AgentRead struct {
@@ -182,27 +177,15 @@ type (
 		// Agent invocation
 		Invocation types.AgentInvocation
 
-		// Chatbot POST parameter
+		// Labels POST parameter
 		//
-		// Agent chatbot
-		Chatbot types.AgentChatbot
+		// Labels
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
 		// Last update (or creation) date
 		UpdatedAt *time.Time
-
-		// Labels POST parameter
-		//
-		// Labels
-		Labels map[string]labelTypes.LabelValue
-	}
-
-	AgentRegenerateWidgetKey struct {
-		// AgentID PATH parameter
-		//
-		// Agent ID
-		AgentID uint64 `json:",string"`
 	}
 
 	AgentDelete struct {
@@ -294,6 +277,11 @@ func (r AgentList) GetDeleted() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
+func (r AgentList) GetLabels() map[string]labelTypes.LabelValue {
+	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
 func (r AgentList) GetLimit() uint {
 	return r.Limit
 }
@@ -344,6 +332,17 @@ func (r *AgentList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
 			if err != nil {
@@ -368,17 +367,6 @@ func (r *AgentList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["labels[]"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := tmp["labels"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	return err
@@ -399,7 +387,7 @@ func (r AgentCreate) Auditable() map[string]interface{} {
 		"execution":  r.Execution,
 		"access":     r.Access,
 		"invocation": r.Invocation,
-		"chatbot":    r.Chatbot,
+		"labels":     r.Labels,
 	}
 }
 
@@ -439,8 +427,8 @@ func (r AgentCreate) GetInvocation() types.AgentInvocation {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r AgentCreate) GetChatbot() types.AgentChatbot {
-	return r.Chatbot
+func (r AgentCreate) GetLabels() map[string]labelTypes.LabelValue {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -538,13 +526,13 @@ func (r *AgentCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["chatbot[]"]; ok {
-				r.Chatbot, err = types.ParseAgentChatbot(val)
+			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
+				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
 					return err
 				}
-			} else if val, ok := req.MultipartForm.Value["chatbot"]; ok {
-				r.Chatbot, err = types.ParseAgentChatbot(val)
+			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
+				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
 					return err
 				}
@@ -633,13 +621,13 @@ func (r *AgentCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["chatbot[]"]; ok {
-			r.Chatbot, err = types.ParseAgentChatbot(val)
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
-		} else if val, ok := req.Form["chatbot"]; ok {
-			r.Chatbot, err = types.ParseAgentChatbot(val)
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -700,7 +688,7 @@ func (r AgentUpdate) Auditable() map[string]interface{} {
 		"execution":  r.Execution,
 		"access":     r.Access,
 		"invocation": r.Invocation,
-		"chatbot":    r.Chatbot,
+		"labels":     r.Labels,
 		"updatedAt":  r.UpdatedAt,
 	}
 }
@@ -746,8 +734,8 @@ func (r AgentUpdate) GetInvocation() types.AgentInvocation {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r AgentUpdate) GetChatbot() types.AgentChatbot {
-	return r.Chatbot
+func (r AgentUpdate) GetLabels() map[string]labelTypes.LabelValue {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -850,25 +838,6 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["chatbot[]"]; ok {
-				r.Chatbot, err = types.ParseAgentChatbot(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["chatbot"]; ok {
-				r.Chatbot, err = types.ParseAgentChatbot(val)
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
-				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
 				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
@@ -876,6 +845,13 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 				}
 			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
 				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 				if err != nil {
 					return err
 				}
@@ -964,25 +940,6 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["chatbot[]"]; ok {
-			r.Chatbot, err = types.ParseAgentChatbot(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["chatbot"]; ok {
-			r.Chatbot, err = types.ParseAgentChatbot(val)
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
-			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["labels[]"]; ok {
 			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
@@ -990,6 +947,13 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}
@@ -1168,41 +1132,6 @@ func (r *AgentExec) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "agentID")
-		r.AgentID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return err
-}
-
-// NewAgentRegenerateWidgetKey request
-func NewAgentRegenerateWidgetKey() *AgentRegenerateWidgetKey {
-	return &AgentRegenerateWidgetKey{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AgentRegenerateWidgetKey) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"agentID": r.AgentID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AgentRegenerateWidgetKey) GetAgentID() uint64 {
-	return r.AgentID
-}
-
-// Fill processes request and fills internal variables
-func (r *AgentRegenerateWidgetKey) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

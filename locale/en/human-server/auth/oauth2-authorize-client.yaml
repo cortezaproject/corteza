@@ -2,7 +2,7 @@ template:
   title: Authorize
   form:
     greeting-paragraph: Hello
-    question-for-client: would like to perform actions on this Corteza server on your behalf.
+    question-for-client: would like to perform actions on this server on your behalf.
     buttons:
       allow: Allow
       deny: Deny

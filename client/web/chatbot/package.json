@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "pnpm --filter human-webapp-chatbot-widget build && vite build && cp ../chatbot-widget/dist/widget.js dist/widget.js",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
   },
-  "exports": {
-    "./engine": "./src/engine.ts",
-    "./ui": "./src/ui.ts",
-    "./types": "./src/types.ts"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.0",
-    "vite": "^5.2.0"
+  "dependencies": {
+    "@planetcrust/human-js": "workspace:*",
+    "@planetcrust/human-vue": "workspace:*",
+    "human-webapp-chatbot-widget": "workspace:*"
   }
 }

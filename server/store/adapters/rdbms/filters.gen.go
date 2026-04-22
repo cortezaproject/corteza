@@ -75,6 +75,9 @@ type (
 		// optional automationWorkflow filter function called after the generated function
 		AutomationWorkflow func(*Store, automationType.WorkflowFilter) ([]goqu.Expression, automationType.WorkflowFilter, error)
 
+		// optional chatbot filter function called after the generated function
+		Chatbot func(*Store, systemType.ChatbotFilter) ([]goqu.Expression, systemType.ChatbotFilter, error)
+
 		// optional composeAttachment filter function called after the generated function
 		ComposeAttachment func(*Store, composeType.AttachmentFilter) ([]goqu.Expression, composeType.AttachmentFilter, error)
 
@@ -236,16 +239,16 @@ func AgentFilter(d drivers.Dialect, f systemType.AgentFilter) (ee []goqu.Express
 		ee = append(ee, goqu.C("id").In(f.AgentID))
 	}
 
-	if len(f.LabeledIDs) > 0 {
-		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
-	}
-
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
 
 	if val := strings.TrimSpace(f.Status); len(val) > 0 {
 		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
 	if f.Query != "" {
@@ -613,6 +616,45 @@ func AutomationWorkflowFilter(d drivers.Dialect, f automationType.WorkflowFilter
 	if f.Query != "" {
 		ee = append(ee, goqu.Or(
 			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ChatbotFilter returns logical expressions
+//
+// This function is called from Store.QueryChatbots() and can be extended
+// by setting Store.Filters.Chatbot. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ChatbotFilter(d drivers.Dialect, f systemType.ChatbotFilter) (ee []goqu.Expression, _ systemType.ChatbotFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ChatbotID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ChatbotID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if val := strings.TrimSpace(f.WidgetKey); len(val) > 0 {
+		ee = append(ee, goqu.C("widget_key").Eq(f.WidgetKey))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+			goqu.C("name").ILike("%"+f.Query+"%"),
 		))
 	}
 

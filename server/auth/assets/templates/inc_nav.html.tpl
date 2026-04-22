@@ -2,7 +2,7 @@
     <div class="text-center w-100 my-2 my-sm-4">
         <a href="{{ links.Profile }}">
             <img
-							data-test-id="img-corteza-logo"
+							data-test-id="logo"
 							class="logo"
 							alt="Company logo"
 							src="{{ links.Assets }}/logo.svg"

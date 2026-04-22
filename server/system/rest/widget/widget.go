@@ -24,12 +24,12 @@ import (
 // All endpoints live under /api/widget/v1 and are unauthenticated except
 // by the per-session JWT issued from POST /session.
 type Controller struct {
-	lookup       *AgentByKeyLookup
-	obsBus       *observability.Bus
-	runtime      AgenticRunner
-	convStore    AiConversationCreator
-	store        store.Storer
-	serverSecret string
+	chatbotLookup *ChatbotByKeyLookup
+	obsBus        *observability.Bus
+	runtime       AgenticRunner
+	convStore     AiConversationCreator
+	store         store.Storer
+	serverSecret  string
 }
 
 // AgenticRunner is the minimal subset of the runtime the widget needs.
@@ -50,13 +50,22 @@ func New(
 	serverSecret string,
 ) *Controller {
 	return &Controller{
-		lookup:       NewAgentByKeyLookup(s),
-		obsBus:       obsBus,
-		runtime:      rt,
-		convStore:    conv,
-		store:        s,
-		serverSecret: serverSecret,
+		chatbotLookup: NewChatbotByKeyLookup(s),
+		obsBus:        obsBus,
+		runtime:       rt,
+		convStore:     conv,
+		store:         s,
+		serverSecret:  serverSecret,
 	}
+}
+
+// resolveAgent loads an Agent by ID under service identity.
+func (c *Controller) resolveAgent(ctx context.Context, agentID uint64) (*types.Agent, error) {
+	if agentID == 0 {
+		return nil, fmt.Errorf("widget: chatbot has no agent")
+	}
+	svcCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+	return store.LookupAgentByID(svcCtx, c.store, agentID)
 }
 
 // impersonateServiceAccount builds a context authenticated as the given user
@@ -104,49 +113,42 @@ func (c *Controller) MountRoutes(r chi.Router) {
 
 // ---- handlers ---------------------------------------------------------------
 
-// readConfig returns a redacted view of AgentChatbot safe to ship to a public
-// client. Secrets/ops fields are stripped.
+// readConfig returns a redacted view of the chatbot/agent config safe to
+// ship to a public client. Secrets/ops fields are stripped.
 func (c *Controller) readConfig(w http.ResponseWriter, r *http.Request) {
-	a := agentFromCtx(r.Context())
-	if a == nil {
-		http.Error(w, "widget: no agent", http.StatusForbidden)
+	cb := chatbotFromCtx(r.Context())
+	if cb == nil {
+		http.Error(w, "widget: no chatbot", http.StatusForbidden)
 		return
 	}
-	out := publicConfig(a)
-	writeJSON(w, http.StatusOK, out)
+	writeJSON(w, http.StatusOK, publicConfigChatbot(cb))
 }
 
-// createSession opens a new AiConversation under the agent's service account
-// and returns a signed JWT plus initial scenario ID.
+// createSession opens a new AiConversation and returns a signed JWT.
+// No agent is bound at session open — each sendMessage names its scenario.
 func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
-	a := agentFromCtx(r.Context())
-	if a == nil {
-		http.Error(w, "widget: no agent", http.StatusForbidden)
-		return
-	}
-	if !a.Invocation.System.Enabled || a.Invocation.System.ServiceAccount == 0 {
-		http.Error(w, "widget: agent not configured for widget runtime", http.StatusServiceUnavailable)
+	cb := chatbotFromCtx(r.Context())
+	if cb == nil {
+		http.Error(w, "widget: no chatbot", http.StatusForbidden)
 		return
 	}
 
-	saCtx := c.impersonateServiceAccount(r.Context(), a.Invocation.System.ServiceAccount)
-	conv, err := c.convStore.Create(saCtx, &types.AiConversation{AgentID: a.ID})
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+	conv, err := c.convStore.Create(svcCtx, &types.AiConversation{})
 	if err != nil {
 		http.Error(w, "widget: cannot open session", http.StatusInternalServerError)
 		return
 	}
 
-	ttl := parseTTL(a.Chatbot.SessionTTL, 2*time.Hour)
+	ttl := parseTTL(cb.SessionTTL, 2*time.Hour)
 	now := time.Now()
 	claims := sessionClaims{
 		Sid: randomID(),
-		Aid: a.ID,
 		Cid: conv.ID,
-		Sa:  a.Invocation.System.ServiceAccount,
 		Iat: now.Unix(),
 		Exp: now.Add(ttl).Unix(),
 	}
-	tok, err := signSession(claims, deriveSessionSecret(a.Chatbot.WidgetKey, c.serverSecret))
+	tok, err := signSession(claims, deriveSessionSecret(cb.WidgetKey, c.serverSecret))
 	if err != nil {
 		http.Error(w, "widget: cannot sign token", http.StatusInternalServerError)
 		return
@@ -159,27 +161,60 @@ func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// sendMessage hands the user input to DefaultAgenticRuntime under the service
-// account. Responds 202 immediately — any tokens/events flow over SSE.
+// sendMessage runs the scenario's agent against the session's conversation.
+// The scenario is identified by the request body's scenarioID; it must be a
+// conversation-type scenario with a non-zero agentID. Responds 202 immediately.
 func (c *Controller) sendMessage(w http.ResponseWriter, r *http.Request) {
 	claims := claimsFromCtx(r.Context())
-	if claims == nil {
+	cb := chatbotFromCtx(r.Context())
+	if claims == nil || cb == nil {
 		http.Error(w, "widget: no session", http.StatusUnauthorized)
 		return
 	}
 
 	var body struct {
-		Input string `json:"input"`
+		ScenarioID string `json:"scenarioID"`
+		Input      string `json:"input"`
 	}
 	if err := readJSON(r.Body, &body); err != nil {
 		http.Error(w, "widget: bad body", http.StatusBadRequest)
 		return
 	}
 
-	saCtx := c.impersonateServiceAccount(context.Background(), claims.Sa)
+	var scenario *types.ChatbotScenario
+	for i := range cb.Scenarios {
+		if cb.Scenarios[i].ID == body.ScenarioID {
+			scenario = &cb.Scenarios[i]
+			break
+		}
+	}
+	if scenario == nil || scenario.Type != "conversation" || scenario.AgentID == 0 {
+		http.Error(w, "widget: scenario not runnable", http.StatusBadRequest)
+		return
+	}
+
+	agent, err := c.resolveAgent(r.Context(), scenario.AgentID)
+	if err != nil || agent == nil {
+		http.Error(w, "widget: agent unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	if !agent.Invocation.System.Enabled || agent.Invocation.System.ServiceAccount == 0 {
+		http.Error(w, "widget: agent not configured for widget runtime", http.StatusServiceUnavailable)
+		return
+	}
+
+	// First-turn stamp: pin the conversation to this agent if it isn't already,
+	// so downstream listings/automation see a stable per-conversation agent.
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+	if conv, err := store.LookupAiConversationByID(svcCtx, c.store, claims.Cid); err == nil && conv != nil && conv.AgentID == 0 {
+		conv.AgentID = agent.ID
+		_ = store.UpdateAiConversation(svcCtx, c.store, conv)
+	}
+
+	saCtx := c.impersonateServiceAccount(context.Background(), agent.Invocation.System.ServiceAccount)
 	go func() {
 		_, _ = c.runtime.Run(saCtx, &runtime.AgentRequest{
-			AgentID:        claims.Aid,
+			AgentID:        agent.ID,
 			Input:          body.Input,
 			ConversationID: claims.Cid,
 		})
@@ -211,8 +246,8 @@ func (c *Controller) stream(w http.ResponseWriter, r *http.Request) {
 
 func okOptions(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }
 
-func agentFromCtx(ctx context.Context) *types.Agent {
-	if v, ok := ctx.Value(ctxKeyAgent).(*types.Agent); ok {
+func chatbotFromCtx(ctx context.Context) *types.Chatbot {
+	if v, ok := ctx.Value(ctxKeyChatbot).(*types.Chatbot); ok {
 		return v
 	}
 	return nil
@@ -235,14 +270,13 @@ func parseTTL(s string, def time.Duration) time.Duration {
 	return def
 }
 
-// publicConfig redacts operator-only fields (allowedOrigins, handoff roles).
-func publicConfig(a *types.Agent) map[string]any {
-	c := a.Chatbot
+// publicConfigChatbot redacts operator-only fields (allowedOrigins, handoff roles).
+func publicConfigChatbot(cb *types.Chatbot) map[string]any {
 	return map[string]any{
-		"styling":   c.Styling,
-		"scenarios": c.Scenarios,
+		"styling":   cb.Styling,
+		"scenarios": cb.Scenarios,
 		"handoff": map[string]any{
-			"enabled":        c.Handoff.Enabled,
+			"enabled":        cb.Handoff.Enabled,
 			"notImplemented": true,
 		},
 	}

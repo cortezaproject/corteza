@@ -28,4 +28,4 @@ sub-workflow:
 delay:
   duration:
     label: Duration
-    description: Duration expression (e.g. "5m", "1h30m")
+    placeholder: e.g. "5m", "1h30m"

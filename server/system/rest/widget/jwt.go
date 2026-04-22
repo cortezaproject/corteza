@@ -14,10 +14,8 @@ import (
 // HS256 over a secret derived from sha256(widgetKey + serverSecret) so key
 // regeneration invalidates all live sessions for that agent.
 type sessionClaims struct {
-	Sid string `json:"sid"`           // session ID (random)
-	Aid uint64 `json:"aid,string"`    // agent ID
-	Cid uint64 `json:"cid,string"`    // conversation ID
-	Sa  uint64 `json:"sa,string"`     // service account (impersonated identity)
+	Sid string `json:"sid"`        // session ID (random)
+	Cid uint64 `json:"cid,string"` // conversation ID
 	Iat int64  `json:"iat"`
 	Exp int64  `json:"exp"`
 }

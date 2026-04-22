@@ -71,7 +71,7 @@
     </div>
 
     <!-- Source handles (triggers have no inputs). `:connectable="false"` once
-         the trigger is wired — Corteza rule: one outbound per trigger. -->
+         the trigger is wired — Human rule: one outbound per trigger. -->
     <Handle
       type="source"
       :position="Position.Top"

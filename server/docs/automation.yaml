@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Corteza automation API
-  description: Corteza automation REST API definition
+  title: Automation API
+  description: Automation REST API definition
   version: '2022.9'
   contact:
     email: info@cortezaproject.org

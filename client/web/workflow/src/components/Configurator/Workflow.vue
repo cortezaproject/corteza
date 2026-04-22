@@ -11,6 +11,8 @@
         data-test-id="button-export-workflow"
         :workflows="[workflow.workflowID]"
         :file-name="workflow.meta.name || workflow.handle"
+        size="small"
+        severity="secondary"
       />
 
       <CPermissionsButton
@@ -24,111 +26,107 @@
       />
     </div>
 
-    <Tabs value="general">
-      <TabList>
-        <Tab value="general">{{ $t('configurator.general.label') }}</Tab>
-        <Tab value="labels">{{ $t('configurator.labels.label') }}</Tab>
-      </TabList>
+    <div class="flex flex-col gap-4 px-3">
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-primary">
+          {{ $t('configurator.name.label') }}
+        </label>
+        <InputText
+          v-model="localWorkflow.meta.name"
+          data-test-id="input-label"
+          :placeholder="$t('configurator.name.placeholder')"
+          :invalid="nameState === false"
+        />
+      </div>
 
-      <TabPanels>
-        <TabPanel value="general" class="flex flex-col gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-primary">
-              {{ $t('configurator.name.label') }}
-            </label>
-            <InputText
-              v-model="localWorkflow.meta.name"
-              data-test-id="input-label"
-              :placeholder="$t('configurator.name.placeholder')"
-              :invalid="nameState === false"
-            />
-          </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-primary">
+          {{ $t('configurator.handle.label') }}
+        </label>
+        <InputText
+          v-model="localWorkflow.handle"
+          data-test-id="input-handle"
+          :invalid="handleState === false"
+          :placeholder="$t('configurator.handle.placeholder')"
+        />
+        <small
+          v-if="handleState === false"
+          class="text-red-500"
+          data-test-id="input-handle-invalid-state"
+        >
+          {{ $t('configurator.handle.invalid-handle-characters') }}
+        </small>
+      </div>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-primary">
-              {{ $t('configurator.handle.label') }}
-            </label>
-            <InputText
-              v-model="localWorkflow.handle"
-              data-test-id="input-handle"
-              :invalid="handleState === false"
-              :placeholder="$t('configurator.handle.placeholder')"
-            />
-            <small
-              v-if="handleState === false"
-              class="text-red-500"
-              data-test-id="input-handle-invalid-state"
-            >
-              {{ $t('configurator.handle.invalid-handle-characters') }}
-            </small>
-          </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-primary">
+          {{ $t('configurator.description.label') }}
+        </label>
+        <Textarea
+          v-model="localWorkflow.meta.description"
+          data-test-id="input-description"
+          :placeholder="$t('configurator.description.placeholder')"
+          rows="3"
+          autoResize
+        />
+      </div>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-primary">
-              {{ $t('configurator.description.label') }}
-            </label>
-            <Textarea
-              v-model="localWorkflow.meta.description"
-              data-test-id="input-description"
-              :placeholder="$t('configurator.description.placeholder')"
-              rows="3"
-              autoResize
-            />
-          </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-primary">
+          {{ $t('configurator.labels.label') }}
+        </label>
+        <namespace-module-selector
+          :namespace-labels="localWorkflow?.labels?.ref_namespace || []"
+          :module-labels="localWorkflow?.labels?.ref_module || []"
+          @change="handleLabelsChange"
+        />
+      </div>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-primary">
-              {{ $t('configurator.run-as.label') }}
-            </label>
-            <c-input-user
-              v-model="localWorkflow.runAs"
-              data-test-id="select-run-as"
-              :placeholder="$t('configurator.run-as.placeholder')"
-            />
-            <small class="text-muted-color">
-              {{ $t('configurator.run-as.description') }}
-            </small>
-          </div>
+      <Divider class="!my-1" />
 
-          <div class="flex items-center gap-2">
-            <Checkbox
-              v-model="localWorkflow.enabled"
-              :binary="true"
-              inputId="workflow-enabled"
-              data-test-id="checkbox-enable-workflow"
-            />
-            <label for="workflow-enabled">
-              {{ $t('general.enabled') }}
-            </label>
-          </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-primary">
+          {{ $t('configurator.run-as.label') }}
+        </label>
+        <c-input-user
+          v-model="localWorkflow.runAs"
+          data-test-id="select-run-as"
+          :placeholder="$t('configurator.run-as.placeholder')"
+        />
+        <small class="text-muted-color">
+          {{ $t('configurator.run-as.description') }}
+        </small>
+      </div>
 
-          <div class="flex flex-col gap-1">
-            <div class="flex items-center gap-2">
-              <Checkbox
-                v-model="localWorkflow.meta.subWorkflow"
-                :binary="true"
-                inputId="workflow-sub"
-                data-test-id="checkbox-sub-workflow"
-              />
-              <label for="workflow-sub">
-                {{ $t('configurator.sub-workflow.label') }}
-              </label>
-            </div>
-            <small class="text-muted-color ml-7">
-              {{ $t('configurator.sub-workflow.description') }}
-            </small>
-          </div>
-        </TabPanel>
+      <div class="flex items-center gap-2">
+        <Checkbox
+          v-model="localWorkflow.enabled"
+          :binary="true"
+          inputId="workflow-enabled"
+          data-test-id="checkbox-enable-workflow"
+        />
+        <label for="workflow-enabled">
+          {{ $t('general.enabled') }}
+        </label>
+      </div>
 
-        <TabPanel value="labels">
-          <namespace-module-selector
-            :namespace-labels="localWorkflow?.labels?.ref_namespace || []"
-            :module-labels="localWorkflow?.labels?.ref_module || []"
-            @change="handleLabelsChange"
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <Checkbox
+            v-model="localWorkflow.meta.subWorkflow"
+            :binary="true"
+            inputId="workflow-sub"
+            data-test-id="checkbox-sub-workflow"
           />
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
+          <label for="workflow-sub">
+            {{ $t('configurator.sub-workflow.label') }}
+          </label>
+        </div>
+        <small class="text-muted-color ml-7">
+          {{ $t('configurator.sub-workflow.description') }}
+        </small>
+      </div>
+    </div>
 
     <div class="flex items-center w-full p-3 mt-auto border-t surface-border">
       <Button

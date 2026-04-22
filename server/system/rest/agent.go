@@ -39,7 +39,6 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) (err error)
 		UndeleteByID(ctx context.Context, ID uint64) (err error)
 		Search(ctx context.Context, filter types.AgentFilter) (set types.AgentSet, f types.AgentFilter, err error)
-		RegenerateWidgetKey(ctx context.Context, ID uint64) (a *types.Agent, err error)
 	}
 
 	agentAccessController interface {
@@ -95,7 +94,6 @@ func (ctrl *Agent) Create(ctx context.Context, r *request.AgentCreate) (interfac
 			Execution:  r.Execution,
 			Access:     r.Access,
 			Invocation: r.Invocation,
-			Chatbot:    r.Chatbot,
 			Labels:     r.Labels,
 		}
 	)
@@ -121,7 +119,6 @@ func (ctrl *Agent) Update(ctx context.Context, r *request.AgentUpdate) (interfac
 			Execution:  r.Execution,
 			Access:     r.Access,
 			Invocation: r.Invocation,
-			Chatbot:    r.Chatbot,
 			UpdatedAt:  r.UpdatedAt,
 			Labels:     r.Labels,
 		}
@@ -158,11 +155,6 @@ func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{},
 
 func (ctrl *Agent) TclMasterList(_ context.Context, _ *request.AgentTclMasterList) (interface{}, error) {
 	return tcl.Master(), nil
-}
-
-func (ctrl *Agent) RegenerateWidgetKey(ctx context.Context, r *request.AgentRegenerateWidgetKey) (interface{}, error) {
-	a, err := ctrl.svc.RegenerateWidgetKey(ctx, r.AgentID)
-	return ctrl.makePayload(ctx, a, err)
 }
 
 func (ctrl *Agent) makePayload(ctx context.Context, a *types.Agent, err error) (*agentPayload, error) {

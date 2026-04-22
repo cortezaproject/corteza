@@ -2,9 +2,9 @@ package: expr
 imports:
   - io
   - time
-  - github.com/cortezaproject/corteza/server/pkg/http
+  - github.com/crusttech/human/server/pkg/http
   - net/url
-  - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+  - labelTypes github.com/crusttech/human/server/pkg/label/types
 
 types:
   Any:

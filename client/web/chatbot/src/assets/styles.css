@@ -1,0 +1,28 @@
+@import './fonts.css';
+
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
+
+html {
+  font-size: 15px;
+  line-height: normal;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  font-weight: normal;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.p-multiselect-label {
+  flex-wrap: wrap;
+}

@@ -5,7 +5,7 @@ BRANCH   ?= develop
 ZIP      ?= $(BRANCH).zip
 DIR      ?= corteza-protobuf-$(BRANCH)
 PROTO    ?= service-corredor.proto
-URL      ?= https://github.com/cortezaproject/corteza-protobuf/archive/$(ZIP)
+URL      ?= https://github.com/crusttech/human-protobuf/archive/$(ZIP)
 
 PARTS    ?= compose system
 OUTPUTS  ?= $(addsuffix /static.go, $(PARTS))

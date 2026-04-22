@@ -593,7 +593,6 @@ const sidebar = ref({
   showItem: false,
 })
 
-
 // Live out-edge count for the currently focused node. Recomputes as edges change,
 // so the Configurator stays in sync when connections are added/removed while open.
 const sidebarOutEdges = computed(() => {
@@ -608,7 +607,7 @@ const edgeUpdatingId = ref(null)
 
 // Per-node map of used source/target handle ids — drives the FlowNodes' handle
 // visibility so a point that's already wired up doesn't offer a second connection
-// (Corteza parity: at most one edge per exit/entry point).
+// at most one edge per exit/entry point.
 const nodeConnections = computed(() => {
   const map = {}
   const ensure = id => {
@@ -634,7 +633,9 @@ const nodeConnections = computed(() => {
 })
 
 function nodeConn(id) {
-  return nodeConnections.value[id] || { sources: new Set(), targets: new Set(), outCount: 0, inCount: 0 }
+  return (
+    nodeConnections.value[id] || { sources: new Set(), targets: new Set(), outCount: 0, inCount: 0 }
+  )
 }
 
 const issuesModal = ref({
@@ -876,7 +877,8 @@ watch(
   () => workflow.value.runAs,
   (runAs = '0') => {
     if (runAs !== '0') {
-      $SystemAPI.userRead({ userID: runAs })
+      $SystemAPI
+        .userRead({ userID: runAs })
         .then(user => {
           runAsUser.value = user
         })
@@ -1412,7 +1414,19 @@ function resetZoom() {
 }
 
 /* ─── Keyboard ─── */
+function isEditableTarget(event) {
+  const t = event.target
+  if (!t) return false
+  const tag = t.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+  if (t.isContentEditable) return true
+  if (typeof t.closest === 'function' && t.closest('[contenteditable="true"], .ProseMirror, .ql-editor, .cm-editor')) return true
+  return false
+}
+
 function keybinds(event) {
+  const editable = isEditableTarget(event)
+
   // Ctrl+S
   if ((event.ctrlKey || event.metaKey) && event.key === 's') {
     event.preventDefault()
@@ -1423,6 +1437,7 @@ function keybinds(event) {
 
   // Ctrl+Z
   if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+    if (editable) return
     event.preventDefault()
     undo()
     nextTick(() => checkExistingTriggerPaths())
@@ -1430,6 +1445,7 @@ function keybinds(event) {
 
   // Ctrl+Shift+Z
   if ((event.ctrlKey || event.metaKey) && event.key === 'z' && event.shiftKey) {
+    if (editable) return
     event.preventDefault()
     redo()
     nextTick(() => checkExistingTriggerPaths())
@@ -1437,21 +1453,25 @@ function keybinds(event) {
 
   // Ctrl+C
   if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+    if (editable) return
     copySelected()
   }
 
   // Ctrl+X
   if ((event.ctrlKey || event.metaKey) && event.key === 'x') {
+    if (editable) return
     cutSelected()
   }
 
   // Ctrl+V
   if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+    if (editable) return
     pasteClipboard()
   }
 
   // Ctrl+A
   if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+    if (editable) return
     event.preventDefault()
     nodes.value = nodes.value.map(n => ({ ...n, selected: true }))
   }
@@ -1617,9 +1637,7 @@ function isValidConnection(connection) {
   // Termination accepts a single inbound path (it's an end-point).
   if (targetNode?.type === 'termination') {
     const existingIn = edges.value.filter(
-      e => e.target === connection.target
-        && e.id !== connection.id
-        && e.id !== updatingId,
+      e => e.target === connection.target && e.id !== connection.id && e.id !== updatingId,
     ).length
     if (existingIn >= 1) return false
   }
@@ -1632,11 +1650,9 @@ function isValidConnection(connection) {
     const isFork = sKind === 'gateway' && ['fork', 'excl', 'incl'].includes(sRef)
     const isIterator = sKind === 'iterator'
     const isErrorHandler = sKind === 'error-handler'
-    const maxOut = isFork ? Infinity : (isIterator || isErrorHandler) ? 2 : 1
+    const maxOut = isFork ? Infinity : isIterator || isErrorHandler ? 2 : 1
     const existingOut = edges.value.filter(
-      e => e.source === connection.source
-        && e.id !== connection.id
-        && e.id !== updatingId,
+      e => e.source === connection.source && e.id !== connection.id && e.id !== updatingId,
     ).length
     if (existingOut >= maxOut) return false
   }
@@ -1646,9 +1662,7 @@ function isValidConnection(connection) {
     // and triggers EDGE_INVALID). Also exclude the edge currently being
     // reconnected so it can move to a different handle on the same trigger.
     const existing = edges.value.some(
-      e => e.source === connection.source
-        && e.id !== connection.id
-        && e.id !== updatingId,
+      e => e.source === connection.source && e.id !== connection.id && e.id !== updatingId,
     )
     if (existing) return false
   }
@@ -1657,20 +1671,22 @@ function isValidConnection(connection) {
   // land on a different handle of the same node.
   if (connection.source && connection.sourceHandle) {
     const existingFromHandle = edges.value.some(
-      e => e.source === connection.source
-        && e.sourceHandle === connection.sourceHandle
-        && e.id !== connection.id
-        && e.id !== updatingId,
+      e =>
+        e.source === connection.source &&
+        e.sourceHandle === connection.sourceHandle &&
+        e.id !== connection.id &&
+        e.id !== updatingId,
     )
     if (existingFromHandle) return false
   }
   // One edge per target handle.
   if (connection.target && connection.targetHandle) {
     const existingToHandle = edges.value.some(
-      e => e.target === connection.target
-        && e.targetHandle === connection.targetHandle
-        && e.id !== connection.id
-        && e.id !== updatingId,
+      e =>
+        e.target === connection.target &&
+        e.targetHandle === connection.targetHandle &&
+        e.id !== connection.id &&
+        e.id !== updatingId,
     )
     if (existingToHandle) return false
   }

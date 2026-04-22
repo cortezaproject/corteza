@@ -6,7 +6,9 @@ content:
   label: Content
   short: Content
   tooltip: Content block used for text annotations
+  placeholder: Text here
   configurator:
+    content-label: Content
     ok: Ok
     urlPlaceholder: https://example.tld
 continue:
@@ -63,14 +65,17 @@ exec-workflow:
 gatewayExclusive:
   label: Gateway (Exclusive)
   short: Gateway
+  title: Exclusive
   tooltip: Workflow execution can continue on first path that fits condition
 gatewayInclusive:
   label: Gateway (Inclusive)
   short: Gateway
+  title: Inclusive
   tooltip: Workflow execution can continue on all paths that fit condition
 gatewayParallel:
   label: Gateway (Fork/Join)
   short: Gateway
+  title: Fork/Join
   tooltip: Splits workflow execution into two parallel paths or merges multiple paths into one
 gateway:
   configurator:

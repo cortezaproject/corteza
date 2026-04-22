@@ -5,7 +5,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/store"
 )
 
 func testAllGenerated(t *testing.T, s store.Storer) {

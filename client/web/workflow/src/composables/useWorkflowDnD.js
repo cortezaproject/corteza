@@ -111,10 +111,6 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
     let label = ''
     if (['break', 'continue'].includes(item.kind)) {
       label = item.kind === 'break' ? 'Stop iterator execution' : 'Skip current iteration'
-    } else if (item.kind === 'gateway') {
-      label = item.ref || ''
-    } else if (item.kind === 'visual' && item.ref === 'content') {
-      label = 'Text here'
     } else if (item.kind === 'expressions') {
       label = 'Define and mutate scope variables'
     }

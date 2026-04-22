@@ -1,4 +1,4 @@
-= Corteza auth
+= Auth
 
 .Main responsibilities:
  - Sign-up protocol

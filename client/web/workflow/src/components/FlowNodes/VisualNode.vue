@@ -20,7 +20,14 @@
     <div v-if="isSwimlane" class="visual-node__swimlane-label">
       {{ data?.label || '' }}
     </div>
-    <div v-else class="visual-node__content" v-html="data?.label || ''" />
+    <div
+      v-else-if="data?.label"
+      class="visual-node__content"
+      v-html="data.label"
+    />
+    <div v-else class="visual-node__content visual-node__content--placeholder">
+      {{ t('steps.content.placeholder') }}
+    </div>
   </div>
 </template>
 
@@ -29,6 +36,10 @@ import { NodeResizer } from '@vue-flow/node-resizer'
 import '@vue-flow/node-resizer/dist/style.css'
 import { useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import eventBus from '../../lib/eventBus'
+
+const { t } = useI18n()
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -37,14 +48,21 @@ const props = defineProps({
   dropTarget: { type: Boolean, default: false },
 })
 
-const { updateNode, updateNodeData } = useVueFlow()
+const { findNode } = useVueFlow()
 
 const isSwimlane = computed(() => props.data?.ref === 'swimlane')
 const isContent = computed(() => props.data?.ref === 'content')
 
-function onResize ({ width, height }) {
-  updateNodeData(props.id, { width, height })
-  updateNode(props.id, { style: { width: `${width}px`, height: `${height}px` } })
+function onResize ({ params }) {
+  const { width, height } = params || {}
+  if (width == null || height == null) return
+  const node = findNode(props.id)
+  if (!node) return
+  if (!node.data) node.data = {}
+  node.data.width = width
+  node.data.height = height
+  node.style = { ...(node.style || {}), width: `${width}px`, height: `${height}px` }
+  eventBus.emit('change-detected')
 }
 </script>
 
@@ -55,14 +73,19 @@ function onResize ({ width, height }) {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+}
+
+/* Keep NodeResizer corner/edge handles fully visible (they sit on the node
+   border — overflow:hidden would clip them). */
+.visual-node :deep(.vue-flow__resize-control) {
+  z-index: 5;
 }
 
 /* mxGraph-style swimlane: title bar along the left (solid), body transparent
    so nodes dropped onto it read against the canvas background. */
 .visual-node--swimlane {
   background: transparent;
-  border: 1px solid var(--p-surface-border);
+  border: 1px solid var(--p-surface-400, var(--p-text-muted-color));
   display: flex;
   flex-direction: row;
 }
@@ -77,13 +100,14 @@ function onResize ({ width, height }) {
   color: var(--p-text-color);
   background: var(--p-content-background);
   border-right: 1px solid var(--p-surface-border);
+  border-radius: 0 6px 6px 0;
   flex: 0 0 32px;
   text-align: center;
 }
 
 .visual-node--content {
   background: var(--p-content-background);
-  border: 1px solid var(--p-surface-border);
+  border: 1px solid var(--p-surface-400, var(--p-text-muted-color));
 }
 
 .visual-node--selected {
@@ -105,6 +129,11 @@ function onResize ({ width, height }) {
   color: var(--p-text-color);
   overflow: auto;
   word-break: break-word;
+}
+
+.visual-node__content--placeholder {
+  color: var(--p-text-muted-color);
+  font-style: italic;
 }
 
 /* Basic typographic styles so rich-text output (from any WYSIWYG) renders

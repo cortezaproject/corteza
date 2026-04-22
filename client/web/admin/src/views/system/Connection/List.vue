@@ -34,6 +34,7 @@
       <template #header>
         <div class="flex gap-2">
           <CRouterLinkButton
+            v-if="canCreate"
             :to="{ name: 'system.connections.create' }"
             :label="$t('system.connections.list.createLabel')"
             icon="pi pi-plus"
@@ -134,6 +135,7 @@ const $SystemAPI = inject('$SystemAPI')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'dal-connection.create'))
 const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()

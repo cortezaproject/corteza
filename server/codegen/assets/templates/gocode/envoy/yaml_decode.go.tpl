@@ -8,10 +8,10 @@ import (
 	"io"
 	"os"
 
-	systemTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	systemTypes "github.com/crusttech/human/server/system/types"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/y7s"
 	"golang.org/x/text/language"
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v3"
@@ -26,7 +26,7 @@ import (
 {{$rootRes := .resources}}
 
 type (
-	// YamlDecoder is responsible for decoding YAML documents into Corteza resources
+	// YamlDecoder is responsible for decoding YAML documents into resources
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder struct{}
 
@@ -262,7 +262,7 @@ func (d *auxYamlDoc) unmarshalExtended{{ .expIdent }}Map(dctx documentContext, n
 {{ end }}
 
 // unmarshal{{ .expIdent }}Node is a cookie-cutter function to unmarshal
-// the yaml node into the corresponding Corteza type & Node
+// the yaml node into the corresponding type & Node
 func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
 	var r *types.{{ .expIdent }}
 

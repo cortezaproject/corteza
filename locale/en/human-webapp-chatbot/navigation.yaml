@@ -1,0 +1,29 @@
+home: Home
+chatbots: Chatbots
+appMenu: Menu
+appList:
+  title: Menu
+  search: Search...
+  noResults: No applications found
+  noApps: No applications available
+help:
+  documentation: Documentation
+  feedback: Send feedback
+  forum: Help
+  version: 'Version:'
+  buyHuman: 'Buy'
+  manageSubscription: 'Manage Subscription'
+  packageDetails: 'Package Details'
+userSettings:
+  changePassword: Change password
+  logout: Logout
+  profile: Profile
+  theme: Theme
+themes:
+  labels:
+    light: Light
+    dark: Dark
+extendSession:
+  labels:
+    extend: Extend Session
+    warning: You will be logged out in { countdownTime } seconds

@@ -200,6 +200,14 @@ resources:
           title: Search data privacy requests
         data-privacy-request.create:
           title: Create data privacy requests
+        agent.create:
+          title: Create new agent
+        agents.search:
+          title: List and search agents
+        chatbot.create:
+          title: Create new chatbot
+        chatbots.search:
+          title: List and search chatbots
 
     application:
       label: Applications
@@ -492,6 +500,16 @@ resources:
           title: Update any conversation
         delete:
           title: Delete any conversation
+
+    chatbot:
+      label: Chatbots
+      operations:
+        read:
+          title: Read any chatbot
+        update:
+          title: Update any chatbot
+        delete:
+          title: Delete any chatbot
 
   federation:
     component:

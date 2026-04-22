@@ -11,11 +11,11 @@ endpoints:
   path: "/namespace"
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza/server/pkg/label
-    - github.com/cortezaproject/corteza/server/pkg/locale
+    - github.com/crusttech/human/server/pkg/label
+    - github.com/crusttech/human/server/pkg/locale
     - sqlxTypes github.com/jmoiron/sqlx/types
     - time
-    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+    - labelTypes github.com/crusttech/human/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -254,11 +254,11 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza/server/pkg/locale
-    - github.com/cortezaproject/corteza/server/pkg/label
-    - github.com/cortezaproject/corteza/server/compose/types
+    - github.com/crusttech/human/server/pkg/locale
+    - github.com/crusttech/human/server/pkg/label
+    - github.com/crusttech/human/server/compose/types
     - time
-    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+    - labelTypes github.com/crusttech/human/server/pkg/label/types
 
   parameters:
     path:
@@ -582,11 +582,11 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza/server/pkg/locale
-    - github.com/cortezaproject/corteza/server/compose/types
-    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/crusttech/human/server/pkg/locale
+    - github.com/crusttech/human/server/compose/types
+    - github.com/crusttech/human/server/pkg/label
     - time
-    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+    - labelTypes github.com/crusttech/human/server/pkg/label/types
   parameters:
     path:
     - type: uint64
@@ -875,11 +875,11 @@ endpoints:
       title: Namespace ID
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza/server/compose/types
-    - github.com/cortezaproject/corteza/server/pkg/locale
-    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/crusttech/human/server/compose/types
+    - github.com/crusttech/human/server/pkg/locale
+    - github.com/crusttech/human/server/pkg/label
     - time
-    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+    - labelTypes github.com/crusttech/human/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -1016,7 +1016,7 @@ endpoints:
   path: "/namespace/{namespaceID}/module/{moduleID}/record"
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza/server/compose/types
+    - github.com/crusttech/human/server/compose/types
     - time
   parameters:
     path:
@@ -1332,10 +1332,10 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza/server/pkg/label
-    - github.com/cortezaproject/corteza/server/pkg/locale
+    - github.com/crusttech/human/server/pkg/label
+    - github.com/crusttech/human/server/pkg/locale
     - time
-    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+    - labelTypes github.com/crusttech/human/server/pkg/label/types
   parameters:
     path:
     - type: uint64
@@ -1624,7 +1624,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza/server/pkg/rbac
+    - github.com/crusttech/human/server/pkg/rbac
   apis:
   - name: list
     path: "/"

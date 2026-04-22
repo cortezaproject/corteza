@@ -8,7 +8,7 @@ package {{ .Package }}
 // Definitions file that controls how this file is generated:
 // {{ .Source }}
  import (
-  	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+  	labelTypes "github.com/crusttech/human/server/pkg/label/types"
   )
 
 

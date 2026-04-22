@@ -230,3 +230,16 @@ func SystemKnowledgeBaseRbacReferences(knowledgeBase string) (res *Ref, pp []*Re
 
 	return
 }
+
+// SystemChatbotRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemChatbotRbacReferences(chatbot string) (res *Ref, pp []*Ref, err error) {
+	if chatbot != "*" {
+		res = &Ref{ResourceType: types.ChatbotResourceType, Identifiers: MakeIdentifiers(chatbot)}
+	}
+
+	return
+}

@@ -10,7 +10,7 @@ import (
 )
 
 human: schema.#platform & {
-	"ident": "human"
+	"ident": "corteza"
 
 	"options": [
 		options.DB,

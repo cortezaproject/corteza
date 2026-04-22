@@ -183,11 +183,20 @@ importers:
       '@planetcrust/human-vue':
         specifier: workspace:*
         version: link:../../../lib/vue
-      human-webapp-chatbot:
-        specifier: workspace:*
-        version: link:../chatbot
 
   client/web/chatbot:
+    dependencies:
+      '@planetcrust/human-js':
+        specifier: workspace:*
+        version: link:../../../lib/js
+      '@planetcrust/human-vue':
+        specifier: workspace:*
+        version: link:../../../lib/vue
+      human-webapp-chatbot-widget:
+        specifier: workspace:*
+        version: link:../chatbot-widget
+
+  client/web/chatbot-widget:
     devDependencies:
       typescript:
         specifier: ^5.4.0

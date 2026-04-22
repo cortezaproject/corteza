@@ -1,0 +1,19 @@
+{
+  "name": "human-webapp-chatbot-widget",
+  "version": "2026.4.1-dev.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "exports": {
+    "./engine": "./src/engine.ts",
+    "./ui": "./src/ui.ts",
+    "./types": "./src/types.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0"
+  }
+}

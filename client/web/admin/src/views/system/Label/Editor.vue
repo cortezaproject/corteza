@@ -14,14 +14,24 @@
           :loading="nsLoading"
           :empty-message="$t('system.labels.editor.namespaces.empty')"
           :action-items="getNsActions"
+          :row-class="() => 'cursor-pointer'"
+          @row-click="({ data }) => openInNewTab('compose', `namespace/${data.slug || data.namespaceID}`)"
         >
           <template #header>
-            <Button
-              :label="$t('system.labels.editor.namespaces.create')"
-              icon="pi pi-plus"
-              size="small"
-              @click="showNsDialog = true"
-            />
+            <div class="flex gap-2">
+              <Button
+                :label="$t('system.labels.editor.namespaces.create')"
+                icon="pi pi-plus"
+                size="small"
+                @click="showNsDialog = true"
+              />
+
+              <CPermissionsButton
+                v-if="canGrantCompose"
+                v-tooltip.bottom="$t('general.label.permissions')"
+                resource="corteza::compose:namespace/*"
+              />
+            </div>
           </template>
           <template #body-enabled="{ data }">
             <Tag
@@ -41,14 +51,24 @@
           :loading="agentLoading"
           :empty-message="$t('system.labels.editor.agents.empty')"
           :action-items="getAgentActions"
+          :row-class="() => 'cursor-pointer'"
+          @row-click="({ data }) => openInNewTab('agentic', `${data.agentID}/edit`)"
         >
           <template #header>
-            <Button
-              :label="$t('system.labels.editor.agents.create')"
-              icon="pi pi-plus"
-              size="small"
-              @click="showAgentDialog = true"
-            />
+            <div class="flex gap-2">
+              <Button
+                :label="$t('system.labels.editor.agents.create')"
+                icon="pi pi-plus"
+                size="small"
+                @click="showAgentDialog = true"
+              />
+
+              <CPermissionsButton
+                v-if="canGrantSystem"
+                v-tooltip.bottom="$t('general.label.permissions')"
+                resource="corteza::system:agent/*"
+              />
+            </div>
           </template>
           <template #body-name="{ data }">
             {{ data.meta?.short || data.handle || '—' }}
@@ -65,14 +85,24 @@
           :loading="taqLoading"
           :empty-message="$t('system.labels.editor.automations.empty')"
           :action-items="getTaqActions"
+          :row-class="() => 'cursor-pointer'"
+          @row-click="({ data }) => openInNewTab('taq', `builder/${data.automationID}`)"
         >
           <template #header>
-            <Button
-              :label="$t('system.labels.editor.automations.create')"
-              icon="pi pi-plus"
-              size="small"
-              @click="showTaqDialog = true"
-            />
+            <div class="flex gap-2">
+              <Button
+                :label="$t('system.labels.editor.automations.create')"
+                icon="pi pi-plus"
+                size="small"
+                @click="showTaqDialog = true"
+              />
+
+              <CPermissionsButton
+                v-if="canGrantAutomation"
+                v-tooltip.bottom="$t('general.label.permissions')"
+                resource="corteza::automation:ng-automation/*"
+              />
+            </div>
           </template>
           <template #body-name="{ data }">
             {{ data.meta?.short || data.handle || '—' }}
@@ -232,13 +262,18 @@
 import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { components, useConfirmDelete } from '@planetcrust/human-vue'
+import { components, useConfirmDelete, usePermissions, useRBACStore } from '@planetcrust/human-vue'
 
 const { CResourceTable } = components
 
 const { t } = useI18n()
 const route = useRoute()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrantCompose = computed(() => rbac.can('compose/', 'grant'))
+const canGrantSystem = computed(() => rbac.can('system/', 'grant'))
+const canGrantAutomation = computed(() => rbac.can('automation/', 'grant'))
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $AutomationAPI = inject('$AutomationAPI')
@@ -257,14 +292,21 @@ function openInNewTab(appBase, path) {
 }
 
 function getNsActions(data) {
-  const items = [{
-    label: t('system.labels.editor.openNewTab'),
-    icon: 'pi pi-external-link',
-    command: () => openInNewTab('compose', `namespace/${data.slug || data.namespaceID}`),
-  }]
+  const items = []
+
+  if (data.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => openPermissions({
+        resource: `corteza::compose:namespace/${data.namespaceID}`,
+        title: data.name || data.slug || data.namespaceID,
+      }),
+    })
+  }
 
   if (data.canDeleteNamespace) {
-    items.push({ separator: true })
+    if (items.length > 0) items.push({ separator: true })
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
@@ -277,14 +319,21 @@ function getNsActions(data) {
 }
 
 function getAgentActions(data) {
-  const items = [{
-    label: t('system.labels.editor.openNewTab'),
-    icon: 'pi pi-external-link',
-    command: () => openInNewTab('agentic', data.agentID),
-  }]
+  const items = []
+
+  if (data.canGrant || canGrantSystem.value) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => openPermissions({
+        resource: `corteza::system:agent/${data.agentID}`,
+        title: data.meta?.short || data.handle || data.agentID,
+      }),
+    })
+  }
 
   if (data.canDeleteAgent) {
-    items.push({ separator: true })
+    if (items.length > 0) items.push({ separator: true })
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
@@ -297,14 +346,22 @@ function getAgentActions(data) {
 }
 
 function getTaqActions(data) {
-  const items = [{
-    label: t('system.labels.editor.openNewTab'),
-    icon: 'pi pi-external-link',
-    command: () => openInNewTab('taq', `builder/${data.automationID}`),
-  }]
+  const items = []
+
+  if (data.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => openPermissions({
+        resource: `corteza::automation:ng-automation/${data.automationID}`,
+        title: data.meta?.short || data.handle || data.automationID,
+        target: data.meta?.short || data.handle || data.automationID,
+      }),
+    })
+  }
 
   if (data.canDeleteNgAutomation) {
-    items.push({ separator: true })
+    if (items.length > 0) items.push({ separator: true })
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',

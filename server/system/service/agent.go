@@ -2,9 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
-	"fmt"
 
 	"github.com/crusttech/human/server/pkg/errors"
 
@@ -96,10 +93,6 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent,
 
 		prepareTCL(&new.Behavior)
 
-		if err = prepareChatbot(&new.Chatbot, &new.Invocation); err != nil {
-			return
-		}
-
 		if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 			return
 		}
@@ -144,10 +137,6 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 
 		prepareTCL(&upd.Behavior)
 
-		if err = prepareChatbotUpdate(&upd.Chatbot, &existing.Chatbot, &upd.Invocation); err != nil {
-			return
-		}
-
 		if err = store.UpdateAgent(ctx, svc.store, upd); err != nil {
 			return
 		}
@@ -157,36 +146,6 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent,
 		}
 
 		a = upd
-		return nil
-	}()
-
-	return a, err
-}
-
-func (svc *agent) RegenerateWidgetKey(ctx context.Context, ID uint64) (a *types.Agent, err error) {
-	err = func() (err error) {
-		var existing *types.Agent
-		if existing, err = loadAgent(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanUpdateAgent(ctx, existing) {
-			return AgentErrNotAllowedToUpdate()
-		}
-
-		key, err := generateWidgetKey()
-		if err != nil {
-			return err
-		}
-		existing.Chatbot.WidgetKey = key
-		existing.Revision += 1
-		existing.UpdatedAt = now()
-
-		if err = store.UpdateAgent(ctx, svc.store, existing); err != nil {
-			return
-		}
-
-		a = existing
 		return nil
 	}()
 
@@ -310,57 +269,6 @@ func prepareTCL(b *types.AgentBehavior) {
 	} else {
 		b.TreatyCLArticles = tcl.MergeWithHardwired(b.TreatyCLArticles)
 	}
-}
-
-// generateWidgetKey produces a 32-byte base64url (unpadded) key.
-func generateWidgetKey() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
-}
-
-// prepareChatbot handles widget key auto-gen + enable validation on Create.
-func prepareChatbot(c *types.AgentChatbot, inv *types.AgentInvocation) error {
-	if !c.Enabled {
-		return nil
-	}
-	if !inv.System.Enabled || inv.System.ServiceAccount == 0 {
-		return fmt.Errorf("chatbot requires system invocation with a service account")
-	}
-	if c.WidgetKey != "" {
-		return nil
-	}
-	k, err := generateWidgetKey()
-	if err != nil {
-		return err
-	}
-	c.WidgetKey = k
-	return nil
-}
-
-// prepareChatbotUpdate validates Enabled flip + auto-gens key on first enable.
-func prepareChatbotUpdate(upd, existing *types.AgentChatbot, inv *types.AgentInvocation) error {
-	// preserve existing key unless explicitly regenerated
-	if upd.WidgetKey == "" {
-		upd.WidgetKey = existing.WidgetKey
-	}
-
-	if upd.Enabled {
-		if !inv.System.Enabled || inv.System.ServiceAccount == 0 {
-			return fmt.Errorf("chatbot requires system invocation with a service account")
-		}
-	}
-
-	if upd.Enabled && upd.WidgetKey == "" {
-		k, err := generateWidgetKey()
-		if err != nil {
-			return err
-		}
-		upd.WidgetKey = k
-	}
-	return nil
 }
 
 func loadAgent(ctx context.Context, s store.Agents, ID uint64) (res *types.Agent, err error) {

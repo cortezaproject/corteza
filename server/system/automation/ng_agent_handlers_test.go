@@ -52,7 +52,7 @@ func TestNgAgentHandler_ContinueConversation(t *testing.T) {
 	req := require.New(t)
 	rt := &mockRuntime{}
 	h := newNgHandler(rt, &mockConversationStore{
-		conv: &types.AiConversation{AgentID: 5},
+		conv: &types.AiConversation{},
 	})
 
 	res, err := h.continueConversation(context.Background(), &ngAgentContinueArgs{ConversationID: 10, Input: "follow up"})
@@ -79,7 +79,7 @@ func TestNgAgentHandler_ContinueRuntimeError(t *testing.T) {
 	req := require.New(t)
 	rt := &mockRuntimeErr{}
 	h := newNgHandler(rt, &mockConversationStore{
-		conv: &types.AiConversation{AgentID: 5},
+		conv: &types.AiConversation{},
 	})
 
 	_, err := h.continueConversation(context.Background(), &ngAgentContinueArgs{ConversationID: 10, Input: "hello"})

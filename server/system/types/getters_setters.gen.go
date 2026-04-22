@@ -1475,3 +1475,75 @@ func (r *KnowledgeBase) SetValue(name string, pos uint, value any) (err error) {
 	}
 	return nil
 }
+
+func (r Chatbot) GetID() uint64 { return r.ID }
+
+func (r *Chatbot) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "enabled", "Enabled":
+		return r.Enabled, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "name", "Name":
+		return r.Name, nil
+	case "sessionTTL", "SessionTTL":
+		return r.SessionTTL, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+	case "widgetKey", "WidgetKey":
+		return r.WidgetKey, nil
+
+	}
+	return nil, nil
+}
+
+func (r *Chatbot) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Chatbot{}
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "enabled", "Enabled":
+		return cast2.Bool(value, &r.Enabled)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "name", "Name":
+		return cast2.String(value, &r.Name)
+	case "sessionTTL", "SessionTTL":
+		return cast2.String(value, &r.SessionTTL)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+	case "widgetKey", "WidgetKey":
+		return cast2.String(value, &r.WidgetKey)
+
+	}
+	return nil
+}

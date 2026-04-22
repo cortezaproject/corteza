@@ -1513,7 +1513,7 @@ func (h recordsHandler) Report() *atypes.Function {
 				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
 					Label:       "Filter for records report",
-					Description: "Filter in HumanQL format",
+					Description: "Filter in QL format",
 				},
 			},
 		},

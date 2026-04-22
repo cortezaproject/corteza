@@ -34,6 +34,7 @@
       <template #header>
         <div class="flex gap-2">
           <CRouterLinkButton
+            v-if="canCreate"
             :to="{ name: 'system.users.create' }"
             :label="$t('system.users.list.new')"
             icon="pi pi-plus"
@@ -165,6 +166,7 @@ const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'user.create'))
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 

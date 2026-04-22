@@ -46,6 +46,7 @@ else
   config './compose'
   config './taq'
   config './home'
+  config './chatbot'
   config '.'
 
   nginx -g "daemon off;"

@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Corteza compose API
-  description: Corteza compose REST API definition
+  title: Compose API
+  description: Compose REST API definition
   version: '2022.9'
   contact:
     email: info@cortezaproject.org
@@ -1087,17 +1087,17 @@ paths:
       parameters:
         - in: query
           name: metrics
-          description: 'Metrics (eg: ''SUM(money), MAX(calls)'')'
+          description: "Metrics (eg: 'SUM(money), MAX(calls)')"
           required: false
           schema: *ref_0
         - in: query
           name: dimensions
-          description: 'Dimensions (eg: ''DATE(foo), status'')'
+          description: "Dimensions (eg: 'DATE(foo), status')"
           required: true
           schema: *ref_0
         - in: query
           name: filter
-          description: 'Filter (eg: ''DATE(foo) > 2010'')'
+          description: "Filter (eg: 'DATE(foo) > 2010')"
           required: false
           schema: *ref_0
         - in: path

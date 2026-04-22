@@ -1,7 +1,7 @@
 settings:
   auth.external.enabled: true
   auth.mail.from-address: info@example.tld
-  auth.mail.from-name: Corteza
+  auth.mail.from-name: Human
   auth.internal.enabled: true
   auth.internal.signup.enabled: true
   auth.internal.profile-avatar.enabled: true

@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/store"
+	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
 	"github.com/pkg/errors"
 {{- range .imports }}
     "{{ . }}"
@@ -18,7 +18,7 @@ import (
 )
 
 type (
-  // StoreEncoder is responsible for encoding Corteza resources into the
+  // StoreEncoder is responsible for encoding resources into the
   // database via the Storer or the DAL interface
 	//
 	// @todo consider having a different encoder for the DAL resources
@@ -60,7 +60,7 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 	return
 }
 
-// Encode encodes the given Corteza resources into the primary store
+// Encode encodes the given resources into the primary store
 //
 // Encoding should not do any additional processing apart from matching with
 // dependencies and runtime validation
@@ -111,7 +111,7 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 	//       into memory shouldn't hurt too much.
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
-	
+
 	// Get node scopes
 	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
 	if err != nil {

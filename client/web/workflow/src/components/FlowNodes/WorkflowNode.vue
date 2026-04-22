@@ -53,8 +53,8 @@
     <!-- Header (icon + title + id) -->
     <div class="workflow-node__header">
       <img v-if="iconSrc" :src="iconSrc" class="workflow-node__icon" />
-      <span class="workflow-node__title" :title="data?.label || stepTypeLabel">
-        {{ data?.label || stepTypeLabel }}
+      <span class="workflow-node__title" :title="displayTitle">
+        {{ displayTitle }}
       </span>
 
       <div class="workflow-node__header-actions">
@@ -198,6 +198,16 @@ const stepTypeLabel = computed(() => {
   const style = getStyleFromKind(props.data)?.style || props.data?.kind || ''
   return t(`steps.${style}.short`, style)
 })
+
+const stepTitleLabel = computed(() => {
+  const style = getStyleFromKind(props.data)?.style
+  if (!style) return stepTypeLabel.value
+  const key = `steps.${style}.title`
+  const resolved = t(key)
+  return resolved === key ? stepTypeLabel.value : resolved
+})
+
+const displayTitle = computed(() => props.data?.label || stepTitleLabel.value)
 
 const displayDescription = computed(() => props.data?.description || stepTypeLabel.value)
 

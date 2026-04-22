@@ -40,6 +40,7 @@ component: schema.#component & {
     "agent":                 				agent
     "ai-conversation":                ai_conversation
     "knowledge-base":                 knowledge_base
+    "chatbot":                        chatbot
 	}
 
 	rbac: operations: {
@@ -108,5 +109,8 @@ component: schema.#component & {
 
 		"knowledge-base.create": description:  "Create knowledge bases"
 		"knowledge-bases.search": description: "List, search or filter knowledge bases"
+
+		"chatbot.create": description:  "Create chatbots"
+		"chatbots.search": description: "List, search or filter chatbots"
 	}
 }

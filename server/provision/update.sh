@@ -6,7 +6,7 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 BRANCH=${BRANCH:-"2022.3.x"}
 ZIP="${BRANCH}.zip"
-URL=${URL:-"https://github.com/cortezaproject/corteza-ext/archive/${ZIP}"}
+URL=${URL:-"https://github.com/crusttech/human-ext/archive/${ZIP}"}
 DIR="corteza-ext-${BRANCH}"
 
 function download {

@@ -10,88 +10,88 @@ defaultActionSeverity: notice
 defaultErrorSeverity: alert
 
 import:
-  - github.com/cortezaproject/corteza/server/system/types
+  - github.com/crusttech/human/server/system/types
 
 props:
   - name: user
-    type: "*types.User"
-    fields: [ handle, email, name, username, ID ]
+    type: '*types.User'
+    fields: [handle, email, name, username, ID]
   - name: new
-    type: "*types.User"
-    fields: [ handle, email, name, username, ID ]
+    type: '*types.User'
+    fields: [handle, email, name, username, ID]
   - name: update
-    type: "*types.User"
-    fields: [ handle, email, name, username, ID ]
+    type: '*types.User'
+    fields: [handle, email, name, username, ID]
   - name: existing
-    type: "*types.User"
-    fields: [ handle, email, name, username, ID ]
+    type: '*types.User'
+    fields: [handle, email, name, username, ID]
   - name: filter
-    type: "*types.UserFilter"
-    fields: [ query, userID, roleID, handle, email, username, deleted, suspended, sort ]
+    type: '*types.UserFilter'
+    fields: [query, userID, roleID, handle, email, username, deleted, suspended, sort]
 
 actions:
   - action: search
-    log: "searched for matching users"
+    log: 'searched for matching users'
     severity: info
 
   - action: lookup
-    log: "looked-up for a {{user}}"
+    log: 'looked-up for a {{user}}'
     severity: info
 
   - action: create
-    log: "created {{user}}"
+    log: 'created {{user}}'
 
   - action: update
-    log: "updated {{user}}"
+    log: 'updated {{user}}'
 
   - action: delete
-    log: "deleted {{user}}"
+    log: 'deleted {{user}}'
 
   - action: undelete
-    log: "undeleted {{user}}"
+    log: 'undeleted {{user}}'
 
   - action: suspend
-    log: "suspended {{user}}"
+    log: 'suspended {{user}}'
 
   - action: unsuspend
-    log: "unsuspended {{user}}"
+    log: 'unsuspended {{user}}'
 
   - action: setPassword
-    log: "password changed for {{user}}"
+    log: 'password changed for {{user}}'
 
   - action: removePassword
-    log: "password removed for {{user}}"
+    log: 'password removed for {{user}}'
 
   - action: deleteAuthTokens
-    log: "deleted auth tokens of {{user}}"
+    log: 'deleted auth tokens of {{user}}'
 
   - action: deleteAuthSessions
-    log: "deleted auth sessions of {{user}}"
+    log: 'deleted auth sessions of {{user}}'
 
   - action: uploadAvatar
-    log: "uploaded avatar of {{user}}"
+    log: 'uploaded avatar of {{user}}'
 
   - action: generateAvatar
-    log: "generated avatar of {{user}}"
+    log: 'generated avatar of {{user}}'
 
   - action: deleteAvatar
-    log: "deleted avatar of {{user}}"
+    log: 'deleted avatar of {{user}}'
 
 errors:
   - error: notFound
-    message: "user not found"
+    message: 'user not found'
     severity: warning
 
   - error: invalidID
-    message: "invalid ID"
+    message: 'invalid ID'
     severity: warning
 
   - error: invalidHandle
-    message: "invalid handle"
+    message: 'invalid handle'
     severity: warning
 
   - error: invalidEmail
-    message: "invalid email"
+    message: 'invalid email'
     severity: warning
 
   - error: staleData
@@ -99,71 +99,71 @@ errors:
     severity: warning
 
   - error: notAllowedToRead
-    message: "not allowed to read this user"
-    log: "failed to read {{user.handle}}; insufficient permissions"
+    message: 'not allowed to read this user'
+    log: 'failed to read {{user.handle}}; insufficient permissions'
 
   - error: notAllowedToSearch
-    message: "not allowed to list or search users"
-    log: "failed to search for users; insufficient permissions"
+    message: 'not allowed to list or search users'
+    log: 'failed to search for users; insufficient permissions'
 
   - error: notAllowedToListUsers
-    message: "not allowed to list users"
-    log: "failed to list user; insufficient permissions"
+    message: 'not allowed to list users'
+    log: 'failed to list user; insufficient permissions'
 
   - error: notAllowedToCreate
-    message: "not allowed to create users"
-    log: "failed to create users; insufficient permissions"
+    message: 'not allowed to create users'
+    log: 'failed to create users; insufficient permissions'
 
   - error: notAllowedToCreateSystem
-    message: "not allowed to create system users"
-    log: "failed to create system users"
+    message: 'not allowed to create system users'
+    log: 'failed to create system users'
 
   - error: notAllowedToUpdate
-    message: "not allowed to update this user"
-    log: "failed to update {{user.handle}}; insufficient permissions"
+    message: 'not allowed to update this user'
+    log: 'failed to update {{user.handle}}; insufficient permissions'
 
   - error: notAllowedToUpdateSystem
-    message: "not allowed to update system users"
-    log: "failed to update system users"
+    message: 'not allowed to update system users'
+    log: 'failed to update system users'
 
   - error: notAllowedToDelete
-    message: "not allowed to delete this user"
-    log: "failed to delete {{user.handle}}; insufficient permissions"
+    message: 'not allowed to delete this user'
+    log: 'failed to delete {{user.handle}}; insufficient permissions'
 
   - error: notAllowedToUndelete
-    message: "not allowed to undelete this user"
-    log: "failed to undelete {{user.handle}}; insufficient permissions"
+    message: 'not allowed to undelete this user'
+    log: 'failed to undelete {{user.handle}}; insufficient permissions'
 
   - error: notAllowedToSuspend
-    message: "not allowed to suspend this user"
-    log: "failed to suspend {{user.handle}}; insufficient permissions"
+    message: 'not allowed to suspend this user'
+    log: 'failed to suspend {{user.handle}}; insufficient permissions'
 
   - error: notAllowedToUnsuspend
-    message: "not allowed to unsuspend this user"
-    log: "failed to unsuspend {{user.handle}}; insufficient permissions"
+    message: 'not allowed to unsuspend this user'
+    log: 'failed to unsuspend {{user.handle}}; insufficient permissions'
 
   - error: handleNotUnique
-    message: "handle not unique"
-    log: "used duplicate handle ({{user.handle}}) for user"
+    message: 'handle not unique'
+    log: 'used duplicate handle ({{user.handle}}) for user'
     severity: warning
 
   - error: emailNotUnique
-    message: "email not unique"
-    log: "used duplicate email ({{user.email}}) for user"
+    message: 'email not unique'
+    log: 'used duplicate email ({{user.email}}) for user'
     severity: warning
 
   - error: usernameNotUnique
-    message: "username not unique"
-    log: "used duplicate username ({{user.username}}) for user"
+    message: 'username not unique'
+    log: 'used duplicate username ({{user.username}}) for user'
     severity: warning
 
   - error: passwordNotSecure
-    message: "provided password is not secure; use longer password with more special characters"
+    message: 'provided password is not secure; use longer password with more special characters'
 
   - error: maxUserLimitReached
-    message: "you have reached your user limit, contact your Corteza  administrator"
+    message: 'you have reached your user limit, contact your administrator'
     severity: warning
 
   - error: notAllowedToDeleteAvatar
-    message: "not allowed to delete avatar for this user"
+    message: 'not allowed to delete avatar for this user'
     log: "failed to delete {{user.handle}}'s avatar; insufficient permissions"

@@ -34,6 +34,7 @@
       <template #header>
         <div class="flex gap-2">
           <CRouterLinkButton
+            v-if="canCreate"
             :to="{ name: 'agent.create' }"
             :label="$t('agent.list.create')"
             icon="pi pi-plus"
@@ -95,6 +96,7 @@ const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'agent.create'))
 const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()

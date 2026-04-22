@@ -33,6 +33,7 @@
       <template #header>
         <div class="flex items-center gap-2">
           <CRouterLinkButton
+            v-if="canCreate"
             :to="{ name: 'namespace.create' }"
             :label="$t('namespace.manage.toolbar.buttons.create')"
             icon="pi pi-plus"
@@ -90,6 +91,7 @@ const namespaceStore = useNamespaceStore()
 const { open: openPermissions } = usePermissions()
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('compose/', 'grant'))
+const canCreate = computed(() => rbac.can('compose/', 'namespace.create'))
 
 const resourceListRef = ref()
 

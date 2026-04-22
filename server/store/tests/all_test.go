@@ -59,6 +59,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("automationWorkflow", func(t *testing.T) {
 		testAutomationWorkflows(t, s)
 	})
+	t.Run("chatbot", func(t *testing.T) {
+		testChatbots(t, s)
+	})
 	t.Run("composeAttachment", func(t *testing.T) {
 		testComposeAttachments(t, s)
 	})

@@ -49,7 +49,6 @@ type (
 		Execution  systemType.AgentExecution  `db:"execution"`
 		Access     systemType.AgentAccess     `db:"access"`
 		Invocation systemType.AgentInvocation `db:"invocation"`
-		Chatbot    systemType.AgentChatbot    `db:"chatbot"`
 		CreatedAt  time.Time                  `db:"created_at"`
 		UpdatedAt  *time.Time                 `db:"updated_at"`
 		DeletedAt  *time.Time                 `db:"deleted_at"`
@@ -267,6 +266,26 @@ type (
 		CreatedBy    uint64                          `db:"created_by"`
 		UpdatedBy    uint64                          `db:"updated_by"`
 		DeletedBy    uint64                          `db:"deleted_by"`
+	}
+
+	// auxChatbot is an auxiliary structure used for transporting to/from RDBMS store
+	auxChatbot struct {
+		ID             uint64                           `db:"id"`
+		Handle         string                           `db:"handle"`
+		Name           string                           `db:"name"`
+		Enabled        bool                             `db:"enabled"`
+		WidgetKey      string                           `db:"widget_key"`
+		AllowedOrigins systemType.ChatbotAllowedOrigins `db:"allowed_origins"`
+		SessionTTL     string                           `db:"session_ttl"`
+		Handoff        systemType.ChatbotHandoff        `db:"handoff"`
+		Styling        systemType.ChatbotStyling        `db:"styling"`
+		Scenarios      systemType.ChatbotScenarios      `db:"scenarios"`
+		CreatedAt      time.Time                        `db:"created_at"`
+		UpdatedAt      *time.Time                       `db:"updated_at"`
+		DeletedAt      *time.Time                       `db:"deleted_at"`
+		CreatedBy      uint64                           `db:"created_by"`
+		UpdatedBy      uint64                           `db:"updated_by"`
+		DeletedBy      uint64                           `db:"deleted_by"`
 	}
 
 	// auxComposeAttachment is an auxiliary structure used for transporting to/from RDBMS store
@@ -875,7 +894,6 @@ func (aux *auxAgent) encode(res *systemType.Agent) (_ error) {
 	aux.Execution = res.Execution
 	aux.Access = res.Access
 	aux.Invocation = res.Invocation
-	aux.Chatbot = res.Chatbot
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -899,7 +917,6 @@ func (aux auxAgent) decode() (res *systemType.Agent, _ error) {
 	res.Execution = aux.Execution
 	res.Access = aux.Access
 	res.Invocation = aux.Invocation
-	res.Chatbot = aux.Chatbot
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -923,7 +940,6 @@ func (aux *auxAgent) scan(row scanner) error {
 		&aux.Execution,
 		&aux.Access,
 		&aux.Invocation,
-		&aux.Chatbot,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
@@ -1700,6 +1716,77 @@ func (aux *auxAutomationWorkflow) scan(row scanner) error {
 		&aux.Issues,
 		&aux.RunAs,
 		&aux.OwnedBy,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes Chatbot to auxChatbot
+//
+// This function is auto-generated
+func (aux *auxChatbot) encode(res *systemType.Chatbot) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Name = res.Name
+	aux.Enabled = res.Enabled
+	aux.WidgetKey = res.WidgetKey
+	aux.AllowedOrigins = res.AllowedOrigins
+	aux.SessionTTL = res.SessionTTL
+	aux.Handoff = res.Handoff
+	aux.Styling = res.Styling
+	aux.Scenarios = res.Scenarios
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes Chatbot from auxChatbot
+//
+// This function is auto-generated
+func (aux auxChatbot) decode() (res *systemType.Chatbot, _ error) {
+	res = new(systemType.Chatbot)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Name = aux.Name
+	res.Enabled = aux.Enabled
+	res.WidgetKey = aux.WidgetKey
+	res.AllowedOrigins = aux.AllowedOrigins
+	res.SessionTTL = aux.SessionTTL
+	res.Handoff = aux.Handoff
+	res.Styling = aux.Styling
+	res.Scenarios = aux.Scenarios
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxChatbot fields
+//
+// This function is auto-generated
+func (aux *auxChatbot) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Name,
+		&aux.Enabled,
+		&aux.WidgetKey,
+		&aux.AllowedOrigins,
+		&aux.SessionTTL,
+		&aux.Handoff,
+		&aux.Styling,
+		&aux.Scenarios,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

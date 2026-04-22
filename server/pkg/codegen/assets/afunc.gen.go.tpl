@@ -9,10 +9,10 @@ package {{ .Package }}
 // {{ .Source }}
 
 import (
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
+	atypes "github.com/crusttech/human/server/automation/types"
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/wfexec"
+	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/wfexec"
 {{- range .Imports }}
   {{ normalizeImport . }}
 {{- end }}

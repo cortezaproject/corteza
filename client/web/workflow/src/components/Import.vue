@@ -1,38 +1,64 @@
 <template>
   <div>
-    <div class="flex flex-col gap-3">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('general.import.json') }}
-        </label>
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".json"
-          class="block w-full text-sm text-color border border-surface rounded-border p-2 cursor-pointer"
-          @change="fileUpload"
-        />
-        <small class="text-muted-color">
-          {{ $t('general.import.reassign-run-as') }}
-        </small>
-      </div>
+    <Button
+      :label="$t('general.import.label')"
+      icon="pi pi-upload"
+      size="small"
+      severity="secondary"
+      :disabled="disabled"
+      @click="showDialog = true"
+    />
 
-      <div class="flex justify-end">
-        <Button
-          :label="$t('general.import.label')"
-          :loading="processing"
-          :disabled="!workflows.length || processing"
-          @click="$emit('import', workflows)"
-        />
+    <Dialog
+      v-model:visible="showDialog"
+      :header="$t('general.import.label')"
+      modal
+      :closable="!processing"
+      :style="{ width: '32rem' }"
+      @hide="onDialogHide"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-primary">
+            {{ $t('general.import.json') }}
+          </label>
+          <CFileDropZone
+            accept=".json"
+            :uploading="processing"
+            :drop-label="$t('general.import.upload-files')"
+            @select="onFilesSelected"
+          />
+          <small class="text-muted-color">
+            {{ $t('general.import.reassign-run-as') }}
+          </small>
+        </div>
+
+        <div class="flex justify-end">
+          <Button
+            :label="$t('general.import.label')"
+            icon="pi pi-download"
+            size="small"
+            :loading="processing"
+            :disabled="!workflows.length || processing"
+            @click="onImport"
+          />
+        </div>
       </div>
-    </div>
+    </Dialog>
   </div>
 </template>
 
 <script>
 import { useToast } from 'primevue/usetoast'
+import { components } from '@planetcrust/human-vue'
+
+const { CFileDropZone } = components
 
 export default {
+  components: {
+    CFileDropZone,
+  },
+
   props: {
     disabled: {
       type: Boolean,
@@ -47,37 +73,48 @@ export default {
 
   data () {
     return {
+      showDialog: false,
       workflows: [],
       processing: false,
     }
   },
 
   methods: {
-    fileUpload (e = {}) {
-      const { files = [] } = (e.type === 'drop' ? e.dataTransfer : e.target) || {}
+    onDialogHide () {
+      if (!this.processing) {
+        this.workflows = []
+      }
+    },
 
-      if (files[0]) {
-        this.processing = true
-        const reader = new FileReader()
+    onFilesSelected (files = []) {
+      const file = files[0]
+      if (!file) return
 
-        reader.readAsText(files[0])
+      this.processing = true
+      const reader = new FileReader()
 
-        reader.onload = (evt) => {
-          try {
-            const { workflows = [] } = JSON.parse(evt.target.result)
-            this.workflows = workflows
-          } catch (err) {
-            this.toast.add({ severity: 'error', summary: this.$t('notification.general.warning'), detail: err?.message, life: 5000 })
-          } finally {
-            this.processing = false
-          }
-        }
+      reader.readAsText(file)
 
-        reader.onerror = () => {
-          this.toast.add({ severity: 'error', summary: this.$t('notification.failed-load-file'), life: 5000 })
+      reader.onload = (evt) => {
+        try {
+          const { workflows = [] } = JSON.parse(evt.target.result)
+          this.workflows = workflows
+        } catch (err) {
+          this.toast.add({ severity: 'error', summary: this.$t('notification.general.warning'), detail: err?.message, life: 5000 })
+        } finally {
           this.processing = false
         }
       }
+
+      reader.onerror = () => {
+        this.toast.add({ severity: 'error', summary: this.$t('notification.failed-load-file'), life: 5000 })
+        this.processing = false
+      }
+    },
+
+    onImport () {
+      this.$emit('import', this.workflows)
+      this.showDialog = false
     },
   },
 }

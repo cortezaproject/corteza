@@ -533,6 +533,36 @@ func KnowledgeBaseRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for Chatbot by calling ChatbotRbacResource fn
+//
+// RBAC resource is in the corteza::system:chatbot/... format
+//
+// This function is auto-generated
+func (r Chatbot) RbacResource() string {
+	return ChatbotRbacResource(r.ID)
+}
+
+// ChatbotRbacResource returns string representation of RBAC resource for Chatbot
+//
+// RBAC resource is in the corteza::system:chatbot/... format
+//
+// This function is auto-generated
+func ChatbotRbacResource(id uint64) string {
+	cpts := []interface{}{ChatbotResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ChatbotRbacResourceTpl(), cpts...)
+
+}
+
+func ChatbotRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

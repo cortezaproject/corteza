@@ -128,10 +128,6 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 			var fullpathGateway = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "gateway")
 			r.Handle("/gateway*", http.StripPrefix(fullpathGateway, app.ApigwService))
 		})
-
-		// Chatbot widget bundle served at /widget.js from the webapp build dir.
-		// Public resource, cache-friendly, CORS * (loaded as <script>).
-		r.Handle("/widget.js", widgetRest.WidgetJSHandler(ho.WebappBaseDir))
 	}()
 
 	func() {

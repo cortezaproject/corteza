@@ -5,29 +5,24 @@
         <label class="font-medium text-primary">
           {{ $t('configurator.delay.duration.label') }}
         </label>
-        <expression-editor
+        <InputText
           v-model="item.config.arguments[0].expr"
-          font-size="18px"
-          show-line-numbers
-          :show-popout="false"
-          @input="valueChanged"
+          :placeholder="$t('configurator.delay.duration.placeholder')"
+          @update:model-value="valueChanged"
         />
-        <small class="text-muted-color">
-          {{ $t('configurator.delay.duration.description') }}
-        </small>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import InputText from 'primevue/inputtext'
 import base from './base.vue'
-import ExpressionEditor from '../ExpressionEditor.vue'
 import eventBus from '../../lib/eventBus'
 
 export default {
   components: {
-    ExpressionEditor,
+    InputText,
   },
 
   extends: base,

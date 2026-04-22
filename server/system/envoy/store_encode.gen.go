@@ -20,7 +20,7 @@ import (
 )
 
 type (
-	// StoreEncoder is responsible for encoding Human resources into the
+	// StoreEncoder is responsible for encoding resources into the
 	// database via the Storer or the DAL interface
 	//
 	// @todo consider having a different encoder for the DAL resources
@@ -79,7 +79,7 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 	return
 }
 
-// Encode encodes the given Human resources into the primary store
+// Encode encodes the given resources into the primary store
 //
 // Encoding should not do any additional processing apart from matching with
 // dependencies and runtime validation

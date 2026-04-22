@@ -1,0 +1,83 @@
+# List of loggable service actions
+
+resource: system:chatbot
+service: chatbot
+
+defaultActionSeverity: notice
+
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: chatbot
+    type: "*types.Chatbot"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Chatbot"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Chatbot"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.ChatbotFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for chatbots"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{chatbot}}"
+    severity: info
+
+  - action: create
+    log: "created {{chatbot}}"
+
+  - action: update
+    log: "updated {{chatbot}}"
+
+  - action: delete
+    log: "deleted {{chatbot}}"
+
+  - action: undelete
+    log: "undeleted {{chatbot}}"
+
+errors:
+  - error: notFound
+    message: "chatbot not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "chatbot was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a chatbot"
+    log: "failed to create a chatbot; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this chatbot"
+    log: "failed to read {{chatbot.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list chatbots"
+    log: "failed to search or list chatbots; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this chatbot"
+    log: "failed to update {{chatbot.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this chatbot"
+    log: "failed to delete {{chatbot.handle}}; insufficient permissions"
+
+  - error: conversationScenarioMissingAgent
+    message: "conversation scenario is missing an agent"
+    severity: warning

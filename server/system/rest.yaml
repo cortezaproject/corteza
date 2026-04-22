@@ -25,10 +25,10 @@ endpoints:
     entrypoint: authClient
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -224,8 +224,8 @@ endpoints:
     endpoint: expressions
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - github.com/crusttech/human/server/pkg/label
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: evaluate
         method: POST
@@ -247,7 +247,7 @@ endpoints:
     entrypoint: settings
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
     apis:
       - name: list
         method: GET
@@ -313,10 +313,10 @@ endpoints:
       - Client ID
       - Session ID
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -586,11 +586,11 @@ endpoints:
       - Client ID
       - Session ID
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
-      - github.com/cortezaproject/corteza/server/pkg/id
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - github.com/crusttech/human/server/pkg/id
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -758,10 +758,10 @@ endpoints:
       - Client ID
       - Session ID
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -1171,7 +1171,7 @@ endpoints:
       - Client ID
       - Session ID
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
       - time
     apis:
       - name: list
@@ -1339,7 +1339,7 @@ endpoints:
       - Client ID
       - Session ID
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
       - time
     apis:
       - name: list
@@ -1436,10 +1436,10 @@ endpoints:
     entrypoint: application
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
+      - github.com/crusttech/human/server/pkg/label
       - sqlxTypes github.com/jmoiron/sqlx/types
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -1702,7 +1702,7 @@ endpoints:
       - Client ID
       - Session ID
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/rbac
+      - github.com/crusttech/human/server/pkg/rbac
     apis:
       - name: list
         path: '/'
@@ -2144,10 +2144,10 @@ endpoints:
     path: '/template'
     entrypoint: template
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
-      - github.com/cortezaproject/corteza/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - github.com/crusttech/human/server/pkg/label
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     authentication:
       - Client ID
       - SessionID
@@ -2336,11 +2336,11 @@ endpoints:
     entrypoint: report
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
-      - github.com/cortezaproject/corteza/server/system/reporting
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - github.com/crusttech/human/server/system/reporting
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -2600,7 +2600,7 @@ endpoints:
     entrypoint: queues
     path: '/queues'
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
       - time
     apis:
       - name: list
@@ -2686,10 +2686,10 @@ endpoints:
     entrypoint: apigwRoute
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
-      - github.com/cortezaproject/corteza/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - github.com/crusttech/human/server/pkg/label
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -2779,7 +2779,7 @@ endpoints:
     entrypoint: apigwFilter
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
       - time
     apis:
       - name: list
@@ -3002,8 +3002,8 @@ endpoints:
   - title: Data Privacy
     entrypoint: dataPrivacy
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/filter
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/pkg/filter
+      - github.com/crusttech/human/server/system/types
     path: '/data-privacy'
     apis:
       - name: connection list
@@ -3102,11 +3102,11 @@ endpoints:
     entrypoint: connection
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
       - encoding/json
       - time
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -3276,9 +3276,9 @@ endpoints:
     entrypoint: configuredConnection
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/pkg/label
+      - github.com/crusttech/human/server/pkg/label
       - encoding/json
-      - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: list
         method: GET
@@ -3370,8 +3370,10 @@ endpoints:
     entrypoint: agent
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
       - time
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
     apis:
       - name: tclMasterList
         method: GET
@@ -3390,6 +3392,12 @@ endpoints:
                 type: uint,
                 name: deleted,
                 title: 'Exclude (0, default), include (1) or return only (2) deleted agents',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
               }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
@@ -3434,10 +3442,10 @@ endpoints:
                 parser: 'types.ParseAgentInvocation',
               }
             - {
-                type: 'types.AgentChatbot',
-                name: chatbot,
-                title: Agent chatbot,
-                parser: 'types.ParseAgentChatbot',
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
               }
       - name: read
         method: GET
@@ -3487,10 +3495,10 @@ endpoints:
                 parser: 'types.ParseAgentInvocation',
               }
             - {
-                type: 'types.AgentChatbot',
-                name: chatbot,
-                title: Agent chatbot,
-                parser: 'types.ParseAgentChatbot',
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
               }
             - {
                 type: '*time.Time',
@@ -3527,20 +3535,13 @@ endpoints:
                 required: false,
                 title: Conversation ID for multi-turn,
               }
-      - name: regenerateWidgetKey
-        method: POST
-        title: Regenerate chatbot widget key
-        path: '/{agentID}/chatbot/regenerate-key'
-        parameters:
-          path:
-            - { type: uint64, name: agentID, required: true, title: Agent ID }
 
   - title: LLM Providers
     path: '/llm-providers'
     entrypoint: llmProvider
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
     apis:
       - name: list
         method: GET
@@ -3630,7 +3631,7 @@ endpoints:
     entrypoint: knowledgeBase
     authentication: []
     imports:
-      - github.com/cortezaproject/corteza/server/system/types
+      - github.com/crusttech/human/server/system/types
       - time
     apis:
       - name: list
@@ -3742,3 +3743,153 @@ endpoints:
             - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
           post:
             - { type: string, name: input, required: true, title: User input message }
+
+  - title: Chatbots
+    path: '/chatbots'
+    entrypoint: chatbot
+    authentication: []
+    imports:
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - time
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
+    apis:
+      - name: list
+        method: GET
+        title: List chatbots
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: string, name: handle, title: Search by handle }
+            - {
+                type: uint,
+                name: deleted,
+                title: 'Exclude (0, default), include (1) or return only (2) deleted chatbots',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create chatbot
+        path: ''
+        parameters:
+          post:
+            - { type: string, name: handle, title: Chatbot handle }
+            - { type: string, name: name, title: Chatbot display name }
+            - { type: bool, name: enabled, title: Whether the chatbot is enabled }
+            - { type: string, name: sessionTTL, title: Session TTL (duration string) }
+            - {
+                type: 'types.ChatbotAllowedOrigins',
+                name: allowedOrigins,
+                title: Allowed origins,
+                parser: 'types.ParseChatbotAllowedOrigins',
+              }
+            - {
+                type: 'types.ChatbotHandoff',
+                name: handoff,
+                title: Chatbot handoff settings,
+                parser: 'types.ParseChatbotHandoff',
+              }
+            - {
+                type: 'types.ChatbotStyling',
+                name: styling,
+                title: Chatbot styling,
+                parser: 'types.ParseChatbotStyling',
+              }
+            - {
+                type: 'types.ChatbotScenarios',
+                name: scenarios,
+                title: Chatbot scenarios,
+                parser: 'types.ParseChatbotScenarios',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+      - name: read
+        method: GET
+        title: Read chatbot details
+        path: '/{chatbotID}'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+      - name: update
+        method: PUT
+        title: Update chatbot details
+        path: '/{chatbotID}'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+          post:
+            - { type: string, name: handle, title: Chatbot handle }
+            - { type: string, name: name, title: Chatbot display name }
+            - { type: bool, name: enabled, title: Whether the chatbot is enabled }
+            - { type: string, name: sessionTTL, title: Session TTL (duration string) }
+            - {
+                type: 'types.ChatbotAllowedOrigins',
+                name: allowedOrigins,
+                title: Allowed origins,
+                parser: 'types.ParseChatbotAllowedOrigins',
+              }
+            - {
+                type: 'types.ChatbotHandoff',
+                name: handoff,
+                title: Chatbot handoff settings,
+                parser: 'types.ParseChatbotHandoff',
+              }
+            - {
+                type: 'types.ChatbotStyling',
+                name: styling,
+                title: Chatbot styling,
+                parser: 'types.ParseChatbotStyling',
+              }
+            - {
+                type: 'types.ChatbotScenarios',
+                name: scenarios,
+                title: Chatbot scenarios,
+                parser: 'types.ParseChatbotScenarios',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+            - {
+                type: '*time.Time',
+                name: updatedAt,
+                required: false,
+                title: Last update (or creation) date,
+              }
+      - name: delete
+        method: DELETE
+        title: Delete chatbot
+        path: '/{chatbotID}'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+      - name: undelete
+        method: POST
+        title: Undelete chatbot
+        path: '/{chatbotID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+      - name: regenerateWidgetKey
+        method: POST
+        title: Regenerate chatbot widget key
+        path: '/{chatbotID}/regenerate-key'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }

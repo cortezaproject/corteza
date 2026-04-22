@@ -34,7 +34,6 @@
                 <TabList class="flex-1 min-w-0 rounded-t-lg">
                   <Tab value="config">{{ $t('agent.editor.tabs.config') }}</Tab>
                   <Tab value="exec">{{ $t('agent.editor.tabs.exec') }}</Tab>
-                  <Tab value="chatbot">{{ $t('agent.editor.tabs.chatbot') }}</Tab>
                   <Tab value="history" v-if="!isCreate">{{ $t('agent.editor.tabs.history') }}</Tab>
                 </TabList>
                 <div
@@ -652,14 +651,6 @@
                   />
                 </TabPanel>
 
-                <TabPanel value="chatbot" class="h-full p-4 flex flex-col gap-4 overflow-auto">
-                  <ChatbotTab
-                    :chatbot="agent.chatbot"
-                    :agentID="agent.agentID"
-                    @regenerate-key="handleRegenerateKey"
-                  />
-                </TabPanel>
-
                 <TabPanel value="history" class="h-full p-4 flex flex-col gap-4 overflow-auto">
                   <CResourceList
                     :items="agentConversations"
@@ -723,18 +714,8 @@
           class="flex-1 min-h-0 overflow-hidden"
         >
           <template #content>
-            <div v-if="activeTab === 'chatbot'" class="h-full flex flex-col min-h-0">
-              <div class="px-4 py-3 border-b border-surface shrink-0 font-medium text-sm">
-                {{ $t('agent.editor.chatbot.panels.preview') }}
-              </div>
-              <ChatbotPreview
-                :chatbot="agent.chatbot"
-                :agentID="agent.agentID || ''"
-                class="flex-1 min-h-0"
-              />
-            </div>
             <div
-              v-else-if="isCreate"
+              v-if="isCreate"
               class="flex items-center justify-center h-full p-6 text-muted-color text-sm text-center"
             >
               {{ $t('agent.editor.split.chatPlaceholder') }}
@@ -927,8 +908,6 @@ import { system } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import AiChat from '@/components/AiChat.vue'
 import AiTrace from '@/components/AiTrace.vue'
-import ChatbotTab from '@/views/Editor/ChatbotTab.vue'
-import ChatbotPreview from '@/views/Editor/ChatbotPreview.vue'
 import { useEditorSplit } from '@/composables/useEditorSplit'
 
 const {
@@ -1230,17 +1209,6 @@ async function handleSubmit({ valid }) {
     $toast.toastErrorHandler(t('notification.agent.saveFailed'))(err)
   } finally {
     saving.value = false
-  }
-}
-
-async function handleRegenerateKey() {
-  if (!route.params.agentID) return
-  try {
-    const updated = await $SystemAPI.agentRegenerateWidgetKey({ agentID: route.params.agentID })
-    applyAgentData(updated)
-    $toast.toastSuccess(t('agent.editor.chatbot.widgetKey.regenerated'))
-  } catch (err) {
-    $toast.toastErrorHandler(t('agent.editor.chatbot.widgetKey.regenerateFailed'))(err)
   }
 }
 

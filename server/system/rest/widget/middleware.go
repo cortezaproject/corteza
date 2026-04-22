@@ -10,7 +10,7 @@ type ctxKey int
 
 const (
 	ctxKeyClaims ctxKey = iota
-	ctxKeyAgent
+	ctxKeyChatbot
 )
 
 // originAllowed implements the simple allowlist:
@@ -61,14 +61,16 @@ func (c *Controller) corsForKey(next http.Handler) http.Handler {
 			}
 		}
 
-		agent, err := c.lookup.Find(r.Context(), widgetKey)
-		if err != nil || agent == nil || !agent.Chatbot.Enabled {
+		ctx := r.Context()
+
+		cb, err := c.chatbotLookup.Find(ctx, widgetKey)
+		if err != nil || cb == nil || !cb.Enabled {
 			http.Error(w, "widget: forbidden", http.StatusForbidden)
 			return
 		}
 
 		origin := r.Header.Get("Origin")
-		if !originAllowed(origin, agent.Chatbot.AllowedOrigins) {
+		if !originAllowed(origin, cb.AllowedOrigins) {
 			http.Error(w, "widget: origin not allowed", http.StatusForbidden)
 			return
 		}
@@ -79,7 +81,7 @@ func (c *Controller) corsForKey(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ctxKeyAgent, agent)
+		ctx = context.WithValue(ctx, ctxKeyChatbot, cb)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -98,14 +100,14 @@ func (c *Controller) requireSessionJWT(next http.Handler) http.Handler {
 			return
 		}
 
-		a := agentFromCtx(r.Context())
-		if a == nil {
-			http.Error(w, "widget: no agent", http.StatusUnauthorized)
+		cb := chatbotFromCtx(r.Context())
+		if cb == nil {
+			http.Error(w, "widget: no session", http.StatusUnauthorized)
 			return
 		}
 
-		claims, err := verifySession(raw, deriveSessionSecret(a.Chatbot.WidgetKey, c.serverSecret))
-		if err != nil || claims.Aid != a.ID {
+		claims, err := verifySession(raw, deriveSessionSecret(cb.WidgetKey, c.serverSecret))
+		if err != nil {
 			http.Error(w, "widget: invalid session", http.StatusUnauthorized)
 			return
 		}

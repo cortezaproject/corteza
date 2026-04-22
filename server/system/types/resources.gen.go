@@ -39,5 +39,6 @@ const (
 	AgentResourceType                     = "corteza::system:agent"
 	AiConversationResourceType            = "corteza::system:ai-conversation"
 	KnowledgeBaseResourceType             = "corteza::system:knowledge-base"
+	ChatbotResourceType                   = "corteza::system:chatbot"
 	ComponentResourceType                 = "corteza::system"
 )

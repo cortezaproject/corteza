@@ -8328,7 +8328,8 @@ export default class System {
 
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, status, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8339,6 +8340,7 @@ export default class System {
       handle,
       status,
       deleted,
+      labels,
       limit,
       incTotal,
       pageCursor,
@@ -8371,7 +8373,8 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, meta, behavior, execution, access, invocation, chatbot } = (a as KV) || {}
+    const { handle, status, meta, behavior, execution, access, invocation, labels } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -8385,7 +8388,7 @@ export default class System {
       execution,
       access,
       invocation,
-      chatbot,
+      labels,
     }
     return this.api()
       .request(cfg)
@@ -8452,8 +8455,18 @@ export default class System {
 
   // Update agent details
   async agentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID, handle, status, meta, behavior, execution, access, invocation, chatbot, updatedAt } =
-      (a as KV) || {}
+    const {
+      agentID,
+      handle,
+      status,
+      meta,
+      behavior,
+      execution,
+      access,
+      invocation,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
     }
@@ -8472,7 +8485,7 @@ export default class System {
       execution,
       access,
       invocation,
-      chatbot,
+      labels,
       updatedAt,
     }
     return this.api()
@@ -8621,42 +8634,6 @@ export default class System {
   agentExecEndpoint(a: KV): string {
     const { agentID } = a || {}
     return `/agents/${agentID}/exec`
-  }
-
-  // Regenerate chatbot widget key (invalidates live widget sessions)
-  async agentRegenerateWidgetKey(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID } = (a as KV) || {}
-    if (!agentID) {
-      throw Error('field agentID is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'post',
-      url: this.agentRegenerateWidgetKeyEndpoint({ agentID }),
-    }
-    return this.api()
-      .request(cfg)
-      .then(result => stdResolve(result))
-  }
-
-  agentRegenerateWidgetKeyCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
-    const cancelTokenSource = axios.CancelToken.source()
-    const options = { ...extra, cancelToken: cancelTokenSource.token }
-
-    return {
-      response: () => this.agentRegenerateWidgetKey(a, options),
-      cancel: () => {
-        cancelTokenSource.cancel()
-      },
-    }
-  }
-
-  agentRegenerateWidgetKeyEndpoint(a: KV): string {
-    const { agentID } = a || {}
-    return `/agents/${agentID}/chatbot/regenerate-key`
   }
 
   // List LLM providers
@@ -9188,14 +9165,13 @@ export default class System {
 
   // List AI conversations
   async aiConversationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.aiConversationListEndpoint(),
     }
     cfg.params = {
-      agentID,
       deleted,
       limit,
       incTotal,
@@ -9346,9 +9322,12 @@ export default class System {
 
   // Continue AI conversation
   async aiConversationContinue(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { aiConversationID, input } = (a as KV) || {}
+    const { aiConversationID, agentID, input } = (a as KV) || {}
     if (!aiConversationID) {
       throw Error('field aiConversationID is empty')
+    }
+    if (!agentID) {
+      throw Error('field agentID is empty')
     }
     if (!input) {
       throw Error('field input is empty')
@@ -9361,6 +9340,7 @@ export default class System {
       }),
     }
     cfg.data = {
+      agentID,
       input,
     }
     return this.api()
@@ -9386,5 +9366,319 @@ export default class System {
   aiConversationContinueEndpoint(a: KV): string {
     const { aiConversationID } = a || {}
     return `/ai-conversations/${aiConversationID}/continue`
+  }
+
+  // List chatbots
+  async chatbotList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, handle, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.chatbotListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      handle,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotListEndpoint(): string {
+    return '/chatbots/'
+  }
+
+  // Create chatbot
+  async chatbotCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      handle,
+      name,
+      enabled,
+      sessionTTL,
+      allowedOrigins,
+      handoff,
+      styling,
+      scenarios,
+      labels,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.chatbotCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      name,
+      enabled,
+      sessionTTL,
+      allowedOrigins,
+      handoff,
+      styling,
+      scenarios,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotCreateEndpoint(): string {
+    return '/chatbots'
+  }
+
+  // Read chatbot details
+  async chatbotRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.chatbotReadEndpoint({
+        chatbotID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotReadEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}`
+  }
+
+  // Update chatbot details
+  async chatbotUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      chatbotID,
+      handle,
+      name,
+      enabled,
+      sessionTTL,
+      allowedOrigins,
+      handoff,
+      styling,
+      scenarios,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.chatbotUpdateEndpoint({
+        chatbotID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      name,
+      enabled,
+      sessionTTL,
+      allowedOrigins,
+      handoff,
+      styling,
+      scenarios,
+      labels,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotUpdateEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}`
+  }
+
+  // Delete chatbot
+  async chatbotDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.chatbotDeleteEndpoint({
+        chatbotID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotDeleteEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}`
+  }
+
+  // Undelete chatbot
+  async chatbotUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.chatbotUndeleteEndpoint({
+        chatbotID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotUndeleteEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}/undelete`
+  }
+
+  // Regenerate chatbot widget key
+  async chatbotRegenerateWidgetKey(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.chatbotRegenerateWidgetKeyEndpoint({
+        chatbotID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotRegenerateWidgetKeyCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotRegenerateWidgetKey(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotRegenerateWidgetKeyEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}/regenerate-key`
   }
 }

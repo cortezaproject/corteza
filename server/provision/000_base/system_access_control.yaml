@@ -45,6 +45,16 @@ allow:
       - apigw-routes.search
       - report.create
       - reports.search
+      - agent.create
+      - agents.search
+      - ai-conversation.create
+      - ai-conversations.search
+      - chatbot.create
+      - chatbots.search
+      - knowledge-base.create
+      - knowledge-bases.search
+      - llm-provider.create
+      - llm-providers.search
 
     corteza::system:auth-client/*:
       - read
@@ -96,6 +106,31 @@ allow:
       - delete
       - run
 
+    corteza::system:agent/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:chatbot/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:ai-conversation/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:knowledge-base/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:llm-provider/*:
+      - read
+      - update
+      - delete
+
   security-admin:
     corteza::compose/:
       - grant
@@ -132,6 +167,16 @@ allow:
       - queues.search
       - report.create
       - reports.search
+      - agent.create
+      - agents.search
+      - ai-conversation.create
+      - ai-conversations.search
+      - chatbot.create
+      - chatbots.search
+      - knowledge-base.create
+      - knowledge-bases.search
+      - llm-provider.create
+      - llm-providers.search
 
     corteza::system:auth-client/*:
       - read

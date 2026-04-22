@@ -1749,7 +1749,7 @@ func AuthErrMaxUserLimitReached(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("you have reached your user limit, contact your Human administrator", nil),
+		p.Format("you have reached your user limit, contact your administrator", nil),
 
 		errors.Meta("type", "maxUserLimitReached"),
 		errors.Meta("resource", "system:auth"),

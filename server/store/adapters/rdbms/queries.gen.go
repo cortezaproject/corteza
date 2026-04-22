@@ -155,7 +155,6 @@ var (
 			"execution",
 			"access",
 			"invocation",
-			"chatbot",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -180,7 +179,6 @@ var (
 				"execution":  res.Execution,
 				"access":     res.Access,
 				"invocation": res.Invocation,
-				"chatbot":    res.Chatbot,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -208,7 +206,6 @@ var (
 						"execution":  res.Execution,
 						"access":     res.Access,
 						"invocation": res.Invocation,
-						"chatbot":    res.Chatbot,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
 						"deleted_at": res.DeletedAt,
@@ -234,7 +231,6 @@ var (
 				"execution":  res.Execution,
 				"access":     res.Access,
 				"invocation": res.Invocation,
-				"chatbot":    res.Chatbot,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -1782,6 +1778,138 @@ var (
 	//
 	// This function is auto-generated
 	automationWorkflowPrimaryKeys = func(res *automationType.Workflow) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// chatbotTable represents chatbots store table
+	//
+	// This value is auto-generated
+	chatbotTable = goqu.T("chatbots")
+
+	// chatbotSelectQuery assembles select query for fetching chatbots
+	//
+	// This function is auto-generated
+	chatbotSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"name",
+			"enabled",
+			"widget_key",
+			"allowed_origins",
+			"session_ttl",
+			"handoff",
+			"styling",
+			"scenarios",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(chatbotTable)
+	}
+
+	// chatbotInsertQuery assembles query inserting chatbots
+	//
+	// This function is auto-generated
+	chatbotInsertQuery = func(d goqu.DialectWrapper, res *systemType.Chatbot) *goqu.InsertDataset {
+		return d.Insert(chatbotTable).
+			Rows(goqu.Record{
+				"id":              res.ID,
+				"handle":          res.Handle,
+				"name":            res.Name,
+				"enabled":         res.Enabled,
+				"widget_key":      res.WidgetKey,
+				"allowed_origins": res.AllowedOrigins,
+				"session_ttl":     res.SessionTTL,
+				"handoff":         res.Handoff,
+				"styling":         res.Styling,
+				"scenarios":       res.Scenarios,
+				"created_at":      res.CreatedAt,
+				"updated_at":      res.UpdatedAt,
+				"deleted_at":      res.DeletedAt,
+				"created_by":      res.CreatedBy,
+				"updated_by":      res.UpdatedBy,
+				"deleted_by":      res.DeletedBy,
+			})
+	}
+
+	// chatbotUpsertQuery assembles (insert+on-conflict) query for replacing chatbots
+	//
+	// This function is auto-generated
+	chatbotUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Chatbot) *goqu.InsertDataset {
+		var target = `,id`
+
+		return chatbotInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":          res.Handle,
+						"name":            res.Name,
+						"enabled":         res.Enabled,
+						"widget_key":      res.WidgetKey,
+						"allowed_origins": res.AllowedOrigins,
+						"session_ttl":     res.SessionTTL,
+						"handoff":         res.Handoff,
+						"styling":         res.Styling,
+						"scenarios":       res.Scenarios,
+						"created_at":      res.CreatedAt,
+						"updated_at":      res.UpdatedAt,
+						"deleted_at":      res.DeletedAt,
+						"created_by":      res.CreatedBy,
+						"updated_by":      res.UpdatedBy,
+						"deleted_by":      res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// chatbotUpdateQuery assembles query for updating chatbots
+	//
+	// This function is auto-generated
+	chatbotUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Chatbot) *goqu.UpdateDataset {
+		return d.Update(chatbotTable).
+			Set(goqu.Record{
+				"handle":          res.Handle,
+				"name":            res.Name,
+				"enabled":         res.Enabled,
+				"widget_key":      res.WidgetKey,
+				"allowed_origins": res.AllowedOrigins,
+				"session_ttl":     res.SessionTTL,
+				"handoff":         res.Handoff,
+				"styling":         res.Styling,
+				"scenarios":       res.Scenarios,
+				"created_at":      res.CreatedAt,
+				"updated_at":      res.UpdatedAt,
+				"deleted_at":      res.DeletedAt,
+				"created_by":      res.CreatedBy,
+				"updated_by":      res.UpdatedBy,
+				"deleted_by":      res.DeletedBy,
+			}).
+			Where(chatbotPrimaryKeys(res))
+	}
+
+	// chatbotDeleteQuery assembles delete query for removing chatbots
+	//
+	// This function is auto-generated
+	chatbotDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(chatbotTable).Where(ee...)
+	}
+
+	// chatbotDeleteQuery assembles delete query for removing chatbots
+	//
+	// This function is auto-generated
+	chatbotTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(chatbotTable)
+	}
+
+	// chatbotPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	chatbotPrimaryKeys = func(res *systemType.Chatbot) goqu.Ex {
 		return goqu.Ex{
 			"id": res.ID,
 		}

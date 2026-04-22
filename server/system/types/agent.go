@@ -26,7 +26,6 @@ type (
 		Execution  AgentExecution  `json:"execution"`
 		Access     AgentAccess     `json:"access"`
 		Invocation AgentInvocation `json:"invocation"`
-		Chatbot    AgentChatbot    `json:"chatbot"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string"`

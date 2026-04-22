@@ -84,6 +84,30 @@ func (m AuthClient) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
+func (m *Chatbot) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m Chatbot) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (Chatbot) LabelResourceKind() string {
+	return "chatbot"
+}
+
+// GetLabels adds new label to label map
+func (m Chatbot) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *ConfiguredConnection) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
