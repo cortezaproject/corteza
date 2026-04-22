@@ -122,7 +122,8 @@ export function useSegmentForm(options: {
           .filter((el: any) => el.input)
           .map((element: any, elIdx: number) => {
             const param = getParam(element.input.argument)
-            const isAgg = param?.aggregate || false
+            const AGGREGATE_TYPES = ['FieldValueMap', 'Array']
+            const isAgg = param?.aggregate || AGGREGATE_TYPES.includes(element.input.type) || false
             const { disabled, disabledPlaceholder } = resolveDisabledState(element.input.context)
 
             // Reference state
@@ -149,6 +150,7 @@ export function useSegmentForm(options: {
               isReference,
               referenceLabel,
               options: inputOptions,
+              isAggregate: isAgg,
             }
           }),
       })),

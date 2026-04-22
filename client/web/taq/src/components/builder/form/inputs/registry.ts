@@ -12,6 +12,7 @@ import {
   CInputCron,
 } from '@planetcrust/human-vue/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
+import CInputArray from './CInputArray.vue'
 
 /**
  * Maps input.type (from API function definition segments) to Vue component.
@@ -42,6 +43,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   Text: InputText,
   String: InputText,
   Number: InputText,
+
+  // Array/List inputs
+  Array: CInputArray,
 
   // Booleans
   Boolean: CInputSwitch,

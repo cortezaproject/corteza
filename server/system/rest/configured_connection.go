@@ -40,6 +40,7 @@ type (
 		Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (types.ConfiguredConnectionSet, types.ConfiguredConnectionFilter, error)
 		Enable(ctx context.Context, ID uint64) (*types.ConfiguredConnection, error)
 		Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error)
+		RefreshDiscovery(ctx context.Context, ID uint64) (map[string]any, error)
 	}
 )
 
@@ -101,6 +102,10 @@ func (ctrl ConfiguredConnection) Enable(ctx context.Context, r *request.Configur
 
 func (ctrl ConfiguredConnection) Check(ctx context.Context, r *request.ConfiguredConnectionCheck) (interface{}, error) {
 	return ctrl.svc.Check(ctx, r.ConnectionID)
+}
+
+func (ctrl ConfiguredConnection) RefreshDiscovery(ctx context.Context, r *request.ConfiguredConnectionCheck) (interface{}, error) {
+	return ctrl.svc.RefreshDiscovery(ctx, r.ConnectionID)
 }
 
 func (ctrl ConfiguredConnection) makeFilterPayload(ctx context.Context, set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter) (*configuredConnectionSetPayload, error) {

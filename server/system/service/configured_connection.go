@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
 	atypes "github.com/crusttech/human/server/automation/types"
@@ -25,7 +26,7 @@ import (
 	"github.com/crusttech/human/server/store/adapters/api/drivers/google"
 	restDriver "github.com/crusttech/human/server/store/adapters/api/drivers/rest"
 	"github.com/crusttech/human/server/system/types"
-	"github.com/davecgh/go-spew/spew"
+	"go.uber.org/zap"
 )
 
 type (
@@ -35,6 +36,7 @@ type (
 		store         store.Storer
 		ac            configuredConnectionAccessController
 		connectionSvc *connection
+		logger        *zap.Logger
 	}
 
 	configuredConnectionAccessController interface {
@@ -62,6 +64,7 @@ func ConfiguredConnectionSvc() *configuredConnection {
 		store:         DefaultStore,
 		ac:            DefaultAccessControl,
 		connectionSvc: DefaultConnection,
+		logger:        DefaultLogger.Named("configured-connection"),
 	}
 }
 
@@ -77,6 +80,11 @@ func (svc *configuredConnection) FindByID(ctx context.Context, ID uint64) (res *
 
 	err = func() error {
 		if res, err = loadConfiguredConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
+
+		// temp: always use the live connection definition instead of the snapshot
+		if err = svc.liveConnection(ctx, res); err != nil {
 			return err
 		}
 
@@ -195,6 +203,11 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
+		// temp: always use the live connection definition instead of the snapshot
+		if err = svc.liveConnection(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setConnection(res)
 
 		if res.Status != "draft" {
@@ -227,6 +240,10 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			return err
 		}
 
+		// Fetch and cache Google resource discovery (spreadsheets + tabs).
+		// Non-fatal: failures are logged and silently skipped.
+		_ = svc.syncGoogleDiscovery(ctx, res)
+
 		// Load all active configured connections for the same source connection
 		// so that registerOperations can merge them into a single function entry
 		// with all configurationID options. Without this, each Enable call would
@@ -239,6 +256,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 		for _, s := range siblings {
 			allCCs = append(allCCs, *s)
 		}
+
 		svc.registerOperations(allCCs)
 		svc.registerWebhookTriggers(*res)
 		return nil
@@ -258,7 +276,15 @@ func (svc *configuredConnection) Search(ctx context.Context, filter types.Config
 		}
 
 		set, f, err = store.SearchConfiguredConnections(ctx, svc.store, filter)
-		return err
+		if err != nil {
+			return err
+		}
+
+		// temp: always use the live connection definition instead of the snapshot
+		for _, cc := range set {
+			_ = svc.liveConnection(ctx, cc)
+		}
+		return nil
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, ConfiguredConnectionActionSearch, err)
@@ -310,9 +336,9 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 		baseURL := conn.Service.BaseURL.Value
 		switch {
 		case strings.Contains(baseURL, "googleapis.com/calendar"):
-			scopes = []string{"https://www.googleapis.com/auth/calendar"}
+			scopes = []string{"https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/drive.readonly"}
 		case strings.Contains(baseURL, "sheets.googleapis.com"):
-			scopes = []string{"https://www.googleapis.com/auth/spreadsheets"}
+			scopes = []string{"https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.readonly"}
 		case strings.Contains(baseURL, "googleapis.com/drive"):
 			scopes = []string{"https://www.googleapis.com/auth/drive"}
 		case strings.Contains(baseURL, "tasks.googleapis.com"):
@@ -374,6 +400,11 @@ func resolveExecutor(
 func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error) {
 	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
 	if err != nil {
+		return nil, err
+	}
+
+	// temp: always use the live connection definition instead of the snapshot
+	if err = svc.liveConnection(ctx, cc); err != nil {
 		return nil, err
 	}
 
@@ -463,6 +494,18 @@ func loadConfiguredConnection(ctx context.Context, s store.ConfiguredConnections
 	}
 
 	return
+}
+
+// liveConnection replaces cc.Connection with the current live connection definition
+// fetched from the store. This is a temporary measure to avoid stale snapshots
+// until a proper sync/versioning flow is implemented.
+func (svc *configuredConnection) liveConnection(ctx context.Context, cc *types.ConfiguredConnection) error {
+	conn, err := loadConnection(ctx, svc.store, cc.ConnectionID)
+	if err != nil {
+		return err
+	}
+	cc.Connection = *conn
+	return nil
 }
 
 // resolveTemplates substitutes all {{placeholder}} variables in a connection's
@@ -651,6 +694,8 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 	// Group configured connections by their source connection (connector)
 	byConn := make(map[uint64][]types.ConfiguredConnection)
 	for _, cc := range set {
+		// temp: always use the live connection definition instead of the snapshot
+		_ = svc.liveConnection(ctx, cc)
 		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)
 	}
 
@@ -718,6 +763,11 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 
 	segments[0].Sections[0].Elements = append(input, segments[0].Sections[0].Elements...)
 
+	// Inject discovered resource options (spreadsheetId → Select, sheetName → flat tab list)
+	if len(ccs) > 0 && len(ccs[0].Config.Discovery) > 0 {
+		injectDiscoveredOptions(segments, ccs[0].Config.Discovery)
+	}
+
 	var icon *atypes.NgAutomationIcon
 	if conn.Meta.Icon != "" {
 		icon = &atypes.NgAutomationIcon{Type: "name", Value: conn.Meta.Icon}
@@ -756,10 +806,8 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 					configID, _ = strconv.ParseUint(id, 10, 64)
 				}
 			}
-			spew.Dump("resolveExecutor conn.Handle", conn.Handle, "configID", configID)
 
 			dalConnectionID, ok := dalByConfig[configID]
-			spew.Dump("resolveExecutor dalConnectionID", dalConnectionID, "ok", ok)
 			if !ok {
 				return nil, fmt.Errorf("unknown configurationID: %d", configID)
 			}
@@ -800,6 +848,10 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 				vars[k] = v
 			}
 
+			if dbg, _ := json.Marshal(vars); dbg != nil {
+				fmt.Printf("[DEBUG] connector vars before template resolution: %s\n", string(dbg))
+			}
+
 			var respBody []byte
 			for _, step := range op.Steps {
 				switch step.Type {
@@ -831,10 +883,7 @@ func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOp
 						return nil, err
 					}
 
-					spew.Dump("prepre", path, headers, payload, err)
-
 					statusCode, outHeaders, body, err := execute(ctx, step.HTTP.Method, path, headers, payload)
-					spew.Dump("postpost", statusCode, outHeaders, err)
 					if err != nil {
 						return nil, fmt.Errorf("operation execution failed: %w", err)
 					}
@@ -982,7 +1031,21 @@ func resolveTemplate(tpl types.ConnectionTemplate, vars map[string]any) (string,
 		name := sub[1]
 
 		if v, ok := vars[name]; ok {
-			switch s := v.(type) {
+			raw := v
+			if tv, is := v.(expr.TypedValue); is {
+				type dictI interface{ Dict() map[string]any }
+				type sliceI interface{ Slice() []any }
+
+				if d, ok := tv.(dictI); ok {
+					raw = d.Dict()
+				} else if s, ok := tv.(sliceI); ok {
+					raw = s.Slice()
+				} else {
+					raw = tv.Get()
+				}
+			}
+
+			switch s := raw.(type) {
 			case string:
 				return s
 			default:
@@ -1063,6 +1126,7 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 			ArgumentName: in.Name,
 			Types:        []string{normalizeParamType(in.Type)},
 			Required:     in.Required,
+			Aggregate:    in.Aggregate,
 			Meta: &atypes.ParamMeta{
 				Label: in.Name,
 			},
@@ -1283,3 +1347,220 @@ func buildMIMEEmail(from, to, subject, body string) (string, error) {
 	buf.WriteString(body)
 	return base64.URLEncoding.EncodeToString(buf.Bytes()), nil
 }
+
+// syncGoogleDiscovery fetches accessible Google resources for the given
+// configured connection and stores them in cc.Config.Discovery.
+// Only runs for Google connectors (baseURL contains "googleapis.com").
+// On any Drive error, logs a warning and returns nil (non-fatal).
+func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *types.ConfiguredConnection) error {
+	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
+	baseURL := resolved.Service.BaseURL.Value
+
+	if !strings.Contains(baseURL, "googleapis.com") {
+		return nil // not a Google connector
+	}
+
+	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+
+	driveWrapper := google.NewWrapper("https://www.googleapis.com/drive/v3", cc.ID)
+
+	q := url.QueryEscape("mimeType='application/vnd.google-apps.spreadsheet'")
+	// 1. List all spreadsheets the service account can access
+	_, _, body, err := driveWrapper.Run(ctx, "GET",
+		"/files?q="+q+"&fields=files(id,name)&pageSize=200",
+		nil, nil)
+	if err != nil {
+		svc.logger.Warn("google discovery: drive API unavailable",
+			zap.Uint64("ccID", cc.ID), zap.Error(err))
+		return nil
+	}
+
+	var driveResp struct {
+		Files []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal(body, &driveResp); err != nil {
+		return nil
+	}
+
+	spreadsheets := make([]atypes.SelectItem, 0, len(driveResp.Files))
+	for _, f := range driveResp.Files {
+		spreadsheets = append(spreadsheets, atypes.SelectItem{Value: f.ID, Label: f.Name})
+	}
+
+	// 2. Fetch tabs for each spreadsheet
+	sheetsWrapper := google.NewWrapper("https://sheets.googleapis.com/v4/spreadsheets", cc.ID)
+	tabs := make(map[string][]atypes.SelectItem, len(driveResp.Files))
+
+	for _, f := range driveResp.Files {
+		_, _, shBody, err := sheetsWrapper.Run(ctx, "GET",
+			"/"+f.ID+"?fields=sheets.properties%28title%29",
+			nil, nil)
+		if err != nil {
+			continue // partial data is fine
+		}
+
+		var shResp struct {
+			Sheets []struct {
+				Properties struct {
+					Title string `json:"title"`
+				} `json:"properties"`
+			} `json:"sheets"`
+		}
+		if err := json.Unmarshal(shBody, &shResp); err != nil {
+			continue
+		}
+
+		items := make([]atypes.SelectItem, 0, len(shResp.Sheets))
+		for _, sh := range shResp.Sheets {
+			items = append(items, atypes.SelectItem{Value: sh.Properties.Title, Label: sh.Properties.Title})
+		}
+		tabs[f.ID] = items
+	}
+
+	// 3. Persist into cc.Config.Discovery
+	if cc.Config.Discovery == nil {
+		cc.Config.Discovery = make(map[string]json.RawMessage)
+	}
+
+	ssJSON, _ := json.Marshal(spreadsheets)
+	tabsJSON, _ := json.Marshal(tabs)
+	cc.Config.Discovery["spreadsheets"] = ssJSON
+	cc.Config.Discovery["tabs"] = tabsJSON
+
+	return store.UpdateConfiguredConnection(ctx, svc.store, cc)
+}
+
+// injectDiscoveredOptions walks segment elements and sets Options + Type="Select"
+// for known discoverable param names.
+// - spreadsheetId → list of spreadsheets
+// - sheetName     → deduplicated flat list of all tab names across all spreadsheets
+func injectDiscoveredOptions(segments []atypes.ConstructSegment, discovery map[string]json.RawMessage) {
+	var spreadsheets []atypes.SelectItem
+	if raw, ok := discovery["spreadsheets"]; ok {
+		_ = json.Unmarshal(raw, &spreadsheets)
+	}
+
+	// Build flat, deduplicated tab list
+	var tabs []atypes.SelectItem
+	if raw, ok := discovery["tabs"]; ok {
+		var tabMap map[string][]atypes.SelectItem
+		if err := json.Unmarshal(raw, &tabMap); err == nil {
+			seen := make(map[string]bool)
+			for _, items := range tabMap {
+				for _, item := range items {
+					if !seen[item.Value] {
+						seen[item.Value] = true
+						tabs = append(tabs, item)
+					}
+				}
+			}
+		}
+	}
+
+	for si := range segments {
+		for seci := range segments[si].Sections {
+			for ei := range segments[si].Sections[seci].Elements {
+				el := &segments[si].Sections[seci].Elements[ei]
+				switch el.Input.Argument {
+				case "spreadsheetId":
+					if len(spreadsheets) > 0 {
+						el.Input.Type = "Select"
+						el.Input.Options = spreadsheets
+					}
+				case "sheetName":
+					if len(tabs) > 0 {
+						el.Input.Type = "Select"
+						el.Input.Options = tabs
+					}
+				}
+			}
+		}
+	}
+}
+
+// RefreshDiscovery re-fetches Google resource discovery for the given CC,
+// re-registers operations so the construct library reflects the new options,
+// and returns a summary.
+func (svc *configuredConnection) RefreshDiscovery(ctx context.Context, ID uint64) (map[string]any, error) {
+	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = svc.syncGoogleDiscovery(ctx, cc); err != nil {
+		return nil, err
+	}
+
+	// Re-register operations so the construct library picks up new options
+	siblings, _, _ := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		ConnectionID: cc.ConnectionID,
+		Status:       []string{"active"},
+	})
+	allCCs := make([]types.ConfiguredConnection, 0, len(siblings))
+	for _, s := range siblings {
+		allCCs = append(allCCs, *s)
+	}
+	svc.registerOperations(allCCs)
+
+	var spreadsheetCount int
+	if raw, ok := cc.Config.Discovery["spreadsheets"]; ok {
+		var ss []atypes.SelectItem
+		if json.Unmarshal(raw, &ss) == nil {
+			spreadsheetCount = len(ss)
+		}
+	}
+
+	return map[string]any{
+		"ok":               true,
+		"spreadsheetCount": spreadsheetCount,
+	}, nil
+}
+
+// StartDiscoveryRefreshLoop starts a background goroutine that periodically
+// re-fetches Google resource discovery for all active Google configured
+// connections and re-registers their operations.
+func (svc *configuredConnection) StartDiscoveryRefreshLoop(ctx context.Context, interval time.Duration) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				svc.refreshAllGoogleConnections(ctx)
+			}
+		}
+	}()
+}
+
+func (svc *configuredConnection) refreshAllGoogleConnections(ctx context.Context) {
+	set, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		Status: []string{"active"},
+	})
+	if err != nil {
+		svc.logger.Warn("google discovery refresh: failed to load connections", zap.Error(err))
+		return
+	}
+
+	// Group by connection so registerOperations sees all siblings
+	byConn := make(map[uint64][]types.ConfiguredConnection)
+	for _, cc := range set {
+		resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
+		if !strings.Contains(resolved.Service.BaseURL.Value, "googleapis.com") {
+			continue
+		}
+		if err := svc.syncGoogleDiscovery(ctx, cc); err != nil {
+			svc.logger.Warn("google discovery refresh: sync failed",
+				zap.Uint64("ccID", cc.ID), zap.Error(err))
+		}
+		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)
+	}
+	for _, ccs := range byConn {
+		svc.registerOperations(ccs)
+	}
+}
+

@@ -95,6 +95,12 @@ func (set ParamSet) VerifyArguments(ee ExprSet) error {
 			continue
 		}
 
+		// Aggregate params collect multiple scalar expressions into an Array server-side;
+		// skip the type check for their individual elements.
+		if p.Aggregate {
+			continue
+		}
+
 		if !p.HasType(e.Type) && !p.HasType(expr.Any{}.Type()) {
 			msg := "incompatible argument type '%s' for parameter '%s', expecting %s"
 			if len(p.Types) > 1 {

@@ -37,6 +37,10 @@ type (
 
 		CredentialID uint64                      `json:"credentialID,string"`
 		Params       []ConfiguredConnectionParam `json:"params,omitempty"`
+
+		// Discovery holds cached resource lists fetched at registration time.
+		// Keyed by discovery key (e.g. "spreadsheets", "tabs").
+		Discovery map[string]json.RawMessage `json:"discovery,omitempty"`
 	}
 
 	ConfiguredConnectionParam struct {

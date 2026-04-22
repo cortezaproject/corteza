@@ -143,10 +143,11 @@ type (
 	}
 
 	ConnectionOperationInputField struct {
-		Name     string         `json:"name"`
-		Type     string         `json:"type"`
-		Required bool           `json:"required,omitempty"`
-		Meta     map[string]any `json:"meta,omitempty"`
+		Name      string         `json:"name"`
+		Type      string         `json:"type"`
+		Required  bool           `json:"required,omitempty"`
+		Aggregate bool           `json:"aggregate,omitempty"`
+		Meta      map[string]any `json:"meta,omitempty"`
 	}
 
 	ConnectionOperationOutputField struct {

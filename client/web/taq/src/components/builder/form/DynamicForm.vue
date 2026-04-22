@@ -24,6 +24,7 @@
             :required="input.required"
             :argument="input.argument"
             :options="input.options || []"
+            :aggregate="input.isAggregate || false"
             :is-reference="input.isReference"
             :reference-label="input.referenceLabel"
             :show-reference-toggle="showReferenceToggle"

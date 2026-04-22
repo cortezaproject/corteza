@@ -100,7 +100,8 @@ function resolveReferenceValue(scope, source) {
 
 function onUpdate(argumentName, value) {
   const param = getParam(argumentName)
-  const isAgg = param?.aggregate || false
+  const isTypeAggregate = param?.types && (param.types.includes('FieldValueMap') || param.types.includes('Array'))
+  const isAgg = param?.aggregate || isTypeAggregate || false
 
   let newArgs = [...props.arguments]
 
@@ -130,7 +131,7 @@ function onUpdate(argumentName, value) {
         newArgs.push({
           argumentName,
           target,
-          type: 'Any',
+          type: 'String',
           scope: rowData.scope,
           expr: rowData.source,
           value: undefined,
@@ -141,7 +142,7 @@ function onUpdate(argumentName, value) {
         newArgs.push({
           argumentName,
           target,
-          type: 'Any',
+          type: 'String',
           value: val,
         })
       }
@@ -180,7 +181,7 @@ function onReferenceSelect(argumentName, { scope, source }, target) {
     const entry = {
       argumentName,
       target,
-      type: 'Any',
+      type: 'String',
       scope,
       expr: source,
       value: undefined,
@@ -289,14 +290,19 @@ function handleValueUpdate(argumentName, value) {
 }
 
 // Enrich toggleReference with the parameter's accepted types
-// Handles both plain string (argument name) and { argument, target } (per-row FieldValueMap)
+// Handles both plain string (argument name) and { argument, target } (per-row FieldValueMap/Array)
 function onToggleReference(payload) {
   const argumentName = typeof payload === 'string' ? payload : payload.argument
   const target = typeof payload === 'object' ? payload.target : undefined
   const param = getParam(argumentName)
+
+  // If selecting a reference for an entire array argument, use param.types.
+  // If selecting a reference for a single ELEMENT in the array (target is defined), it can be Any (or String).
+  const expectedTypes = target ? ['Any'] : (param?.types || ['Any'])
+
   emit('toggleReference', {
     name: argumentName,
-    types: param?.types || ['Any'],
+    types: expectedTypes,
     target,
   })
 }

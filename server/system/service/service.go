@@ -303,6 +303,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	// Register automation functions from all active configured connections
 	DefaultConfiguredConnection.RegisterAllOperations(ctx)
 
+	// Start background Google resource discovery refresh (every 1 hour)
+	DefaultConfiguredConnection.StartDiscoveryRefreshLoop(ctx, time.Hour)
+
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
 	}

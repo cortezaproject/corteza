@@ -48,6 +48,7 @@
 
 <script setup>
 import { resolveInputComponent } from './inputs/registry'
+import CInputArray from './inputs/CInputArray.vue'
 import CReferenceChip from './CReferenceChip.vue'
 import { computed, inject, ref } from 'vue'
 
@@ -100,11 +101,15 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  aggregate: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference', 'updateReferenceSource'])
 
-const inputComponent = computed(() => resolveInputComponent(props.type))
+const inputComponent = computed(() => isAggregate.value ? CInputArray : resolveInputComponent(props.type))
 
 // Injected from Builder.vue — tracks which argument has the reference panel open
 const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
@@ -114,8 +119,8 @@ const isReferenceActive = computed(() => {
 })
 
 // Aggregate types handle their own per-row references (no whole-argument reference)
-const AGGREGATE_TYPES = ['FieldValueMap']
-const isAggregate = computed(() => AGGREGATE_TYPES.includes(props.type))
+const AGGREGATE_TYPES = ['FieldValueMap', 'Array']
+const isAggregate = computed(() => props.aggregate || AGGREGATE_TYPES.includes(props.type))
 
 // Options support: map stored ID ↔ option object for CInputSelect
 const hasOptions = computed(() => props.options.length > 0)
