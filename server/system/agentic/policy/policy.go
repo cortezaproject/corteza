@@ -85,6 +85,12 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 		}
 	}
 
+	// Namespace create has no source namespace to validate against — the namespace
+	// doesn't exist yet. RBAC handles the real permission check inside the service.
+	if tool == "compose_namespace_create" {
+		return allowedDecision(agent, entry, args)
+	}
+
 	if d := checkAllow(entry.Allow, buildResource(tool, args)); !d.Allowed {
 		return d
 	}

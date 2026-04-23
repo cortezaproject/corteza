@@ -30,14 +30,6 @@ func RecordHandler(reg toolRegistrar) *recordHandler {
 
 func (h *recordHandler) register() {
 	h.reg.RegisterTool(
-		mcp.NewTool("compose_namespace_lookup",
-			mcp.WithDescription("Look up a specific namespace by name, handle, or slug. Only call this if you do not already know the namespace."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-		),
-		"Lookup namespace",
-		h.namespaceLookup,
-	)
-	h.reg.RegisterTool(
 		mcp.NewTool("compose_module_lookup",
 			mcp.WithDescription("Look up a specific module by name or handle. Only call this if you do not already know the module's field names."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
@@ -88,60 +80,6 @@ func (h *recordHandler) register() {
 		"Delete record",
 		h.del,
 	)
-}
-
-func (h *recordHandler) namespaceLookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, _ := req.Params.Arguments.(map[string]interface{})
-
-	nsRef, _ := args["namespace"].(string)
-	if nsRef == "" {
-		set, _, err := cmpService.DefaultNamespace.Find(ctx, cmpTypes.NamespaceFilter{})
-		if err != nil {
-			return nil, fmt.Errorf("namespace list failed: %w", err)
-		}
-		type nsItem struct {
-			ID   uint64 `json:"namespaceID,string"`
-			Name string `json:"name"`
-			Slug string `json:"slug"`
-		}
-		items := make([]nsItem, len(set))
-		for i, ns := range set {
-			items[i] = nsItem{ID: ns.ID, Name: ns.Name, Slug: ns.Slug}
-		}
-		out, err := json.Marshal(items)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal namespaces: %w", err)
-		}
-		return mcp.NewToolResultText(string(out)), nil
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
-	if err != nil {
-		// Namespace not found — return full list so the LLM can pick the correct one
-		set, _, listErr := cmpService.DefaultNamespace.Find(ctx, cmpTypes.NamespaceFilter{})
-		if listErr != nil {
-			return nil, fmt.Errorf("namespace lookup failed: %w", err)
-		}
-		type nsItem struct {
-			ID   uint64 `json:"namespaceID,string"`
-			Name string `json:"name"`
-			Slug string `json:"slug"`
-		}
-		items := make([]nsItem, len(set))
-		for i, n := range set {
-			items[i] = nsItem{ID: n.ID, Name: n.Name, Slug: n.Slug}
-		}
-		out, _ := json.Marshal(map[string]any{
-			"error":      fmt.Sprintf("namespace %q not found", nsRef),
-			"namespaces": items,
-		})
-		return mcp.NewToolResultText(string(out)), nil
-	}
-	out, err := json.Marshal(ns)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal namespace: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
 }
 
 func (h *recordHandler) moduleLookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
