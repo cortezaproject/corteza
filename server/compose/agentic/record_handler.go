@@ -30,15 +30,6 @@ func RecordHandler(reg toolRegistrar) *recordHandler {
 
 func (h *recordHandler) register() {
 	h.reg.RegisterTool(
-		mcp.NewTool("compose_module_lookup",
-			mcp.WithDescription("Look up a specific module by name or handle. Only call this if you do not already know the module's field names."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
-		),
-		"Lookup module",
-		h.moduleLookup,
-	)
-	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
 			mcp.WithDescription("Look up a record by ID, or list/filter records in a module. Provide 'recordID' to fetch one record. Omit 'recordID' and use 'filter' to search by field values (e.g. \"name = 'John'\"). Do NOT call this before creating a record — only use it when the user explicitly asks to search or check for existing records."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
@@ -80,60 +71,6 @@ func (h *recordHandler) register() {
 		"Delete record",
 		h.del,
 	)
-}
-
-func (h *recordHandler) moduleLookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
-	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
-	}
-
-	modRef, _ := args["module"].(string)
-	if modRef == "" {
-		set, _, err := cmpService.DefaultModule.Find(ctx, cmpTypes.ModuleFilter{NamespaceID: ns.ID})
-		if err != nil {
-			return nil, fmt.Errorf("module list failed: %w", err)
-		}
-		type fieldItem struct {
-			Name string `json:"name"`
-			Kind string `json:"kind"`
-		}
-		type modItem struct {
-			ID          uint64      `json:"moduleID,string"`
-			NamespaceID uint64      `json:"namespaceID,string"`
-			Name        string      `json:"name"`
-			Handle      string      `json:"handle"`
-			Fields      []fieldItem `json:"fields"`
-		}
-		items := make([]modItem, len(set))
-		for i, mod := range set {
-			fields := make([]fieldItem, len(mod.Fields))
-			for j, f := range mod.Fields {
-				fields[j] = fieldItem{Name: f.Name, Kind: f.Kind}
-			}
-			items[i] = modItem{ID: mod.ID, NamespaceID: mod.NamespaceID, Name: mod.Name, Handle: mod.Handle, Fields: fields}
-		}
-		out, err := json.Marshal(items)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal modules: %w", err)
-		}
-		return mcp.NewToolResultText(string(out)), nil
-	}
-
-	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, modRef)
-	if err != nil {
-		return nil, fmt.Errorf("module lookup failed: %w", err)
-	}
-	out, err := json.Marshal(mod)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal module: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
 }
 
 func parseValues(raw interface{}) (map[string]string, error) {

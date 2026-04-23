@@ -323,6 +323,7 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 	if r.nsModResolver != nil {
 		systemPrompt += buildComposeContext(ctx, agent, r.nsModResolver)
 	}
+	systemPrompt += "\n\n## BEFORE YOU RESPOND\n\nCheck: does the user's message require a tool call? If yes — make the tool call now. Do not say you cannot do it. Do not say you don't have the tools. Do not ask for permission. Call the tool."
 	return systemPrompt
 }
 
@@ -895,7 +896,7 @@ func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsMod
 		return ""
 	}
 
-	out := "\n\n## ACCESSIBLE NAMESPACES AND MODULES\n\nUse these handle/ID pairs directly in tool calls — no need to look them up.\n"
+	out := "\n\n## ACCESSIBLE NAMESPACES AND MODULES\n\nUse these handle/ID pairs directly in tool calls — no need to look them up. These are IDs only — they do not tell you what fields or records exist. Always call compose_module_lookup to get current fields before any module operation.\n"
 
 	for nsID := range nsIDs {
 		ns, err := resolver.LookupNamespace(ctx, nsID)

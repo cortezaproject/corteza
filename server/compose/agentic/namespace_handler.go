@@ -32,7 +32,7 @@ func NamespaceHandler(reg toolRegistrar, agents agentService) *namespaceHandler 
 func (h *namespaceHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_namespace_lookup",
-			mcp.WithDescription("Look up a specific namespace by name, handle, or slug. Only call this if you do not already know the namespace."),
+			mcp.WithDescription("Look up namespaces. Call this whenever the user asks what they have, what exists, what's set up, or anything about the current state of their data. Also call this to resolve a namespace before any other operation."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 		),
 		"Lookup namespace",
