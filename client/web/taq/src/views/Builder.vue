@@ -1056,12 +1056,17 @@ function closeReferencePanel() {
   activeReferenceArgument.value = null
 }
 
-// Handle keyboard deletion
+// Handle keyboard shortcuts
 function onKeyDown(event) {
   if (event.key === 'Delete' || event.key === 'Backspace') {
     if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
       handleDeleteSelected()
     }
+  }
+
+  if (event.key === 's' && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault()
+    editor.save()
   }
 }
 
