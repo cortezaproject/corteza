@@ -28,6 +28,8 @@
           :fields="snippetFields"
           :action-items="getSnippetActions"
           primary-key="name"
+          :row-class="() => 'cursor-pointer'"
+          @row-click="({ index }) => openEditor(index)"
         >
           <template #body-enabled="{ data }">
             <i
@@ -161,12 +163,6 @@ const snippetFields = [
 
 function getSnippetActions(data, index) {
   return [
-    {
-      label: t('general.label.edit'),
-      icon: 'pi pi-pencil',
-      command: () => openEditor(index),
-    },
-    { separator: true },
     {
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
