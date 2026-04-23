@@ -1,6 +1,6 @@
 {
   "name": "human-webapp-one",
-  "version": "2026.4.1-dev.1",
+  "version": "2026.4.1-dev.2",
   "private": true,
   "type": "module",
   "scripts": {
