@@ -14,17 +14,19 @@ const (
 )
 
 // originAllowed implements the simple allowlist:
-//   - if list empty and WildcardAllowed: allow all (used for local dev / public demos)
-//   - if list contains "*": allow all
-//   - otherwise exact match (scheme+host+port)
+//   - if list contains "*": allow all (including same-origin requests that
+//     omit the Origin header)
+//   - otherwise exact match (scheme+host+port); empty Origin is rejected
 func originAllowed(origin string, allowed []string) bool {
-	if origin == "" {
-		return false
-	}
 	for _, a := range allowed {
 		if a == "*" {
 			return true
 		}
+	}
+	if origin == "" {
+		return false
+	}
+	for _, a := range allowed {
 		if strings.EqualFold(a, origin) {
 			return true
 		}
@@ -34,7 +36,11 @@ func originAllowed(origin string, allowed []string) bool {
 
 // writeCORS sets the per-origin CORS headers. Credentials are NOT enabled —
 // widget runs on a third-party origin with its own bearer token.
+// Same-origin requests (no Origin header) skip CORS entirely.
 func writeCORS(w http.ResponseWriter, origin string) {
+	if origin == "" {
+		return
+	}
 	h := w.Header()
 	h.Set("Access-Control-Allow-Origin", origin)
 	h.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
