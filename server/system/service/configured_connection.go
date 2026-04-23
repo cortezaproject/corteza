@@ -336,7 +336,7 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 		baseURL := conn.Service.BaseURL.Value
 		switch {
 		case strings.Contains(baseURL, "googleapis.com/calendar"):
-			scopes = []string{"https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/drive.readonly"}
+			scopes = []string{"https://www.googleapis.com/auth/calendar"}
 		case strings.Contains(baseURL, "sheets.googleapis.com"):
 			scopes = []string{"https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.readonly"}
 		case strings.Contains(baseURL, "googleapis.com/drive"):
@@ -517,6 +517,15 @@ func (svc *configuredConnection) resolveTemplates(conn *types.Connection, params
 	for _, p := range params {
 		key := joinScope(p.Scope) + "|" + p.Name
 		lookup[key] = p.Value
+	}
+
+	// ConfigParams are declared in the spec under service.params and stored
+	// with scope ["service"]. Ensure they are also reachable by unscoped templates.
+	svcScope := joinScope([]string{"service"})
+	for _, cp := range conn.Service.Params {
+		if v, ok := lookup[svcScope+"|"+cp.Name]; ok {
+			lookup["|"+cp.Name] = v
+		}
 	}
 
 	resolve := func(tpl *types.ConnectionTemplate, scope []string) {
@@ -1351,7 +1360,7 @@ func buildMIMEEmail(from, to, subject, body string) (string, error) {
 // syncGoogleDiscovery fetches accessible Google resources for the given
 // configured connection and stores them in cc.Config.Discovery.
 // Only runs for Google connectors (baseURL contains "googleapis.com").
-// On any Drive error, logs a warning and returns nil (non-fatal).
+// On any error, logs a warning and returns nil (non-fatal).
 func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *types.ConfiguredConnection) error {
 	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
 	baseURL := resolved.Service.BaseURL.Value
@@ -1362,6 +1371,42 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 
 	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
 
+	if cc.Config.Discovery == nil {
+		cc.Config.Discovery = make(map[string]json.RawMessage)
+	}
+
+	// Google Calendar: fetch the impersonated user's calendar list.
+	if strings.Contains(baseURL, "googleapis.com/calendar") {
+		calWrapper := google.NewWrapper("https://www.googleapis.com/calendar/v3", cc.ID)
+		_, _, calBody, err := calWrapper.Run(ctx, "GET",
+			"/users/me/calendarList?fields=items(id,summary)&maxResults=250",
+			nil, nil)
+		if err != nil {
+			svc.logger.Warn("google discovery: calendarList unavailable",
+				zap.Uint64("ccID", cc.ID), zap.Error(err))
+			return nil
+		}
+
+		var calResp struct {
+			Items []struct {
+				ID      string `json:"id"`
+				Summary string `json:"summary"`
+			} `json:"items"`
+		}
+		if err := json.Unmarshal(calBody, &calResp); err != nil {
+			return nil
+		}
+
+		calendars := make([]atypes.SelectItem, 0, len(calResp.Items))
+		for _, c := range calResp.Items {
+			calendars = append(calendars, atypes.SelectItem{Value: c.ID, Label: c.Summary})
+		}
+		calsJSON, _ := json.Marshal(calendars)
+		cc.Config.Discovery["calendars"] = calsJSON
+		return store.UpdateConfiguredConnection(ctx, svc.store, cc)
+	}
+
+	// Google Sheets: list spreadsheets via Drive, then fetch tabs per spreadsheet.
 	driveWrapper := google.NewWrapper("https://www.googleapis.com/drive/v3", cc.ID)
 
 	q := url.QueryEscape("mimeType='application/vnd.google-apps.spreadsheet'")
@@ -1421,10 +1466,6 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 	}
 
 	// 3. Persist into cc.Config.Discovery
-	if cc.Config.Discovery == nil {
-		cc.Config.Discovery = make(map[string]json.RawMessage)
-	}
-
 	ssJSON, _ := json.Marshal(spreadsheets)
 	tabsJSON, _ := json.Marshal(tabs)
 	cc.Config.Discovery["spreadsheets"] = ssJSON
@@ -1475,6 +1516,15 @@ func injectDiscoveredOptions(segments []atypes.ConstructSegment, discovery map[s
 						el.Input.Type = "Select"
 						el.Input.Options = tabs
 					}
+				case "calendarId":
+					var calendars []atypes.SelectItem
+					if raw, ok := discovery["calendars"]; ok {
+						_ = json.Unmarshal(raw, &calendars)
+					}
+					if len(calendars) > 0 {
+						el.Input.Type = "Select"
+						el.Input.Options = calendars
+					}
 				}
 			}
 		}
@@ -1489,6 +1539,11 @@ func (svc *configuredConnection) RefreshDiscovery(ctx context.Context, ID uint64
 	if err != nil {
 		return nil, err
 	}
+
+	// Evict the cached credential so ensureGoogleCredential re-reads all params
+	// (including dwdSubject) from the stored configuration rather than reusing
+	// a stale token that may have been minted without impersonation.
+	_ = cred_registry.Default().Delete(cc.ID)
 
 	if err = svc.syncGoogleDiscovery(ctx, cc); err != nil {
 		return nil, err
@@ -1513,9 +1568,18 @@ func (svc *configuredConnection) RefreshDiscovery(ctx context.Context, ID uint64
 		}
 	}
 
+	var calendarCount int
+	if raw, ok := cc.Config.Discovery["calendars"]; ok {
+		var cals []atypes.SelectItem
+		if json.Unmarshal(raw, &cals) == nil {
+			calendarCount = len(cals)
+		}
+	}
+
 	return map[string]any{
 		"ok":               true,
 		"spreadsheetCount": spreadsheetCount,
+		"calendarCount":    calendarCount,
 	}, nil
 }
 
@@ -1563,4 +1627,3 @@ func (svc *configuredConnection) refreshAllGoogleConnections(ctx context.Context
 		svc.registerOperations(ccs)
 	}
 }
-

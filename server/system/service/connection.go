@@ -436,6 +436,32 @@ func (svc *connection) deriveParams(c *types.Connection) {
 		}
 	}
 
+	// service.params are explicit declarations (not template references).
+	// Append them directly with scope ["service"] so the UI exposes them
+	// as connection-level configuration inputs.
+	svcScope := []string{"service"}
+	for _, sp := range c.Service.Params {
+		key := sp.Name + "|" + joinScope(svcScope)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		dp := types.ConnectionDerivedParam{
+			Name:        sp.Name,
+			Label:       sp.Label,
+			Scope:       svcScope,
+			Type:        sp.Type,
+			Description: sp.Description,
+			Required:    sp.Required,
+			Default:     sp.Default,
+			Options:     sp.Options,
+		}
+		if dp.Label == "" {
+			dp.Label = labelFromName(sp.Name)
+		}
+		params = append(params, dp)
+	}
+
 	c.DerivedParams = params
 }
 

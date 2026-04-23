@@ -48,6 +48,10 @@ type (
 		Headers     map[string]ConnectionTemplate `json:"headers,omitempty"`
 		Auth        ConnectionAuth                `json:"auth"`
 		Probe       *ConnectionProbe              `json:"probe,omitempty"`
+		// Params are plain connection-level inputs (e.g. impersonation subject)
+		// that are collected from the user at configuration time, stored in cc.Config.Params,
+		// and available for template substitution under the "service" scope.
+		Params []ConnectionPlaceholder `json:"params,omitempty"`
 	}
 
 	ConnectionProbe struct {
