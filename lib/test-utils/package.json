@@ -1,6 +1,6 @@
 {
   "name": "@planetcrust/human-test-utils",
-  "version": "2026.4.1-dev.2",
+  "version": "2026.4.1-dev.3",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
