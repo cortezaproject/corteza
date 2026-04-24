@@ -71,7 +71,7 @@ export class Engine {
     const hasNext = idx >= 0 && idx + 1 < this.cfg.scenarios.length
     if (s.type === 'static_message' && hasNext) {
       const ms = Number((s.config as { autoAdvanceMs?: number } | undefined)?.autoAdvanceMs)
-      const delay = Number.isFinite(ms) && ms >= 0 ? ms : 1500
+      const delay = Number.isFinite(ms) && ms >= 0 ? ms : 500
       this.autoAdvanceTimer = setTimeout(() => {
         this.autoAdvanceTimer = null
         this.advance()

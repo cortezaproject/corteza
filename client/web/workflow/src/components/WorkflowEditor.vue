@@ -764,7 +764,7 @@ const currentTheme = computed(() => $Auth?.user?.meta?.theme || 'light')
 
 function getIcon(name, mode = 'light') {
   if (!name) return ''
-  const basePath = `${(document.getElementsByTagName('base')[0] || {}).href || '/'}icons`
+  const basePath = `${import.meta.env.BASE_URL}icons`
   return `${basePath}/${mode === 'dark' ? 'dark/' : ''}${name}.svg`
 }
 

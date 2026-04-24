@@ -3,17 +3,17 @@ import type { Styling } from './types'
 export const baseCSS = `
 :host { all: initial; }
 .hb-root {
-  position: fixed; bottom: 24px; right: 24px; z-index: 2147483646;
+  position: fixed; bottom: 16px; right: 16px; z-index: 2147483646;
   font-family: var(--hb-font, system-ui, sans-serif);
   font-size: var(--hb-font-base, 14px);
   color: var(--hb-text, #111);
 }
-.hb-root.hb-pos-bottom-left { right: auto; left: 24px; }
+.hb-root.hb-pos-bottom-left { right: auto; left: 16px; }
 .hb-root.hb-pos-bottom-center { right: auto; left: 50%; transform: translateX(-50%); }
-.hb-root.hb-pos-top-right { bottom: auto; top: 24px; }
-.hb-root.hb-pos-top-left { bottom: auto; top: 24px; right: auto; left: 24px; }
-.hb-root.hb-pos-top-center { bottom: auto; top: 24px; right: auto; left: 50%; transform: translateX(-50%); }
-.hb-root.hb-pos-left-middle { bottom: auto; top: 50%; right: auto; left: 24px; transform: translateY(-50%); }
+.hb-root.hb-pos-top-right { bottom: auto; top: 16px; }
+.hb-root.hb-pos-top-left { bottom: auto; top: 16px; right: auto; left: 16px; }
+.hb-root.hb-pos-top-center { bottom: auto; top: 16px; right: auto; left: 50%; transform: translateX(-50%); }
+.hb-root.hb-pos-left-middle { bottom: auto; top: 50%; right: auto; left: 16px; transform: translateY(-50%); }
 .hb-root.hb-pos-right-middle { bottom: auto; top: 50%; transform: translateY(-50%); }
 .hb-root.hb-contained {
   position: absolute; bottom: 16px; right: 16px; z-index: 1;
@@ -76,7 +76,7 @@ export const baseCSS = `
   padding: 12px 40px 12px 14px; font-weight: 600; font-size: var(--hb-font-heading, 16px);
   display: flex; align-items: center; gap: 8px;
 }
-.hb-header img { height: 22px; }
+.hb-header img { height: 24px; max-width: 140px; object-fit: contain; display: block; flex: none; }
 .hb-close {
   position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
   width: 28px; height: 28px; padding: 0;
@@ -102,7 +102,7 @@ export const baseCSS = `
 .hb-footer { border-top: 1px solid #e5e7eb; padding: 8px; display: flex; gap: 6px; align-items: flex-end; font-size: var(--hb-font-base, 14px); }
 .hb-input {
   flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px;
-  font-family: inherit; color: inherit; background: #fff;
+  font-family: inherit; color: inherit; background: var(--hb-bg, #fff);
   font-size: var(--hb-font-base, 14px);
   resize: none; max-height: 120px; overflow-y: auto; line-height: 1.4;
 }
@@ -122,18 +122,18 @@ export const baseCSS = `
 .hb-form { display: flex; flex-direction: column; gap: 8px; }
 .hb-form label { font-size: var(--hb-font-small, 12px); color: #6b7280; }
 .hb-form input, .hb-form textarea {
-  border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: var(--hb-font-base, 14px); background: #fff; color: inherit;
+  border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: var(--hb-font-base, 14px); background: var(--hb-bg, #fff); color: inherit;
 }
 .hb-scenario-form {
   display: flex; flex-direction: column; gap: 10px;
-  border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff;
+  border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: var(--hb-bg, #fff);
 }
 .hb-scenario-form .hb-field { display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
 .hb-scenario-form .hb-field label {
   text-align: left; font-size: var(--hb-font-small, 12px); color: #6b7280; font-weight: 500;
 }
 .hb-scenario-form .hb-field input, .hb-scenario-form .hb-field textarea {
-  border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: var(--hb-font-base, 14px); background: #fff; color: inherit;
+  border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: var(--hb-font-base, 14px); background: var(--hb-bg, #fff); color: inherit;
 }
 .hb-scenario-form .hb-field input:focus, .hb-scenario-form .hb-field textarea:focus {
   outline: none; border-color: var(--hb-primary, #09344E);

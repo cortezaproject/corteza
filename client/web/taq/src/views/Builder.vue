@@ -16,7 +16,7 @@
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
     <!-- Top-left overlay actions -->
-    <div class="absolute top-3 left-3 z-20 flex flex-col gap-2 max-w-screen-lg">
+    <div class="absolute top-3 left-3 bottom-20 z-20 flex flex-col gap-2 max-w-screen-lg pointer-events-none [&>*]:pointer-events-auto">
       <!-- Optional Description -->
       <div
         v-if="editor.automation.value.meta?.description"
@@ -152,8 +152,8 @@
       >
         <div
           v-if="isTraceActive && selectedNode && selectedTraceFrame && showTracePanel"
-          class="bg-surface border border-surface rounded-lg shadow-sm flex flex-col overflow-hidden pointer-events-auto"
-          :style="{ width: '300px', maxHeight: 'calc(100vh - 10rem)' }"
+          class="bg-surface border border-surface rounded-lg shadow-sm flex flex-col overflow-hidden pointer-events-auto flex-1 min-h-0"
+          :style="{ width: '300px' }"
         >
           <TracePanel
             :frame="selectedTraceFrame"

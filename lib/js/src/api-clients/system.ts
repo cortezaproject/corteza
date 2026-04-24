@@ -9681,4 +9681,44 @@ export default class System {
     const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}/regenerate-key`
   }
+
+  // Upload chatbot asset (logo / icon)
+  async chatbotUploadAsset(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID, upload } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    if (!upload) {
+      throw Error('field upload is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.chatbotUploadAssetEndpoint({ chatbotID }),
+    }
+    cfg.data = { upload }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotUploadAssetCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotUploadAsset(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotUploadAssetEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}/asset`
+  }
 }

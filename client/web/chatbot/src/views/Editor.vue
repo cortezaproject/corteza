@@ -11,9 +11,9 @@
   </div>
 
   <div v-else-if="chatbot" class="flex flex-col h-full overflow-hidden">
-    <div class="flex-1 relative overflow-hidden min-h-0">
-      <div class="absolute inset-0 overflow-y-auto">
-        <div class="container mx-auto p-4 flex flex-col gap-4">
+    <div class="flex-1 flex min-h-0 overflow-hidden">
+      <div class="flex-1 overflow-y-auto">
+        <div class="p-4 flex flex-col gap-4">
           <div v-if="!isCreate" class="flex justify-end">
             <CPermissionsButton
               v-tooltip.bottom="$t('general.label.permissions')"
@@ -24,10 +24,10 @@
           </div>
           <General :chatbot="chatbot" :is-create="isCreate" @regenerate-key="handleRegenerateKey" />
           <Scenarios :scenarios="chatbot.scenarios" :agents="agents" />
-          <Styling :styling="chatbot.styling" />
+          <Styling :styling="chatbot.styling" :chatbot-id="chatbot.chatbotID" />
         </div>
       </div>
-      <div class="hb-floating-overlay">
+      <div class="hidden md:block w-[390px] shrink-0 relative border-l border-surface">
         <Preview :chatbot="chatbot" />
       </div>
     </div>
@@ -97,6 +97,9 @@ const canSave = computed(() => {
   if (!chatbot.value) return false
   if (saving.value) return false
   if (!chatbot.value.name?.trim() && !chatbot.value.handle?.trim()) return false
+  const ids = (chatbot.value.scenarios || []).map(s => s.id)
+  if (ids.some(id => !id)) return false
+  if (new Set(ids).size !== ids.length) return false
   return true
 })
 
@@ -149,6 +152,15 @@ async function handleSubmit() {
   saving.value = true
   try {
     const payload = JSON.parse(JSON.stringify(chatbot.value))
+    if (payload.styling) {
+      delete payload.styling.logoURL
+      if (payload.styling.logoAttachmentID === '') delete payload.styling.logoAttachmentID
+      if (payload.styling.launcher) {
+        delete payload.styling.launcher.iconURL
+        if (payload.styling.launcher.iconAttachmentID === '')
+          delete payload.styling.launcher.iconAttachmentID
+      }
+    }
     if (isCreate.value) {
       const created = await $SystemAPI.chatbotCreate(payload)
       chatbotStore.updateInList(created)
@@ -210,12 +222,3 @@ onMounted(() => {
   loadAgents()
 })
 </script>
-
-<style scoped>
-.hb-floating-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-</style>

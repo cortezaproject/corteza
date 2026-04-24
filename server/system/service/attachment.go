@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -53,6 +54,7 @@ type (
 		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreateSettingsAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		CreateApplicationAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
+		CreateChatbotAttachment(ctx context.Context, chatbotID uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
 		CreateAuthAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		CreateAvatarInitialsAttachment(ctx context.Context, initials string, bgColor string, textColor string) (att *types.Attachment, err error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error)
@@ -201,6 +203,39 @@ func (svc attachment) CreateApplicationAttachment(ctx context.Context, name stri
 		if labels != nil {
 			att.Meta.Labels = labels
 		}
+
+		if err = svc.create(ctx, name, size, fh, att); err != nil {
+			return err
+		}
+
+		return err
+	}()
+
+	return att, svc.recordAction(ctx, aaProps, AttachmentActionCreate, err)
+}
+
+func (svc attachment) CreateChatbotAttachment(ctx context.Context, chatbotID uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
+	var (
+		aaProps       = &attachmentActionProps{}
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
+	)
+
+	ext := strings.ToLower(filepath.Ext(name))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" && ext != ".svg" && ext != ".webp" {
+		return nil, AttachmentErrNotAllowedToCreate()
+	}
+
+	err = func() (err error) {
+		att = &types.Attachment{
+			OwnerID: currentUserID,
+			Name:    strings.TrimSpace(name),
+			Kind:    types.AttachmentKindChatbot,
+		}
+		att.Meta.Labels = map[string]string{
+			"chatbotID": strconv.FormatUint(chatbotID, 10),
+		}
+
+		aaProps.setAttachment(att)
 
 		if err = svc.create(ctx, name, size, fh, att); err != nil {
 			return err

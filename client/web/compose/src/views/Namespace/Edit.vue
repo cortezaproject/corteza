@@ -98,17 +98,20 @@
             </div>
 
             <!-- Labels -->
-            <div class="flex flex-col gap-2">
-              <label class="font-medium text-primary">{{ $t('namespace.labels.label') }}</label>
-              <CInputLabel
-                v-model="namespace.labels"
-                :placeholder="$t('namespace.labels.placeholder')"
-                :create-label="$t('namespace.labels.createNew')"
-                :create-dialog-label="$t('namespace.labels.dialogCreate')"
-                :name-label="$t('namespace.labels.name')"
-                :save-btn-label="$t('general.label.save')"
-                :cancel-btn-label="$t('general.label.cancel')"
-              />
+            <div class="flex gap-4">
+              <div class="flex flex-col gap-2 flex-1">
+                <label class="font-medium text-primary">{{ $t('namespace.labels.label') }}</label>
+                <CInputLabel
+                  v-model="namespace.labels"
+                  :placeholder="$t('namespace.labels.placeholder')"
+                  :create-label="$t('namespace.labels.createNew')"
+                  :create-dialog-label="$t('namespace.labels.dialogCreate')"
+                  :name-label="$t('namespace.labels.name')"
+                  :save-btn-label="$t('general.label.save')"
+                  :cancel-btn-label="$t('general.label.cancel')"
+                />
+              </div>
+              <div class="flex-1" />
             </div>
 
             <!-- Enabled -->

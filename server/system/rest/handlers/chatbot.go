@@ -26,6 +26,7 @@ type (
 		Delete(context.Context, *request.ChatbotDelete) (interface{}, error)
 		Undelete(context.Context, *request.ChatbotUndelete) (interface{}, error)
 		RegenerateWidgetKey(context.Context, *request.ChatbotRegenerateWidgetKey) (interface{}, error)
+		UploadAsset(context.Context, *request.ChatbotUploadAsset) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -37,6 +38,7 @@ type (
 		Delete              func(http.ResponseWriter, *http.Request)
 		Undelete            func(http.ResponseWriter, *http.Request)
 		RegenerateWidgetKey func(http.ResponseWriter, *http.Request)
+		UploadAsset         func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -154,6 +156,22 @@ func NewChatbot(h ChatbotAPI) *Chatbot {
 
 			api.Send(w, r, value)
 		},
+		UploadAsset: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChatbotUploadAsset()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UploadAsset(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -167,5 +185,6 @@ func (h Chatbot) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Delete("/chatbots/{chatbotID}", h.Delete)
 		r.Post("/chatbots/{chatbotID}/undelete", h.Undelete)
 		r.Post("/chatbots/{chatbotID}/regenerate-key", h.RegenerateWidgetKey)
+		r.Post("/chatbots/{chatbotID}/asset", h.UploadAsset)
 	})
 }

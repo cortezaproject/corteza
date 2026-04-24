@@ -131,6 +131,10 @@ editor:
         topRight: Top right
         topCenter: Top center
         topLeft: Top left
+      startOpen:
+        label: Start open
+        help: Show the chat panel expanded on first load instead of collapsed behind the launcher.
+    uploadNeedsSave: Save the chatbot first, then upload images.
   scenarios:
     description: A journey is a chain of steps the visitor moves through. Each step is one type — a static message, a form, or the live conversation.
     list: Steps
@@ -139,6 +143,7 @@ editor:
     unnamed: (unnamed)
     selectHint: Select a step to edit
     handle: Handle
+    handleDuplicate: Another step already uses this handle.
     name: Name
     type: Type
     static:
@@ -147,7 +152,7 @@ editor:
       autoAdvance: Auto-advance delay (ms)
     agent:
       label: Agent
-      help: The agent that powers this conversation scenario
+      help: The agent that powers this conversation step
       placeholder: Select an agent
       open: Open agent
       create: Create new agent

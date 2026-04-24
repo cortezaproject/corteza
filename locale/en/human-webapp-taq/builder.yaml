@@ -134,7 +134,7 @@ configSidebar:
 
 inputSchema:
   title: Input schema
-  addParam: Add param
+  addParam: Add parameter
   hint: Declare params the agent must pass. They become references available to downstream steps.
   empty: No params defined yet.
   name: Name
@@ -230,7 +230,9 @@ trace:
   stepsExecuted: steps executed
   input: Input
   output: Output
+  scope: Scope
   error: Error
+  searchPlaceholder: Search keys or values…
   noData: No trace data
   skipped: Skipped
   panelTitle: Execution Trace

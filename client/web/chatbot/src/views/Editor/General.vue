@@ -1,6 +1,6 @@
 <template>
   <Panel :header="$t('chatbot.editor.panels.general')" toggleable>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="flex flex-col gap-1">
         <label for="name" class="font-medium text-primary">
           {{ $t('chatbot.editor.name.label') }}
@@ -24,9 +24,9 @@
         class="self-start"
       />
 
-      <div class="hidden md:block" />
+      <div class="hidden lg:block" />
 
-      <Divider class="md:col-span-2 !my-0" />
+      <Divider class="lg:col-span-2 !my-0" />
 
       <div class="flex flex-col gap-1">
         <label class="font-medium text-primary">

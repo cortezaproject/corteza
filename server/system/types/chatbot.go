@@ -58,11 +58,12 @@ type (
 	}
 
 	ChatbotStyling struct {
-		LogoURL    string            `json:"logoUrl,omitempty"`
-		FontFamily string            `json:"fontFamily,omitempty"`
-		FontSizes  ChatbotFontSizes  `json:"fontSizes,omitempty"`
-		Colors     ChatbotColors     `json:"colors,omitempty"`
-		Launcher   ChatbotLauncher   `json:"launcher,omitempty"`
+		LogoAttachmentID uint64           `json:"logoAttachmentID,string,omitempty"`
+		LogoURL          string           `json:"logoURL,omitempty"` // computed at read time; not persisted
+		FontFamily       string           `json:"fontFamily,omitempty"`
+		FontSizes        ChatbotFontSizes `json:"fontSizes,omitempty"`
+		Colors           ChatbotColors    `json:"colors,omitempty"`
+		Launcher         ChatbotLauncher  `json:"launcher,omitempty"`
 	}
 
 	ChatbotFontSizes struct {
@@ -83,13 +84,15 @@ type (
 	}
 
 	ChatbotLauncher struct {
-		IconURL     string `json:"iconUrl,omitempty"`
-		IconVisible bool   `json:"iconVisible"`
-		Label       string `json:"label,omitempty"`
-		ButtonLabel string `json:"buttonLabel,omitempty"`
-		Size        string `json:"size,omitempty"`
-		Shape       string `json:"shape,omitempty"`
-		Position    string `json:"position,omitempty"`
+		IconURL          string `json:"iconURL,omitempty"`
+		IconAttachmentID uint64 `json:"iconAttachmentID,string,omitempty"`
+		IconVisible      bool   `json:"iconVisible"`
+		Label            string `json:"label,omitempty"`
+		ButtonLabel      string `json:"buttonLabel,omitempty"`
+		Size             string `json:"size,omitempty"`
+		Shape            string `json:"shape,omitempty"`
+		Position         string `json:"position,omitempty"`
+		StartOpen        bool   `json:"startOpen,omitempty"`
 	}
 
 	ChatbotScenario struct {
@@ -108,8 +111,17 @@ type (
 func (m *ChatbotHandoff) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ChatbotHandoff) Value() (driver.Value, error) { return json.Marshal(m) }
 
-func (m *ChatbotStyling) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ChatbotStyling) Value() (driver.Value, error) { return json.Marshal(m) }
+func (m *ChatbotStyling) Scan(src any) error { return sql.ParseJSON(src, m) }
+
+// Value strips computed URL fields before persisting. LogoURL/IconURL are
+// derived from the attachmentID at read time; keeping stale values in the DB
+// causes drift when attachments are swapped or regenerated.
+func (m ChatbotStyling) Value() (driver.Value, error) {
+	out := m
+	out.LogoURL = ""
+	out.Launcher.IconURL = ""
+	return json.Marshal(out)
+}
 
 func (m *ChatbotScenarios) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ChatbotScenarios) Value() (driver.Value, error) { return json.Marshal(m) }

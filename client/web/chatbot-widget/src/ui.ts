@@ -15,6 +15,7 @@ export interface WidgetUIOptions {
   container?: HTMLElement
   contained?: boolean
   startOpen?: boolean
+  onToggle?: (open: boolean) => void
 }
 
 export class WidgetUI {
@@ -29,6 +30,7 @@ export class WidgetUI {
   private engine: Engine
   private cfg: ChatbotConfig
   private mo: MutationObserver | null = null
+  private onToggle?: (open: boolean) => void
 
   onUserInput: (text: string) => void = () => {}
   onFormSubmit: (values: Record<string, string>) => void = () => {}
@@ -36,6 +38,7 @@ export class WidgetUI {
   constructor(cfg: ChatbotConfig, engine: Engine, opts: WidgetUIOptions = {}) {
     this.cfg = cfg
     this.engine = engine
+    this.onToggle = opts.onToggle
 
     const host = document.createElement('div')
     host.setAttribute('data-human-chatbot', '')
@@ -108,7 +111,9 @@ export class WidgetUI {
     header.className = 'hb-header'
     if (cfg.styling.logoURL) {
       const img = document.createElement('img')
+      img.className = 'hb-logo'
       img.src = cfg.styling.logoURL
+      img.alt = cfg.styling.launcher.label || 'Logo'
       header.appendChild(img)
     }
     const title = document.createElement('span')
@@ -167,6 +172,7 @@ export class WidgetUI {
 
   togglePanel() {
     this.panelEl.classList.toggle('hb-hidden')
+    if (this.onToggle) this.onToggle(!this.panelEl.classList.contains('hb-hidden'))
   }
 
   destroy() {

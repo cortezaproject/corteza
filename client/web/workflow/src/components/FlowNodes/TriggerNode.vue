@@ -157,7 +157,7 @@ const { t } = useI18n()
 
 function getIcon(name) {
   if (!name) return ''
-  const basePath = `${(document.getElementsByTagName('base')[0] || {}).href || '/'}icons`
+  const basePath = `${import.meta.env.BASE_URL}icons`
   return `${basePath}/${props.currentTheme === 'dark' ? 'dark/' : ''}${name}.svg`
 }
 

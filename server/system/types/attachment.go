@@ -67,6 +67,7 @@ const (
 	AttachmentKindSettings       string = "settings"
 	AttachmentKindAvatar         string = "avatar"
 	AttachmentKindAvatarInitials string = "avatar-initials"
+	AttachmentKindChatbot        string = "chatbot"
 )
 
 func (a *Attachment) SetOriginalImageMeta(width, height int, animated bool) *AttachmentFileMeta {

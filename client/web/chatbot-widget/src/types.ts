@@ -10,6 +10,7 @@ export interface Scenario {
 
 export interface Styling {
   logoURL: string
+  logoAttachmentID?: string
   fontFamily: string
   fontSizes: { base: string; small: string; heading: string }
   colors: {
@@ -22,7 +23,7 @@ export interface Styling {
     userBubble: string
     agentBubble: string
   }
-  launcher: { iconURL: string; iconVisible: boolean; label: string; buttonLabel: string; size: string; shape: string; position: string }
+  launcher: { iconURL: string; iconAttachmentID?: string; iconVisible: boolean; label: string; buttonLabel: string; size: string; shape: string; position: string; startOpen: boolean }
 }
 
 export interface ChatbotConfig {

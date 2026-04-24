@@ -17,6 +17,7 @@ import (
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/agentic/runtime"
+	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -92,21 +93,35 @@ func (c *Controller) impersonateServiceAccount(ctx context.Context, userID uint6
 // reach it (canonical URL becomes /api/widget/v1/...).
 func (c *Controller) MountRoutes(r chi.Router) {
 	r.Route("/widget/v1", func(r chi.Router) {
-		r.Use(c.corsForKey)
-
-		r.Options("/config", okOptions)
-		r.Get("/config", c.readConfig)
-
-		r.Options("/session", okOptions)
-		r.Post("/session", c.createSession)
+		// Asset route: widgetKey-gated GET, no origin allowlist.
+		// <img> requests don't send Origin consistently (and browsers don't
+		// honor CORS on no-cors image loads), so allowlist gating here would
+		// just break loading. The widgetKey + kind/owner check is the authz.
+		r.Group(func(r chi.Router) {
+			r.Use(c.keyOnly)
+			r.Options("/asset/{attachmentID}", okOptions)
+			r.Get("/asset/{attachmentID}", c.readAsset)
+			r.Options("/asset/{attachmentID}/{name}", okOptions)
+			r.Get("/asset/{attachmentID}/{name}", c.readAsset)
+		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(c.requireSessionJWT)
+			r.Use(c.corsForKey)
 
-			r.Options("/session/{id}/message", okOptions)
-			r.Post("/session/{id}/message", c.sendMessage)
+			r.Options("/config", okOptions)
+			r.Get("/config", c.readConfig)
 
-			r.Get("/session/{id}/stream", c.stream)
+			r.Options("/session", okOptions)
+			r.Post("/session", c.createSession)
+
+			r.Group(func(r chi.Router) {
+				r.Use(c.requireSessionJWT)
+
+				r.Options("/session/{id}/message", okOptions)
+				r.Post("/session/{id}/message", c.sendMessage)
+
+				r.Get("/session/{id}/stream", c.stream)
+			})
 		})
 	})
 }
@@ -122,6 +137,55 @@ func (c *Controller) readConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, publicConfigChatbot(cb))
+}
+
+// readAsset serves a chatbot-kind attachment only when it belongs to the
+// chatbot resolved from the widgetKey. This keeps branding assets internal
+// (normal system.attachment rows) but publishes them through the widget route
+// so third-party embeds can load them without operator credentials.
+func (c *Controller) readAsset(w http.ResponseWriter, r *http.Request) {
+	cb := chatbotFromCtx(r.Context())
+	if cb == nil {
+		http.Error(w, "widget: no chatbot", http.StatusForbidden)
+		return
+	}
+
+	id, err := strconv.ParseUint(chi.URLParam(r, "attachmentID"), 10, 64)
+	if err != nil || id == 0 {
+		http.Error(w, "widget: bad asset id", http.StatusBadRequest)
+		return
+	}
+
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+	att, err := store.LookupAttachmentByID(svcCtx, c.store, id)
+	if err != nil || att == nil || att.DeletedAt != nil {
+		http.Error(w, "widget: asset not found", http.StatusNotFound)
+		return
+	}
+
+	// Scoping: only chatbot-kind, only bound to this chatbot.
+	if att.Kind != types.AttachmentKindChatbot {
+		http.Error(w, "widget: asset not found", http.StatusNotFound)
+		return
+	}
+	if att.Meta.Labels["chatbotID"] != strconv.FormatUint(cb.ID, 10) {
+		http.Error(w, "widget: asset not found", http.StatusNotFound)
+		return
+	}
+
+	fh, err := service.DefaultAttachment.OpenOriginal(att)
+	if err != nil || fh == nil {
+		http.Error(w, "widget: asset unavailable", http.StatusNotFound)
+		return
+	}
+	defer fh.Close()
+
+	w.Header().Set("Cache-Control", "public, max-age=86400, immutable")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+	if mt := att.Meta.Original.Mimetype; mt != "" {
+		w.Header().Set("Content-Type", mt)
+	}
+	http.ServeContent(w, r, att.Name, att.CreatedAt, fh)
 }
 
 // createSession opens a new AiConversation and returns a signed JWT.
@@ -272,8 +336,15 @@ func parseTTL(s string, def time.Duration) time.Duration {
 
 // publicConfigChatbot redacts operator-only fields (allowedOrigins, handoff roles).
 func publicConfigChatbot(cb *types.Chatbot) map[string]any {
+	styling := cb.Styling
+	if styling.LogoAttachmentID != 0 {
+		styling.LogoURL = fmt.Sprintf("/api/widget/v1/asset/%d?widgetKey=%s", styling.LogoAttachmentID, cb.WidgetKey)
+	}
+	if styling.Launcher.IconAttachmentID != 0 {
+		styling.Launcher.IconURL = fmt.Sprintf("/api/widget/v1/asset/%d?widgetKey=%s", styling.Launcher.IconAttachmentID, cb.WidgetKey)
+	}
 	return map[string]any{
-		"styling":   cb.Styling,
+		"styling":   styling,
 		"scenarios": cb.Scenarios,
 		"handoff": map[string]any{
 			"enabled":        cb.Handoff.Enabled,

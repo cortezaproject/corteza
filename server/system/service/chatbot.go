@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"strconv"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -171,10 +172,32 @@ func (svc *chatbot) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		svc.softDeleteChatbotAttachments(ctx, ID)
+
 		return nil
 	}()
 
 	return err
+}
+
+// softDeleteChatbotAttachments marks every chatbot-kind attachment whose
+// Meta.Labels["chatbotID"] matches ID as deleted. Errors are logged but don't
+// fail the chatbot delete — the attachments are orphaned at worst.
+func (svc *chatbot) softDeleteChatbotAttachments(ctx context.Context, ID uint64) {
+	idStr := strconv.FormatUint(ID, 10)
+	aa, _, err := store.SearchAttachments(ctx, svc.store, types.AttachmentFilter{
+		Kind: types.AttachmentKindChatbot,
+		Check: func(a *types.Attachment) (bool, error) {
+			return a.Meta.Labels["chatbotID"] == idStr, nil
+		},
+	})
+	if err != nil {
+		return
+	}
+	for _, a := range aa {
+		a.DeletedAt = now()
+		_ = store.UpdateAttachment(ctx, svc.store, a)
+	}
 }
 
 func (svc *chatbot) UndeleteByID(ctx context.Context, ID uint64) (err error) {

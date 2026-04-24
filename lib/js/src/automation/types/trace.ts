@@ -16,6 +16,7 @@ export interface StackFrame {
   handle?: string
   kind?: string
   input?: Record<string, unknown>
+  args?: Record<string, unknown>
   output?: Record<string, unknown>
   startedAt: string
   endedAt?: string

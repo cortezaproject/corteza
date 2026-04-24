@@ -3,16 +3,16 @@
     <p class="text-xs text-muted-color mb-3">
       {{ $t('chatbot.editor.scenarios.description') }}
     </p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[320px]">
-      <div class="md:col-span-1 flex flex-col gap-2 border border-surface rounded-lg p-2">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[320px]">
+      <div class="lg:col-span-1 flex flex-col gap-2 border border-surface rounded-lg p-2">
         <div class="flex items-center justify-between">
           <span class="font-medium text-sm">
             {{ $t('chatbot.editor.scenarios.list') }}
           </span>
           <Button
-            v-tooltip.bottom="$t('chatbot.editor.scenarios.add')"
+            :label="$t('chatbot.editor.scenarios.add')"
             icon="pi pi-plus"
-            text
+            severity="secondary"
             size="small"
             @click="addScenario"
           />
@@ -58,9 +58,9 @@
         </TransitionGroup>
       </div>
 
-      <div class="md:col-span-2 flex flex-col gap-3 border border-surface rounded-lg p-3">
+      <div class="lg:col-span-2 flex flex-col gap-3 border border-surface rounded-lg p-3">
         <template v-if="current">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
               <label class="font-medium text-primary">
                 {{ $t('chatbot.editor.scenarios.name') }}
@@ -71,7 +71,10 @@
               <label class="font-medium text-primary">
                 {{ $t('chatbot.editor.scenarios.handle') }}
               </label>
-              <InputText v-model="current.id" />
+              <InputText v-model="current.id" :invalid="handleIsDuplicate" />
+              <small v-if="handleIsDuplicate" class="text-red-500">
+                {{ $t('chatbot.editor.scenarios.handleDuplicate') }}
+              </small>
             </div>
           </div>
 
@@ -269,7 +272,7 @@ const scenarioTypes = [
 
 function defaultScenarioConfig(type) {
   switch (type) {
-    case 'static_message': return { message: '', isMarkdown: false, autoAdvanceMs: 1500 }
+    case 'static_message': return { message: '', isMarkdown: false, autoAdvanceMs: 500 }
     case 'conversation':   return { placeholder: '', initialPrompt: '', typingIndicator: true }
     case 'form':           return { fields: [], submitLabel: '' }
     default:               return {}
@@ -290,7 +293,7 @@ function normalizeCurrent() {
   ensureScenarioConfig()
 }
 
-const AUTO_NAME_PATTERN = /^scenario_\d+$/i
+const AUTO_NAME_PATTERN = /^(step|scenario)[_ ]\d+$/i
 const typeLabelMap = Object.fromEntries(scenarioTypes.map(t => [t.value, t.label]))
 const typeLabelSet = new Set(Object.values(typeLabelMap))
 
@@ -307,16 +310,28 @@ watch(() => current.value?.type, (newType, oldType) => {
   }
 })
 
+function nextStepNumber() {
+  const taken = new Set(props.scenarios.map(s => s.id))
+  let n = props.scenarios.length + 1
+  while (taken.has(`step_${n}`)) n++
+  return n
+}
+
 function addScenario() {
-  const id = `scenario_${props.scenarios.length + 1}`
+  const n = nextStepNumber()
   props.scenarios.push({
-    id,
-    name: id,
+    id: `step_${n}`,
+    name: `Step ${n}`,
     type: 'static_message',
     config: defaultScenarioConfig('static_message'),
   })
   selectedIdx.value = props.scenarios.length - 1
 }
+
+const handleIsDuplicate = computed(() => {
+  if (!current.value?.id) return false
+  return props.scenarios.some((s, i) => i !== selectedIdx.value && s.id === current.value.id)
+})
 
 const draggedIdx = ref(null)
 const dropTargetIdx = ref(null)

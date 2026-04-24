@@ -173,6 +173,7 @@
           :items="results"
           :fields="resultFields"
           :types="fieldTypes"
+          @update:items="results = $event"
           @remove="removeResult"
           @open-editor="openInEditor"
         />

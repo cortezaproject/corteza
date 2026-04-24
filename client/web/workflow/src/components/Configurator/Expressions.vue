@@ -19,6 +19,7 @@
           :items="item.config.arguments"
           :fields="argumentFields"
           :types="fieldTypes"
+          @update:items="item.config.arguments = $event"
           @remove="removeArgument"
           @open-editor="openInEditor"
         />

@@ -43,11 +43,27 @@ async function boot() {
     return
   }
 
+  // logoURL / iconURL come back as server-relative paths like
+  // /api/widget/v1/asset/...?widgetKey=... — resolve against the widget host
+  // so they load from the right origin (not the embedding site).
+  const absolutize = (u: string) => {
+    if (!u) return u
+    if (/^https?:\/\//i.test(u)) return u
+    if (u.startsWith('/')) return api.origin + u
+    return u
+  }
+  if (cfg?.styling) {
+    cfg.styling.logoURL = absolutize(cfg.styling.logoURL)
+    if (cfg.styling.launcher) {
+      cfg.styling.launcher.iconURL = absolutize(cfg.styling.launcher.iconURL)
+    }
+  }
+
   let engine: Engine
   let ui: WidgetUI
   try {
     engine = new Engine(cfg)
-    ui = new WidgetUI(cfg, engine)
+    ui = new WidgetUI(cfg, engine, { startOpen: !!cfg.styling?.launcher?.startOpen })
     console.log('[human-chatbot] UI mounted')
   } catch (err) {
     console.error('[human-chatbot] UI construction failed', err)

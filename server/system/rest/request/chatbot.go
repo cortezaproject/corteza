@@ -210,6 +210,18 @@ type (
 		// Chatbot ID
 		ChatbotID uint64 `json:",string"`
 	}
+
+	ChatbotUploadAsset struct {
+		// ChatbotID PATH parameter
+		//
+		// Chatbot ID
+		ChatbotID uint64 `json:",string"`
+
+		// Upload POST parameter
+		//
+		// File to upload
+		Upload *multipart.FileHeader
+	}
 )
 
 // NewChatbotList request
@@ -1059,6 +1071,63 @@ func (r *ChatbotRegenerateWidgetKey) Fill(req *http.Request) (err error) {
 			return err
 		}
 
+	}
+
+	return err
+}
+
+// NewChatbotUploadAsset request
+func NewChatbotUploadAsset() *ChatbotUploadAsset {
+	return &ChatbotUploadAsset{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotUploadAsset) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"chatbotID": r.ChatbotID,
+		"upload":    r.Upload,
+	}
+}
+
+func (r ChatbotUploadAsset) GetChatbotID() uint64 {
+	return r.ChatbotID
+}
+
+func (r ChatbotUploadAsset) GetUpload() *multipart.FileHeader {
+	return r.Upload
+}
+
+// Fill processes request and fills internal variables
+func (r *ChatbotUploadAsset) Fill(req *http.Request) (err error) {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
+		}
+	}
+
+	{
+		val := chi.URLParam(req, "chatbotID")
+		r.ChatbotID = payload.ParseUint64(val)
 	}
 
 	return err

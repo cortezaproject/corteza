@@ -20,16 +20,19 @@ interface ChatbotColors {
 
 interface ChatbotLauncher {
   iconURL: string
+  iconAttachmentID: string
   iconVisible: boolean
   label: string
   buttonLabel: string
   size: string
   shape: string
   position: string
+  startOpen: boolean
 }
 
 interface ChatbotStyling {
   logoURL: string
+  logoAttachmentID: string
   fontFamily: string
   fontSizes: ChatbotFontSizes
   colors: ChatbotColors
@@ -74,6 +77,7 @@ export class Chatbot {
 
   public styling: ChatbotStyling = {
     logoURL: '',
+    logoAttachmentID: '',
     fontFamily: '',
     fontSizes: { base: '14px', small: '12px', heading: '16px' },
     colors: {
@@ -88,12 +92,14 @@ export class Chatbot {
     },
     launcher: {
       iconURL: '',
+      iconAttachmentID: '',
       iconVisible: true,
       label: '',
       buttonLabel: '',
       size: '56px',
       shape: 'circle',
       position: 'bottom-right',
+      startOpen: false,
     },
   }
 

@@ -108,6 +108,8 @@ export default {
     },
   },
 
+  emits: ['update:items', 'remove', 'open-editor'],
+
   data() {
     return {
       dragIndex: -1,
@@ -126,8 +128,10 @@ export default {
 
     onDrop(targetIndex) {
       if (this.dragIndex < 0 || this.dragIndex === targetIndex) return
-      const moved = this.items.splice(this.dragIndex, 1)[0]
-      this.items.splice(targetIndex, 0, moved)
+      const next = [...this.items]
+      const moved = next.splice(this.dragIndex, 1)[0]
+      next.splice(targetIndex, 0, moved)
+      this.$emit('update:items', next)
       this.dragIndex = -1
       this.emitChange()
     },

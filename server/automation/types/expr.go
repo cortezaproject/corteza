@@ -151,9 +151,11 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 
 		err = func() (err error) {
 			if len(e.Source) > 0 {
-				// can copy from existing variable
+				// Missing variable in scope is treated as an absent optional
+				// input — leave value nil and let downstream casting produce
+				// the zero typed value.
 				if !scope.Has(e.Source) {
-					return errors.NotFound("variable %q does not exist", e.Source)
+					return
 				}
 
 				value, err = expr.Select(scope, e.Source)
@@ -278,9 +280,11 @@ func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) ([
 			}
 
 			if len(e.Source) > 0 {
-				// Copy from existing variable in the specified context
+				// Missing variable in scope is treated as an absent optional
+				// input — leave value nil and let downstream casting produce
+				// the zero typed value.
 				if !evalScope.Has(e.Source) {
-					return errors.NotFound("variable %q does not exist in scope %q", e.Source, e.Scope)
+					return
 				}
 
 				value, err = expr.Select(evalScope, e.Source)

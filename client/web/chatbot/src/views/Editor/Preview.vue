@@ -18,6 +18,22 @@ let ui = null
 let engine = null
 let conversationID = null
 let sending = false
+let userClosed = false
+
+function apiOrigin() {
+  try {
+    return new URL($SystemAPI.baseURL).origin
+  } catch {
+    return window.location.origin
+  }
+}
+
+function absolutize(u) {
+  if (!u) return u
+  if (/^(https?:|blob:|data:)/i.test(u)) return u
+  if (u.startsWith('/')) return apiOrigin() + u
+  return u
+}
 
 function buildConfig() {
   const cb = props.chatbot
@@ -28,8 +44,17 @@ function buildConfig() {
     agentID: s.agentID,
     config: s.config || {},
   }))
+  const styling = {
+    ...(cb.styling || {}),
+    logoURL: absolutize(cb.styling?.logoURL),
+    launcher: {
+      ...((cb.styling && cb.styling.launcher) || {}),
+      iconURL: absolutize(cb.styling?.launcher?.iconURL),
+      position: 'bottom-right',
+    },
+  }
   return {
-    styling: cb.styling,
+    styling,
     scenarios,
     handoff: { enabled: !!cb.handoff?.enabled, notImplemented: true },
   }
@@ -44,7 +69,7 @@ async function handleUserInput(text) {
   if (!agentID) {
     engine.pushMessage({
       role: 'system',
-      content: 'Select an agent on the active conversation scenario to preview it.',
+      content: 'Select an agent on the active conversation step to preview it.',
     })
     return
   }
@@ -84,7 +109,10 @@ function mount() {
   ui = new WidgetUI(cfg, engine, {
     container: hostRef.value,
     contained: true,
-    startOpen: true,
+    startOpen: !userClosed,
+    onToggle: open => {
+      userClosed = !open
+    },
   })
   ui.onUserInput = handleUserInput
   ui.onFormSubmit = () => engine.advance()

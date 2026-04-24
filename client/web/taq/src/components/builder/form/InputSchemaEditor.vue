@@ -8,7 +8,6 @@
         icon="pi pi-plus"
         size="small"
         severity="secondary"
-        text
         :label="$t('builder.inputSchema.addParam')"
         @click="addRow"
       />

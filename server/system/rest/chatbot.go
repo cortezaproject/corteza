@@ -2,6 +2,9 @@ package rest
 
 import (
 	"context"
+	"fmt"
+	"net/url"
+	"strconv"
 
 	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
@@ -12,8 +15,9 @@ import (
 
 type (
 	Chatbot struct {
-		svc chatbotService
-		ac  chatbotAccessController
+		svc        chatbotService
+		attachment service.AttachmentService
+		ac         chatbotAccessController
 	}
 
 	chatbotPayload struct {
@@ -50,8 +54,9 @@ type (
 
 func (Chatbot) New() *Chatbot {
 	return &Chatbot{
-		svc: service.DefaultChatbot,
-		ac:  service.DefaultAccessControl,
+		svc:        service.DefaultChatbot,
+		attachment: service.DefaultAttachment,
+		ac:         service.DefaultAccessControl,
 	}
 }
 
@@ -140,10 +145,54 @@ func (ctrl *Chatbot) RegenerateWidgetKey(ctx context.Context, r *request.Chatbot
 	return ctrl.makePayload(ctx, c, err)
 }
 
+func (ctrl *Chatbot) UploadAsset(ctx context.Context, r *request.ChatbotUploadAsset) (interface{}, error) {
+	if r.Upload == nil {
+		return nil, fmt.Errorf("missing upload")
+	}
+
+	// Permission follows chatbot edit.
+	cb, err := ctrl.svc.FindByID(ctx, r.ChatbotID)
+	if err != nil {
+		return nil, err
+	}
+	if !ctrl.ac.CanUpdateChatbot(ctx, cb) {
+		return nil, service.ChatbotErrNotAllowedToUpdate()
+	}
+
+	file, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	att, err := ctrl.attachment.CreateChatbotAttachment(ctx, cb.ID, r.Upload.Filename, r.Upload.Size, file)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"attachmentID": strconv.FormatUint(att.ID, 10),
+		"url":          chatbotAssetURL(cb.WidgetKey, att.ID, att.Name),
+	}, nil
+}
+
+// chatbotAssetURL builds the widget-scoped read URL. The frontend stores only
+// the attachmentID; the full URL is a convenience for immediate preview.
+func chatbotAssetURL(widgetKey string, attachmentID uint64, name string) string {
+	return fmt.Sprintf(
+		"/api/widget/v1/asset/%d/%s?widgetKey=%s",
+		attachmentID,
+		url.PathEscape(name),
+		url.QueryEscape(widgetKey),
+	)
+}
+
 func (ctrl *Chatbot) makePayload(ctx context.Context, c *types.Chatbot, err error) (*chatbotPayload, error) {
 	if err != nil || c == nil {
 		return nil, err
 	}
+
+	resolveChatbotAssetURLs(c)
 
 	p := &chatbotPayload{
 		Chatbot: c,
@@ -155,6 +204,18 @@ func (ctrl *Chatbot) makePayload(ctx context.Context, c *types.Chatbot, err erro
 	}
 
 	return p, nil
+}
+
+// resolveChatbotAssetURLs fills LogoURL / IconURL from the corresponding
+// attachment IDs so callers that consume URLs directly (embed snippet, widget
+// preview) keep working without separate resolution.
+func resolveChatbotAssetURLs(c *types.Chatbot) {
+	if c.Styling.LogoAttachmentID != 0 {
+		c.Styling.LogoURL = chatbotAssetURL(c.WidgetKey, c.Styling.LogoAttachmentID, "logo")
+	}
+	if c.Styling.Launcher.IconAttachmentID != 0 {
+		c.Styling.Launcher.IconURL = chatbotAssetURL(c.WidgetKey, c.Styling.Launcher.IconAttachmentID, "icon")
+	}
 }
 
 func (ctrl *Chatbot) makeFilterPayload(ctx context.Context, nn types.ChatbotSet, f types.ChatbotFilter, err error) (*chatbotSetPayload, error) {
