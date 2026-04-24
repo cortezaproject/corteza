@@ -3,6 +3,7 @@ list:
   searchPlaceholder: Search chatbots
   create: Create chatbot
   delete: Are you sure you want to delete this chatbot?
+  unnamed: (unnamed)
   enabled:
     on: Enabled
     off: Disabled
@@ -14,6 +15,7 @@ list:
   actions:
     duplicate: Duplicate
     undelete: Restore
+  duplicateNameSuffix: '{name} (Copy)'
 
 editor:
   titleCreate: Create chatbot
@@ -28,6 +30,9 @@ editor:
     title: Live preview
     show: Show preview
     description: Live preview of the widget as it would appear in the bottom-right corner of an embedding page.
+    selectAgentHint: Select an agent on the active conversation step to preview it.
+    requestFailed: 'Error: {reason}'
+    requestFailedReason: request failed
   name:
     label: Name
     help: A short, human-readable name for this chatbot
@@ -146,6 +151,11 @@ editor:
     handleDuplicate: Another step already uses this handle.
     name: Name
     type: Type
+    stepName: Step {n}
+    types:
+      static_message: Static message
+      conversation: Conversation
+      form: Form
     static:
       message: Message
       isMarkdown: Render as Markdown
@@ -168,3 +178,8 @@ editor:
       fieldRequired: Required
       submitLabel: Submit button label
       empty: No fields yet. Add one above.
+      fieldTypes:
+        text: Text
+        email: Email
+        number: Number
+        textarea: Multi-line text

@@ -4,6 +4,7 @@
 
 <script setup>
 import { inject, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Engine } from 'human-webapp-chatbot-widget/engine'
 import { WidgetUI } from 'human-webapp-chatbot-widget/ui'
 
@@ -11,6 +12,7 @@ const props = defineProps({
   chatbot: { type: Object, required: true },
 })
 
+const { t } = useI18n()
 const $SystemAPI = inject('$SystemAPI')
 
 const hostRef = ref(null)
@@ -69,7 +71,7 @@ async function handleUserInput(text) {
   if (!agentID) {
     engine.pushMessage({
       role: 'system',
-      content: 'Select an agent on the active conversation step to preview it.',
+      content: t('chatbot.editor.preview.selectAgentHint'),
     })
     return
   }
@@ -93,7 +95,9 @@ async function handleUserInput(text) {
     engine.emit({ type: 'typing', on: false })
     engine.pushMessage({
       role: 'system',
-      content: 'Error: ' + (err?.message || 'request failed'),
+      content: t('chatbot.editor.preview.requestFailed', {
+        reason: err?.message || t('chatbot.editor.preview.requestFailedReason'),
+      }),
     })
   } finally {
     sending = false

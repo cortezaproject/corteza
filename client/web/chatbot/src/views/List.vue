@@ -208,7 +208,7 @@ async function handleDuplicate(cb) {
     const source = await $SystemAPI.chatbotRead({ chatbotID: cb.chatbotID })
     const copy = {
       handle: source.handle ? `${source.handle}_copy` : '',
-      name: source.name ? `${source.name} (Copy)` : '',
+      name: source.name ? t('chatbot.list.duplicateNameSuffix', { name: source.name }) : '',
       enabled: false,
       sessionTTL: source.sessionTTL || '',
       allowedOrigins: source.allowedOrigins || [],

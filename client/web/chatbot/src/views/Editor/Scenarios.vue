@@ -212,7 +212,9 @@
                   <InputText v-model="f.label" class="col-span-4" />
                   <Select
                     v-model="f.type"
-                    :options="['text','email','number','textarea']"
+                    :options="fieldTypeOptions"
+                    optionLabel="label"
+                    optionValue="value"
                     class="col-span-3"
                   />
                   <ToggleSwitch v-model="f.required" class="col-span-1" />
@@ -245,6 +247,9 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   scenarios: { type: Array, required: true },
@@ -264,11 +269,18 @@ const current = computed(() =>
   selectedIdx.value >= 0 ? props.scenarios[selectedIdx.value] : null,
 )
 
-const scenarioTypes = [
-  { label: 'Static message', value: 'static_message' },
-  { label: 'Conversation', value: 'conversation' },
-  { label: 'Form', value: 'form' },
-]
+const scenarioTypes = computed(() => [
+  { label: t('chatbot.editor.scenarios.types.static_message'), value: 'static_message' },
+  { label: t('chatbot.editor.scenarios.types.conversation'), value: 'conversation' },
+  { label: t('chatbot.editor.scenarios.types.form'), value: 'form' },
+])
+
+const fieldTypeOptions = computed(() => [
+  { label: t('chatbot.editor.scenarios.form.fieldTypes.text'), value: 'text' },
+  { label: t('chatbot.editor.scenarios.form.fieldTypes.email'), value: 'email' },
+  { label: t('chatbot.editor.scenarios.form.fieldTypes.number'), value: 'number' },
+  { label: t('chatbot.editor.scenarios.form.fieldTypes.textarea'), value: 'textarea' },
+])
 
 function defaultScenarioConfig(type) {
   switch (type) {
@@ -294,11 +306,13 @@ function normalizeCurrent() {
 }
 
 const AUTO_NAME_PATTERN = /^(step|scenario)[_ ]\d+$/i
-const typeLabelMap = Object.fromEntries(scenarioTypes.map(t => [t.value, t.label]))
-const typeLabelSet = new Set(Object.values(typeLabelMap))
+const typeLabelMap = computed(() =>
+  Object.fromEntries(scenarioTypes.value.map(st => [st.value, st.label])),
+)
+const typeLabelSet = computed(() => new Set(Object.values(typeLabelMap.value)))
 
 function isAutoName(name) {
-  return !name || AUTO_NAME_PATTERN.test(name) || typeLabelSet.has(name)
+  return !name || AUTO_NAME_PATTERN.test(name) || typeLabelSet.value.has(name)
 }
 
 watch(() => selectedIdx.value, normalizeCurrent, { immediate: true })
@@ -306,7 +320,7 @@ watch(() => current.value?.type, (newType, oldType) => {
   if (!current.value) return
   ensureScenarioConfig()
   if (newType && newType !== oldType && isAutoName(current.value.name)) {
-    current.value.name = typeLabelMap[newType] || current.value.name
+    current.value.name = typeLabelMap.value[newType] || current.value.name
   }
 })
 
@@ -321,7 +335,7 @@ function addScenario() {
   const n = nextStepNumber()
   props.scenarios.push({
     id: `step_${n}`,
-    name: `Step ${n}`,
+    name: t('chatbot.editor.scenarios.stepName', { n }),
     type: 'static_message',
     config: defaultScenarioConfig('static_message'),
   })
