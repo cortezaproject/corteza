@@ -9165,13 +9165,14 @@ export default class System {
 
   // List AI conversations
   async aiConversationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { agentID, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.aiConversationListEndpoint(),
     }
     cfg.params = {
+      agentID,
       deleted,
       limit,
       incTotal,
@@ -9322,12 +9323,9 @@ export default class System {
 
   // Continue AI conversation
   async aiConversationContinue(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { aiConversationID, agentID, input } = (a as KV) || {}
+    const { aiConversationID, input } = (a as KV) || {}
     if (!aiConversationID) {
       throw Error('field aiConversationID is empty')
-    }
-    if (!agentID) {
-      throw Error('field agentID is empty')
     }
     if (!input) {
       throw Error('field input is empty')
@@ -9340,7 +9338,6 @@ export default class System {
       }),
     }
     cfg.data = {
-      agentID,
       input,
     }
     return this.api()
@@ -9680,45 +9677,5 @@ export default class System {
   chatbotRegenerateWidgetKeyEndpoint(a: KV): string {
     const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}/regenerate-key`
-  }
-
-  // Upload chatbot asset (logo / icon)
-  async chatbotUploadAsset(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { chatbotID, upload } = (a as KV) || {}
-    if (!chatbotID) {
-      throw Error('field chatbotID is empty')
-    }
-    if (!upload) {
-      throw Error('field upload is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'post',
-      url: this.chatbotUploadAssetEndpoint({ chatbotID }),
-    }
-    cfg.data = { upload }
-    return this.api()
-      .request(cfg)
-      .then(result => stdResolve(result))
-  }
-
-  chatbotUploadAssetCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
-    const cancelTokenSource = axios.CancelToken.source()
-    const options = { ...extra, cancelToken: cancelTokenSource.token }
-
-    return {
-      response: () => this.chatbotUploadAsset(a, options),
-      cancel: () => {
-        cancelTokenSource.cancel()
-      },
-    }
-  }
-
-  chatbotUploadAssetEndpoint(a: KV): string {
-    const { chatbotID } = a || {}
-    return `/chatbots/${chatbotID}/asset`
   }
 }
