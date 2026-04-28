@@ -87,6 +87,8 @@ func (h *discoveryHandler) register() {
 			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
 			mcp.WithString("namespace", mcp.Description("Filter results to a specific namespace slug")),
 			mcp.WithString("module", mcp.Description("Filter results to a specific module handle")),
+			mcp.WithArray("namespaceIDs", mcp.Description("Filter results to specific namespace IDs")),
+			mcp.WithArray("moduleIDs", mcp.Description("Filter results to specific module IDs")),
 		),
 		"Discover Records",
 		h.search,
@@ -104,6 +106,24 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 	size, _ := args["size"].(string)
 	namespace, _ := args["namespace"].(string)
 	module, _ := args["module"].(string)
+
+	var namespaceIDs []string
+	if ids, ok := args["namespaceIDs"].([]interface{}); ok {
+		for _, id := range ids {
+			if s, ok := id.(string); ok {
+				namespaceIDs = append(namespaceIDs, s)
+			}
+		}
+	}
+
+	var moduleIDs []string
+	if ids, ok := args["moduleIDs"].([]interface{}); ok {
+		for _, id := range ids {
+			if s, ok := id.(string); ok {
+				moduleIDs = append(moduleIDs, s)
+			}
+		}
+	}
 
 	if size == "" {
 		size = "10"
@@ -129,6 +149,14 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 	}
 	if module != "" {
 		params.Set("moduleAggs", module)
+	}
+
+	for _, id := range namespaceIDs {
+		params.Add("namespaceID", id)
+	}
+
+	for _, id := range moduleIDs {
+		params.Add("moduleID", id)
 	}
 
 	endpoint := fmt.Sprintf("%s/?%s", h.baseURL, params.Encode())
