@@ -514,11 +514,11 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 			if err != nil {
 				return
 			}
+		}
 
-			err = svc.registerAutomation(ctx, res)
-			if err != nil {
-				return
-			}
+		err = svc.registerAutomation(ctx, res)
+		if err != nil {
+			return
 		}
 
 		if changes&ngAutomationChanged > 0 || len(res.Issues) > 0 {
@@ -741,8 +741,21 @@ func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutoma
 	return
 }
 
+func (svc *ngAutomation) unregisterAutomation(a *types.NgAutomation) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	if ptrs, ok := svc.reg[a.ID]; ok {
+		for _, ptr := range ptrs {
+			svc.eventbus.Unregister(ptr)
+		}
+		delete(svc.reg, a.ID)
+	}
+}
+
 func (svc *ngAutomation) registerAutomation(ctx context.Context, a *types.NgAutomation) error {
-	if !a.Enabled || len(a.Issues) > 0 || len(a.Triggers) == 0 {
+	if !a.Enabled || a.DeletedAt != nil || len(a.Issues) > 0 || len(a.Triggers) == 0 {
+		svc.unregisterAutomation(a)
 		return nil
 	}
 
@@ -759,11 +772,6 @@ func (svc *ngAutomation) registerAutomation(ctx context.Context, a *types.NgAuto
 	}
 
 	log := svc.log.With(logger.Uint64("automationID", a.ID))
-	canRegister := a.Enabled && a.DeletedAt == nil
-
-	if !canRegister {
-		return nil
-	}
 
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
