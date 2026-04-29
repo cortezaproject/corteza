@@ -1135,13 +1135,19 @@ func generateFunctionArguments(conn types.Connection, op types.ConnectionOperati
 			continue
 		}
 		inLookup[in.Name] = true
+		label := labelFromName(in.Name)
+		if lv, ok := in.Meta["label"].(string); ok && lv != "" {
+			label = lv
+		}
+		description, _ := in.Meta["description"].(string)
 		params = append(params, &atypes.Param{
 			ArgumentName: in.Name,
 			Types:        []string{normalizeParamType(in.Type)},
 			Required:     in.Required,
 			Aggregate:    in.Aggregate,
 			Meta: &atypes.ParamMeta{
-				Label: in.Name,
+				Label:       label,
+				Description: description,
 			},
 		})
 	}
@@ -1205,11 +1211,22 @@ func generateSegmentInput(parameters atypes.ParamSet) (elements []atypes.Section
 			inputType = p.Types[0]
 		}
 
+		label := p.ArgumentName
+		if p.Meta != nil && p.Meta.Label != "" {
+			label = p.Meta.Label
+		} else {
+			label = labelFromName(p.ArgumentName)
+		}
+		description := ""
+		if p.Meta != nil {
+			description = p.Meta.Description
+		}
 		elements = append(elements, atypes.SectionElement{
 			Input: atypes.SectionElementInput{
-				Type:     inputType,
-				Label:    p.ArgumentName,
-				Argument: p.ArgumentName,
+				Type:        inputType,
+				Label:       label,
+				Description: description,
+				Argument:    p.ArgumentName,
 			},
 		})
 	}
