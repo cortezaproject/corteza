@@ -257,7 +257,10 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 			allCCs = append(allCCs, *s)
 		}
 
-		svc.registerOperations(allCCs)
+		conn, connErr := loadConnection(ctx, svc.store, res.ConnectionID)
+		if connErr == nil {
+			svc.registerOperations(conn, allCCs)
+		}
 		svc.registerWebhookTriggers(*res)
 		return nil
 	}()
@@ -703,13 +706,15 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 	// Group configured connections by their source connection (connector)
 	byConn := make(map[uint64][]types.ConfiguredConnection)
 	for _, cc := range set {
-		// temp: always use the live connection definition instead of the snapshot
-		_ = svc.liveConnection(ctx, cc)
 		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)
 	}
 
-	for _, ccs := range byConn {
-		svc.registerOperations(ccs)
+	for connID, ccs := range byConn {
+		conn, err := loadConnection(ctx, svc.store, connID)
+		if err != nil {
+			continue
+		}
+		svc.registerOperations(conn, ccs)
 		for _, cc := range ccs {
 			svc.registerWebhookTriggers(cc)
 		}
@@ -718,23 +723,22 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 
 // registerOperations converts each ConnectionOperation into a ConstructFunction
 // and adds it to the automation construct library.
-func (svc *configuredConnection) registerOperations(ccs []types.ConfiguredConnection) {
-	if len(ccs) == 0 || len(ccs[0].Connection.Operations) == 0 {
+func (svc *configuredConnection) registerOperations(conn *types.Connection, ccs []types.ConfiguredConnection) {
+	if len(ccs) == 0 || len(conn.Operations) == 0 {
 		return
 	}
 
-	fns := make([]atypes.ConstructFunction, 0, len(ccs[0].Connection.Operations))
-	for _, op := range ccs[0].Connection.Operations {
-		fn := operationToFunction(ccs, op)
+	fns := make([]atypes.ConstructFunction, 0, len(conn.Operations))
+	for _, op := range conn.Operations {
+		fn := operationToFunction(*conn, ccs, op)
 		fns = append(fns, fn)
 	}
 
 	automationService.ConstructLibrary().AddFunctions(fns...)
 }
 
-func operationToFunction(ccs []types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
-	conn := ccs[0].Connection
-	ref := fmt.Sprintf("conn_%d_%s", ccs[0].ConnectionID, op.Handle)
+func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
+	ref := fmt.Sprintf("conn_%d_%s", conn.ID, op.Handle)
 
 	// Build a lookup map: configurationID → dalConnectionID
 	dalByConfig := make(map[uint64]uint64, len(ccs))
@@ -1558,7 +1562,9 @@ func (svc *configuredConnection) RefreshDiscovery(ctx context.Context, ID uint64
 	for _, s := range siblings {
 		allCCs = append(allCCs, *s)
 	}
-	svc.registerOperations(allCCs)
+	if conn, connErr := loadConnection(ctx, svc.store, cc.ConnectionID); connErr == nil {
+		svc.registerOperations(conn, allCCs)
+	}
 
 	var spreadsheetCount int
 	if raw, ok := cc.Config.Discovery["spreadsheets"]; ok {
@@ -1623,7 +1629,11 @@ func (svc *configuredConnection) refreshAllGoogleConnections(ctx context.Context
 		}
 		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)
 	}
-	for _, ccs := range byConn {
-		svc.registerOperations(ccs)
+	for connID, ccs := range byConn {
+		conn, err := loadConnection(ctx, svc.store, connID)
+		if err != nil {
+			continue
+		}
+		svc.registerOperations(conn, ccs)
 	}
 }

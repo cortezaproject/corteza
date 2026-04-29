@@ -48,7 +48,6 @@
 
 <script setup>
 import { resolveInputComponent } from './inputs/registry'
-import CInputArray from './inputs/CInputArray.vue'
 import CReferenceChip from './CReferenceChip.vue'
 import { computed, inject, ref } from 'vue'
 
@@ -109,7 +108,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference', 'updateReferenceSource'])
 
-const inputComponent = computed(() => isAggregate.value ? CInputArray : resolveInputComponent(props.type))
+const inputComponent = computed(() => resolveInputComponent(props.type))
 
 // Injected from Builder.vue — tracks which argument has the reference panel open
 const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
