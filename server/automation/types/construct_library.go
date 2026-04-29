@@ -98,6 +98,7 @@ type (
 	SectionElementInput struct {
 		Type        string       `json:"type,omitempty"`
 		Label       string       `json:"label,omitempty"`
+		Description string       `json:"description,omitempty"`
 		Placeholder string       `json:"placeholder,omitempty"`
 		Argument    string       `json:"argument,omitempty"`
 		Required    bool         `json:"required,omitempty"`
