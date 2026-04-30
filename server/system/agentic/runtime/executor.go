@@ -665,6 +665,37 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 				policyArgs["moduleID"] = strconv.FormatUint(modID, 10)
 			}
 		}
+		if call.Name == "discovery_search" {
+			var nsIDs, modIDs []string
+			for _, t := range agent.Access.Tools {
+				if t.Name != "discovery_search" {
+					continue
+				}
+				for _, a := range t.Allow {
+					if a.NamespaceID == 0 {
+						continue
+					}
+					nsIDs = append(nsIDs, strconv.FormatUint(a.NamespaceID, 10))
+					for _, mid := range a.ModuleIDs {
+						modIDs = append(modIDs, strconv.FormatUint(mid, 10))
+					}
+				}
+				break
+			}
+			if len(nsIDs) == 0 {
+				errMsg := "access denied: no namespaces are configured for discovery_search"
+				infos = append(infos, ToolCallInfo{Tool: call.Name, Args: call.Args, Error: errMsg})
+				messages = append(messages, types.AiConversationMessage{
+					Role: "tool",
+					ToolResults: []types.AiConversationToolResult{
+						{CallID: call.ID, Data: errMsg, Error: errMsg},
+					},
+				})
+				continue
+			}
+			policyArgs["namespaceIDs"] = nsIDs
+			policyArgs["moduleIDs"] = modIDs
+		}
 		// If the agent passed a TAQ/workflow handle or name instead of numeric ID,
 		// resolve it so the policy check always sees the numeric ID.
 		if call.Name == "automation_taq_exec" {
