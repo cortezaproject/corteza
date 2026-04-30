@@ -55,3 +55,15 @@ func errTimeout() error {
 		errors.Meta("code", "timeout"),
 	)
 }
+
+func errGuardBlocked(reason string) error {
+	return errors.New(errors.KindInvalidData, "input blocked by guard: "+reason,
+		errors.Meta("code", "guard_blocked"),
+	)
+}
+
+func errCanaryTriggered() error {
+	return errors.New(errors.KindInternal, "canary token detected in output",
+		errors.Meta("code", "canary_triggered"),
+	)
+}

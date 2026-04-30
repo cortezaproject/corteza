@@ -24,6 +24,7 @@ import (
 	"github.com/crusttech/human/server/pkg/valuestore"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
+	agenticGuard "github.com/crusttech/human/server/system/agentic/guard"
 	agenticKnowledge "github.com/crusttech/human/server/system/agentic/knowledge"
 	agenticMcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/crusttech/human/server/system/agentic/observability"
@@ -68,6 +69,8 @@ type (
 		SetTAQService(s agenticRuntime.TAQService)
 		SetWorkflowService(s agenticRuntime.WorkflowService)
 		SetNsModResolver(s agenticRuntime.NsModResolver)
+		SetBuiltinGuard(g agenticGuard.GuardService)
+		SetProviderGuard(g agenticGuard.GuardService)
 	}
 )
 
@@ -291,6 +294,15 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		c.ObsBus,
 	)
 
+	// Always-on built-in guard
+	DefaultAgenticRuntime.SetBuiltinGuard(agenticGuard.NewBuiltinGuard())
+
+	// Wire guard provider if an LlmProvider with guard config exists
+	if guardProvider, guardKey, err := findGuardProvider(ctx, s); err == nil && guardProvider != nil {
+		DefaultAgenticRuntime.SetProviderGuard(agenticGuard.NewLlamaGuard(guardProvider, guardKey))
+		log.Info("guard provider configured", zap.String("provider", guardProvider.Handle))
+	}
+
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
@@ -506,4 +518,28 @@ func initializeCredentialRegistry(s store.Storer, log *zap.Logger) error {
 	cred_registry.SetDefault(reg)
 	log.Info("credential registry initialized")
 	return nil
+}
+
+// findGuardProvider scans all LlmProvider records for one with Config.Guard.Enabled == true.
+// Returns the provider and its API key, or nil if no guard provider is configured.
+func findGuardProvider(ctx context.Context, s store.Storer) (*types.LlmProvider, string, error) {
+	set, _, err := store.SearchLlmProviders(ctx, s, types.LlmProviderFilter{})
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, p := range set {
+		if p.Config.Guard != nil && p.Config.Guard.Enabled {
+			apiKey := ""
+			if p.CredentialID != 0 {
+				cred, err := store.LookupCredentialByID(ctx, s, p.CredentialID)
+				if err == nil && cred != nil {
+					apiKey = cred.Credentials
+				}
+			}
+			return p, apiKey, nil
+		}
+	}
+
+	return nil, "", nil
 }

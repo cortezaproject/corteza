@@ -4,6 +4,7 @@ import (
 	"context"
 
 	autoTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/system/agentic/guard"
 	"github.com/crusttech/human/server/system/agentic/knowledge"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/types"
@@ -23,6 +24,8 @@ type (
 		taqService        TAQService
 		workflowService   WorkflowService
 		nsModResolver     NsModResolver
+		builtinGuard      guard.GuardService
+		providerGuard     guard.GuardService
 	}
 
 	// Registry interface for fetching agent definitions
@@ -182,6 +185,14 @@ func (r *runtime) SetWorkflowService(s WorkflowService) {
 
 func (r *runtime) SetNsModResolver(s NsModResolver) {
 	r.nsModResolver = s
+}
+
+func (r *runtime) SetBuiltinGuard(g guard.GuardService) {
+	r.builtinGuard = g
+}
+
+func (r *runtime) SetProviderGuard(g guard.GuardService) {
+	r.providerGuard = g
 }
 
  
