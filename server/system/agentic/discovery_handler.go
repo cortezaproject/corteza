@@ -85,10 +85,6 @@ func (h *discoveryHandler) register() {
 			mcp.WithDescription("Full-text search across all indexed records. Use this only when the user explicitly asks to search or find existing records by keyword. Do not use this when creating records or when the user provides a value directly — use it only to look up existing data."),
 			mcp.WithString("query", mcp.Required(), mcp.Description("Natural language or keyword search query")),
 			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
-			mcp.WithString("namespace", mcp.Description("Filter results to a specific namespace slug")),
-			mcp.WithString("module", mcp.Description("Filter results to a specific module handle")),
-			mcp.WithArray("namespaceIDs", mcp.Description("Filter results to specific namespace IDs")),
-			mcp.WithArray("moduleIDs", mcp.Description("Filter results to specific module IDs")),
 		),
 		"Discover Records",
 		h.search,
@@ -104,9 +100,6 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 
 	query, _ := args["query"].(string)
 	size, _ := args["size"].(string)
-	namespace, _ := args["namespace"].(string)
-	module, _ := args["module"].(string)
-
 	var namespaceIDs []string
 	if ids, ok := args["namespaceIDs"].([]interface{}); ok {
 		for _, id := range ids {
@@ -115,7 +108,6 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 			}
 		}
 	}
-
 	var moduleIDs []string
 	if ids, ok := args["moduleIDs"].([]interface{}); ok {
 		for _, id := range ids {
@@ -144,17 +136,9 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 	params.Set("q", query)
 	params.Set("resourceTypes", "compose:record")
 	params.Set("size", size)
-	if namespace != "" {
-		params.Set("namespaceAggs", namespace)
-	}
-	if module != "" {
-		params.Set("moduleAggs", module)
-	}
-
 	for _, id := range namespaceIDs {
 		params.Add("namespaceID", id)
 	}
-
 	for _, id := range moduleIDs {
 		params.Add("moduleID", id)
 	}
