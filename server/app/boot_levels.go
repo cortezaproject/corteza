@@ -419,6 +419,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	cmpAgentic.RecordHandler(sysService.DefaultMCPRegistry)
 	cmpAgentic.NamespaceHandler(sysService.DefaultMCPRegistry, sysService.DefaultAgent)
 	cmpAgentic.ModuleHandler(sysService.DefaultMCPRegistry, sysService.DefaultAgent)
+	cmpAgentic.PageHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
