@@ -132,12 +132,14 @@ type (
 	NsHandle struct {
 		ID     uint64
 		Handle string
+		Name   string
 	}
 
 	ModHandle struct {
 		ID          uint64
 		NamespaceID uint64
 		Handle      string
+		Name        string
 	}
 
 	// MCPClient abstracts the Model Context Protocol tools.

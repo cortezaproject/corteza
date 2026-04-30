@@ -41,7 +41,7 @@ func (r *nsModResolver) LookupNamespace(ctx context.Context, id uint64) (agentic
 	if handle == "" {
 		handle = ns.Name
 	}
-	return agenticRuntime.NsHandle{ID: ns.ID, Handle: handle}, nil
+	return agenticRuntime.NsHandle{ID: ns.ID, Handle: handle, Name: ns.Name}, nil
 }
 
 func (r *nsModResolver) LookupModule(ctx context.Context, nsID, modID uint64) (agenticRuntime.ModHandle, error) {
@@ -53,5 +53,5 @@ func (r *nsModResolver) LookupModule(ctx context.Context, nsID, modID uint64) (a
 	if modHandle == "" {
 		modHandle = mod.Name
 	}
-	return agenticRuntime.ModHandle{ID: mod.ID, NamespaceID: mod.NamespaceID, Handle: modHandle}, nil
+	return agenticRuntime.ModHandle{ID: mod.ID, NamespaceID: mod.NamespaceID, Handle: modHandle, Name: mod.Name}, nil
 }

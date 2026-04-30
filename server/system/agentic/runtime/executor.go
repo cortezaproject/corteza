@@ -352,6 +352,7 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 
 	if r.nsModResolver != nil {
 		systemPrompt += buildComposeContext(ctx, agent, r.nsModResolver)
+		systemPrompt += buildDiscoveryContext(ctx, agent, r.nsModResolver)
 	}
 	systemPrompt += "\n\n## BEFORE YOU RESPOND\n\nCheck: does the user's message require a tool call? If yes — make the tool call now. Do not say you cannot do it. Do not say you don't have the tools. Do not ask for permission. Call the tool."
 
@@ -666,7 +667,11 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			}
 		}
 		if call.Name == "discovery_search" {
-			var nsIDs, modIDs []string
+			type allowedNS struct {
+				id      uint64
+				modIDs  []uint64
+			}
+			var allowed []allowedNS
 			for _, t := range agent.Access.Tools {
 				if t.Name != "discovery_search" {
 					continue
@@ -675,14 +680,11 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 					if a.NamespaceID == 0 {
 						continue
 					}
-					nsIDs = append(nsIDs, strconv.FormatUint(a.NamespaceID, 10))
-					for _, mid := range a.ModuleIDs {
-						modIDs = append(modIDs, strconv.FormatUint(mid, 10))
-					}
+					allowed = append(allowed, allowedNS{id: a.NamespaceID, modIDs: a.ModuleIDs})
 				}
 				break
 			}
-			if len(nsIDs) == 0 {
+			if len(allowed) == 0 {
 				errMsg := "access denied: no namespaces are configured for discovery_search"
 				infos = append(infos, ToolCallInfo{Tool: call.Name, Args: call.Args, Error: errMsg})
 				messages = append(messages, types.AiConversationMessage{
@@ -692,6 +694,76 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 					},
 				})
 				continue
+			}
+
+			// Validate the namespace argument against the allow list
+			nsArg, _ := call.Args["namespace"].(string)
+			var matchedNS *allowedNS
+			if nsArg != "" && r.nsModResolver != nil {
+				for i := range allowed {
+					ns, err := r.nsModResolver.LookupNamespace(ctx, allowed[i].id)
+					if err != nil {
+						continue
+					}
+					if strings.EqualFold(ns.Name, nsArg) || strings.EqualFold(ns.Handle, nsArg) {
+						matchedNS = &allowed[i]
+						break
+					}
+				}
+				if matchedNS == nil {
+					errMsg := fmt.Sprintf("access denied: namespace %q is not accessible via discovery_search", nsArg)
+					infos = append(infos, ToolCallInfo{Tool: call.Name, Args: call.Args, Error: errMsg})
+					messages = append(messages, types.AiConversationMessage{
+						Role: "tool",
+						ToolResults: []types.AiConversationToolResult{
+							{CallID: call.ID, Data: errMsg, Error: errMsg},
+						},
+					})
+					continue
+				}
+			}
+
+			var nsIDs, modIDs []string
+			if matchedNS != nil {
+				nsIDs = []string{strconv.FormatUint(matchedNS.id, 10)}
+
+				modArg, _ := call.Args["module"].(string)
+				if modArg != "" && r.nsModResolver != nil {
+					matchedModID := uint64(0)
+					for _, mid := range matchedNS.modIDs {
+						mod, err := r.nsModResolver.LookupModule(ctx, matchedNS.id, mid)
+						if err != nil {
+							continue
+						}
+						if strings.EqualFold(mod.Name, modArg) || strings.EqualFold(mod.Handle, modArg) {
+							matchedModID = mid
+							break
+						}
+					}
+					if matchedModID == 0 {
+						errMsg := fmt.Sprintf("access denied: module %q is not accessible via discovery_search", modArg)
+						infos = append(infos, ToolCallInfo{Tool: call.Name, Args: call.Args, Error: errMsg})
+						messages = append(messages, types.AiConversationMessage{
+							Role: "tool",
+							ToolResults: []types.AiConversationToolResult{
+								{CallID: call.ID, Data: errMsg, Error: errMsg},
+							},
+						})
+						continue
+					}
+					modIDs = []string{strconv.FormatUint(matchedModID, 10)}
+				} else {
+					for _, mid := range matchedNS.modIDs {
+						modIDs = append(modIDs, strconv.FormatUint(mid, 10))
+					}
+				}
+			} else {
+				for _, a := range allowed {
+					nsIDs = append(nsIDs, strconv.FormatUint(a.id, 10))
+					for _, mid := range a.modIDs {
+						modIDs = append(modIDs, strconv.FormatUint(mid, 10))
+					}
+				}
 			}
 			policyArgs["namespaceIDs"] = nsIDs
 			policyArgs["moduleIDs"] = modIDs
@@ -1069,6 +1141,54 @@ func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsMod
 		}
 	}
 
+	return out
+}
+
+func buildDiscoveryContext(ctx context.Context, agent *types.Agent, resolver NsModResolver) string {
+	var nsIDs []uint64
+	nsModules := make(map[uint64][]uint64)
+
+	for _, tool := range agent.Access.Tools {
+		if tool.Name != "discovery_search" {
+			continue
+		}
+		for _, a := range tool.Allow {
+			if a.NamespaceID == 0 {
+				continue
+			}
+			nsIDs = append(nsIDs, a.NamespaceID)
+			nsModules[a.NamespaceID] = append(nsModules[a.NamespaceID], a.ModuleIDs...)
+		}
+		break
+	}
+
+	if len(nsIDs) == 0 {
+		return ""
+	}
+
+	out := "\n\n## DISCOVERY ACCESS\n\nWhen calling discovery_search, set namespace to the exact name from this list. The executor enforces access — calls for namespaces not listed here will be denied.\n"
+	for _, nsID := range nsIDs {
+		ns, err := resolver.LookupNamespace(ctx, nsID)
+		if err != nil {
+			continue
+		}
+		nsName := ns.Name
+		if nsName == "" {
+			nsName = ns.Handle
+		}
+		out += fmt.Sprintf("\n- namespace: %q\n", nsName)
+		for _, mid := range nsModules[nsID] {
+			mod, err := resolver.LookupModule(ctx, nsID, mid)
+			if err != nil {
+				continue
+			}
+			modName := mod.Name
+			if modName == "" {
+				modName = mod.Handle
+			}
+			out += fmt.Sprintf("  - module: %q\n", modName)
+		}
+	}
 	return out
 }
 

@@ -82,8 +82,10 @@ func (h *discoveryHandler) isAvailable() bool {
 func (h *discoveryHandler) register() {
 	h.reg.RegisterToolWithAvailability(
 		mcp.NewTool("discovery_search",
-			mcp.WithDescription("Full-text search across all indexed records. Use this only when the user explicitly asks to search or find existing records by keyword. Do not use this when creating records or when the user provides a value directly — use it only to look up existing data."),
-			mcp.WithString("query", mcp.Required(), mcp.Description("Natural language or keyword search query")),
+			mcp.WithDescription("Search or list records you have access to. Use this when the user asks to find, list, or show existing records. Only namespaces listed in your DISCOVERY ACCESS section are permitted — the executor will deny any other namespace. Leave query empty to list all accessible records, or provide a specific field value (name, email, phone) to search within them."),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("The exact namespace name from your DISCOVERY ACCESS section. Do not use module names here.")),
+			mcp.WithString("module", mcp.Description("The exact module name from your DISCOVERY ACCESS section. Leave empty to search across all accessible modules in the namespace.")),
+			mcp.WithString("query", mcp.Description("A specific value to search for inside record fields (e.g. a name, email, phone). Leave empty to list all records.")),
 			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
 		),
 		"Discover Records",
@@ -100,22 +102,8 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 
 	query, _ := args["query"].(string)
 	size, _ := args["size"].(string)
-	var namespaceIDs []string
-	if ids, ok := args["namespaceIDs"].([]interface{}); ok {
-		for _, id := range ids {
-			if s, ok := id.(string); ok {
-				namespaceIDs = append(namespaceIDs, s)
-			}
-		}
-	}
-	var moduleIDs []string
-	if ids, ok := args["moduleIDs"].([]interface{}); ok {
-		for _, id := range ids {
-			if s, ok := id.(string); ok {
-				moduleIDs = append(moduleIDs, s)
-			}
-		}
-	}
+	namespaceIDs := extractStringSlice(args["namespaceIDs"])
+	moduleIDs := extractStringSlice(args["moduleIDs"])
 
 	if size == "" {
 		size = "10"
@@ -173,6 +161,22 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 	}
 
 	return mcp.NewToolResultText(formatted), nil
+}
+
+func extractStringSlice(v any) []string {
+	switch ids := v.(type) {
+	case []string:
+		return ids
+	case []interface{}:
+		out := make([]string, 0, len(ids))
+		for _, id := range ids {
+			if s, ok := id.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
+	return nil
 }
 
 func formatDiscoveryResponse(body []byte) (string, error) {

@@ -302,7 +302,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				"score_mode": "none",
 				"query": map[string]interface{}{
 					"terms": map[string]interface{}{
-						"namespace.namespaceID": p.namespaceIDs,
+						"namespace.namespaceID": parseIDsToInt64(p.namespaceIDs),
 					},
 				},
 			},
@@ -317,7 +317,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				"score_mode": "none",
 				"query": map[string]interface{}{
 					"terms": map[string]interface{}{
-						"module.moduleID": p.moduleIDs,
+						"module.moduleID": parseIDsToInt64(p.moduleIDs),
 					},
 				},
 			},
@@ -715,4 +715,14 @@ func buildMultiMatchQuery(searchQuery string) map[string]interface{} {
 			"boost":  1.0,
 		},
 	}
+}
+
+func parseIDsToInt64(ids []string) []int64 {
+	out := make([]int64, 0, len(ids))
+	for _, id := range ids {
+		if v, err := strconv.ParseInt(id, 10, 64); err == nil {
+			out = append(out, v)
+		}
+	}
+	return out
 }
