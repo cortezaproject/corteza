@@ -298,9 +298,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAgenticRuntime.SetBuiltinGuard(agenticGuard.NewBuiltinGuard())
 
 	// Wire guard provider if an LlmProvider with guard config exists
-	if guardProvider, guardKey, err := findGuardProvider(ctx, s); err == nil && guardProvider != nil {
+	if guardProvider, guardKey, err := findGuardProvider(ctx, s); err != nil {
+		log.Error("failed to find guard provider", zap.Error(err))
+	} else if guardProvider != nil {
 		DefaultAgenticRuntime.SetProviderGuard(agenticGuard.NewLlamaGuard(guardProvider, guardKey))
 		log.Info("guard provider configured", zap.String("provider", guardProvider.Handle))
+	} else {
+		log.Info("no guard provider configured")
 	}
 
 	DefaultApigwRoute = Route()
