@@ -421,8 +421,8 @@ recordList:
     selection: Selected records
     specifyTimezone: Export to timezone
     timezonePlaceholder: Select timezone
-    resolveRefs: Include record selector values
-    resolveRefsNote: When include record selector values is checked, all record fields include the record label next to the identifier.
+    resolveRefs: Include resolved values
+    resolveRefsNote: When enabled, Record and User fields are exported alongside an extra column with their resolved label (record label or user handle/email/name) in addition to the underlying identifier.
     datePresetUndefined: Unknown date preset
   federated: Federated
   fields: Module fields
@@ -606,6 +606,9 @@ recordList:
     searchableFields: Searchable fields
     searchableFieldsFootnote: If no fields are selected, the search will be performed on all available visible fields
     configureSearchableFields: Select fields that will be used for search
+    searchSubmitMode: Search submit
+    searchOnSubmit: On submit (Enter or button click)
+    searchOnType: After typing
     openInSameTab: Open record in the same tab
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal

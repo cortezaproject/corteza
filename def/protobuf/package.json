@@ -1,6 +1,6 @@
 {
   "name": "@cortezaproject/corteza-protobuf",
-  "version": "2024.9.8",
+  "version": "2024.9.9-rc.1",
   "private": true,
   "description": "Corteza Protobuf dummy package"
 }

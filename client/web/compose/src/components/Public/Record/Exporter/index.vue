@@ -679,9 +679,9 @@ export default {
         ext: kind,
         fields: encodeURIComponent(this.fields.map(({ name }) => name)),
         filter: encodeURIComponent(this.makeFilter(this.exportConfig)),
-        filterRaw: encodeURIComponent(this.exportConfig),
+        filterRaw: this.exportConfig,
         multiValueDelimiter: encodeURIComponent(this.exportConfig.multiValueDelimiter),
-        timezone: encodeURIComponent(this.forTimezone ? this.exportTimezone : undefined),
+        timezone: this.forTimezone ? this.exportTimezone : undefined,
         resolveRefs: encodeURIComponent(this.resolveRefs),
       })
     },

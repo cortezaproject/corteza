@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )
@@ -56,6 +57,10 @@ type (
 		rows      []datasource.RawRecord
 		buffIndex int
 		done      bool
+
+		// User ref resolution
+		store      store.Storer
+		userFields map[string]bool
 	}
 
 	refModWrap struct {
@@ -100,51 +105,29 @@ func mkIteratorProvider(ctx context.Context, ac recordValueAccessController, s s
 		}
 	}
 
-	// Get ref record fields and stuff
 	refMods := make(map[string]refModWrap)
+	userFields := make(map[string]bool)
+
+	for _, name := range []string{"createdBy", "updatedBy", "ownedBy", "deletedBy"} {
+		userFields[name] = true
+	}
 
 	for _, f := range mod.Fields {
-		if f.Kind != "Record" {
-			continue
-		}
-
-		relModID := f.Options.UInt64("moduleID")
-		if relModID == 0 {
-			continue
-		}
-
-		var relMod *types.Module
-		relMod, err = s.LookupComposeModuleByID(ctx, relModID)
-		if err != nil {
-			return
-		}
-
-		relMod.Fields, _, err = s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
-			ModuleID: []uint64{relMod.ID},
-		})
-
-		wrap := refModWrap{
-			modLvl1:   relMod,
-			labelLvl1: f.Options.String("labelField"),
-		}
-
-		if f.Options.String("recordLabelField") != "" {
-			nestedRef := wrap.modLvl1.Fields.FindByName(f.Options.String("labelField"))
-			nestedModID := nestedRef.Options.UInt64("moduleID")
-
-			relNestedMod, err := s.LookupComposeModuleByID(ctx, nestedModID)
+		switch f.Kind {
+		case "Record":
+			refMods[f.Name], err = mkRecordRefWrap(ctx, s, f)
 			if err != nil {
-				return nil, err
+				return
 			}
-
-			wrap.labelLvl2 = f.Options.String("recordLabelField")
-			wrap.modLvl2 = relNestedMod
+		case "User":
+			userFields[f.Name] = true
 		}
-
-		refMods[f.Name] = wrap
 	}
 
 	out.relMods = refMods
+	out.store = s
+	out.userFields = userFields
+
 	return
 }
 
@@ -334,6 +317,11 @@ func (ip *iteratorProvider) nextResolved(ctx context.Context, out datasource.Raw
 		if err != nil {
 			return
 		}
+
+		err = ip.resolveUsers(ctx, ip.store)
+		if err != nil {
+			return
+		}
 	}
 
 	rowCache := ip.rows[ip.buffIndex]
@@ -437,6 +425,112 @@ func (ip *iteratorProvider) Ident() (out string) {
 
 // @todo consider omitting these from the interface since they're not always needed
 func (ip *iteratorProvider) SetIdent(string) {
+}
+
+func mkRecordRefWrap(ctx context.Context, s store.Storer, f *types.ModuleField) (wrap refModWrap, err error) {
+	relModID := f.Options.UInt64("moduleID")
+	if relModID == 0 {
+		return
+	}
+
+	var relMod *types.Module
+	relMod, err = s.LookupComposeModuleByID(ctx, relModID)
+	if err != nil {
+		return
+	}
+
+	relMod.Fields, _, err = s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
+		ModuleID: []uint64{relMod.ID},
+	})
+	if err != nil {
+		return
+	}
+
+	wrap = refModWrap{
+		modLvl1:   relMod,
+		labelLvl1: f.Options.String("labelField"),
+	}
+
+	if f.Options.String("recordLabelField") != "" {
+		nestedRef := wrap.modLvl1.Fields.FindByName(f.Options.String("labelField"))
+		nestedModID := nestedRef.Options.UInt64("moduleID")
+
+		wrap.modLvl2, err = s.LookupComposeModuleByID(ctx, nestedModID)
+		if err != nil {
+			return
+		}
+		wrap.labelLvl2 = f.Options.String("recordLabelField")
+	}
+
+	return
+}
+
+func (ip *iteratorProvider) resolveUsers(ctx context.Context, s store.Storer) (err error) {
+	if len(ip.userFields) == 0 || s == nil {
+		return
+	}
+
+	// Collect unique user IDs across the current chunk
+	seen := make(map[string]bool)
+	for _, row := range ip.rows {
+		for fieldName := range ip.userFields {
+			for _, val := range row[fieldName].Values {
+				if val != "" && val != "0" {
+					seen[val] = true
+				}
+			}
+		}
+	}
+	if len(seen) == 0 {
+		return
+	}
+
+	ids := make([]string, 0, len(seen))
+	for id := range seen {
+		ids = append(ids, id)
+	}
+
+	uu, _, err := store.SearchUsers(ctx, s, systemTypes.UserFilter{
+		UserID: ids,
+		Paging: filter.Paging{Limit: 0},
+	})
+	if err != nil {
+		return
+	}
+
+	labels := make(map[string]string, len(uu))
+	for _, u := range uu {
+		labels[strconv.FormatUint(u.ID, 10)] = userLabel(u)
+	}
+
+	for i, row := range ip.rows {
+		for fieldName := range ip.userFields {
+			v := row[fieldName]
+			if len(v.Values) == 0 {
+				continue
+			}
+			for j, val := range v.Values {
+				if label, ok := labels[val]; ok {
+					row.SetValue(fmt.Sprintf("%s value", fieldName), uint(j), label)
+				}
+			}
+		}
+		ip.rows[i] = row
+	}
+	return
+}
+
+func userLabel(u *systemTypes.User) string {
+	if u.Handle != "" {
+		return u.Handle
+	}
+	if u.Email != "" {
+		return u.Email
+	}
+	if u.Name != "" {
+		return u.Name
+	}
+	return strconv.FormatUint(u.ID, 10)
 }
 
 // filterUnreadableFields removes values the given user does not have access to

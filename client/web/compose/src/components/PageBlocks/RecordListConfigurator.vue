@@ -289,6 +289,22 @@
                 </b-form-text>
               </b-form-group>
             </b-col>
+
+            <b-col
+              v-if="!options.hideSearch"
+              lg="6"
+              cols="12"
+            >
+              <b-form-group
+                :label="$t('recordList.record.searchSubmitMode')"
+                label-class="text-primary"
+              >
+                <b-form-select
+                  v-model="options.searchSubmitMode"
+                  :options="searchSubmitModeOptions"
+                />
+              </b-form-group>
+            </b-col>
           </b-row>
 
           <prefilter
@@ -1051,6 +1067,13 @@ export default {
         { value: 'sameTab', text: this.$t('recordList.record.createInSameTab') },
         { value: 'newTab', text: this.$t('recordList.record.createInNewTab') },
         { value: 'modal', text: this.$t('recordList.record.createInModal') },
+      ]
+    },
+
+    searchSubmitModeOptions () {
+      return [
+        { value: 'submit', text: this.$t('recordList.record.searchOnSubmit') },
+        { value: 'typing', text: this.$t('recordList.record.searchOnType') },
       ]
     },
 

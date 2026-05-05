@@ -1,7 +1,7 @@
 {
   "name": "corteza-server-web-console",
   "license": "Apache-2.0",
-  "version": "2024.9.8",
+  "version": "2024.9.9-rc.1",
   "contributors": [
     "Denis Arh <denis.arh@crust.tech>"
   ],
