@@ -24,6 +24,7 @@ import (
 	"github.com/crusttech/human/server/pkg/valuestore"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
+	"github.com/crusttech/human/server/system/service/appstore"
 	agenticGuard "github.com/crusttech/human/server/system/agentic/guard"
 	agenticKnowledge "github.com/crusttech/human/server/system/agentic/knowledge"
 	agenticMcp "github.com/crusttech/human/server/system/agentic/mcp"
@@ -52,6 +53,7 @@ type (
 		Attachment      options.AttachmentOpt
 		Webapps         options.WebappOpt
 		Agentic         options.AgenticOpt
+		Appstore        options.AppstoreOpt
 		ObsBus          *observability.Bus
 		NamespaceLookup agenticKnowledge.NamespaceLookup
 		ModuleLookup    agenticKnowledge.ModuleLookup
@@ -313,7 +315,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultDataPrivacy = DataPrivacy(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
 	DefaultExpression = Expression()
-	DefaultConnection = Connection()
+	catalogClient := appstore.New(c.Appstore.URL, c.Appstore.APIKey)
+	if catalogClient != nil {
+		DefaultLogger.Info("appstore catalog enabled", zap.String("url", c.Appstore.URL))
+	} else {
+		DefaultLogger.Info("appstore catalog disabled (APPSTORE_URL not set)")
+	}
+	DefaultConnection = Connection().WithCatalog(catalogClient)
 	DefaultConfiguredConnection = ConfiguredConnectionSvc().WithDalConnection(DefaultDalConnection)
 
 	DefaultConnection.WithConfiguredConnection(DefaultConfiguredConnection)

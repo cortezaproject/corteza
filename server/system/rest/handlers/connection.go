@@ -26,6 +26,7 @@ type (
 		Delete(context.Context, *request.ConnectionDelete) (interface{}, error)
 		Undelete(context.Context, *request.ConnectionUndelete) (interface{}, error)
 		Generate(context.Context, *request.ConnectionGenerate) (interface{}, error)
+		Import(context.Context, *request.ConnectionImport) (interface{}, error)
 		Configure(context.Context, *request.ConnectionConfigure) (interface{}, error)
 		UpdateConfiguration(context.Context, *request.ConnectionUpdateConfiguration) (interface{}, error)
 	}
@@ -39,6 +40,7 @@ type (
 		Delete              func(http.ResponseWriter, *http.Request)
 		Undelete            func(http.ResponseWriter, *http.Request)
 		Generate            func(http.ResponseWriter, *http.Request)
+		Import              func(http.ResponseWriter, *http.Request)
 		Configure           func(http.ResponseWriter, *http.Request)
 		UpdateConfiguration func(http.ResponseWriter, *http.Request)
 	}
@@ -158,6 +160,22 @@ func NewConnection(h ConnectionAPI) *Connection {
 
 			api.Send(w, r, value)
 		},
+		Import: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConnectionImport()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Import(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Configure: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewConnectionConfigure()
@@ -203,6 +221,7 @@ func (h Connection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 		r.Delete("/connections/{connectionID}", h.Delete)
 		r.Post("/connections/{connectionID}/undelete", h.Undelete)
 		r.Post("/connections/generate", h.Generate)
+		r.Post("/connections/import", h.Import)
 		r.Post("/connections/{connectionID}/configure", h.Configure)
 		r.Patch("/connections/{connectionID}/configure/{configuredConnectionID}", h.UpdateConfiguration)
 	})

@@ -2,16 +2,19 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"go.uber.org/zap"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
-
 	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service/appstore"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -21,6 +24,8 @@ type (
 		store                store.Storer
 		ac                   connectionAccessController
 		configuredConnection *configuredConnection
+		catalog              appstore.Client
+		logger               *zap.Logger
 	}
 
 	connectionAccessController interface {
@@ -39,6 +44,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
+		Import(ctx context.Context, catalogID string) (*types.Connection, error)
 	}
 
 	ConfiguredConnectionService interface {
@@ -51,6 +57,12 @@ type (
 	dispatchRsp struct {
 		dalConnection *types.DalConnection
 	}
+
+	// catalogArb holds MW pagination state encoded in PagingCursor.Arb.
+	catalogArb struct {
+		MWPage int  `json:"mwPage,omitempty"`
+		MWDone bool `json:"mwDone,omitempty"`
+	}
 )
 
 func Connection() *connection {
@@ -58,11 +70,17 @@ func Connection() *connection {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
+		logger:    DefaultLogger.Named("connection"),
 	}
 }
 
 func (svc *connection) WithConfiguredConnection(cc *configuredConnection) *connection {
 	svc.configuredConnection = cc
+	return svc
+}
+
+func (svc *connection) WithCatalog(c appstore.Client) *connection {
+	svc.catalog = c
 	return svc
 }
 
@@ -283,7 +301,85 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 			return err
 		}
 
-		if err = label.Load(ctx, svc.store, toLabeledConnections(set)...); err != nil {
+		// Mark all DB records as local by default.
+		for _, c := range set {
+			c.Source = "local"
+		}
+
+		// Merge with appstore catalog when configured.
+		if svc.catalog != nil {
+			// Read catalog paging state from cursor arb.
+			var arb catalogArb
+			if filter.PageCursor != nil {
+				_ = filter.PageCursor.GetArb(&arb)
+			}
+			if arb.MWPage == 0 {
+				arb.MWPage = 1
+			}
+
+			limit := int(filter.Limit)
+			if limit == 0 {
+				limit = 50
+			}
+
+			summaries, catErr := svc.catalog.ListPage(ctx, arb.MWPage, limit)
+			if catErr != nil {
+				svc.logger.Warn("appstore unavailable, serving DB-only results", zap.Error(catErr))
+			} else {
+				dbByHandle := make(map[string]*types.Connection, len(set))
+				for _, c := range set {
+					dbByHandle[c.Handle] = c
+				}
+
+				for _, s := range summaries {
+					if dbConn, ok := dbByHandle[s.Handle]; ok {
+						dbConn.Source = "catalog"
+						dbConn.CatalogID = s.ID
+					} else {
+						set = append(set, &types.Connection{
+							Handle: s.Handle,
+							Status: s.Status,
+							Meta: types.ConnectionMeta{
+								Short:       s.Short,
+								Description: s.Description,
+							},
+							Source:    "catalog",
+							CatalogID: s.ID,
+						})
+					}
+				}
+
+				// Advance MW page in next cursor; mark done when page was not full.
+				nextArb := catalogArb{MWPage: arb.MWPage + 1}
+				if len(summaries) < limit {
+					nextArb = catalogArb{MWPage: arb.MWPage, MWDone: true}
+				}
+				if f.NextPage != nil {
+					_ = f.NextPage.SetArb(nextArb)
+				}
+			}
+		}
+
+		// Count installed ConfiguredConnections per DB record.
+		var dbIDs []uint64
+		for _, c := range set {
+			if c.ID != 0 {
+				dbIDs = append(dbIDs, c.ID)
+			}
+		}
+		if len(dbIDs) > 0 {
+			counts, countErr := svc.countConfiguredByIDs(ctx, dbIDs)
+			if countErr != nil {
+				svc.logger.Warn("could not count configured connections", zap.Error(countErr))
+			} else {
+				for _, c := range set {
+					c.InstalledCount = counts[c.ID]
+				}
+			}
+		}
+
+		// Load labels only for records that exist in DB.
+		if err = label.Load(ctx, svc.store, toLabeledConnections(filterDBConnections(set))...); err != nil {
 			return err
 		}
 
@@ -294,6 +390,89 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, ConnectionActionSearch, err)
+}
+
+// Import fetches a connection definition from the appstore by its catalog ID and
+// creates it locally. If a connection with the same handle already exists the
+// existing record is returned without error.
+func (svc *connection) Import(ctx context.Context, catalogID string) (res *types.Connection, err error) {
+	if svc.catalog == nil {
+		return nil, fmt.Errorf("appstore catalog is not configured")
+	}
+
+	catalogConn, err := svc.catalog.GetConnection(ctx, catalogID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check for existing record with the same handle — idempotent.
+	existing, _, lookupErr := store.SearchConnections(ctx, svc.store, types.ConnectionFilter{Handle: catalogConn.Handle})
+	if lookupErr != nil {
+		return nil, lookupErr
+	}
+	if len(existing) > 0 {
+		return existing[0], nil
+	}
+
+	conn := &types.Connection{
+		Handle:    catalogConn.Handle,
+		CatalogID: catalogConn.ID,
+		Source:    "catalog",
+		Status:    "draft",
+		Meta: types.ConnectionMeta{
+			Short:       catalogConn.Meta.Short,
+			Description: catalogConn.Meta.Description,
+			Icon:        catalogConn.Meta.Icon,
+			Tags:        catalogConn.Meta.Tags,
+		},
+	}
+
+	if catalogConn.Service != nil {
+		raw, _ := json.Marshal(catalogConn.Service)
+		_ = json.Unmarshal(raw, &conn.Service)
+	}
+	if catalogConn.Operations != nil {
+		raw, _ := json.Marshal(catalogConn.Operations)
+		_ = json.Unmarshal(raw, &conn.Operations)
+	}
+	if catalogConn.Resources != nil {
+		raw, _ := json.Marshal(catalogConn.Resources)
+		_ = json.Unmarshal(raw, &conn.Resources)
+	}
+
+	return svc.Create(ctx, conn)
+}
+
+// countConfiguredByIDs returns a map of connectionID → count of ConfiguredConnections.
+func (svc *connection) countConfiguredByIDs(ctx context.Context, ids []uint64) (map[uint64]int, error) {
+	idSet := make(map[uint64]bool, len(ids))
+	for _, id := range ids {
+		idSet[id] = true
+	}
+
+	cc, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{})
+	if err != nil {
+		return nil, err
+	}
+
+	counts := make(map[uint64]int, len(ids))
+	for _, c := range cc {
+		if idSet[c.ConnectionID] {
+			counts[c.ConnectionID]++
+		}
+	}
+	return counts, nil
+}
+
+// filterDBConnections returns only connections that have a DB record (ID != 0).
+func filterDBConnections(set types.ConnectionSet) types.ConnectionSet {
+	out := make(types.ConnectionSet, 0, len(set))
+	for _, c := range set {
+		if c.ID != 0 {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 // Configure creates a new ConfiguredConnection in draft status.

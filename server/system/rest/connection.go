@@ -45,6 +45,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
+		Import(ctx context.Context, catalogID string) (*types.Connection, error)
 		Configure(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 		UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 	}
@@ -77,6 +78,10 @@ func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (int
 	}
 
 	f.IncTotal = r.IncTotal
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
 
 	set, f, err = ctrl.svc.Search(ctx, f)
 	if err != nil {
@@ -155,9 +160,28 @@ func (ctrl Connection) Generate(ctx context.Context, r *request.ConnectionGenera
 	return nil, nil
 }
 
+func (ctrl Connection) Import(ctx context.Context, r *request.ConnectionImport) (interface{}, error) {
+	res, err := ctrl.svc.Import(ctx, r.CatalogID)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.makePayload(ctx, res), nil
+}
+
 func (ctrl Connection) Configure(ctx context.Context, r *request.ConnectionConfigure) (interface{}, error) {
+	connectionID := r.ConnectionID
+
+	// Auto-import catalog connection on first configure.
+	if connectionID == 0 && r.CatalogID != "" {
+		imported, err := ctrl.svc.Import(ctx, r.CatalogID)
+		if err != nil {
+			return nil, err
+		}
+		connectionID = imported.ID
+	}
+
 	conn := &types.ConfiguredConnection{
-		ConnectionID: r.ConnectionID,
+		ConnectionID: connectionID,
 		Name:         r.Name,
 		Config:       r.Config,
 		Status:       "draft",

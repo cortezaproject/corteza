@@ -209,8 +209,13 @@ type (
 	ConnectionConfigure struct {
 		// ConnectionID PATH parameter
 		//
-		// Connection ID
+		// Connection ID — pass 0 when configuring a not-yet-imported catalog connection
 		ConnectionID uint64 `json:",string"`
+
+		// CatalogID POST parameter
+		//
+		// Appstore catalog ID. When ConnectionID is 0 and this is set, the connection is auto-imported first.
+		CatalogID string
 
 		// Name POST parameter
 		//
@@ -226,6 +231,13 @@ type (
 		//
 		// Labels
 		Labels map[string]labelTypes.LabelValue
+	}
+
+	ConnectionImport struct {
+		// CatalogID POST parameter
+		//
+		// Appstore catalog connection ID
+		CatalogID string `json:"catalogID"`
 	}
 
 	ConnectionUpdateConfiguration struct {
@@ -1081,6 +1093,7 @@ func NewConnectionConfigure() *ConnectionConfigure {
 func (r ConnectionConfigure) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
+		"catalogID":    r.CatalogID,
 		"name":         r.Name,
 		"config":       r.Config,
 		"labels":       r.Labels,
@@ -1090,6 +1103,11 @@ func (r ConnectionConfigure) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ConnectionConfigure) GetConnectionID() uint64 {
 	return r.ConnectionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionConfigure) GetCatalogID() string {
+	return r.CatalogID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1127,6 +1145,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["catalogID"]; ok && len(val) > 0 {
+				r.CatalogID, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
 
 			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
 				r.Name, err = val[0], nil
@@ -1167,6 +1192,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
+
+		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
+			r.CatalogID, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
@@ -1365,6 +1397,52 @@ func (r *ConnectionUpdateConfiguration) Fill(req *http.Request) (err error) {
 			return err
 		}
 
+	}
+
+	return err
+}
+
+// NewConnectionImport request
+func NewConnectionImport() *ConnectionImport {
+	return &ConnectionImport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionImport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"catalogID": r.CatalogID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionImport) GetCatalogID() string {
+	return r.CatalogID
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionImport) Fill(req *http.Request) (err error) {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
+			r.CatalogID, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err

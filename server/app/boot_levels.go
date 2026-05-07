@@ -16,7 +16,6 @@ import (
 	autoAgentic "github.com/crusttech/human/server/automation/agentic"
 	autService "github.com/crusttech/human/server/automation/service"
 	cmpAgentic "github.com/crusttech/human/server/compose/agentic"
-	sysAgentic "github.com/crusttech/human/server/system/agentic"
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpEvent "github.com/crusttech/human/server/compose/service/event"
 	discoveryService "github.com/crusttech/human/server/discovery/service"
@@ -44,6 +43,7 @@ import (
 	"github.com/crusttech/human/server/pkg/version"
 	"github.com/crusttech/human/server/pkg/websocket"
 	"github.com/crusttech/human/server/store"
+	sysAgentic "github.com/crusttech/human/server/system/agentic"
 	mcpkg "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/service"
@@ -399,18 +399,19 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
-		ActionLog:       app.Opt.ActionLog,
-		Discovery:       app.Opt.Discovery,
-		Storage:         app.Opt.ObjStore,
-		Template:        app.Opt.Template,
-		DB:              app.Opt.DB,
-		Auth:            app.Opt.Auth,
-		RBAC:            app.Opt.RBAC,
-		Limit:           app.Opt.Limit,
-		Attachment:      app.Opt.Attachment,
-		Webapps:         app.Opt.Webapp,
-		Agentic: 				 app.Opt.Agentic,
-		ObsBus:          obs,
+		ActionLog:  app.Opt.ActionLog,
+		Discovery:  app.Opt.Discovery,
+		Storage:    app.Opt.ObjStore,
+		Template:   app.Opt.Template,
+		DB:         app.Opt.DB,
+		Auth:       app.Opt.Auth,
+		RBAC:       app.Opt.RBAC,
+		Limit:      app.Opt.Limit,
+		Attachment: app.Opt.Attachment,
+		Webapps:    app.Opt.Webapp,
+		Agentic:    app.Opt.Agentic,
+		Appstore:   app.Opt.Appstore,
+		ObsBus:     obs,
 	})
 	if err != nil {
 		return
@@ -1048,9 +1049,6 @@ func updateSmtpSettings(log *zap.Logger, current *types.AppSettings) {
 	})
 	setupSmtpDialer(log, current.SMTP.Servers...)
 }
-
-
-
 
 func setupSmtpDialer(log *zap.Logger, servers ...types.SmtpServers) {
 	if len(servers) == 0 {

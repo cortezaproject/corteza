@@ -32,6 +32,7 @@ type (
 		Webapp        WebappOpt
 		Observability ObservabilityOpt
 		Agentic       AgenticOpt
+		Appstore      AppstoreOpt
 	}
 )
 
@@ -67,5 +68,6 @@ func Init() *Options {
 		Webapp:        *Webapp(),
 		Observability: *Observability(),
 		Agentic:       *Agentic(),
+		Appstore:      *Appstore(),
 	}
 }

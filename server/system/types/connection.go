@@ -26,6 +26,11 @@ type (
 
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
+		// Runtime-only — not persisted in DB. Populated during Search.
+		Source         string `json:"source,omitempty"`         // "catalog" | "local"
+		CatalogID      string `json:"catalogID,omitempty"`      // appstore connection ID
+		InstalledCount int    `json:"installedCount,omitempty"` // number of ConfiguredConnections
+
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`

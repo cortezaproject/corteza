@@ -57,6 +57,9 @@ type (
 
 		// use < op instead of >
 		LThen bool
+
+		// Arb holds arbitrary per-consumer cursor state encoded as JSON.
+		Arb json.RawMessage
 	}
 
 	pagingCursorValue struct {
@@ -199,6 +202,7 @@ func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 		D  []bool
 		R  bool
 		LT bool
+		Arb json.RawMessage `json:",omitempty"`
 	}{
 		p.keys,
 		p.kk,
@@ -207,6 +211,7 @@ func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 		p.desc,
 		p.ROrder,
 		p.LThen,
+		p.Arb,
 	})
 
 	if err != nil {
@@ -235,6 +240,7 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 			D  []bool
 			R  bool
 			LT bool
+			Arb json.RawMessage `json:",omitempty"`
 		}
 
 		err error
@@ -262,6 +268,7 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	p.desc = aux.D
 	p.ROrder = aux.R
 	p.LThen = aux.LT
+	p.Arb = aux.Arb
 
 	// json.Unmarshal treats uint64 in values ([]interface{}) as float64 and we don't like that.
 	p.values = make([]interface{}, len(aux.V))
@@ -270,6 +277,24 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	}
 
 	return nil
+}
+
+// SetArb encodes v as JSON and stores it in the cursor's Arb field.
+func (p *PagingCursor) SetArb(v any) error {
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	p.Arb = raw
+	return nil
+}
+
+// GetArb decodes the cursor's Arb field into v. No-op when Arb is empty.
+func (p *PagingCursor) GetArb(v any) error {
+	if len(p.Arb) == 0 {
+		return nil
+	}
+	return json.Unmarshal(p.Arb, v)
 }
 
 func (p *PagingCursor) Decode(cursor string) error {
