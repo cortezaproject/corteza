@@ -36,7 +36,7 @@
           <CRouterLinkButton
             v-if="canCreate"
             :to="{ name: 'system.connections.create' }"
-            :label="$t('system.connections.list.createLabel')"
+            :label="$t('system.connections.list.createCustom')"
             icon="pi pi-plus"
             size="small"
           />
@@ -55,19 +55,6 @@
             {{ data.meta.description }}
           </span>
         </div>
-      </template>
-
-      <template #body-handle="{ data }">
-        {{ data.handle || '-' }}
-      </template>
-
-      <template #body-status="{ data }">
-        <Tag v-if="data.status" :value="data.status" />
-        <span v-else>-</span>
-      </template>
-
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
 
       <template #filter>
@@ -114,7 +101,6 @@
 <script setup>
 import {
   components,
-  filters,
   useConfirmDelete,
   useResourceList,
   useRBACStore,
@@ -125,7 +111,6 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { CResourceList, CRouterLinkButton } = components
-const { locFullDateTime } = filters
 
 const router = useRouter()
 const { t } = useI18n()
@@ -153,25 +138,6 @@ const connectionListFields = [
     sortable: true,
     header: t('system.connections.list.columns.name'),
   },
-  {
-    key: 'handle',
-    sortable: true,
-    header: t('system.connections.list.columns.handle'),
-  },
-  {
-    key: 'status',
-    sortable: true,
-    header: t('system.connections.list.columns.status'),
-  },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('system.connections.list.columns.updatedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
 ]
 
 // Resource list composable
@@ -192,6 +158,13 @@ const {
 
 // Methods
 function handleRowClick({ data }) {
+  if (data.source === 'catalog') {
+    router.push({
+      name: 'system.connections.configure',
+      params: { connectionID: data.connectionID },
+    })
+    return
+  }
   if (!data.canUpdateConnection && !data.canDeleteConnection) {
     return
   }
@@ -203,6 +176,10 @@ function handleRowClick({ data }) {
 
 // Actions menu methods
 function getActionsMenuItems(connection) {
+  if (!connection.connectionID || connection.connectionID === '0') {
+    return []
+  }
+
   const items = []
 
   if (connection.canGrant || canGrant.value) {

@@ -7923,8 +7923,8 @@ export default class System {
 
   // Configure a connection (create configured connection)
   async connectionConfigure(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, name, config, labels } = (a as KV) || {}
-    if (!connectionID) {
+    const { connectionID, catalogID, name, config, labels } = (a as KV) || {}
+    if (connectionID === undefined || connectionID === null || connectionID === '') {
       throw Error('field connectionID is empty')
     }
     if (!name) {
@@ -7938,6 +7938,7 @@ export default class System {
       }),
     }
     cfg.data = {
+      catalogID,
       name,
       config,
       labels,

@@ -17,14 +17,16 @@
       <div class="flex-1 min-w-0">
         <slot name="header" />
       </div>
-      <div v-if="!hideSearch || $slots.filter" class="flex-1 max-w-xl flex items-center gap-2">
-        <slot name="filter" />
+      <div v-if="!hideSearch || $slots.filter" class="flex-1 flex items-center justify-end gap-2">
+        <div class="flex min-w-0">
+          <slot v-if="$slots.filter" name="filter" />
+        </div>
         <CInputSearch
           v-if="!hideSearch"
           :model-value="filter[queryField]"
           :placeholder="translations.searchPlaceholder"
           size="small"
-          class="flex-1 min-w-0"
+          class="flex-1 min-w-0 max-w-xl"
           @update:model-value="$emit('update:filter', { ...filter, [queryField]: $event })"
         />
       </div>

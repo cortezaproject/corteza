@@ -30,6 +30,11 @@ const router = createRouter({
       name: 'system.connections.edit',
       component: () => import('../views/system/Connection/Editor.vue'),
     },
+    {
+      path: '/system/connections/:connectionID/configure',
+      name: 'system.connections.configure',
+      component: () => import('../views/system/Connection/Configure.vue'),
+    },
 
     // Data Sources (DalConnection)
     {

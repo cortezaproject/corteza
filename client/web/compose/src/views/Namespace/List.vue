@@ -188,13 +188,19 @@
       <template #body-name="{ data }">
         <div class="flex items-center gap-2">
           <Avatar
-            v-if="data.meta?.logoEnabled && data.meta?.logo"
-            :image="data.meta.logo"
+            :label="data.meta?.logoEnabled ? null : getInitials(data)"
+            :image="
+              data.meta?.logoEnabled
+                ? data.meta?.logo || $Settings.attachment('ui.mainLogo')
+                : null
+            "
             :pt="{ image: { class: 'object-contain' } }"
             shape="circle"
+            :class="{ 'text-muted-color bg-emphasis': !data.meta?.logoEnabled }"
+            class="font-bold shrink-0 mr-1 !w-10 !h-10 !text-sm"
           />
           <div class="flex flex-col min-w-0">
-            <span class="truncate">{{ data.name || '—' }}</span>
+            <span class="truncate text-sm">{{ data.name || '—' }}</span>
             <span
               v-if="data.meta?.description"
               class="text-xs text-muted-color truncate"
@@ -275,6 +281,17 @@ const cardMenuItems = ref([])
 function showCardMenu(event, namespace) {
   cardMenuItems.value = getActionsMenuItems(namespace)
   cardMenuRef.value?.toggle(event)
+}
+
+function getInitials(ns) {
+  let base = ns?.name || ns?.slug || ''
+  if (base.length <= 3) return base
+  const initials = base
+    .split(/\s+/)
+    .map(w => w[0])
+    .filter(c => /[a-zA-Z]/.test(c))
+    .join('')
+  return initials.slice(0, 3) || base.slice(0, 3)
 }
 
 // List mode

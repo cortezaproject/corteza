@@ -139,6 +139,7 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 					return err
 				}
 				aProps.setConnection(res)
+				svc.deriveParams(res)
 				return nil
 			}
 			return err

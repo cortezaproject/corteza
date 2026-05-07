@@ -48,6 +48,9 @@ export class Connection {
   public handle = ''
   public revision = 0
   public status = ''
+  public source = ''
+  public catalogID = ''
+  public installedCount = 0
 
   public meta: ConnectionMeta = {
     short: '',
@@ -86,8 +89,8 @@ export class Connection {
 
   apply(c?: PartialConnection): void {
     Apply(this, c, HumanID, 'connectionID')
-    Apply(this, c, String, 'handle', 'status', 'createdBy', 'updatedBy', 'deletedBy')
-    Apply(this, c, Number, 'revision')
+    Apply(this, c, String, 'handle', 'status', 'source', 'catalogID', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, c, Number, 'revision', 'installedCount')
 
     Apply(this, c, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, c, Boolean, 'canUpdateConnection', 'canDeleteConnection')
