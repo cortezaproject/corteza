@@ -138,7 +138,7 @@ async function loadChatbot() {
 
 async function loadAgents() {
   try {
-    const res = await $SystemAPI.agentList({ limit: 500 })
+    const res = await $SystemAPI.agentList({ limit: 500, sort: 'name ASC' })
     agents.value = res?.set || []
   } catch (e) {
     if (e?.message !== 'canceled') {

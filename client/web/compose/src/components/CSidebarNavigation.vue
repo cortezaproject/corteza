@@ -77,11 +77,18 @@ const searchPlaceholder = computed(() => {
     : t('sidebar.searchPlaceholder.public')
 })
 
-// Page tree items with routes to public page view
+// Page tree items with routes to public page view.
+// Record pages route to the new-record creator (recordID '0') so a click
+// opens the creation form instead of the page (which has no record context).
 const pageNavItems = computed(() => {
   return pageStore.set.map(p => ({
     ...p,
-    _route: { name: 'page', params: { slug: route.params.slug, pageID: p.pageID } },
+    _route: p.isRecordPage
+      ? {
+          name: 'page.record',
+          params: { slug: route.params.slug, pageID: p.pageID, recordID: '0' },
+        }
+      : { name: 'page', params: { slug: route.params.slug, pageID: p.pageID } },
   }))
 })
 

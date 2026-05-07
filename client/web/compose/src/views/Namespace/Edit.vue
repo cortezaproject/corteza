@@ -333,7 +333,7 @@ async function loadNamespace() {
         namespace.value = new compose.Namespace({ ...ns })
       } else {
         $toast.toastDanger(t('notification.namespace.loadFailed'))
-        router.push({ name: 'namespace.manage' })
+        router.push({ name: 'namespace.list' })
       }
     }
     initialNamespace.value = cloneDeep(namespace.value)
@@ -415,7 +415,7 @@ async function handleDelete() {
   try {
     await namespaceStore.delete({ namespaceID: namespace.value.namespaceID })
     $toast.toastSuccess(t('notification.namespace.deleted'))
-    router.push({ name: 'namespace.manage' })
+    router.push({ name: 'namespace.list' })
   } catch (e) {
     console.error('Failed to delete namespace:', e)
     $toast.toastErrorHandler(t('notification.namespace.deleteFailed'))(e)

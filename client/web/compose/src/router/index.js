@@ -15,8 +15,7 @@ const router = createRouter({
         },
         {
           path: '/namespaces/manage',
-          name: 'namespace.manage',
-          component: () => import('../views/Namespace/Manage.vue'),
+          redirect: { name: 'namespace.list' },
         },
         {
           path: '/namespaces/create',

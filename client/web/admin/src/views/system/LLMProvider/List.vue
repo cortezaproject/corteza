@@ -10,9 +10,9 @@
       :fields="fields"
       :items="items"
       :loading="loading"
+      hide-search
       :action-items="getActionsMenuItems"
       :translations="{
-        searchPlaceholder: $t('system.llmProviders.list.filterForm.query.placeholder'),
         resourceSingle: $t('system.llmProviders.list.new'),
         resourcePlural: $t('system.llmProviders.list.title'),
       }"

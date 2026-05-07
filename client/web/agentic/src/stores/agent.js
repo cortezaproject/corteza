@@ -8,7 +8,7 @@ export const useAgentStore = defineStore('agent', () => {
   async function fetchList(api) {
     loading.value = true
     try {
-      const response = await api.agentList({ limit: 0 })
+      const response = await api.agentList({ limit: 0, sort: 'name ASC' })
       list.value = response.set || []
       return list.value
     } catch (e) {

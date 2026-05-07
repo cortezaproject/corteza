@@ -14,7 +14,7 @@
     }"
   >
     <template v-if="$slots.header || $slots.filter || !hideSearch" #header>
-      <div v-if="$slots.header" class="flex-1 min-w-0">
+      <div class="flex-1 min-w-0">
         <slot name="header" />
       </div>
       <div v-if="!hideSearch || $slots.filter" class="flex-1 max-w-xl flex items-center gap-2">

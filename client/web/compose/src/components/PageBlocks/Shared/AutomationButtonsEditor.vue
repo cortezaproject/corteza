@@ -363,7 +363,7 @@ async function fetchTriggers() {
   try {
     const [workflowsResp, taqsResp] = await Promise.all([
       $AutomationAPI.triggerList({ eventType: 'onManual' }),
-      $AutomationAPI.ngAutomationListCancellable({ limit: 100 }),
+      $AutomationAPI.ngAutomationListCancellable({ limit: 100, sort: 'name ASC' }),
     ])
 
     const { set: triggers = [] } = workflowsResp

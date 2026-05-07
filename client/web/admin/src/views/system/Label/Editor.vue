@@ -496,7 +496,7 @@ const agentFields = [{ key: 'name', header: t('system.labels.editor.agents.colum
 async function fetchAgents() {
   agentLoading.value = true
   try {
-    const result = await $SystemAPI.agentList({ labels: `${labelName.value}=`, limit: 100 })
+    const result = await $SystemAPI.agentList({ labels: `${labelName.value}=`, limit: 100, sort: 'name ASC' })
     agentItems.value = result.set || []
   } catch (e) {
     console.error('Failed to load agents:', e)

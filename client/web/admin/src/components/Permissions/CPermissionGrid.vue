@@ -551,7 +551,7 @@ function hideRole(role) {
 // Search users for eval mode
 async function searchUsers({ query }) {
   try {
-    const { set } = await $SystemAPI.userList({ query: query || '', limit: 15 })
+    const { set } = await $SystemAPI.userList({ query: query || '', limit: 15, sort: 'name ASC' })
     userSuggestions.value = (set || []).map(({ userID, name, username, email }) => {
       const label = name || username || email || `<@${userID}>`
       fetchedUsers.value[userID] = label

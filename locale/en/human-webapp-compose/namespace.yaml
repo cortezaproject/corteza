@@ -1,5 +1,8 @@
 manage-view:
   label: Manage namespaces
+view-mode:
+  cards: Cards
+  list: List
 application:
   label: Enable on application list
 clickOpen: Click to open

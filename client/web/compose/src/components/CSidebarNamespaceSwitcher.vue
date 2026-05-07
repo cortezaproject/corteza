@@ -19,7 +19,7 @@
         </template>
         <template v-if="canManageNamespaces" #footer>
           <RouterLink
-            :to="{ name: 'namespace.manage' }"
+            :to="{ name: 'namespace.list' }"
             class="block p-2 text-sm text-muted-color hover:text-primary transition-colors text-center border-t"
           >
             {{ $t('sidebar.namespaceSelector.manage') }}

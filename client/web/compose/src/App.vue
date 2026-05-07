@@ -283,7 +283,6 @@ const disabledRoutes = [
   'namespace.edit',
   'namespace.create',
   'namespace.clone',
-  'namespace.manage',
 ]
 
 const sidebarDisabled = computed(() => {

@@ -100,7 +100,7 @@ onMounted(async () => {
   if (!$SystemAPI) return
   loadingRoles.value = true
   try {
-    const { set } = await $SystemAPI.roleList({ limit: 200 })
+    const { set } = await $SystemAPI.roleList({ limit: 200, sort: 'name ASC' })
     roleOptions.value = set || []
   } catch {
     // ignore
