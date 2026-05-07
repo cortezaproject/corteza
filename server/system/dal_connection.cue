@@ -26,6 +26,15 @@ dal_connection: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Virtual sortable mapped onto meta->>'name'.
+			name: {
+				sortableJSON: { json: "meta.name", accessor: "Meta.Name", nullable: false }
+				store: false
+				goType: "string"
+				omitSetter: true
+				omitGetter: true
+				envoy: { yaml: { omitEncoder: true } }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

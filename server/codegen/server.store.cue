@@ -144,10 +144,21 @@ _StoreResource: {
 					"fnIdent": "sortable\(expIdent)Fields"
 
 					fields: {
+						// columns sortable directly (bool sortable, unique, or
+						// primary-key)
 						for attr in res.model.attributes if attr.sortable || attr.unique || list.Contains(pkAttrNames, attr.name) {
 							{
 								"\(strings.ToLower(attr.name))":  attr.name
 								"\(strings.ToLower(attr.ident))": attr.name
+							}
+						}
+						// JSON-sortable virtual attributes — emit a
+						// "json:<path>" sentinel value that filter.go decodes
+						// at runtime via the dialect's JSON path helper.
+						for attr in res.model.attributes if attr.sortableJSON != _|_ {
+							{
+								"\(strings.ToLower(attr.name))":  "json:\(attr.sortableJSON.json)"
+								"\(strings.ToLower(attr.ident))": "json:\(attr.sortableJSON.json)"
 							}
 						}
 					}
@@ -158,9 +169,14 @@ _StoreResource: {
 
 					"fnIdent": "collect\(expIdent)CursorValues"
 
-					fields: [ for attr in res.model.attributes if attr.sortable || attr.unique || list.Contains(pkAttrNames, attr.name) {
+					fields: [ for attr in res.model.attributes if attr.sortable || attr.unique || list.Contains(pkAttrNames, attr.name) || attr.sortableJSON != _|_ {
 						attr
 						"primaryKey": list.Contains(pkAttrNames, attr.name)
+						if attr.sortableJSON != _|_ {
+							"jsonAccessor": attr.sortableJSON.accessor
+							"jsonRoot":     attr.sortableJSON.rootField
+							"jsonNullable": attr.sortableJSON.nullable
+						}
 					} ]
 
 					primaryKeys: [ for attr in res.model.attributes if list.Contains(pkAttrNames, attr.name) {attr} ]

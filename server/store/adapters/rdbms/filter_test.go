@@ -76,7 +76,7 @@ func Test_generateSorting(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.sort.SetColumns(tt.columns...)
 			_ = tt.sort.SetModifier(tt.modifier)
-			gotOut, err := generateSorting(tt.sortables, &tt.sort)
+			gotOut, err := generateSorting(nil, tt.sortables, &tt.sort)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateSorting() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -87,3 +87,4 @@ func Test_generateSorting(t *testing.T) {
 		})
 	}
 }
+

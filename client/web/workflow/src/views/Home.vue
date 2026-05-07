@@ -250,7 +250,7 @@ const canGrant = computed(() => rbacStore.can('automation/', 'grant'))
 const workflowFields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('general.columns.name'),
   },
   {
@@ -290,7 +290,7 @@ const {
   params => $AutomationAPI.workflowListCancellable({ ...params, labels: labelsFilter.value }),
   {
     filter: { query: '', subWorkflow: '1', disabled: '1', deleted: '0' },
-    sorting: { sortBy: 'createdAt', sortDesc: true },
+    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   },
 )

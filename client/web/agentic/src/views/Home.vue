@@ -105,7 +105,7 @@ const resourceListRef = ref()
 const agentFields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('agent.list.columns.name'),
   },
   {
@@ -141,7 +141,7 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.agentListCancellable(params), {
   filter: { query: '' },
-  sorting: { sortBy: 'handle', sortDesc: false },
+  sorting: { sortBy: 'name', sortDesc: false },
   pagination: { limit: 50 },
 })
 

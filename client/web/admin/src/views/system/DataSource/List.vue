@@ -135,7 +135,7 @@ function toggleFilterMenu(event) {
 const fields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('system.data-sources.list.columns.name'),
   },
   {
@@ -160,7 +160,7 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $SystemAPI.dalConnectionListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
-    sorting: { sortBy: 'handle', sortDesc: false },
+    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   })
 

@@ -15,6 +15,15 @@ user_group: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Virtual sortable mapped onto meta->>'short'.
+			name: {
+				sortableJSON: { json: "meta.short", accessor: "Meta.Short" }
+				store: false
+				goType: "string"
+				omitSetter: true
+				omitGetter: true
+				envoy: { yaml: { omitEncoder: true } }
+			}
 
 			config: {
 				goType: "*types.UserGroupConfig"

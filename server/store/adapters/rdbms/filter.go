@@ -418,17 +418,17 @@ func DefaultFilters() (f *extendedFilters) {
 	return
 }
 
-func Order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
-	return order(sort, sortables)
+func Order(dialect drivers.Dialect, sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
+	return order(dialect, sort, sortables)
 }
 
-func order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
+func order(dialect drivers.Dialect, sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
 	var (
 		sortExpr goqu.Expression
 	)
 
 	for _, s := range sort {
-		sortExpr, err = generateSorting(sortables, s)
+		sortExpr, err = generateSorting(dialect, sortables, s)
 		if err != nil {
 			return
 		}
@@ -481,12 +481,20 @@ func stateFalseComparison(d drivers.Dialect, lit string, fs filter.State) goqu.E
 //	this changes is supported by all DB but we need to move to store.driver
 //
 // generateSorting verify and converts given sorting to literal if required
-func generateSorting(sortables map[string]string, s *filter.SortExpr) (out goqu.Expression, err error) {
+//
+// Sortable map values may be either a plain DB column name (e.g. "created_at")
+// or a JSON sentinel of the form "json:<column>.<key>[.<key>...]"
+// (e.g. "json:meta.name") to sort on a value extracted from a JSON column. When
+// a sentinel is encountered, the dialect's JsonExtractUnquote is used to build
+// the sort expression, wrapped in COALESCE(..., '') so NULL values sort
+// deterministically across backends.
+func generateSorting(dialect drivers.Dialect, sortables map[string]string, s *filter.SortExpr) (out goqu.Expression, err error) {
 	const COALESCE string = "coalesce"
 	var (
 		val string
 		has bool
 
+		colExpr     goqu.Expression
 		literalCols []interface{}
 
 		toLower    = strings.ToLower
@@ -500,10 +508,14 @@ func generateSorting(sortables map[string]string, s *filter.SortExpr) (out goqu.
 		for _, col := range s.Columns() {
 			val, has = hasSorting(col)
 			if has {
-				if out == nil {
-					out = goqu.I(val)
+				colExpr, err = sortColumnExpr(dialect, val)
+				if err != nil {
+					return nil, err
 				}
-				literalCols = append(literalCols, goqu.I(val))
+				if out == nil {
+					out = colExpr
+				}
+				literalCols = append(literalCols, colExpr)
 			} else {
 				if len(s.Columns()) == 1 {
 					err = fmt.Errorf("invalid column name: %s", col)
@@ -524,4 +536,33 @@ func generateSorting(sortables map[string]string, s *filter.SortExpr) (out goqu.
 	}
 
 	return
+}
+
+// sortColumnExpr returns the goqu expression to use for ORDER BY given a
+// sortable map value. Handles plain column identifiers and "json:" sentinels
+// that decode to a dialect-aware JSON path expression.
+func sortColumnExpr(dialect drivers.Dialect, val string) (goqu.Expression, error) {
+	const jsonPrefix = "json:"
+	if !strings.HasPrefix(val, jsonPrefix) {
+		return goqu.I(val), nil
+	}
+	if dialect == nil {
+		return nil, fmt.Errorf("cannot sort by JSON column without dialect: %s", val)
+	}
+	parts := strings.Split(strings.TrimPrefix(val, jsonPrefix), ".")
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("invalid JSON sortable: %s (expected json:<column>.<key>[.<key>...])", val)
+	}
+	pathArgs := make([]any, len(parts)-1)
+	for i, p := range parts[1:] {
+		pathArgs[i] = p
+	}
+	expr, err := dialect.JsonExtractUnquote(goqu.C(parts[0]), pathArgs...)
+	if err != nil {
+		return nil, err
+	}
+	// Wrap in COALESCE(..., '') so NULL meta or missing key sorts as empty
+	// string. Without this, postgres puts NULL last in ASC and mysql puts it
+	// first — inconsistent across dialects.
+	return goqu.COALESCE(expr, ""), nil
 }

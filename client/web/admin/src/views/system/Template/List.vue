@@ -139,7 +139,7 @@ function toggleFilterMenu(event) {
 const fields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('system.templates.list.columns.meta.short'),
   },
   {
@@ -169,7 +169,7 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $SystemAPI.templateListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
-    sorting: { sortBy: 'handle', sortDesc: false },
+    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   })
 

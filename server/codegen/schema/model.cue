@@ -63,6 +63,11 @@ import (
 
 	unique:     bool | *false
 	sortable:   bool | *false
+	// sortableJSON declares a virtual sortable extracted from a JSON column.
+	// When set, the codegen emits the attribute into sortableXxxFields() with
+	// a "json:<path>" sentinel value that filter.go decodes at runtime via
+	// the dialect's JSON path helper.
+	sortableJSON?: #JSONSortable
 	descending: bool | *false
 	ignoreCase: bool | *false
 
@@ -114,6 +119,20 @@ import (
 
 		omitRefFilter: bool | *false
 	}
+}
+
+#JSONSortable: {
+	// dotted path inside the JSON column, e.g. "meta.name" or "meta.short"
+	json: string
+	// Go field accessor on the resource struct, e.g. "Meta.Name"
+	accessor: string
+	// top-level Go field name to nil-check before dereferencing the accessor
+	// (e.g. "Meta"). Defaults to the first segment of accessor.
+	rootField: string | *strings.Split(accessor, ".")[0]
+	// nullable indicates the rootField is a pointer that may be nil and needs
+	// a nil-check before dereferencing. Set to false for value types where
+	// `if x == nil` would be a Go compile error. Defaults to true.
+	nullable: bool | *true
 }
 
 #ModelAttributeDal: {

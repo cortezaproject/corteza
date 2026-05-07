@@ -150,7 +150,7 @@ function toggleFilterMenu(event) {
 const connectionListFields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('system.connections.list.columns.name'),
   },
   {
@@ -186,7 +186,7 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.connectionListCancellable(params), {
   filter: { query: '', deleted: '0' },
-  sorting: { sortBy: 'handle', sortDesc: false },
+  sorting: { sortBy: 'name', sortDesc: false },
   pagination: { limit: 50 },
 })
 

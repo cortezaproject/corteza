@@ -149,7 +149,7 @@ function toggleFilterMenu(event) {
 const fields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('system.authclients.list.columns.meta.name'),
   },
   {
@@ -179,7 +179,7 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $SystemAPI.authClientListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
-    sorting: { sortBy: 'createdAt', sortDesc: true },
+    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   })
 

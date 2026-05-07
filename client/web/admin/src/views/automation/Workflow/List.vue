@@ -173,7 +173,7 @@ function toggleFilterMenu(event) {
 const fields = [
   {
     key: 'name',
-    sortable: false,
+    sortable: true,
     header: t('automation.workflows.list.columns.name'),
   },
   {
@@ -198,7 +198,7 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $AutomationAPI.workflowListCancellable({ ...params }), {
     filter: { query: '', deleted: '0', disabled: '1' },
-    sorting: { sortBy: 'createdAt', sortDesc: true },
+    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   })
 

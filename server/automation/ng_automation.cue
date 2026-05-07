@@ -15,6 +15,15 @@ ng_automation: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Virtual sortable mapped onto meta->>'short'.
+			name: {
+				sortableJSON: { json: "meta.short", accessor: "Meta.Short" }
+				store: false
+				goType: "string"
+				omitSetter: true
+				omitGetter: true
+				envoy: { yaml: { omitEncoder: true } }
+			}
 
 			enabled: {
 				sortable: true,

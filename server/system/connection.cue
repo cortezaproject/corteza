@@ -25,6 +25,15 @@ connection: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Virtual sortable mapped onto meta->>'short'.
+			name: {
+				sortableJSON: { json: "meta.short", accessor: "Meta.Short", nullable: false }
+				store: false
+				goType: "string"
+				omitSetter: true
+				omitGetter: true
+				envoy: { yaml: { omitEncoder: true } }
+			}
 			service: {
 				goType: "types.ConnectionService"
 				dal: { type: "JSON", defaultEmptyObject: true }

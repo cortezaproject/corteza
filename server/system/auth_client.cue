@@ -15,6 +15,21 @@ auth_client: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Virtual sortable mapped onto meta->>'name'. Allows the FE to
+			// request `?sort=name` and pages to be alphabetised by the
+			// human-readable name stored inside the JSON meta column.
+			name: {
+				sortableJSON: { json: "meta.name", accessor: "Meta.Name" }
+				store: false
+				goType: "string"
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						omitEncoder: true
+					}
+				}
+			}
 			secret: {
 				goType: "string"
 				dal: { type: "Text", length: 64 }

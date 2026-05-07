@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -51,13 +52,47 @@ func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
 	return []goqu.Expression{goqu.Literal(sql, args...)}, nil
 }
 
-func cursorWithSorting(cursor *filter.PagingCursor, sortableCols map[string]string) ([]goqu.Expression, error) {
+func cursorWithSorting(dialect drivers.Dialect, cursor *filter.PagingCursor, sortableCols map[string]string) ([]goqu.Expression, error) {
+	// If any sortable maps to a JSON sentinel (e.g. "json:meta.name"), fall
+	// back to the expression-based CursorExpression which can produce
+	// dialect-aware identifiers (postgres ->>, mysql JSON_EXTRACT, etc.). The
+	// legacy raw-SQL CursorCondition cannot represent that.
+	if dialect != nil && hasJSONSortable(sortableCols) {
+		identLookup := func(col string) (exp.Expression, error) {
+			if v, ok := sortableCols[strings.ToLower(col)]; ok {
+				e, err := sortColumnExpr(dialect, v)
+				if err != nil {
+					return nil, err
+				}
+				return exp.NewLiteralExpression("?", e), nil
+			}
+			return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", "", col)), nil
+		}
+		e, err := CursorExpression(cursor, identLookup, nil)
+		if err != nil {
+			return nil, err
+		}
+		if e == nil {
+			return nil, nil
+		}
+		return []goqu.Expression{e}, nil
+	}
+
 	sql, args, err := CursorCondition(cursor, nil, sortableCols).ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
 	return []goqu.Expression{goqu.Literal(sql, args...)}, nil
+}
+
+func hasJSONSortable(sortableCols map[string]string) bool {
+	for _, v := range sortableCols {
+		if strings.HasPrefix(v, "json:") {
+			return true
+		}
+	}
+	return false
 }
 
 // CursorCondition builds a complex condition to filter rows before/after row that
