@@ -198,6 +198,7 @@ type (
 		Status []string `json:"status"`
 		Query  string   `json:"query"`
 		Tags   []string `json:"tags"`
+		Source string   `json:"source"` // "catalog", "local", or "" for all
 
 		Deleted filter.State `json:"deleted"`
 

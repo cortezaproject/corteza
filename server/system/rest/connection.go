@@ -68,6 +68,7 @@ func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (int
 			Status: r.Status,
 			Query:  r.Query,
 			Tags:   r.Tags,
+			Source: r.Source,
 
 			Deleted: filter.State(r.Deleted),
 		}

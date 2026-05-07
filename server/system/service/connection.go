@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"regexp"
 	"strings"
 
@@ -65,6 +66,45 @@ type (
 	}
 )
 
+// catalogIDToSyntheticID converts a catalog string ID to a stable uint64
+// by hashing with FNV-64a and setting bit 63 to avoid collision with DB IDs.
+func catalogIDToSyntheticID(catalogID string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(catalogID))
+	return h.Sum64() | (1 << 63)
+}
+
+// catalogConnectionToLocal converts a full appstore connection to a local Connection struct
+// with a synthetic ID, source=catalog, and full config populated.
+func catalogConnectionToLocal(conn *appstore.Connection) *types.Connection {
+	c := &types.Connection{
+		ID:        catalogIDToSyntheticID(conn.ID),
+		Handle:    conn.Handle,
+		CatalogID: conn.ID,
+		Source:    "catalog",
+		Status:    conn.Status,
+		Meta: types.ConnectionMeta{
+			Short:       conn.Meta.Short,
+			Description: conn.Meta.Description,
+			Icon:        conn.Meta.Icon,
+			Tags:        conn.Meta.Tags,
+		},
+	}
+	if conn.Service != nil {
+		raw, _ := json.Marshal(conn.Service)
+		_ = json.Unmarshal(raw, &c.Service)
+	}
+	if conn.Operations != nil {
+		raw, _ := json.Marshal(conn.Operations)
+		_ = json.Unmarshal(raw, &c.Operations)
+	}
+	if conn.Resources != nil {
+		raw, _ := json.Marshal(conn.Resources)
+		_ = json.Unmarshal(raw, &c.Resources)
+	}
+	return c
+}
+
 func Connection() *connection {
 	return &connection{
 		actionlog: DefaultActionlog,
@@ -92,6 +132,15 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 	err = func() error {
 		res, err = loadConnection(ctx, svc.store, ID)
 		if err != nil {
+			// High bit set → synthetic catalog ID. Try catalog lookup.
+			if svc.catalog != nil && ID&(1<<63) != 0 {
+				res, err = svc.findByCatalogSyntheticID(ctx, ID)
+				if err != nil {
+					return err
+				}
+				aProps.setConnection(res)
+				return nil
+			}
 			return err
 		}
 
@@ -110,6 +159,31 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ConnectionActionLookup, err)
+}
+
+// findByCatalogSyntheticID pages through the catalog until it finds the entry
+// whose catalogIDToSyntheticID hash matches id, then fetches the full config.
+func (svc *connection) findByCatalogSyntheticID(ctx context.Context, id uint64) (*types.Connection, error) {
+	const pageSize = 50
+	for page := 1; ; page++ {
+		summaries, err := svc.catalog.ListPage(ctx, page, pageSize)
+		if err != nil {
+			return nil, err
+		}
+		for _, s := range summaries {
+			if catalogIDToSyntheticID(s.ID) == id {
+				conn, err := svc.catalog.GetConnection(ctx, s.ID)
+				if err != nil {
+					return nil, err
+				}
+				return catalogConnectionToLocal(conn), nil
+			}
+		}
+		if len(summaries) < pageSize {
+			break
+		}
+	}
+	return nil, ConnectionErrNotFound()
 }
 
 func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *types.Connection, err error) {
@@ -337,6 +411,7 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 						dbConn.CatalogID = s.ID
 					} else {
 						set = append(set, &types.Connection{
+							ID:     catalogIDToSyntheticID(s.ID),
 							Handle: s.Handle,
 							Status: s.Status,
 							Meta: types.ConnectionMeta{
@@ -360,10 +435,21 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 			}
 		}
 
+		// Apply source filter after merge.
+		if filter.Source != "" {
+			filtered := set[:0]
+			for _, c := range set {
+				if c.Source == filter.Source {
+					filtered = append(filtered, c)
+				}
+			}
+			set = filtered
+		}
+
 		// Count installed ConfiguredConnections per DB record.
 		var dbIDs []uint64
 		for _, c := range set {
-			if c.ID != 0 {
+			if c.ID != 0 && c.ID&(1<<63) == 0 {
 				dbIDs = append(dbIDs, c.ID)
 			}
 		}
@@ -464,11 +550,12 @@ func (svc *connection) countConfiguredByIDs(ctx context.Context, ids []uint64) (
 	return counts, nil
 }
 
-// filterDBConnections returns only connections that have a DB record (ID != 0).
+// filterDBConnections returns only connections with a real DB record
+// (ID != 0 and no synthetic high bit from catalog).
 func filterDBConnections(set types.ConnectionSet) types.ConnectionSet {
 	out := make(types.ConnectionSet, 0, len(set))
 	for _, c := range set {
-		if c.ID != 0 {
+		if c.ID != 0 && c.ID&(1<<63) == 0 {
 			out = append(out, c)
 		}
 	}

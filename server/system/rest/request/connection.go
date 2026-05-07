@@ -87,6 +87,11 @@ type (
 		//
 		// Sort items
 		Sort string
+
+		// Source GET parameter
+		//
+		// Filter by source: "catalog", "local", or "" for all
+		Source string
 	}
 
 	ConnectionCreate struct {
@@ -286,6 +291,7 @@ func (r ConnectionList) Auditable() map[string]interface{} {
 		"incTotal":   r.IncTotal,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
+		"source":     r.Source,
 	}
 }
 
@@ -417,6 +423,12 @@ func (r *ConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["sort"]; ok && len(val) > 0 {
 			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["source"]; ok && len(val) > 0 {
+			r.Source, err = val[0], nil
 			if err != nil {
 				return err
 			}
