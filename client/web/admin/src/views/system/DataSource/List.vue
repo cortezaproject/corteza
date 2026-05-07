@@ -160,7 +160,7 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $SystemAPI.dalConnectionListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
-    sorting: { sortBy: 'createdAt', sortDesc: true },
+    sorting: { sortBy: 'handle', sortDesc: false },
     pagination: { limit: 50 },
   })
 

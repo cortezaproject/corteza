@@ -186,7 +186,7 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.connectionListCancellable(params), {
   filter: { query: '', deleted: '0' },
-  sorting: { sortBy: 'createdAt', sortDesc: true },
+  sorting: { sortBy: 'handle', sortDesc: false },
   pagination: { limit: 50 },
 })
 

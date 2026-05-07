@@ -104,7 +104,7 @@ const chatbotStore = useChatbotStore()
 const resourceListRef = ref()
 
 const fields = [
-  { key: 'name', sortable: false, header: t('chatbot.list.columns.name') },
+  { key: 'name', sortable: true, header: t('chatbot.list.columns.name') },
   { key: 'handle', sortable: true, header: t('chatbot.list.columns.handle') },
   { key: 'enabled', sortable: true, header: t('chatbot.list.columns.enabled') },
   {
@@ -127,7 +127,7 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.chatbotListCancellable(params), {
   filter: { query: '' },
-  sorting: { sortBy: 'createdAt', sortDesc: true },
+  sorting: { sortBy: 'name', sortDesc: false },
   pagination: { limit: 50 },
 })
 

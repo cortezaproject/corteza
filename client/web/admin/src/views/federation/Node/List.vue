@@ -148,7 +148,7 @@ const {
   params => $FederationAPI.nodeSearchCancellable(params),
   {
     filter: { query: '' },
-    sorting: { sortBy: 'createdAt', sortDesc: true },
+    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 20 },
   },
 )
