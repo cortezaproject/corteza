@@ -1225,6 +1225,10 @@ tabs:
     delete: Delete tab
     editDisabled: Editing tabbed blocks is disabled until you save this block
     addBlock: Add new block
+  menu:
+    edit: Edit block
+    clone: Clone tab
+    remove: Remove tab
 
 noConfiguration: Block not configured correctly
 interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)

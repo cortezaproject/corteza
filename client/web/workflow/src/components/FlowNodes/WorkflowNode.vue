@@ -6,7 +6,7 @@
       'workflow-node--highlighted': data?.highlighted,
       'workflow-node--trace-success': data?.traceState === 'success',
       'workflow-node--trace-error': data?.traceState === 'error',
-      'workflow-node--hoverable': outCount === 0,
+      'workflow-node--hoverable': !outboundFull,
       'workflow-node--connecting': isConnecting,
     }"
     :style="{ width: '180px' }"
@@ -144,6 +144,8 @@ import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getStyleFromKind } from '../../lib/style'
+import { getIcon as resolveIcon } from '../../lib/icon'
+import { getMaxOutbound } from '../../lib/connectionRules'
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -158,17 +160,9 @@ const props = defineProps({
   outCount: { type: Number, default: 0 },
 })
 
-// Outbound cap per step kind (mirrors isValidConnection in WorkflowEditor):
-// fork/excl/incl gateways accept unlimited out, iterator & error-handler take
-// 2 (Body+End / Try+Catch), everything else is 1. When the cap is reached,
-// hide every source handle so hover doesn't even offer a starting point.
-const maxOutbound = computed(() => {
-  const kind = props.data?.kind
-  const ref = props.data?.ref
-  if (kind === 'gateway' && ['fork', 'excl', 'incl'].includes(ref)) return Infinity
-  if (kind === 'iterator' || kind === 'error-handler') return 2
-  return 1
-})
+// Outbound cap shared with isValidConnection via getMaxOutbound. When the
+// cap is reached, hide every source handle so hover doesn't offer a start.
+const maxOutbound = computed(() => getMaxOutbound({ data: props.data }))
 const outboundFull = computed(() => props.outCount >= maxOutbound.value)
 
 const isSourceUsed = id => outboundFull.value || props.usedSourceHandles.includes(id)
@@ -181,11 +175,7 @@ defineEmits(['open-issues'])
 
 const { t } = useI18n()
 
-function getIcon(name) {
-  if (!name) return ''
-  const basePath = `${import.meta.env.BASE_URL}icons`
-  return `${basePath}/${props.currentTheme === 'dark' ? 'dark/' : ''}${name}.svg`
-}
+const getIcon = (name) => resolveIcon(name, props.currentTheme)
 
 const iconSrc = computed(() => {
   const styleInfo = getStyleFromKind(props.data)

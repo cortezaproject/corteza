@@ -7,6 +7,24 @@
     </span>
   </Teleport>
 
+  <!-- Topbar navigation -->
+  <Teleport to="#topbar-tools" :defer="true">
+    <ButtonGroup v-if="recordModule" class="gap-1">
+      <CRouterLinkButton
+        :to="{ name: 'admin.modules.edit', params: { moduleID: recordModule.moduleID } }"
+        :label="$t('module.edit.edit')"
+        icon="pi pi-pencil"
+        size="small"
+      />
+      <CRouterLinkButton
+        :to="{ name: 'admin.modules.record.list', params: { moduleID: recordModule.moduleID } }"
+        v-tooltip.bottom="$t('module.allRecords.label')"
+        icon="pi pi-table"
+        size="small"
+      />
+    </ButtonGroup>
+  </Teleport>
+
   <!-- Loading -->
   <div v-if="loading" class="flex items-center justify-center h-full">
     <ProgressSpinner style="width: 32px; height: 32px" />
@@ -94,7 +112,7 @@ import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 
-const { CInputDelete } = components
+const { CInputDelete, CRouterLinkButton } = components
 
 const props = defineProps({
   namespace: {

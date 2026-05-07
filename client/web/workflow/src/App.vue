@@ -13,7 +13,7 @@
 
     <!-- Main content area -->
     <div
-      class="flex-1 flex flex-col transition-[margin] duration-300 max-w-full"
+      class="flex-1 min-w-0 flex flex-col transition-[margin] duration-300 max-w-full"
       :style="{ marginLeft: contentMargin }"
     >
       <header>

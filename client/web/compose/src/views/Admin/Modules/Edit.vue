@@ -4,15 +4,14 @@
   </Teleport>
 
   <Teleport to="#topbar-tools" defer>
-    <div v-if="isEdit" class="flex gap-2">
+    <ButtonGroup v-if="isEdit" class="gap-1">
       <CRouterLinkButton
         :to="{ name: 'admin.modules.record.list', params: { moduleID: module?.moduleID } }"
         :label="$t('module.allRecords.label')"
         icon="pi pi-table"
         size="small"
-        severity="secondary"
       />
-    </div>
+    </ButtonGroup>
   </Teleport>
 
   <!-- Loading -->
@@ -144,11 +143,7 @@
               <Tab value="revisions">
                 {{ $t('module.edit.config.record-revisions.title') }}
               </Tab>
-              <Tab
-                v-if="hasIssues"
-                value="issues"
-                @click="onIssuesTabClick"
-              >
+              <Tab v-if="hasIssues" value="issues" @click="onIssuesTabClick">
                 <span class="text-red-500">
                   {{ $t('module.edit.issues.label', { count: module.issues.length }) }}
                 </span>
@@ -344,8 +339,13 @@
     />
 
     <!-- Config Modals -->
-    <FederationSettings v-model:modal="federationModal" :module="module" />
-    <DiscoverySettings v-model:modal="discoveryModal" :module="module" @save="onDiscoverySave" />
+    <FederationSettings v-if="federationEnabled" v-model:modal="federationModal" :module="module" />
+    <DiscoverySettings
+      v-if="discoveryEnabled"
+      v-model:modal="discoveryModal"
+      :module="module"
+      @save="onDiscoverySave"
+    />
     <DalSchemaAlterations v-model:modal="schemaModal" :module="module" :batch="schemaBatch" />
   </Form>
 </template>
@@ -354,7 +354,12 @@
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { compose } from '@planetcrust/human-js'
-import { components, useConfirmDelete, usePermissions, useUnsavedGuard } from '@planetcrust/human-vue'
+import {
+  components,
+  useConfirmDelete,
+  usePermissions,
+  useUnsavedGuard,
+} from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
@@ -397,9 +402,16 @@ provide('moduleDraft', module)
 const activeTab = ref('fields')
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !cloning.value && !!module.value && !!initialModule.value && !isEqual(module.value, initialModule.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !cloning.value &&
+    !!module.value &&
+    !!initialModule.value &&
+    !isEqual(module.value, initialModule.value),
   messageKey: 'general.editor.unsavedChanges',
 })
+
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
 
@@ -722,7 +734,9 @@ async function handleSubmit({ valid }) {
     activeTab.value = 'fields'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -735,6 +749,8 @@ async function handleSubmit({ valid }) {
       name: module.value.name,
       handle: module.value.handle,
       fields: module.value.fields,
+      config: module.value.config,
+      meta: module.value.meta,
     }
 
     if (isEdit.value) {
@@ -769,6 +785,8 @@ async function handleClone() {
       name: `${module.value.name} (${t('general.label.clone').toLowerCase()})`,
       handle: '',
       fields: module.value.fields,
+      config: module.value.config,
+      meta: module.value.meta,
     }
 
     const created = await moduleStore.create(payload)

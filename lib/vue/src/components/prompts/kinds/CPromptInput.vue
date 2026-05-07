@@ -18,13 +18,14 @@
       v-model="value"
       :type="fieldType"
       :disabled="loading"
+      @keyup.enter="submit"
     />
 
     <div class="flex justify-end">
       <Button
         :disabled="loading"
-        :label="pVal('buttonLabel', 'Submit')"
-        @click="$emit('submit', { value: { '@value': value, '@type': 'String' } })"
+        :label="pVal('buttonLabel', tF('general.label.submit', 'Submit'))"
+        @click="submit"
       />
     </div>
   </div>
@@ -56,6 +57,12 @@ export default {
   },
   beforeMount() {
     this.value = this.pVal('inputValue', '')
+  },
+  methods: {
+    submit() {
+      if (this.loading) return
+      this.$emit('submit', { value: { '@value': this.value, '@type': 'String' } })
+    },
   },
 }
 </script>

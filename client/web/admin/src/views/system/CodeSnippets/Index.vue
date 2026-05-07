@@ -17,8 +17,9 @@
       >
         <div class="mb-4">
           <Button
-            :label="$t('system.code-snippets.editor.code-snippets.add')"
+            :label="$t('system.code-snippets.editor.code-snippets.new')"
             icon="pi pi-plus"
+            size="small"
             @click="openEditor()"
           />
         </div>

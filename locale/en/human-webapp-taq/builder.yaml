@@ -94,6 +94,21 @@ nodePicker:
 referencePanel:
   title: Step Results
   noResults: No upstream steps with results
+  invoker: Invoker
+  invokerDescription: The user who triggered this automation.
+  runner: Runner
+  runnerDescription: The user this automation runs as. Defaults to the invoker unless "Run as" is set.
+  systemUser:
+    userID: User ID
+    email: Email
+    name: Name
+    username: Username
+    handle: Handle
+    emailConfirmed: Email Confirmed
+    createdAt: Created At
+    updatedAt: Updated At
+    deletedAt: Deleted At
+    suspendedAt: Suspended At
 
 form:
   selectPlaceholder: Select {field}

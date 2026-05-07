@@ -20,9 +20,17 @@
           class="border border-surface rounded-border overflow-hidden bg-surface shadow-sm"
         >
           <AccordionHeader>
-            <div class="flex items-center gap-2 p-1">
-              <TaqIcon v-if="step.icon" :icon="step.icon" class="text-lg text-primary" />
-              <span class="text-sm font-medium">{{ step.label }}</span>
+            <div class="flex items-start gap-2 p-1 flex-1 min-w-0">
+              <TaqIcon v-if="step.icon" :icon="step.icon" class="text-lg text-primary mt-0.5" />
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-sm font-medium">{{ step.label }}</span>
+                <span
+                  v-if="step.description"
+                  class="text-xs text-muted-color font-normal leading-snug"
+                >
+                  {{ step.description }}
+                </span>
+              </div>
             </div>
           </AccordionHeader>
           <AccordionContent>
@@ -557,6 +565,10 @@ watch(
 :deep(.p-accordionheader) {
   padding: 0.375rem 0.5rem;
   font-size: 0.8125rem;
+  align-items: flex-start;
+}
+:deep(.p-accordionheader-toggle-icon) {
+  margin-top: 0.375rem;
 }
 :deep(.p-accordioncontent-content) {
   padding: 0.25rem 0.25rem 0.25rem 0.5rem;

@@ -22,12 +22,16 @@
           <label class="font-medium text-primary">
             {{ $t('general.import.json') }}
           </label>
+
           <CFileDropZone
             accept=".json"
             :uploading="processing"
-            :drop-label="$t('general.import.upload-files')"
+            :error="parseError"
+            :icon="fileName ? 'pi pi-check-circle' : 'pi pi-cloud-upload'"
+            :drop-label="fileName || $t('general.import.upload-files')"
             @select="onFilesSelected"
           />
+
           <small class="text-muted-color">
             {{ $t('general.import.reassign-run-as') }}
           </small>
@@ -75,6 +79,8 @@ export default {
     return {
       showDialog: false,
       workflows: [],
+      fileName: '',
+      parseError: '',
       processing: false,
     }
   },
@@ -82,8 +88,14 @@ export default {
   methods: {
     onDialogHide () {
       if (!this.processing) {
-        this.workflows = []
+        this.clearFile()
       }
+    },
+
+    clearFile () {
+      this.workflows = []
+      this.fileName = ''
+      this.parseError = ''
     },
 
     onFilesSelected (files = []) {
@@ -91,6 +103,7 @@ export default {
       if (!file) return
 
       this.processing = true
+      this.parseError = ''
       const reader = new FileReader()
 
       reader.readAsText(file)
@@ -98,8 +111,18 @@ export default {
       reader.onload = (evt) => {
         try {
           const { workflows = [] } = JSON.parse(evt.target.result)
+          if (!workflows.length) {
+            this.parseError = this.$t('general.import.no-workflows-in-file')
+            this.workflows = []
+            this.fileName = ''
+            return
+          }
           this.workflows = workflows
+          this.fileName = file.name
         } catch (err) {
+          this.parseError = err?.message || ''
+          this.workflows = []
+          this.fileName = ''
           this.toast.add({ severity: 'error', summary: this.$t('notification.general.warning'), detail: err?.message, life: 5000 })
         } finally {
           this.processing = false
@@ -107,6 +130,7 @@ export default {
       }
 
       reader.onerror = () => {
+        this.parseError = this.$t('notification.failed-load-file')
         this.toast.add({ severity: 'error', summary: this.$t('notification.failed-load-file'), life: 5000 })
         this.processing = false
       }

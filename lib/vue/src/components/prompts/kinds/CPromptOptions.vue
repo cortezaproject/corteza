@@ -4,8 +4,20 @@
 
     <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
 
+    <MultiSelect
+      v-if="inputType === 'select' && multiple"
+      v-model="value"
+      :options="itemOptions"
+      option-label="text"
+      option-value="value"
+      :placeholder="placeholder"
+      class="w-full"
+      :disabled="loading"
+      display="chip"
+    />
+
     <Select
-      v-if="inputType === 'select'"
+      v-else-if="inputType === 'select'"
       v-model="value"
       :options="itemOptions"
       option-label="text"
@@ -25,8 +37,8 @@
     <div class="flex justify-end">
       <Button
         :disabled="loading"
-        :label="pVal('buttonLabel', 'Submit')"
-        @click="$emit('submit', { value: { '@type': 'String', '@value': value } })"
+        :label="pVal('buttonLabel', tF('general.label.submit', 'Submit'))"
+        @click="$emit('submit', { value: encodeValue() })"
       />
     </div>
   </div>
@@ -58,12 +70,33 @@ export default {
       const type = this.pVal('type', 'select')
       return validTypes.includes(type) ? type : 'select'
     },
+    multiple() {
+      return !!this.pVal('multiselect', false)
+    },
     placeholder() {
-      return this.pVal('placeholder', 'Select an option')
+      return this.pVal('placeholder', this.tF('prompt.options.placeholder', 'Select an option'))
     },
   },
   beforeMount() {
-    this.value = this.pVal('value')
+    let value = this.pVal('value')
+
+    if (this.multiple && this.inputType === 'select') {
+      if (Array.isArray(value)) {
+        value = value.map(v => (v && typeof v === 'object' && '@value' in v) ? v['@value'] : v)
+      } else {
+        value = value ? [value] : []
+      }
+    }
+
+    this.value = value
+  },
+  methods: {
+    encodeValue() {
+      if (Array.isArray(this.value)) {
+        return { '@type': 'Array', '@value': this.value || [] }
+      }
+      return { '@type': 'String', '@value': this.value }
+    },
   },
 }
 </script>

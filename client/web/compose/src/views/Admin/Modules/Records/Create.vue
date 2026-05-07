@@ -4,6 +4,24 @@
     <span v-if="recordModule">{{ recordModule.name }} — {{ $t('module.edit.createRecord') }}</span>
   </Teleport>
 
+  <!-- Topbar navigation -->
+  <Teleport to="#topbar-tools" :defer="true">
+    <ButtonGroup v-if="recordModule" class="gap-1">
+      <CRouterLinkButton
+        :to="{ name: 'admin.modules.edit', params: { moduleID: recordModule.moduleID } }"
+        :label="$t('module.edit.edit')"
+        icon="pi pi-pencil"
+        size="small"
+      />
+      <CRouterLinkButton
+        :to="{ name: 'admin.modules.record.list', params: { moduleID: recordModule.moduleID } }"
+        v-tooltip.bottom="$t('module.allRecords.label')"
+        icon="pi pi-table"
+        size="small"
+      />
+    </ButtonGroup>
+  </Teleport>
+
   <!-- Module not found -->
   <div v-if="!recordModule" class="flex items-center justify-center h-full">
     <Message severity="warn" :closable="false">
@@ -49,9 +67,12 @@ import Grid from '@/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@/stores/module'
 import { useRecordStore } from '@/stores/record'
 import { compose, validator } from '@planetcrust/human-js'
+import { components } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { CRouterLinkButton } = components
 
 const props = defineProps({
   namespace: {

@@ -2592,6 +2592,10 @@ endpoints:
               required: false
               title: Filter by one or more actors
               type: '[]string'
+            - name: origin
+              required: false
+              title: Origin
+              type: string
             - type: uint
               name: limit
               title: Limit

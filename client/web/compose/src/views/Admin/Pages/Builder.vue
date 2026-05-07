@@ -49,7 +49,16 @@
     <div class="flex-1 overflow-auto">
       <Grid ref="gridRef" :blocks="blocks" :namespace="namespace" :page="page" editable>
         <template #item-overlay="{ item }">
-          <div class="block-toolbox bg-emphasis">
+          <div class="block-toolbox bg-emphasis flex items-center">
+            <Button
+              v-tooltip.top="$t('page.tooltip.drag.block')"
+              icon="pi pi-arrows-alt"
+              text
+              size="small"
+              severity="secondary"
+              class="block-drag-handle !cursor-move"
+            />
+            <Divider layout="vertical" class="!mx-1 !my-0" />
             <ButtonGroup>
               <Button
                 :title="$t('page.tooltip.edit.block')"
@@ -500,6 +509,11 @@ const editingBlock = ref(null)
 const editingBlockIndex = ref(-1)
 
 provide('blockDraft', editingBlock)
+provide('$pageBuilder', {
+  editTabbedBlock: (blockID) => editBlock(blockID),
+  removeTabEntry: (tabsBlockID, tabIndex) => removeTabEntry(tabsBlockID, tabIndex),
+  cloneTabbedBlock: (tabsBlockID, tabIndex) => cloneTabbedBlock(tabsBlockID, tabIndex),
+})
 const isNewBlock = ref(false)
 const gridRef = ref(null)
 const configuratorTab = ref('block')
@@ -825,6 +839,65 @@ function onCreateTabBlock(index) {
 function onEditTabBlock(blockId) {
   commitEditingBlock()
   editBlock(blockId)
+}
+
+function replaceBlockOptions(blockIdx, optionsPatch) {
+  const original = blocks.value[blockIdx]
+  if (!original) return null
+  const draft = JSON.parse(JSON.stringify(original))
+  draft.options = { ...(draft.options || {}), ...optionsPatch }
+  const updated = compose.PageBlockMaker(draft)
+  blocks.value.splice(blockIdx, 1, updated)
+  return updated
+}
+
+function removeTabEntry(tabsBlockID, tabIndex) {
+  const idx = blocks.value.findIndex(b => String(getBlockId(b)) === String(tabsBlockID))
+  if (idx < 0 || blocks.value[idx].kind !== 'Tabs') return
+
+  const tabs = [...(blocks.value[idx].options?.tabs || [])]
+  if (tabIndex < 0 || tabIndex >= tabs.length) return
+  tabs.splice(tabIndex, 1)
+
+  replaceBlockOptions(idx, { tabs })
+  syncTabbedBlockVisibility()
+  gridRef.value?.rebuildLayout()
+}
+
+function cloneTabbedBlock(tabsBlockID, tabIndex) {
+  const idx = blocks.value.findIndex(b => String(getBlockId(b)) === String(tabsBlockID))
+  if (idx < 0 || blocks.value[idx].kind !== 'Tabs') return
+
+  const tabs = [...(blocks.value[idx].options?.tabs || [])]
+  const tab = tabs[tabIndex]
+  if (!tab?.blockID) return
+
+  const source = blocks.value.find(b => String(getBlockId(b)) === String(tab.blockID))
+  if (!source) return
+
+  try {
+    const clonedRaw = JSON.parse(JSON.stringify(source))
+    clonedRaw.blockID = '0'
+    if (clonedRaw.meta) clonedRaw.meta.tempID = ''
+    if (clonedRaw.title) clonedRaw.title = t('page.copyOf', { title: clonedRaw.title })
+    clonedRaw.meta = { ...(clonedRaw.meta || {}), hidden: true }
+
+    const cloned = compose.PageBlockMaker(clonedRaw)
+    blocks.value.push(cloned)
+    const clonedID = getBlockId(cloned)
+
+    tabs.splice(tabIndex + 1, 0, {
+      lazy: tab.lazy !== false,
+      title: tab.title ? t('page.copyOf', { title: tab.title }) : '',
+      blockID: clonedID,
+    })
+
+    replaceBlockOptions(idx, { tabs })
+    syncTabbedBlockVisibility()
+    gridRef.value?.rebuildLayout()
+  } catch (e) {
+    console.error('Failed to clone tabbed block:', e)
+  }
 }
 
 function deleteBlock(blockId) {

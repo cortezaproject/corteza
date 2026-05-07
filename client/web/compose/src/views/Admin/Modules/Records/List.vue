@@ -4,6 +4,18 @@
     <span v-if="recordModule">{{ recordModule.name }} — {{ $t('module.allRecords.label') }}</span>
   </Teleport>
 
+  <!-- Topbar navigation -->
+  <Teleport to="#topbar-tools" :defer="true">
+    <div v-if="recordModule" class="flex gap-2">
+      <CRouterLinkButton
+        :to="{ name: 'admin.modules.edit', params: { moduleID: recordModule.moduleID } }"
+        :label="$t('module.edit.edit')"
+        icon="pi pi-pencil"
+        size="small"
+      />
+    </div>
+  </Teleport>
+
   <!-- Module not found -->
   <div v-if="!recordModule" class="flex items-center justify-center h-full">
     <Message severity="warn" :closable="false">
@@ -12,7 +24,7 @@
   </div>
 
   <!-- Record list — renders RecordListBlock via Grid just like a public page -->
-  <div v-else class="flex-1 overflow-auto">
+  <div v-else class="h-full">
     <Grid :blocks="blocks" :namespace="namespace" :page="syntheticPage" />
   </div>
 </template>
@@ -21,7 +33,10 @@
 import { computed, provide } from 'vue'
 import { useRoute } from 'vue-router'
 import { useModuleStore } from '@/stores/module'
+import { components } from '@planetcrust/human-vue'
 import Grid from '@/components/PageBlocks/Grid.vue'
+
+const { CRouterLinkButton } = components
 
 defineProps({
   namespace: {
@@ -62,6 +77,7 @@ const blocks = computed(() => [
       fields: [],
       perPage: 20,
       selectable: true,
+      allowExport: true,
     },
     xywh: [0, 0, 48, 36],
     meta: { tempID: '_admin_record_list' },

@@ -5932,7 +5932,7 @@ export default class System {
 
   // Action log events
   async actionlogList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { from, to, beforeActionID, resource, action, actorID, limit } = (a as KV) || {}
+    const { from, to, beforeActionID, resource, action, actorID, origin, limit } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -5945,6 +5945,7 @@ export default class System {
       resource,
       action,
       actorID,
+      origin,
       limit,
     }
 

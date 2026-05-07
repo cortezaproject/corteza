@@ -4,6 +4,9 @@
     :header="discoveryModalTitle"
     :style="{ width: '50vw', maxWidth: '600px' }"
     :breakpoints="{ '1199px': '75vw', '575px': '95vw' }"
+    :pt="{
+      footer: { class: 'border-t border-surface p-3' },
+    }"
     modal
   >
     <div class="flex flex-col gap-4 py-4">
@@ -11,30 +14,37 @@
         <label class="font-medium text-primary">
           {{ $t('module.edit.discoverySettings.private') }}
         </label>
-        <MultiSelect
-          v-model="currentFields"
-          :options="moduleFieldsList"
-          optionLabel="label"
-          :placeholder="$t('module.edit.discoverySettings.placeholder')"
-          display="chip"
-          class="w-full"
+        <CFieldPicker
+          :all-fields="moduleFieldsList"
+          :model-value="currentFieldNames"
+          list-class="max-h-[24rem]"
+          :available-label="$t('field.selector.available')"
+          :selected-label="$t('field.selector.selected')"
+          :select-all-label="$t('field.selector.selectAll')"
+          :unselect-all-label="$t('field.selector.unselectAll')"
+          :search-placeholder="$t('general.label.search')"
+          :no-items-label="$t('field.no-items-found')"
+          @update:model-value="currentFieldNames = $event"
         />
         <small class="text-muted-color">
           {{ $t('module.edit.discoverySettings.description') }}
+          If no fields are selected, all fields will be exposed.
         </small>
       </FormField>
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-2 px-4 py-3 border-t border-surface bg-surface -mx-6 -mb-6 mt-4">
+      <div class="flex justify-end gap-2">
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          text
+          size="small"
+          outlined
           @click="showModal = false"
         />
         <Button
           :label="$t('general.label.saveAndClose')"
+          size="small"
           @click="onSave"
         />
       </div>
@@ -43,8 +53,11 @@
 </template>
 
 <script setup>
+import { components } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const { CFieldPicker } = components
 
 const props = defineProps({
   modal: {
@@ -61,7 +74,7 @@ const emit = defineEmits(['save', 'update:modal'])
 const { t } = useI18n()
 
 const showModal = ref(false)
-const currentFields = ref([])
+const currentFieldNames = ref([])
 const defaultLang = 'en' // Using explicit string or window default
 
 const discoveryModalTitle = computed(() => {
@@ -98,26 +111,22 @@ watch(showModal, (val) => {
 function loadSettings() {
   const discoveryConfig = props.module.config?.discovery || {}
   const privateConfig = discoveryConfig.private || { result: [] }
-  
+
   const resultItem = privateConfig.result.find((r) => r.lang === defaultLang) || { fields: [] }
-  
-  // Convert names back into object references for the MultiSelect
-  currentFields.value = resultItem.fields
-    .map((name) => moduleFieldsList.value.find((f) => f.name === name))
-    .filter(Boolean)
+
+  currentFieldNames.value = resultItem.fields.filter((name) =>
+    moduleFieldsList.value.some((f) => f.name === name),
+  )
 }
 
 function onSave() {
-  // Save discovery back to meta/config
-  const newFieldsNames = currentFields.value.map((f) => f.name)
-  
   const discovery = {
     public: { result: [] },
     private: {
       result: [
         {
           lang: defaultLang,
-          fields: newFieldsNames,
+          fields: [...currentFieldNames.value],
         },
       ],
     },
@@ -125,8 +134,10 @@ function onSave() {
   }
 
   emit('save', {
-    ...props.module.config,
-    discovery,
+    config: {
+      ...(props.module.config || {}),
+      discovery,
+    },
   })
 }
 </script>

@@ -3,30 +3,54 @@
     <span>{{ $t('system.apigw.profiler.title') }} — {{ decodedRoute }}</span>
   </Teleport>
 
-  <div class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
-      <div class="flex items-center gap-2">
-        <Button
-          icon="pi pi-arrow-left"
-          :label="$t('general.label.back')"
-          severity="secondary"
-          @click="$router.push({ name: 'system.apiGateway.profiler' })"
-        />
-      </div>
+  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+    <CResourceList
+      primary-key="hitID"
+      :fields="hitFields"
+      :items="items"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :loading="loading && items.length === 0"
+      :action-items="getHitActions"
+      :translations="{
+        resourceSingle: $t('system.apigw.profiler.hit.title'),
+        resourcePlural: $t('system.apigw.profiler.hit.title'),
+      }"
+      hide-search
+      hide-pagination
+      clickable
+      @row-click="handleRowClick"
+    >
+      <template #header>
+        <div class="flex items-center gap-2">
+          <Button
+            icon="pi pi-arrow-left"
+            :label="$t('general.label.back')"
+            severity="secondary"
+            size="small"
+            outlined
+            @click="$router.push({ name: 'system.apiGateway.profiler' })"
+          />
+        </div>
+      </template>
 
-      <CResourceTable
-        :items="items"
-        :fields="hitFields"
-        :loading="loading"
-        :action-items="getHitActions"
-        primary-key="hitID"
-        :empty-message="$t('general.notFound')"
-      >
-        <template #body-ts="{ data }">
-          {{ data.ts ? new Date(data.ts).toLocaleString() : '' }}
-        </template>
-      </CResourceTable>
-    </div>
+      <template #body-ts="{ data }">
+        {{ data.ts ? new Date(data.ts).toLocaleString() : '' }}
+      </template>
+
+      <template v-if="items.length && hasMore" #footer>
+        <div class="flex justify-center px-3 py-2">
+          <Button
+            :label="$t('general.label.loadOlder')"
+            :loading="loading"
+            severity="secondary"
+            size="small"
+            @click="loadOlder"
+          />
+        </div>
+      </template>
+    </CResourceList>
   </div>
 </template>
 
@@ -36,15 +60,22 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 
-const { CResourceTable } = components
+const { CResourceList } = components
 const route = useRoute()
 const router = useRouter()
 const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')
 const { t } = useI18n()
 
+const PAGE_LIMIT = 50
+
 const items = ref([])
 const loading = ref(false)
+const hasMore = ref(true)
+
+const filter = ref({})
+const sorting = ref({ sortBy: 'ts', sortDesc: true })
+const pagination = ref({ total: 0, limit: 0, page: 1 })
 
 const decodedRoute = computed(() => {
   try {
@@ -54,22 +85,42 @@ const decodedRoute = computed(() => {
   }
 })
 
-async function loadData() {
+async function load(reset = false) {
+  if (loading.value) return
   loading.value = true
   try {
-    const result = await $SystemAPI.apigwProfilerHitList({ routeID: route.params.routeID })
-    items.value = result?.set || []
+    const before = reset || items.value.length === 0
+      ? undefined
+      : items.value[items.value.length - 1].hitID
+    const result = await $SystemAPI.apigwProfilerRoute({
+      routeID: route.params.routeID,
+      before,
+      limit: PAGE_LIMIT,
+    })
+    const set = result?.set || []
+    items.value = reset ? set : [...items.value, ...set]
+    hasMore.value = set.length >= PAGE_LIMIT
+    pagination.value.total = items.value.length
   } catch (e) {
     $toast.toastErrorHandler(t('notification.gateway.profiler.fetch.error'))(e)
   } finally {
     loading.value = false
   }
 }
+
+function loadOlder() {
+  load(false)
+}
+
 const hitFields = [
   { key: 'hitID', header: t('system.apigw.profiler.hit.columns.hitID') },
   { key: 'status', header: t('system.apigw.profiler.hit.columns.status'), sortable: true },
   { key: 'ts', header: t('system.apigw.profiler.hit.columns.time'), sortable: true },
 ]
+
+function handleRowClick({ data }) {
+  router.push({ name: 'system.apiGateway.profiler.hit', params: { routeID: route.params.routeID, hitID: data.hitID } })
+}
 
 function getHitActions(data) {
   return [
@@ -81,5 +132,5 @@ function getHitActions(data) {
   ]
 }
 
-onMounted(() => loadData())
+onMounted(() => load(true))
 </script>

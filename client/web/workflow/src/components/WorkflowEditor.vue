@@ -480,6 +480,7 @@ import { encodeInput } from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
 import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
+import { getIcon } from '../lib/icon'
 import { NoID } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 const { CInputDelete } = components
@@ -498,6 +499,7 @@ import { useWorkflowDnD } from '../composables/useWorkflowDnD'
 import { useWorkflowHighlight } from '../composables/useWorkflowHighlight'
 import { useWorkflowClipboard } from '../composables/useWorkflowClipboard'
 import { useLabelsStore } from '../stores/labels'
+import { isValidConnection as validateConnection } from '../lib/connectionRules'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -761,12 +763,6 @@ watch(
 
 /* ─── Computed ─── */
 const currentTheme = computed(() => $Auth?.user?.meta?.theme || 'light')
-
-function getIcon(name, mode = 'light') {
-  if (!name) return ''
-  const basePath = `${import.meta.env.BASE_URL}icons`
-  return `${basePath}/${mode === 'dark' ? 'dark/' : ''}${name}.svg`
-}
 
 const canUpdateWorkflow = computed(() =>
   workflow.value.workflowID === '0' ? props.canCreate : workflow.value.canUpdateWorkflow,
@@ -1622,75 +1618,12 @@ function renumberGatewayEdges(sourceId) {
   }
 }
 
-/**
- * Prevent connections to/from visual (swimlane/content) nodes (#8).
- * Also enforces trigger rules: triggers can only be sources, never targets,
- * and each trigger may have at most one outgoing edge.
- */
 function isValidConnection(connection) {
-  const sourceNode = nodes.value.find(n => n.id === connection.source)
-  const targetNode = nodes.value.find(n => n.id === connection.target)
-  const updatingId = edgeUpdatingId.value
-  if (sourceNode?.type === 'visual' || targetNode?.type === 'visual') return false
-  if (targetNode?.type === 'trigger') return false
-  if (sourceNode?.type === 'termination') return false
-  // Termination accepts a single inbound path (it's an end-point).
-  if (targetNode?.type === 'termination') {
-    const existingIn = edges.value.filter(
-      e => e.target === connection.target && e.id !== connection.id && e.id !== updatingId,
-    ).length
-    if (existingIn >= 1) return false
-  }
-  // Outbound cap — most kinds have a single outbound path. Multi-outbound
-  // kinds: gateway (fork/excl/incl), iterator (Body+End), error-handler (Try+Catch).
-  // Trigger (1 out) is handled below; join gateways also cap at 1.
-  const sKind = sourceNode?.data?.kind
-  const sRef = sourceNode?.data?.ref
-  if (sourceNode && sourceNode.type !== 'trigger') {
-    const isFork = sKind === 'gateway' && ['fork', 'excl', 'incl'].includes(sRef)
-    const isIterator = sKind === 'iterator'
-    const isErrorHandler = sKind === 'error-handler'
-    const maxOut = isFork ? Infinity : isIterator || isErrorHandler ? 2 : 1
-    const existingOut = edges.value.filter(
-      e => e.source === connection.source && e.id !== connection.id && e.id !== updatingId,
-    ).length
-    if (existingOut >= maxOut) return false
-  }
-  if (sourceNode?.type === 'trigger') {
-    // Exclude self when the edge is already in the store (VueFlow re-validates
-    // on graph sync; without this, the just-added edge counts as "existing"
-    // and triggers EDGE_INVALID). Also exclude the edge currently being
-    // reconnected so it can move to a different handle on the same trigger.
-    const existing = edges.value.some(
-      e => e.source === connection.source && e.id !== connection.id && e.id !== updatingId,
-    )
-    if (existing) return false
-  }
-  if (connection.source && connection.source === connection.target) return false
-  // One edge per source handle. Exclude the edge being reconnected so it can
-  // land on a different handle of the same node.
-  if (connection.source && connection.sourceHandle) {
-    const existingFromHandle = edges.value.some(
-      e =>
-        e.source === connection.source &&
-        e.sourceHandle === connection.sourceHandle &&
-        e.id !== connection.id &&
-        e.id !== updatingId,
-    )
-    if (existingFromHandle) return false
-  }
-  // One edge per target handle.
-  if (connection.target && connection.targetHandle) {
-    const existingToHandle = edges.value.some(
-      e =>
-        e.target === connection.target &&
-        e.targetHandle === connection.targetHandle &&
-        e.id !== connection.id &&
-        e.id !== updatingId,
-    )
-    if (existingToHandle) return false
-  }
-  return true
+  return validateConnection(connection, {
+    nodes: nodes.value,
+    edges: edges.value,
+    edgeUpdatingId: edgeUpdatingId.value,
+  })
 }
 
 function onEdgeUpdateStart({ edge }) {
@@ -1886,6 +1819,7 @@ async function dryRunOk(e) {
         }),
       )
   } else {
+    dryRun.value.show = false
     testWorkflow(dryRun.value.inputEdited)
   }
 }

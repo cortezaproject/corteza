@@ -583,7 +583,7 @@ async function handleSubmit({ valid }) {
       endpoint: route_.value.endpoint,
       method: route_.value.method,
       enabled: route_.value.enabled,
-      group: route_.value.group || '',
+      group: route_.value.group || NoID,
       meta: route_.value.meta,
     }
 

@@ -322,10 +322,10 @@
               {{ param.label || param.name }}
               <span v-if="param.required" class="text-red-500">*</span>
             </label>
-            <InputText :id="`param-${param.name}`" v-model="paramValues[param.name]" />
             <small v-if="param.description" class="text-muted-color">
               {{ param.description }}
             </small>
+            <InputText :id="`param-${param.name}`" v-model="paramValues[param.name]" />
           </div>
         </div>
 

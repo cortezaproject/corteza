@@ -996,6 +996,7 @@ export function useFlowEditor() {
         namespaceID?: string
         moduleID?: string
       }>
+      description?: string
     }> = []
 
     // Walk backward through edges to find all ancestor nodes
@@ -1047,6 +1048,40 @@ export function useFlowEditor() {
       return a.expr || a.source || a.value || null
     }
 
+    // Top-level scope vars injected by the server for every execution
+    // (server/automation/service/ng_automation.go injectIdentities). Kept flat
+    // so each click emits {scope:'invoker', source:'email'} which maps directly
+    // to how the runtime resolves these names.
+    const SYSTEM_USER_FIELDS = [
+      { name: t('builder.referencePanel.systemUser.userID'),         sourceName: 'userID',         types: ['ID'] },
+      { name: t('builder.referencePanel.systemUser.email'),          sourceName: 'email',          types: ['String'] },
+      { name: t('builder.referencePanel.systemUser.name'),           sourceName: 'name',           types: ['String'] },
+      { name: t('builder.referencePanel.systemUser.username'),       sourceName: 'username',       types: ['String'] },
+      { name: t('builder.referencePanel.systemUser.handle'),         sourceName: 'handle',         types: ['Handle'] },
+      { name: t('builder.referencePanel.systemUser.emailConfirmed'), sourceName: 'emailConfirmed', types: ['Boolean'] },
+      { name: t('builder.referencePanel.systemUser.createdAt'),      sourceName: 'createdAt',      types: ['DateTime'] },
+      { name: t('builder.referencePanel.systemUser.updatedAt'),      sourceName: 'updatedAt',      types: ['DateTime'] },
+      { name: t('builder.referencePanel.systemUser.deletedAt'),      sourceName: 'deletedAt',      types: ['DateTime'] },
+      { name: t('builder.referencePanel.systemUser.suspendedAt'),    sourceName: 'suspendedAt',    types: ['DateTime'] },
+    ]
+
+    upstream.push(
+      {
+        handle: 'invoker',
+        label: t('builder.referencePanel.invoker'),
+        description: t('builder.referencePanel.invokerDescription'),
+        icon: { type: 'name', value: 'user' },
+        properties: SYSTEM_USER_FIELDS,
+      },
+      {
+        handle: 'runner',
+        label: t('builder.referencePanel.runner'),
+        description: t('builder.referencePanel.runnerDescription'),
+        icon: { type: 'name', value: 'id-card' },
+        properties: SYSTEM_USER_FIELDS,
+      },
+    )
+
     // For each ancestor node, look up results (functions) or properties (triggers)
     for (const ancestorId of visited) {
       const node = nodes.value.find(n => n.id === ancestorId)
@@ -1066,6 +1101,7 @@ export function useFlowEditor() {
           upstream.push({
             handle: node.data?.ref || ancestorId,
             label: node.data?.label || 'Agent Invoked',
+            description: (node.data?.description as string | undefined) || undefined,
             icon: node.data?.icon as IconDef | undefined,
             properties: schema
               .filter(p => p.name)
@@ -1086,6 +1122,10 @@ export function useFlowEditor() {
         upstream.push({
           handle: node.data?.ref || ancestorId,
           label: node.data?.label || triggerDef.meta?.short || triggerDef.eventType,
+          description:
+            (node.data?.description as string | undefined) ||
+            triggerDef.meta?.description ||
+            undefined,
           icon: (triggerDef.meta?.icon || node.data?.icon) as IconDef | undefined,
           properties: triggerDef.properties.map(p => {
             const result: any = {
@@ -1115,6 +1155,10 @@ export function useFlowEditor() {
         upstream.push({
           handle: node.data?.ref || ancestorId,
           label: node.data?.label || funcDef.meta?.short || funcDef.ref,
+          description:
+            (node.data?.description as string | undefined) ||
+            funcDef.meta?.description ||
+            undefined,
           icon: (funcDef.meta?.icon || node.data?.icon) as IconDef | undefined,
           results: funcDef.results.map(r => {
             const result: any = {

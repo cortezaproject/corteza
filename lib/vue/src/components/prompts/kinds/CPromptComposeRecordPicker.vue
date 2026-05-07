@@ -4,21 +4,45 @@
 
     <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
 
-    <AutoComplete
-      v-model="selected"
-      :suggestions="options"
+    <Select
+      v-model="selectedRecordID"
+      :options="options"
       option-label="label"
-      class="w-full"
-      dropdown
-      :loading="processing"
+      option-value="recordID"
       :placeholder="placeholder"
-      @complete="search"
-    />
+      class="w-full"
+      filter
+      :loading="processing"
+      :disabled="loading"
+      empty-message=""
+      @filter="onFilter"
+    >
+      <template #footer>
+        <div v-if="showPagination" class="flex gap-1 p-1">
+          <Button
+            class="flex-1"
+            severity="secondary"
+            size="small"
+            icon="pi pi-chevron-left"
+            :disabled="!hasPrevPage || processing"
+            @click="goToPage(false)"
+          />
+          <Button
+            class="flex-1"
+            severity="secondary"
+            size="small"
+            icon="pi pi-chevron-right"
+            :disabled="!hasNextPage || processing"
+            @click="goToPage(true)"
+          />
+        </div>
+      </template>
+    </Select>
 
     <div class="flex justify-end">
       <Button
-        :disabled="loading"
-        :label="pVal('buttonLabel', 'Submit')"
+        :disabled="loading || !selectedRecordID"
+        :label="pVal('buttonLabel', tF('general.label.submit', 'Submit'))"
         @click="$emit('submit', { value: encodeValue() })"
       />
     </div>
@@ -26,7 +50,12 @@
 </template>
 
 <script>
+import { compose, NoID } from '@planetcrust/human-js'
+import { debounce } from 'lodash-es'
 import base from './base.vue'
+
+const PAGE_LIMIT = 10
+const SEARCH_DEBOUNCE_MS = 600
 
 export default {
   name: 'CPromptComposeRecordPicker',
@@ -34,67 +63,205 @@ export default {
   emits: ['submit'],
   data() {
     return {
-      namespaceID: '',
-      moduleID: '',
       processing: false,
+      query: '',
+      filter: {
+        query: '',
+        sort: '',
+        limit: PAGE_LIMIT,
+        pageCursor: '',
+        prevPage: '',
+        nextPage: '',
+      },
+      namespaceID: NoID,
+      module: undefined,
       options: [],
-      selected: null,
+      selectedRecordID: undefined,
+      cancelRequest: null,
     }
   },
   computed: {
     placeholder() {
-      return this.pVal('placeholder', 'Select a record')
+      return this.pVal('placeholder', this.tF('prompt.record-picker.placeholder', 'Select a record'))
+    },
+    labelField() {
+      if (!this.module) return undefined
+      return this.module.fields?.find(f => f.name === this.pVal('labelField'))
+    },
+    showPagination() {
+      return this.hasPrevPage || this.hasNextPage
+    },
+    hasPrevPage() {
+      return !!this.filter.prevPage
+    },
+    hasNextPage() {
+      return !!this.filter.nextPage
+    },
+  },
+  watch: {
+    'filter.pageCursor': {
+      handler(pageCursor) {
+        if (pageCursor !== undefined) {
+          this.fetchPrefiltered({
+            namespaceID: this.namespaceID,
+            moduleID: this.module?.moduleID,
+            query: this.filter.query,
+            sort: this.filter.sort,
+            limit: this.filter.limit,
+            pageCursor,
+          })
+        }
+      },
     },
   },
   async created() {
-    this.namespaceID = this.resolveNamespaceID(this.pVal('namespace'), this.pType('namespace'))
-    this.moduleID = this.resolveModuleID(this.pVal('module'), this.pType('module'))
-    await this.loadLatest()
+    this.search = debounce(this.runSearch, SEARCH_DEBOUNCE_MS)
+
+    try {
+      await this.resolveNamespace()
+      await this.resolveModule()
+      this.loadLatest()
+    } catch {
+      // namespace/module unresolved — leave options empty, user sees no records
+    }
+  },
+  beforeUnmount() {
+    if (this.cancelRequest) {
+      this.cancelRequest()
+      this.cancelRequest = null
+    }
+    if (this.search?.cancel) {
+      this.search.cancel()
+    }
   },
   methods: {
-    resolveNamespaceID(namespace, type) {
-      if (type === 'ComposeNamespace') return namespace?.namespaceID || ''
-      return namespace || ''
+    async resolveNamespace() {
+      const namespace = this.pVal('namespace')
+      const namespaceType = this.pType('namespace')
+
+      if (namespaceType === 'ID') {
+        this.namespaceID = namespace
+      } else if (namespaceType === 'ComposeNamespace') {
+        this.namespaceID = namespace?.namespaceID
+      } else {
+        const { set = [] } = await this.$ComposeAPI.namespaceList({ slug: namespace })
+        if (set.length !== 1) throw new Error('namespace not resolved')
+        this.namespaceID = set[0].namespaceID
+      }
     },
-    resolveModuleID(module, type) {
-      if (type === 'ComposeModule') return module?.moduleID || ''
-      return module || ''
+
+    async resolveModule() {
+      const module = this.pVal('module')
+      const moduleType = this.pType('module')
+
+      if (moduleType === 'ID') {
+        this.module = await this.$ComposeAPI.moduleRead({ namespaceID: this.namespaceID, moduleID: module })
+      } else if (moduleType === 'ComposeModule') {
+        this.module = module
+      } else {
+        const { set = [] } = await this.$ComposeAPI.moduleList({ handle: module, namespaceID: this.namespaceID })
+        if (set.length !== 1) throw new Error('module not resolved')
+        this.module = set[0]
+      }
     },
-    async loadLatest() {
-      await this.fetchRecords('')
+
+    loadLatest() {
+      const namespaceID = this.namespaceID
+      const moduleID = this.module?.moduleID
+      if (moduleID && moduleID !== NoID) {
+        this.fetchPrefiltered({ namespaceID, moduleID, limit: this.filter.limit })
+      }
     },
-    async search({ query = '' }) {
-      await this.fetchRecords(query)
+
+    onFilter(event) {
+      this.search(event?.value ?? '')
     },
-    async fetchRecords(query = '') {
-      if (!this.$ComposeAPI || !this.namespaceID || !this.moduleID) {
-        return
+
+    runSearch(query = '') {
+      if (query !== this.query) {
+        this.query = query
+        this.filter.pageCursor = ''
       }
 
+      const moduleID = this.module?.moduleID
+      if (!moduleID || moduleID === NoID) return
+
+      const queryFields = this.pVal('queryFields') || []
+      let qf = (Array.isArray(queryFields) ? queryFields : [])
+        .map(f => (f && typeof f === 'object' && '@value' in f) ? f['@value'] : f)
+        .filter(f => !!f)
+
+      if (qf.length === 0 && this.pVal('labelField')) {
+        qf = [this.pVal('labelField')]
+      }
+
+      let composedQuery = ''
+      if (query.length > 0 && qf.length > 0) {
+        const escaped = query.replace(/'/g, "''")
+        composedQuery = qf.map(f => `${f} LIKE '%${escaped}%'`).join(' OR ')
+      }
+      const sort = qf.filter(f => !!f).join(', ')
+
+      this.fetchPrefiltered({
+        namespaceID: this.namespaceID,
+        moduleID,
+        query: composedQuery,
+        sort,
+        limit: this.filter.limit,
+      })
+    },
+
+    fetchPrefiltered(params) {
       this.processing = true
-      try {
-        const { set = [] } = await this.$ComposeAPI.recordList({
-          namespaceID: this.namespaceID,
-          moduleID: this.moduleID,
-          limit: 10,
-          query,
+
+      let { query = '' } = params
+      const prefilter = this.pVal('prefilter')
+      if (prefilter) {
+        query = query ? `(${prefilter}) AND (${query})` : prefilter
+      }
+
+      if (this.cancelRequest) {
+        this.cancelRequest()
+        this.cancelRequest = null
+      }
+
+      const { response, cancel } = this.$ComposeAPI.recordListCancellable({ ...params, query })
+      this.cancelRequest = cancel
+
+      response()
+        .then(({ filter, set }) => {
+          this.filter = { ...this.filter, ...filter, query: filter.query || '' }
+          this.options = set.map(raw => {
+            const record = new compose.Record(this.module, raw)
+            let label
+            if (this.labelField) {
+              const v = record.values?.[this.labelField.name]
+              label = this.labelField.isMulti && Array.isArray(v) ? v.join(', ') : v
+            }
+            return {
+              recordID: record.recordID,
+              label: label || record.recordID,
+              record,
+            }
+          })
         })
-
-        const labelField = this.pVal('labelField')
-        this.options = set.map(record => ({
-          record,
-          label: record?.values?.[labelField] || record?.recordID,
-        }))
-      } finally {
-        this.processing = false
-      }
+        .catch(e => {
+          if (e?.name === 'CanceledError' || e?.message === 'canceled') return
+          // network error — keep stale options; the picker remains usable
+        })
+        .finally(() => {
+          this.processing = false
+        })
     },
-    encodeValue() {
-      if (!this.selected?.record) {
-        return { '@type': 'Any', '@value': null }
-      }
 
-      return { '@type': 'ComposeRecord', '@value': this.selected.record }
+    goToPage(next = true) {
+      this.filter.pageCursor = next ? this.filter.nextPage : this.filter.prevPage
+    },
+
+    encodeValue() {
+      const entry = this.options.find(({ recordID }) => recordID === this.selectedRecordID)
+      if (!entry) return { '@type': 'Any', '@value': null }
+      return { '@type': 'ComposeRecord', '@value': entry.record }
     },
   },
 }

@@ -36,10 +36,11 @@ actionlog:
       debug: Debug
     filter:
       action: Action
-      actor: User ID
+      actor: User
       choose-date: Choose a date
       from: Starting from
       no-time: No time selected
+      origin: Origin
       resource: Resource
       search: Search
       to: Ending at
@@ -343,15 +344,18 @@ authclients:
       api: Allow client access to Human API on behalf of user
       curl: cURL
       expiresAt: Expires at
+      expiresAtDescription: If not defined the client has no expiration date
       redirectURIPlaceholder: https://...
       regenerateSecret: Regenerate secret
       validFrom: Valid from
+      validFromDescription: If not defined the client is valid until expiration
       choose-date: Choose a date
       createdAt: Created at
       createdBy: Created by
       delete: Delete
       deletedAt: Deleted at
       enabled:
+        description: When disabled, the client cannot be used to authenticate users
         disabledFootnote: Unable to disable the default client
         label: Enabled
       grant:
@@ -375,7 +379,8 @@ authclients:
         noRoles: No roles assigned
         defaultUserGroup:
           label: Default user group for new users
-          placeholder: Default user group for new users
+          placeholder: Select user group
+        selectRole: Select role
         prohibitedRoles:
           description: Roles from this list will be removed from security context when user authorizes this client
           label: Prohibited roles
@@ -409,7 +414,7 @@ authclients:
       uri: URI
       cUrl: Example cURL
       accessToken: Access token
-      generateAccessToken: Generate access token
+      generateAccessToken: Test &amp; generate token
       discovery: Allow client access to Discovery API on behalf of user
       openid: Allow client to use OIDC and verify the user's identity
     new: New Auth Client
@@ -456,6 +461,7 @@ code-snippets:
 
     code-snippets:
       add: Add Code Snippet
+      new: New Code Snippet
       empty: No snippets yet
       enabled: Enabled
       table-headers:

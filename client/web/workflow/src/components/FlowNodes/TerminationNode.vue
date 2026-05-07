@@ -93,6 +93,7 @@ import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getStyleFromKind } from '../../lib/style'
+import { getIcon as resolveIcon } from '../../lib/icon'
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -113,11 +114,7 @@ const isConnecting = computed(() => !!connectionStartHandle.value)
 
 const { t } = useI18n()
 
-function getIcon(name) {
-  if (!name) return ''
-  const basePath = `${import.meta.env.BASE_URL}icons`
-  return `${basePath}/${props.currentTheme === 'dark' ? 'dark/' : ''}${name}.svg`
-}
+const getIcon = (name) => resolveIcon(name, props.currentTheme)
 
 const iconSrc = computed(() => {
   const styleInfo = getStyleFromKind({ kind: 'termination' })

@@ -90,17 +90,16 @@ async function handleButton(btn, index) {
       })
     } else if (btn.workflowID && $AutomationAPI) {
       // Execute workflow
-      const input = []
+      const input = {}
 
-      // Pass context as input parameters
       if (props.namespace?.namespaceID) {
-        input.push({ name: 'namespace', value: JSON.stringify({ namespaceID: props.namespace.namespaceID }) })
+        input.namespace = { '@type': 'ComposeNamespace', '@value': props.namespace }
       }
       if (props.page?.pageID) {
-        input.push({ name: 'page', value: JSON.stringify({ pageID: props.page.pageID }) })
+        input.page = { '@type': 'ComposePage', '@value': props.page }
       }
       if (props.record?.recordID) {
-        input.push({ name: 'record', value: JSON.stringify(props.record) })
+        input.record = { '@type': 'ComposeRecord', '@value': props.record }
       }
 
       await $AutomationAPI.workflowExec({

@@ -377,49 +377,41 @@
         </div>
       </Panel>
 
-      <!-- Federation -->
+      <!-- Auth background -->
       <Panel
-        :header="$t('system.settings.editor.federation.title')"
+        :header="$t('system.settings.editor.bgScreen.title')"
         toggleable
         :collapsed="false"
         class="shadow"
       >
-        <CInputSwitch
-          v-model="settings['federation.enabled']"
-          :label="$t('system.settings.editor.federation.enabled')"
-          :description="$t('system.settings.editor.federation.description')"
-        />
-      </Panel>
-
-      <!-- Discovery -->
-      <Panel
-        :header="$t('system.settings.editor.discovery.title')"
-        toggleable
-        :collapsed="false"
-        class="shadow"
-      >
-        <div class="flex flex-col gap-4">
-          <CInputSwitch
-            v-model="settings['discovery.enabled']"
-            :label="$t('system.settings.editor.discovery.enabled')"
-            :description="$t('system.settings.editor.discovery.description')"
-          />
-
-          <div
-            v-if="settings['discovery.enabled']"
-            class="flex flex-col gap-2"
-          >
+        <div class="flex flex-col gap-6">
+          <div class="flex flex-col gap-2">
             <label class="font-medium text-sm text-primary">
-              {{ $t('system.settings.editor.discovery.resources.label') }}
+              {{ $t('system.settings.editor.bgScreen.image.uploader.label') }}
             </label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <CInputSwitch
-                v-for="k in discoveryResourceKeys"
-                :key="k.name"
-                v-model="settings[k.name]"
-                :label="$t(k.labelKey)"
-              />
-            </div>
+            <CFileDropZone
+              accept="image/*"
+              :uploading="bgUploading"
+              :error="bgUploadError"
+              :preview-url="bgImageUrl"
+              :clearable="bgImageIsCustom"
+              compact
+              preview-max-width="100%"
+              preview-max-height="200px"
+              @select="onBgImageSelect"
+              @clear="onBgImageClear"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-sm text-primary">
+              {{ $t('system.settings.editor.bgScreen.image.editor.label') }}
+            </label>
+            <Textarea
+              v-model="settings['auth.ui.styles']"
+              rows="16"
+              class="w-full font-mono text-sm"
+            />
           </div>
         </div>
       </Panel>
@@ -466,35 +458,80 @@
 import { computed, inject, onMounted, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isEqual } from 'lodash-es'
-import { components } from '@planetcrust/human-vue'
+import { components, useFileUpload } from '@planetcrust/human-vue'
 import ExternalStd from './auth/ExternalStd.vue'
 import ExternalOIDC from './auth/ExternalOIDC.vue'
 import ExternalSAML from './auth/ExternalSAML.vue'
 
-const { CResourceTable } = components
+const { CResourceTable, CFileDropZone } = components
 
 const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $Settings = inject('$Settings')
 
 const loading = ref(false)
 const saving = ref(false)
 const settings = reactive({})
 const passwordSecurityEnabled = ref(true)
 
-const discoveryResourceKeys = [
-  { name: 'discovery.system-users.enabled', labelKey: 'system.settings.editor.discovery.resources.system-users' },
-  { name: 'discovery.system-applications.enabled', labelKey: 'system.settings.editor.discovery.resources.system-applications' },
-  { name: 'discovery.system-roles.enabled', labelKey: 'system.settings.editor.discovery.resources.system-roles' },
-  { name: 'discovery.system-templates.enabled', labelKey: 'system.settings.editor.discovery.resources.system-templates' },
-  { name: 'discovery.automation-workflows.enabled', labelKey: 'system.settings.editor.discovery.resources.automation-workflows' },
-  { name: 'discovery.compose-namespaces.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-namespaces' },
-  { name: 'discovery.compose-charts.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-charts' },
-  { name: 'discovery.compose-pages.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-pages' },
-  { name: 'discovery.compose-modules.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-modules' },
-  { name: 'discovery.compose-records.enabled', labelKey: 'system.settings.editor.discovery.resources.compose-records' },
-]
+// Auth background image upload state
+const {
+  uploading: bgUploading,
+  uploadError: bgUploadError,
+  uploadFileRaw: uploadBgRaw,
+} = useFileUpload()
+
+const bgImageUrl = ref('')
+const bgImageIsCustom = ref(false)
+
+function refreshBgImage() {
+  const raw = settings['auth.ui.background-image-src']
+  bgImageIsCustom.value = typeof raw === 'string' && raw.startsWith('attachment:')
+  if (bgImageIsCustom.value) {
+    const m = /^attachment:(\d+)/.exec(raw)
+    if (m) {
+      bgImageUrl.value =
+        $SystemAPI.baseURL +
+        $SystemAPI.attachmentOriginalEndpoint({
+          attachmentID: m[1],
+          kind: 'settings',
+          name: 'auth.ui.background-image-src',
+        })
+      return
+    }
+  }
+  bgImageUrl.value = ''
+}
+
+async function onBgImageSelect(files) {
+  const file = files[0]
+  if (!file) return
+  try {
+    const endpoint =
+      $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'auth.ui.background-image-src' })
+    const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
+    await uploadBgRaw(file, { url: endpoint, token })
+    if ($Settings?.fetch) await $Settings.fetch()
+    await loadSettings()
+    $toast.toastSuccess(t('notification.settings.update.success'))
+  } catch {
+    // upload error tracked by composable
+  }
+}
+
+async function onBgImageClear() {
+  try {
+    await $SystemAPI.settingsUpdate({
+      values: [{ name: 'auth.ui.background-image-src', value: null }],
+    })
+    if ($Settings?.fetch) await $Settings.fetch()
+    await loadSettings()
+  } catch (e) {
+    $toast.toastErrorHandler(t('notification.settings.update.error'))(e)
+  }
+}
 
 function onEmailOtpToggle(v) {
   if (!v) settings['auth.multi-factor.email-otp.enforced'] = false
@@ -838,16 +875,8 @@ function getExternalChanges() {
 async function loadSettings() {
   loading.value = true
   try {
-    const [authResult, federationResult, discoveryResult] = await Promise.all([
-      $SystemAPI.settingsList({ prefix: 'auth.' }),
-      $SystemAPI.settingsList({ prefix: 'federation.' }),
-      $SystemAPI.settingsList({ prefix: 'discovery.' }),
-    ])
-    const allSettings = [
-      ...(authResult || []),
-      ...(federationResult || []),
-      ...(discoveryResult || []),
-    ]
+    const authResult = await $SystemAPI.settingsList({ prefix: 'auth.' })
+    const allSettings = authResult || []
 
     for (const s of allSettings) {
       settings[s.name] = parseValue(s.value)
@@ -855,6 +884,8 @@ async function loadSettings() {
 
     // Check password security from settings
     passwordSecurityEnabled.value = !!settings['auth.internal.passwordConstraints.passwordSecurity']
+
+    refreshBgImage()
 
     // Parse external auth into structured data
     const parsed = prepareExternal(allSettings)

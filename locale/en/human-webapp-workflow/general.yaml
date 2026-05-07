@@ -13,6 +13,7 @@ import:
   label: Import
   reassign-run-as: "NOTE: the Run as workflow property won't be imported and should be reassigned"
   upload-files: Browse or drop files to upload...
+  no-workflows-in-file: "No workflows found in this file."
 label:
   all: All
   any: Any

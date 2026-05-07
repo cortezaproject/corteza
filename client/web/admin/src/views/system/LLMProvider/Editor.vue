@@ -100,10 +100,10 @@
             <label for="promptURL" class="font-medium text-primary">
               {{ $t('system.llmProviders.editor.config.promptURL') }}
             </label>
-            <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
             <small class="text-muted-color">
               {{ $t('system.llmProviders.editor.config.promptURLHelp') }}
             </small>
+            <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
           </div>
 
           <FormField v-if="!isEdit" name="apiKey" class="flex flex-col gap-2">

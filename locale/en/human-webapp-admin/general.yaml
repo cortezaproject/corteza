@@ -4,6 +4,7 @@ label:
   copy: Copy
   details: Details
   edit: Edit
+  loadOlder: Load older
   general:
     yes: Yes
     no: No

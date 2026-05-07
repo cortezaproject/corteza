@@ -65,6 +65,11 @@ type (
 		// Filter by one or more actors
 		ActorID []string
 
+		// Origin GET parameter
+		//
+		// Origin
+		Origin string
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -86,6 +91,7 @@ func (r ActionlogList) Auditable() map[string]interface{} {
 		"resource":       r.Resource,
 		"action":         r.Action,
 		"actorID":        r.ActorID,
+		"origin":         r.Origin,
 		"limit":          r.Limit,
 	}
 }
@@ -118,6 +124,11 @@ func (r ActionlogList) GetAction() string {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) GetActorID() []string {
 	return r.ActorID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogList) GetOrigin() string {
+	return r.Origin
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -169,6 +180,12 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["actorID"]; ok {
 			r.ActorID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["origin"]; ok && len(val) > 0 {
+			r.Origin, err = val[0], nil
 			if err != nil {
 				return err
 			}

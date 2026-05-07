@@ -3,8 +3,9 @@
     <p v-if="message" class="m-0 whitespace-pre-wrap" v-html="message" />
     <div class="flex justify-end">
       <Button
+        v-bind="vS('buttonVariant', 'primary')"
         :disabled="loading"
-        :label="pVal('buttonLabel', 'Ok')"
+        :label="pVal('buttonLabel', tF('general.label.ok', 'Ok'))"
         @click="$emit('submit', { confirmed: pRaw(undefined, true, 'Boolean') })"
       />
     </div>

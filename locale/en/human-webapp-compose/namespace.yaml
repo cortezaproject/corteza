@@ -8,6 +8,8 @@ import:
   title: Import namespace
   uploadFileLabel: Upload the file you want to import (.zip format)
   uploadFilePlaceholder: Click or drop file here to upload (.zip format)
+  invalidFileFormat: File must be a .zip archive.
+  invalidResponse: Server response is missing a session ID.
   back: Back
   import: Import
   slug:

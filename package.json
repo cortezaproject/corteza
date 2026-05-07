@@ -1,6 +1,13 @@
 {
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.29.2",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10",
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm"
+  },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",
     "@codemirror/lang-html": "^6.4.11",

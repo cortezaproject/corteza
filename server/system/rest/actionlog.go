@@ -60,6 +60,7 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 			ActorID:        r.ActorID,
 			Resource:       r.Resource,
 			Action:         r.Action,
+			Origin:         r.Origin,
 			Limit:          r.Limit,
 		}
 	)

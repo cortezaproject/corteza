@@ -1,5 +1,5 @@
 <script>
-import { pType, pVal } from '../utils'
+import { pType, pVal, variantToSeverity } from '../utils'
 
 export default {
   props: {
@@ -39,6 +39,14 @@ export default {
       }
 
       return { '@type': defType, '@value': defValue }
+    },
+
+    tF(key, fallback) {
+      return this.$te(key) ? this.$t(key) : fallback
+    },
+
+    vS(k, def = 'primary') {
+      return variantToSeverity(this.pVal(k, def))
     },
   },
 }

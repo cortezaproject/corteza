@@ -136,6 +136,7 @@ import { useI18n } from 'vue-i18n'
 import { getStyleFromKind } from '../../lib/style'
 import { getConstraintNameLabel } from '../../lib/constraint'
 import { camelToTitle } from '../../lib/string'
+import { getIcon as resolveIcon } from '../../lib/icon'
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -155,11 +156,7 @@ defineEmits(['test', 'cancel', 'open-issues'])
 
 const { t } = useI18n()
 
-function getIcon(name) {
-  if (!name) return ''
-  const basePath = `${import.meta.env.BASE_URL}icons`
-  return `${basePath}/${props.currentTheme === 'dark' ? 'dark/' : ''}${name}.svg`
-}
+const getIcon = (name) => resolveIcon(name, props.currentTheme)
 
 const iconSrc = computed(() => {
   const styleInfo = getStyleFromKind({ kind: 'trigger' })

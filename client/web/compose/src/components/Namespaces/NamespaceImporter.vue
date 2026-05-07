@@ -87,11 +87,13 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { components, useFileUpload } from '@planetcrust/human-vue'
 
 const { CFileDropZone } = components
 
 const $ComposeAPI = inject('$ComposeAPI')
+const { t } = useI18n()
 
 const emit = defineEmits(['imported', 'failed'])
 
@@ -135,15 +137,35 @@ function onBack() {
   uploadError.value = ''
 }
 
+// Server-side accepts only zipped Envoy YAML bundles (mimetype application/zip);
+// the dropzone's `accept=".zip"` is just a hint that drag-drop bypasses, so
+// re-check here so the user gets a clear message instead of a generic 400 →
+// "field sessionID is empty" downstream.
+const ZIP_MIME_TYPES = ['application/zip', 'application/x-zip-compressed', 'application/x-zip']
+
+function isZipFile(file) {
+  if (file.name?.toLowerCase().endsWith('.zip')) return true
+  return ZIP_MIME_TYPES.includes(file.type)
+}
+
 async function onFilesSelected(files) {
   const file = files[0]
   if (!file) return
+
+  if (!isZipFile(file)) {
+    uploadError.value = t('namespace.import.invalidFileFormat')
+    return
+  }
 
   try {
     const endpoint = $ComposeAPI.baseURL + $ComposeAPI.namespaceImportInitEndpoint()
     const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
 
     const data = await uploadFileRaw(file, { url: endpoint, token })
+    if (!data?.sessionID) {
+      uploadError.value = t('namespace.import.invalidResponse')
+      return
+    }
     session.value = data
     step.value = 1
   } catch {

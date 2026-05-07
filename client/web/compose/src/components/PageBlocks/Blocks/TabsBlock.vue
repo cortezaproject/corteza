@@ -9,6 +9,7 @@
 
     <Tabs
       v-else
+      :key="tabsRemountKey"
       :value="activeTab"
       :orientation="tabStyle.orientation"
       :show-navigators="tabStyle.orientation !== 'vertical'"
@@ -23,9 +24,36 @@
           :value="index"
           :class="tabClasses"
         >
-          {{ tab.title || `${$t('block.tabs.tab')} ${index + 1}` }}
+          <span class="inline-flex items-center gap-2">
+            <span>{{ tab.title || `${$t('block.tabs.tab')} ${index + 1}` }}</span>
+            <i
+              v-if="inEditMode"
+              role="button"
+              tabindex="0"
+              class="pi pi-ellipsis-v text-sm cursor-pointer rounded p-1 -my-1 hover:bg-emphasis"
+              @click.stop="openTabMenu($event, index)"
+              @mousedown.stop
+              @pointerdown.stop
+              @keydown.enter.stop.prevent="openTabMenu($event, index)"
+              @keydown.space.stop.prevent="openTabMenu($event, index)"
+            />
+          </span>
         </Tab>
       </TabList>
+
+      <Menu
+        v-if="inEditMode"
+        ref="tabMenuRef"
+        :model="tabMenuItems"
+        popup
+      >
+        <template #item="{ item, props: itemProps }">
+          <a v-ripple v-bind="itemProps.action" :class="item.class">
+            <span :class="item.icon" />
+            <span class="ml-2">{{ item.label }}</span>
+          </a>
+        </template>
+      </Menu>
 
       <TabPanels :class="tabPanelsClasses">
         <TabPanel
@@ -58,9 +86,12 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 import PageBlock from './PageBlock.vue'
 import { resolveBlock } from '../registry'
+
+const { t } = useI18n()
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -70,6 +101,12 @@ const props = defineProps({
   // All blocks on the page (needed to resolve tabbed block references)
   blocks: { type: Array, default: () => [] },
 })
+
+const pageBuilder = inject('$pageBuilder', null)
+const inEditMode = computed(() => !!pageBuilder)
+
+const tabMenuRef = ref(null)
+const activeMenuIndex = ref(-1)
 
 const activeTab = ref(0)
 const visitedTabs = ref({ 0: true })
@@ -189,6 +226,19 @@ const tabClasses = computed(() => [
 
 const tabPanelsClasses = computed(() => 'h-full flex-1 overflow-hidden !p-0')
 
+// Force <Tabs> to remount when layout-affecting style settings change so
+// PrimeVue's activeBar (which caches the active tab's measured width on
+// mount) recomputes its position/size for the new tab widths.
+const tabsRemountKey = computed(() =>
+  [
+    tabStyle.value.justify,
+    tabStyle.value.orientation,
+    tabStyle.value.position,
+    tabStyle.value.appearance,
+    tabStyle.value.alignment,
+  ].join('|'),
+)
+
 const tabbedBlocks = computed(() => {
   const tabs = props.block.options?.tabs || []
   return tabs.reduce((acc, { blockID, title, lazy = true }) => {
@@ -217,6 +267,53 @@ function shouldRenderTab(tab, index) {
   if (!tab.lazy) return true
   return !!visitedTabs.value[index]
 }
+
+function getTabsBlockID() {
+  const b = props.block
+  return b.blockID && b.blockID !== '0' ? b.blockID : b.meta?.tempID || ''
+}
+
+function getInnerBlockID(tab) {
+  const b = tab?.block
+  if (!b) return null
+  return b.blockID && b.blockID !== '0' ? b.blockID : b.meta?.tempID || null
+}
+
+function openTabMenu(event, index) {
+  activeMenuIndex.value = index
+  tabMenuRef.value?.show(event)
+}
+
+const tabMenuItems = computed(() => {
+  const i = activeMenuIndex.value
+  const tab = tabbedBlocks.value[i]
+  const tabsBlockID = getTabsBlockID()
+  const innerBlockID = getInnerBlockID(tab)
+
+  return [
+    {
+      label: t('block.tabs.menu.edit'),
+      icon: 'pi pi-pencil',
+      disabled: !innerBlockID,
+      command: () => {
+        if (innerBlockID) pageBuilder?.editTabbedBlock(innerBlockID)
+      },
+    },
+    {
+      label: t('block.tabs.menu.clone'),
+      icon: 'pi pi-copy',
+      disabled: !innerBlockID,
+      command: () => pageBuilder?.cloneTabbedBlock(tabsBlockID, i),
+    },
+    { separator: true },
+    {
+      label: t('block.tabs.menu.remove'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => pageBuilder?.removeTabEntry(tabsBlockID, i),
+    },
+  ]
+})
 </script>
 
 <style scoped>

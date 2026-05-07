@@ -14,10 +14,10 @@
     }"
   >
     <template v-if="$slots.header || $slots.filter || !hideSearch" #header>
-      <div class="flex-1 min-w-0">
+      <div v-if="$slots.header" class="flex-1 min-w-0">
         <slot name="header" />
       </div>
-      <div class="flex items-center gap-2" :class="!hideSearch ? 'flex-1 max-w-xl' : ''">
+      <div v-if="!hideSearch || $slots.filter" class="flex-1 max-w-xl flex items-center gap-2">
         <slot name="filter" />
         <CInputSearch
           v-if="!hideSearch"
@@ -114,8 +114,9 @@
             <slot name="expansion" :data="slotProps.data" />
           </template>
 
-          <template v-if="!hidePagination" #footer>
-            <div class="flex items-center flex-wrap gap-2 px-3 py-2">
+          <template v-if="!hidePagination || $slots.footer" #footer>
+            <slot name="footer" />
+            <div v-if="!hidePagination" class="flex items-center flex-wrap gap-2 px-3 py-2">
               <div class="flex items-center text-sm">
                 <span v-if="!hideTotal" class="whitespace-nowrap">
                   {{ getPagination }}

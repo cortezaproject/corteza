@@ -40,6 +40,15 @@
             :disabled="suspending"
             @click="confirmUnsuspend"
           />
+          <Button
+            :label="$t('system.users.editor.info.revokeAllSession')"
+            icon="pi pi-sign-out"
+            severity="secondary"
+            size="small"
+            outlined
+            :disabled="revoking || isSelf"
+            @click="confirmRevokeSessions"
+          />
         </template>
         
         <CPermissionsButton
@@ -186,12 +195,14 @@ const confirm = useConfirm()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $Auth = inject('$Auth')
 
 // State
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const suspending = ref(false)
+const revoking = ref(false)
 const user = ref(null)
 const initialUser = ref(null)
 
@@ -205,6 +216,8 @@ const membershipIDs = ref(new Set())
 
 // Computed
 const isEdit = computed(() => !!route.params.userID)
+
+const isSelf = computed(() => !!user.value && $Auth?.user?.userID === user.value.userID)
 
 const pageTitle = computed(() => {
   return isEdit.value ? t('system.users.editor.title.edit') : t('system.users.editor.title.create')
@@ -454,6 +467,42 @@ function confirmUnsuspend(event) {
     },
     accept: () => {
       handleUnsuspend()
+    },
+  })
+}
+
+async function handleRevokeSessions() {
+  revoking.value = true
+  try {
+    await $SystemAPI.userSessionsRemove({ userID: user.value.userID })
+    $toast.toastSuccess(t('notification.user.sessionsRevoke.success'))
+  } catch (e) {
+    console.error('Failed to revoke sessions:', e)
+    $toast.toastErrorHandler(t('notification.user.sessionsRevoke.error'))(e)
+  } finally {
+    revoking.value = false
+  }
+}
+
+function confirmRevokeSessions(event) {
+  confirm.require({
+    target: event.currentTarget,
+    message: t('system.users.editor.info.revokeAllSession') + '?',
+    header: t('system.users.editor.info.revokeAllSession'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      outlined: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('system.users.editor.info.revokeAllSession'),
+      severity: 'warn',
+      size: 'small',
+    },
+    accept: () => {
+      handleRevokeSessions()
     },
   })
 }

@@ -20,6 +20,26 @@
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
       <div v-if="isEdit" class="flex justify-end gap-2">
         <Button
+          v-if="!role.archivedAt && !role.isSystem && !role.isClosed"
+          :label="$t('system.roles.editor.info.archive')"
+          icon="pi pi-box"
+          severity="secondary"
+          size="small"
+          outlined
+          :disabled="saving"
+          @click="handleArchive"
+        />
+        <Button
+          v-if="role.archivedAt && !role.isSystem && !role.isClosed"
+          :label="$t('system.roles.editor.info.unarchive')"
+          icon="pi pi-box"
+          severity="secondary"
+          size="small"
+          outlined
+          :disabled="saving"
+          @click="handleUnarchive"
+        />
+        <Button
           v-if="role.canGrant"
           :label="$t('system.roles.editor.clone.title')"
           icon="pi pi-copy"
@@ -150,24 +170,6 @@
             severity="success"
             :disabled="saving"
             @click="handleUndelete"
-          />
-          <Button
-            v-if="isEdit && !role.archivedAt && !role.isSystem"
-            :label="$t('system.roles.editor.info.archive')"
-            icon="pi pi-box"
-            severity="warn"
-            outlined
-            :disabled="saving"
-            @click="handleArchive"
-          />
-          <Button
-            v-if="isEdit && role.archivedAt && !role.isSystem"
-            :label="$t('system.roles.editor.info.unarchive')"
-            icon="pi pi-box"
-            severity="success"
-            outlined
-            :disabled="saving"
-            @click="handleUnarchive"
           />
           <Button
             v-if="!role.isSystem || role.canUpdateRole"

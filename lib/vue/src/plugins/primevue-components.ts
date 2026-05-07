@@ -35,6 +35,7 @@ import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
+import Listbox from 'primevue/listbox'
 import Menu from 'primevue/menu'
 import Message from 'primevue/message'
 import MultiSelect from 'primevue/multiselect'
@@ -100,6 +101,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('InputText', InputText)
     app.component('InputGroup', InputGroup)
     app.component('InputGroupAddon', InputGroupAddon)
+    app.component('Listbox', Listbox)
     app.component('Menu', Menu)
     app.component('Message', Message)
     app.component('MultiSelect', MultiSelect)

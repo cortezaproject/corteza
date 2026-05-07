@@ -40,13 +40,15 @@
       :h="item.h"
       :min-w="6"
       :min-h="5"
+      :drag-allow-from="editable ? '.block-drag-handle' : undefined"
+      :drag-ignore-from="editable ? '' : 'a, button'"
       :class="editable ? 'builder-grid-item' : 'view-grid-item'"
     >
       <!-- Scoped slot for custom per-item overlay (e.g. builder toolbox) -->
       <slot name="item-overlay" :item="item" :block="blockMap.get(item.i)" />
 
       <!-- Block content — always fills the grid item -->
-      <div class="block-content" :class="{ 'pointer-events-none': editable }">
+      <div class="block-content">
         <component
           :is="resolveBlock(blockMap.get(item.i)?.kind)"
           v-if="resolveBlock(blockMap.get(item.i)?.kind)"

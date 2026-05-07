@@ -15,7 +15,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-if="authClient.canGrant"
@@ -25,268 +25,310 @@
           :target="authClient.meta?.name || authClient.handle || authClient.authClientID"
         />
       </div>
-      <Card
-        :pt="{
-          body: { class: 'p-0 flex flex-col h-full min-h-0' },
-          content: { class: 'p-0 flex flex-col h-full min-h-0' },
-        }"
-        class="overflow-hidden flex-1 min-h-0 flex flex-col"
+
+      <!-- Info -->
+      <Panel :header="$t('system.authclients.editor.info.title')" toggleable :collapsed="false" class="shadow">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField name="name" class="flex flex-col gap-2">
+            <label for="name" class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.name') }}
+              <span class="text-red-500">*</span>
+            </label>
+            <InputText id="name" name="name" v-model="authClient.meta.name" />
+            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
+              {{ $form.name.error?.message }}
+            </Message>
+          </FormField>
+
+          <FormField name="handle" class="flex flex-col gap-2">
+            <label for="handle" class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.handle.label') }}
+            </label>
+            <InputText id="handle" name="handle" v-model="authClient.handle" />
+            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
+              {{ $form.handle.error?.message }}
+            </Message>
+          </FormField>
+
+          <div class="flex flex-col gap-2 md:col-span-2">
+            <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.redirectURI') }}</label>
+            <div v-if="redirectURIs.length" class="flex flex-col gap-2">
+              <div class="grid grid-cols-[1fr_auto] gap-2 px-3 pt-2">
+                <span class="text-xs font-semibold text-muted-color uppercase">
+                  {{ $t('system.authclients.editor.info.uri') }}
+                </span>
+                <span class="w-10" />
+              </div>
+              <div
+                v-for="(uri, index) in redirectURIs"
+                :key="index"
+                class="border border-surface rounded-border p-3"
+              >
+                <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+                  <InputText
+                    v-model="redirectURIs[index]"
+                    size="small"
+                    class="w-full"
+                    :placeholder="$t('system.authclients.editor.info.redirectURIPlaceholder')"
+                    @update:modelValue="syncRedirectURIs"
+                  />
+                  <div class="w-10 flex justify-end">
+                    <Button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      size="small"
+                      @click="removeURI(index)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <Button
+                :label="$t('general.label.add')"
+                icon="pi pi-plus"
+                size="small"
+                severity="secondary"
+                @click="addURI"
+              />
+            </div>
+          </div>
+
+          <div v-if="isEdit" class="flex flex-col gap-2 md:col-span-2">
+            <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.secret') }}</label>
+            <div class="flex items-center gap-2">
+              <InputText
+                :value="secretVisible ? secret : '••••••••••••••••'"
+                readonly
+                class="flex-1"
+                :type="secretVisible ? 'text' : 'password'"
+              />
+              <Button
+                :icon="secretVisible ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                @click="secretVisible ? hideSecret() : showSecret()"
+              />
+              <Button
+                icon="pi pi-refresh"
+                text
+                rounded
+                size="small"
+                severity="warning"
+                :title="$t('system.authclients.editor.info.regenerateSecret')"
+                @click="regenerateSecret"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.validGrant') }}
+            </label>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="opt in grantOptions"
+                :key="opt.value"
+                class="flex items-center gap-2"
+              >
+                <RadioButton
+                  v-model="authClient.validGrant"
+                  :inputId="`grant-${opt.value}`"
+                  :value="opt.value"
+                />
+                <label :for="`grant-${opt.value}`" class="cursor-pointer">{{ opt.label }}</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.scope') }}</label>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <Checkbox inputId="scope-profile" v-model="scopeProfile" :binary="true" />
+                <label for="scope-profile" class="cursor-pointer">
+                  {{ $t('system.authclients.editor.info.profile') }}
+                </label>
+              </div>
+              <div class="flex items-center gap-2">
+                <Checkbox inputId="scope-api" v-model="scopeApi" :binary="true" />
+                <label for="scope-api" class="cursor-pointer">
+                  {{ $t('system.authclients.editor.info.api') }}
+                </label>
+              </div>
+              <div class="flex items-center gap-2">
+                <Checkbox inputId="scope-openid" v-model="scopeOpenid" :binary="true" />
+                <label for="scope-openid" class="cursor-pointer">
+                  {{ $t('system.authclients.editor.info.openid') }}
+                </label>
+              </div>
+              <div class="flex items-center gap-2">
+                <Checkbox inputId="scope-discovery" v-model="scopeDiscovery" :binary="true" />
+                <label for="scope-discovery" class="cursor-pointer">
+                  {{ $t('system.authclients.editor.info.discovery') }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.validFrom') }}</label>
+            <small class="text-muted-color">
+              {{ $t('system.authclients.editor.info.validFromDescription') }}
+            </small>
+            <DatePicker v-model="authClient.validFrom" showTime hourFormat="24" showIcon showButtonBar fluid />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.expiresAt') }}</label>
+            <small class="text-muted-color">
+              {{ $t('system.authclients.editor.info.expiresAtDescription') }}
+            </small>
+            <DatePicker v-model="authClient.expiresAt" showTime hourFormat="24" showIcon showButtonBar fluid />
+          </div>
+
+          <CInputToggleCard
+            v-model="authClient.enabled"
+            :label="$t('system.authclients.editor.info.enabled.label')"
+            :description="$t('system.authclients.editor.info.enabled.description')"
+          />
+
+          <CInputToggleCard
+            v-model="authClient.trusted"
+            :label="$t('system.authclients.editor.info.trusted.label')"
+            :description="$t('system.authclients.editor.info.trusted.description')"
+          />
+        </div>
+      </Panel>
+
+      <!-- Security -->
+      <Panel :header="$t('system.authclients.editor.tabs.security')" toggleable :collapsed="false" class="shadow">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.security.permittedRoles.label') }}
+            </label>
+            <small class="text-muted-color">
+              {{ $t('system.authclients.editor.info.security.permittedRoles.description') }}
+            </small>
+            <CInputRole
+              :placeholder="$t('system.authclients.editor.info.security.selectRole')"
+              clear-on-select
+              filter-context-roles
+              @select="role => addRoleToList('permittedRoles', role)"
+            />
+            <RoleList
+              :roles="permittedRoles"
+              @remove="role => removeRoleFromList('permittedRoles', role)"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.security.prohibitedRoles.label') }}
+            </label>
+            <small class="text-muted-color">
+              {{ $t('system.authclients.editor.info.security.prohibitedRoles.description') }}
+            </small>
+            <CInputRole
+              :placeholder="$t('system.authclients.editor.info.security.selectRole')"
+              clear-on-select
+              filter-context-roles
+              @select="role => addRoleToList('prohibitedRoles', role)"
+            />
+            <RoleList
+              :roles="prohibitedRoles"
+              @remove="role => removeRoleFromList('prohibitedRoles', role)"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.security.forcedRoles.label') }}
+            </label>
+            <small class="text-muted-color">
+              {{ $t('system.authclients.editor.info.security.forcedRoles.description') }}
+            </small>
+            <CInputRole
+              :placeholder="$t('system.authclients.editor.info.security.selectRole')"
+              clear-on-select
+              filter-context-roles
+              @select="role => addRoleToList('forcedRoles', role)"
+            />
+            <RoleList
+              :roles="forcedRoles"
+              @remove="role => removeRoleFromList('forcedRoles', role)"
+            />
+          </div>
+
+          <div v-if="authClient.validGrant === 'client_credentials'" class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.security.impersonateUser.label') }}
+            </label>
+            <small class="text-muted-color">
+              {{ $t('system.authclients.editor.info.security.impersonateUser.description') }}
+            </small>
+            <CInputUser
+              v-model="authClient.security.impersonateUser"
+              :placeholder="$t('system.authclients.editor.info.security.impersonateUser.placeholder')"
+              class="w-full"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-medium text-primary">
+              {{ $t('system.authclients.editor.info.security.defaultUserGroup.label') }}
+            </label>
+            <CInputUserGroup
+              v-model="authClient.security.userGroup"
+              :placeholder="$t('system.authclients.editor.info.security.defaultUserGroup.placeholder')"
+              class="w-full"
+            />
+          </div>
+        </div>
+      </Panel>
+
+      <!-- Developer (only meaningful for client_credentials) -->
+      <Panel
+        v-if="isEdit && authClient.validGrant === 'client_credentials'"
+        :header="$t('system.authclients.editor.tabs.developer')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
       >
-        <template #content>
-          <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
-            <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.authclients.editor.tabs.basic') }}</Tab>
-              <Tab value="security">{{ $t('system.authclients.editor.tabs.security') }}</Tab>
-              <Tab v-if="isEdit && authClient.validGrant === 'client_credentials'" value="developer">{{ $t('system.authclients.editor.tabs.developer') }}</Tab>
-            </TabList>
+        <div class="flex flex-col gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.curl') }}</label>
+              <Button icon="pi pi-copy" text size="small" severity="secondary" @click="copyToClipboard(curlExample)" />
+            </div>
+            <Textarea :value="curlExample" readonly rows="3" class="font-mono text-sm" />
+          </div>
 
-            <TabPanels class="flex-1 overflow-y-auto min-h-0">
-              <TabPanel value="basic">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField name="name" class="flex flex-col gap-2">
-                    <label for="name" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.name') }}
-                      <span class="text-red-500">*</span>
-                    </label>
-                    <InputText id="name" name="name" v-model="authClient.meta.name" />
-                    <Message
-                      v-if="$form.name?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.name.error?.message }}
-                    </Message>
-                  </FormField>
-
-                  <FormField name="handle" class="flex flex-col gap-2">
-                    <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.handle.label') }}
-                    </label>
-                    <InputText id="handle" name="handle" v-model="authClient.handle" />
-                    <Message
-                      v-if="$form.handle?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.handle.error?.message }}
-                    </Message>
-                  </FormField>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="validGrant" class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.validGrant') }}
-                    </label>
-                    <Select
-                      id="validGrant"
-                      v-model="authClient.validGrant"
-                      :options="grantOptions"
-                      option-label="label"
-                      option-value="value"
-                    />
-                  </div>
-
-                  <!-- Client Secret (edit only) -->
-                  <div v-if="isEdit" class="flex flex-col gap-2">
-                    <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.secret') }}</label>
-                    <div class="flex items-center gap-2">
-                      <InputText
-                        :value="secretVisible ? secret : '••••••••••••••••'"
-                        readonly
-                        class="flex-1"
-                        :type="secretVisible ? 'text' : 'password'"
-                      />
-                      <Button
-                        :icon="secretVisible ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                        text
-                        rounded
-                        size="small"
-                        severity="secondary"
-                        @click="secretVisible ? hideSecret() : showSecret()"
-                      />
-                      <Button
-                        icon="pi pi-refresh"
-                        text
-                        rounded
-                        size="small"
-                        severity="warning"
-                        :title="$t('system.authclients.editor.info.regenerateSecret')"
-                        @click="regenerateSecret"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- validFrom -->
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.validFrom') }}</label>
-                    <DatePicker v-model="authClient.validFrom" showTime hourFormat="24" showIcon />
-                  </div>
-
-                  <!-- expiresAt -->
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.expiresAt') }}</label>
-                    <DatePicker v-model="authClient.expiresAt" showTime hourFormat="24" showIcon />
-                  </div>
-
-                  <!-- Scope checkboxes -->
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.scope') }}</label>
-                    <div class="flex flex-col gap-2">
-                      <div class="flex items-center gap-2">
-                        <Checkbox inputId="scope-profile" v-model="scopeProfile" :binary="true" />
-                        <label for="scope-profile" class="cursor-pointer">profile</label>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <Checkbox inputId="scope-api" v-model="scopeApi" :binary="true" />
-                        <label for="scope-api" class="cursor-pointer">api</label>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <Checkbox inputId="scope-openid" v-model="scopeOpenid" :binary="true" />
-                        <label for="scope-openid" class="cursor-pointer">openid</label>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <Checkbox inputId="scope-discovery" v-model="scopeDiscovery" :binary="true" />
-                        <label for="scope-discovery" class="cursor-pointer">discovery</label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Multiple redirect URIs -->
-                  <div class="flex flex-col gap-2 md:col-span-2">
-                    <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.redirectURI') }}</label>
-                    <div class="flex flex-col gap-2">
-                      <div v-for="(uri, i) in redirectURIs" :key="i" class="flex items-center gap-2">
-                        <InputText v-model="redirectURIs[i]" class="flex-1" :placeholder="$t('system.authclients.editor.info.redirectURIPlaceholder')" @update:modelValue="syncRedirectURIs" />
-                        <Button icon="pi pi-trash" severity="danger" text rounded size="small" @click="removeURI(i)" />
-                      </div>
-                      <Button :label="$t('system.authclients.editor.info.addRedirectURI')" icon="pi pi-plus" text size="small" @click="addURI" />
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-3">
-                    <ToggleSwitch id="enabled" v-model="authClient.enabled" />
-                    <label for="enabled" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.authclients.editor.info.enabled.label') }}
-                    </label>
-                  </div>
-
-                  <div class="flex items-center gap-3">
-                    <ToggleSwitch id="trusted" v-model="authClient.trusted" />
-                    <label for="trusted" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.authclients.editor.info.trusted.label') }}
-                    </label>
-                  </div>
-                </div>
-              </TabPanel>
-
-              <TabPanel value="security">
-                <div class="flex flex-col gap-4">
-                  <!-- Permitted Roles -->
-                  <div class="flex flex-col gap-3">
-                    <h3 class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.security.permittedRoles.label') }}
-                    </h3>
-                    <div class="flex items-center gap-2">
-                      <CInputRole
-                        class="flex-1"
-                        :placeholder="$t('system.authclients.editor.info.add')"
-                        clear-on-select
-                        filter-context-roles
-                        @select="role => addRoleToList('permittedRoles', role)"
-                      />
-                    </div>
-                    <RoleList
-                      :roles="permittedRoles"
-                      @remove="role => removeRoleFromList('permittedRoles', role)"
-                    />
-                  </div>
-
-                  <!-- Prohibited Roles -->
-                  <div class="flex flex-col gap-3">
-                    <h3 class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.security.prohibitedRoles.label') }}
-                    </h3>
-                    <div class="flex items-center gap-2">
-                      <CInputRole
-                        class="flex-1"
-                        :placeholder="$t('system.authclients.editor.info.add')"
-                        clear-on-select
-                        filter-context-roles
-                        @select="role => addRoleToList('prohibitedRoles', role)"
-                      />
-                    </div>
-                    <RoleList
-                      :roles="prohibitedRoles"
-                      @remove="role => removeRoleFromList('prohibitedRoles', role)"
-                    />
-                  </div>
-
-                  <!-- Forced Roles -->
-                  <div class="flex flex-col gap-3">
-                    <h3 class="font-medium text-primary">
-                      {{ $t('system.authclients.editor.info.security.forcedRoles.label') }}
-                    </h3>
-                    <div class="flex items-center gap-2">
-                      <CInputRole
-                        class="flex-1"
-                        :placeholder="$t('system.authclients.editor.info.add')"
-                        clear-on-select
-                        filter-context-roles
-                        @select="role => addRoleToList('forcedRoles', role)"
-                      />
-                    </div>
-                    <RoleList
-                      :roles="forcedRoles"
-                      @remove="role => removeRoleFromList('forcedRoles', role)"
-                    />
-                  </div>
-
-                  <!-- Impersonate User (client_credentials only) -->
-                  <div v-if="authClient.validGrant === 'client_credentials'" class="flex flex-col gap-3">
-                    <h3 class="font-medium text-primary">{{ $t('system.authclients.editor.info.security.impersonateUser.label') }}</h3>
-                    <CInputUser v-model="authClient.security.impersonateUser" :placeholder="$t('system.authclients.editor.info.security.impersonateUser.placeholder')" class="w-full" />
-                  </div>
-
-                  <!-- User Group -->
-                  <div class="flex flex-col gap-3">
-                    <h3 class="font-medium text-primary">{{ $t('system.authclients.editor.info.security.userGroup.label') }}</h3>
-                    <CInputUserGroup v-model="authClient.security.userGroup" :placeholder="$t('system.authclients.editor.info.security.userGroup.placeholder')" class="w-full" />
-                  </div>
-                </div>
-              </TabPanel>
-
-              <TabPanel value="developer">
-                <div class="flex flex-col gap-6">
-                  <!-- cURL example -->
-                  <div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-2">
-                      <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.curl') }}</label>
-                      <Button icon="pi pi-copy" text size="small" severity="secondary" @click="copyToClipboard(curlExample)" />
-                    </div>
-                    <Textarea :value="curlExample" readonly rows="3" class="font-mono text-sm" />
-                  </div>
-
-                  <!-- Access Token -->
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.accessToken') }}</label>
-                    <div v-if="tokenRequest.token" class="flex flex-col gap-2">
-                      <div class="flex items-center gap-2">
-                        <Button icon="pi pi-copy" text size="small" severity="secondary" @click="copyToClipboard(tokenRequest.token)" />
-                      </div>
-                      <Textarea :value="tokenRequest.token" readonly rows="4" class="font-mono text-sm" />
-                    </div>
-                    <div v-else>
-                      <Button :label="$t('system.authclients.editor.info.generateAccessToken')" severity="secondary" @click="generateToken" :loading="tokenRequest.loading" />
-                      <p v-if="tokenRequest.error" class="text-red-500 text-sm mt-2">{{ tokenRequest.error }}</p>
-                    </div>
-                  </div>
-                </div>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </template>
-      </Card>
+          <div class="flex flex-col gap-2">
+            <div v-if="tokenRequest.token" class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="font-medium text-primary">{{ $t('system.authclients.editor.info.accessToken') }}</label>
+                <Button icon="pi pi-copy" text size="small" severity="secondary" @click="copyToClipboard(tokenRequest.token)" />
+              </div>
+              <Textarea :value="tokenRequest.token" readonly rows="4" class="font-mono text-sm" />
+            </div>
+            <div>
+              <Button
+                :label="$t('system.authclients.editor.info.generateAccessToken')"
+                severity="secondary"
+                :loading="tokenRequest.loading"
+                @click="generateToken"
+              />
+              <p v-if="tokenRequest.error" class="text-red-500 text-sm mt-2">{{ tokenRequest.error }}</p>
+            </div>
+          </div>
+        </div>
+      </Panel>
     </div>
 
     <div class="shrink-0 border-t border-surface bg-surface">
@@ -322,12 +364,13 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { system } from '@planetcrust/human-js'
+import { system, NoID } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import axios from 'axios'
+import RoleList from '@/components/AuthClient/RoleList.vue'
 
-const { CInputDelete, CInputRole, CInputUser, CInputUserGroup } = components
+const { CInputDelete, CInputRole, CInputUser, CInputUserGroup, CInputToggleCard } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -335,13 +378,13 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $Auth = inject('$Auth')
 
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const authClient = ref(null)
 const initialAuthClient = ref(null)
-const activeTab = ref('basic')
 
 // Local role lists with full role objects for display
 const permittedRoles = ref([])
@@ -375,7 +418,6 @@ const grantOptions = computed(() => [
     label: t('system.authclients.editor.info.grant.client_credentials'),
     value: 'client_credentials',
   },
-  { label: t('system.authclients.editor.info.grant.password'), value: 'password' },
 ])
 
 const initialValues = computed(() => ({
@@ -462,11 +504,11 @@ async function regenerateSecret() {
 }
 
 // Developer tab — cURL and token generation
+const tokenURL = computed(() => `${$Auth?.authURL || ''}/oauth2/token`)
+
 const curlExample = computed(() => {
   if (!authClient.value) return ''
-  const baseURL = $SystemAPI.baseURL || ''
-  const tokenURL = baseURL.replace('/api', '') + '/auth/oauth2/token'
-  return `curl -X POST ${tokenURL} -d grant_type=${authClient.value.validGrant} -d scope='${authClient.value.scope || ''}' -u ${authClient.value.authClientID}:${secret.value || 'YOUR-CLIENT-SECRET'}`
+  return `curl -X POST ${tokenURL.value} -d grant_type=${authClient.value.validGrant} -d scope='${authClient.value.scope || ''}' -u ${authClient.value.authClientID}:${secret.value || 'YOUR-CLIENT-SECRET'}`
 })
 
 async function generateToken() {
@@ -474,12 +516,10 @@ async function generateToken() {
   tokenRequest.value.error = ''
   try {
     if (!secret.value) await showSecret()
-    const baseURL = ($SystemAPI.baseURL || '').replace('/api', '')
-    const tokenURL = baseURL + '/auth/oauth2/token'
     const params = new URLSearchParams()
     params.append('grant_type', authClient.value.validGrant)
     params.append('scope', authClient.value.scope || '')
-    const resp = await axios.post(tokenURL, params, {
+    const resp = await axios.post(tokenURL.value, params, {
       auth: { username: authClient.value.authClientID, password: secret.value },
     })
     tokenRequest.value.token = resp.data?.access_token || ''
@@ -494,24 +534,6 @@ function copyToClipboard(text) {
   navigator.clipboard.writeText(text).catch(() => {})
 }
 
-// Inline role list component
-const RoleList = {
-  props: {
-    roles: { type: Array, required: true },
-  },
-  emits: ['remove'],
-  template: `
-    <div v-if="roles.length === 0" class="text-muted-color p-3 border rounded-lg bg-highlight text-center text-sm">
-      {{ $t('system.authclients.editor.info.security.noRoles') }}
-    </div>
-    <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
-      <div v-for="role in roles" :key="role.roleID" class="flex items-center justify-between p-2 px-3">
-        <span class="font-medium">{{ role.name || role.handle || role.roleID }}</span>
-        <Button icon="pi pi-trash" severity="danger" text rounded size="small" @click="$emit('remove', role)" />
-      </div>
-    </div>
-  `,
-}
 
 function addRoleToList(listName, role) {
   if (!role) return
@@ -539,12 +561,29 @@ async function loadRolesForList(ids, targetRef) {
   targetRef.value = roles.filter(Boolean).map(r => new system.Role(r))
 }
 
+async function fetchDefaultUserGroup() {
+  try {
+    const result = await $SystemAPI.userGroupList({ limit: 100 })
+    if (result?.set?.length > 0) {
+      const defaultGroup = result.set.find(
+        g => g.handle === 'default-root' || g.handle === 'users' || g.meta?.short?.includes('Default'),
+      ) || result.set[0]
+      if (defaultGroup && authClient.value) {
+        authClient.value.security.userGroup = defaultGroup.userGroupID
+      }
+    }
+  } catch (e) {
+    console.warn('Silent fail fetching default user group', e)
+  }
+}
+
 async function loadAuthClient() {
   const authClientID = route.params.authClientID
   if (!authClientID) {
     authClient.value = new system.AuthClient({ enabled: true })
+    redirectURIs.value = []
+    await fetchDefaultUserGroup()
     initialAuthClient.value = cloneDeep(authClient.value)
-    redirectURIs.value = ['']
     return
   }
 
@@ -555,7 +594,6 @@ async function loadAuthClient() {
 
     // Initialize redirect URIs list
     redirectURIs.value = (authClient.value.redirectURI || '').split(' ').filter(Boolean)
-    if (redirectURIs.value.length === 0) redirectURIs.value = ['']
 
     // Load role objects for security lists
     await Promise.all([
@@ -574,7 +612,6 @@ async function loadAuthClient() {
 
 async function handleSubmit({ valid }) {
   if (!valid) {
-    activeTab.value = 'basic'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
       document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -584,6 +621,12 @@ async function handleSubmit({ valid }) {
 
   saving.value = true
   try {
+    // Force impersonateUser to NoID unless client_credentials with a real user picked
+    const isCC = authClient.value.validGrant === 'client_credentials'
+    if (!isCC || !authClient.value.security.impersonateUser) {
+      authClient.value.security.impersonateUser = NoID
+    }
+
     const payload = {
       handle: authClient.value.handle,
       meta: authClient.value.meta,
@@ -646,5 +689,20 @@ onMounted(() => loadAuthClient())
 watch(
   () => route.params.authClientID,
   () => loadAuthClient(),
+)
+
+// Auto-default impersonateUser when switching to client_credentials
+watch(
+  () => authClient.value?.validGrant,
+  (grant) => {
+    if (!authClient.value) return
+    if (
+      grant === 'client_credentials' &&
+      (!authClient.value.security.impersonateUser ||
+        authClient.value.security.impersonateUser === NoID)
+    ) {
+      authClient.value.security.impersonateUser = $Auth?.user?.userID || NoID
+    }
+  },
 )
 </script>

@@ -5,7 +5,7 @@
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0 flex flex-col gap-4">
     <!-- Profiler & Proxy Settings -->
-    <Panel :header="$t('system.apigw.settings.title')" toggleable :collapsed="true">
+    <Panel :header="$t('system.apigw.settings.title')" toggleable :collapsed="false">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col gap-2">
           <label class="font-medium text-primary text-sm">
@@ -84,6 +84,15 @@
             icon="pi pi-plus"
             size="small"
             @click="$router.push({ name: 'system.apiGateway.create' })"
+          />
+          <Button
+            v-if="profilerSetting !== 'disabled'"
+            :label="$t('system.apigw.list.profiler')"
+            icon="pi pi-chart-line"
+            severity="info"
+            size="small"
+            outlined
+            @click="$router.push({ name: 'system.apiGateway.profiler' })"
           />
           <CPermissionsButton
             v-if="canGrant"

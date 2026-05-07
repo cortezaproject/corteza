@@ -111,26 +111,24 @@
           <div class="flex flex-col gap-2">
             <label class="font-medium text-primary">{{ $t('page.edit.otherOptions') }}</label>
 
-            <div v-if="!isRecordPage" class="flex items-center gap-3">
-              <Checkbox v-model="page.visible" :binary="true" input-id="visible" />
-              <label for="visible" class="cursor-pointer">
-                {{ $t('page.edit.visible') }}
-              </label>
-            </div>
+            <CInputToggleCard
+              v-model="page.visible"
+              :label="$t('page.edit.visible')"
+              :description="$t('page.edit.visibleDescription')"
+            />
 
-            <div class="flex items-center gap-3">
-              <Checkbox v-model="showSubPages" :binary="true" input-id="showSubPages" />
-              <label for="showSubPages" class="cursor-pointer">
-                {{ $t('page.showSubPages') }}
-              </label>
-            </div>
+            <CInputToggleCard
+              v-model="showSubPages"
+              :label="$t('page.showSubPages')"
+              :description="$t('page.showSubPagesDescription')"
+            />
 
-            <div v-if="isRecordPage" class="flex items-center gap-3">
-              <Checkbox v-model="notificationsEnabled" :binary="true" input-id="notifications" />
-              <label for="notifications" class="cursor-pointer">
-                {{ $t('page.edit.notifications.enabled') }}
-              </label>
-            </div>
+            <CInputToggleCard
+              v-if="isRecordPage"
+              v-model="notificationsEnabled"
+              :label="$t('page.edit.notifications.enabled')"
+              :description="$t('page.edit.notifications.description')"
+            />
           </div>
         </div>
       </Panel>
@@ -556,7 +554,7 @@ import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
-const { CInputDelete, CResourceTable } = components
+const { CInputDelete, CInputToggleCard, CResourceTable } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 

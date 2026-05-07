@@ -133,11 +133,32 @@
 
         <Tabs v-model:value="activeTab">
           <TabList>
+            <Tab value="taqs">{{ $t('block.automation.tabs.taqs') }}</Tab>
             <Tab value="workflows">{{ $t('block.automation.tabs.workflows') }}</Tab>
             <Tab value="scripts">{{ $t('block.automation.tabs.scripts') }}</Tab>
-            <Tab value="taqs">{{ $t('block.automation.tabs.taqs') }}</Tab>
           </TabList>
           <TabPanels class="px-0 pb-0">
+            <TabPanel value="taqs">
+              <div v-if="filteredTaqs.length" class="flex flex-col gap-1">
+                <div
+                  v-for="(trigger, i) in filteredTaqs"
+                  :key="i"
+                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
+                  @click="addTriggerButton(trigger)"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-sm">{{ trigger.label }}</span>
+                  </div>
+                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ trigger.description }}
+                  </p>
+                </div>
+              </div>
+              <div v-else class="text-muted-color text-sm italic p-2">
+                {{ $t('block.automation.noScripts') }}
+              </div>
+            </TabPanel>
+
             <TabPanel value="workflows">
               <div v-if="filteredWorkflows.length" class="flex flex-col gap-1">
                 <div
@@ -179,27 +200,6 @@
                 {{ $t('block.automation.noScripts') }}
               </div>
             </TabPanel>
-
-            <TabPanel value="taqs">
-              <div v-if="filteredTaqs.length" class="flex flex-col gap-1">
-                <div
-                  v-for="(trigger, i) in filteredTaqs"
-                  :key="i"
-                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
-                  @click="addTriggerButton(trigger)"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm">{{ trigger.label }}</span>
-                  </div>
-                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
-                    {{ trigger.description }}
-                  </p>
-                </div>
-              </div>
-              <div v-else class="text-muted-color text-sm italic p-2">
-                {{ $t('block.automation.noScripts') }}
-              </div>
-            </TabPanel>
           </TabPanels>
         </Tabs>
       </div>
@@ -221,7 +221,7 @@ const emit = defineEmits(['update:buttons'])
 
 const $AutomationAPI = inject('$AutomationAPI', null)
 
-const activeTab = ref('workflows')
+const activeTab = ref('taqs')
 const selectedIndex = ref(-1)
 const searchQuery = ref('')
 const loadingTriggers = ref(false)

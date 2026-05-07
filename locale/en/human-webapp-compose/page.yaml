@@ -98,6 +98,7 @@ edit:
   pageInfo: Page information
   settings: Settings
   visible: Is page visible
+  visibleDescription: Show this page in the namespace navigation.
   deleteConfirm: Are you sure you want to delete this page?
   parentPage: Parent page
   noParent: No parent (top-level)
@@ -105,6 +106,7 @@ edit:
   pageBuilder: Page builder
   notifications:
     enabled: Show record save notifications
+    description: Toast a confirmation when a record is saved on this page.
 icon:
   configure: Configure page icon
   noIcon: No icon
@@ -143,6 +145,7 @@ notVisible: Hidden
 pageMoveFailed: Could not move this page
 reordered: Page reordered
 showSubPages: Expand sub-pages in the sidebar
+showSubPagesDescription: When this page is opened, show its child pages in the navigation.
 customTitle: Use custom title
 title: List of Pages
 tooltip:
@@ -156,6 +159,8 @@ tooltip:
     block: Clone block
   delete:
     block: Delete block
+  drag:
+    block: Drag to move block
   preview-link: Preview link
   saveAsCopy: Cannot duplicate record page
 view: View

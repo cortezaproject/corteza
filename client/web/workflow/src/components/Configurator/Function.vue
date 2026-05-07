@@ -42,24 +42,34 @@
       v-if="args.length"
       class="py-3"
     >
+      <h3 class="text-sm font-medium text-color mb-2">
+        {{ $te('steps.function.configurator.parameters') ? $t('steps.function.configurator.parameters') : 'Parameters' }}
+      </h3>
       <div
         v-for="(a, index) in args"
         :key="index"
         class="border border-surface rounded-border mb-3"
       >
         <div
-          class="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-emphasis"
+          class="flex items-start justify-between gap-2 px-3 py-2 cursor-pointer hover:bg-emphasis"
           @click="a._showDetails = !a._showDetails"
         >
-          <div class="flex-1 truncate">
-            <var>{{ `${a.target}${a.required ? '*' : ''}` }}</var>
-            <samp v-if="!isWhileIterator" class="text-muted-color ml-1">({{ a.type }})</samp>
+          <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+            <div class="font-medium text-color truncate">
+              <span>{{ a.target }}</span><span v-if="a.required" class="text-red-500">*</span>
+            </div>
+            <div v-if="!isWhileIterator" class="text-sm text-muted-color truncate">
+              {{ a.type }}
+            </div>
+            <div class="text-sm truncate">
+              <samp v-if="a.valueType === 'expr'" class="text-color">{{ a.expr }}</samp>
+              <span v-else class="text-color">{{ a.value }}</span>
+            </div>
           </div>
-          <samp class="truncate text-right flex-1">{{ a[a.valueType] }}</samp>
           <span
             v-if="a.valueType === 'expr'"
             v-tooltip="$t('steps.function.configurator.expression')"
-            class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-contrast text-xs font-bold ml-2"
+            class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-contrast text-xs font-bold shrink-0 mt-0.5"
           >
             e
           </span>
@@ -166,6 +176,9 @@
       v-if="expressionResults || results.length"
       class="py-3"
     >
+      <h3 v-if="results.length || expressionResults" class="text-sm font-medium text-color mb-2">
+        {{ $te('steps.function.configurator.results') ? $t('steps.function.configurator.results') : 'Results' }}
+      </h3>
       <div v-if="results.length">
         <expression-table
           v-if="expressionResults"
@@ -185,12 +198,16 @@
             class="border border-surface rounded-border mb-3"
           >
             <div
-              class="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-emphasis"
+              class="flex items-start justify-between gap-2 px-3 py-2 cursor-pointer hover:bg-emphasis"
               @click="a._showDetails = !a._showDetails"
             >
-              <span class="truncate flex-1">{{ a.target }}</span>
-              <var class="text-muted-color">{{ a.type }}</var>
-              <samp class="truncate flex-1 text-right">{{ a.expr }}</samp>
+              <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+                <div class="font-medium text-color truncate">{{ a.target }}</div>
+                <div class="text-sm text-muted-color truncate">{{ a.type }}</div>
+                <div class="text-sm truncate">
+                  <samp class="text-color">{{ a.expr }}</samp>
+                </div>
+              </div>
             </div>
 
             <div
