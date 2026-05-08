@@ -13,7 +13,6 @@ env:
   GOFLAGS: -mod=readonly
 
   NODE_VERSION: 22
-  PNPM_VERSION: 10
 
   SASS_VERSION: 1.85.1
 
@@ -52,7 +51,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
-        with: { version: '${{ env.PNPM_VERSION }}' }
       - uses: actions/setup-node@v6
         with:
           node-version: '${{ env.NODE_VERSION }}'
@@ -131,7 +129,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
-        with: { version: '${{ env.PNPM_VERSION }}' }
       - uses: actions/setup-node@v6
         with:
           node-version: '${{ env.NODE_VERSION }}'
@@ -152,7 +149,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
-        with: { version: '${{ env.PNPM_VERSION }}' }
       - uses: actions/setup-node@v6
         with:
           node-version: '${{ env.NODE_VERSION }}'
@@ -179,7 +175,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
-        with: { version: '${{ env.PNPM_VERSION }}' }
       - uses: actions/setup-node@v6
         with:
           node-version: '${{ env.NODE_VERSION }}'
