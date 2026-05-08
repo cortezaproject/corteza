@@ -553,7 +553,7 @@ async function handleConfiguredConnectionSubmit({ valid }) {
       configuredConnectionModal.value = false
       filterConfiguredConnectionsList()
     } else {
-      await $SystemAPI.connectionConfigure({
+      const { connectionID: newConnectionID } = await $SystemAPI.connectionConfigure({
         connectionID: connection.value.connectionID,
         name: activeConfiguredConnection.value.name,
         config: activeConfiguredConnection.value.config,
@@ -561,7 +561,11 @@ async function handleConfiguredConnectionSubmit({ valid }) {
       })
       $toast.toastSuccess(t('notification.connection.create.success'))
       configuredConnectionModal.value = false
-      filterConfiguredConnectionsList()
+      if (newConnectionID && newConnectionID !== connection.value.connectionID) {
+        router.push({ name: 'system.connections.configure', params: { connectionID: newConnectionID } })
+      } else {
+        filterConfiguredConnectionsList()
+      }
     }
   } catch (e) {
     $toast.toastErrorHandler(t('notification.connection.update.error'))(e)
