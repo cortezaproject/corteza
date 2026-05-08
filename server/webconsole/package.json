@@ -1,7 +1,6 @@
 {
   "name": "human-server-web-console",
   "license": "Apache-2.0",
-  "version": "2024.9.7-hotfix.1",
   "private": true,
   "type": "module",
   "contributors": [

@@ -1,6 +1,5 @@
 {
   "name": "human-webapp-taq",
-  "version": "2026.4.1-dev.7",
   "private": true,
   "type": "module",
   "scripts": {

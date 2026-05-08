@@ -1,8 +1,6 @@
 {
   "name": "@planetcrust/human-js",
-  "description": "Human JavaScript/TypeScript libs",
-  "version": "2026.4.1-dev.7",
-  "license": "Apache-2.0",
+  "private": true,
   "type": "module",
   "main": "src/index.ts",
   "module": "src/index.ts",

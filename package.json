@@ -1,5 +1,6 @@
 {
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "packageManager": "pnpm@10.29.2",
   "engines": {
