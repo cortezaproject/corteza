@@ -173,8 +173,21 @@ func (ctrl Connection) Configure(ctx context.Context, r *request.ConnectionConfi
 	connectionID := r.ConnectionID
 
 	// Auto-import catalog connection on first configure.
+	// Two paths:
+	//   1. Explicit catalog ID + connectionID == 0 (frontend already chose to import)
+	//   2. Synthetic high-bit ID (frontend passed a catalog list entry's ID directly)
 	if connectionID == 0 && r.CatalogID != "" {
 		imported, err := ctrl.svc.Import(ctx, r.CatalogID)
+		if err != nil {
+			return nil, err
+		}
+		connectionID = imported.ID
+	} else if connectionID&(1<<63) != 0 {
+		found, err := ctrl.svc.FindByID(ctx, connectionID)
+		if err != nil {
+			return nil, err
+		}
+		imported, err := ctrl.svc.Import(ctx, found.CatalogID)
 		if err != nil {
 			return nil, err
 		}
