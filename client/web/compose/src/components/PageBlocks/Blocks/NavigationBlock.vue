@@ -113,9 +113,6 @@ function isComposeDropdownPage(navItem) {
 }
 
 function displayDropdownText(navItem) {
-  if (navItem.type === 'dropdown') {
-    return navItem.options?.item?.label || navItem.options?.item?.dropdown?.label || ''
-  }
   return navItem.options?.item?.label || ''
 }
 

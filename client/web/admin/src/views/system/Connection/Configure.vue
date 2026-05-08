@@ -451,6 +451,47 @@ async function handleConfiguredConnectionDeleteFromModal() {
   }
 }
 
+function summarizeCheckIssues(result) {
+  const issues = []
+  if (!result.connectivity?.ok)
+    issues.push(
+      `${t('system.configuredConnections.editor.checkResult.connectivity')}: ${result.connectivity?.message || 'failed'}`,
+    )
+  if (!result.auth?.ok)
+    issues.push(
+      `${t('system.configuredConnections.editor.checkResult.auth')}: ${result.auth?.message || 'failed'}`,
+    )
+  if (result.probe && !result.probe.ok)
+    issues.push(
+      `${t('system.configuredConnections.editor.checkResult.probe')}: ${result.probe?.message || 'failed'}`,
+    )
+  return issues
+}
+
+function isCheckResultOk(result) {
+  return result.connectivity?.ok && result.auth?.ok && (!result.probe || result.probe.ok)
+}
+
+async function checkAndEnableConfiguredConnection(configurationID) {
+  if (!configurationID) return false
+  try {
+    const result = await $SystemAPI.configuredConnectionCheck({
+      connectionID: configurationID,
+    })
+    if (!isCheckResultOk(result)) {
+      $toast.toastWarning(summarizeCheckIssues(result).join('; '))
+      return false
+    }
+    await $SystemAPI.configuredConnectionEnable({
+      connectionID: configurationID,
+    })
+    return true
+  } catch (e) {
+    $toast.toastErrorHandler(t('system.configuredConnections.editor.checkResult.error'))(e)
+    return false
+  }
+}
+
 async function handleConfiguredConnectionCheck() {
   if (!activeConfiguredConnection.value?.configurationID) return
   checkingConfiguredConnection.value = true
@@ -458,24 +499,10 @@ async function handleConfiguredConnectionCheck() {
     const result = await $SystemAPI.configuredConnectionCheck({
       connectionID: activeConfiguredConnection.value.configurationID,
     })
-    const allOk = result.connectivity?.ok && result.auth?.ok && (!result.probe || result.probe.ok)
-    if (allOk) {
+    if (isCheckResultOk(result)) {
       $toast.toastSuccess(t('system.configuredConnections.editor.checkResult.success'))
     } else {
-      const issues = []
-      if (!result.connectivity?.ok)
-        issues.push(
-          `${t('system.configuredConnections.editor.checkResult.connectivity')}: ${result.connectivity?.message || 'failed'}`,
-        )
-      if (!result.auth?.ok)
-        issues.push(
-          `${t('system.configuredConnections.editor.checkResult.auth')}: ${result.auth?.message || 'failed'}`,
-        )
-      if (result.probe && !result.probe.ok)
-        issues.push(
-          `${t('system.configuredConnections.editor.checkResult.probe')}: ${result.probe?.message || 'failed'}`,
-        )
-      $toast.toastWarning(issues.join('; '))
+      $toast.toastWarning(summarizeCheckIssues(result).join('; '))
     }
   } catch (e) {
     $toast.toastErrorHandler(t('system.configuredConnections.editor.checkResult.error'))(e)
@@ -488,35 +515,14 @@ async function handleConfiguredConnectionEnable() {
   if (!activeConfiguredConnection.value?.configurationID) return
   enablingConfiguredConnection.value = true
   try {
-    const result = await $SystemAPI.configuredConnectionCheck({
-      connectionID: activeConfiguredConnection.value.configurationID,
-    })
-    const allOk = result.connectivity?.ok && result.auth?.ok && (!result.probe || result.probe.ok)
-    if (!allOk) {
-      const issues = []
-      if (!result.connectivity?.ok)
-        issues.push(
-          `${t('system.configuredConnections.editor.checkResult.connectivity')}: ${result.connectivity?.message || 'failed'}`,
-        )
-      if (!result.auth?.ok)
-        issues.push(
-          `${t('system.configuredConnections.editor.checkResult.auth')}: ${result.auth?.message || 'failed'}`,
-        )
-      if (result.probe && !result.probe.ok)
-        issues.push(
-          `${t('system.configuredConnections.editor.checkResult.probe')}: ${result.probe?.message || 'failed'}`,
-        )
-      $toast.toastWarning(issues.join('; '))
-      return
+    const enabled = await checkAndEnableConfiguredConnection(
+      activeConfiguredConnection.value.configurationID,
+    )
+    if (enabled) {
+      $toast.toastSuccess(t('notification.connection.update.success'))
+      configuredConnectionModal.value = false
+      filterConfiguredConnectionsList()
     }
-    await $SystemAPI.configuredConnectionEnable({
-      connectionID: activeConfiguredConnection.value.configurationID,
-    })
-    $toast.toastSuccess(t('notification.connection.update.success'))
-    configuredConnectionModal.value = false
-    filterConfiguredConnectionsList()
-  } catch (e) {
-    $toast.toastErrorHandler(t('notification.connection.update.error'))(e)
   } finally {
     enablingConfiguredConnection.value = false
   }
@@ -550,17 +556,20 @@ async function handleConfiguredConnectionSubmit({ valid }) {
         labels: activeConfiguredConnection.value.labels,
       })
       $toast.toastSuccess(t('notification.connection.update.success'))
+      await checkAndEnableConfiguredConnection(activeConfiguredConnection.value.configurationID)
       configuredConnectionModal.value = false
       filterConfiguredConnectionsList()
     } else {
-      const { connectionID: newConnectionID } = await $SystemAPI.connectionConfigure({
+      const saved = await $SystemAPI.connectionConfigure({
         connectionID: connection.value.connectionID,
         name: activeConfiguredConnection.value.name,
         config: activeConfiguredConnection.value.config,
         labels: activeConfiguredConnection.value.labels,
       })
       $toast.toastSuccess(t('notification.connection.create.success'))
+      await checkAndEnableConfiguredConnection(saved?.configurationID)
       configuredConnectionModal.value = false
+      const newConnectionID = saved?.connectionID
       if (newConnectionID && newConnectionID !== connection.value.connectionID) {
         router.push({ name: 'system.connections.configure', params: { connectionID: newConnectionID } })
       } else {

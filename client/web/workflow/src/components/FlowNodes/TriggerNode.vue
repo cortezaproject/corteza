@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="rootEl"
     class="trigger-node"
     :class="{
       'trigger-node--selected': selected,
@@ -9,6 +10,8 @@
       'trigger-node--trace-error': data?.traceState === 'error',
     }"
     :style="{ width: '180px' }"
+    @mouseenter="showPopup"
+    @mouseleave="hidePopup"
   >
     <!-- Header (icon + title + actions) -->
     <div class="trigger-node__header">
@@ -46,14 +49,14 @@
       <img :src="getIcon('issue')" class="trigger-node__issue-icon" alt="" />
     </div>
 
-    <!-- Values table (trigger config preview) -->
-    <div v-if="valueRows.length > 0" class="trigger-node__values">
-      <table>
-        <tr v-for="(row, idx) in valueRows" :key="idx" :class="row.class">
-          <td v-for="(cell, ci) in row.cells" :key="ci" v-html="cell" />
-        </tr>
-      </table>
-    </div>
+    <!-- Trigger config preview. Rendered via Teleport-to-body in NodePreview
+         so it escapes vue-flow's transformed wrapper. -->
+    <NodePreview
+      :style="popupStyle"
+      :title="data?.label || stepTypeLabel"
+      :description="displayDescription"
+      :rows="valueRows"
+    />
 
     <!-- Trace badge -->
     <div v-if="data?.traceLog" class="trigger-node__trace-badge">
@@ -117,12 +120,14 @@
       type="source"
       :position="Position.Right"
       id="source-right"
+      :style="{ top: '32px' }"
       :connectable="!hasOutgoingEdge"
     />
     <Handle
       type="source"
       :position="Position.Left"
       id="source-left"
+      :style="{ top: '32px' }"
       :connectable="!hasOutgoingEdge"
     />
   </div>
@@ -136,6 +141,10 @@ import { getStyleFromKind } from '../../lib/style'
 import { getConstraintNameLabel } from '../../lib/constraint'
 import { camelToTitle } from '../../lib/string'
 import { getIcon as resolveIcon } from '../../lib/icon'
+import { useNodePreview } from '../../composables/useNodePreview'
+import NodePreview from './NodePreview.vue'
+
+const { rootEl, popupStyle, showPopup, hidePopup } = useNodePreview()
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -155,7 +164,7 @@ defineEmits(['test', 'cancel', 'open-issues'])
 
 const { t } = useI18n()
 
-const getIcon = (name) => resolveIcon(name, props.currentTheme)
+const getIcon = name => resolveIcon(name, props.currentTheme)
 
 const iconSrc = computed(() => {
   const styleInfo = getStyleFromKind({ kind: 'trigger' })
@@ -221,29 +230,23 @@ const valueRows = computed(() => {
 
   let eventLabel = trg.eventType ? camelToTitle(trg.eventType.replace('on', '')) : ''
 
-  rows.push({ class: 'title', cells: ['<b>Configuration</b>', '', ''] })
-  rows.push({
-    class: '',
-    cells: ['<var>Resource</var>', '', `<code>${encodeHTML(resourceLabel)}</code>`],
-  })
-  rows.push({
-    class: '',
-    cells: ['<var>Event</var>', '', `<code>${encodeHTML(eventLabel)}</code>`],
-  })
+  const labelCell = label => `<span class="font-medium">${label}</span>`
+  const nameCell = name => `<span class="text-primary">${encodeHTML(name)}</span>`
+  const valueCell = value => `<samp class="font-mono text-color">${encodeHTML(value)}</samp>`
+
+  rows.push({ class: 'bg-emphasis', cells: [labelCell('Configuration')] })
+  rows.push({ class: '', cells: [nameCell('Resource'), valueCell(resourceLabel)] })
+  rows.push({ class: '', cells: [nameCell('Event'), valueCell(eventLabel)] })
 
   // Constraints
   const constraints = trg.constraints || []
   if (constraints.length && trg.eventType !== 'onManual') {
-    rows.push({ class: 'title', cells: ['<b>Constraints</b>', '', ''] })
+    rows.push({ class: 'bg-emphasis', cells: [labelCell('Constraints')] })
     constraints.forEach(({ name = '', op = '', values = '' }) => {
       const vs = Array.isArray(values) ? values.join(' or ') : values
       rows.push({
         class: '',
-        cells: [
-          `<samp>${getConstraintNameLabel(name)}</samp>`,
-          `<samp>${op}</samp>`,
-          `<code>${encodeHTML(vs)}</code>`,
-        ],
+        cells: [nameCell(`${getConstraintNameLabel(name)} ${op}`.trim()), valueCell(vs)],
       })
     })
   }
@@ -253,9 +256,9 @@ const valueRows = computed(() => {
     et => trg.resourceType === et.resourceType && trg.eventType === et.eventType,
   )
   if (et?.properties?.length) {
-    rows.push({ class: 'title', cells: ['<b>Initial scope</b>', '', ''] })
+    rows.push({ class: 'bg-emphasis', cells: [labelCell('Initial scope')] })
     et.properties.forEach(({ name = '', type = '' }) => {
-      rows.push({ class: '', cells: [`<var>${name}</var>`, '', `<samp>${type || 'Any'}</samp>`] })
+      rows.push({ class: '', cells: [nameCell(name), valueCell(type || 'Any')] })
     })
   }
 
@@ -271,7 +274,8 @@ const valueRows = computed(() => {
   border: 1px solid var(--p-surface-border);
   border-radius: 5px;
   width: 180px;
-  min-height: 64px;
+  height: 64px;
+  overflow: hidden;
   box-shadow: var(--p-card-shadow);
   cursor: pointer;
   transition:
@@ -383,47 +387,13 @@ const valueRows = computed(() => {
 }
 
 .trigger-node__description {
-  border-top: 1px solid var(--p-surface-border);
   padding: 6px 8px;
   font-size: 12px;
   line-height: 16px;
   color: var(--p-text-muted-color);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.trigger-node__values {
-  display: none;
-  position: absolute;
-  top: calc(100% + 14px);
-  left: 0;
-  width: 180px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  z-index: 10;
-}
-
-.trigger-node:hover .trigger-node__values {
-  display: block;
-}
-
-.trigger-node__values table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--p-content-background);
-  border-radius: 0 0 5px 5px;
-  box-shadow: var(--p-card-shadow);
-}
-
-.trigger-node__values td {
-  text-align: left;
-  padding: 6px 8px;
-  white-space: nowrap;
-  font-size: 12px;
-}
-
-.trigger-node__values tr.title {
-  background-color: var(--p-highlight-background);
 }
 
 .trigger-node__trace-badge {

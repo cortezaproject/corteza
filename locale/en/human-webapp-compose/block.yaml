@@ -1007,7 +1007,6 @@ navigation:
   composePage: Compose page
   newItem: New item
   selectPage: Select page
-  dropdownLabel: Dropdown button label
   pageLayout: Page Layout
   defaultLayout: Default Layout
   unnamedLayout: Unnamed Layout

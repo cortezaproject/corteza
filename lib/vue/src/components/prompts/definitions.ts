@@ -99,7 +99,7 @@ export const prompts = Object.freeze([
   },
   {
     ref: 'composeRecordPicker',
-    meta: { short: 'Prompt user to select a Compose Record', webapps: ['compose'] },
+    meta: { short: 'Prompt user to select a Compose Record', webapps: ['compose', 'workflow', 'admin'] },
     parameters: [
       { name: 'owner', types: ['User', 'ID'], required: false },
       { name: 'title', types: ['String'] },

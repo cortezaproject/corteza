@@ -356,7 +356,7 @@ function updateNavItemOption(index, key, value) {
 
 function addDropdownItem(index) {
   const items = [...navItems.value]
-  const dropdown = items[index].options?.item?.dropdown || { label: '', items: [] }
+  const dropdown = items[index].options?.item?.dropdown || { items: [] }
   const dItems = [...(dropdown.items || []), { label: '', url: '', target: 'sameTab', delimiter: false }]
   items[index] = {
     ...items[index],

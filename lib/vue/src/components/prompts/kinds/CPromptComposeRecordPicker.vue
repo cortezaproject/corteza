@@ -4,7 +4,17 @@
 
     <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
 
+    <Message
+      v-if="resolveError"
+      severity="error"
+      :closable="false"
+      class="text-sm"
+    >
+      {{ resolveError }}
+    </Message>
+
     <Select
+      v-else
       v-model="selectedRecordID"
       :options="options"
       option-label="label"
@@ -15,6 +25,7 @@
       :loading="processing"
       :disabled="loading"
       empty-message=""
+      append-to="self"
       @filter="onFilter"
     >
       <template #footer>
@@ -78,6 +89,7 @@ export default {
       options: [],
       selectedRecordID: undefined,
       cancelRequest: null,
+      resolveError: '',
     }
   },
   computed: {
@@ -121,8 +133,16 @@ export default {
       await this.resolveNamespace()
       await this.resolveModule()
       this.loadLatest()
-    } catch {
-      // namespace/module unresolved — leave options empty, user sees no records
+    } catch (e) {
+      // Surface the failure inline so the user understands why the picker is
+      // empty and can close the prompt instead of waiting on a stuck spinner.
+      const reason = e?.message || 'Unknown error'
+      this.resolveError = this.tF(
+        'prompt.record-picker.resolve-failed',
+        `Could not load records: ${reason}. Check that the namespace and module exist and that you have access.`,
+      )
+      // eslint-disable-next-line no-console
+      console.warn('[CPromptComposeRecordPicker] resolve failed:', e)
     }
   },
   beforeUnmount() {

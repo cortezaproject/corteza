@@ -8,7 +8,6 @@ interface DropdownItem {
 }
 
 interface Dropdown {
-  label: string
   items: DropdownItem[]
 }
 
@@ -49,7 +48,6 @@ const defOptions = {
     displaySubPages: false,
     align: 'bottom',
     dropdown: {
-      label: '',
       items: [],
     },
   },

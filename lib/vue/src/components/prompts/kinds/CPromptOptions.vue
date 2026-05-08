@@ -14,6 +14,7 @@
       class="w-full"
       :disabled="loading"
       display="chip"
+      append-to="self"
     />
 
     <Select
@@ -25,6 +26,7 @@
       :placeholder="placeholder"
       class="w-full"
       :disabled="loading"
+      append-to="self"
     />
 
     <div v-else class="flex flex-col gap-2">

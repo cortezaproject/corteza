@@ -610,8 +610,8 @@ configuredConnections:
       updatedAt: Changed at
   editor:
     title:
-      edit: Edit configured connection
-      create: New configured connection
+      edit: Connection
+      create: Connection
     info:
       name: Name
       status: Status

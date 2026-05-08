@@ -5,7 +5,6 @@ interface DropdownItem {
   target: string
 }
 interface Dropdown {
-  label: string
   items: DropdownItem[]
 }
 interface ItemOptions {

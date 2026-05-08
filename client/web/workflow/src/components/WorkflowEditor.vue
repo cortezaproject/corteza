@@ -2205,25 +2205,4 @@ defineExpose({
 .vue-flow__selection-pane {
   cursor: grab;
 }
-
-/* ─── Sidebar section styles ─── */
-/* Simple div-based sections with border-bottom separators */
-.configurator-section {
-  border-bottom: 1px solid var(--p-surface-border, var(--p-content-border-color));
-}
-
-.configurator-section:last-child {
-  border-bottom: none;
-}
-
-.configurator-section__title {
-  display: flex;
-  align-items: center;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--p-text-muted-color);
-  margin-bottom: 0.5rem;
-}
 </style>

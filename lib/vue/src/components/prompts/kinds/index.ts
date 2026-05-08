@@ -1,11 +1,22 @@
-import type { Component } from 'vue'
+import { markRaw, type Component } from 'vue'
 import { pType, pVal } from '../utils'
-import alert from './CPromptAlert.vue'
-import choice from './CPromptChoice.vue'
-import composeRecordPicker from './CPromptComposeRecordPicker.vue'
-import input from './CPromptInput.vue'
-import notification from './CPromptNotification.vue'
-import options from './CPromptOptions.vue'
+import alertCmp from './CPromptAlert.vue'
+import choiceCmp from './CPromptChoice.vue'
+import composeRecordPickerCmp from './CPromptComposeRecordPicker.vue'
+import inputCmp from './CPromptInput.vue'
+import notificationCmp from './CPromptNotification.vue'
+import optionsCmp from './CPromptOptions.vue'
+
+// markRaw keeps Vue's reactivity system from deep-walking these component
+// definitions when they're stored inside a reactive ref (e.g. passivePrompts
+// in CPromptToast.vue). Without it, Vue logs "Component that was made a
+// reactive object" and pays the cost of proxying every option on the SFC.
+const alert = markRaw(alertCmp)
+const choice = markRaw(choiceCmp)
+const composeRecordPicker = markRaw(composeRecordPickerCmp)
+const input = markRaw(inputCmp)
+const notification = markRaw(notificationCmp)
+const options = markRaw(optionsCmp)
 
 interface PromptDefinition {
   component?: Component;
