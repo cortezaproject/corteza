@@ -31,7 +31,7 @@
               resource="corteza::compose:namespace/*"
             />
           </div>
-          <div class="flex-1 max-w-xl flex items-center gap-2">
+          <div class="flex-1 flex items-center justify-end gap-2">
             <SelectButton
               v-model="viewMode"
               :options="viewModeOptions"
@@ -48,7 +48,7 @@
               v-model="query"
               :placeholder="$t('namespace.searchPlaceholder')"
               size="small"
-              class="flex-1 min-w-0"
+              class="flex-1 min-w-0 max-w-xl"
             />
           </div>
         </template>

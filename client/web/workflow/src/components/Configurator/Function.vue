@@ -12,7 +12,7 @@
       >
         <div class="flex flex-col gap-1">
           <label class="font-medium text-primary">
-            {{ $t('steps.function.configurator.type*') }}
+            {{ $t('steps.function.configurator.type') }}
           </label>
           <Select
             v-model="functionRef"
@@ -55,24 +55,28 @@
           @click="a._showDetails = !a._showDetails"
         >
           <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-            <div class="font-medium text-color truncate">
-              <span>{{ a.target }}</span><span v-if="a.required" class="text-red-500">*</span>
-            </div>
-            <div v-if="!isWhileIterator" class="text-sm text-muted-color truncate">
-              {{ a.type }}
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="font-medium text-primary truncate">
+                <span>{{ a.target }}</span><span v-if="a.required" class="text-red-500">*</span>
+              </div>
+              <div class="ml-auto flex items-center gap-1.5 shrink-0">
+                <span
+                  v-if="a.valueType === 'expr'"
+                  v-tooltip="$t('steps.function.configurator.expression')"
+                  class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-contrast text-xs font-bold"
+                >
+                  e
+                </span>
+                <div v-if="!isWhileIterator" class="text-xs text-muted-color truncate">
+                  ({{ a.type }})
+                </div>
+              </div>
             </div>
             <div class="text-sm truncate">
               <samp v-if="a.valueType === 'expr'" class="text-color">{{ a.expr }}</samp>
               <span v-else class="text-color">{{ a.value }}</span>
             </div>
           </div>
-          <span
-            v-if="a.valueType === 'expr'"
-            v-tooltip="$t('steps.function.configurator.expression')"
-            class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-contrast text-xs font-bold shrink-0 mt-0.5"
-          >
-            e
-          </span>
         </div>
 
         <div
@@ -162,6 +166,7 @@
               v-model="a.valueType"
               :true-value="'expr'"
               :false-value="'value'"
+              class="scale-75 origin-right"
               @change="valueTypeChanged(a.valueType, index)"
             />
             <span class="text-sm">{{ $t('steps.function.configurator.expression') }}</span>
@@ -202,8 +207,10 @@
               @click="a._showDetails = !a._showDetails"
             >
               <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                <div class="font-medium text-color truncate">{{ a.target }}</div>
-                <div class="text-sm text-muted-color truncate">{{ a.type }}</div>
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="font-medium text-primary truncate">{{ a.target }}</div>
+                  <div class="ml-auto text-xs text-muted-color truncate shrink-0">({{ a.type }})</div>
+                </div>
                 <div class="text-sm truncate">
                   <samp class="text-color">{{ a.expr }}</samp>
                 </div>

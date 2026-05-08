@@ -21,7 +21,7 @@
         <img
           v-if="canTest && !dryRunProcessing"
           :src="getIcon('play')"
-          class="trigger-node__action-btn trigger-node__hover-show"
+          class="trigger-node__action-btn"
           :title="$t('configurator.tooltip.run-workflow')"
           @click.stop="$emit('test', id)"
         />
@@ -32,7 +32,6 @@
           class="trigger-node__action-btn"
           @click.stop="$emit('cancel')"
         />
-        <span class="trigger-node__id">{{ id }}</span>
       </div>
     </div>
 
@@ -317,8 +316,8 @@ const valueRows = computed(() => {
 }
 
 .trigger-node__icon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   margin-right: 6px;
 }
 
@@ -336,14 +335,6 @@ const valueRows = computed(() => {
   align-items: center;
   margin-left: auto;
   gap: 4px;
-}
-
-.trigger-node__hover-show {
-  display: none;
-}
-
-.trigger-node:hover .trigger-node__hover-show {
-  display: block;
 }
 
 .trigger-node__action-btn {
@@ -367,15 +358,6 @@ const valueRows = computed(() => {
   to {
     transform: rotate(360deg);
   }
-}
-
-.trigger-node__id {
-  font-size: 8px;
-  opacity: 0.6;
-}
-
-.trigger-node:hover .trigger-node__id {
-  display: none;
 }
 
 .trigger-node__issue-badge {

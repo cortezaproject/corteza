@@ -221,10 +221,6 @@ defineExpose({ rebuildLayout })
   border-color: var(--p-primary-color);
 }
 
-.builder-grid-item:hover :deep(.block-toolbox) {
-  opacity: 1;
-}
-
 .block-content {
   position: relative;
   height: 100%;

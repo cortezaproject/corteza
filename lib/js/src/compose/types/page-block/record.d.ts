@@ -13,6 +13,7 @@ interface Options {
   referenceField?: string
   referenceModuleID?: string
   inlineRecordEditEnabled: boolean
+  inlineRecordCopyEnabled: boolean
   horizontalFieldLayoutEnabled: boolean
   recordFieldLayoutOption: string
 }

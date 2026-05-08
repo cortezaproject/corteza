@@ -152,21 +152,13 @@
           <CInputToggleCard
             :model-value="!!item.options?.item?.displaySubPages"
             :label="$t('block.navigation.displaySubPages')"
+            :description="$t('block.navigation.displaySubPagesDescription')"
             @update:model-value="updateNavItemOption(index, 'displaySubPages', $event)"
           />
         </template>
 
-        <!-- Dropdown type: dropdown label + items -->
+        <!-- Dropdown type: items -->
         <template v-else-if="item.type === 'dropdown'">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownLabel') }}</label>
-            <InputText
-              :model-value="item.options?.item?.dropdown?.label || ''"
-              class="w-full"
-              @update:model-value="updateDropdownLabel(index, $event)"
-            />
-          </div>
-
           <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between">
               <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownItems') }}</label>
@@ -189,6 +181,7 @@
                 <CInputToggleCard
                   :model-value="!!dItem.delimiter"
                   :label="$t('block.navigation.delimiter')"
+                  :description="$t('block.navigation.delimiterDescription')"
                   @update:model-value="updateDropdownItem(index, dIndex, 'delimiter', $event)"
                 />
                 <Button
@@ -356,22 +349,6 @@ function updateNavItemOption(index, key, value) {
     options: {
       ...items[index].options,
       item: { ...items[index].options?.item, [key]: value },
-    },
-  }
-  updateOptions('navigationItems', items)
-}
-
-function updateDropdownLabel(index, label) {
-  const items = [...navItems.value]
-  const dropdown = items[index].options?.item?.dropdown || {}
-  items[index] = {
-    ...items[index],
-    options: {
-      ...items[index].options,
-      item: {
-        ...items[index].options?.item,
-        dropdown: { ...dropdown, label },
-      },
     },
   }
   updateOptions('navigationItems', items)

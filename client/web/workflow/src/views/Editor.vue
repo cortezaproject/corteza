@@ -21,7 +21,7 @@ import WorkflowEditor from '@/components/WorkflowEditor.vue'
 import { automation } from '@planetcrust/human-js'
 import { throttle } from 'lodash-es'
 import { useRBACStore, useUnsavedGuard } from '@planetcrust/human-vue'
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
@@ -62,7 +62,18 @@ useUnsavedGuard({
 })
 
 // Lifecycle
-onMounted(async () => {
+onMounted(load)
+
+// Re-fetch when navigating between workflows — Vue Router reuses this
+// component instance for route-param changes, so onMounted doesn't fire again.
+watch(() => route.params.workflowID, (next, prev) => {
+  if (next === prev) return
+  load()
+})
+
+async function load() {
+  processing.value = true
+  changeDetected.value = false
   if (workflowID.value) {
     await fetchTriggers()
     await fetchWorkflow()
@@ -73,10 +84,10 @@ onMounted(async () => {
       enabled: true,
       handle: '',
     })
+    triggers.value = []
   }
-
   processing.value = false
-})
+}
 
 // Methods
 async function fetchWorkflow() {

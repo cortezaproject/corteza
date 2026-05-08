@@ -10,9 +10,23 @@
       class="flex flex-col gap-0.5 flex-1 min-w-0"
       :class="textOpacityClass"
     >
-      <span class="font-medium text-primary text-sm">
-        <slot name="label">{{ label }}</slot>
-      </span>
+      <div class="flex items-center gap-1">
+        <span class="font-medium text-primary text-sm">
+          <slot name="label">{{ label }}</slot>
+        </span>
+        <i
+          v-if="warning"
+          v-tooltip.top="warning"
+          class="pi pi-exclamation-triangle text-orange-500 text-xs cursor-help"
+          @click.stop
+        />
+        <i
+          v-if="hint"
+          v-tooltip.top="hint"
+          class="pi pi-question-circle text-muted-color text-xs cursor-help"
+          @click.stop
+        />
+      </div>
       <small v-if="description || $slots.description" class="text-muted-color text-xs">
         <slot name="description">{{ description }}</slot>
       </small>
@@ -40,6 +54,14 @@ const props = defineProps({
     default: '',
   },
   description: {
+    type: String,
+    default: '',
+  },
+  warning: {
+    type: String,
+    default: '',
+  },
+  hint: {
     type: String,
     default: '',
   },

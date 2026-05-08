@@ -46,6 +46,7 @@ automation:
     success: Success
     danger: Danger
     warning: Warning
+    info: Info
 calendar:
   source:
     label: Source
@@ -358,9 +359,11 @@ record:
   listLoadFailed: Could not load record list
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
-  horizontalFormLayout: Horizontal form layout
+  horizontalFormLayout: Horizontal layout
+  horizontalFormLayoutDescription: Display field labels and values side-by-side instead of stacked vertically.
   inlineEdit:
-    enabled: Inline value editing enabled
+    enabled: Inline editing
+    description: Show a pencil icon next to each field so users can edit values inline without entering full edit mode.
     label: Inline Editing
     saveError: Failed to save
     saveErrorSummary: Error
@@ -368,6 +371,15 @@ record:
       title: Edit value
     modal:
       title: Update record values
+  inlineCopy:
+    enabled: Inline copy
+    description: Show a copy icon next to each field so users can copy the value to the clipboard with one click.
+    label: Inline Copy
+    success: Value copied to clipboard
+    error: Failed to copy value
+    errorSummary: Error
+    button:
+      title: Copy value
   fieldsLayoutMode:
     label: Fields layout mode
     default: Default
@@ -392,11 +404,12 @@ record:
     condition: Condition
     clearOnHide: Clear On Hide
     clearOnHideTooltip: Automatically clear this field's value when it becomes hidden
-    clearAllOnHide: Clear all conditional fields when hidden
+    clearAllOnHide: Clear hidden conditional fields
     clearAllOnHideDescription: When enabled, all conditional fields will be cleared when they become hidden, overriding individual field settings
     tooltip:
       performance: Using conditional fields will impact performance
-  recordSelectorCanAddRecord: Can add records via record selector
+  recordSelectorCanAddRecord: Add via record selector
+  recordSelectorCanAddRecordDescription: Allow users to create a new related record directly from this block's record selector dropdown.
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
   addRecordDisplayOption: Add record display option
   clearConditionalFieldsOnHide: Clear all conditional fields when hidden
@@ -447,11 +460,16 @@ recordList:
       moduleFields: Selecting a large number of fields or displaying record/user fields will impact performance
       perPage: Displaying a large amount of records per page will impact performance, especially if you are displaying record/user fields
     restoreSelected: Restore selected records
+    copy: Copy value
+    copySuccess: Value copied to clipboard
+    copyError: Failed to copy value
+    copyErrorSummary: Error
   configureFields: Configure Fields
   editFields: Editable module fields
   export:
     all: Export all records
-    allow: Users will be able to export records
+    allow: Show export button
+    allowDescription: Display an 'Export' button so users can download the current list (e.g. CSV).
     csv: CSV Export
     dateRange: Select date range
     multiValueDelimiter:
@@ -562,7 +580,8 @@ recordList:
   hideRecordReminderButton: Hide record reminder button
   hideRecordViewButton: Hide view record button
   hideRecordDeleteButton: Hide delete record button
-  hideConfigureFieldsButton: Users will be able to configure which fields to display
+  hideConfigureFieldsButton: Show configure fields button
+  hideConfigureFieldsButtonDescription: Display a 'Configure fields' button so end users can pick which columns are visible.
   enableRecordPageNavigation: Users will be able to navigate to previous/next record
   import:
     dropzoneFileAdded: '{name} was uploaded and is ready for import ({count} record)'
@@ -651,37 +670,51 @@ recordList:
     draggable: Can drag & drop records to order them
     editMode: Open records in edit mode by default
     fullPageNavigation: Full page navigation
-    hideAddButton: Users will be able to add new records
-    hideImportButton: Users will be able to import records
+    fullPageNavigationDescription: Show full numbered pagination (1, 2, 3 … last) instead of just previous/next buttons.
+    hideAddButton: Show add record button
+    hideAddButtonDescription: Display the 'Add Record' button in the list toolbar.
+    hideImportButton: Show import button
+    hideImportButtonDescription: Display an 'Import' button so users can upload records from a file.
     pagingLabel: Paging
     pagingOptions: Paging Options
     moreOptions: More Options
-    hidePaging: User will be able to navigate through pages
+    hidePaging: Show pagination
+    hidePagingDescription: Display pagination controls below the list.
     inlineEditor: Inline Options
-    inlineEditorAllow: Inline record editor
+    inlineEditorAllow: Editable
+    inlineEditorAllowDescription: Records in the list can be edited.
     recordsLabel: Records
     noPermission: No permission to read record
     perPage: Records per page
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
-    prefilterHideSearch: Users will be able to search the record list
-    filterHide: Users will be able to filter the list
+    prefilterHideSearch: Show search bar
+    prefilterHideSearchDescription: Display a search bar above the list so users can search records by configured searchable fields.
+    filterHide: Show filter button
+    filterHideDescription: Display a filter button so users can build ad-hoc filters on the list.
     prefilterLabel: Filtering
     generalLabel: General Settings
     prefilterCommand: Prefilter
     prefilterPlaceholder: field1 = 1 AND field2 = 232
     presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported
     presortToggleInput: Toggle input type
-    presortHideSort: Users will be able to sort the list
+    presortHideSort: Sortable columns
+    presortHideSortDescription: Allow users to sort the list by clicking column headers.
     presortLabel: Sorting
     presortInputLabel: Presort
     presortPlaceholder: field1 DESC, field2 ASC
-    showTotalCount: Show total record count
-    showRecordPerPageOption: User will be able to select number of records per page
-    showDeletedRecordsOption: Show option to see deleted records
+    showTotalCount: Show total count
+    showTotalCountDescription: Display the total count of matching records alongside the pagination controls.
+    showRecordPerPageOption: Records per page selector
+    showRecordPerPageOptionDescription: Let users choose how many records to show per page.
+    showDeletedRecordsOption: Show deleted records toggle
+    showDeletedRecordsOptionDescription: Add a toolbar toggle so users can switch the list between active and soft-deleted records.
     setCustomFilterPresets: User will be able to set custom filter presets
     searchableFields: Searchable fields
     searchableFieldsFootnote: If no fields are selected, the search will be performed on all available visible fields
     configureSearchableFields: Select fields that will be used for search
+    searchSubmitMode: Search submit
+    searchOnSubmit: On submit (Enter or button click)
+    searchOnType: After typing
     openInSameTab: Open record in the same tab
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal
@@ -706,10 +739,14 @@ recordList:
     textStyles: Text Styles
     configureWrappedFields: Select fields that will be wrapped
     advancedDisplay: Advanced display
-    bulkRecordEditEnabled: Enable bulk record edit
-    enableFilterPresets: Enable filter presets
-    enableRecordPageNavigation: Enable record page navigation
-    enableSummaries: Enable summaries
+    bulkRecordEditEnabled: Bulk edit
+    bulkRecordEditEnabledDescription: Allow updating multiple selected records at once via a bulk-edit dialog.
+    enableFilterPresets: Filter presets
+    enableFilterPresetsDescription: Allow saving filters as named presets; presets can be scoped to specific roles.
+    enableRecordPageNavigation: Previous and next record navigation
+    enableRecordPageNavigationDescription: On a record's detail page, show previous/next arrows to navigate between records from this list.
+    enableSummaries: Summaries
+    enableSummariesDescription: Allow configuring per-column summary metrics (sum, average, count, …) shown under the list.
     filterPresets: Filter presets
     hideCloneButton: Hide clone button
     hideDeleteButton: Hide delete button
@@ -719,15 +756,21 @@ recordList:
     hideViewButton: Hide view button
     inlineEditFields: Inline editable fields
     inlineEditLabel: Inline editing
-    inlineRecordEditAllowAddField: Allow adding fields when editing inline
-    inlineRecordEditEnabled: Inline record editing
-    inlineValueFiltering: Enable inline value filtering
+    inlineRecordEditAllowAddField: Allow adding new fields
+    inlineRecordEditAllowAddFieldDescription: When inline-editing a row, also allow adding values to fields that aren't currently shown as columns.
+    inlineRecordEditEnabled: Inline cell editing
+    inlineRecordEditEnabledDescription: Show a pencil icon on hover for each cell so users can edit a single value inline without entering row-edit mode.
+    inlineRecordCopyEnabled: Inline value copy
+    inlineRecordCopyEnabledDescription: Show a copy icon on hover for each cell so users can copy the value to the clipboard with one click.
+    inlineValueFiltering: Inline value filtering
+    inlineValueFilteringDescription: Show a filter icon on hover for each cell so users can filter the list by that value with one click.
     ascending: Ascending
     descending: Descending
     fullPageNavigationHint: Full page navigation may impact performance on very large record sets
     perPageHint: Displaying a large amount of records per page will impact performance, especially with record/user fields
     enableRecordPageNavigationHint: Enabling next/previous navigation may impact performance on large record sets
-    openRecordInEditMode: Open record in edit mode by default
+    openRecordInEditMode: Open in edit mode
+    openRecordInEditModeDescription: Clicking a record opens it directly in edit mode instead of view mode.
     preset: Preset
     presetFilter: Preset filter
     presetName: Preset name
@@ -743,7 +786,8 @@ recordList:
   refField:
     footnote: Field that links records with the parent record
     label: Parent field
-  selectable: Users will be able to select records
+  selectable: Selectable rows
+  selectableDescription: Show selection checkboxes so users can select records for bulk actions.
   selected: '{count} of {total} records selected'
   selectedFromAllPages: 'All {count} records from all pages selected'
   selectAllRecords: Select all records on all pages
@@ -990,8 +1034,10 @@ navigation:
   newTab: New tab
   dropdownItems: Dropdown items
   delimiter: Delimiter
+  delimiterDescription: Render this dropdown entry as a non-clickable visual divider between other entries instead of a link.
   none: None
   displaySubPages: Display sub-pages
+  displaySubPagesDescription: When this navigation item points to a page, also show that page's sub-pages nested under it.
   selectBackground: Select background
   textColor: Text color
   backgroundColor: Background color

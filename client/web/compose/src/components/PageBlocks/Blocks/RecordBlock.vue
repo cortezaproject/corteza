@@ -64,6 +64,15 @@
                   >
                     <i class="pi pi-pencil text-xs" />
                   </button>
+                  <!-- Copy field value button -->
+                  <button
+                    v-if="showCopyFieldButton(field)"
+                    class="text-muted-color hover:text-primary transition-colors p-0.5"
+                    :title="$t('block.record.inlineCopy.button.title')"
+                    @click="copyFieldValue(field)"
+                  >
+                    <i class="pi pi-copy text-xs" />
+                  </button>
                 </div>
                 <!-- Field hint -->
                 <small
@@ -125,6 +134,15 @@
                 @click="startFieldEdit(field)"
               >
                 <i class="pi pi-pencil text-xs" />
+              </button>
+              <!-- Copy field value button -->
+              <button
+                v-if="showCopyFieldButton(field)"
+                class="text-muted-color hover:text-primary transition-colors p-0.5"
+                :title="$t('block.record.inlineCopy.button.title')"
+                @click="copyFieldValue(field)"
+              >
+                <i class="pi pi-copy text-xs" />
               </button>
               <!-- Field hint -->
               <span
@@ -393,6 +411,54 @@ function showInlineEditButton(field) {
 function startFieldEdit(field) {
   if (!activeEditFieldNames.value.includes(field.name)) {
     activeEditFieldNames.value = [...activeEditFieldNames.value, field.name]
+  }
+}
+
+// --- Inline copy ---
+function showCopyFieldButton(field) {
+  if (!options.value.inlineRecordCopyEnabled) return false
+  if (isBuilder.value) return false
+  if (activeEditFieldNames.value.includes(field.name)) return false
+  if (!activeRecord.value) return false
+  if (field.canReadRecordValue === false) return false
+  const val = activeRecord.value.values?.[field.name]
+  if (val === undefined || val === null) return false
+  if (Array.isArray(val) && val.length === 0) return false
+  if (val === '') return false
+  return true
+}
+
+function formatFieldValueForClipboard(field) {
+  const r = activeRecord.value
+  if (!r) return ''
+  const val = r.values?.[field.name]
+  if (val === undefined || val === null) return ''
+  if (Array.isArray(val)) return val.map(v => (v == null ? '' : String(v))).join('\n')
+  return String(val)
+}
+
+async function copyFieldValue(field) {
+  const text = formatFieldValueForClipboard(field)
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    $toast?.toastSuccess(t('block.record.inlineCopy.success'))
+  } catch (e) {
+    console.error('Failed to copy field value:', e)
+    $toast?.toastErrorHandler(
+      t('block.record.inlineCopy.error'),
+      t('block.record.inlineCopy.errorSummary'),
+    )(e)
   }
 }
 

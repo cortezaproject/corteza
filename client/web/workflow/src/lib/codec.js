@@ -195,6 +195,7 @@ export function decodeWorkflow(workflow, triggers = []) {
       id: String(vis.id),
       type: 'trigger',
       position: { x: xywh[0], y: xywh[1] },
+      parentNode: vis.parent && vis.parent !== '1' ? String(vis.parent) : undefined,
       data: {
         stepID: String(vis.id),
         kind: 'trigger',

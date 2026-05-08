@@ -95,10 +95,11 @@
         />
         <CInputSearch
           v-if="!options.hideSearch"
-          v-model="searchQuery"
+          v-model="searchInput"
           :placeholder="$t('general.label.search')"
           size="small"
           class="flex-1"
+          @keydown.enter="commitSearch"
         />
       </div>
     </div>
@@ -119,7 +120,7 @@
               style="border-radius: var(--p-border-radius)"
               @remove="removeFilter(fg.originalIndex, fi)"
             >
-              <span class="font-medium">{{ f.label || f.name }}</span>
+              <span class="font-medium">{{ getField(f.name)?.label || f.label || f.name }}</span>
               <span class="mx-1 text-muted-color">{{ getOperatorLabel(f.operator) }}</span>
               <span
                 v-if="f.value != null"
@@ -244,6 +245,19 @@
       />
 
       <div class="flex-1" />
+
+      <template v-if="canSelectRecords && selectedRecords.length && (options.selectionButtons || []).length">
+        <AutomationButtons
+          :buttons="options.selectionButtons || []"
+          :namespace="namespace"
+          :page="page"
+          :module="recordListModule"
+          :records="selectedRecords"
+          :filter="currentQuery"
+          @refresh="fetchRecords(true)"
+        />
+        <Divider layout="vertical" class="!mx-1 !my-0 h-6" />
+      </template>
 
       <!-- Save / discard all dirty (or just selected dirty rows) -->
       <template v-if="showBulkSave">
@@ -390,6 +404,17 @@
                   severity="secondary"
                   class="w-6 h-6 p-0 mt-0.5"
                   @click.stop="filterByValue(data, col)"
+                />
+                <Button
+                  v-if="showCopyFieldButton(data, col)"
+                  v-tooltip.top="$t('block.recordList.tooltip.copy')"
+                  icon="pi pi-copy"
+                  text
+                  rounded
+                  size="small"
+                  severity="secondary"
+                  class="w-6 h-6 p-0 mt-0.5"
+                  @click.stop="copyFieldValue(data, col)"
                 />
               </div>
             </div>
@@ -576,6 +601,7 @@ import { useReminderStore } from '@/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@/stores/page'
 import CBulkRecordEditModal from './CBulkRecordEditModal.vue'
+import AutomationButtons from '../Shared/AutomationButtons.vue'
 import RecordListFilter from '../../Common/RecordListFilter.vue'
 import RecordImporter from '../../Public/Record/Importer/index.vue'
 import RecordExporter from '../../Public/Record/Exporter/index.vue'
@@ -628,6 +654,7 @@ const $recordRoutes = inject('$recordRoutes', null)
 const loading = ref(false)
 const records = ref([])
 const totalRecords = ref(0)
+const searchInput = ref('')
 const searchQuery = ref('')
 const sortField = ref(null)
 const sortOrder = ref(null)
@@ -1285,13 +1312,25 @@ async function fetchRecords(resetCursor = false) {
   }
 }
 
-// Debounced search watcher
+const searchSubmittable = computed(() =>
+  (props.block.options?.searchSubmitMode || 'typing') === 'submit',
+)
+
+const commitSearch = () => {
+  if (searchQuery.value === searchInput.value) return
+  searchQuery.value = searchInput.value
+  fetchRecords(true)
+}
+
+// Search watcher — debounced commit in typing mode; in submit mode only commit on clear
 let searchDebounceTimer = null
-watch(searchQuery, () => {
+watch(searchInput, newVal => {
+  if (searchSubmittable.value) {
+    if (newVal === '') commitSearch()
+    return
+  }
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  searchDebounceTimer = setTimeout(() => {
-    fetchRecords(true)
-  }, 300)
+  searchDebounceTimer = setTimeout(commitSearch, 300)
 })
 
 // Drill down event listener
@@ -1696,8 +1735,54 @@ function toggleDeletedRecords() {
 
 function showInlineActions(col, data) {
   return (
-    (options.value.inlineRecordEditEnabled && canInlineEdit(data, col)) || showInlineFilter(col)
+    (options.value.inlineRecordEditEnabled && canInlineEdit(data, col)) ||
+    showInlineFilter(col) ||
+    showCopyFieldButton(data, col)
   )
+}
+
+function showCopyFieldButton(data, col) {
+  if (!options.value.inlineRecordCopyEnabled) return false
+  if (!data) return false
+  if (col.canReadRecordValue === false) return false
+  if (shouldShowEditor(data, col)) return false
+  const val = data.values?.[col.name]
+  if (val === undefined || val === null) return false
+  if (Array.isArray(val) && val.length === 0) return false
+  if (val === '') return false
+  return true
+}
+
+function formatFieldValueForClipboard(record, col) {
+  const val = record?.values?.[col.name]
+  if (val === undefined || val === null) return ''
+  if (Array.isArray(val)) return val.map(v => (v == null ? '' : String(v))).join('\n')
+  return String(val)
+}
+
+async function copyFieldValue(record, col) {
+  const text = formatFieldValueForClipboard(record, col)
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    $toast?.toastSuccess(t('block.recordList.tooltip.copySuccess'))
+  } catch (e) {
+    console.error('Failed to copy field value:', e)
+    $toast?.toastErrorHandler(
+      t('block.recordList.tooltip.copyError'),
+      t('block.recordList.tooltip.copyErrorSummary'),
+    )(e)
+  }
 }
 
 function showInlineFilter(col) {

@@ -203,6 +203,7 @@
       <TabList class="shrink-0 z-10">
         <Tab value="general">{{ $t('block.general.label.general') }}</Tab>
         <Tab value="block">{{ editingBlockTypeLabel }}</Tab>
+        <Tab v-if="hasAutomationTab" value="automation">{{ $t('block.automation.label') }}</Tab>
       </TabList>
 
       <TabPanels class="flex-1 overflow-y-auto">
@@ -434,6 +435,14 @@
             {{ editingBlock.kind }} {{ $t('block.general.label.noHandle') }}
           </div>
         </TabPanel>
+
+        <!-- Automation Tab -->
+        <TabPanel v-if="hasAutomationTab" value="automation">
+          <AutomationButtonsEditor
+            :buttons="editingBlock.options.selectionButtons || []"
+            @update:buttons="onSelectionButtonsUpdate"
+          />
+        </TabPanel>
       </TabPanels>
     </Tabs>
 
@@ -479,6 +488,7 @@ import ProgressConfigurator from '@/components/PageBlocks/Configurators/Progress
 import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue'
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
+import AutomationButtonsEditor from '@/components/PageBlocks/Shared/AutomationButtonsEditor.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -612,6 +622,14 @@ const editingBlockTypeLabel = computed(() => {
   const bt = availableBlockTypes.value.find(b => b.kind === editingBlock.value.kind)
   return bt?.label || editingBlock.value.kind
 })
+
+const hasAutomationTab = computed(() => editingBlock.value?.kind === 'RecordList')
+
+function onSelectionButtonsUpdate(next) {
+  if (!editingBlock.value) return
+  if (!editingBlock.value.options) editingBlock.value.options = {}
+  editingBlock.value.options.selectionButtons = next
+}
 
 // Available block types for the "add block" dialog
 const availableBlockTypes = computed(() => {
@@ -1201,7 +1219,5 @@ watch(
   padding: 4px;
   border-bottom-left-radius: var(--p-card-border-radius);
   border-top-right-radius: var(--p-card-border-radius);
-  opacity: 0;
-  transition: opacity 0.15s;
 }
 </style>

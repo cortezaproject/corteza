@@ -166,6 +166,7 @@
         :connection-mode="ConnectionMode.Loose"
         :edges-updatable="true"
         :is-valid-connection="isValidConnection"
+        :default-edge-options="defaultEdgeOptions"
         connection-line-type="smoothstep"
         class="vueflow-canvas"
         @connect="onConnect"
@@ -251,17 +252,15 @@
           <!-- Header -->
           <div class="flex items-start justify-between pr-1 group/header">
             <div class="flex items-center gap-3 flex-1 min-w-0 pr-2">
-              <div
-                class="w-10 h-10 rounded-border flex items-center justify-center shrink-0 bg-surface"
-              >
+              <div class="rounded-border flex items-center justify-center shrink-0 bg-surface">
                 <img
                   v-if="getSidebarItemIcon"
                   :src="getSidebarItemIcon"
-                  class="h-6 w-6 object-contain"
+                  class="h-9 w-9 object-contain"
                 />
                 <i
                   v-else-if="sidebar.itemType === 'edge'"
-                  class="pi pi-arrow-right-arrow-left text-color"
+                  class="pi pi-arrow-right-arrow-left text-color text-2xl"
                 />
               </div>
               <div class="flex-1 min-w-0">
@@ -465,7 +464,7 @@
 </template>
 
 <script setup>
-import { VueFlow, ConnectionMode, SelectionMode, useVueFlow } from '@vue-flow/core'
+import { VueFlow, ConnectionMode, MarkerType, SelectionMode, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
@@ -561,6 +560,8 @@ const {
   project,
   onNodesInitialized,
 } = useVueFlow(vfId)
+
+const defaultEdgeOptions = { markerEnd: MarkerType.ArrowClosed }
 
 const { saveToHistory, undo, redo } = useWorkflowHistory(nodes, edges)
 const {
@@ -1046,6 +1047,7 @@ function onConnect(connection) {
     targetHandle: connection.targetHandle,
     type: 'workflow',
     label,
+    markerEnd: MarkerType.ArrowClosed,
     data: {
       expr: '',
       parentID: connection.source,
@@ -1416,7 +1418,11 @@ function isEditableTarget(event) {
   const tag = t.tagName
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
   if (t.isContentEditable) return true
-  if (typeof t.closest === 'function' && t.closest('[contenteditable="true"], .ProseMirror, .ql-editor, .cm-editor')) return true
+  if (
+    typeof t.closest === 'function' &&
+    t.closest('[contenteditable="true"], .ProseMirror, .ql-editor, .cm-editor')
+  )
+    return true
   return false
 }
 

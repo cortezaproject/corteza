@@ -1,6 +1,7 @@
 import type { App, Plugin } from 'vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
+import CInputToggleCard from '../components/input/CInputToggleCard.vue'
 import CFieldPicker from '../components/input/CFieldPicker.vue'
 import CPermissionsButton from '../components/permissions/CPermissionsButton.vue'
 import CPermissionsDialog from '../components/permissions/CPermissionsDialog.vue'
@@ -135,6 +136,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     // Human shared components
     app.component('CInputSwitch', CInputSwitch)
     app.component('CInputRole', CInputRole)
+    app.component('CInputToggleCard', CInputToggleCard)
     app.component('CFieldPicker', CFieldPicker)
     app.component('CPermissionsButton', CPermissionsButton)
     app.component('CPermissionsDialog', CPermissionsDialog)

@@ -47,12 +47,13 @@
                 @click="moveButton(i, 1)"
               />
             </div>
-            <Tag
-              v-if="(btn.variant || 'primary') !== 'primary'"
-              :severity="mapSeverity(btn.variant)"
-              :value="btn.variant"
+            <Button
+              :label="btn.label || '-'"
+              :severity="mapVariantSeverity(btn.variant)"
+              size="small"
+              class="pointer-events-none truncate"
             />
-            <span class="flex-1 font-medium text-sm truncate">{{ btn.label || '-' }}</span>
+            <div class="flex-1" />
             <Button icon="pi pi-pencil" text rounded size="small" @click="selectButton(i)" />
             <Button
               icon="pi pi-trash"
@@ -87,23 +88,30 @@
               <Select
                 :model-value="btn.variant"
                 :options="variantOptions"
-                class="w-full"
-                @update:model-value="updateField(i, 'variant', $event)"
-              />
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.automation.buttonResourceType') }}
-              </label>
-              <Select
-                :model-value="btn.resourceType"
-                :options="resourceTypeOptions"
                 option-label="label"
                 option-value="value"
                 class="w-full"
-                @update:model-value="updateField(i, 'resourceType', $event)"
-              />
+                @update:model-value="updateField(i, 'variant', $event)"
+              >
+                <template #value="{ value, placeholder }">
+                  <Button
+                    v-if="value"
+                    :label="variantLabel(value)"
+                    :severity="mapVariantSeverity(value)"
+                    size="small"
+                    class="pointer-events-none !py-0.5 !px-2 !text-xs"
+                  />
+                  <span v-else>{{ placeholder }}</span>
+                </template>
+                <template #option="{ option }">
+                  <Button
+                    :label="option.label"
+                    :severity="mapVariantSeverity(option.value)"
+                    size="small"
+                    class="pointer-events-none !py-0.5 !px-2 !text-xs"
+                  />
+                </template>
+              </Select>
             </div>
           </div>
         </div>
@@ -229,15 +237,24 @@ const triggerButtons = ref([])
 const workflowData = ref([])
 const taqData = ref([])
 
-const variantOptions = ['primary', 'secondary', 'success', 'danger', 'warning', 'info']
+const variantKeys = ['primary', 'secondary', 'success', 'danger', 'warning', 'info']
 
-const resourceTypeOptions = [
-  { value: 'compose', label: 'Compose' },
-  { value: 'compose:namespace', label: 'Namespace' },
-  { value: 'compose:page', label: 'Page' },
-  { value: 'compose:module', label: 'Module' },
-  { value: 'compose:record', label: 'Record' },
-]
+const variantLabel = key => t(`block.automation.variants.${key}`)
+
+const variantOptions = computed(() =>
+  variantKeys.map(value => ({ value, label: variantLabel(value) })),
+)
+
+const variantSeverityMap = {
+  primary: undefined,
+  secondary: 'secondary',
+  success: 'success',
+  danger: 'danger',
+  warning: 'warn',
+  info: 'info',
+}
+
+const mapVariantSeverity = key => variantSeverityMap[key]
 
 const normalizedButtons = computed(() =>
   (props.buttons || []).map(b => ({

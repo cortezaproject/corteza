@@ -59,6 +59,7 @@ export interface Options {
   addRecordDisplayOption: string
   magnifyOption: string
   searchableFields: string[]
+  searchSubmitMode: string
 
   fullPageNavigation: boolean
   showTotalCount: boolean
@@ -88,6 +89,7 @@ export interface Options {
 
   bulkRecordEditEnabled: boolean
   inlineRecordEditEnabled: boolean
+  inlineRecordCopyEnabled: boolean
   inlineValueFiltering: boolean
   filterPresets: FilterPreset[]
   showRecordPerPageOption: boolean
@@ -130,6 +132,7 @@ const defaults: Readonly<Options> = Object.freeze({
   addRecordDisplayOption: 'sameTab',
   magnifyOption: '',
   searchableFields: [],
+  searchSubmitMode: 'typing',
 
   fullPageNavigation: false,
   showTotalCount: true,
@@ -155,6 +158,7 @@ const defaults: Readonly<Options> = Object.freeze({
 
   bulkRecordEditEnabled: true,
   inlineRecordEditEnabled: false,
+  inlineRecordCopyEnabled: false,
   inlineValueFiltering: false,
   filterPresets: [],
   showRecordPerPageOption: false,
@@ -196,6 +200,7 @@ export class PageBlockRecordList extends PageBlock {
       'magnifyOption',
       'recordSelectorDisplayOption',
       'addRecordDisplayOption',
+      'searchSubmitMode',
     )
 
     Apply(this.options, o, Number, 'perPage', 'refreshRate')
@@ -255,6 +260,7 @@ export class PageBlockRecordList extends PageBlock {
       'showRefresh',
       'bulkRecordEditEnabled',
       'inlineRecordEditEnabled',
+      'inlineRecordCopyEnabled',
       'inlineValueFiltering',
       'showRecordPerPageOption',
       'openRecordInEditMode',

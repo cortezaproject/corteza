@@ -21,15 +21,14 @@
     </div>
 
     <template v-if="chartID">
-      <!-- Live filter -->
-      <CInputToggleCard v-model="liveFilterEnabled" :label="$t('block.chart.enableLiveFilter')" />
-
-      <Divider v-if="isDrillDownAvailable" />
-
       <div v-if="isDrillDownAvailable" class="flex flex-col gap-3">
         <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.chart.drillDown.label') }}</h5>
 
-        <CInputToggleCard v-model="drillDownEnabled" :label="$t('block.chart.drillDown.enabled')" />
+        <CInputToggleCard
+          v-model="drillDownEnabled"
+          :label="$t('block.chart.drillDown.enabled')"
+          :description="$t('block.chart.drillDown.description')"
+        />
 
         <template v-if="drillDownEnabled">
           <div class="flex flex-col gap-1">
@@ -95,11 +94,6 @@ function updateOptions(key, value) {
 const chartID = computed({
   get: () => block.value.options?.chartID,
   set: v => updateOptions('chartID', v),
-})
-
-const liveFilterEnabled = computed({
-  get: () => !!block.value.options?.liveFilterEnabled,
-  set: v => updateOptions('liveFilterEnabled', v),
 })
 
 const drillDownEnabled = computed({

@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="rootEl"
     class="workflow-node"
     :class="{
       'workflow-node--selected': selected,
@@ -10,6 +11,8 @@
       'workflow-node--connecting': isConnecting,
     }"
     :style="{ width: '180px' }"
+    @mouseenter="showPopup"
+    @mouseleave="hidePopup"
   >
     <!-- Target handles. `:connectable="false"` once the point is used so vue-flow
          strips the `.connectable` class → CSS hover rule leaves it invisible
@@ -40,6 +43,7 @@
       type="target"
       :position="Position.Left"
       id="target-left"
+      :style="{ top: '32px' }"
       :connectable="!isTargetUsed('target-left')"
     />
     <Handle
@@ -73,14 +77,30 @@
       <img :src="issueIcon" class="workflow-node__issue-icon" alt="" />
     </div>
 
-    <!-- Values table (arguments/results preview) -->
-    <div v-if="valueRows.length > 0" class="workflow-node__values">
-      <table>
-        <tr v-for="(row, idx) in valueRows" :key="idx" :class="row.class">
-          <td v-for="(cell, ci) in row.cells" :key="ci" v-html="cell" />
-        </tr>
-      </table>
-    </div>
+    <!-- Values table (arguments/results preview). Teleported to body so it can
+         render above other vue-flow nodes without lifting this node's z-index
+         (which would also expose connection handles over neighbors). -->
+    <Teleport to="body">
+      <div
+        v-if="popupStyle"
+        class="workflow-node__values"
+        :style="popupStyle"
+      >
+        <div class="workflow-node__values-card">
+          <div class="workflow-node__values-header">
+            <div class="workflow-node__values-title">{{ displayTitle }}</div>
+            <div v-if="displayDescription" class="workflow-node__values-description">
+              {{ displayDescription }}
+            </div>
+          </div>
+          <table v-if="valueRows.length > 0">
+            <tr v-for="(row, idx) in valueRows" :key="idx" :class="row.class">
+              <td v-for="(cell, ci) in row.cells" :key="ci" v-html="cell" />
+            </tr>
+          </table>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Trace badge -->
     <div
@@ -128,12 +148,14 @@
       type="source"
       :position="Position.Right"
       id="source-right"
+      :style="{ top: '32px' }"
       :connectable="!isSourceUsed('source-right')"
     />
     <Handle
       type="source"
       :position="Position.Left"
       id="source-left"
+      :style="{ top: '32px' }"
       :connectable="!isSourceUsed('source-left')"
     />
   </div>
@@ -141,7 +163,7 @@
 
 <script setup>
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getStyleFromKind } from '../../lib/style'
 import { getIcon as resolveIcon } from '../../lib/icon'
@@ -168,12 +190,32 @@ const outboundFull = computed(() => props.outCount >= maxOutbound.value)
 const isSourceUsed = id => outboundFull.value || props.usedSourceHandles.includes(id)
 const isTargetUsed = id => props.usedTargetHandles.includes(id)
 
+// Popup must escape vue-flow's transformed wrapper (which traps stacking
+// context). Teleport to body, position with fixed coords from node rect.
+const rootEl = ref(null)
+const popupStyle = ref(null)
+
+function showPopup () {
+  const r = rootEl.value?.getBoundingClientRect()
+  if (!r) return
+  popupStyle.value = {
+    position: 'fixed',
+    top: `${r.bottom + 14}px`,
+    left: `${r.left + r.width / 2}px`,
+    transform: 'translateX(-50%)',
+  }
+}
+
+function hidePopup () {
+  popupStyle.value = null
+}
+
 const { connectionStartHandle } = useVueFlow()
 const isConnecting = computed(() => !!connectionStartHandle.value)
 
 defineEmits(['open-issues'])
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const getIcon = (name) => resolveIcon(name, props.currentTheme)
 
@@ -232,49 +274,60 @@ const valueRows = computed(() => {
       kind,
     )
   ) {
+    const paramLabel = te('steps.function.configurator.parameters')
+      ? t('steps.function.configurator.parameters')
+      : 'Parameters'
+    const resultLabel = te('steps.function.configurator.results')
+      ? t('steps.function.configurator.results')
+      : 'Results'
+    const renderName = (name, type) => {
+      const typeMarkup = type ? ` <span class="param-type">(${encodeHTML(type)})</span>` : ''
+      return `<span class="param-name">${encodeHTML(name)}</span>${typeMarkup}`
+    }
+
     // Function label
     const fnDef = props.functionTypes.find(f => f.ref === (ref || kind))
     const fnLabel = fnDef?.meta?.short
     if (fnLabel) {
-      rows.push({ class: '', cells: [`<b class="text-primary">${encodeHTML(fnLabel)}</b>`, ''] })
+      rows.push({
+        class: 'fn-name',
+        cells: [`<span class="fn-name__label">${encodeHTML(fnLabel)}</span>`, ''],
+      })
     }
 
     if (kind === 'expressions') {
       args.forEach(({ target, expr, type }) => {
         rows.push({
           class: '',
-          cells: [
-            `<var>${encodeHTML(target)}</var> <samp>(${type || ''})</samp>`,
-            `<code>${encodeHTML(expr)}</code>`,
-          ],
+          cells: [renderName(target, type), `<samp>${encodeHTML(expr)}</samp>`],
         })
       })
     } else {
-      // Arguments
+      // Parameters
       const params = fnDef?.parameters || []
       if (params.length && args.length) {
-        rows.push({ class: 'title', cells: ['<b>Arguments</b>', ''] })
+        rows.push({ class: 'title', cells: [`<span class="section-label">${encodeHTML(paramLabel)}</span>`, ''] })
         params.forEach(({ name, types = [] }) => {
           const arg = args.find(a => a.target === name)
           const exprType = arg?.type || types[0] || ''
           rows.push({
             class: '',
             cells: [
-              `<var>${encodeHTML(name)}</var> <samp>(${exprType})</samp>`,
-              `<code>${encodeHTML(arg?.expr || arg?.value || '')}</code>`,
+              renderName(name, exprType),
+              `<samp>${encodeHTML(arg?.expr || arg?.value || '')}</samp>`,
             ],
           })
         })
       }
       // Results
       if (results.length) {
-        rows.push({ class: 'title', cells: ['<b>Results</b>', ''] })
+        rows.push({ class: 'title', cells: [`<span class="section-label">${encodeHTML(resultLabel)}</span>`, ''] })
         results.forEach(({ target = '', expr = '', value = '' }) => {
           rows.push({
             class: '',
             cells: [
-              `<code>${encodeHTML(target)}</code>`,
-              `<var>${encodeHTML(expr || value)}</var>`,
+              renderName(target),
+              `<samp>${encodeHTML(expr || value)}</samp>`,
             ],
           })
         })
@@ -284,15 +337,21 @@ const valueRows = computed(() => {
     // Trigger config preview
     const trg = props.data?.triggers || {}
     if (trg.resourceType) {
-      rows.push({ class: 'title', cells: ['<b>Configuration</b>', ''] })
+      rows.push({ class: 'title', cells: ['<span class="section-label">Configuration</span>', ''] })
       rows.push({
         class: '',
-        cells: ['<var>Resource</var>', `<code>${encodeHTML(trg.resourceType)}</code>`],
+        cells: [
+          `<span class="param-name">Resource</span>`,
+          `<samp>${encodeHTML(trg.resourceType)}</samp>`,
+        ],
       })
       if (trg.eventType) {
         rows.push({
           class: '',
-          cells: ['<var>Event</var>', `<code>${encodeHTML(trg.eventType)}</code>`],
+          cells: [
+            `<span class="param-name">Event</span>`,
+            `<samp>${encodeHTML(trg.eventType)}</samp>`,
+          ],
         })
       }
     }
@@ -302,8 +361,8 @@ const valueRows = computed(() => {
       rows.push({
         class: '',
         cells: [
-          `<var>${encodeHTML(arg.target)}</var>`,
-          `<code>${encodeHTML(arg.expr || arg.value || '')}</code>`,
+          `<span class="param-name">${encodeHTML(arg.target)}</span>`,
+          `<samp>${encodeHTML(arg.expr || arg.value || '')}</samp>`,
         ],
       })
     }
@@ -321,7 +380,8 @@ const valueRows = computed(() => {
   border: 1px solid var(--p-surface-border);
   border-radius: 5px;
   width: 180px;
-  min-height: 64px;
+  height: 64px;
+  overflow: hidden;
   box-shadow: var(--p-card-shadow);
   cursor: pointer;
   transition:
@@ -361,8 +421,8 @@ const valueRows = computed(() => {
 }
 
 .workflow-node__icon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   margin-right: 6px;
   object-fit: contain;
 }
@@ -420,42 +480,9 @@ const valueRows = computed(() => {
   font-size: 12px;
   line-height: 16px;
   color: var(--p-text-muted-color);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.workflow-node__values {
-  display: none;
-  position: absolute;
-  top: calc(100% + 14px);
-  left: 0;
-  width: 180px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  z-index: 10;
-}
-
-.workflow-node:hover .workflow-node__values {
-  display: block;
-}
-
-.workflow-node__values table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--p-content-background);
-  border-radius: 0 0 5px 5px;
-  box-shadow: var(--p-card-shadow);
-}
-
-.workflow-node__values td {
-  text-align: left;
-  padding: 6px 8px;
-  white-space: nowrap;
-  font-size: 12px;
-}
-
-.workflow-node__values tr.title {
-  background-color: var(--p-highlight-background);
 }
 
 .workflow-node__trace-badge {
@@ -484,5 +511,93 @@ const valueRows = computed(() => {
 .workflow-node--hoverable:hover :deep(.vue-flow__handle.connectable),
 .workflow-node--connecting :deep(.vue-flow__handle.connectable) {
   opacity: 1;
+}
+</style>
+
+<style>
+/* Values popup is teleported to <body> — scoped selectors won't match the
+   teleported DOM, so its styles live unscoped here. */
+.workflow-node__values {
+  width: 360px;
+  z-index: 10000;
+}
+
+.workflow-node__values-card {
+  background: var(--p-content-background);
+  border-radius: 5px;
+  box-shadow: var(--p-card-shadow);
+  overflow: hidden;
+}
+
+.workflow-node__values-header {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--p-surface-border);
+}
+
+.workflow-node__values-title {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--p-text-color);
+  word-break: break-word;
+}
+
+.workflow-node__values-description {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--p-text-muted-color);
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.workflow-node__values table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.workflow-node__values td {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
+.workflow-node__values tr.title {
+  background-color: var(--p-highlight-background);
+}
+
+.workflow-node__values tr.fn-name td {
+  padding-top: 8px;
+}
+
+.workflow-node__values .fn-name__label {
+  font-weight: 500;
+  color: var(--p-primary-color);
+}
+
+.workflow-node__values .section-label {
+  font-weight: 500;
+  color: var(--p-text-color);
+}
+
+.workflow-node__values .param-name {
+  color: var(--p-primary-color);
+}
+
+.workflow-node__values .param-type {
+  font-size: 11px;
+  color: var(--p-text-muted-color);
+  margin-left: 4px;
+}
+
+.workflow-node__values samp,
+.workflow-node__values code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--p-text-color);
 }
 </style>

@@ -11,6 +11,7 @@
         <CInputToggleCard
           v-model="horizontalLayout"
           :label="$t('block.record.horizontalFormLayout')"
+          :description="$t('block.record.horizontalFormLayoutDescription')"
           :disabled="layoutMode === 'noWrap'"
         />
 
@@ -69,6 +70,16 @@
         <CInputToggleCard
           v-model="inlineEditEnabled"
           :label="$t('block.record.inlineEdit.enabled')"
+          :description="$t('block.record.inlineEdit.description')"
+        />
+      </Panel>
+
+      <!-- Inline copy -->
+      <Panel :header="$t('block.record.inlineCopy.label')" toggleable>
+        <CInputToggleCard
+          v-model="inlineCopyEnabled"
+          :label="$t('block.record.inlineCopy.enabled')"
+          :description="$t('block.record.inlineCopy.description')"
         />
       </Panel>
 
@@ -91,6 +102,7 @@
           <CInputToggleCard
             v-model="recordSelectorShowAddRecordButton"
             :label="$t('block.record.recordSelectorCanAddRecord')"
+            :description="$t('block.record.recordSelectorCanAddRecordDescription')"
           />
 
           <div class="flex flex-col gap-1">
@@ -125,10 +137,8 @@
           <CInputToggleCard
             v-model="clearConditionalFieldsOnHide"
             :label="$t('block.record.fieldConditions.clearAllOnHide')"
+            :description="$t('block.record.fieldConditions.clearAllOnHideDescription')"
           />
-          <small class="text-muted-color -mt-2">
-            {{ $t('block.record.fieldConditions.clearAllOnHideDescription') }}
-          </small>
 
           <div class="flex flex-col gap-2">
             <div v-for="(condition, i) in fieldConditions" :key="i" class="flex items-center gap-2">
@@ -243,6 +253,11 @@ function updateOptions(key, value) {
 const inlineEditEnabled = computed({
   get: () => !!block.value.options?.inlineRecordEditEnabled,
   set: v => updateOptions('inlineRecordEditEnabled', v),
+})
+
+const inlineCopyEnabled = computed({
+  get: () => !!block.value.options?.inlineRecordCopyEnabled,
+  set: v => updateOptions('inlineRecordCopyEnabled', v),
 })
 
 const horizontalLayout = computed({

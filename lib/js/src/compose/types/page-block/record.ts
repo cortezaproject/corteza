@@ -20,6 +20,7 @@ interface Options {
   referenceField?: string
   referenceModuleID?: string
   inlineRecordEditEnabled: boolean
+  inlineRecordCopyEnabled: boolean
   horizontalFieldLayoutEnabled: boolean
   recordFieldLayoutOption: string
 }
@@ -35,6 +36,7 @@ const defaults: Readonly<Options> = Object.freeze({
   referenceField: '',
   referenceModuleID: undefined,
   inlineRecordEditEnabled: false,
+  inlineRecordCopyEnabled: false,
   horizontalFieldLayoutEnabled: false,
   recordFieldLayoutOption: 'default',
 })
@@ -69,6 +71,7 @@ export class PageBlockRecord extends PageBlock {
       Boolean,
       'recordSelectorShowAddRecordButton',
       'inlineRecordEditEnabled',
+      'inlineRecordCopyEnabled',
       'horizontalFieldLayoutEnabled',
       'clearConditionalFieldsOnHide',
     )
