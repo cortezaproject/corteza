@@ -1494,6 +1494,12 @@ var Connection = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Source", Sortable: true,
+			Type:  &dal.TypeText{Length: 16},
+			Store: &dal.CodecAlias{Ident: "source"},
+		},
+
+		&dal.Attribute{
 			Ident: "Meta",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",

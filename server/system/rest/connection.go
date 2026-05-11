@@ -46,6 +46,7 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
 		Import(ctx context.Context, catalogID string) (*types.Connection, error)
+		Enable(ctx context.Context, ID uint64) (*types.Connection, error)
 		Configure(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 		UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 	}
@@ -81,6 +82,10 @@ func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (int
 	f.IncTotal = r.IncTotal
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}
 
@@ -154,6 +159,15 @@ func (ctrl Connection) Delete(ctx context.Context, r *request.ConnectionDelete) 
 
 func (ctrl Connection) Undelete(ctx context.Context, r *request.ConnectionUndelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ConnectionID)
+}
+
+func (ctrl Connection) Enable(ctx context.Context, r *request.ConnectionEnable) (interface{}, error) {
+	res, err := ctrl.svc.Enable(ctx, r.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makePayload(ctx, res), nil
 }
 
 func (ctrl Connection) Generate(ctx context.Context, r *request.ConnectionGenerate) (interface{}, error) {

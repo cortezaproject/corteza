@@ -18,6 +18,10 @@ connection: {
 				sortable: true
 				dal: { type: "Text", length: 32 }
 			}
+			source: {
+				sortable: true
+				dal: { type: "Text", length: 16 }
+			}
 
 			meta: {
 				goType: "types.ConnectionMeta"
@@ -70,10 +74,11 @@ connection: {
 		struct: {
 			handle: {goType: "string"}
 			status: {goType: "[]string"}
+			source: {goType: "string"}
 			query:  {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
-		byValue: ["handle", "status"]
+		byValue: ["handle", "status", "source"]
 		byNilState: ["deleted"]
 	}
 

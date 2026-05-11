@@ -417,6 +417,7 @@ type (
 		Handle     string                          `db:"handle"`
 		Revision   int                             `db:"revision"`
 		Status     string                          `db:"status"`
+		Source     string                          `db:"source"`
 		Meta       systemType.ConnectionMeta       `db:"meta"`
 		Service    systemType.ConnectionService    `db:"service"`
 		Resources  systemType.ConnectionResources  `db:"resources"`
@@ -2261,6 +2262,7 @@ func (aux *auxConnection) encode(res *systemType.Connection) (_ error) {
 	aux.Handle = res.Handle
 	aux.Revision = res.Revision
 	aux.Status = res.Status
+	aux.Source = res.Source
 	aux.Meta = res.Meta
 	aux.Service = res.Service
 	aux.Resources = res.Resources
@@ -2283,6 +2285,7 @@ func (aux auxConnection) decode() (res *systemType.Connection, _ error) {
 	res.Handle = aux.Handle
 	res.Revision = aux.Revision
 	res.Status = aux.Status
+	res.Source = aux.Source
 	res.Meta = aux.Meta
 	res.Service = aux.Service
 	res.Resources = aux.Resources
@@ -2305,6 +2308,7 @@ func (aux *auxConnection) scan(row scanner) error {
 		&aux.Handle,
 		&aux.Revision,
 		&aux.Status,
+		&aux.Source,
 		&aux.Meta,
 		&aux.Service,
 		&aux.Resources,

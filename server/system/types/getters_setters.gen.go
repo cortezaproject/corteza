@@ -1114,6 +1114,8 @@ func (r *Connection) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "revision", "Revision":
 		return r.Revision, nil
+	case "source", "Source":
+		return r.Source, nil
 	case "status", "Status":
 		return r.Status, nil
 	case "updatedAt", "UpdatedAt":
@@ -1145,6 +1147,8 @@ func (r *Connection) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "revision", "Revision":
 		return cast2.Int(value, &r.Revision)
+	case "source", "Source":
+		return cast2.String(value, &r.Source)
 	case "status", "Status":
 		return cast2.String(value, &r.Status)
 	case "updatedAt", "UpdatedAt":

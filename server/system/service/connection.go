@@ -46,6 +46,7 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
 		Import(ctx context.Context, catalogID string) (*types.Connection, error)
+		Enable(ctx context.Context, ID uint64) (*types.Connection, error)
 	}
 
 	ConfiguredConnectionService interface {
@@ -82,7 +83,7 @@ func catalogConnectionToLocal(conn *appstore.Connection) *types.Connection {
 		Handle:    conn.Handle,
 		CatalogID: conn.ID,
 		Source:    "catalog",
-		Status:    conn.Status,
+		Status:    "draft",
 		Meta: types.ConnectionMeta{
 			Short:       conn.Meta.Short,
 			Description: conn.Meta.Description,
@@ -155,6 +156,10 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 			return err
 		}
 
+		if res.Source == "catalog" {
+			res.Status = "active"
+		}
+
 		svc.deriveParams(res)
 		return nil
 	}()
@@ -214,6 +219,10 @@ func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *
 
 		if new.Status == "" {
 			new.Status = "draft"
+		}
+
+		if new.Source == "" {
+			new.Source = "local"
 		}
 
 		if err = store.CreateConnection(ctx, svc.store, new); err != nil {
@@ -354,6 +363,37 @@ func (svc *connection) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 	return svc.recordAction(ctx, aProps, ConnectionActionUndelete, err)
 }
 
+func (svc *connection) Enable(ctx context.Context, ID uint64) (res *types.Connection, err error) {
+	var (
+		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
+	)
+
+	err = func() (err error) {
+		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
+
+		aProps.setConnection(res)
+
+		if !svc.ac.CanUpdateConnection(ctx, res) {
+			return ConnectionErrNotAllowedToUpdate()
+		}
+
+		if err = svc.validateConnectionEnable(res); err != nil {
+			return err
+		}
+
+		res.Status = "active"
+		n := now()
+		res.UpdatedAt = n
+		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		return store.UpdateConnection(ctx, svc.store, res)
+	}()
+
+	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err)
+}
+
 func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter) (set types.ConnectionSet, f types.ConnectionFilter, err error) {
 	var (
 		aProps = &connectionActionProps{filter: &filter}
@@ -376,12 +416,9 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 			return err
 		}
 
-		// Mark all DB records as local by default.
-		for _, c := range set {
-			c.Source = "local"
-		}
-
 		// Merge with appstore catalog when configured.
+		// DB records keep their stored Source value ("catalog" or "local").
+		// Catalog-only entries (not yet imported) are appended with Source="catalog".
 		if svc.catalog != nil {
 			// Read catalog paging state from cursor arb.
 			var arb catalogArb
@@ -408,13 +445,13 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 
 				for _, s := range summaries {
 					if dbConn, ok := dbByHandle[s.Handle]; ok {
-						dbConn.Source = "catalog"
+						// DB record takes precedence; only link the catalog ID.
 						dbConn.CatalogID = s.ID
 					} else {
 						set = append(set, &types.Connection{
 							ID:     catalogIDToSyntheticID(s.ID),
 							Handle: s.Handle,
-							Status: s.Status,
+							Status: "draft",
 							Meta: types.ConnectionMeta{
 								Short:       s.Short,
 								Description: s.Description,
@@ -505,7 +542,7 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 		Handle:    catalogConn.Handle,
 		CatalogID: catalogConn.ID,
 		Source:    "catalog",
-		Status:    "draft",
+		Status:    "active",
 		Meta: types.ConnectionMeta{
 			Short:       catalogConn.Meta.Short,
 			Description: catalogConn.Meta.Description,
@@ -619,6 +656,16 @@ func (svc *connection) validateConnection(c *types.Connection) error {
 		}
 	}
 
+	return nil
+}
+
+func (svc *connection) validateConnectionEnable(c *types.Connection) error {
+	if c.Source != "local" {
+		return errors.InvalidData("only locally-built connections can be explicitly enabled")
+	}
+	if c.Status != "draft" {
+		return errors.InvalidData("only draft connections can be enabled")
+	}
 	return nil
 }
 

@@ -61,6 +61,7 @@ var (
 		fix_2024_09_05_addRelResourceRoleMembershipColumn,
 		fix_2024_09_05_addUserGroupReferenceToUser,
 		fix_2026_04_00_addChatbotColumnToAgents,
+		fix_2026_05_00_addSourceOnConnections,
 	}
 )
 
@@ -72,6 +73,13 @@ func fix_2026_04_00_addChatbotColumnToAgents(ctx context.Context, s *Store) (err
 			Type:  &dal.TypeJSON{DefaultValue: "{}"},
 			Store: &dal.CodecAlias{Ident: "chatbot"},
 		},
+	)
+}
+
+func fix_2026_05_00_addSourceOnConnections(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"connections",
+		&dal.Attribute{Ident: "source", Type: &dal.TypeText{Length: 16, DefaultValue: "local"}},
 	)
 }
 

@@ -70,6 +70,14 @@ func (ctrl ConfiguredConnection) List(ctx context.Context, r *request.Configured
 
 	f.IncTotal = r.IncTotal
 
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
 	set, f, err = ctrl.svc.Search(ctx, f)
 	if err != nil {
 		return nil, err

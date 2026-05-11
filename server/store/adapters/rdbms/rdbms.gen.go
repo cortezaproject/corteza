@@ -13965,6 +13965,7 @@ func (Store) sortableConnectionFields() map[string]string {
 		"id":         "id",
 		"name":       "json:meta.short",
 		"revision":   "revision",
+		"source":     "source",
 		"status":     "status",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
@@ -14004,6 +14005,8 @@ func (s *Store) collectConnectionCursorValues(res *systemType.Connection, cc ...
 					return res.Revision
 				case "status":
 					return res.Status
+				case "source":
+					return res.Source
 				case "name":
 					return res.Meta.Short
 				case "createdAt":

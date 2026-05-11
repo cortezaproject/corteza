@@ -957,6 +957,10 @@ func ConnectionFilter(d drivers.Dialect, f systemType.ConnectionFilter) (ee []go
 		ee = append(ee, goqu.C("status").In(ss))
 	}
 
+	if val := strings.TrimSpace(f.Source); len(val) > 0 {
+		ee = append(ee, goqu.C("source").Eq(f.Source))
+	}
+
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
