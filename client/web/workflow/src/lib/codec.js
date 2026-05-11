@@ -300,7 +300,7 @@ export function decodeWorkflow(workflow, triggers = []) {
       position: { x: xywh[0], y: xywh[1] },
       zIndex: nodeType === 'visual' ? -1 : undefined,
       parentNode: vis.parent && vis.parent !== '1' ? String(vis.parent) : undefined,
-      extent: vis.parent && vis.parent !== '1' ? 'parent' : undefined,
+      extent: undefined,
       style:
         nodeType === 'visual'
           ? { width: `${xywh[2] || 400}px`, height: `${xywh[3] || 240}px` }
