@@ -7882,6 +7882,45 @@ export default class System {
     return `/connections/${connectionID}/undelete`
   }
 
+  // Enable connection (lock draft local connection to active)
+  async connectionEnable(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionEnableEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionEnableCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionEnable(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionEnableEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}/enable`
+  }
+
   // Generate connection via builder agent
   async connectionGenerate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { prompt, context } = (a as KV) || {}
@@ -7923,8 +7962,8 @@ export default class System {
 
   // Configure a connection (create configured connection)
   async connectionConfigure(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, catalogID, name, config, labels } = (a as KV) || {}
-    if (connectionID === undefined || connectionID === null || connectionID === '') {
+    const { connectionID, name, config, labels } = (a as KV) || {}
+    if (!connectionID) {
       throw Error('field connectionID is empty')
     }
     if (!name) {
@@ -7938,7 +7977,6 @@ export default class System {
       }),
     }
     cfg.data = {
-      catalogID,
       name,
       config,
       labels,

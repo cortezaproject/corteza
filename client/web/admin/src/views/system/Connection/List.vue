@@ -37,6 +37,7 @@
             v-if="canCreate"
             :to="{ name: 'system.connections.create' }"
             :label="$t('system.connections.list.createCustom')"
+            severity="secondary"
             icon="pi pi-plus"
             size="small"
           />
@@ -59,14 +60,18 @@
 
       <template #body-status="{ data }">
         <Tag
+          v-if="!(data.source === 'catalog' && (!data.status || data.status === 'draft'))"
           :value="$t(`system.connections.editor.statusValues.${data.status || 'draft'}`)"
           :severity="data.status === 'active' ? 'success' : 'secondary'"
         />
+        <span v-else />
       </template>
 
       <template #body-source="{ data }">
         <Tag
-          :value="$t(`system.connections.list.sourceValues.${data.source || 'local'}`, data.source || '-')"
+          :value="
+            $t(`system.connections.list.sourceValues.${data.source || 'local'}`, data.source || '-')
+          "
           :severity="data.source === 'catalog' ? 'info' : 'secondary'"
         />
       </template>
@@ -176,7 +181,7 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.connectionListCancellable(params), {
   filter: { query: '', deleted: '0' },
-  sorting: { sortBy: 'name', sortDesc: false },
+  sorting: { sortBy: 'status', sortDesc: false },
   pagination: { limit: 50 },
 })
 

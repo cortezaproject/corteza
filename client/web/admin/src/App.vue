@@ -52,7 +52,10 @@
         }"
       />
 
-      <ConfirmDialog />
+      <ConfirmDialog
+        :style="{ width: '48rem', maxWidth: '92vw' }"
+        :breakpoints="{ '1199px': '95vw', '767px': '98vw', '575px': '100vw' }"
+      />
     </div>
 
     <CAppListSidebar

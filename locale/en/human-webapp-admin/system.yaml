@@ -547,7 +547,7 @@ connections:
       status: Status
       source: Source
     sourceValues:
-      catalog: Catalog
+      catalog: Library
       local: Custom
     filterForm:
       deleted:
@@ -564,6 +564,12 @@ connections:
       create: New connection
     general: General
     manageConfigured: Manage configured connections
+    configuredTab: Configured Connections
+    enable: Enable
+    enableConfirm:
+      header: Enable connection?
+      message: Enabling marks this connection as Active so it can be used to create configured instances. This is one-way — once enabled, the connection is locked and can no longer be edited. Make sure the definition is correct before proceeding.
+      accept: Enable
     info:
       title: Basic settings
       handle: Handle

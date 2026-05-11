@@ -19,6 +19,15 @@
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+        <Button
+          v-if="canEnable"
+          :label="$t('system.connections.editor.enable')"
+          icon="pi pi-check-circle"
+          severity="success"
+          outlined
+          :loading="enabling"
+          @click="handleEnableClick"
+        />
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::system:dal-connection/${connection.connectionID}`"
@@ -38,10 +47,13 @@
             <TabList class="rounded-t-lg shrink-0">
               <Tab value="general">{{ $t('system.connections.editor.general') }}</Tab>
               <Tab value="configuration">{{ $t('system.connections.editor.configuration') }}</Tab>
+              <Tab v-if="showConfiguredTab" value="configured">
+                {{ $t('system.connections.editor.configuredTab') }}
+              </Tab>
             </TabList>
 
-            <TabPanels class="flex-1 overflow-y-auto min-h-0 p-0">
-              <TabPanel value="general" class="p-4">
+            <TabPanels class="flex-1 min-h-0 p-0">
+              <TabPanel value="general" class="p-4 overflow-y-auto h-full">
                 <div class="flex flex-col gap-6">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField name="name" class="flex flex-col gap-2">
@@ -164,6 +176,10 @@
                 </div>
               </TabPanel>
 
+
+              <TabPanel v-if="showConfiguredTab" value="configured" class="h-full overflow-hidden p-4">
+                <ConfiguredConnectionsPanel :connection="connection" />
+              </TabPanel>
             </TabPanels>
           </Tabs>
         </template>
@@ -205,8 +221,9 @@ import { computed, inject, nextTick, onMounted, ref, watch, reactive } from 'vue
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useConfirmDelete, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
+import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
 
 const { CInputDelete } = components
 
@@ -217,10 +234,13 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
+const { confirmDelete: confirmAction } = useConfirmDelete()
+
 // State
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const enabling = ref(false)
 const connection = ref(null)
 const initialConnection = ref(null)
 const initialRawJSON = ref(null)
@@ -235,6 +255,18 @@ const rawJSON = reactive({
 
 // Computed
 const isEdit = computed(() => !!route.params.connectionID)
+
+const canEnable = computed(
+  () =>
+    isEdit.value &&
+    connection.value?.source === 'local' &&
+    connection.value?.status === 'draft' &&
+    connection.value?.canUpdateConnection,
+)
+
+const showConfiguredTab = computed(
+  () => isEdit.value && connection.value?.status === 'active',
+)
 
 const pageTitle = computed(() => {
   return isEdit.value
@@ -411,6 +443,38 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+function handleEnableClick() {
+  confirmAction({
+    header: t('system.connections.editor.enableConfirm.header'),
+    message: t('system.connections.editor.enableConfirm.message'),
+    icon: 'pi pi-check-circle',
+    acceptProps: {
+      label: t('system.connections.editor.enableConfirm.accept'),
+      severity: 'success',
+    },
+    onConfirm: handleEnable,
+  })
+}
+
+async function handleEnable() {
+  enabling.value = true
+  try {
+    const raw = await $SystemAPI.connectionEnable({
+      connectionID: connection.value.connectionID,
+    })
+    connection.value = new system.Connection(raw)
+    initJSONFields()
+    initialConnection.value = cloneDeep(connection.value)
+    initialRawJSON.value = cloneDeep(rawJSON)
+    $toast.toastSuccess(t('notification.connection.enable.success'))
+  } catch (e) {
+    console.error('Failed to enable connection:', e)
+    $toast.toastErrorHandler(t('notification.connection.enable.error'))(e)
+  } finally {
+    enabling.value = false
   }
 }
 

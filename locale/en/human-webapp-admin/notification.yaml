@@ -416,6 +416,9 @@ connection:
   undelete:
     success: Connection restored
     error: Connection restore failed
+  enable:
+    success: Connection enabled
+    error: Connection enable failed
 llmProvider:
   fetch:
     error: LLM Provider fetch failed
