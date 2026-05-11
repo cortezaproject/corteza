@@ -64,7 +64,6 @@ ifeq ($(TAG_NAME),)
 	$(error Usage: make tag <version>, e.g. make tag 2026.3.1)
 endif
 	@echo "---Tagging $(TAG_NAME)---"
-	git commit -m "$(TAG_NAME)"
 	git push
 	git tag $(TAG_NAME)
 	git push origin $(TAG_NAME)
