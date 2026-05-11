@@ -1,6 +1,9 @@
 import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
+export type ConnectionStatus = '' | 'draft' | 'active' | (string & {})
+export type ConnectionSource = '' | 'catalog' | 'local' | (string & {})
+
 interface PartialConnection extends Partial<
   Omit<Connection, 'createdAt' | 'updatedAt' | 'deletedAt'>
 > {
@@ -47,8 +50,8 @@ export class Connection {
   public connectionID = NoID
   public handle = ''
   public revision = 0
-  public status = ''
-  public source = ''
+  public status: ConnectionStatus = ''
+  public source: ConnectionSource = ''
   public catalogID = ''
   public installedCount = 0
 
@@ -89,7 +92,18 @@ export class Connection {
 
   apply(c?: PartialConnection): void {
     Apply(this, c, HumanID, 'connectionID')
-    Apply(this, c, String, 'handle', 'status', 'source', 'catalogID', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(
+      this,
+      c,
+      String,
+      'handle',
+      'status',
+      'source',
+      'catalogID',
+      'createdBy',
+      'updatedBy',
+      'deletedBy',
+    )
     Apply(this, c, Number, 'revision', 'installedCount')
 
     Apply(this, c, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')

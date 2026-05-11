@@ -19,18 +19,6 @@
   >
     <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
-        <Button
-          :label="$t('system.connections.editor.manageConfigured')"
-          icon="pi pi-cog"
-          severity="secondary"
-          size="small"
-          @click="
-            $router.push({
-              name: 'system.connections.configure',
-              params: { connectionID: connection.connectionID },
-            })
-          "
-        />
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::system:dal-connection/${connection.connectionID}`"
@@ -334,6 +322,13 @@ async function loadConnection() {
   loading.value = true
   try {
     const raw = await $SystemAPI.connectionRead({ connectionID })
+    if (raw?.source === 'catalog') {
+      router.replace({
+        name: 'system.connections.configure',
+        params: { connectionID },
+      })
+      return
+    }
     connection.value = new system.Connection(raw)
     initJSONFields()
     initialConnection.value = cloneDeep(connection.value)

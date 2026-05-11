@@ -544,6 +544,11 @@ connections:
     deleteConfirm: Are you sure you want to delete this connection?
     columns:
       name: Name
+      status: Status
+      source: Source
+    sourceValues:
+      catalog: Catalog
+      local: Custom
     filterForm:
       deleted:
         label: Deleted connections
@@ -587,6 +592,7 @@ connections:
     updatedAt: Updated at
     createdAt: Created at
     statusValues:
+      draft: Draft
       active: Active
       inactive: Inactive
       pending: Pending

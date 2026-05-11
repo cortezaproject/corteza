@@ -585,9 +585,17 @@ async function handleConfiguredConnectionSubmit({ valid }) {
 
 async function loadConnection() {
   try {
-    connection.value = await $SystemAPI.connectionRead({
+    const loaded = await $SystemAPI.connectionRead({
       connectionID: route.params.connectionID,
     })
+    if (loaded?.source !== 'catalog') {
+      router.replace({
+        name: 'system.connections.edit',
+        params: { connectionID: route.params.connectionID },
+      })
+      return
+    }
+    connection.value = loaded
     filterConfiguredConnectionsList()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.connection.fetch.error'))(e)

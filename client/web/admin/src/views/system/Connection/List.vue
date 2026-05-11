@@ -57,6 +57,20 @@
         </div>
       </template>
 
+      <template #body-status="{ data }">
+        <Tag
+          :value="$t(`system.connections.editor.statusValues.${data.status || 'draft'}`)"
+          :severity="data.status === 'active' ? 'success' : 'secondary'"
+        />
+      </template>
+
+      <template #body-source="{ data }">
+        <Tag
+          :value="$t(`system.connections.list.sourceValues.${data.source || 'local'}`, data.source || '-')"
+          :severity="data.source === 'catalog' ? 'info' : 'secondary'"
+        />
+      </template>
+
       <template #filter>
         <Button
           icon="pi pi-filter"
@@ -137,6 +151,16 @@ const connectionListFields = [
     key: 'name',
     sortable: true,
     header: t('system.connections.list.columns.name'),
+  },
+  {
+    key: 'status',
+    sortable: true,
+    header: t('system.connections.list.columns.status'),
+  },
+  {
+    key: 'source',
+    sortable: true,
+    header: t('system.connections.list.columns.source'),
   },
 ]
 
