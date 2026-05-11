@@ -400,6 +400,11 @@ func (svc *connection) Enable(ctx context.Context, ID uint64) (res *types.Connec
 	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err)
 }
 
+// matchesQuery checks if name matches query (case-insensitive substring).
+func matchesQuery(query, name string) bool {
+	return strings.Contains(strings.ToLower(name), strings.ToLower(query))
+}
+
 func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter) (set types.ConnectionSet, f types.ConnectionFilter, err error) {
 	var (
 		aProps = &connectionActionProps{filter: &filter}
@@ -407,6 +412,9 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 
 	filter.Check = func(res *types.Connection) (bool, error) {
 		if !svc.ac.CanReadConnection(ctx, res) {
+			return false, nil
+		}
+		if filter.Query != "" && !matchesQuery(filter.Query, res.Meta.Short) {
 			return false, nil
 		}
 		return true, nil
@@ -427,6 +435,7 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 		// Catalog-only entries (not yet imported) are injected into the correct
 		// sort position by fetching ALL catalog summaries and filtering to the
 		// sort window defined by the current DB page.
+		var catalogOnly []*types.Connection
 		if svc.catalog != nil {
 			var arb catalogArb
 			if filter.PageCursor != nil {
@@ -477,9 +486,12 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 				}
 
 				// Build catalog-only entries (handle not in DB).
-				var catalogOnly []*types.Connection
 				for _, s := range allSummaries {
 					if _, ok := dbByHandle[s.Handle]; !ok {
+						// Filter by query if specified
+						if filter.Query != "" && !matchesQuery(filter.Query, s.Short) {
+							continue
+						}
 						catalogOnly = append(catalogOnly, &types.Connection{
 							ID:     catalogIDToSyntheticID(s.ID),
 							Handle: s.Handle,
@@ -541,6 +553,13 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 				}
 			}
 			set = filtered
+		}
+
+		// Adjust total to include catalog-only entries not yet imported into DB.
+		// The store counts only DB records; catalog-only entries must be added.
+		// When filtering by source="local", catalog entries are excluded so no adjustment needed.
+		if filter.IncTotal && svc.catalog != nil && filter.Source != "local" {
+			f.Total += uint(len(catalogOnly))
 		}
 
 		// Re-sort the merged set so catalog-appended entries land in the right position.
