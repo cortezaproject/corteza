@@ -79,7 +79,7 @@ func fix_2026_04_00_addChatbotColumnToAgents(ctx context.Context, s *Store) (err
 func fix_2026_05_00_addSourceOnConnections(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"connections",
-		&dal.Attribute{Ident: "source", Type: &dal.TypeText{Length: 16, DefaultValue: "local"}},
+		&dal.Attribute{Ident: "source", Type: &dal.TypeText{Length: 1024, Nullable: true}},
 	)
 }
 
