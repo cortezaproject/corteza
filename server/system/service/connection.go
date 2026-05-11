@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"regexp"
+	"sort"
 	"strings"
 
 	"go.uber.org/zap"
@@ -13,6 +14,7 @@ import (
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/appstore"
@@ -60,10 +62,14 @@ type (
 		dalConnection *types.DalConnection
 	}
 
-	// catalogArb holds MW pagination state encoded in PagingCursor.Arb.
+	// catalogArb holds per-page catalog pagination state encoded in PagingCursor.Arb.
+	// We fetch ALL catalog summaries on every request and filter by the sort window
+	// defined by the last DB record of the previous page, so catalog entries always
+	// appear exactly once on the page where their sort position falls.
 	catalogArb struct {
-		MWPage int  `json:"mwPage,omitempty"`
-		MWDone bool `json:"mwDone,omitempty"`
+		LastSortKey string `json:"lastSortKey,omitempty"`
+		SortCol     string `json:"sortCol,omitempty"`
+		SortDesc    bool   `json:"sortDesc,omitempty"`
 	}
 )
 
@@ -418,37 +424,63 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 
 		// Merge with appstore catalog when configured.
 		// DB records keep their stored Source value ("catalog" or "local").
-		// Catalog-only entries (not yet imported) are appended with Source="catalog".
+		// Catalog-only entries (not yet imported) are injected into the correct
+		// sort position by fetching ALL catalog summaries and filtering to the
+		// sort window defined by the current DB page.
 		if svc.catalog != nil {
-			// Read catalog paging state from cursor arb.
 			var arb catalogArb
 			if filter.PageCursor != nil {
 				_ = filter.PageCursor.GetArb(&arb)
 			}
-			if arb.MWPage == 0 {
-				arb.MWPage = 1
+
+			// Determine primary sort column and direction.
+			sortCol := "name"
+			sortDesc := false
+			if len(filter.Sort) > 0 {
+				sortCol = strings.ToLower(filter.Sort[0].Column)
+				sortDesc = filter.Sort[0].Descending
 			}
 
-			limit := int(filter.Limit)
-			if limit == 0 {
-				limit = 50
+			// If sort changed, discard stale lower bound.
+			if arb.SortCol != "" && arb.SortCol != sortCol {
+				arb.LastSortKey = ""
 			}
 
-			summaries, catErr := svc.catalog.ListPage(ctx, arb.MWPage, limit)
-			if catErr != nil {
-				svc.logger.Warn("appstore unavailable, serving DB-only results", zap.Error(catErr))
-			} else {
+			// Fetch ALL catalog summaries (bounded to 1000 entries).
+			const maxPages = 20
+			const pageSize = 50
+			var allSummaries []appstore.ConnectionSummary
+			catFetchOK := true
+			for page := 1; page <= maxPages; page++ {
+				summaries, catErr := svc.catalog.ListPage(ctx, page, pageSize)
+				if catErr != nil {
+					svc.logger.Warn("appstore unavailable, serving DB-only results", zap.Error(catErr))
+					catFetchOK = false
+					break
+				}
+				allSummaries = append(allSummaries, summaries...)
+				if len(summaries) < pageSize {
+					break
+				}
+			}
+
+			if catFetchOK {
+				// Index DB records by handle; link catalog IDs for matching DB entries.
 				dbByHandle := make(map[string]*types.Connection, len(set))
 				for _, c := range set {
 					dbByHandle[c.Handle] = c
 				}
-
-				for _, s := range summaries {
+				for _, s := range allSummaries {
 					if dbConn, ok := dbByHandle[s.Handle]; ok {
-						// DB record takes precedence; only link the catalog ID.
 						dbConn.CatalogID = s.ID
-					} else {
-						set = append(set, &types.Connection{
+					}
+				}
+
+				// Build catalog-only entries (handle not in DB).
+				var catalogOnly []*types.Connection
+				for _, s := range allSummaries {
+					if _, ok := dbByHandle[s.Handle]; !ok {
+						catalogOnly = append(catalogOnly, &types.Connection{
 							ID:     catalogIDToSyntheticID(s.ID),
 							Handle: s.Handle,
 							Status: "draft",
@@ -462,12 +494,39 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 					}
 				}
 
-				// Advance MW page in next cursor; mark done when page was not full.
-				nextArb := catalogArb{MWPage: arb.MWPage + 1}
-				if len(summaries) < limit {
-					nextArb = catalogArb{MWPage: arb.MWPage, MWDone: true}
+				// Sort window: include catalog entries whose sort key falls
+				// between the previous page's last DB key and this page's last DB key.
+				//   ascending:  prevKey < entryKey <= lastDBKey  (or no upper bound on last page)
+				//   descending: prevKey > entryKey >= lastDBKey  (or no upper bound on last page)
+				isLastDBPage := f.NextPage == nil
+				var lastDBSortKey string
+				if len(set) > 0 {
+					lastDBSortKey = connectionSortKey(set[len(set)-1], sortCol)
 				}
+
+				isBefore := func(a, b string) bool {
+					if sortDesc {
+						return a > b
+					}
+					return a < b
+				}
+
+				for _, c := range catalogOnly {
+					sk := connectionSortKey(c, sortCol)
+					afterPrev := arb.LastSortKey == "" || isBefore(arb.LastSortKey, sk)
+					withinBound := isLastDBPage || lastDBSortKey == "" || !isBefore(lastDBSortKey, sk)
+					if afterPrev && withinBound {
+						set = append(set, c)
+					}
+				}
+
+				// Persist last DB sort key so the next page knows its lower bound.
 				if f.NextPage != nil {
+					nextArb := catalogArb{
+						LastSortKey: lastDBSortKey,
+						SortCol:     sortCol,
+						SortDesc:    sortDesc,
+					}
 					_ = f.NextPage.SetArb(nextArb)
 				}
 			}
@@ -482,6 +541,11 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 				}
 			}
 			set = filtered
+		}
+
+		// Re-sort the merged set so catalog-appended entries land in the right position.
+		if svc.catalog != nil {
+			sortConnectionSet(set, filter.Sort)
 		}
 
 		// Count installed ConfiguredConnections per DB record.
@@ -870,6 +934,57 @@ func labelFromName(name string) string {
 		}
 	}
 	return b.String()
+}
+
+// connectionSortKey returns the string sort key for a connection given a column name.
+func connectionSortKey(c *types.Connection, col string) string {
+	switch col {
+	case "handle":
+		return strings.ToLower(c.Handle)
+	case "status":
+		return c.Status
+	case "source":
+		return c.Source
+	default: // "name"
+		return strings.ToLower(c.Meta.Short)
+	}
+}
+
+// sortConnectionSet sorts the merged set in-memory using the same columns as the
+// DB query so catalog-appended entries land in the correct position.
+// Only name, handle, status, and source are supported; unknown columns are ignored.
+// When no sort is specified it falls back to name ascending.
+func sortConnectionSet(set types.ConnectionSet, ss filter.SortExprSet) {
+	if len(ss) == 0 {
+		ss = filter.SortExprSet{{Column: "name", Descending: false}}
+	}
+
+	sort.SliceStable(set, func(i, j int) bool {
+		a, b := set[i], set[j]
+		for _, s := range ss {
+			var va, vb string
+			switch strings.ToLower(s.Column) {
+			case "name":
+				va, vb = strings.ToLower(a.Meta.Short), strings.ToLower(b.Meta.Short)
+			case "handle":
+				va, vb = strings.ToLower(a.Handle), strings.ToLower(b.Handle)
+			case "status":
+				va, vb = a.Status, b.Status
+			case "source":
+				va, vb = a.Source, b.Source
+			default:
+				continue
+			}
+			if va == vb {
+				continue
+			}
+			if s.Descending {
+				return va > vb
+			}
+			return va < vb
+		}
+		return false
+	})
 }
 
 // -- helpers ------------------------------------------------------------------
