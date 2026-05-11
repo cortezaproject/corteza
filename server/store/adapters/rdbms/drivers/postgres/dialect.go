@@ -235,8 +235,7 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 		}
 
 		if t.HasDefault {
-			// @todo use proper quote type
-			col.Default = fmt.Sprintf("%q", t.DefaultValue)
+			col.Default = fmt.Sprintf("'%s'", t.DefaultValue)
 		}
 
 	case *dal.TypeJSON:
