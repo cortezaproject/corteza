@@ -40,7 +40,7 @@
           :dataKey="primaryKey"
           :value="items"
           :loading="loading"
-          :sortOrder="sorting.sortDesc ? 1 : -1"
+          :sortOrder="sorting.sortDesc ? -1 : 1"
           :sortField="sorting.sortBy"
           scrollable
           scrollHeight="flex"
