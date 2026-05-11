@@ -1,8 +1,8 @@
 import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
-export type ConnectionStatus = '' | 'draft' | 'active' | (string & {})
-export type ConnectionSource = '' | 'catalog' | 'local' | (string & {})
+type ConnectionStatus = '' | 'draft' | 'active' | (string & {})
+type ConnectionSource = '' | 'catalog' | 'local' | (string & {})
 
 interface PartialConnection extends Partial<
   Omit<Connection, 'createdAt' | 'updatedAt' | 'deletedAt'>

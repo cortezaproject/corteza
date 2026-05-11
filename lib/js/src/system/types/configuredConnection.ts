@@ -1,6 +1,6 @@
 import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
-import { Connection, ConnectionStatus } from './connection'
+import { Connection } from './connection'
 
 interface ConfiguredConnectionParam {
   scope: string[]
@@ -28,7 +28,7 @@ export class ConfiguredConnection {
   public connectionID = NoID
 
   public name = ''
-  public status: ConnectionStatus = ''
+  public status = ''
 
   public connection: Connection = new Connection()
   public config: ConfiguredConnectionConfig = {
