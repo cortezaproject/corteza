@@ -24,20 +24,12 @@ func PageHandler(reg toolRegistrar) *pageHandler {
 func (h *pageHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_lookup",
-			mcp.WithDescription("Look up pages in a namespace. Omit the page argument to list all pages. Provide a title, handle, or ID to get a single page with its full block configuration."),
+			mcp.WithDescription("Look up pages in a namespace. Omit the page argument to get the full page hierarchy as a nested tree (parent/child relationships and navigation order). Provide a title, handle, or ID to get a single page with its full block configuration."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
-			mcp.WithString("page", mcp.Description("Page title, handle, or ID. Omit to list all pages.")),
+			mcp.WithString("page", mcp.Description("Page title, handle, or ID. Omit to get the namespace's page tree.")),
 		),
 		"Lookup page",
 		h.lookup,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_page_tree",
-			mcp.WithDescription("Get the full page hierarchy for a namespace as a nested tree showing parent/child relationships and navigation order."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
-		),
-		"Get page tree",
-		h.tree,
 	)
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_create",
@@ -55,6 +47,9 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID. Set ONLY for record pages (the single-record form). Do not set for record list pages — put the module in the RecordList block options instead.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation (default: true)")),
 			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 12 columns wide — full-width block: [{"kind":"RecordList","title":"My Block","xywh":[0,0,12,20],"options":{...}}]. Call compose_page_block_schema first for kind-specific options.`)),
+			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
+			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}`)),
+			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Example: {"allowPersonalLayouts":true}`)),
 		),
 		"Create page",
 		h.create,
@@ -68,9 +63,12 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 			mcp.WithString("handle", mcp.Description("New handle")),
 			mcp.WithString("description", mcp.Description("New description")),
 			mcp.WithString("parent", mcp.Description("New parent page title, handle, or ID. Pass empty string to move to root.")),
+			mcp.WithString("module", mcp.Description("Module name, handle, or ID for record detail pages. Pass empty string to clear.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation")),
 			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Replaces all existing blocks. Grid is 12 columns wide — full-width block uses xywh [0,0,12,20].`)),
-			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"inline-svg","src":"<svg>..."}`)),
+			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
+			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
+			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
 		),
 		"Update page",
 		h.update,
@@ -118,30 +116,13 @@ func (h *pageHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp
 
 	pageRef, _ := args["page"].(string)
 	if pageRef == "" {
-		set, _, err := cmpService.DefaultPage.Find(ctx, cmpTypes.PageFilter{NamespaceID: ns.ID})
+		tree, err := cmpService.DefaultPage.Tree(ctx, ns.ID)
 		if err != nil {
-			return nil, fmt.Errorf("page list failed: %w", err)
+			return nil, fmt.Errorf("page tree failed: %w", err)
 		}
-		type pageItem struct {
-			ID       uint64 `json:"pageID,string"`
-			SelfID   uint64 `json:"selfID,string"`
-			ModuleID uint64 `json:"moduleID,string,omitempty"`
-			Title    string `json:"title"`
-			Handle   string `json:"handle,omitempty"`
-			Visible  bool   `json:"visible"`
-			Weight   int    `json:"weight"`
-		}
-		items := make([]pageItem, len(set))
-		for i, p := range set {
-			items[i] = pageItem{
-				ID: p.ID, SelfID: p.SelfID, ModuleID: p.ModuleID,
-				Title: p.Title, Handle: p.Handle,
-				Visible: p.Visible, Weight: p.Weight,
-			}
-		}
-		out, err := json.Marshal(items)
+		out, err := json.Marshal(tree)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal pages: %w", err)
+			return nil, fmt.Errorf("failed to marshal tree: %w", err)
 		}
 		return mcp.NewToolResultText(string(out)), nil
 	}
@@ -153,29 +134,6 @@ func (h *pageHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	out, err := json.Marshal(pg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal page: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
-}
-
-func (h *pageHandler) tree(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
-	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
-	}
-
-	tree, err := cmpService.DefaultPage.Tree(ctx, ns.ID)
-	if err != nil {
-		return nil, fmt.Errorf("page tree failed: %w", err)
-	}
-
-	out, err := json.Marshal(tree)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal tree: %w", err)
 	}
 	return mcp.NewToolResultText(string(out)), nil
 }
@@ -233,6 +191,34 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		pg.Blocks = blocks
 	}
 
+	if rawIcon, ok := args["icon"]; ok && rawIcon != nil {
+		icon, err := parsePageIcon(rawIcon)
+		if err != nil {
+			return nil, fmt.Errorf("invalid icon: %w", err)
+		}
+		pg.Config.NavItem.Icon = icon
+	}
+
+	if rawConfig, ok := args["config"]; ok && rawConfig != nil {
+		cfg, err := parsePageConfig(rawConfig)
+		if err != nil {
+			return nil, fmt.Errorf("invalid config: %w", err)
+		}
+		// preserve icon if it was set above and config didn't carry one
+		if pg.Config.NavItem.Icon != nil && cfg.NavItem.Icon == nil {
+			cfg.NavItem.Icon = pg.Config.NavItem.Icon
+		}
+		pg.Config = cfg
+	}
+
+	if rawMeta, ok := args["meta"]; ok && rawMeta != nil {
+		meta, err := parsePageMeta(rawMeta)
+		if err != nil {
+			return nil, fmt.Errorf("invalid meta: %w", err)
+		}
+		pg.Meta = meta
+	}
+
 	pg, err = cmpService.DefaultPage.Create(ctx, pg)
 	if err != nil {
 		return nil, fmt.Errorf("page creation failed: %w", err)
@@ -287,6 +273,18 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		}
 	}
 
+	if modRef, ok := args["module"].(string); ok {
+		if modRef == "" {
+			pg.ModuleID = 0
+		} else {
+			mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, modRef)
+			if err != nil {
+				return nil, fmt.Errorf("module lookup failed: %w", err)
+			}
+			pg.ModuleID = mod.ID
+		}
+	}
+
 	if rawBlocks, ok := args["blocks"]; ok && rawBlocks != nil {
 		blocks, err := parsePageBlocks(rawBlocks)
 		if err != nil {
@@ -295,12 +293,28 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		pg.Blocks = blocks
 	}
 
+	if rawConfig, ok := args["config"]; ok && rawConfig != nil {
+		cfg, err := parsePageConfig(rawConfig)
+		if err != nil {
+			return nil, fmt.Errorf("invalid config: %w", err)
+		}
+		pg.Config = cfg
+	}
+
 	if rawIcon, ok := args["icon"]; ok && rawIcon != nil {
 		icon, err := parsePageIcon(rawIcon)
 		if err != nil {
 			return nil, fmt.Errorf("invalid icon: %w", err)
 		}
 		pg.Config.NavItem.Icon = icon
+	}
+
+	if rawMeta, ok := args["meta"]; ok && rawMeta != nil {
+		meta, err := parsePageMeta(rawMeta)
+		if err != nil {
+			return nil, fmt.Errorf("invalid meta: %w", err)
+		}
+		pg.Meta = meta
 	}
 
 	pg, err = cmpService.DefaultPage.Update(ctx, pg)
@@ -477,4 +491,42 @@ func parsePageIcon(raw interface{}) (*cmpTypes.PageConfigIcon, error) {
 		return nil, fmt.Errorf("icon must be a JSON object: %w", err)
 	}
 	return &icon, nil
+}
+
+// parsePageConfig unmarshals a JSON string or object into PageConfig.
+func parsePageConfig(raw interface{}) (cmpTypes.PageConfig, error) {
+	var data []byte
+	switch v := raw.(type) {
+	case string:
+		data = []byte(v)
+	default:
+		var err error
+		if data, err = json.Marshal(v); err != nil {
+			return cmpTypes.PageConfig{}, fmt.Errorf("cannot encode config: %w", err)
+		}
+	}
+	var cfg cmpTypes.PageConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return cmpTypes.PageConfig{}, fmt.Errorf("config must be a JSON object: %w", err)
+	}
+	return cfg, nil
+}
+
+// parsePageMeta unmarshals a JSON string or object into PageMeta.
+func parsePageMeta(raw interface{}) (cmpTypes.PageMeta, error) {
+	var data []byte
+	switch v := raw.(type) {
+	case string:
+		data = []byte(v)
+	default:
+		var err error
+		if data, err = json.Marshal(v); err != nil {
+			return cmpTypes.PageMeta{}, fmt.Errorf("cannot encode meta: %w", err)
+		}
+	}
+	var meta cmpTypes.PageMeta
+	if err := json.Unmarshal(data, &meta); err != nil {
+		return cmpTypes.PageMeta{}, fmt.Errorf("meta must be a JSON object: %w", err)
+	}
+	return meta, nil
 }
