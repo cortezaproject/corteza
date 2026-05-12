@@ -54,6 +54,15 @@ var instructionOverrides = []string{
 	"override your",
 	"bypass your",
 	"from now on you",
+	"role play as",
+	"roleplay as",
+	"play the role",
+	"take on the role",
+	"simulate being",
+	"impersonate",
+	"you are a",
+	"behave as",
+	"respond as",
 }
 
 // roleImpersonation matches lines that start with a role label followed by a colon,

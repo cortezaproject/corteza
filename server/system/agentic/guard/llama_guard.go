@@ -32,28 +32,43 @@ var llamaGuardCategories = map[string]string{
 }
 
 const (
-	llamaGuardTimeout = 5 * time.Second
+	defaultLlamaGuardTimeout = 5 * time.Second
 )
 
 // LlamaGuard is a guard adapter that uses Meta's Llama Guard 3 model
 // via an Ollama-compatible OpenAI API endpoint.
 type LlamaGuard struct {
-	endpoint string // e.g. "http://ollama-guard:11434/v1"
-	model    string // e.g. "llama-guard3:8b"
-	apiKey   string // credential from LlmProvider
+	endpoint   string             // e.g. "http://ollama-guard:11434/v1"
+	model      string             // e.g. "llama-guard3:8b"
+	apiKey     string             // credential from LlmProvider
+	timeout    time.Duration
+	thresholds map[string]float64 // per-category block thresholds; absent = always block
 }
 
 // NewLlamaGuard creates a Llama Guard adapter from an LlmProvider's config.
 func NewLlamaGuard(provider *types.LlmProvider, apiKey string) *LlamaGuard {
 	model := "llama-guard3:8b"
-	if provider.Config.Guard != nil && provider.Config.Guard.Model != "" {
-		model = provider.Config.Guard.Model
+	var thresholds map[string]float64
+	if provider.Config.Guard != nil {
+		if provider.Config.Guard.Model != "" {
+			model = provider.Config.Guard.Model
+		}
+		thresholds = provider.Config.Guard.Thresholds
+	}
+
+	timeout := defaultLlamaGuardTimeout
+	if provider.Config.Timeout != "" {
+		if d, err := time.ParseDuration(provider.Config.Timeout); err == nil && d > 0 {
+			timeout = d
+		}
 	}
 
 	return &LlamaGuard{
-		endpoint: provider.Config.PromptURL,
-		model:    model,
-		apiKey:   apiKey,
+		endpoint:   provider.Config.PromptURL,
+		model:      model,
+		apiKey:     apiKey,
+		timeout:    timeout,
+		thresholds: thresholds,
 	}
 }
 
@@ -77,7 +92,7 @@ type llamaGuardResponse struct {
 
 // CheckInput sends the user input to Llama Guard for classification.
 func (lg *LlamaGuard) CheckInput(ctx context.Context, input string, history []types.AiConversationMessage) (*GuardResult, error) {
-	ctx, cancel := context.WithTimeout(ctx, llamaGuardTimeout)
+	ctx, cancel := context.WithTimeout(ctx, lg.timeout)
 	defer cancel()
 
 	// Build the conversation for Llama Guard to evaluate.
@@ -131,13 +146,16 @@ func (lg *LlamaGuard) CheckInput(ctx context.Context, input string, history []ty
 		return nil, fmt.Errorf("llama guard: no choices in response")
 	}
 
-	return parseLlamaGuardOutput(lgResp.Choices[0].Message.Content), nil
+	return lg.parseLlamaGuardOutput(lgResp.Choices[0].Message.Content), nil
 }
 
 // parseLlamaGuardOutput parses Llama Guard's text response.
 // Safe response: "safe"
 // Unsafe response: "unsafe\nS1" or "unsafe\nS1,S2"
-func parseLlamaGuardOutput(output string) *GuardResult {
+// If thresholds are configured, a category only triggers a block when its
+// score (always 1.0 from Llama Guard) meets or exceeds the threshold.
+// Categories with no threshold entry are blocked unconditionally.
+func (lg *LlamaGuard) parseLlamaGuardOutput(output string) *GuardResult {
 	output = strings.TrimSpace(output)
 
 	if strings.EqualFold(output, "safe") {
@@ -146,35 +164,40 @@ func parseLlamaGuardOutput(output string) *GuardResult {
 
 	lines := strings.SplitN(output, "\n", 2)
 	if !strings.EqualFold(strings.TrimSpace(lines[0]), "unsafe") {
-		// Unexpected format — treat as safe but log the raw output
+		// Unexpected format — treat as safe
 		return safe()
 	}
 
 	categories := make(map[string]float64)
-	reason := "content classified as unsafe"
+	var blockedNames []string
 
 	if len(lines) > 1 {
 		cats := strings.Split(strings.TrimSpace(lines[1]), ",")
-		catNames := make([]string, 0, len(cats))
 		for _, c := range cats {
 			c = strings.TrimSpace(c)
-			if name, ok := llamaGuardCategories[c]; ok {
-				categories[name] = 1.0
-				catNames = append(catNames, name)
-			} else if c != "" {
-				categories[c] = 1.0
-				catNames = append(catNames, c)
+			name := c
+			if mapped, ok := llamaGuardCategories[c]; ok {
+				name = mapped
+			}
+			if name == "" {
+				continue
+			}
+			categories[name] = 1.0
+			// Block if no threshold configured, or score meets threshold.
+			if threshold, ok := lg.thresholds[name]; !ok || 1.0 >= threshold {
+				blockedNames = append(blockedNames, name)
 			}
 		}
-		if len(catNames) > 0 {
-			reason = "content classified as unsafe: " + strings.Join(catNames, ", ")
-		}
+	}
+
+	if len(blockedNames) == 0 {
+		return safe()
 	}
 
 	return &GuardResult{
 		Safe:       false,
 		Blocked:    true,
-		Reason:     reason,
+		Reason:     "content classified as unsafe: " + strings.Join(blockedNames, ", "),
 		Categories: categories,
 	}
 }

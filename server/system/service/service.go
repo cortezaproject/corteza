@@ -532,8 +532,9 @@ func initializeCredentialRegistry(s store.Storer, log *zap.Logger) error {
 	return nil
 }
 
-// findGuardProvider scans all LlmProvider records for one with Config.Guard.Enabled == true.
-// Returns the provider and its API key, or nil if no guard provider is configured.
+// findGuardProvider scans all LlmProvider records for one with Config.Guard.Enabled == true
+// and Config.Guard.Provider == "llama-guard". Returns the provider and its API key, or nil
+// if no guard provider is configured.
 func findGuardProvider(ctx context.Context, s store.Storer) (*types.LlmProvider, string, error) {
 	set, _, err := store.SearchLlmProviders(ctx, s, types.LlmProviderFilter{})
 	if err != nil {
@@ -541,16 +542,17 @@ func findGuardProvider(ctx context.Context, s store.Storer) (*types.LlmProvider,
 	}
 
 	for _, p := range set {
-		if p.Config.Guard != nil && p.Config.Guard.Enabled {
-			apiKey := ""
-			if p.CredentialID != 0 {
-				cred, err := store.LookupCredentialByID(ctx, s, p.CredentialID)
-				if err == nil && cred != nil {
-					apiKey = cred.Credentials
-				}
-			}
-			return p, apiKey, nil
+		if p.Config.Guard == nil || !p.Config.Guard.Enabled || p.Config.Guard.Provider != "llama-guard" {
+			continue
 		}
+		apiKey := ""
+		if p.CredentialID != 0 {
+			cred, err := store.LookupCredentialByID(ctx, s, p.CredentialID)
+			if err == nil && cred != nil {
+				apiKey = cred.Credentials
+			}
+		}
+		return p, apiKey, nil
 	}
 
 	return nil, "", nil
