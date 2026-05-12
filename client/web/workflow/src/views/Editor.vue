@@ -20,6 +20,8 @@
 import WorkflowEditor from '@/components/WorkflowEditor.vue'
 import { automation } from '@planetcrust/human-js'
 import { throttle } from 'lodash-es'
+
+let loadSeq = 0
 import { useRBACStore, useUnsavedGuard } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -72,11 +74,14 @@ watch(() => route.params.workflowID, (next, prev) => {
 })
 
 async function load() {
+  const seq = ++loadSeq
   processing.value = true
   changeDetected.value = false
   if (workflowID.value) {
     await fetchTriggers()
+    if (loadSeq !== seq) return
     await fetchWorkflow()
+    if (loadSeq !== seq) return
   } else {
     workflow.value = new automation.Workflow({
       ownedBy: userID.value,
@@ -177,7 +182,7 @@ const saveWorkflow = throttle(async function (wf) {
   }
 
   processingSave.value = false
-}, 500)
+}, 500, { leading: true, trailing: false })
 
 function deleteWorkflow() {
   if (workflow.value.workflowID) {

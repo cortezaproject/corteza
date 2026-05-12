@@ -11,13 +11,10 @@
   >
     <div class="flex flex-col gap-4 py-4">
       <FormField name="discoveryPrivateFields" class="flex flex-col gap-2">
-        <label class="font-medium text-primary">
-          {{ $t('module.edit.discoverySettings.private') }}
-        </label>
         <CFieldPicker
           :all-fields="moduleFieldsList"
           :model-value="currentFieldNames"
-          list-class="max-h-[24rem]"
+          list-class="max-h-[32rem]"
           :available-label="$t('field.selector.available')"
           :selected-label="$t('field.selector.selected')"
           :select-all-label="$t('field.selector.selectAll')"
@@ -42,11 +39,7 @@
           outlined
           @click="showModal = false"
         />
-        <Button
-          :label="$t('general.label.saveAndClose')"
-          size="small"
-          @click="onSave"
-        />
+        <Button :label="$t('general.label.saveAndClose')" size="small" @click="onSave" />
       </div>
     </template>
   </Dialog>
@@ -86,8 +79,8 @@ const discoveryModalTitle = computed(() => {
 
 const moduleFieldsList = computed(() => {
   return (props.module?.fields || [])
-    .filter((f) => !f.isSystem)
-    .map((f) => ({
+    .filter(f => !f.isSystem)
+    .map(f => ({
       name: f.name,
       label: f.label || f.name,
     }))
@@ -95,16 +88,16 @@ const moduleFieldsList = computed(() => {
 
 watch(
   () => props.modal,
-  (val) => {
+  val => {
     showModal.value = val
     if (val) {
       loadSettings()
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
-watch(showModal, (val) => {
+watch(showModal, val => {
   emit('update:modal', val)
 })
 
@@ -112,10 +105,10 @@ function loadSettings() {
   const discoveryConfig = props.module.config?.discovery || {}
   const privateConfig = discoveryConfig.private || { result: [] }
 
-  const resultItem = privateConfig.result.find((r) => r.lang === defaultLang) || { fields: [] }
+  const resultItem = privateConfig.result.find(r => r.lang === defaultLang) || { fields: [] }
 
-  currentFieldNames.value = resultItem.fields.filter((name) =>
-    moduleFieldsList.value.some((f) => f.name === name),
+  currentFieldNames.value = resultItem.fields.filter(name =>
+    moduleFieldsList.value.some(f => f.name === name),
   )
 }
 

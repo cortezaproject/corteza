@@ -220,6 +220,7 @@ const providerOptions = computed(() => [
 ])
 
 const initialValues = computed(() => ({
+  short: llmProvider.value?.meta?.short || '',
   handle: llmProvider.value?.handle || '',
   provider: llmProvider.value?.provider || '',
   ...(!isEdit.value ? { apiKey: apiKey.value || '' } : {}),
@@ -275,7 +276,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -393,7 +396,12 @@ watch(
 )
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!llmProvider.value && !!initialLlmProvider.value && !isEqual(llmProvider.value, initialLlmProvider.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!llmProvider.value &&
+    !!initialLlmProvider.value &&
+    !isEqual(llmProvider.value, initialLlmProvider.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

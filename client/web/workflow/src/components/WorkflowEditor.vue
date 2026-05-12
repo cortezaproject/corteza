@@ -111,7 +111,10 @@
       </div>
 
       <!-- Bottom bar: save + zoom -->
-      <div class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full" style="z-index: 1">
+      <div
+        class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full transition-[padding-right] duration-300 ease-in-out"
+        :style="{ zIndex: 1, paddingRight: sidebar.show ? `${drawerWidth + 8}px` : undefined }"
+      >
         <Button
           v-if="changeDetected && canUpdateWorkflow"
           data-test-id="button-save-workflow"
@@ -126,7 +129,32 @@
         />
 
         <div
-          class="flex items-center bg-surface border border-surface py-2 px-3 ml-auto gap-1 rounded"
+          class="flex items-center bg-surface border border-surface py-2 px-3 gap-3 rounded ml-auto"
+        >
+          <Button
+            v-tooltip.top="'Undo (Ctrl+Z)'"
+            text
+            severity="secondary"
+            class="p-0"
+            :disabled="!canUndo"
+            @click="undo(); refreshSidebar()"
+          >
+            <i class="pi pi-undo" />
+          </Button>
+          <Button
+            v-tooltip.top="'Redo (Ctrl+Shift+Z)'"
+            text
+            severity="secondary"
+            class="p-0"
+            :disabled="!canRedo"
+            @click="redo(); refreshSidebar()"
+          >
+            <i class="pi pi-undo" style="transform: scaleX(-1); display: inline-block" />
+          </Button>
+        </div>
+
+        <div
+          class="flex items-center bg-surface border border-surface py-2 px-3 gap-1 rounded"
           style="z-index: 1"
         >
           {{ getZoomPercent }}
@@ -284,9 +312,9 @@
 
           <!-- Body -->
           <div class="relative flex-1 mt-3">
-            <div v-if="sidebar.item" class="flex flex-col gap-3">
+            <div v-if="sidebar.item && !isContentNode" class="flex flex-col gap-3">
               <div class="flex flex-col gap-1">
-                <label class="font-medium text-primary text-sm" for="sidebar-name">
+                <label class="font-medium text-primary" for="sidebar-name">
                   {{ $t('general.label.name') }}
                 </label>
                 <InputText
@@ -297,7 +325,7 @@
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <label class="font-medium text-primary text-sm" for="sidebar-description">
+                <label class="font-medium text-primary" for="sidebar-description">
                   {{ $t('general.description') }}
                 </label>
                 <Textarea
@@ -310,7 +338,7 @@
                 />
               </div>
             </div>
-            <Divider v-if="sidebar.item" />
+            <Divider v-if="sidebar.item && !isContentNode" />
             <transition name="component-fade" mode="out-in">
               <configurator
                 v-if="sidebar.showItem"
@@ -470,6 +498,7 @@ import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject } from 'vue'
+import { debounce } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 
@@ -563,7 +592,8 @@ const {
 
 const defaultEdgeOptions = { markerEnd: MarkerType.ArrowClosed }
 
-const { saveToHistory, undo, redo } = useWorkflowHistory(nodes, edges)
+const { saveToHistory, resetHistory, undo, redo, canUndo, canRedo } = useWorkflowHistory(nodes, edges)
+const debouncedSaveToHistory = debounce(saveToHistory, 600)
 const {
   onToolbarDragStart,
   onCanvasDragOver,
@@ -705,12 +735,16 @@ watch(
       if (edge && edgeData.config) {
         const newExpr = edgeData.config.expr || ''
         const newLabel = edgeData.node?.value || ''
+        let changed = false
         if (edge.data?.expr !== newExpr) {
           edge.data = { ...edge.data, expr: newExpr }
+          changed = true
         }
         if (edge.label !== newLabel) {
           edge.label = newLabel
+          changed = true
         }
+        if (changed) debouncedSaveToHistory()
       }
     })
   },
@@ -733,10 +767,13 @@ watch(
       if (!edge) return
       const nextLabel = newItem.node.value || ''
       const nextDesc = newItem.node.description || ''
-      if (edge.label !== nextLabel) edge.label = nextLabel
+      let edgeChanged = false
+      if (edge.label !== nextLabel) { edge.label = nextLabel; edgeChanged = true }
       if ((edge.data?.description || '') !== nextDesc) {
         edge.data = { ...edge.data, description: nextDesc }
+        edgeChanged = true
       }
+      if (edgeChanged) debouncedSaveToHistory()
       return
     }
 
@@ -755,8 +792,22 @@ watch(
     if (newItem.node.value !== undefined) merged.label = newItem.node.value
     if (newItem.node.description !== undefined) merged.description = newItem.node.description
 
-    if (JSON.stringify(merged) !== JSON.stringify(node.data)) {
+    // Compare only the keys that the sidebar actually wrote — avoids
+    // stringifying the entire node.data (including large arguments/results
+    // arrays) on every keystroke. Keys from node.data not in the patch are
+    // identical by construction (they came from ...node.data spread).
+    const patchKeys = [
+      ...Object.keys(configData),
+      ...(newItem.triggers ? ['triggers'] : []),
+      ...(newItem.node.value !== undefined ? ['label'] : []),
+      ...(newItem.node.description !== undefined ? ['description'] : []),
+    ]
+    const hasChange = patchKeys.some(
+      k => JSON.stringify(node.data[k]) !== JSON.stringify(merged[k]),
+    )
+    if (hasChange) {
       node.data = merged
+      debouncedSaveToHistory()
     }
   },
   { deep: true },
@@ -782,12 +833,18 @@ const getRunAs = computed(() => {
 const getZoomPercent = computed(() => `${Math.floor(zoomLevel.value * 100).toFixed(0)}%`)
 
 /* ─── Sidebar computed ─── */
+const isContentNode = computed(
+  () =>
+    sidebar.value.item?.config?.kind === 'visual' && sidebar.value.item?.config?.ref === 'content',
+)
+
 const getSidebarItemType = computed(() => {
   const item = sidebar.value.item
   if (!item) return ''
   if (item.config?.kind === 'edge' || item.node?.edge) {
     return t('steps.path.short')
   }
+  if (isContentNode.value) return 'Text'
   const style = getStyleFromKind(item.config || {})?.style || item.config?.kind || ''
   return t(`steps.${style}.short`, style)
 })
@@ -857,7 +914,8 @@ const toolbarItems = computed(() => {
   return toolbarConfig.map(item => {
     if (item.kind === 'hr') return item
     const styleInfo = getStyleFromKind(item) || {}
-    const label = t(`steps.${styleInfo.style || item.kind}.label`, item.kind)
+    const isContent = item.kind === 'visual' && item.ref === 'content'
+    const label = isContent ? 'Text' : t(`steps.${styleInfo.style || item.kind}.label`, item.kind)
     const tooltip = t(`steps.${styleInfo.style || item.kind}.tooltip`)
     return {
       ...item,
@@ -961,6 +1019,7 @@ function onTriggerUpdated(node) {
 
 function onEventBusChange() {
   emit('change-detected')
+  debouncedSaveToHistory()
 }
 
 /* ─── Render ─── */
@@ -1005,7 +1064,7 @@ function render(wf, initial = false) {
 
   if (initial) {
     hasInitiallyFit = false
-    saveToHistory()
+    resetHistory()
   }
 
   // Check if trigger→step edges match trigger.stepID (#12)
@@ -1289,8 +1348,8 @@ function buildSidebarItem(node) {
       kind: data.kind || '',
       ref: data.ref || '',
       defaultName: data.defaultName || false,
-      arguments: data.arguments || [],
-      results: data.results || [],
+      arguments: JSON.parse(JSON.stringify(data.arguments || [])),
+      results: JSON.parse(JSON.stringify(data.results || [])),
     },
     triggers: data.triggers || undefined,
   }
@@ -1311,6 +1370,32 @@ function sidebarReopen(item, itemType) {
       sidebar.value.showItem = true
     }, 100)
   }
+}
+
+function refreshSidebar() {
+  if (!sidebar.value.show || !sidebar.value.item?.node?.id) return
+  if (sidebar.value.itemType === 'edge') {
+    const edge = edges.value.find(e => e.id === sidebar.value.item.node.id)
+    if (!edge) { sidebarClose(); return }
+    sidebar.value.item = {
+      node: {
+        id: edge.id,
+        value: edge.label || '',
+        description: edge.data?.description || '',
+        edge: true,
+        source: { id: edge.source, style: nodes.value.find(n => n.id === edge.source)?.data?.kind || '' },
+        target: { id: edge.target },
+        edges: [],
+      },
+      config: { kind: 'edge', stepID: edge.id, parentID: edge.source, childID: edge.target, expr: edge.data?.expr || '' },
+    }
+    return
+  }
+  const node = nodes.value.find(n => n.id === sidebar.value.item.node.id)
+  if (!node) { sidebarClose(); return }
+  sidebar.value.showItem = false
+  sidebar.value.item = buildSidebarItem(node)
+  nextTick(() => { sidebar.value.showItem = true })
 }
 
 function sidebarClose() {
@@ -1374,6 +1459,7 @@ function setValue(value, defaultName = false) {
   }
 
   emit('change-detected')
+  debouncedSaveToHistory()
 }
 
 /* ─── Sidebar name / description inputs ─── */
@@ -1391,6 +1477,7 @@ function onSidebarDescriptionChange(value) {
   if (next === item.node.description) return
   item.node.description = next
   emit('change-detected')
+  debouncedSaveToHistory()
 }
 
 /* ─── Issues ─── */
@@ -1438,18 +1525,20 @@ function keybinds(event) {
   }
 
   // Ctrl+Z
-  if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !event.shiftKey) {
     if (editable) return
     event.preventDefault()
     undo()
+    refreshSidebar()
     nextTick(() => checkExistingTriggerPaths())
   }
 
   // Ctrl+Shift+Z
-  if ((event.ctrlKey || event.metaKey) && event.key === 'z' && event.shiftKey) {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && event.shiftKey) {
     if (editable) return
     event.preventDefault()
     redo()
+    refreshSidebar()
     nextTick(() => checkExistingTriggerPaths())
   }
 

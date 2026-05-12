@@ -920,6 +920,7 @@ roles:
   editor:
     info:
       archive: Archive
+      archiveConfirm: Are you sure you want to archive this role?
       archivedAt: Archived at
       createdAt: Created at
       createdBy: Created by
@@ -931,6 +932,7 @@ roles:
       name: Role name
       title: Basic information
       unarchive: Unarchive
+      unarchiveConfirm: Are you sure you want to unarchive this role?
       undelete: Undelete
       updatedAt: Updated at
 

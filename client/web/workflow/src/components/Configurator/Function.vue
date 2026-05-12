@@ -4,7 +4,6 @@
   >
     <div
       v-if="showFunctionList"
-      class="py-3"
     >
       <div
         v-if="functionTypes.length"
@@ -40,11 +39,10 @@
 
     <div
       v-if="args.length"
-      class="py-3"
     >
-      <h3 class="text-sm font-medium text-color mb-2">
+      <label class="text-xs font-semibold uppercase tracking-wider text-muted-color mb-2 block">
         {{ $te('steps.function.configurator.parameters') ? $t('steps.function.configurator.parameters') : 'Parameters' }}
-      </h3>
+      </label>
       <div
         v-for="(a, index) in args"
         :key="index"
@@ -179,11 +177,19 @@
 
     <div
       v-if="expressionResults || results.length"
-      class="py-3"
     >
-      <h3 v-if="results.length || expressionResults" class="text-sm font-medium text-color mb-2">
-        {{ $te('steps.function.configurator.results') ? $t('steps.function.configurator.results') : 'Results' }}
-      </h3>
+      <div v-if="results.length || expressionResults" class="flex items-center justify-between mb-2">
+        <label class="text-xs font-semibold uppercase tracking-wider text-muted-color">
+          {{ $te('steps.function.configurator.results') ? $t('steps.function.configurator.results') : 'Results' }}
+        </label>
+        <Button
+          v-if="expressionResults"
+          :label="$t('steps.function.configurator.add-result')"
+          severity="secondary"
+          size="small"
+          @click="addResult()"
+        />
+      </div>
       <div v-if="results.length">
         <expression-table
           v-if="expressionResults"
@@ -232,16 +238,6 @@
         </div>
       </div>
     </div>
-
-    <Teleport to="#sidebar-footer">
-      <Button
-        v-if="expressionResults"
-        :label="$t('steps.function.configurator.add-result')"
-        severity="secondary"
-        text
-        @click="addResult()"
-      />
-    </Teleport>
 
     <Dialog
       :visible="!!expressionEditor.currentExpression"

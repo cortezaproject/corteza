@@ -2,7 +2,7 @@
   <div>
     <div class="configurator-section">
       <div class="flex items-center justify-between mb-2">
-        <label class="font-medium text-primary">
+        <label class="text-xs font-semibold uppercase tracking-wider text-muted-color">
           {{ $t('steps.expressions.label') }}
         </label>
         <Button

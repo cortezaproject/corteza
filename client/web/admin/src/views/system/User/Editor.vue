@@ -156,7 +156,7 @@
             v-if="isEdit && user.canDeleteUser"
             :label="$t('system.users.editor.info.delete')"
             :message="$t('system.users.editor.info.deleteConfirm')"
-            :header="$t('system.users.editor.info.delete')"
+            :header="user.name || user.handle || user.email || user.userID"
             :disabled="deleting"
             @confirm="handleDelete"
           />

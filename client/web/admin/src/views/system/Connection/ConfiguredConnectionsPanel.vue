@@ -34,9 +34,9 @@
           @click="createConfiguredConnection"
         />
         <CPermissionsButton
-          v-if="canGrant && connection?.connectionID"
+          v-if="canGrant && connection?.connectionID && (connection.source === 'catalog' ? connection.status === 'active' : true)"
           v-tooltip.bottom="$t('general.label.permissions')"
-          :resource="`corteza::system:dal-connection/${connection.connectionID}`"
+          resource="corteza::system:configured-connection/*"
           :title="connection.meta?.short || connection.handle || connection.connectionID"
           :target="connection.meta?.short || connection.handle || connection.connectionID"
         />
@@ -45,7 +45,9 @@
 
     <template #body-status="{ data }">
       <Tag
-        :value="$t(`system.connections.editor.statusValues.${data.status || 'draft'}`, data.status || '-')"
+        :value="
+          $t(`system.connections.editor.statusValues.${data.status || 'draft'}`, data.status || '-')
+        "
         :severity="data.status === 'active' ? 'success' : 'secondary'"
       />
     </template>
@@ -198,7 +200,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { inject, nextTick, onMounted, reactive, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components, useConfirmDelete, useResourceList, useRBACStore } from '@planetcrust/human-vue'

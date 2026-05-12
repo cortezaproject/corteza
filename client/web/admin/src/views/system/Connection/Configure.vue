@@ -13,13 +13,22 @@
       class="shrink-0"
     >
       <template #content>
-        <div class="flex flex-col gap-2 min-w-0">
-          <span class="text-lg font-medium truncate">
-            {{ connection?.meta?.short || '-' }}
-          </span>
-          <span v-if="connection?.meta?.description" class="text-sm text-muted-color">
-            {{ connection.meta.description }}
-          </span>
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex flex-col gap-2 min-w-0">
+            <span class="text-lg font-medium truncate">
+              {{ connection?.meta?.short || '-' }}
+            </span>
+            <span v-if="connection?.meta?.description" class="text-sm text-muted-color">
+              {{ connection.meta.description }}
+            </span>
+          </div>
+          <CPermissionsButton
+            v-if="canGrant && connection?.connectionID && connection?.status === 'active'"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            :resource="`corteza::system:dal-connection/${connection.connectionID}`"
+            :title="connection.meta?.short || connection.handle || connection.connectionID"
+            :target="connection.meta?.short || connection.handle || connection.connectionID"
+          />
         </div>
       </template>
     </Card>
@@ -44,6 +53,7 @@
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRBACStore } from '@planetcrust/human-vue'
 import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
 
 const route = useRoute()
@@ -51,6 +61,9 @@ const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
 
 const connection = ref(null)
 

@@ -2,44 +2,45 @@ import { ref, watch, nextTick } from 'vue'
 import { useVueFlow } from '@vue-flow/core'
 
 /**
- * Undo/redo stack for workflow nodes + edges.
+ * Undo/redo stack for workflow nodes + edges — delta-compressed storage.
  *
- * We snapshot ONLY the persistent, user-meaningful fields — position, data,
- * type, handles, labels, selection — and strip VueFlow's runtime-measured
- * fields (dimensions, handleBounds, computedPosition, etc.). On restore we
- * reuse the existing VueFlow node/edge objects where the id matches so those
- * measured fields survive the round-trip; only the snapshotted fields are
- * overwritten. That prevents the "nodes teleport / handles misalign after
- * undo" drift we used to see when we reassigned whole arrays built from JSON.
+ * History entries are either a full snapshot or a delta against the previous
+ * entry. A full checkpoint is stored at entry 0 and every CHECKPOINT_EVERY
+ * entries thereafter; all other entries are compact deltas (added/removed/
+ * changed sets). Reconstructing state at any index costs at most
+ * CHECKPOINT_EVERY delta applications, and unchanged nodes between snapshots
+ * share the same frozen reference so they take no extra memory.
  *
- * After each restore we also ask VueFlow to re-measure the affected nodes via
- * `updateNodeInternals()`. That catches the cases that a field-whitelist
- * cannot preserve — e.g. a previously-deleted node being re-added (where no
- * measured state exists yet), or a data/type change that shifts handle
- * positions and therefore invalidates cached handleBounds.
+ * On restore we reuse the existing VueFlow node/edge objects where the id
+ * matches so VueFlow's measured fields (dimensions, handleBounds,
+ * computedPosition) survive the round-trip. After each restore we call
+ * `updateNodeInternals()` for nodes whose type or data changed so handle
+ * positions stay in sync.
  *
- * Max 100 entries.
+ * Max MAX entries total.
  *
  * @param {import('vue').Ref<Array>} nodes reactive VueFlow nodes array
  * @param {import('vue').Ref<Array>} edges reactive VueFlow edges array
  * @param {Object} [opts]
- * @param {string} [opts.vfId] VueFlow instance id (used to locate
- *   `updateNodeInternals`). Defaults to `'workflow-editor-flow'` to match the
- *   id the workflow editor registers. Ignored if `opts.updateNodeInternals`
- *   is provided directly.
+ * @param {string} [opts.vfId] VueFlow instance id
  * @param {(ids?: string[]) => void} [opts.updateNodeInternals] explicit
- *   remeasure callback; overrides the auto-resolved VueFlow one. Useful for
- *   tests.
+ *   remeasure callback; overrides the auto-resolved VueFlow one.
  */
 export function useWorkflowHistory (nodes, edges, opts = {}) {
+  // Each entry:
+  //   { type: 'full',  nodes: Map<id, frozenSnap>, edges: Map<id, frozenSnap> }
+  //   { type: 'delta', nodes: Delta, edges: Delta }
+  //   Delta = { added: frozenSnap[], removed: string[], changed: frozenSnap[] }
   const history = ref([])
   const pointer = ref(-1)
   const skipwatch = ref(false)
   const MAX = 100
+  const CHECKPOINT_EVERY = 10
 
-  // Lazily resolve VueFlow's updateNodeInternals. We don't want to throw if
-  // the flow instance isn't registered yet at composable-init time (it often
-  // isn't — the <VueFlow> component mounts after its parent's setup runs).
+  // After truncation (undo + new edit) we force a full checkpoint so the new
+  // branch never depends on the discarded delta chain.
+  let needsCheckpoint = false
+
   const vfId = opts.vfId ?? 'workflow-editor-flow'
   let resolvedUpdate = typeof opts.updateNodeInternals === 'function'
     ? opts.updateNodeInternals
@@ -53,12 +54,10 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
           resolvedUpdate = vf.updateNodeInternals.bind(vf)
         }
       } catch (_e) {
-        // VueFlow instance not ready yet — skip silently, next restore will
-        // try again.
+        // VueFlow instance not ready yet — skip silently.
       }
     }
     if (resolvedUpdate) {
-      // Pass a defensive copy so downstream mutations can't feed back.
       resolvedUpdate(ids ? [...ids] : undefined)
     }
   }
@@ -91,36 +90,66 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
     }
   }
 
-  function snapshot () {
-    return {
-      nodes: nodes.value.map(snapshotNode),
-      edges: edges.value.map(snapshotEdge),
-    }
+  // Build a Map<id, frozenSnap> from a reactive array.
+  function toMap (arr, snapshotFn) {
+    return new Map(arr.map(x => [x.id, Object.freeze(snapshotFn(x))]))
   }
 
-  function restore (snap) {
+  // Compute what changed between two Maps. Returns a Delta.
+  function computeDelta (prevMap, currMap) {
+    const added = []
+    const removed = []
+    const changed = []
+    for (const [id, snap] of currMap) {
+      if (!prevMap.has(id)) {
+        added.push(snap)
+      } else if (JSON.stringify(prevMap.get(id)) !== JSON.stringify(snap)) {
+        changed.push(snap)
+      }
+    }
+    for (const id of prevMap.keys()) {
+      if (!currMap.has(id)) removed.push(id)
+    }
+    return { added, removed, changed }
+  }
+
+  // Apply a Delta to a Map, returning a new Map (non-mutating).
+  function applyDelta (map, delta) {
+    const next = new Map(map)
+    for (const id of delta.removed) next.delete(id)
+    for (const snap of delta.added) next.set(snap.id, snap)
+    for (const snap of delta.changed) next.set(snap.id, snap)
+    return next
+  }
+
+  // Reconstruct full node/edge Maps at the given history index.
+  // Walks back to the nearest full checkpoint, then replays deltas forward.
+  function reconstructAt (index) {
+    let base = index
+    while (base > 0 && history.value[base].type !== 'full') base--
+    let nodeMap = new Map(history.value[base].nodes)
+    let edgeMap = new Map(history.value[base].edges)
+    for (let i = base + 1; i <= index; i++) {
+      nodeMap = applyDelta(nodeMap, history.value[i].nodes)
+      edgeMap = applyDelta(edgeMap, history.value[i].edges)
+    }
+    return { nodeMap, edgeMap }
+  }
+
+  function restore ({ nodeMap, edgeMap }) {
     skipwatch.value = true
 
     const currentNodeById = new Map(nodes.value.map(n => [n.id, n]))
     const currentEdgeById = new Map(edges.value.map(e => [e.id, e]))
 
-    // Track which nodes need a VueFlow re-measure after restore:
-    //   - brand new (no existing instance to preserve)
-    //   - type changed (handle layout may differ)
-    //   - data changed in a way that can alter handle count/position
     const toRemeasure = []
 
-    nodes.value = snap.nodes.map(s => {
+    nodes.value = [...nodeMap.values()].map(s => {
       const existing = currentNodeById.get(s.id)
       if (existing) {
         const typeChanged = existing.type !== s.type
         const dataChanged = JSON.stringify(existing.data || {}) !== JSON.stringify(s.data || {})
-        if (typeChanged || dataChanged) {
-          toRemeasure.push(s.id)
-        }
-        // Preserve VueFlow's measured fields (dimensions, handleBounds,
-        // computedPosition, etc.) and just overwrite the snapshot-managed
-        // ones.
+        if (typeChanged || dataChanged) toRemeasure.push(s.id)
         return Object.assign(existing, {
           type: s.type,
           position: { ...s.position },
@@ -132,13 +161,11 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
           data: s.data,
         })
       }
-      // Brand-new (or previously-deleted) node — VueFlow has no measured
-      // state for it and needs to run its internal measure pass.
       toRemeasure.push(s.id)
       return { ...s }
     })
 
-    edges.value = snap.edges.map(s => {
+    edges.value = [...edgeMap.values()].map(s => {
       const existing = currentEdgeById.get(s.id)
       if (existing) {
         return Object.assign(existing, {
@@ -157,11 +184,6 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
 
     skipwatch.value = false
 
-    // Ask VueFlow to re-measure after Vue flushes the reactive updates so the
-    // DOM reflects the restored state. Without this, handleBounds /
-    // computedPosition can stay stale and subsequent interactions (dragging a
-    // connection, moving the node) exhibit the "jitter" the editor used to
-    // show after undo.
     nextTick(() => {
       remeasure(toRemeasure.length > 0 ? toRemeasure : undefined)
     })
@@ -169,32 +191,68 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
 
   function saveToHistory () {
     if (skipwatch.value) return
-    const snap = snapshot()
 
+    const currNodeMap = toMap(nodes.value, snapshotNode)
+    const currEdgeMap = toMap(edges.value, snapshotEdge)
+
+    // Discard any future entries when branching from an undo point.
     if (pointer.value < history.value.length - 1) {
       history.value = history.value.slice(0, pointer.value + 1)
+      // Force a full checkpoint so the new branch never references the
+      // discarded chain.
+      needsCheckpoint = true
     }
 
-    history.value.push(snap)
+    const newIndex = history.value.length
 
+    if (newIndex === 0 || needsCheckpoint || newIndex % CHECKPOINT_EVERY === 0) {
+      history.value.push({ type: 'full', nodes: currNodeMap, edges: currEdgeMap })
+      needsCheckpoint = false
+    } else {
+      const { nodeMap: prevNodeMap, edgeMap: prevEdgeMap } = reconstructAt(newIndex - 1)
+      history.value.push({
+        type: 'delta',
+        nodes: computeDelta(prevNodeMap, currNodeMap),
+        edges: computeDelta(prevEdgeMap, currEdgeMap),
+      })
+    }
+
+    // Trim oldest entries while maintaining the invariant that history[0] is
+    // always a full snapshot.
     if (history.value.length > MAX) {
-      history.value = history.value.slice(history.value.length - MAX)
+      const excess = history.value.length - MAX
+      const { nodeMap, edgeMap } = reconstructAt(excess)
+      history.value = [
+        { type: 'full', nodes: nodeMap, edges: edgeMap },
+        ...history.value.slice(excess + 1),
+      ]
     }
 
     pointer.value = history.value.length - 1
   }
 
+  // Reset to a clean single-entry history using the current nodes/edges as the
+  // new base. Called after the workflow is initially loaded so that the loaded
+  // state is the floor — undo is disabled until the user makes a real change.
+  function resetHistory () {
+    const currNodeMap = toMap(nodes.value, snapshotNode)
+    const currEdgeMap = toMap(edges.value, snapshotEdge)
+    history.value = [{ type: 'full', nodes: currNodeMap, edges: currEdgeMap }]
+    needsCheckpoint = false
+    pointer.value = 0
+  }
+
   function undo () {
     if (pointer.value > 0) {
       pointer.value--
-      restore(history.value[pointer.value])
+      restore(reconstructAt(pointer.value))
     }
   }
 
   function redo () {
     if (pointer.value < history.value.length - 1) {
       pointer.value++
-      restore(history.value[pointer.value])
+      restore(reconstructAt(pointer.value))
     }
   }
 
@@ -210,6 +268,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
 
   return {
     saveToHistory,
+    resetHistory,
     undo,
     redo,
     canUndo,

@@ -5,7 +5,7 @@ general:
 labels:
   label: Labels
 name:
-  label: Name *
+  label: Name
   placeholder: Workflow name
 handle:
   label: Handle

@@ -27,7 +27,7 @@
           size="small"
           outlined
           :disabled="saving"
-          @click="handleArchive"
+          @click="confirmArchive"
         />
         <Button
           v-if="role.archivedAt && !role.isSystem && !role.isClosed"
@@ -37,7 +37,7 @@
           size="small"
           outlined
           :disabled="saving"
-          @click="handleUnarchive"
+          @click="confirmUnarchive"
         />
         <Button
           v-if="role.canGrant"
@@ -195,6 +195,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
 import { system } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
@@ -209,6 +210,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const confirm = useConfirm()
 
 // State
 const loading = ref(false)
@@ -253,6 +255,7 @@ const initialValues = computed(() => {
   return {
     name: role.value?.name || '',
     handle: role.value?.handle || '',
+    description: role.value?.meta?.description || '',
   }
 })
 
@@ -407,6 +410,30 @@ async function handleUndelete() {
   } finally {
     saving.value = false
   }
+}
+
+function confirmArchive(event) {
+  confirm.require({
+    target: event.currentTarget,
+    message: t('system.roles.editor.info.archiveConfirm'),
+    header: t('system.roles.editor.info.archive'),
+    icon: 'pi pi-box',
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', outlined: true, size: 'small' },
+    acceptProps: { label: t('system.roles.editor.info.archive'), severity: 'warn', size: 'small' },
+    accept: () => handleArchive(),
+  })
+}
+
+function confirmUnarchive(event) {
+  confirm.require({
+    target: event.currentTarget,
+    message: t('system.roles.editor.info.unarchiveConfirm'),
+    header: t('system.roles.editor.info.unarchive'),
+    icon: 'pi pi-box',
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', outlined: true, size: 'small' },
+    acceptProps: { label: t('system.roles.editor.info.unarchive'), severity: 'success', size: 'small' },
+    accept: () => handleUnarchive(),
+  })
 }
 
 async function handleArchive() {

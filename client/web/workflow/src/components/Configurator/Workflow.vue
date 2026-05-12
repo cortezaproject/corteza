@@ -29,7 +29,7 @@
     <div class="flex flex-col gap-4 px-3">
       <div class="flex flex-col gap-1">
         <label class="font-medium text-primary">
-          {{ $t('configurator.name.label') }}
+          {{ $t('configurator.name.label') }} <span class="text-red-500">*</span>
         </label>
         <InputText
           v-model="localWorkflow.meta.name"

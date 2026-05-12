@@ -59,7 +59,7 @@
       </template>
 
       <template #body-createdAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+        {{ locFullDateTime(data.createdAt) }}
       </template>
 
     </CResourceList>

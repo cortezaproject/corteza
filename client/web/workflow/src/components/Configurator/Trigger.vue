@@ -4,7 +4,7 @@
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="font-medium text-primary">
-            {{ $t('steps.trigger.configurator.resource*') }}
+            {{ $t('steps.trigger.configurator.resource') }} <span class="text-red-500">*</span>
           </label>
           <Select
             v-model="item.triggers.resourceType"
@@ -23,7 +23,7 @@
           class="flex flex-col gap-1"
         >
           <label class="font-medium text-primary">
-            {{ $t('steps.trigger.configurator.event*') }}
+            {{ $t('steps.trigger.configurator.event') }} <span class="text-red-500">*</span>
           </label>
           <Select
             v-model="item.triggers.eventType"

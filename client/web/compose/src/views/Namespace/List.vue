@@ -4,10 +4,7 @@
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
-    <div
-      v-if="viewMode === 'cards'"
-      class="h-full flex flex-col min-w-0 overflow-hidden gap-4"
-    >
+    <div v-if="viewMode === 'cards'" class="h-full flex flex-col min-w-0 overflow-hidden gap-4">
       <Card
         :pt="{
           body: { class: 'p-3' },
@@ -55,7 +52,7 @@
       </Card>
 
       <div v-if="areNamespacesVisible" class="flex-1 overflow-auto min-h-0 min-w-0">
-        <div class="p-4">
+        <div class="py-2">
           <div class="flex flex-wrap justify-center gap-7">
             <RouterLink
               v-for="namespace in sortedNamespaces"
@@ -82,7 +79,9 @@
                 class="group-hover:shadow-lg w-80 min-h-72 group-hover:h-full overflow-hidden"
               >
                 <template #header>
-                  <div class="relative flex items-center justify-center w-full h-full pt-7 shrink-0">
+                  <div
+                    class="relative flex items-center justify-center w-full h-full pt-7 shrink-0"
+                  >
                     <Avatar
                       :label="namespace.meta.logoEnabled ? null : namespace.initials"
                       :image="
@@ -190,9 +189,7 @@
           <Avatar
             :label="data.meta?.logoEnabled ? null : getInitials(data)"
             :image="
-              data.meta?.logoEnabled
-                ? data.meta?.logo || $Settings.attachment('ui.mainLogo')
-                : null
+              data.meta?.logoEnabled ? data.meta?.logo || $Settings.attachment('ui.mainLogo') : null
             "
             :pt="{ image: { class: 'object-contain' } }"
             shape="circle"
@@ -201,10 +198,7 @@
           />
           <div class="flex flex-col min-w-0">
             <span class="truncate text-sm">{{ data.name || '—' }}</span>
-            <span
-              v-if="data.meta?.description"
-              class="text-xs text-muted-color truncate"
-            >
+            <span v-if="data.meta?.description" class="text-xs text-muted-color truncate">
               {{ data.meta.description }}
             </span>
           </div>

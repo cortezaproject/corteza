@@ -176,8 +176,11 @@
                 </div>
               </TabPanel>
 
-
-              <TabPanel v-if="showConfiguredTab" value="configured" class="h-full overflow-hidden p-4">
+              <TabPanel
+                v-if="showConfiguredTab"
+                value="configured"
+                class="h-full overflow-hidden p-4"
+              >
                 <ConfiguredConnectionsPanel :connection="connection" />
               </TabPanel>
             </TabPanels>
@@ -264,9 +267,7 @@ const canEnable = computed(
     connection.value?.canUpdateConnection,
 )
 
-const showConfiguredTab = computed(
-  () => isEdit.value && connection.value?.status === 'active',
-)
+const showConfiguredTab = computed(() => isEdit.value && connection.value?.status === 'active')
 
 const pageTitle = computed(() => {
   return isEdit.value
@@ -379,7 +380,9 @@ async function handleSubmit({ valid }) {
     activeTab.value = 'general'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -479,7 +482,13 @@ async function handleEnable() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!connection.value && !!initialConnection.value && (!isEqual(connection.value, initialConnection.value) || !isEqual({ ...rawJSON }, initialRawJSON.value)),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!connection.value &&
+    !!initialConnection.value &&
+    (!isEqual(connection.value, initialConnection.value) ||
+      !isEqual({ ...rawJSON }, initialRawJSON.value)),
   messageKey: 'general.editor.unsavedChanges',
 })
 

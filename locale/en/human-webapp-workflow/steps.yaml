@@ -103,7 +103,8 @@ trigger:
     add-constraints: + Add Constraints
     constraints: Constraints
     no-constraints: No constraints
-    event*: Event*
+    event: Event
+    event*: Event
     failed-fetch-event-types: Failed to fetch event types
     initial-scope: Initial Scope
     equal: Equal
@@ -112,7 +113,7 @@ trigger:
     not-like: Not like
     operator: Operator
     resource:  Resource
-    resource*:  Resource*
+    resource*: Resource
     select-constraint-type: Select constraint type
     select-operator: Select operator
     select-event-type: Select event type
