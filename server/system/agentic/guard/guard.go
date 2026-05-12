@@ -21,3 +21,16 @@ type (
 		Reason     string             `json:"reason,omitempty"`
 	}
 )
+
+func blocked(category, reason string) *GuardResult {
+	return &GuardResult{
+		Safe:       false,
+		Blocked:    true,
+		Reason:     reason,
+		Categories: map[string]float64{category: 1.0},
+	}
+}
+
+func safe() *GuardResult {
+	return &GuardResult{Safe: true, Blocked: false}
+}

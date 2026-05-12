@@ -1,0 +1,27 @@
+package inputguard
+
+var phrasesEN = []string{
+	"ignore previous",
+	"ignore all previous",
+	"ignore above",
+	"disregard all",
+	"disregard previous",
+	"forget everything",
+	"you are now",
+	"new instructions",
+	"act as",
+	"pretend to be",
+	"do not follow",
+	"override your",
+	"bypass your",
+	"from now on you",
+	"role play as",
+	"roleplay as",
+	"play the role",
+	"take on the role",
+	"simulate being",
+	"impersonate",
+	"you are a",
+	"behave as",
+	"respond as",
+}

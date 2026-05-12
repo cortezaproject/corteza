@@ -1,0 +1,25 @@
+package inputguard
+
+var phrasesES = []string{
+	"ignorar instrucciones anteriores",
+	"ignora todo lo anterior",
+	"ignora las anteriores",
+	"olvida todo",
+	"ahora eres",
+	"actúa como",
+	"actua como",
+	"finge ser",
+	"simula ser",
+	"no sigas",
+	"anula tus",
+	"omite tus",
+	"de ahora en adelante",
+	"juega el papel de",
+	"interpreta el papel de",
+	"hazte pasar por",
+	"eres un",
+	"eres una",
+	"compórtate como",
+	"comportate como",
+	"responde como",
+}
