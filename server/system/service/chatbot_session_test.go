@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -70,11 +71,12 @@ func TestExecuteStep(t *testing.T) {
 	})
 
 	t.Run("before automation failure marks step failed", func(t *testing.T) {
-		automationID := nextID()
 		scenario := &types.ChatbotScenario{
-			ID:                 "test-scenario-before-fail",
-			Type:               "conversation",
-			BeforeAutomationID: &automationID,
+			ID:   "test-scenario-before-fail",
+			Type: "conversation",
+			Automation: types.ChatbotScenarioAutomation{
+				Before: fmt.Sprintf("corteza::automation:ng-automation/%d", nextID()),
+			},
 		}
 
 		// Without DefaultNgAutomation set, invokeAutomation will return error

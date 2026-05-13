@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	automationService "github.com/crusttech/human/server/automation/service"
 	automationTypes "github.com/crusttech/human/server/automation/types"
@@ -249,8 +251,8 @@ func (svc *chatbotSession) ExecuteStep(ctx context.Context, sessionID uint64, sc
 		}
 
 		// Run before automation if present — blocks; failure aborts step
-		if scenario.BeforeAutomationID != nil && *scenario.BeforeAutomationID != 0 {
-			if err := svc.invokeAutomation(ctx, *scenario.BeforeAutomationID); err != nil {
+		if scenario.Automation.Before != "" {
+			if err := svc.invokeAutomation(ctx, scenario.Automation.Before); err != nil {
 				step.Status = "failed"
 				_ = store.UpdateChatbotSessionStep(ctx, svc.store, step)
 				return step, fmt.Errorf("before automation: %w", err)
@@ -267,8 +269,8 @@ func (svc *chatbotSession) ExecuteStep(ctx context.Context, sessionID uint64, sc
 	step.Status = "complete"
 
 	// Run after automation — log errors only, don't abort
-	if scenario.AfterAutomationID != nil && *scenario.AfterAutomationID != 0 {
-		if err := svc.invokeAutomation(ctx, *scenario.AfterAutomationID); err != nil {
+	if scenario.Automation.After != "" {
+		if err := svc.invokeAutomation(ctx, scenario.Automation.After); err != nil {
 			svc.actionlog.Record(ctx, &actionlog.Action{
 				Resource: "chatbot-session-step",
 				Action:   "automation-error",
@@ -280,14 +282,22 @@ func (svc *chatbotSession) ExecuteStep(ctx context.Context, sessionID uint64, sc
 	return step, nil
 }
 
-// invokeAutomation executes an automation by ID synchronously under service identity.
-func (svc *chatbotSession) invokeAutomation(ctx context.Context, automationID uint64) error {
+// invokeAutomation executes an automation by resource identifier synchronously under service identity.
+// Resource format: corteza::automation:ng-automation/{ID}
+func (svc *chatbotSession) invokeAutomation(ctx context.Context, resourceID string) error {
 	if automationService.DefaultNgAutomation == nil {
 		return fmt.Errorf("automation service not available")
 	}
 
+	prefix := automationTypes.NgAutomationResourceType + "/"
+	idStr := strings.TrimPrefix(resourceID, prefix)
+	automationID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil || automationID == 0 {
+		return fmt.Errorf("invalid automation resource identifier: %s", resourceID)
+	}
+
 	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
-	_, err := automationService.DefaultNgAutomation.ExecAndWait(svcCtx, automationID, automationTypes.NgAutomationExecParams{
+	_, err = automationService.DefaultNgAutomation.ExecAndWait(svcCtx, automationID, automationTypes.NgAutomationExecParams{
 		Input: &expr.Vars{},
 	})
 	return err
