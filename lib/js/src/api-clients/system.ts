@@ -9718,4 +9718,130 @@ export default class System {
     const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}/regenerate-key`
   }
+
+  // List chatbot sessions
+  async chatbotSessionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.chatbotSessionListEndpoint(),
+    }
+    cfg.params = {
+      chatbotID,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotSessionListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotSessionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotSessionListEndpoint(): string {
+    return '/chatbots/sessions'
+  }
+
+  // List sessions for chatbot
+  async chatbotSessionListByChatbot(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { chatbotID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    if (!chatbotID) {
+      throw Error('field chatbotID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.chatbotSessionListByChatbotEndpoint({
+        chatbotID,
+      }),
+    }
+    cfg.params = {
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotSessionListByChatbotCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotSessionListByChatbot(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotSessionListByChatbotEndpoint(a: KV): string {
+    const { chatbotID } = a || {}
+    return `/chatbots/${chatbotID}/sessions`
+  }
+
+  // Read session with steps
+  async chatbotSessionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { sessionID } = (a as KV) || {}
+    if (!sessionID) {
+      throw Error('field sessionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.chatbotSessionReadEndpoint({
+        sessionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  chatbotSessionReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.chatbotSessionRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  chatbotSessionReadEndpoint(a: KV): string {
+    const { sessionID } = a || {}
+    return `/chatbots/sessions/${sessionID}`
+  }
 }

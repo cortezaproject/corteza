@@ -3904,3 +3904,44 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+      - name: uploadAsset
+        method: POST
+        title: Upload chatbot asset
+        path: '/{chatbotID}/upload-asset'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+          post:
+            - { type: '*multipart.FileHeader', name: upload, title: Asset file to upload }
+      - name: sessionList
+        method: GET
+        title: List chatbot sessions
+        path: '/sessions'
+        parameters:
+          get:
+            - { type: uint64, name: chatbotID, title: Filter by chatbot ID }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: sessionListByChatbot
+        method: GET
+        title: List sessions for chatbot
+        path: '/{chatbotID}/sessions'
+        parameters:
+          path:
+            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
+          get:
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: sessionRead
+        method: GET
+        title: Read session with steps
+        path: '/sessions/{sessionID}'
+        parameters:
+          path:
+            - { type: uint64, name: sessionID, required: true, title: Session ID }

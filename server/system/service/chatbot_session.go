@@ -78,6 +78,19 @@ func (svc *chatbotSession) FindByChatbotID(ctx context.Context, chatbotID uint64
 	return store.LookupChatbotSessionByChatbotID(ctx, svc.store, chatbotID)
 }
 
+// Search sessions by filter
+func (svc *chatbotSession) Search(ctx context.Context, f types.ChatbotSessionFilter) (types.ChatbotSessionSet, types.ChatbotSessionFilter, error) {
+	return store.SearchChatbotSessions(ctx, svc.store, f)
+}
+
+// FindStepsBySession returns all steps for a session in order
+func (svc *chatbotSession) FindStepsBySession(ctx context.Context, sessionID uint64) (types.ChatbotSessionStepSet, error) {
+	set, _, err := store.SearchChatbotSessionSteps(ctx, svc.store, types.ChatbotSessionStepFilter{
+		SessionID: sessionID,
+	})
+	return set, err
+}
+
 // UpdateStatus update session status
 func (svc *chatbotSession) UpdateStatus(ctx context.Context, id uint64, status string) error {
 	s, err := svc.FindByID(ctx, id)

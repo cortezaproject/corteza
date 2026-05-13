@@ -39,12 +39,18 @@ interface ChatbotStyling {
   launcher: ChatbotLauncher
 }
 
+interface ChatbotScenarioAutomation {
+  before?: string
+  after?: string
+}
+
 interface ChatbotScenario {
   id: string
   name: string
   type: string
   agentID?: string
   config: unknown
+  automation?: ChatbotScenarioAutomation
 }
 
 interface ChatbotHandoff {
@@ -168,5 +174,74 @@ export class Chatbot {
 
   clone(): Chatbot {
     return new Chatbot(JSON.parse(JSON.stringify(this)))
+  }
+}
+
+interface PartialChatbotSession extends Partial<
+  Omit<ChatbotSession, 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+}
+
+export class ChatbotSession {
+  public sessionID = NoID
+  public chatbotID = NoID
+  public status = ''
+  public currentStep = 0
+
+  public createdAt?: Date = undefined
+  public updatedAt?: Date = undefined
+  public deletedAt?: Date = undefined
+
+  public createdBy = NoID
+  public updatedBy = NoID
+  public deletedBy = NoID
+
+  constructor(o?: PartialChatbotSession) {
+    this.apply(o)
+  }
+
+  apply(o?: PartialChatbotSession): void {
+    Apply(this, o, HumanID, 'sessionID', 'chatbotID', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
+    Apply(this, o, String, 'status')
+    Apply(this, o, Number, 'currentStep')
+  }
+}
+
+interface PartialChatbotSessionStep extends Partial<
+  Omit<ChatbotSessionStep, 'createdAt' | 'updatedAt' | 'deletedAt'>
+> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+}
+
+export class ChatbotSessionStep {
+  public stepID = NoID
+  public sessionID = NoID
+  public conversationID = NoID
+  public scenarioIndex = 0
+  public status = ''
+
+  public createdAt?: Date = undefined
+  public updatedAt?: Date = undefined
+  public deletedAt?: Date = undefined
+
+  public createdBy = NoID
+  public updatedBy = NoID
+  public deletedBy = NoID
+
+  constructor(o?: PartialChatbotSessionStep) {
+    this.apply(o)
+  }
+
+  apply(o?: PartialChatbotSessionStep): void {
+    Apply(this, o, HumanID, 'stepID', 'sessionID', 'conversationID', 'createdBy', 'updatedBy', 'deletedBy')
+    Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
+    Apply(this, o, String, 'status')
+    Apply(this, o, Number, 'scenarioIndex')
   }
 }

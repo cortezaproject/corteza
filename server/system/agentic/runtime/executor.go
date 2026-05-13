@@ -148,6 +148,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			Details: map[string]any{
 				"totalTokens": execResult.Usage.ContextWindow - execResult.InitialTokens,
 				"toolCalls":   len(execResult.ExecutedTools),
+				"response":    execResult.FinalResponse,
 			},
 		})
 	}

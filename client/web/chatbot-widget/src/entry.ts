@@ -95,6 +95,34 @@ async function boot() {
       engine.emit({ type: 'typing', on: false })
       engine.endAgent()
     })
+    // agent.completed fires when the runtime finishes a turn (non-streaming)
+    stream.addEventListener('agent.completed', ev => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data || '{}')
+        engine.emit({ type: 'typing', on: false })
+        if (data.response) {
+          engine.pushMessage({ role: 'agent', content: data.response })
+        } else {
+          engine.endAgent()
+        }
+      } catch {
+        engine.emit({ type: 'typing', on: false })
+        engine.endAgent()
+      }
+    })
+    // scenario_step_complete fires after advance-step; sessionComplete means the journey is done
+    stream.addEventListener('scenario_step_complete', ev => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data || '{}')
+        if (data.sessionComplete) {
+          engine.emit({ type: 'message', message: { role: 'system', content: '✓ Done' } })
+        } else if (data.nextScenarioID) {
+          engine.advance(data.nextScenarioID)
+        }
+      } catch {
+        /* ignore */
+      }
+    })
     stream.onerror = () => {
       engine.emit({ type: 'typing', on: false })
       engine.endAgent()
@@ -117,7 +145,21 @@ async function boot() {
   }
 
   ui.onFormSubmit = _values => {
-    engine.advance()
+    ;(async () => {
+      try {
+        const s = await ensureSession()
+        const result = await api.advanceStep(s.sessionID)
+        if (result.sessionComplete) {
+          engine.emit({ type: 'message', message: { role: 'system', content: '✓ Done' } })
+        } else if (result.nextScenarioID) {
+          engine.advance(result.nextScenarioID)
+        } else {
+          engine.advance()
+        }
+      } catch {
+        engine.advance()
+      }
+    })()
   }
 
   engine.on(ev => {

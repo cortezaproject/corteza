@@ -119,7 +119,15 @@ function mount() {
     },
   })
   ui.onUserInput = handleUserInput
-  ui.onFormSubmit = () => engine.advance()
+  ui.onFormSubmit = () => {
+    const idx = cfg.scenarios.findIndex(s => s.id === engine.current?.id)
+    const next = idx >= 0 ? cfg.scenarios[idx + 1] : null
+    if (next) {
+      engine.advance(next.id)
+    } else {
+      engine.emit({ type: 'message', message: { role: 'system', content: '✓ Done' } })
+    }
+  }
   engine.start()
 }
 

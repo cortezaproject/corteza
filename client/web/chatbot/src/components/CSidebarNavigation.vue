@@ -33,6 +33,13 @@ const navItems = computed(() => [
     _icon: 'pi pi-comments',
     _route: { name: 'root' },
   },
+  {
+    _id: 'sessions',
+    _parentId: '0',
+    _label: t('navigation.sessions'),
+    _icon: 'pi pi-list',
+    _route: { name: 'sessions' },
+  },
   ...[...chatbotStore.list]
     .sort((a, b) => {
       const labelA = a.name || a.handle || ''

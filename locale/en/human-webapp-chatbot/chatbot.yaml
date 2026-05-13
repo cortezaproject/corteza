@@ -20,6 +20,9 @@ list:
 editor:
   titleCreate: Create chatbot
   titleEdit: Edit chatbot
+  tabs:
+    config: Config
+    sessions: Sessions
   panels:
     general: General
     styling: Styling
@@ -183,3 +186,27 @@ editor:
         email: Email
         number: Number
         textarea: Multi-line text
+    automation:
+      before: Before automation
+      beforeHelp: Runs before the step executes. Blocks on failure.
+      after: After automation
+      afterHelp: Runs after the step completes. Errors are logged only.
+
+sessions:
+  title: Sessions
+  searchPlaceholder: Search sessions
+  status:
+    active: Active
+    completed: Completed
+    handoff: Handoff
+    error: Error
+  columns:
+    chatbot: Chatbot
+    status: Status
+    createdAt: Created
+  detail:
+    title: Session details
+    empty: No messages in this session
+  filter:
+    chatbot: Chatbot
+    allChatbots: All chatbots

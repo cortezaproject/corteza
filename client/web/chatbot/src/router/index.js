@@ -19,6 +19,11 @@ const router = createRouter({
       component: () => import('../views/Editor.vue'),
     },
     {
+      path: '/sessions',
+      name: 'sessions',
+      component: () => import('../views/Sessions.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },

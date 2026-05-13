@@ -63,6 +63,19 @@ export class WidgetAPI {
     if (r.status !== 202) throw new Error('widget: send failed')
   }
 
+  async advanceStep(sessionID: string): Promise<{ nextScenarioID?: string; sessionComplete?: boolean }> {
+    const r = await fetch(
+      `${this.base}/session/${encodeURIComponent(sessionID)}/advance-step?widgetKey=${encodeURIComponent(this.key)}`,
+      {
+        method: 'POST',
+        credentials: 'omit',
+        headers: { Authorization: `Bearer ${this.token}` },
+      },
+    )
+    if (!r.ok) throw new Error('widget: advance-step failed')
+    return r.json()
+  }
+
   // EventSource can't set headers → pass token as query.
   openStream(sessionID: string): EventSource {
     const url = `${this.base}/session/${encodeURIComponent(sessionID)}/stream?widgetKey=${encodeURIComponent(

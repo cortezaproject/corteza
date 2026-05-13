@@ -236,6 +236,35 @@
               <InputText v-model="current.config.submitLabel" />
             </div>
           </template>
+
+          <Divider />
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="font-medium text-primary">
+                {{ $t('chatbot.editor.scenarios.automation.before') }}
+              </label>
+              <small class="text-muted-color">
+                {{ $t('chatbot.editor.scenarios.automation.beforeHelp') }}
+              </small>
+              <CInputTAQ
+                :model-value="automationID(current.automation?.before)"
+                @update:model-value="setAutomation('before', $event)"
+              />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="font-medium text-primary">
+                {{ $t('chatbot.editor.scenarios.automation.after') }}
+              </label>
+              <small class="text-muted-color">
+                {{ $t('chatbot.editor.scenarios.automation.afterHelp') }}
+              </small>
+              <CInputTAQ
+                :model-value="automationID(current.automation?.after)"
+                @update:model-value="setAutomation('after', $event)"
+              />
+            </div>
+          </div>
         </template>
         <div v-else class="text-sm text-muted-color p-4 text-center">
           {{ $t('chatbot.editor.scenarios.selectHint') }}
@@ -246,10 +275,27 @@
 </template>
 
 <script setup>
+import { components } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { CInputTAQ } = components
 const { t } = useI18n()
+
+const AUTOMATION_PREFIX = 'corteza::automation:ng-automation/'
+
+function automationID(resourceStr) {
+  if (!resourceStr) return null
+  return resourceStr.startsWith(AUTOMATION_PREFIX)
+    ? resourceStr.slice(AUTOMATION_PREFIX.length)
+    : resourceStr
+}
+
+function setAutomation(field, id) {
+  if (!current.value) return
+  if (!current.value.automation) current.value.automation = {}
+  current.value.automation[field] = id ? `${AUTOMATION_PREFIX}${id}` : ''
+}
 
 const props = defineProps({
   scenarios: { type: Array, required: true },
@@ -338,6 +384,7 @@ function addScenario() {
     name: t('chatbot.editor.scenarios.stepName', { n }),
     type: 'static_message',
     config: defaultScenarioConfig('static_message'),
+    automation: { before: '', after: '' },
   })
   selectedIdx.value = props.scenarios.length - 1
 }

@@ -11,23 +11,56 @@
   </div>
 
   <div v-else-if="chatbot" class="flex flex-col h-full overflow-hidden">
-    <div class="flex-1 flex min-h-0 overflow-hidden">
-      <div class="flex-1 overflow-y-auto">
-        <div class="p-4 flex flex-col gap-4">
-          <div v-if="!isCreate" class="flex justify-end">
-            <CPermissionsButton
-              v-tooltip.bottom="$t('general.label.permissions')"
-              :resource="`corteza::system:chatbot/${route.params.chatbotID}`"
-              :title="chatbot?.name || chatbot?.handle || route.params.chatbotID"
-              :target="chatbot?.name || chatbot?.handle || route.params.chatbotID"
-            />
-          </div>
-          <General :chatbot="chatbot" :is-create="isCreate" @regenerate-key="handleRegenerateKey" />
-          <Scenarios :scenarios="chatbot.scenarios" :agents="agents" />
-          <Styling :styling="chatbot.styling" :chatbot-id="chatbot.chatbotID" />
-        </div>
+    <div class="flex-1 flex flex-row min-h-0 overflow-hidden">
+      <div class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden">
+        <Card
+          :pt="{
+            body: { class: 'p-0 h-full flex flex-col' },
+            content: { class: 'p-0 h-full flex flex-col min-h-0' },
+          }"
+          class="flex-1 min-h-0 overflow-hidden"
+        >
+          <template #content>
+            <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
+              <div class="flex items-center shrink-0 rounded-t-lg">
+                <TabList class="flex-1 min-w-0 rounded-t-lg">
+                  <Tab value="config">{{ $t('chatbot.editor.tabs.config') }}</Tab>
+                  <Tab v-if="!isCreate" value="sessions">
+                    {{ $t('chatbot.editor.tabs.sessions') }}
+                  </Tab>
+                </TabList>
+                <div
+                  v-if="!isCreate"
+                  class="shrink-0 px-2 border-b border-surface self-stretch flex items-center"
+                >
+                  <CPermissionsButton
+                    v-tooltip.bottom="$t('general.label.permissions')"
+                    :resource="`corteza::system:chatbot/${route.params.chatbotID}`"
+                    :title="chatbot?.name || chatbot?.handle || route.params.chatbotID"
+                    :target="chatbot?.name || chatbot?.handle || route.params.chatbotID"
+                  />
+                </div>
+              </div>
+              <TabPanels class="flex-1 min-h-0 p-0">
+                <TabPanel value="config" class="h-full p-4 flex flex-col gap-4 overflow-auto">
+                  <General
+                    :chatbot="chatbot"
+                    :is-create="isCreate"
+                    @regenerate-key="handleRegenerateKey"
+                  />
+                  <Scenarios :scenarios="chatbot.scenarios" :agents="agents" />
+                  <Styling :styling="chatbot.styling" :chatbot-id="chatbot.chatbotID" />
+                </TabPanel>
+                <TabPanel value="sessions" class="h-full overflow-hidden p-0">
+                  <SessionsList :chatbot-id="chatbot.chatbotID" />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </template>
+        </Card>
       </div>
-      <div class="hidden md:block w-[390px] shrink-0 relative border-l border-surface">
+
+      <div class="hidden md:flex shrink-0 flex-col overflow-hidden w-[390px]">
         <Preview :chatbot="chatbot" />
       </div>
     </div>
@@ -75,6 +108,7 @@ import General from './Editor/General.vue'
 import Styling from './Editor/Styling.vue'
 import Scenarios from './Editor/Scenarios.vue'
 import Preview from './Editor/Preview.vue'
+import SessionsList from '@/components/SessionsList.vue'
 
 const { CInputDelete } = components
 
@@ -84,6 +118,8 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const chatbotStore = useChatbotStore()
+
+const activeTab = ref('config')
 
 const loading = ref(false)
 const saving = ref(false)

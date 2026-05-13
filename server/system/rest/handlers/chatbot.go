@@ -26,17 +26,25 @@ type (
 		Delete(context.Context, *request.ChatbotDelete) (interface{}, error)
 		Undelete(context.Context, *request.ChatbotUndelete) (interface{}, error)
 		RegenerateWidgetKey(context.Context, *request.ChatbotRegenerateWidgetKey) (interface{}, error)
+		UploadAsset(context.Context, *request.ChatbotUploadAsset) (interface{}, error)
+		SessionList(context.Context, *request.ChatbotSessionList) (interface{}, error)
+		SessionListByChatbot(context.Context, *request.ChatbotSessionListByChatbot) (interface{}, error)
+		SessionRead(context.Context, *request.ChatbotSessionRead) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Chatbot struct {
-		List                func(http.ResponseWriter, *http.Request)
-		Create              func(http.ResponseWriter, *http.Request)
-		Read                func(http.ResponseWriter, *http.Request)
-		Update              func(http.ResponseWriter, *http.Request)
-		Delete              func(http.ResponseWriter, *http.Request)
-		Undelete            func(http.ResponseWriter, *http.Request)
-		RegenerateWidgetKey func(http.ResponseWriter, *http.Request)
+		List                 func(http.ResponseWriter, *http.Request)
+		Create               func(http.ResponseWriter, *http.Request)
+		Read                 func(http.ResponseWriter, *http.Request)
+		Update               func(http.ResponseWriter, *http.Request)
+		Delete               func(http.ResponseWriter, *http.Request)
+		Undelete             func(http.ResponseWriter, *http.Request)
+		RegenerateWidgetKey  func(http.ResponseWriter, *http.Request)
+		UploadAsset          func(http.ResponseWriter, *http.Request)
+		SessionList          func(http.ResponseWriter, *http.Request)
+		SessionListByChatbot func(http.ResponseWriter, *http.Request)
+		SessionRead          func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -154,6 +162,70 @@ func NewChatbot(h ChatbotAPI) *Chatbot {
 
 			api.Send(w, r, value)
 		},
+		UploadAsset: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChatbotUploadAsset()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UploadAsset(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		SessionList: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChatbotSessionList()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.SessionList(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		SessionListByChatbot: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChatbotSessionListByChatbot()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.SessionListByChatbot(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		SessionRead: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChatbotSessionRead()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.SessionRead(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -167,5 +239,9 @@ func (h Chatbot) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Delete("/chatbots/{chatbotID}", h.Delete)
 		r.Post("/chatbots/{chatbotID}/undelete", h.Undelete)
 		r.Post("/chatbots/{chatbotID}/regenerate-key", h.RegenerateWidgetKey)
+		r.Post("/chatbots/{chatbotID}/upload-asset", h.UploadAsset)
+		r.Get("/chatbots/sessions", h.SessionList)
+		r.Get("/chatbots/{chatbotID}/sessions", h.SessionListByChatbot)
+		r.Get("/chatbots/sessions/{sessionID}", h.SessionRead)
 	})
 }

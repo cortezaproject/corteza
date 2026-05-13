@@ -391,11 +391,17 @@ func (c *Controller) advanceStep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	nextScenarioIndex := step.ScenarioIndex + 1
+	isLast := nextScenarioIndex >= len(cb.Scenarios)
+
+	if isLast {
+		_ = c.sessionSvc.UpdateStatus(svcCtx, claims.Dbsid, "completed")
+	}
+
 	// Emit scenario_step_complete event via observability bus (picked up by SSE stream)
 	if c.obsBus != nil {
-		nextScenarioIndex := step.ScenarioIndex + 1
 		var nextScenarioID *string
-		if nextScenarioIndex < len(cb.Scenarios) {
+		if !isLast {
 			id := cb.Scenarios[nextScenarioIndex].ID
 			nextScenarioID = &id
 		}
@@ -403,13 +409,22 @@ func (c *Controller) advanceStep(w http.ResponseWriter, r *http.Request) {
 			ConversationID: strconv.FormatUint(claims.Cid, 10),
 			Event:          "scenario_step_complete",
 			Details: map[string]any{
-				"nextScenarioID": nextScenarioID,
+				"nextScenarioID":  nextScenarioID,
+				"sessionComplete": isLast,
 			},
 			Timestamp: time.Now(),
 		})
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	var nextScenarioID *string
+	if !isLast {
+		id := cb.Scenarios[nextScenarioIndex].ID
+		nextScenarioID = &id
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"nextScenarioID":  nextScenarioID,
+		"sessionComplete": isLast,
+	})
 }
 
 // requestHandoff user requests handoff from AI to human

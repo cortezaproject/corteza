@@ -53,3 +53,6 @@ types:
   KnowledgeBase: {}
   Chatbot:
     labelResourceType: chatbot
+  ChatbotSession: {}
+  ChatbotSessionStep: {}
+  ChatbotSessionHandoff: {}

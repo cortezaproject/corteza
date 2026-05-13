@@ -272,6 +272,12 @@ export class WidgetUI {
         const el = form.elements.namedItem(f.name) as HTMLInputElement | null
         if (el) values[f.name] = el.value
       })
+      // Immediately disable form and show submitted state
+      submit.disabled = true
+      submit.textContent = '✓'
+      form.querySelectorAll('input, textarea, select').forEach(el => {
+        (el as HTMLInputElement).disabled = true
+      })
       this.onFormSubmit(values)
     })
     this.bodyEl.appendChild(form)

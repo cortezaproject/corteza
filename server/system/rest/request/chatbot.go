@@ -222,6 +222,77 @@ type (
 		// Asset file to upload
 		Upload *multipart.FileHeader
 	}
+
+	ChatbotSessionList struct {
+		// ChatbotID GET parameter
+		//
+		// Filter by chatbot ID
+		ChatbotID uint64 `json:",string"`
+
+		// Status GET parameter
+		//
+		// Filter by status
+		Status string
+
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
+	}
+
+	ChatbotSessionListByChatbot struct {
+		// ChatbotID PATH parameter
+		//
+		// Chatbot ID
+		ChatbotID uint64 `json:",string"`
+
+		// Status GET parameter
+		//
+		// Filter by status
+		Status string
+
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
+	}
+
+	ChatbotSessionRead struct {
+		// SessionID PATH parameter
+		//
+		// Session ID
+		SessionID uint64 `json:",string"`
+	}
 )
 
 // NewChatbotList request
@@ -1089,23 +1160,27 @@ func (r ChatbotUploadAsset) Auditable() map[string]interface{} {
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ChatbotUploadAsset) GetChatbotID() uint64 {
 	return r.ChatbotID
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ChatbotUploadAsset) GetUpload() *multipart.FileHeader {
 	return r.Upload
 }
 
 // Fill processes request and fills internal variables
 func (r *ChatbotUploadAsset) Fill(req *http.Request) (err error) {
-	{
-		var val string
-		// path params
-		val = chi.URLParam(req, "chatbotID")
-		r.ChatbotID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -1113,6 +1188,10 @@ func (r *ChatbotUploadAsset) Fill(req *http.Request) (err error) {
 		// Caching 32MB to memory, the rest to disk
 		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
 			return err
+		} else if err == nil {
+			// Multipart params
+
+			// Ignoring upload as its handled in the POST params section
 		}
 	}
 
@@ -1120,9 +1199,256 @@ func (r *ChatbotUploadAsset) Fill(req *http.Request) (err error) {
 		if err = req.ParseForm(); err != nil {
 			return err
 		}
+
+		// POST params
+
 		if _, r.Upload, err = req.FormFile("upload"); err != nil {
 			return fmt.Errorf("error processing uploaded file: %w", err)
 		}
+
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "chatbotID")
+		r.ChatbotID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewChatbotSessionList request
+func NewChatbotSessionList() *ChatbotSessionList {
+	return &ChatbotSessionList{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"chatbotID":  r.ChatbotID,
+		"status":     r.Status,
+		"limit":      r.Limit,
+		"incTotal":   r.IncTotal,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) GetChatbotID() uint64 {
+	return r.ChatbotID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) GetStatus() string {
+	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) GetIncTotal() bool {
+	return r.IncTotal
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) GetPageCursor() string {
+	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionList) GetSort() string {
+	return r.Sort
+}
+
+// Fill processes request and fills internal variables
+func (r *ChatbotSessionList) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["chatbotID"]; ok && len(val) > 0 {
+			r.ChatbotID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["status"]; ok && len(val) > 0 {
+			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+// NewChatbotSessionListByChatbot request
+func NewChatbotSessionListByChatbot() *ChatbotSessionListByChatbot {
+	return &ChatbotSessionListByChatbot{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"chatbotID":  r.ChatbotID,
+		"status":     r.Status,
+		"limit":      r.Limit,
+		"incTotal":   r.IncTotal,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) GetChatbotID() uint64 {
+	return r.ChatbotID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) GetStatus() string {
+	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) GetIncTotal() bool {
+	return r.IncTotal
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) GetPageCursor() string {
+	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionListByChatbot) GetSort() string {
+	return r.Sort
+}
+
+// Fill processes request and fills internal variables
+func (r *ChatbotSessionListByChatbot) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["status"]; ok && len(val) > 0 {
+			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "chatbotID")
+		r.ChatbotID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewChatbotSessionRead request
+func NewChatbotSessionRead() *ChatbotSessionRead {
+	return &ChatbotSessionRead{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionRead) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"sessionID": r.SessionID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotSessionRead) GetSessionID() uint64 {
+	return r.SessionID
+}
+
+// Fill processes request and fills internal variables
+func (r *ChatbotSessionRead) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "sessionID")
+		r.SessionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
