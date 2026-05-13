@@ -60,6 +60,9 @@ type (
 		AutomationTriggers
 		AutomationWorkflows
 		Chatbots
+		ChatbotSessions
+		ChatbotSessionHandoffs
+		ChatbotSessionSteps
 		ComposeAttachments
 		ComposeCharts
 		ComposeModules
@@ -310,6 +313,47 @@ type (
 		LookupChatbotByID(ctx context.Context, id uint64) (*systemType.Chatbot, error)
 		LookupChatbotByHandle(ctx context.Context, handle string) (*systemType.Chatbot, error)
 		LookupChatbotByWidgetKey(ctx context.Context, widgetKey string) (*systemType.Chatbot, error)
+	}
+
+	ChatbotSessions interface {
+		SearchChatbotSessions(ctx context.Context, f systemType.ChatbotSessionFilter) (systemType.ChatbotSessionSet, systemType.ChatbotSessionFilter, error)
+		CreateChatbotSession(ctx context.Context, rr ...*systemType.ChatbotSession) error
+		UpdateChatbotSession(ctx context.Context, rr ...*systemType.ChatbotSession) error
+		UpsertChatbotSession(ctx context.Context, rr ...*systemType.ChatbotSession) error
+		DeleteChatbotSession(ctx context.Context, rr ...*systemType.ChatbotSession) error
+
+		DeleteChatbotSessionByID(ctx context.Context, id uint64) error
+		TruncateChatbotSessions(ctx context.Context) error
+		LookupChatbotSessionByID(ctx context.Context, id uint64) (*systemType.ChatbotSession, error)
+		LookupChatbotSessionByChatbotID(ctx context.Context, chatbotID uint64) (*systemType.ChatbotSession, error)
+	}
+
+	ChatbotSessionHandoffs interface {
+		SearchChatbotSessionHandoffs(ctx context.Context, f systemType.ChatbotSessionHandoffFilter) (systemType.ChatbotSessionHandoffSet, systemType.ChatbotSessionHandoffFilter, error)
+		CreateChatbotSessionHandoff(ctx context.Context, rr ...*systemType.ChatbotSessionHandoff) error
+		UpdateChatbotSessionHandoff(ctx context.Context, rr ...*systemType.ChatbotSessionHandoff) error
+		UpsertChatbotSessionHandoff(ctx context.Context, rr ...*systemType.ChatbotSessionHandoff) error
+		DeleteChatbotSessionHandoff(ctx context.Context, rr ...*systemType.ChatbotSessionHandoff) error
+
+		DeleteChatbotSessionHandoffByID(ctx context.Context, id uint64) error
+		TruncateChatbotSessionHandoffs(ctx context.Context) error
+		LookupChatbotSessionHandoffByID(ctx context.Context, id uint64) (*systemType.ChatbotSessionHandoff, error)
+		LookupChatbotSessionHandoffBySessionID(ctx context.Context, sessionID uint64) (*systemType.ChatbotSessionHandoff, error)
+		LookupChatbotSessionHandoffByStatus(ctx context.Context, status string) (*systemType.ChatbotSessionHandoff, error)
+	}
+
+	ChatbotSessionSteps interface {
+		SearchChatbotSessionSteps(ctx context.Context, f systemType.ChatbotSessionStepFilter) (systemType.ChatbotSessionStepSet, systemType.ChatbotSessionStepFilter, error)
+		CreateChatbotSessionStep(ctx context.Context, rr ...*systemType.ChatbotSessionStep) error
+		UpdateChatbotSessionStep(ctx context.Context, rr ...*systemType.ChatbotSessionStep) error
+		UpsertChatbotSessionStep(ctx context.Context, rr ...*systemType.ChatbotSessionStep) error
+		DeleteChatbotSessionStep(ctx context.Context, rr ...*systemType.ChatbotSessionStep) error
+
+		DeleteChatbotSessionStepByID(ctx context.Context, id uint64) error
+		TruncateChatbotSessionSteps(ctx context.Context) error
+		LookupChatbotSessionStepByID(ctx context.Context, id uint64) (*systemType.ChatbotSessionStep, error)
+		LookupChatbotSessionStepBySessionID(ctx context.Context, sessionID uint64) (*systemType.ChatbotSessionStep, error)
+		LookupChatbotSessionStepByConversationID(ctx context.Context, conversationID uint64) (*systemType.ChatbotSessionStep, error)
 	}
 
 	ComposeAttachments interface {
@@ -1865,6 +1909,215 @@ func LookupChatbotByHandle(ctx context.Context, s Chatbots, handle string) (*sys
 // This function is auto-generated
 func LookupChatbotByWidgetKey(ctx context.Context, s Chatbots, widgetKey string) (*systemType.Chatbot, error) {
 	return s.LookupChatbotByWidgetKey(ctx, widgetKey)
+}
+
+// SearchChatbotSessions returns all matching ChatbotSessions from store
+//
+// This function is auto-generated
+func SearchChatbotSessions(ctx context.Context, s ChatbotSessions, f systemType.ChatbotSessionFilter) (systemType.ChatbotSessionSet, systemType.ChatbotSessionFilter, error) {
+	return s.SearchChatbotSessions(ctx, f)
+}
+
+// CreateChatbotSession creates one or more ChatbotSessions in store
+//
+// This function is auto-generated
+func CreateChatbotSession(ctx context.Context, s ChatbotSessions, rr ...*systemType.ChatbotSession) error {
+	return s.CreateChatbotSession(ctx, rr...)
+}
+
+// UpdateChatbotSession updates one or more (existing) ChatbotSessions in store
+//
+// This function is auto-generated
+func UpdateChatbotSession(ctx context.Context, s ChatbotSessions, rr ...*systemType.ChatbotSession) error {
+	return s.UpdateChatbotSession(ctx, rr...)
+}
+
+// UpsertChatbotSession creates new or updates existing one or more ChatbotSessions in store
+//
+// This function is auto-generated
+func UpsertChatbotSession(ctx context.Context, s ChatbotSessions, rr ...*systemType.ChatbotSession) error {
+	return s.UpsertChatbotSession(ctx, rr...)
+}
+
+// DeleteChatbotSession deletes one or more ChatbotSessions from store
+//
+// This function is auto-generated
+func DeleteChatbotSession(ctx context.Context, s ChatbotSessions, rr ...*systemType.ChatbotSession) error {
+	return s.DeleteChatbotSession(ctx, rr...)
+}
+
+// DeleteChatbotSessionByID deletes one or more ChatbotSessions from store
+//
+// This function is auto-generated
+func DeleteChatbotSessionByID(ctx context.Context, s ChatbotSessions, id uint64) error {
+	return s.DeleteChatbotSessionByID(ctx, id)
+}
+
+// TruncateChatbotSessions Deletes all ChatbotSessions from store
+//
+// This function is auto-generated
+func TruncateChatbotSessions(ctx context.Context, s ChatbotSessions) error {
+	return s.TruncateChatbotSessions(ctx)
+}
+
+// LookupChatbotSessionByID searches for chatbot session by ID
+//
+// It also returns deleted sessions.
+//
+// This function is auto-generated
+func LookupChatbotSessionByID(ctx context.Context, s ChatbotSessions, id uint64) (*systemType.ChatbotSession, error) {
+	return s.LookupChatbotSessionByID(ctx, id)
+}
+
+// LookupChatbotSessionByChatbotID searches for chatbot sessions by chatbot ID
+//
+// This function is auto-generated
+func LookupChatbotSessionByChatbotID(ctx context.Context, s ChatbotSessions, chatbotID uint64) (*systemType.ChatbotSession, error) {
+	return s.LookupChatbotSessionByChatbotID(ctx, chatbotID)
+}
+
+// SearchChatbotSessionHandoffs returns all matching ChatbotSessionHandoffs from store
+//
+// This function is auto-generated
+func SearchChatbotSessionHandoffs(ctx context.Context, s ChatbotSessionHandoffs, f systemType.ChatbotSessionHandoffFilter) (systemType.ChatbotSessionHandoffSet, systemType.ChatbotSessionHandoffFilter, error) {
+	return s.SearchChatbotSessionHandoffs(ctx, f)
+}
+
+// CreateChatbotSessionHandoff creates one or more ChatbotSessionHandoffs in store
+//
+// This function is auto-generated
+func CreateChatbotSessionHandoff(ctx context.Context, s ChatbotSessionHandoffs, rr ...*systemType.ChatbotSessionHandoff) error {
+	return s.CreateChatbotSessionHandoff(ctx, rr...)
+}
+
+// UpdateChatbotSessionHandoff updates one or more (existing) ChatbotSessionHandoffs in store
+//
+// This function is auto-generated
+func UpdateChatbotSessionHandoff(ctx context.Context, s ChatbotSessionHandoffs, rr ...*systemType.ChatbotSessionHandoff) error {
+	return s.UpdateChatbotSessionHandoff(ctx, rr...)
+}
+
+// UpsertChatbotSessionHandoff creates new or updates existing one or more ChatbotSessionHandoffs in store
+//
+// This function is auto-generated
+func UpsertChatbotSessionHandoff(ctx context.Context, s ChatbotSessionHandoffs, rr ...*systemType.ChatbotSessionHandoff) error {
+	return s.UpsertChatbotSessionHandoff(ctx, rr...)
+}
+
+// DeleteChatbotSessionHandoff deletes one or more ChatbotSessionHandoffs from store
+//
+// This function is auto-generated
+func DeleteChatbotSessionHandoff(ctx context.Context, s ChatbotSessionHandoffs, rr ...*systemType.ChatbotSessionHandoff) error {
+	return s.DeleteChatbotSessionHandoff(ctx, rr...)
+}
+
+// DeleteChatbotSessionHandoffByID deletes one or more ChatbotSessionHandoffs from store
+//
+// This function is auto-generated
+func DeleteChatbotSessionHandoffByID(ctx context.Context, s ChatbotSessionHandoffs, id uint64) error {
+	return s.DeleteChatbotSessionHandoffByID(ctx, id)
+}
+
+// TruncateChatbotSessionHandoffs Deletes all ChatbotSessionHandoffs from store
+//
+// This function is auto-generated
+func TruncateChatbotSessionHandoffs(ctx context.Context, s ChatbotSessionHandoffs) error {
+	return s.TruncateChatbotSessionHandoffs(ctx)
+}
+
+// LookupChatbotSessionHandoffByID searches for chatbot session handoff by ID
+//
+// It also returns deleted handoffs.
+//
+// This function is auto-generated
+func LookupChatbotSessionHandoffByID(ctx context.Context, s ChatbotSessionHandoffs, id uint64) (*systemType.ChatbotSessionHandoff, error) {
+	return s.LookupChatbotSessionHandoffByID(ctx, id)
+}
+
+// LookupChatbotSessionHandoffBySessionID searches for chatbot session handoff by session ID
+//
+// This function is auto-generated
+func LookupChatbotSessionHandoffBySessionID(ctx context.Context, s ChatbotSessionHandoffs, sessionID uint64) (*systemType.ChatbotSessionHandoff, error) {
+	return s.LookupChatbotSessionHandoffBySessionID(ctx, sessionID)
+}
+
+// LookupChatbotSessionHandoffByStatus searches for chatbot session handoffs by status
+//
+// This function is auto-generated
+func LookupChatbotSessionHandoffByStatus(ctx context.Context, s ChatbotSessionHandoffs, status string) (*systemType.ChatbotSessionHandoff, error) {
+	return s.LookupChatbotSessionHandoffByStatus(ctx, status)
+}
+
+// SearchChatbotSessionSteps returns all matching ChatbotSessionSteps from store
+//
+// This function is auto-generated
+func SearchChatbotSessionSteps(ctx context.Context, s ChatbotSessionSteps, f systemType.ChatbotSessionStepFilter) (systemType.ChatbotSessionStepSet, systemType.ChatbotSessionStepFilter, error) {
+	return s.SearchChatbotSessionSteps(ctx, f)
+}
+
+// CreateChatbotSessionStep creates one or more ChatbotSessionSteps in store
+//
+// This function is auto-generated
+func CreateChatbotSessionStep(ctx context.Context, s ChatbotSessionSteps, rr ...*systemType.ChatbotSessionStep) error {
+	return s.CreateChatbotSessionStep(ctx, rr...)
+}
+
+// UpdateChatbotSessionStep updates one or more (existing) ChatbotSessionSteps in store
+//
+// This function is auto-generated
+func UpdateChatbotSessionStep(ctx context.Context, s ChatbotSessionSteps, rr ...*systemType.ChatbotSessionStep) error {
+	return s.UpdateChatbotSessionStep(ctx, rr...)
+}
+
+// UpsertChatbotSessionStep creates new or updates existing one or more ChatbotSessionSteps in store
+//
+// This function is auto-generated
+func UpsertChatbotSessionStep(ctx context.Context, s ChatbotSessionSteps, rr ...*systemType.ChatbotSessionStep) error {
+	return s.UpsertChatbotSessionStep(ctx, rr...)
+}
+
+// DeleteChatbotSessionStep deletes one or more ChatbotSessionSteps from store
+//
+// This function is auto-generated
+func DeleteChatbotSessionStep(ctx context.Context, s ChatbotSessionSteps, rr ...*systemType.ChatbotSessionStep) error {
+	return s.DeleteChatbotSessionStep(ctx, rr...)
+}
+
+// DeleteChatbotSessionStepByID deletes one or more ChatbotSessionSteps from store
+//
+// This function is auto-generated
+func DeleteChatbotSessionStepByID(ctx context.Context, s ChatbotSessionSteps, id uint64) error {
+	return s.DeleteChatbotSessionStepByID(ctx, id)
+}
+
+// TruncateChatbotSessionSteps Deletes all ChatbotSessionSteps from store
+//
+// This function is auto-generated
+func TruncateChatbotSessionSteps(ctx context.Context, s ChatbotSessionSteps) error {
+	return s.TruncateChatbotSessionSteps(ctx)
+}
+
+// LookupChatbotSessionStepByID searches for chatbot session step by ID
+//
+// It also returns deleted steps.
+//
+// This function is auto-generated
+func LookupChatbotSessionStepByID(ctx context.Context, s ChatbotSessionSteps, id uint64) (*systemType.ChatbotSessionStep, error) {
+	return s.LookupChatbotSessionStepByID(ctx, id)
+}
+
+// LookupChatbotSessionStepBySessionID searches for chatbot session steps by session ID
+//
+// This function is auto-generated
+func LookupChatbotSessionStepBySessionID(ctx context.Context, s ChatbotSessionSteps, sessionID uint64) (*systemType.ChatbotSessionStep, error) {
+	return s.LookupChatbotSessionStepBySessionID(ctx, sessionID)
+}
+
+// LookupChatbotSessionStepByConversationID searches for chatbot session step by conversation ID
+//
+// This function is auto-generated
+func LookupChatbotSessionStepByConversationID(ctx context.Context, s ChatbotSessionSteps, conversationID uint64) (*systemType.ChatbotSessionStep, error) {
+	return s.LookupChatbotSessionStepByConversationID(ctx, conversationID)
 }
 
 // SearchComposeAttachments returns all matching ComposeAttachments from store

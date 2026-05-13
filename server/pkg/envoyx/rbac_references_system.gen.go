@@ -243,3 +243,42 @@ func SystemChatbotRbacReferences(chatbot string) (res *Ref, pp []*Ref, err error
 
 	return
 }
+
+// SystemChatbotSessionRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemChatbotSessionRbacReferences(chatbotSession string) (res *Ref, pp []*Ref, err error) {
+	if chatbotSession != "*" {
+		res = &Ref{ResourceType: types.ChatbotSessionResourceType, Identifiers: MakeIdentifiers(chatbotSession)}
+	}
+
+	return
+}
+
+// SystemChatbotSessionStepRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemChatbotSessionStepRbacReferences(chatbotSessionStep string) (res *Ref, pp []*Ref, err error) {
+	if chatbotSessionStep != "*" {
+		res = &Ref{ResourceType: types.ChatbotSessionStepResourceType, Identifiers: MakeIdentifiers(chatbotSessionStep)}
+	}
+
+	return
+}
+
+// SystemChatbotSessionHandoffRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemChatbotSessionHandoffRbacReferences(chatbotSessionHandoff string) (res *Ref, pp []*Ref, err error) {
+	if chatbotSessionHandoff != "*" {
+		res = &Ref{ResourceType: types.ChatbotSessionHandoffResourceType, Identifiers: MakeIdentifiers(chatbotSessionHandoff)}
+	}
+
+	return
+}

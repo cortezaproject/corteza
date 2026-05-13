@@ -1915,6 +1915,342 @@ var (
 		}
 	}
 
+	// chatbotSessionTable represents chatbotSessions store table
+	//
+	// This value is auto-generated
+	chatbotSessionTable = goqu.T("chatbot_sessions")
+
+	// chatbotSessionSelectQuery assembles select query for fetching chatbotSessions
+	//
+	// This function is auto-generated
+	chatbotSessionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_chatbot",
+			"status",
+			"current_step",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(chatbotSessionTable)
+	}
+
+	// chatbotSessionInsertQuery assembles query inserting chatbotSessions
+	//
+	// This function is auto-generated
+	chatbotSessionInsertQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSession) *goqu.InsertDataset {
+		return d.Insert(chatbotSessionTable).
+			Rows(goqu.Record{
+				"id":           res.ID,
+				"rel_chatbot":  res.ChatbotID,
+				"status":       res.Status,
+				"current_step": res.CurrentStep,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			})
+	}
+
+	// chatbotSessionUpsertQuery assembles (insert+on-conflict) query for replacing chatbotSessions
+	//
+	// This function is auto-generated
+	chatbotSessionUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSession) *goqu.InsertDataset {
+		var target = `,id`
+
+		return chatbotSessionInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_chatbot":  res.ChatbotID,
+						"status":       res.Status,
+						"current_step": res.CurrentStep,
+						"created_at":   res.CreatedAt,
+						"updated_at":   res.UpdatedAt,
+						"deleted_at":   res.DeletedAt,
+						"created_by":   res.CreatedBy,
+						"updated_by":   res.UpdatedBy,
+						"deleted_by":   res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// chatbotSessionUpdateQuery assembles query for updating chatbotSessions
+	//
+	// This function is auto-generated
+	chatbotSessionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSession) *goqu.UpdateDataset {
+		return d.Update(chatbotSessionTable).
+			Set(goqu.Record{
+				"rel_chatbot":  res.ChatbotID,
+				"status":       res.Status,
+				"current_step": res.CurrentStep,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			}).
+			Where(chatbotSessionPrimaryKeys(res))
+	}
+
+	// chatbotSessionDeleteQuery assembles delete query for removing chatbotSessions
+	//
+	// This function is auto-generated
+	chatbotSessionDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(chatbotSessionTable).Where(ee...)
+	}
+
+	// chatbotSessionDeleteQuery assembles delete query for removing chatbotSessions
+	//
+	// This function is auto-generated
+	chatbotSessionTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(chatbotSessionTable)
+	}
+
+	// chatbotSessionPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	chatbotSessionPrimaryKeys = func(res *systemType.ChatbotSession) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// chatbotSessionHandoffTable represents chatbotSessionHandoffs store table
+	//
+	// This value is auto-generated
+	chatbotSessionHandoffTable = goqu.T("chatbot_session_handoffs")
+
+	// chatbotSessionHandoffSelectQuery assembles select query for fetching chatbotSessionHandoffs
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_session",
+			"rel_step",
+			"status",
+			"initiated_at",
+			"closed_at",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(chatbotSessionHandoffTable)
+	}
+
+	// chatbotSessionHandoffInsertQuery assembles query inserting chatbotSessionHandoffs
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffInsertQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSessionHandoff) *goqu.InsertDataset {
+		return d.Insert(chatbotSessionHandoffTable).
+			Rows(goqu.Record{
+				"id":           res.ID,
+				"rel_session":  res.SessionID,
+				"rel_step":     res.StepID,
+				"status":       res.Status,
+				"initiated_at": res.InitiatedAt,
+				"closed_at":    res.ClosedAt,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			})
+	}
+
+	// chatbotSessionHandoffUpsertQuery assembles (insert+on-conflict) query for replacing chatbotSessionHandoffs
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSessionHandoff) *goqu.InsertDataset {
+		var target = `,id`
+
+		return chatbotSessionHandoffInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_session":  res.SessionID,
+						"rel_step":     res.StepID,
+						"status":       res.Status,
+						"initiated_at": res.InitiatedAt,
+						"closed_at":    res.ClosedAt,
+						"created_at":   res.CreatedAt,
+						"updated_at":   res.UpdatedAt,
+						"deleted_at":   res.DeletedAt,
+						"created_by":   res.CreatedBy,
+						"updated_by":   res.UpdatedBy,
+						"deleted_by":   res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// chatbotSessionHandoffUpdateQuery assembles query for updating chatbotSessionHandoffs
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSessionHandoff) *goqu.UpdateDataset {
+		return d.Update(chatbotSessionHandoffTable).
+			Set(goqu.Record{
+				"rel_session":  res.SessionID,
+				"rel_step":     res.StepID,
+				"status":       res.Status,
+				"initiated_at": res.InitiatedAt,
+				"closed_at":    res.ClosedAt,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			}).
+			Where(chatbotSessionHandoffPrimaryKeys(res))
+	}
+
+	// chatbotSessionHandoffDeleteQuery assembles delete query for removing chatbotSessionHandoffs
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(chatbotSessionHandoffTable).Where(ee...)
+	}
+
+	// chatbotSessionHandoffDeleteQuery assembles delete query for removing chatbotSessionHandoffs
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(chatbotSessionHandoffTable)
+	}
+
+	// chatbotSessionHandoffPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	chatbotSessionHandoffPrimaryKeys = func(res *systemType.ChatbotSessionHandoff) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// chatbotSessionStepTable represents chatbotSessionSteps store table
+	//
+	// This value is auto-generated
+	chatbotSessionStepTable = goqu.T("chatbot_session_steps")
+
+	// chatbotSessionStepSelectQuery assembles select query for fetching chatbotSessionSteps
+	//
+	// This function is auto-generated
+	chatbotSessionStepSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_session",
+			"scenario_index",
+			"rel_conversation",
+			"status",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(chatbotSessionStepTable)
+	}
+
+	// chatbotSessionStepInsertQuery assembles query inserting chatbotSessionSteps
+	//
+	// This function is auto-generated
+	chatbotSessionStepInsertQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSessionStep) *goqu.InsertDataset {
+		return d.Insert(chatbotSessionStepTable).
+			Rows(goqu.Record{
+				"id":               res.ID,
+				"rel_session":      res.SessionID,
+				"scenario_index":   res.ScenarioIndex,
+				"rel_conversation": res.ConversationID,
+				"status":           res.Status,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by":       res.CreatedBy,
+				"updated_by":       res.UpdatedBy,
+				"deleted_by":       res.DeletedBy,
+			})
+	}
+
+	// chatbotSessionStepUpsertQuery assembles (insert+on-conflict) query for replacing chatbotSessionSteps
+	//
+	// This function is auto-generated
+	chatbotSessionStepUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSessionStep) *goqu.InsertDataset {
+		var target = `,id`
+
+		return chatbotSessionStepInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_session":      res.SessionID,
+						"scenario_index":   res.ScenarioIndex,
+						"rel_conversation": res.ConversationID,
+						"status":           res.Status,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+						"created_by":       res.CreatedBy,
+						"updated_by":       res.UpdatedBy,
+						"deleted_by":       res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// chatbotSessionStepUpdateQuery assembles query for updating chatbotSessionSteps
+	//
+	// This function is auto-generated
+	chatbotSessionStepUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSessionStep) *goqu.UpdateDataset {
+		return d.Update(chatbotSessionStepTable).
+			Set(goqu.Record{
+				"rel_session":      res.SessionID,
+				"scenario_index":   res.ScenarioIndex,
+				"rel_conversation": res.ConversationID,
+				"status":           res.Status,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by":       res.CreatedBy,
+				"updated_by":       res.UpdatedBy,
+				"deleted_by":       res.DeletedBy,
+			}).
+			Where(chatbotSessionStepPrimaryKeys(res))
+	}
+
+	// chatbotSessionStepDeleteQuery assembles delete query for removing chatbotSessionSteps
+	//
+	// This function is auto-generated
+	chatbotSessionStepDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(chatbotSessionStepTable).Where(ee...)
+	}
+
+	// chatbotSessionStepDeleteQuery assembles delete query for removing chatbotSessionSteps
+	//
+	// This function is auto-generated
+	chatbotSessionStepTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(chatbotSessionStepTable)
+	}
+
+	// chatbotSessionStepPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	chatbotSessionStepPrimaryKeys = func(res *systemType.ChatbotSessionStep) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// composeAttachmentTable represents composeAttachments store table
 	//
 	// This value is auto-generated

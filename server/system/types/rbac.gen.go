@@ -563,6 +563,96 @@ func ChatbotRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for ChatbotSession by calling ChatbotSessionRbacResource fn
+//
+// RBAC resource is in the corteza::system:chatbot-session/... format
+//
+// This function is auto-generated
+func (r ChatbotSession) RbacResource() string {
+	return ChatbotSessionRbacResource(r.ID)
+}
+
+// ChatbotSessionRbacResource returns string representation of RBAC resource for ChatbotSession
+//
+// RBAC resource is in the corteza::system:chatbot-session/... format
+//
+// This function is auto-generated
+func ChatbotSessionRbacResource(id uint64) string {
+	cpts := []interface{}{ChatbotSessionResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ChatbotSessionRbacResourceTpl(), cpts...)
+
+}
+
+func ChatbotSessionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ChatbotSessionStep by calling ChatbotSessionStepRbacResource fn
+//
+// RBAC resource is in the corteza::system:chatbot-session-step/... format
+//
+// This function is auto-generated
+func (r ChatbotSessionStep) RbacResource() string {
+	return ChatbotSessionStepRbacResource(r.ID)
+}
+
+// ChatbotSessionStepRbacResource returns string representation of RBAC resource for ChatbotSessionStep
+//
+// RBAC resource is in the corteza::system:chatbot-session-step/... format
+//
+// This function is auto-generated
+func ChatbotSessionStepRbacResource(id uint64) string {
+	cpts := []interface{}{ChatbotSessionStepResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ChatbotSessionStepRbacResourceTpl(), cpts...)
+
+}
+
+func ChatbotSessionStepRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ChatbotSessionHandoff by calling ChatbotSessionHandoffRbacResource fn
+//
+// RBAC resource is in the corteza::system:chatbot-session-handoff/... format
+//
+// This function is auto-generated
+func (r ChatbotSessionHandoff) RbacResource() string {
+	return ChatbotSessionHandoffRbacResource(r.ID)
+}
+
+// ChatbotSessionHandoffRbacResource returns string representation of RBAC resource for ChatbotSessionHandoff
+//
+// RBAC resource is in the corteza::system:chatbot-session-handoff/... format
+//
+// This function is auto-generated
+func ChatbotSessionHandoffRbacResource(id uint64) string {
+	cpts := []interface{}{ChatbotSessionHandoffResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ChatbotSessionHandoffRbacResourceTpl(), cpts...)
+
+}
+
+func ChatbotSessionHandoffRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

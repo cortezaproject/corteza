@@ -1551,3 +1551,207 @@ func (r *Chatbot) SetValue(name string, pos uint, value any) (err error) {
 	}
 	return nil
 }
+
+func (r ChatbotSession) GetID() uint64 { return r.ID }
+
+func (r *ChatbotSession) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "chatbotID", "ChatbotID":
+		return r.ChatbotID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "currentStep", "CurrentStep":
+		return r.CurrentStep, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "status", "Status":
+		return r.Status, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *ChatbotSession) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ChatbotSession{}
+	}
+
+	switch name {
+	case "chatbotID", "ChatbotID":
+		return cast2.Uint64(value, &r.ChatbotID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "currentStep", "CurrentStep":
+		return cast2.Int(value, &r.CurrentStep)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "status", "Status":
+		return cast2.String(value, &r.Status)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}
+
+func (r ChatbotSessionStep) GetID() uint64 { return r.ID }
+
+func (r *ChatbotSessionStep) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "conversationID", "ConversationID":
+		return r.ConversationID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "scenarioIndex", "ScenarioIndex":
+		return r.ScenarioIndex, nil
+	case "sessionID", "SessionID":
+		return r.SessionID, nil
+	case "status", "Status":
+		return r.Status, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *ChatbotSessionStep) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ChatbotSessionStep{}
+	}
+
+	switch name {
+	case "conversationID", "ConversationID":
+		return cast2.Uint64(value, &r.ConversationID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "scenarioIndex", "ScenarioIndex":
+		return cast2.Int(value, &r.ScenarioIndex)
+	case "sessionID", "SessionID":
+		return cast2.Uint64(value, &r.SessionID)
+	case "status", "Status":
+		return cast2.String(value, &r.Status)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}
+
+func (r ChatbotSessionHandoff) GetID() uint64 { return r.ID }
+
+func (r *ChatbotSessionHandoff) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "closedAt", "ClosedAt":
+		return r.ClosedAt, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "initiatedAt", "InitiatedAt":
+		return r.InitiatedAt, nil
+	case "sessionID", "SessionID":
+		return r.SessionID, nil
+	case "status", "Status":
+		return r.Status, nil
+	case "stepID", "StepID":
+		return r.StepID, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *ChatbotSessionHandoff) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ChatbotSessionHandoff{}
+	}
+
+	switch name {
+	case "closedAt", "ClosedAt":
+		return cast2.TimePtr(value, &r.ClosedAt)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "initiatedAt", "InitiatedAt":
+		return cast2.Time(value, &r.InitiatedAt)
+	case "sessionID", "SessionID":
+		return cast2.Uint64(value, &r.SessionID)
+	case "status", "Status":
+		return cast2.String(value, &r.Status)
+	case "stepID", "StepID":
+		return cast2.Uint64(value, &r.StepID)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}

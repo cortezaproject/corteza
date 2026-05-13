@@ -288,6 +288,51 @@ type (
 		DeletedBy      uint64                           `db:"deleted_by"`
 	}
 
+	// auxChatbotSession is an auxiliary structure used for transporting to/from RDBMS store
+	auxChatbotSession struct {
+		ID          uint64     `db:"id"`
+		ChatbotID   uint64     `db:"chatbot_id"`
+		Status      string     `db:"status"`
+		CurrentStep int        `db:"current_step"`
+		CreatedAt   time.Time  `db:"created_at"`
+		UpdatedAt   *time.Time `db:"updated_at"`
+		DeletedAt   *time.Time `db:"deleted_at"`
+		CreatedBy   uint64     `db:"created_by"`
+		UpdatedBy   uint64     `db:"updated_by"`
+		DeletedBy   uint64     `db:"deleted_by"`
+	}
+
+	// auxChatbotSessionHandoff is an auxiliary structure used for transporting to/from RDBMS store
+	auxChatbotSessionHandoff struct {
+		ID          uint64     `db:"id"`
+		SessionID   uint64     `db:"session_id"`
+		StepID      uint64     `db:"step_id"`
+		Status      string     `db:"status"`
+		InitiatedAt time.Time  `db:"initiated_at"`
+		ClosedAt    *time.Time `db:"closed_at"`
+		CreatedAt   time.Time  `db:"created_at"`
+		UpdatedAt   *time.Time `db:"updated_at"`
+		DeletedAt   *time.Time `db:"deleted_at"`
+		CreatedBy   uint64     `db:"created_by"`
+		UpdatedBy   uint64     `db:"updated_by"`
+		DeletedBy   uint64     `db:"deleted_by"`
+	}
+
+	// auxChatbotSessionStep is an auxiliary structure used for transporting to/from RDBMS store
+	auxChatbotSessionStep struct {
+		ID             uint64     `db:"id"`
+		SessionID      uint64     `db:"session_id"`
+		ScenarioIndex  int        `db:"scenario_index"`
+		ConversationID uint64     `db:"conversation_id"`
+		Status         string     `db:"status"`
+		CreatedAt      time.Time  `db:"created_at"`
+		UpdatedAt      *time.Time `db:"updated_at"`
+		DeletedAt      *time.Time `db:"deleted_at"`
+		CreatedBy      uint64     `db:"created_by"`
+		UpdatedBy      uint64     `db:"updated_by"`
+		DeletedBy      uint64     `db:"deleted_by"`
+	}
+
 	// auxComposeAttachment is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeAttachment struct {
 		ID          uint64                     `db:"id"`
@@ -1788,6 +1833,174 @@ func (aux *auxChatbot) scan(row scanner) error {
 		&aux.Handoff,
 		&aux.Styling,
 		&aux.Scenarios,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes ChatbotSession to auxChatbotSession
+//
+// This function is auto-generated
+func (aux *auxChatbotSession) encode(res *systemType.ChatbotSession) (_ error) {
+	aux.ID = res.ID
+	aux.ChatbotID = res.ChatbotID
+	aux.Status = res.Status
+	aux.CurrentStep = res.CurrentStep
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ChatbotSession from auxChatbotSession
+//
+// This function is auto-generated
+func (aux auxChatbotSession) decode() (res *systemType.ChatbotSession, _ error) {
+	res = new(systemType.ChatbotSession)
+	res.ID = aux.ID
+	res.ChatbotID = aux.ChatbotID
+	res.Status = aux.Status
+	res.CurrentStep = aux.CurrentStep
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxChatbotSession fields
+//
+// This function is auto-generated
+func (aux *auxChatbotSession) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ChatbotID,
+		&aux.Status,
+		&aux.CurrentStep,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes ChatbotSessionHandoff to auxChatbotSessionHandoff
+//
+// This function is auto-generated
+func (aux *auxChatbotSessionHandoff) encode(res *systemType.ChatbotSessionHandoff) (_ error) {
+	aux.ID = res.ID
+	aux.SessionID = res.SessionID
+	aux.StepID = res.StepID
+	aux.Status = res.Status
+	aux.InitiatedAt = res.InitiatedAt
+	aux.ClosedAt = res.ClosedAt
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ChatbotSessionHandoff from auxChatbotSessionHandoff
+//
+// This function is auto-generated
+func (aux auxChatbotSessionHandoff) decode() (res *systemType.ChatbotSessionHandoff, _ error) {
+	res = new(systemType.ChatbotSessionHandoff)
+	res.ID = aux.ID
+	res.SessionID = aux.SessionID
+	res.StepID = aux.StepID
+	res.Status = aux.Status
+	res.InitiatedAt = aux.InitiatedAt
+	res.ClosedAt = aux.ClosedAt
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxChatbotSessionHandoff fields
+//
+// This function is auto-generated
+func (aux *auxChatbotSessionHandoff) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.SessionID,
+		&aux.StepID,
+		&aux.Status,
+		&aux.InitiatedAt,
+		&aux.ClosedAt,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes ChatbotSessionStep to auxChatbotSessionStep
+//
+// This function is auto-generated
+func (aux *auxChatbotSessionStep) encode(res *systemType.ChatbotSessionStep) (_ error) {
+	aux.ID = res.ID
+	aux.SessionID = res.SessionID
+	aux.ScenarioIndex = res.ScenarioIndex
+	aux.ConversationID = res.ConversationID
+	aux.Status = res.Status
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ChatbotSessionStep from auxChatbotSessionStep
+//
+// This function is auto-generated
+func (aux auxChatbotSessionStep) decode() (res *systemType.ChatbotSessionStep, _ error) {
+	res = new(systemType.ChatbotSessionStep)
+	res.ID = aux.ID
+	res.SessionID = aux.SessionID
+	res.ScenarioIndex = aux.ScenarioIndex
+	res.ConversationID = aux.ConversationID
+	res.Status = aux.Status
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxChatbotSessionStep fields
+//
+// This function is auto-generated
+func (aux *auxChatbotSessionStep) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.SessionID,
+		&aux.ScenarioIndex,
+		&aux.ConversationID,
+		&aux.Status,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

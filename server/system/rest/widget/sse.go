@@ -103,3 +103,11 @@ func writeSSEEvent(w http.ResponseWriter, ev observability.AgentEvent) {
 	fmt.Fprintf(w, "event: %s\n", name)
 	fmt.Fprintf(w, "data: %s\n\n", string(data))
 }
+
+// writeSSEMessage sends a custom SSE event (non-agent).
+// Used for scenario_step_complete, errors, etc.
+func writeSSEMessage(w http.ResponseWriter, event string, payload any) {
+	data, _ := json.Marshal(payload)
+	fmt.Fprintf(w, "event: %s\n", event)
+	fmt.Fprintf(w, "data: %s\n\n", string(data))
+}

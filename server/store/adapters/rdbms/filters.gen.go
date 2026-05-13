@@ -78,6 +78,15 @@ type (
 		// optional chatbot filter function called after the generated function
 		Chatbot func(*Store, systemType.ChatbotFilter) ([]goqu.Expression, systemType.ChatbotFilter, error)
 
+		// optional chatbotSession filter function called after the generated function
+		ChatbotSession func(*Store, systemType.ChatbotSessionFilter) ([]goqu.Expression, systemType.ChatbotSessionFilter, error)
+
+		// optional chatbotSessionHandoff filter function called after the generated function
+		ChatbotSessionHandoff func(*Store, systemType.ChatbotSessionHandoffFilter) ([]goqu.Expression, systemType.ChatbotSessionHandoffFilter, error)
+
+		// optional chatbotSessionStep filter function called after the generated function
+		ChatbotSessionStep func(*Store, systemType.ChatbotSessionStepFilter) ([]goqu.Expression, systemType.ChatbotSessionStepFilter, error)
+
 		// optional composeAttachment filter function called after the generated function
 		ComposeAttachment func(*Store, composeType.AttachmentFilter) ([]goqu.Expression, composeType.AttachmentFilter, error)
 
@@ -655,6 +664,112 @@ func ChatbotFilter(d drivers.Dialect, f systemType.ChatbotFilter) (ee []goqu.Exp
 		ee = append(ee, goqu.Or(
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 			goqu.C("name").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ChatbotSessionFilter returns logical expressions
+//
+// This function is called from Store.QueryChatbotSessions() and can be extended
+// by setting Store.Filters.ChatbotSession. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ChatbotSessionFilter(d drivers.Dialect, f systemType.ChatbotSessionFilter) (ee []goqu.Expression, _ systemType.ChatbotSessionFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ChatbotSessionID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ChatbotSessionID))
+	}
+
+	if f.ChatbotID > 0 {
+		ee = append(ee, goqu.C("rel_chatbot").Eq(f.ChatbotID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ChatbotSessionHandoffFilter returns logical expressions
+//
+// This function is called from Store.QueryChatbotSessionHandoffs() and can be extended
+// by setting Store.Filters.ChatbotSessionHandoff. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ChatbotSessionHandoffFilter(d drivers.Dialect, f systemType.ChatbotSessionHandoffFilter) (ee []goqu.Expression, _ systemType.ChatbotSessionHandoffFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ChatbotSessionHandoffID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ChatbotSessionHandoffID))
+	}
+
+	if f.SessionID > 0 {
+		ee = append(ee, goqu.C("rel_session").Eq(f.SessionID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ChatbotSessionStepFilter returns logical expressions
+//
+// This function is called from Store.QueryChatbotSessionSteps() and can be extended
+// by setting Store.Filters.ChatbotSessionStep. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ChatbotSessionStepFilter(d drivers.Dialect, f systemType.ChatbotSessionStepFilter) (ee []goqu.Expression, _ systemType.ChatbotSessionStepFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ChatbotSessionStepID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ChatbotSessionStepID))
+	}
+
+	if f.SessionID > 0 {
+		ee = append(ee, goqu.C("rel_session").Eq(f.SessionID))
+	}
+
+	if f.ConversationID > 0 {
+		ee = append(ee, goqu.C("rel_conversation").Eq(f.ConversationID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("status").ILike("%"+f.Query+"%"),
 		))
 	}
 

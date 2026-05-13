@@ -96,11 +96,13 @@ type (
 	}
 
 	ChatbotScenario struct {
-		ID      string          `json:"id"`
-		Name    string          `json:"name,omitempty"`
-		Type    string          `json:"type"`
-		AgentID uint64          `json:"agentID,string,omitempty"`
-		Config  json.RawMessage `json:"config,omitempty"`
+		ID                   string          `json:"id"`
+		Name                 string          `json:"name,omitempty"`
+		Type                 string          `json:"type"`
+		AgentID              uint64          `json:"agentID,string,omitempty"`
+		Config               json.RawMessage `json:"config,omitempty"`
+		BeforeAutomationID   *uint64         `json:"beforeAutomationID,string,omitempty"`
+		AfterAutomationID    *uint64         `json:"afterAutomationID,string,omitempty"`
 	}
 
 	ChatbotScenarios []ChatbotScenario

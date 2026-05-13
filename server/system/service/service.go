@@ -127,6 +127,7 @@ var (
 	DefaultAiConversation       *aiConversation
 	DefaultKnowledgeBase        *knowledgeBase
 	DefaultChatbot              *chatbot
+	DefaultChatbotSession       *chatbotSession
 	DefaultAgenticRuntime       AgenticRunner
 	DefaultMCPRegistry          *agenticMcp.Registry
 	DefaultLlmService           *llm.Service
@@ -274,6 +275,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAiConversation = AiConversation()
 	DefaultKnowledgeBase = KnowledgeBase()
 	DefaultChatbot = Chatbot()
+	DefaultChatbotSession = ChatbotSession()
 
 	DefaultLlmService, err = llm.New(s, DefaultAccessControl, c.Agentic.AnthropicApiVersion)
 	if err != nil {

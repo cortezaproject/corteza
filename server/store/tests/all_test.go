@@ -62,6 +62,15 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("chatbot", func(t *testing.T) {
 		testChatbots(t, s)
 	})
+	t.Run("chatbotSession", func(t *testing.T) {
+		testChatbotSessions(t, s)
+	})
+	t.Run("chatbotSessionHandoff", func(t *testing.T) {
+		testChatbotSessionHandoffs(t, s)
+	})
+	t.Run("chatbotSessionStep", func(t *testing.T) {
+		testChatbotSessionSteps(t, s)
+	})
 	t.Run("composeAttachment", func(t *testing.T) {
 		testComposeAttachments(t, s)
 	})

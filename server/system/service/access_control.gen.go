@@ -154,6 +154,9 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.AiConversationRbacResource(0)),
 		rbac.NewResource(types.KnowledgeBaseRbacResource(0)),
 		rbac.NewResource(types.ChatbotRbacResource(0)),
+		rbac.NewResource(types.ChatbotSessionRbacResource(0)),
+		rbac.NewResource(types.ChatbotSessionStepRbacResource(0)),
+		rbac.NewResource(types.ChatbotSessionHandoffRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -504,6 +507,51 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.ChatbotSessionResourceType,
+			"any":  types.ChatbotSessionRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ChatbotSessionResourceType,
+			"any":  types.ChatbotSessionRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ChatbotSessionResourceType,
+			"any":  types.ChatbotSessionRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ChatbotSessionStepResourceType,
+			"any":  types.ChatbotSessionStepRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ChatbotSessionStepResourceType,
+			"any":  types.ChatbotSessionStepRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ChatbotSessionStepResourceType,
+			"any":  types.ChatbotSessionStepRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ChatbotSessionHandoffResourceType,
+			"any":  types.ChatbotSessionHandoffRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ChatbotSessionHandoffResourceType,
+			"any":  types.ChatbotSessionHandoffRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ChatbotSessionHandoffResourceType,
+			"any":  types.ChatbotSessionHandoffRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -737,6 +785,36 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "chatbots.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "chatbot-session.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "chatbot-sessions.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "chatbot-session-step.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "chatbot-session-steps.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "chatbot-session-handoff.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "chatbot-session-handoffs.search",
 		},
 	}
 
@@ -1306,6 +1384,69 @@ func (svc accessControl) CanDeleteChatbot(ctx context.Context, r *types.Chatbot)
 	return svc.can(ctx, "delete", r)
 }
 
+// CanReadChatbotSession checks if current user can read chatbot session
+//
+// This function is auto-generated
+func (svc accessControl) CanReadChatbotSession(ctx context.Context, r *types.ChatbotSession) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateChatbotSession checks if current user can update chatbot session
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateChatbotSession(ctx context.Context, r *types.ChatbotSession) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteChatbotSession checks if current user can delete chatbot session
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteChatbotSession(ctx context.Context, r *types.ChatbotSession) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadChatbotSessionStep checks if current user can read chatbot session step
+//
+// This function is auto-generated
+func (svc accessControl) CanReadChatbotSessionStep(ctx context.Context, r *types.ChatbotSessionStep) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateChatbotSessionStep checks if current user can update chatbot session step
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateChatbotSessionStep(ctx context.Context, r *types.ChatbotSessionStep) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteChatbotSessionStep checks if current user can delete chatbot session step
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteChatbotSessionStep(ctx context.Context, r *types.ChatbotSessionStep) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadChatbotSessionHandoff checks if current user can read chatbot session handoff
+//
+// This function is auto-generated
+func (svc accessControl) CanReadChatbotSessionHandoff(ctx context.Context, r *types.ChatbotSessionHandoff) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateChatbotSessionHandoff checks if current user can update chatbot session handoff
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateChatbotSessionHandoff(ctx context.Context, r *types.ChatbotSessionHandoff) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteChatbotSessionHandoff checks if current user can delete chatbot session handoff
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteChatbotSessionHandoff(ctx context.Context, r *types.ChatbotSessionHandoff) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -1682,6 +1823,54 @@ func (svc accessControl) CanSearchChatbots(ctx context.Context) bool {
 	return svc.can(ctx, "chatbots.search", r)
 }
 
+// CanCreateChatbotSession checks if current user can create chatbot sessions
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateChatbotSession(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "chatbot-session.create", r)
+}
+
+// CanSearchChatbotSessions checks if current user can list, search or filter chatbot sessions
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchChatbotSessions(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "chatbot-sessions.search", r)
+}
+
+// CanCreateChatbotSessionStep checks if current user can create chatbot session steps
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateChatbotSessionStep(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "chatbot-session-step.create", r)
+}
+
+// CanSearchChatbotSessionSteps checks if current user can list, search or filter chatbot session steps
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchChatbotSessionSteps(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "chatbot-session-steps.search", r)
+}
+
+// CanCreateChatbotSessionHandoff checks if current user can create chatbot session handoffs
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateChatbotSessionHandoff(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "chatbot-session-handoff.create", r)
+}
+
+// CanSearchChatbotSessionHandoffs checks if current user can list, search or filter chatbot session handoffs
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchChatbotSessionHandoffs(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "chatbot-session-handoffs.search", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -1723,6 +1912,12 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacKnowledgeBaseResourceValidator(r, oo...)
 	case types.ChatbotResourceType:
 		return rbacChatbotResourceValidator(r, oo...)
+	case types.ChatbotSessionResourceType:
+		return rbacChatbotSessionResourceValidator(r, oo...)
+	case types.ChatbotSessionStepResourceType:
+		return rbacChatbotSessionStepResourceValidator(r, oo...)
+	case types.ChatbotSessionHandoffResourceType:
+		return rbacChatbotSessionHandoffResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -1858,6 +2053,24 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadChatbot(ctx, svc.store, ids[0])
+	case types.ChatbotSessionResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ChatbotSessionRbacResource(ids[0])), nil
+		}
+
+		return loadChatbotSession(ctx, svc.store, ids[0])
+	case types.ChatbotSessionStepResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ChatbotSessionStepRbacResource(ids[0])), nil
+		}
+
+		return loadChatbotSessionStep(ctx, svc.store, ids[0])
+	case types.ChatbotSessionHandoffResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ChatbotSessionHandoffRbacResource(ids[0])), nil
+		}
+
+		return loadChatbotSessionHandoff(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -1993,55 +2206,79 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.ChatbotSessionResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ChatbotSessionStepResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ChatbotSessionHandoffResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":                         true,
-			"action-log.read":               true,
-			"settings.read":                 true,
-			"settings.manage":               true,
-			"auth-client.create":            true,
-			"auth-clients.search":           true,
-			"role.create":                   true,
-			"roles.search":                  true,
-			"user-group.create":             true,
-			"user-groups.search":            true,
-			"user.create":                   true,
-			"users.search":                  true,
-			"dal-connection.create":         true,
-			"dal-connections.search":        true,
-			"dal-sensitivity-level.manage":  true,
-			"application.create":            true,
-			"applications.search":           true,
-			"application.flag.self":         true,
-			"application.flag.global":       true,
-			"template.create":               true,
-			"templates.search":              true,
-			"report.create":                 true,
-			"reports.search":                true,
-			"reminder.assign":               true,
-			"queue.create":                  true,
-			"queues.search":                 true,
-			"apigw-route.create":            true,
-			"apigw-routes.search":           true,
-			"resource-translations.manage":  true,
-			"dal-schema-alterations.manage": true,
-			"connection.create":             true,
-			"connections.search":            true,
-			"configured-connection.create":  true,
-			"configured-connections.search": true,
-			"data-privacy-request.create":   true,
-			"data-privacy-requests.search":  true,
-			"notification.assign":           true,
-			"llm-provider.create":           true,
-			"llm-providers.search":          true,
-			"agent.create":                  true,
-			"agents.search":                 true,
-			"ai-conversation.create":        true,
-			"ai-conversations.search":       true,
-			"knowledge-base.create":         true,
-			"knowledge-bases.search":        true,
-			"chatbot.create":                true,
-			"chatbots.search":               true,
+			"grant":                           true,
+			"action-log.read":                 true,
+			"settings.read":                   true,
+			"settings.manage":                 true,
+			"auth-client.create":              true,
+			"auth-clients.search":             true,
+			"role.create":                     true,
+			"roles.search":                    true,
+			"user-group.create":               true,
+			"user-groups.search":              true,
+			"user.create":                     true,
+			"users.search":                    true,
+			"dal-connection.create":           true,
+			"dal-connections.search":          true,
+			"dal-sensitivity-level.manage":    true,
+			"application.create":              true,
+			"applications.search":             true,
+			"application.flag.self":           true,
+			"application.flag.global":         true,
+			"template.create":                 true,
+			"templates.search":                true,
+			"report.create":                   true,
+			"reports.search":                  true,
+			"reminder.assign":                 true,
+			"queue.create":                    true,
+			"queues.search":                   true,
+			"apigw-route.create":              true,
+			"apigw-routes.search":             true,
+			"resource-translations.manage":    true,
+			"dal-schema-alterations.manage":   true,
+			"connection.create":               true,
+			"connections.search":              true,
+			"configured-connection.create":    true,
+			"configured-connections.search":   true,
+			"data-privacy-request.create":     true,
+			"data-privacy-requests.search":    true,
+			"notification.assign":             true,
+			"llm-provider.create":             true,
+			"llm-providers.search":            true,
+			"agent.create":                    true,
+			"agents.search":                   true,
+			"ai-conversation.create":          true,
+			"ai-conversations.search":         true,
+			"knowledge-base.create":           true,
+			"knowledge-bases.search":          true,
+			"chatbot.create":                  true,
+			"chatbots.search":                 true,
+			"chatbot-session.create":          true,
+			"chatbot-sessions.search":         true,
+			"chatbot-session-step.create":     true,
+			"chatbot-session-steps.search":    true,
+			"chatbot-session-handoff.create":  true,
+			"chatbot-session-handoffs.search": true,
 		}
 	}
 
@@ -2848,6 +3085,141 @@ func rbacChatbotResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for chatbot resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacChatbotSessionResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacChatbotSessionResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ChatbotSessionResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for chatbotSession resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ChatbotSessionResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for chatbotSession resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacChatbotSessionStepResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacChatbotSessionStepResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ChatbotSessionStepResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for chatbotSessionStep resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ChatbotSessionStepResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for chatbotSessionStep resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacChatbotSessionHandoffResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacChatbotSessionHandoffResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ChatbotSessionHandoffResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for chatbotSessionHandoff resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ChatbotSessionHandoffResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for chatbotSessionHandoff resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

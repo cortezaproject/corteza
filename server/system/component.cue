@@ -41,6 +41,9 @@ component: schema.#component & {
     "ai-conversation":                ai_conversation
     "knowledge-base":                 knowledge_base
     "chatbot":                        chatbot
+    "chatbot-session":                chatbot_session
+    "chatbot-session-step":           chatbot_session_step
+    "chatbot-session-handoff":        chatbot_session_handoff
 	}
 
 	rbac: operations: {
@@ -112,5 +115,14 @@ component: schema.#component & {
 
 		"chatbot.create": description:  "Create chatbots"
 		"chatbots.search": description: "List, search or filter chatbots"
+
+		"chatbot-session.create": description:  "Create chatbot sessions"
+		"chatbot-sessions.search": description: "List, search or filter chatbot sessions"
+
+		"chatbot-session-step.create": description:  "Create chatbot session steps"
+		"chatbot-session-steps.search": description: "List, search or filter chatbot session steps"
+
+		"chatbot-session-handoff.create": description:  "Create chatbot session handoffs"
+		"chatbot-session-handoffs.search": description: "List, search or filter chatbot session handoffs"
 	}
 }

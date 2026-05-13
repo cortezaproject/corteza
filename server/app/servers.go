@@ -101,6 +101,7 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 				systemService.DefaultAgenticRuntime,
 				systemService.DefaultAiConversation,
 				app.Opt.Auth.Secret,
+				systemService.DefaultChatbotSession,
 			)
 			widgetCtrl.MountRoutes(r)
 			if app.McpServer != nil {

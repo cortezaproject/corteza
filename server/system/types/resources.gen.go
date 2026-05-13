@@ -40,5 +40,8 @@ const (
 	AiConversationResourceType            = "corteza::system:ai-conversation"
 	KnowledgeBaseResourceType             = "corteza::system:knowledge-base"
 	ChatbotResourceType                   = "corteza::system:chatbot"
+	ChatbotSessionResourceType            = "corteza::system:chatbot-session"
+	ChatbotSessionStepResourceType        = "corteza::system:chatbot-session-step"
+	ChatbotSessionHandoffResourceType     = "corteza::system:chatbot-session-handoff"
 	ComponentResourceType                 = "corteza::system"
 )
