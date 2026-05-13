@@ -18,6 +18,10 @@
         v-tooltip.bottom="$t('namespace.configure')"
         @click="configureNamespace"
       />
+      <NamespaceTranslator
+        v-if="namespace"
+        :namespace="namespace"
+      />
     </ButtonGroup>
   </Teleport>
 
@@ -233,6 +237,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 const { CInputDelete, CFileDropZone, CInputLabel } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import NamespaceTranslator from '@/components/Namespaces/NamespaceTranslator.vue'
 
 const route = useRoute()
 const router = useRouter()

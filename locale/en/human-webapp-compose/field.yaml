@@ -291,6 +291,10 @@ valueExpr:
   description: Insert a formula or expression that calculates numeric values or combines and manipulates text values
   label: Field value expression
   placeholder: ((floor(numField1) + numField2) / 10) + 0.5
+translate:
+  label: Translate field
+  selectOptions: Translate options
+  boolLabels: Translate labels
 label:
   required: Required
   multi: Multi value

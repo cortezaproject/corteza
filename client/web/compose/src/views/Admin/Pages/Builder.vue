@@ -35,6 +35,14 @@
           size="small"
           @click="goToEditPage"
         />
+        <PageTranslator
+          v-if="page.pageID && page.pageID !== '0' && namespace"
+          :page="page"
+          :namespace="namespace"
+          :layouts="layouts.filter(l => l.pageLayoutID !== '0')"
+          @update:page="page = $event"
+          @update:layouts="layouts = $event"
+        />
       </ButtonGroup>
     </div>
   </Teleport>
@@ -75,6 +83,15 @@
                 size="small"
                 severity="secondary"
                 @click="cloneBlock(item.i)"
+              />
+              <Button
+                v-if="showTranslatorButton && blocks[item.i]?.blockID && blocks[item.i]?.blockID !== '0'"
+                v-tooltip.top="$t('translator.button.tooltip')"
+                icon="pi pi-language"
+                text
+                size="small"
+                severity="secondary"
+                @click.stop="openBlockTranslation(blocks[item.i])"
               />
               <Button
                 :title="$t('page.tooltip.delete.block')"
@@ -488,15 +505,23 @@ import ProgressConfigurator from '@/components/PageBlocks/Configurators/Progress
 import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue'
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
+import ChatbotConfigurator from '@/components/PageBlocks/Configurators/ChatbotConfigurator.vue'
 import AutomationButtonsEditor from '@/components/PageBlocks/Shared/AutomationButtonsEditor.vue'
+import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
+import { useResourceTranslations } from '@/composables/useResourceTranslations'
+import { useTranslatorStore } from '@/stores/translator'
+import { applyPageTranslations } from '@/lib/resource-translations'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const $toast = inject('$toast')
+const $ComposeAPI = inject('$ComposeAPI')
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const moduleStore = useModuleStore()
+const { showTranslatorButton, currentLanguage } = useResourceTranslations()
+const translatorStore = useTranslatorStore()
 
 const props = defineProps({
   namespace: {
@@ -663,6 +688,7 @@ const availableBlockTypes = computed(() => {
     { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-credit-card' },
+    { kind: 'ChatbotSessions', label: t('block.chatbotSessions.label'), icon: 'pi pi-inbox' },
   ].sort((a, b) => a.label.localeCompare(b.label))
 
   return [...recordBlocks, { kind: 'divider' }, ...otherBlocks]
@@ -692,6 +718,7 @@ const configurators = {
   RecordOrganizer: markRaw(RecordOrganizerConfigurator),
   RecordRevisions: markRaw(RecordRevisionsConfigurator),
   Geometry: markRaw(GeometryConfigurator),
+  ChatbotSessions: markRaw(ChatbotConfigurator),
 }
 
 const blockConfigurator = computed(() => {
@@ -925,6 +952,31 @@ function deleteBlock(blockId) {
     syncTabbedBlockVisibility()
     gridRef.value?.rebuildLayout()
   }
+}
+
+function openBlockTranslation(block) {
+  const { namespaceID, pageID } = page.value
+  const blockID = block.blockID
+  const res = `compose:page/${namespaceID}/${pageID}`
+  translatorStore.open({
+    resource: res,
+    titles: {
+      [res]: t('translator.resources.page.block.title', { title: block.title || blockID }),
+    },
+    fetcher: () =>
+      $ComposeAPI
+        .pageListTranslations({ namespaceID, pageID })
+        .then((set) => set.filter((tr) => tr.key.startsWith(`pageBlock.${blockID}.`))),
+    updater: async (changes) => {
+      await $ComposeAPI.pageUpdateTranslations({ namespaceID, pageID, translations: changes })
+      const fresh = await $ComposeAPI.pageListTranslations({ namespaceID, pageID })
+      const updatedPage = JSON.parse(JSON.stringify(page.value))
+      const updatedLayouts = JSON.parse(JSON.stringify(layouts.value))
+      applyPageTranslations(updatedPage, updatedLayouts, fresh, currentLanguage.value)
+      page.value = updatedPage
+      layouts.value = updatedLayouts
+    },
+  })
 }
 
 function saveBlockConfig() {

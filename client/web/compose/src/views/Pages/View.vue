@@ -6,18 +6,26 @@
 
   <!-- Page builder button in topbar tools -->
   <Teleport to="#topbar-tools" :defer="true">
-    <ButtonGroup v-if="page?.canUpdatePage" class="gap-1">
-      <Button
-        :label="$t('page.block.general.label.pageBuilder')"
-        icon="pi pi-wrench"
-        size="small"
-        @click="goToBuilder"
-      />
-      <Button
-        v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-pencil"
-        size="small"
-        @click="goToEditPage"
+    <ButtonGroup v-if="page?.canUpdatePage || showTranslatorButton" class="gap-1">
+      <template v-if="page?.canUpdatePage">
+        <Button
+          :label="$t('page.block.general.label.pageBuilder')"
+          icon="pi pi-wrench"
+          size="small"
+          @click="goToBuilder"
+        />
+        <Button
+          v-tooltip.bottom="$t('navigation.editPage')"
+          icon="pi pi-pencil"
+          size="small"
+          @click="goToEditPage"
+        />
+      </template>
+      <PageTranslator
+        v-if="page"
+        :page="page"
+        :namespace="namespace"
+        :layouts="pageLayouts"
       />
     </ButtonGroup>
   </Teleport>
@@ -47,12 +55,14 @@
 
 <script setup>
 import Grid from '@/components/PageBlocks/Grid.vue'
+import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { usePageStore } from '@/stores/page'
 import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'
 import { fetchBlockID, usePageVisibility } from '@/composables/usePageVisibility'
+import { useResourceTranslations } from '@/composables/useResourceTranslations'
 
 defineProps({
   namespace: {
@@ -69,11 +79,16 @@ const $SystemAPI = inject('$SystemAPI', null)
 const $auth = inject('$auth', null)
 
 const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $auth)
+const { showTranslatorButton } = useResourceTranslations()
 
 const loading = ref(false)
 const page = ref(null)
 const layout = ref(null)
 const invisibleBlockIDs = ref(new Set())
+
+const pageLayouts = computed(() =>
+  page.value ? pageLayoutStore.getByPageID(page.value.pageID) : [],
+)
 
 const positionedBlocks = computed(() => {
   const blocks = (() => {

@@ -24,6 +24,14 @@
         size="small"
         @click="goToViewPage"
       />
+      <PageTranslator
+        v-if="page && namespace"
+        :page="page"
+        :namespace="namespace"
+        :layouts="layouts.filter(l => l.pageLayoutID !== '0')"
+        @update:page="page = $event"
+        @update:layouts="layouts = $event"
+      />
     </ButtonGroup>
   </Teleport>
 
@@ -557,6 +565,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 const { CInputDelete, CInputToggleCard, CResourceTable } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
 
 const props = defineProps({
   namespace: {

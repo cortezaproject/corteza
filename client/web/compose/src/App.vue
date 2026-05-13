@@ -107,6 +107,7 @@
     <ReminderSidebar />
     <ReminderToastHost />
     <CPermissionsDialog />
+    <CTranslatorDialog />
   </div>
 </template>
 
@@ -115,6 +116,7 @@ import CSidebarNamespaceSwitcher from '@/components/CSidebarNamespaceSwitcher.vu
 import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import ReminderSidebar from '@/components/Reminders/ReminderSidebar.vue'
 import ReminderToastHost from '@/components/Reminders/ReminderToastHost.vue'
+import CTranslatorDialog from '@/components/Translator/CTranslatorDialog.vue'
 import { useNamespaceStore } from '@/stores/namespace'
 import { useRecordStore } from '@/stores/record'
 import { useReminderStore } from '@/stores/reminder'

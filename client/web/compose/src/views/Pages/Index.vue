@@ -24,8 +24,8 @@
 <script setup>
 import { usePageStore } from '@/stores/page'
 import { NoID } from '@planetcrust/human-js'
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, watchEffect } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 defineProps({
   namespace: {
@@ -35,22 +35,20 @@ defineProps({
 })
 
 const router = useRouter()
+const route = useRoute()
 const pageStore = usePageStore()
 
-const redirecting = ref(true)
-
-onMounted(() => {
-  const pages = pageStore.set
-
-  // Find home page: first visible, first-level, non-record page, sorted by weight
-  const homePage = [...pages]
+const homePage = computed(() =>
+  [...pageStore.set]
     .filter(p => p.visible && p.selfID === NoID && p.moduleID === NoID)
-    .sort((a, b) => a.weight - b.weight)[0]
+    .sort((a, b) => a.weight - b.weight)[0],
+)
 
-  if (homePage) {
-    router.replace({ name: 'page', params: { pageID: homePage.pageID } })
-  } else {
-    redirecting.value = false
+const redirecting = computed(() => !!homePage.value)
+
+watchEffect(() => {
+  if (homePage.value) {
+    router.replace({ name: 'page', params: { slug: route.params.slug, pageID: homePage.value.pageID } })
   }
 })
 

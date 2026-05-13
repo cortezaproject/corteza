@@ -3,6 +3,15 @@
     <span>{{ isEdit ? chart?.name || $t('chart.edit.title') : $t('chart.edit.title') }}</span>
   </Teleport>
 
+  <Teleport to="#topbar-tools" defer>
+    <ButtonGroup v-if="isEdit && chart && namespace" class="gap-1">
+      <ChartTranslator
+        :chart="chart"
+        :namespace="namespace"
+      />
+    </ButtonGroup>
+  </Teleport>
+
   <div v-if="loading" class="flex items-center justify-center h-full">
     <ProgressSpinner />
   </div>
@@ -234,6 +243,7 @@ import { chartConstructor } from '../../../lib/charts'
 import { useChartStore } from '../../../stores/chart'
 import { useModuleStore } from '../../../stores/module'
 import ChartRenderer from '../../../components/Chart/ChartRenderer.vue'
+import ChartTranslator from '../../../components/Admin/Chart/ChartTranslator.vue'
 import * as Reports from '../../../components/Chart/Report/index.js'
 
 const { CInputDelete } = components
