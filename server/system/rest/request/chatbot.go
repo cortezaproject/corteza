@@ -219,7 +219,7 @@ type (
 
 		// Upload POST parameter
 		//
-		// File to upload
+		// Asset file to upload
 		Upload *multipart.FileHeader
 	}
 )
@@ -1099,17 +1099,18 @@ func (r ChatbotUploadAsset) GetUpload() *multipart.FileHeader {
 
 // Fill processes request and fills internal variables
 func (r *ChatbotUploadAsset) Fill(req *http.Request) (err error) {
-	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
-		err = json.NewDecoder(req.Body).Decode(r)
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
+	{
+		var val string
+		// path params
+		val = chi.URLParam(req, "chatbotID")
+		r.ChatbotID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
 		}
 	}
 
 	{
+		// Caching 32MB to memory, the rest to disk
 		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
 			return err
 		}
@@ -1119,15 +1120,9 @@ func (r *ChatbotUploadAsset) Fill(req *http.Request) (err error) {
 		if err = req.ParseForm(); err != nil {
 			return err
 		}
-
 		if _, r.Upload, err = req.FormFile("upload"); err != nil {
 			return fmt.Errorf("error processing uploaded file: %w", err)
 		}
-	}
-
-	{
-		val := chi.URLParam(req, "chatbotID")
-		r.ChatbotID = payload.ParseUint64(val)
 	}
 
 	return err

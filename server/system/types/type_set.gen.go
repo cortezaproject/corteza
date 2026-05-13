@@ -75,6 +75,21 @@ type (
 	// This type is auto-generated.
 	ChatbotSet []*Chatbot
 
+	// ChatbotSessionSet slice of ChatbotSession
+	//
+	// This type is auto-generated.
+	ChatbotSessionSet []*ChatbotSession
+
+	// ChatbotSessionHandoffSet slice of ChatbotSessionHandoff
+	//
+	// This type is auto-generated.
+	ChatbotSessionHandoffSet []*ChatbotSessionHandoff
+
+	// ChatbotSessionStepSet slice of ChatbotSessionStep
+	//
+	// This type is auto-generated.
+	ChatbotSessionStepSet []*ChatbotSessionStep
+
 	// ConfiguredConnectionSet slice of ConfiguredConnection
 	//
 	// This type is auto-generated.
@@ -806,6 +821,174 @@ func (set ChatbotSet) FindByID(ID uint64) *Chatbot {
 //
 // This function is auto-generated.
 func (set ChatbotSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ChatbotSession) err
+//
+// This function is auto-generated.
+func (set ChatbotSessionSet) Walk(w func(*ChatbotSession) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ChatbotSession) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ChatbotSessionSet) Filter(f func(*ChatbotSession) (bool, error)) (out ChatbotSessionSet, err error) {
+	var ok bool
+	out = ChatbotSessionSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ChatbotSessionSet) FindByID(ID uint64) *ChatbotSession {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ChatbotSessionSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ChatbotSessionHandoff) err
+//
+// This function is auto-generated.
+func (set ChatbotSessionHandoffSet) Walk(w func(*ChatbotSessionHandoff) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ChatbotSessionHandoff) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ChatbotSessionHandoffSet) Filter(f func(*ChatbotSessionHandoff) (bool, error)) (out ChatbotSessionHandoffSet, err error) {
+	var ok bool
+	out = ChatbotSessionHandoffSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ChatbotSessionHandoffSet) FindByID(ID uint64) *ChatbotSessionHandoff {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ChatbotSessionHandoffSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ChatbotSessionStep) err
+//
+// This function is auto-generated.
+func (set ChatbotSessionStepSet) Walk(w func(*ChatbotSessionStep) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ChatbotSessionStep) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ChatbotSessionStepSet) Filter(f func(*ChatbotSessionStep) (bool, error)) (out ChatbotSessionStepSet, err error) {
+	var ok bool
+	out = ChatbotSessionStepSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ChatbotSessionStepSet) FindByID(ID uint64) *ChatbotSessionStep {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ChatbotSessionStepSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

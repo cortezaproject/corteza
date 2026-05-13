@@ -58,6 +58,11 @@ type (
 		// Filter by tags
 		Tags []string
 
+		// Source GET parameter
+		//
+		// Filter by source ("catalog", "local", or "" for all)
+		Source string
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted connections
@@ -87,11 +92,6 @@ type (
 		//
 		// Sort items
 		Sort string
-
-		// Source GET parameter
-		//
-		// Filter by source: "catalog", "local", or "" for all
-		Source string
 	}
 
 	ConnectionCreate struct {
@@ -199,6 +199,13 @@ type (
 		ConnectionID uint64 `json:",string"`
 	}
 
+	ConnectionEnable struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+	}
+
 	ConnectionGenerate struct {
 		// Prompt POST parameter
 		//
@@ -211,15 +218,22 @@ type (
 		Context string
 	}
 
+	ConnectionImport struct {
+		// CatalogID POST parameter
+		//
+		// Catalog connection ID to import
+		CatalogID string
+	}
+
 	ConnectionConfigure struct {
 		// ConnectionID PATH parameter
 		//
-		// Connection ID — pass 0 when configuring a not-yet-imported catalog connection
+		// Connection ID
 		ConnectionID uint64 `json:",string"`
 
 		// CatalogID POST parameter
 		//
-		// Appstore catalog ID. When ConnectionID is 0 and this is set, the connection is auto-imported first.
+		// Catalog ID to auto-import on first configure
 		CatalogID string
 
 		// Name POST parameter
@@ -236,20 +250,6 @@ type (
 		//
 		// Labels
 		Labels map[string]labelTypes.LabelValue
-	}
-
-	ConnectionImport struct {
-		// CatalogID POST parameter
-		//
-		// Appstore catalog connection ID
-		CatalogID string `json:"catalogID"`
-	}
-
-	ConnectionEnable struct {
-		// ConnectionID PATH parameter
-		//
-		// Connection ID
-		ConnectionID uint64 `json:",string"`
 	}
 
 	ConnectionUpdateConfiguration struct {
@@ -298,7 +298,6 @@ func (r ConnectionList) Auditable() map[string]interface{} {
 		"incTotal":   r.IncTotal,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
-		"source":     r.Source,
 	}
 }
 
@@ -430,12 +429,6 @@ func (r *ConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["sort"]; ok && len(val) > 0 {
 			r.Sort, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["source"]; ok && len(val) > 0 {
-			r.Source, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -1018,6 +1011,41 @@ func (r *ConnectionUndelete) Fill(req *http.Request) (err error) {
 	return err
 }
 
+// NewConnectionEnable request
+func NewConnectionEnable() *ConnectionEnable {
+	return &ConnectionEnable{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionEnable) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID": r.ConnectionID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionEnable) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionEnable) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
 // NewConnectionGenerate request
 func NewConnectionGenerate() *ConnectionGenerate {
 	return &ConnectionGenerate{}
@@ -1103,6 +1131,46 @@ func (r *ConnectionGenerate) Fill(req *http.Request) (err error) {
 	return err
 }
 
+// NewConnectionImport request
+func NewConnectionImport() *ConnectionImport {
+	return &ConnectionImport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionImport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"catalogID": r.CatalogID,
+	}
+}
+
+func (r ConnectionImport) GetCatalogID() string {
+	return r.CatalogID
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionImport) Fill(req *http.Request) (err error) {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+		if val := req.FormValue("catalogID"); val != "" {
+			r.CatalogID = val
+		}
+	}
+
+	return err
+}
+
 // NewConnectionConfigure request
 func NewConnectionConfigure() *ConnectionConfigure {
 	return &ConnectionConfigure{}
@@ -1124,7 +1192,6 @@ func (r ConnectionConfigure) GetConnectionID() uint64 {
 	return r.ConnectionID
 }
 
-// Auditable returns all auditable/loggable parameters
 func (r ConnectionConfigure) GetCatalogID() string {
 	return r.CatalogID
 }
@@ -1164,13 +1231,6 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
-
-			if val, ok := req.MultipartForm.Value["catalogID"]; ok && len(val) > 0 {
-				r.CatalogID, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
 
 			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
 				r.Name, err = val[0], nil
@@ -1212,13 +1272,6 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
-			r.CatalogID, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
 			if err != nil {
@@ -1236,6 +1289,10 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
+		}
+
+		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
+			r.CatalogID = val[0]
 		}
 
 		if val, ok := req.Form["labels[]"]; ok {
@@ -1416,85 +1473,6 @@ func (r *ConnectionUpdateConfiguration) Fill(req *http.Request) (err error) {
 			return err
 		}
 
-	}
-
-	return err
-}
-
-// NewConnectionImport request
-func NewConnectionImport() *ConnectionImport {
-	return &ConnectionImport{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConnectionImport) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"catalogID": r.CatalogID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConnectionImport) GetCatalogID() string {
-	return r.CatalogID
-}
-
-// Fill processes request and fills internal variables
-func (r *ConnectionImport) Fill(req *http.Request) (err error) {
-	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
-
-	{
-		if err = req.ParseForm(); err != nil {
-			return err
-		}
-
-		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
-			r.CatalogID, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return err
-}
-
-// NewConnectionEnable request
-func NewConnectionEnable() *ConnectionEnable {
-	return &ConnectionEnable{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConnectionEnable) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"connectionID": r.ConnectionID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConnectionEnable) GetConnectionID() uint64 {
-	return r.ConnectionID
-}
-
-// Fill processes request and fills internal variables
-func (r *ConnectionEnable) Fill(req *http.Request) (err error) {
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "connectionID")
-		r.ConnectionID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
 	}
 
 	return err

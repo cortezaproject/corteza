@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
-	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/crusttech/human/server/system/types"

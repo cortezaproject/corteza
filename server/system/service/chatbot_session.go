@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
 	automationTypes "github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
-	"github.com/crusttech/human/server/pkg/auth"
+	pkgAuth "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
@@ -41,7 +41,7 @@ func ChatbotSession() *chatbotSession {
 func (svc *chatbotSession) Create(ctx context.Context, new *types.ChatbotSession) (*types.ChatbotSession, error) {
 	err := func() error {
 		if !svc.ac.CanCreateChatbotSession(ctx) {
-			return errors.New("not allowed to create chatbot session")
+			return fmt.Errorf("not allowed to create chatbot session")
 		}
 
 		if new.ID == 0 {
@@ -55,10 +55,10 @@ func (svc *chatbotSession) Create(ctx context.Context, new *types.ChatbotSession
 			return err
 		}
 
-		svc.actionlog.Record(ctx, actionlog.New().
-			Resource("chatbot-session").
-			Action("create").
-			ID(new.ID))
+		svc.actionlog.Record(ctx, &actionlog.Action{
+			Resource: "chatbot-session",
+			Action:   "create",
+		})
 
 		return nil
 	}()
@@ -148,10 +148,10 @@ func (svc *chatbotSession) RequestHandoff(ctx context.Context, sessionID, stepID
 		return nil, err
 	}
 
-	svc.actionlog.Record(ctx, actionlog.New().
-		Resource("chatbot-session-handoff").
-		Action("request").
-		ID(h.ID))
+	svc.actionlog.Record(ctx, &actionlog.Action{
+		Resource: "chatbot-session-handoff",
+		Action:   "request",
+	})
 
 	return h, nil
 }
@@ -181,10 +181,10 @@ func (svc *chatbotSession) CloseHandoff(ctx context.Context, handoffID uint64) e
 		return err
 	}
 
-	now := now()
+	n := now()
 	h.Status = "closed"
-	h.ClosedAt = now
-	h.UpdatedAt = now
+	h.ClosedAt = n
+	h.UpdatedAt = n
 
 	if err := store.UpdateChatbotSessionHandoff(ctx, svc.store, h); err != nil {
 		return err
@@ -208,7 +208,7 @@ func (svc *chatbotSession) FindHandoffBySession(ctx context.Context, sessionID u
 func (svc *chatbotSession) FindPendingHandoffs(ctx context.Context) ([]*types.ChatbotSessionHandoff, error) {
 	f := types.ChatbotSessionHandoffFilter{
 		Status: "requested",
-		Paging: types.Paging{Limit: 1000},
+		Paging: filter.Paging{Limit: 1000},
 	}
 
 	hh, _, err := store.SearchChatbotSessionHandoffs(ctx, svc.store, f)
@@ -223,12 +223,20 @@ func (svc *chatbotSession) FindPendingHandoffs(ctx context.Context) ([]*types.Ch
 // Full flow: beforeAutomation → mark complete → afterAutomation
 // Caller is responsible for executing the scenario itself.
 func (svc *chatbotSession) ExecuteStep(ctx context.Context, sessionID uint64, scenario *types.ChatbotScenario, conversationID uint64, scenarioIndex int, input string) (*types.ChatbotSessionStep, error) {
-	// Get or create step
 	var step *types.ChatbotSessionStep
-	existingStep, _ := svc.FindStepBySession(ctx, sessionID)
+
+	existing, _, _ := store.SearchChatbotSessionSteps(ctx, svc.store, types.ChatbotSessionStepFilter{
+		SessionID: sessionID,
+		Check: func(s *types.ChatbotSessionStep) (bool, error) {
+			return s.ScenarioIndex == scenarioIndex, nil
+		},
+	})
+	var existingStep *types.ChatbotSessionStep
+	if len(existing) > 0 {
+		existingStep = existing[0]
+	}
 
 	if existingStep == nil {
-		// Create new step
 		var err error
 		step, err = svc.CreateStep(ctx, &types.ChatbotSessionStep{
 			SessionID:      sessionID,
@@ -240,10 +248,9 @@ func (svc *chatbotSession) ExecuteStep(ctx context.Context, sessionID uint64, sc
 			return nil, fmt.Errorf("create step: %w", err)
 		}
 
-		// 2. Run before automation if present
+		// Run before automation if present — blocks; failure aborts step
 		if scenario.BeforeAutomationID != nil && *scenario.BeforeAutomationID != 0 {
 			if err := svc.invokeAutomation(ctx, *scenario.BeforeAutomationID); err != nil {
-				// Before automation failure = mark step failed and abort
 				step.Status = "failed"
 				_ = store.UpdateChatbotSessionStep(ctx, svc.store, step)
 				return step, fmt.Errorf("before automation: %w", err)
@@ -253,38 +260,59 @@ func (svc *chatbotSession) ExecuteStep(ctx context.Context, sessionID uint64, sc
 		step = existingStep
 	}
 
-	// 3. Mark step complete
-	step.Status = "complete"
+	// Mark step complete
 	if err := svc.CompleteStep(ctx, step.ID); err != nil {
 		return step, fmt.Errorf("complete step: %w", err)
 	}
+	step.Status = "complete"
 
-	// 4. Run after automation if present (log errors, don't abort)
+	// Run after automation — log errors only, don't abort
 	if scenario.AfterAutomationID != nil && *scenario.AfterAutomationID != 0 {
 		if err := svc.invokeAutomation(ctx, *scenario.AfterAutomationID); err != nil {
 			svc.actionlog.Record(ctx, &actionlog.Action{
-				Resource:    "chatbot-session-step",
-				Action:      "automation-error",
-				Error:       err.Error(),
+				Resource: "chatbot-session-step",
+				Action:   "automation-error",
+				Error:    err.Error(),
 			})
 		}
 	}
 
-	// 5. SSE emission and next message handled by caller (widget)
-
 	return step, nil
 }
 
-// invokeAutomation executes an automation by ID synchronously.
-// Runs as service account under system context.
+// invokeAutomation executes an automation by ID synchronously under service identity.
 func (svc *chatbotSession) invokeAutomation(ctx context.Context, automationID uint64) error {
 	if automationService.DefaultNgAutomation == nil {
 		return fmt.Errorf("automation service not available")
 	}
 
-	svcCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
 	_, err := automationService.DefaultNgAutomation.ExecAndWait(svcCtx, automationID, automationTypes.NgAutomationExecParams{
 		Input: &expr.Vars{},
 	})
 	return err
+}
+
+// loadChatbotSession loads a ChatbotSession by ID for RBAC checks.
+func loadChatbotSession(ctx context.Context, s store.Storer, ID uint64) (*types.ChatbotSession, error) {
+	if ID == 0 {
+		return nil, fmt.Errorf("invalid chatbot session ID")
+	}
+	return store.LookupChatbotSessionByID(ctx, s, ID)
+}
+
+// loadChatbotSessionStep loads a ChatbotSessionStep by ID for RBAC checks.
+func loadChatbotSessionStep(ctx context.Context, s store.Storer, ID uint64) (*types.ChatbotSessionStep, error) {
+	if ID == 0 {
+		return nil, fmt.Errorf("invalid chatbot session step ID")
+	}
+	return store.LookupChatbotSessionStepByID(ctx, s, ID)
+}
+
+// loadChatbotSessionHandoff loads a ChatbotSessionHandoff by ID for RBAC checks.
+func loadChatbotSessionHandoff(ctx context.Context, s store.Storer, ID uint64) (*types.ChatbotSessionHandoff, error) {
+	if ID == 0 {
+		return nil, fmt.Errorf("invalid chatbot session handoff ID")
+	}
+	return store.LookupChatbotSessionHandoffByID(ctx, s, ID)
 }
