@@ -7,6 +7,7 @@ import (
 	"github.com/crusttech/human/server/system/agentic/guard"
 	"github.com/crusttech/human/server/system/agentic/knowledge"
 	"github.com/crusttech/human/server/system/agentic/observability"
+	"github.com/crusttech/human/server/system/agentic/skills"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -26,6 +27,7 @@ type (
 		nsModResolver     NsModResolver
 		builtinGuard      guard.GuardService
 		providerGuard     guard.GuardService
+		skills            skills.Registry
 	}
 
 	// Registry interface for fetching agent definitions
@@ -195,6 +197,10 @@ func (r *runtime) SetBuiltinGuard(g guard.GuardService) {
 
 func (r *runtime) SetProviderGuard(g guard.GuardService) {
 	r.providerGuard = g
+}
+
+func (r *runtime) SetSkillRegistry(s skills.Registry) {
+	r.skills = s
 }
 
  

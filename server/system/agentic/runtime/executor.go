@@ -417,6 +417,7 @@ func (r *runtime) runExecutionLoop(
 	var decisions []DecisionInfo
 	var runErr error
 	var windDownInjected bool
+	activatedSkills := map[string]bool{}
 
 	config := LLMConfig{
 		ProviderID:   agent.Execution.Model.LLMProviderID,
@@ -506,6 +507,18 @@ func (r *runtime) runExecutionLoop(
 			results, infos := r.executeTools(ctx, agent, llmResp.ToolCalls, tc)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
+
+			if r.skills != nil {
+				for _, name := range toolNames {
+					for _, sk := range r.skills.ForTool(name) {
+						if activatedSkills[sk.Name] {
+							continue
+						}
+						activatedSkills[sk.Name] = true
+						systemPrompt += "\n\n## SKILL: " + sk.Name + "\n\n" + sk.Body
+					}
+				}
+			}
 
 			if ctx.Err() != nil {
 				runErr = errTimeout()

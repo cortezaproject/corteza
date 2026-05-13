@@ -30,6 +30,7 @@ import (
 	agenticMcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
+	agenticSkills "github.com/crusttech/human/server/system/agentic/skills"
 	"github.com/crusttech/human/server/system/automation"
 	"github.com/crusttech/human/server/system/llm"
 	"github.com/crusttech/human/server/system/types"
@@ -73,6 +74,7 @@ type (
 		SetNsModResolver(s agenticRuntime.NsModResolver)
 		SetBuiltinGuard(g agenticGuard.GuardService)
 		SetProviderGuard(g agenticGuard.GuardService)
+		SetSkillRegistry(s agenticSkills.Registry)
 	}
 )
 
@@ -301,6 +303,12 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		c.ModuleLookup,
 		c.ObsBus,
 	)
+
+	if skillReg, err := agenticSkills.LoadLibrary(); err != nil {
+		log.Error("failed to load skill library", zap.Error(err))
+	} else {
+		DefaultAgenticRuntime.SetSkillRegistry(skillReg)
+	}
 
 	// Always-on built-in guard
 	DefaultAgenticRuntime.SetBuiltinGuard(agenticGuard.NewBuiltinGuard())
