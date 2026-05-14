@@ -35,6 +35,52 @@
       </b-form-checkbox>
     </b-form-group>
 
+    <hr>
+
+    <h5 class="mb-2">
+      {{ $t('kind.file.view.uniqueness.section') }}
+    </h5>
+
+    <b-form-group class="mt-2">
+      <b-form-checkbox
+        v-model="f.options.enforceUniqueness"
+        @change="onEnforceUniquenessChange"
+      >
+        {{ $t('kind.file.view.uniqueness.enforce') }}
+      </b-form-checkbox>
+    </b-form-group>
+
+    <b-form-group
+      v-if="f.options.enforceUniqueness"
+      :label="$t('kind.file.view.uniqueness.conflictActionLabel')"
+      label-class="text-primary"
+      class="mt-2"
+    >
+      <b-form-select
+        v-model="f.options.conflictAction"
+        :options="conflictActionOptions"
+      />
+    </b-form-group>
+
+    <b-form-group
+      v-if="f.options.enforceUniqueness"
+      :label="$t('kind.file.view.uniqueness.targetModuleLabel')"
+      :description="$t('kind.file.view.uniqueness.targetModuleDescription')"
+      label-class="text-primary"
+      class="mt-2"
+    >
+      <c-input-select
+        v-model="f.options.targetModuleID"
+        :options="moduleOptions"
+        label="name"
+        :reduce="m => m.moduleID"
+        :placeholder="$t('kind.file.view.uniqueness.targetModulePlaceholder')"
+        :clearable="true"
+      />
+    </b-form-group>
+
+    <hr>
+
     <b-form-group
       :description="$t('kind.file.view.modeFootnote')"
       :label="$t('kind.file.view.modeLabel')"
@@ -196,8 +242,9 @@
 
 <script>
 import base from './base'
+import { mapGetters } from 'vuex'
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputColorPicker } = components
+const { CInputColorPicker, CInputSelect } = components
 
 export default {
   i18nOptions: {
@@ -206,11 +253,30 @@ export default {
 
   components: {
     CInputColorPicker,
+    CInputSelect,
   },
 
   extends: base,
 
   computed: {
+    ...mapGetters({
+      modules: 'module/set',
+    }),
+
+    moduleOptions () {
+      const nsID = this.namespace && this.namespace.namespaceID
+      return (this.modules || []).filter(m => !nsID || m.namespaceID === nsID)
+    },
+
+    conflictActionOptions () {
+      return [
+        { value: 'alert', text: this.$t('kind.file.view.uniqueness.actions.alert') },
+        { value: 'modal', text: this.$t('kind.file.view.uniqueness.actions.modal') },
+        { value: 'newTab', text: this.$t('kind.file.view.uniqueness.actions.newTab') },
+        { value: 'sameTab', text: this.$t('kind.file.view.uniqueness.actions.sameTab') },
+      ]
+    },
+
     modes () {
       return [
         { value: 'list', text: this.$t('kind.file.view.list') },
@@ -225,6 +291,15 @@ export default {
 
     themeSettings () {
       return this.$Settings.get('ui.studio.themes', [])
+    },
+  },
+
+  methods: {
+    onEnforceUniquenessChange (val) {
+      if (!val) {
+        this.f.options.conflictAction = 'alert'
+        this.f.options.targetModuleID = ''
+      }
     },
   },
 }

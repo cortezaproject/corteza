@@ -511,7 +511,7 @@ func ComposeAttachmentFilter(d drivers.Dialect, f composeType.AttachmentFilter) 
 	}
 
 	if f.NamespaceID > 0 {
-		ee = append(ee, goqu.C("namespace_id").Eq(f.NamespaceID))
+		ee = append(ee, goqu.C("rel_namespace").Eq(f.NamespaceID))
 	}
 
 	return ee, f, err

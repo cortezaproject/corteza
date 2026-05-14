@@ -217,13 +217,15 @@ type (
 	// auxComposeAttachment is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeAttachment struct {
 		ID          uint64                     `db:"id"`
-		NamespaceID uint64                     `db:"namespace_id"`
-		OwnerID     uint64                     `db:"owner_id"`
+		NamespaceID uint64                     `db:"rel_namespace"`
+		OwnerID     uint64                     `db:"rel_owner"`
 		Kind        string                     `db:"kind"`
 		Url         string                     `db:"url"`
 		PreviewUrl  string                     `db:"preview_url"`
 		Name        string                     `db:"name"`
 		Meta        composeType.AttachmentMeta `db:"meta"`
+		Hash        *string                    `db:"hash"`
+		ModuleID    uint64                     `db:"rel_module"`
 		CreatedAt   time.Time                  `db:"created_at"`
 		UpdatedAt   *time.Time                 `db:"updated_at"`
 		DeletedAt   *time.Time                 `db:"deleted_at"`
@@ -1402,6 +1404,10 @@ func (aux *auxComposeAttachment) encode(res *composeType.Attachment) (_ error) {
 	aux.PreviewUrl = res.PreviewUrl
 	aux.Name = res.Name
 	aux.Meta = res.Meta
+	if res.Hash != "" {
+		aux.Hash = &res.Hash
+	}
+	aux.ModuleID = res.ModuleID
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -1421,6 +1427,10 @@ func (aux auxComposeAttachment) decode() (res *composeType.Attachment, _ error) 
 	res.PreviewUrl = aux.PreviewUrl
 	res.Name = aux.Name
 	res.Meta = aux.Meta
+	if aux.Hash != nil {
+		res.Hash = *aux.Hash
+	}
+	res.ModuleID = aux.ModuleID
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -1440,6 +1450,8 @@ func (aux *auxComposeAttachment) scan(row scanner) error {
 		&aux.PreviewUrl,
 		&aux.Name,
 		&aux.Meta,
+		&aux.Hash,
+		&aux.ModuleID,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

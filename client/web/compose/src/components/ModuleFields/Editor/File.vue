@@ -154,11 +154,105 @@ export default {
   },
 
   methods: {
-    appendAttachment ({ attachmentID } = {}) {
+    appendAttachment (response, _file) {
+      if (response && response.duplicate) {
+        this.handleDuplicate(response)
+        return
+      }
+
+      const { attachmentID } = response || {}
       if (this.field.isMulti) {
         this.value = [attachmentID, ...this.value]
       } else {
         this.value = attachmentID
+      }
+    },
+
+    handleDuplicate (response) {
+      const {
+        existingRecordID,
+        conflictAction,
+        recordPageID,
+        namespaceSlug,
+        namespaceID,
+      } = response
+
+      // getByUrlPart in the namespace store accepts either slug or namespaceID,
+      // so fall back to namespaceID when the namespace has no slug set.
+      const nsUrlPart = namespaceSlug || namespaceID
+
+      // canNavigate requires a resolved record and page. Namespace is always
+      // available (we always have at least namespaceID from the response).
+      const canNavigate = existingRecordID && existingRecordID !== '0' &&
+        recordPageID && recordPageID !== '0'
+
+      const routeParams = canNavigate
+        ? {
+            name: 'page.record',
+            params: {
+              recordID: existingRecordID,
+              pageID: recordPageID,
+              slug: nsUrlPart,
+            },
+          }
+        : null
+
+      const showModal = () => {
+        this.$root.$emit('show-record-modal', {
+          recordID: existingRecordID,
+          recordPageID,
+          edit: false,
+        })
+      }
+
+      const action = canNavigate ? conflictAction : 'alert'
+
+      switch (action) {
+        case 'modal':
+          showModal()
+          break
+
+        case 'newTab': {
+          const resolved = this.$router.resolve(routeParams)
+          window.open(resolved.href, '_blank')
+          break
+        }
+
+        case 'sameTab':
+          this.$router.push(routeParams)
+          break
+
+        case 'alert':
+        default: {
+          const h = this.$createElement
+          const vNodeMsg = h('div', [
+            h('span', this.$t('notification:field.duplicateAlert', { recordID: existingRecordID })),
+            existingRecordID && existingRecordID !== '0' && recordPageID && recordPageID !== '0'
+              ? h(
+                'b-button',
+                {
+                  props: { variant: 'link', size: 'sm' },
+                  on: {
+                    click: () => {
+                      this.$root.$emit('bv::hide::toast', 'duplicate-file-alert')
+                      showModal()
+                    },
+                  },
+                  class: 'p-0 ml-2',
+                },
+                this.$t('notification:field.openRecord'),
+              )
+              : null,
+          ])
+          this.$bvToast.toast([vNodeMsg], {
+            id: 'duplicate-file-alert',
+            title: this.$t('notification:general.warning'),
+            variant: 'warning',
+            solid: true,
+            toaster: 'b-toaster-top-right',
+          })
+          break
+        }
       }
     },
 

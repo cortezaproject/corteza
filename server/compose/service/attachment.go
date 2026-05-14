@@ -8,6 +8,7 @@ import (
 	"io"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
@@ -15,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/objstore"
 	"github.com/cortezaproject/corteza/server/store"
 	systemService "github.com/cortezaproject/corteza/server/system/service"
@@ -412,6 +414,13 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 			}
 		}
 
+		var (
+			enforceUniqueness bool
+			conflictAction    string
+			targetModuleIDStr string
+			fileHash          string
+		)
+
 		{
 			// Verify size and type of the uploaded record attachment
 			// Max size & allowed mime-types are pulled from the current settings
@@ -435,6 +444,15 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 				allowedTypes = strings.Split(aux, ",")
 			}
 
+			enforceUniqueness = f.Options.Bool("enforceUniqueness")
+			conflictAction = f.Options.String("conflictAction")
+			switch conflictAction {
+			case "modal", "newTab", "sameTab", "alert":
+			default:
+				conflictAction = "alert"
+			}
+			targetModuleIDStr = f.Options.String("targetModuleID")
+
 			if maxSize > 0 && maxSize < size {
 				return AttachmentErrTooLarge().Apply(
 					errors.Meta("size", size),
@@ -449,10 +467,92 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 			}
 		}
 
+		if enforceUniqueness {
+			// Determine which module to check for duplicates
+			checkModuleID := moduleID
+			if targetModuleIDStr != "" {
+				if parsed, perr := strconv.ParseUint(targetModuleIDStr, 10, 64); perr == nil && parsed > 0 {
+					checkModuleID = parsed
+				}
+			}
+
+			// Validate the target module exists and is accessible, cache for later use
+			var checkModule *types.Module
+			if checkModuleID != moduleID {
+				var checkModErr error
+				_, checkModule, checkModErr = loadModuleCombo(ctx, s, namespaceID, checkModuleID)
+				if checkModErr != nil {
+					return errors.InvalidData("invalid target module for uniqueness check").Wrap(checkModErr)
+				}
+			}
+
+			// Hash file content; extractMimetype leaves fh at position 0
+			fileHash, err = hashFileContent(fh)
+			if err != nil {
+				return errors.Internal("failed to hash file content").Wrap(err)
+			}
+			// Reset for svc.create which reads fh again
+			if _, err = fh.Seek(0, 0); err != nil {
+				return errors.Internal("failed to seek file after hashing").Wrap(err)
+			}
+
+			// Search for an existing non-deleted attachment with the same hash in the target module
+			existing, _, err := store.SearchComposeAttachments(ctx, s, types.AttachmentFilter{
+				NamespaceID: namespaceID,
+				Kind:        types.RecordAttachment,
+				ModuleID:    checkModuleID,
+				Hash:        fileHash,
+				Deleted:     filter.StateExcluded,
+			})
+			if err != nil {
+				return err
+			}
+
+			if len(existing) > 0 {
+				dup := existing[0]
+
+				// Search for the record in the target module, not the current module
+				searchModule := m
+				if checkModule != nil {
+					searchModule = checkModule
+				}
+				existingRecordID := findRecordIDByAttachmentID(ctx, svc.dal, searchModule, dup.ID)
+
+				// Resolve namespace slug — ns is already loaded above via loadModuleCombo
+				namespaceSlug := ""
+				if ns != nil {
+					namespaceSlug = ns.Slug
+				}
+
+				// Resolve record page for the target module
+				recordPageID := uint64(0)
+				pages, _, pErr := store.SearchComposePages(ctx, s, types.PageFilter{
+					NamespaceID: namespaceID,
+					ModuleID:    checkModuleID,
+					Deleted:     filter.StateExcluded,
+				})
+				if pErr == nil && len(pages) == 1 {
+					recordPageID = pages[0].ID
+				}
+
+				return &DuplicateAttachmentError{
+					ExistingAttachmentID: dup.ID,
+					ExistingRecordID:     existingRecordID,
+					ModuleID:             checkModuleID,
+					NamespaceID:          namespaceID,
+					ConflictAction:       conflictAction,
+					RecordPageID:         recordPageID,
+					NamespaceSlug:        namespaceSlug,
+				}
+			}
+		}
+
 		att = &types.Attachment{
 			NamespaceID: namespaceID,
 			Name:        strings.TrimSpace(name),
 			Kind:        types.RecordAttachment,
+			ModuleID:    moduleID,
+			Hash:        fileHash,
 		}
 
 		return svc.create(ctx, s, name, size, fh, att)
@@ -712,6 +812,39 @@ func (attachment) checkMimeType(test *mimetype.MIME, vv ...string) bool {
 	}
 
 	return false
+}
+
+// findRecordIDByAttachmentID searches records in the given module for the first
+// record whose File field value matches the given attachment ID.
+//
+// It scans all File-kind fields on the module because in cross-module scenarios
+// the source field name does not exist on the target module.
+// Returns 0 if no matching record is found (non-fatal).
+func findRecordIDByAttachmentID(ctx context.Context, dal dalDater, m *types.Module, attachmentID uint64) uint64 {
+	attachmentIDStr := strconv.FormatUint(attachmentID, 10)
+
+	// Build an OR query across every File field in the module
+	var clauses []string
+	for _, f := range m.Fields {
+		if f.Kind == "File" {
+			clauses = append(clauses, f.Name+" = "+attachmentIDStr)
+		}
+	}
+	if len(clauses) == 0 {
+		return 0
+	}
+
+	rf := types.RecordFilter{
+		ModuleID:    m.ID,
+		NamespaceID: m.NamespaceID,
+		Query:       strings.Join(clauses, " OR "),
+	}
+	rf.Limit = 1
+	set, _, err := dalutils.ComposeRecordsList(ctx, dal, m, rf)
+	if err != nil || len(set) == 0 {
+		return 0
+	}
+	return set[0].ID
 }
 
 var _ AttachmentService = &attachment{}

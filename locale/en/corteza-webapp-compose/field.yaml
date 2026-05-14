@@ -67,6 +67,18 @@ kind:
       px: px
       clickToView: Click to view file
       description: 'Add unit after value to set it. For example: 50px or 50%'
+      uniqueness:
+        section: File uniqueness
+        enforce: Enforce file uniqueness
+        conflictActionLabel: Action on duplicate
+        targetModuleLabel: Check uniqueness against
+        targetModuleDescription: Leave empty to check within this module
+        targetModulePlaceholder: Select a module...
+        actions:
+          modal: Open record in modal
+          newTab: Open record in new tab
+          sameTab: Open record in same tab
+          alert: Show alert with clickable link
   number:
     exampleFormat: Format
     exampleInput: Input

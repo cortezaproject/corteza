@@ -77,8 +77,17 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.ComposeAttachment = func(s *Store, f composeType.AttachmentFilter) (ee []goqu.Expression, _ composeType.AttachmentFilter, err error) {
+		// The generated ComposeAttachmentFilter emits "namespace_id" for the NamespaceID
+		// condition, but the actual DB column is "rel_namespace". Zero it out before calling
+		// so the generated filter only handles "kind", then we emit the correct condition.
+		nsID := f.NamespaceID
+		f.NamespaceID = 0
 		if ee, f, err = ComposeAttachmentFilter(s.Dialect, f); err != nil {
 			return
+		}
+		f.NamespaceID = nsID
+		if nsID > 0 {
+			ee = append(ee, goqu.C("rel_namespace").Eq(nsID))
 		}
 
 		switch f.Kind {
@@ -91,28 +100,19 @@ func DefaultFilters() (f *extendedFilters) {
 
 		case composeType.IconAttachment:
 
-		case composeType.RecordAttachment:
-			panic("@todo pending implementation")
-			// query = query.
-			//	Join("compose_record_value AS v ON (v.ref = a.id)")
-			//
-			// if f.ModuleID > 0 {
-			//	query = query.
-			//		Join("compose_record AS r ON (r.id = v.record_id)").
-			//		Where(squirrel.Eq{"r.module_id": f.ModuleID})
-			// }
-			//
-			// if f.RecordID > 0 {
-			//	query = query.Where(squirrel.Eq{"v.record_id": f.RecordID})
-			// }
-			//
-			// if f.FieldName != "" {
-			//	query = query.Where(squirrel.Eq{"v.name": f.FieldName})
-			// }
+		case composeType.RecordAttachment, "":
 
 		default:
 			err = fmt.Errorf("unsupported kind value")
 			return
+		}
+
+		if f.ModuleID > 0 {
+			ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
+		}
+
+		if f.Hash != "" {
+			ee = append(ee, goqu.C("hash").Eq(f.Hash))
 		}
 
 		if f.Filter != "" {
