@@ -138,7 +138,7 @@
       </Panel>
 
       <Panel v-if="isEdit" :header="$t('system.users.editor.externalAuth.title')" toggleable class="shadow">
-        <UserExternalAuth :userID="user.userID" />
+        <UserExternalAuth ref="externalAuthRef" :userID="user.userID" />
       </Panel>
     </div>
 
@@ -205,6 +205,7 @@ const suspending = ref(false)
 const revoking = ref(false)
 const user = ref(null)
 const initialUser = ref(null)
+const externalAuthRef = ref(null)
 
 // Lifted State for Tabs
 const passwords = ref({
@@ -341,6 +342,7 @@ async function handleSubmit({ valid }) {
           password: passwords.value.password,
         })
         passwords.value = { password: '', confirmPassword: '' }
+        await externalAuthRef.value?.loadCredentials()
       }
 
       // Handle Role updates

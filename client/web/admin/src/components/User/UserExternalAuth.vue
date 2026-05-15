@@ -18,9 +18,9 @@
         class="flex items-center justify-between p-3"
       >
         <div class="flex flex-col gap-1">
-          <span class="font-medium">{{ item.label || item.kind }}</span>
+          <span class="font-medium">{{ formatKind(item.label || item.kind) }}</span>
           <span v-if="item.label && item.kind" class="text-xs text-muted-color">
-            {{ item.kind }}
+            {{ formatKind(item.kind) }}
           </span>
         </div>
         <Button
@@ -57,6 +57,11 @@ const loading = ref(true)
 const credentials = ref([])
 const removingID = ref(null)
 
+function formatKind(value) {
+  if (!value) return ''
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
 async function loadCredentials() {
   loading.value = true
   try {
@@ -86,4 +91,6 @@ async function handleRemove(item) {
 }
 
 onMounted(() => loadCredentials())
+
+defineExpose({ loadCredentials })
 </script>
