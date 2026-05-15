@@ -10,20 +10,24 @@
       <div
         v-for="(v, i) in progressValues"
         :key="i"
-        :class="{ 'mt-2': i }"
-        style="min-width: 15rem"
+        :class="['relative', { 'mt-2': i }]"
+        style="min-width: 15rem; height: 1.5rem"
       >
         <ProgressBar
           :value="normalizedProgress(v)"
-          :show-value="field.options.showValue !== false"
-          :style="{ height: '1.5rem' }"
+          :show-value="false"
+          :style="progressStyle(v)"
           :class="progressBarClasses(v)"
-          :pt="progressPt(v)"
+          class="w-full h-full"
+        />
+        <div
+          v-if="field.options.showValue !== false"
+          class="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
-          <template v-if="field.options.showValue !== false" #default>
-            <span :class="progressTextClass(v)">{{ progressLabel(v) }}</span>
-          </template>
-        </ProgressBar>
+          <span class="text-sm font-medium" :style="progressTextStyle(v)">
+            {{ progressLabel(v) }}
+          </span>
+        </div>
       </div>
     </template>
   </div>
@@ -120,16 +124,17 @@ function normalizedProgress(v) {
   return Math.round(((num - min) / (max - min)) * 100)
 }
 
-// Variant color mapping for PrimeVue severity
-const variantColorMap = {
-  primary: 'var(--p-primary-500, #3b82f6)',
-  secondary: 'var(--p-surface-500, #6b7280)',
-  success: 'var(--p-green-500, #22c55e)',
-  warning: 'var(--p-yellow-500, #f59e0b)',
-  danger: 'var(--p-red-500, #ef4444)',
-  info: 'var(--p-sky-500, #06b6d4)',
-  light: 'var(--p-surface-200, #e5e7eb)',
-  dark: 'var(--p-surface-800, #1f2937)',
+// Map progress variant → PrimeVue Button severity token suffix
+// Reading the same --p-button-{severity}-* tokens the Button component uses guarantees
+// the progress fill stays in sync with the configurator's Button tags across themes.
+const severityTokenMap = {
+  primary: 'primary',
+  secondary: 'secondary',
+  success: 'success',
+  warning: 'warn',
+  danger: 'danger',
+  info: 'info',
+  dark: 'contrast',
 }
 
 // Determine variant based on thresholds and current value percentage
@@ -151,17 +156,12 @@ function getProgressVariant(v) {
   return baseVariant
 }
 
-// Pass-through styling for progress bar via PrimeVue's pt
-function progressPt(v) {
-  const variant = getProgressVariant(v)
-  const bgColor = variantColorMap[variant] || variantColorMap.success
-
+// Set the PrimeVue ProgressBar's value-background design token so the fill matches
+// the configurator's Button tag across themes (same approach as the block ProgressBlock).
+function progressStyle(v) {
+  const sev = severityTokenMap[getProgressVariant(v)] || 'primary'
   return {
-    value: {
-      style: {
-        backgroundColor: bgColor,
-      },
-    },
+    '--p-progressbar-value-background': `var(--p-button-${sev}-background)`,
   }
 }
 
@@ -197,10 +197,10 @@ function progressBarClasses(_v) {
   return classes
 }
 
-// Text color for label based on variant darkness
-function progressTextClass(v) {
-  const variant = getProgressVariant(v)
-  return ['dark', 'primary'].includes(variant) ? 'text-white' : 'text-color'
+// Text color reads the matching --p-button-{severity}-color so it stays in sync with progress fill
+function progressTextStyle(v) {
+  const sev = severityTokenMap[getProgressVariant(v)] || 'primary'
+  return { color: `var(--p-button-${sev}-color)` }
 }
 
 const viewerClasses = computed(() => {

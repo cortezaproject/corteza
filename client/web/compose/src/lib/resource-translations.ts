@@ -119,6 +119,25 @@ export function applyPageLayoutTranslations(
   }
 }
 
+// Applies translations to a namespace object in-place.
+export function applyNamespaceTranslations(
+  namespace: any,
+  translations: ResourceTranslation[],
+  lang: string,
+): void {
+  const res = `compose:namespace/${namespace.namespaceID}`
+  const g = (key: string) => get(translations, res, key, lang)
+
+  const name = g('name')
+  if (name !== undefined) namespace.name = name
+
+  const subtitle = g('meta.subtitle')
+  if (subtitle !== undefined && namespace.meta) namespace.meta.subtitle = subtitle
+
+  const description = g('meta.description')
+  if (description !== undefined && namespace.meta) namespace.meta.description = description
+}
+
 // Applies page-level and block-level translations in-place.
 // Pass a non-empty `layouts` array to also apply layout translations.
 export function applyPageTranslations(

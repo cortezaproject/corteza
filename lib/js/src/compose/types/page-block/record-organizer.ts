@@ -14,6 +14,7 @@ interface Options {
   showRefresh: boolean
   magnifyOption: string
   displayOption: string
+  addRecordDisplayOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -28,6 +29,7 @@ const defaults: Readonly<Options> = Object.freeze({
   showRefresh: false,
   magnifyOption: '',
   displayOption: 'sameTab',
+  addRecordDisplayOption: '',
 })
 
 export class PageBlockRecordOrganizer extends PageBlock {
@@ -56,6 +58,7 @@ export class PageBlockRecordOrganizer extends PageBlock {
       'group',
       'magnifyOption',
       'displayOption',
+      'addRecordDisplayOption',
     )
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')

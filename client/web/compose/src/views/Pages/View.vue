@@ -26,6 +26,7 @@
         :page="page"
         :namespace="namespace"
         :layouts="pageLayouts"
+        @update:page="page = $event"
       />
     </ButtonGroup>
   </Teleport>

@@ -4,19 +4,15 @@
       <ProgressSpinner style="width: 28px; height: 28px" />
     </div>
 
-    <div v-else class="flex items-center h-full p-3">
-      <div class="flex-1">
-        <ProgressBar
-          :value="percentage"
-          :show-value="showValue"
-          :style="progressStyle"
-        >
-          <template v-if="showValue" #default>
-            <span class="text-sm font-medium">
-              {{ displayLabel }}
-            </span>
-          </template>
-        </ProgressBar>
+    <div v-else class="relative h-full">
+      <ProgressBar
+        :value="percentage"
+        :show-value="false"
+        :style="progressStyle"
+        class="w-full h-full"
+      />
+      <div v-if="showValue" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span class="text-sm font-medium" :style="textStyle">{{ displayLabel }}</span>
       </div>
     </div>
   </PageBlock>
@@ -54,25 +50,37 @@ const percentage = computed(() => {
 })
 
 const displayLabel = computed(() => {
+  const showProgress = displayOpts.value.showProgress
   if (displayOpts.value.showRelative) {
-    return `${Math.round(percentage.value)}%`
+    const pct = `${Math.round(percentage.value)}%`
+    return showProgress ? `${pct} / 100%` : pct
   }
-  return `${value.value}`
+  return showProgress ? `${value.value} / ${max.value}` : `${value.value}`
 })
 
+// Map progress variant → PrimeVue Button severity token suffix
+// Reading the same --p-button-{severity}-* tokens the Button component uses guarantees
+// the progress fill stays in sync with the configurator's Button tags across themes.
+const severityTokenMap = {
+  primary: 'primary',
+  secondary: 'secondary',
+  success: 'success',
+  warning: 'warn',
+  danger: 'danger',
+  info: 'info',
+  dark: 'contrast',
+}
+
 const progressStyle = computed(() => {
-  const variant = getActiveVariant()
-  const colorMap = {
-    primary: undefined,
-    success: 'var(--p-green-500)',
-    warning: 'var(--p-yellow-500)',
-    danger: 'var(--p-red-500)',
-    info: 'var(--p-blue-500)',
-    dark: 'var(--p-surface-700)',
-    secondary: 'var(--p-surface-400)',
+  const sev = severityTokenMap[getActiveVariant()] || 'primary'
+  return {
+    '--p-progressbar-value-background': `var(--p-button-${sev}-background)`,
   }
-  const color = colorMap[variant]
-  return color ? { '--p-progressbar-value-background': color } : {}
+})
+
+const textStyle = computed(() => {
+  const sev = severityTokenMap[getActiveVariant()] || 'primary'
+  return { color: `var(--p-button-${sev}-color)` }
 })
 
 function getActiveVariant() {

@@ -14,14 +14,21 @@
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/components/Translator/CTranslatorButton.vue'
+import { applyNamespaceTranslations } from '@/lib/resource-translations'
+import { useResourceTranslations } from '@/composables/useResourceTranslations'
 
 const props = defineProps<{
   namespace: any
   disabled?: boolean
 }>()
 
+const emit = defineEmits<{
+  'update:namespace': [namespace: any]
+}>()
+
 const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
+const { currentLanguage } = useResourceTranslations()
 
 const isEdit = computed(() =>
   props.namespace?.namespaceID && props.namespace.namespaceID !== '0',
@@ -48,5 +55,11 @@ async function updater(changes: any[]) {
     namespaceID: props.namespace.namespaceID,
     translations: changes,
   })
+  const fresh = await $ComposeAPI.namespaceListTranslations({
+    namespaceID: props.namespace.namespaceID,
+  })
+  const updated = JSON.parse(JSON.stringify(props.namespace))
+  applyNamespaceTranslations(updated, fresh, currentLanguage.value)
+  emit('update:namespace', updated)
 }
 </script>

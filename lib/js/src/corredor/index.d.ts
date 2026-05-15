@@ -1,7 +1,0 @@
-export { Args, ArgsProxy } from './args'
-export { HumanTypes } from './args-human'
-export { Ctx } from './ctx'
-export type { Config } from './ctx'
-export * from './exec'
-export * from './helpers'
-export type { BaseArgs } from './shared'

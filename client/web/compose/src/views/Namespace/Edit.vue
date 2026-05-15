@@ -21,6 +21,7 @@
       <NamespaceTranslator
         v-if="namespace"
         :namespace="namespace"
+        @update:namespace="namespace = $event"
       />
     </ButtonGroup>
   </Teleport>

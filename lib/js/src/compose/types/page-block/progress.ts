@@ -22,7 +22,6 @@ interface DisplayOptions {
   showValue: boolean
   showRelative: boolean
   showProgress: boolean
-  animated: boolean
   variant: string
   thresholds: Threshold[]
 }
@@ -66,7 +65,6 @@ const defaults: Readonly<Options> = Object.freeze({
     showValue: true,
     showRelative: true,
     showProgress: false,
-    animated: false,
     variant: 'success',
     thresholds: [],
   },
@@ -106,6 +104,28 @@ export class PageBlockProgress extends PageBlock {
 
     if (o.display) {
       this.options.display = { ...this.options.display, ...o.display }
+    }
+
+    // Default field to 'count' when a module is selected — keeps fetch consistent with UI
+    for (const section of ['value', 'minValue', 'maxValue'] as const) {
+      const s = this.options[section]
+      if (s.moduleID && !s.field) s.field = 'count'
+    }
+
+    // Migrate legacy top-level `thresholds` (older configurator wrote here) → display.thresholds
+    const legacyThresholds = (o as any)?.thresholds
+    if (Array.isArray(legacyThresholds) && !this.options.display.thresholds?.length) {
+      this.options.display.thresholds = legacyThresholds
+    }
+
+    // Migrate legacy 'light' variant (no PrimeVue Button equivalent) → 'secondary'
+    if (this.options.display.variant === 'light') {
+      this.options.display.variant = 'secondary'
+    }
+    if (Array.isArray(this.options.display.thresholds)) {
+      for (const th of this.options.display.thresholds) {
+        if (th.variant === 'light') th.variant = 'secondary'
+      }
     }
   }
 

@@ -8,6 +8,7 @@
       <ChartTranslator
         :chart="chart"
         :namespace="namespace"
+        @update:chart="chart = $event"
       />
     </ButtonGroup>
   </Teleport>

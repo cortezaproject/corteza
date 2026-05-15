@@ -1,12 +1,10 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
 import { Apply } from '../../../cast'
-import { PageBlockWrap } from './types'
 
 const kind = 'IFrame'
 interface Options {
   srcField: string
   src: string
-  wrap: PageBlockWrap
   refreshRate: number
   showRefresh: boolean
   magnifyOption: string
@@ -15,7 +13,6 @@ interface Options {
 const defaults: Readonly<Options> = Object.freeze({
   srcField: '',
   src: '',
-  wrap: 'Plain',
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
@@ -39,7 +36,7 @@ export class PageBlockIFrame extends PageBlock {
       o = { ...o, src: (o as Record<string, unknown>).url as string }
     }
 
-    Apply(this.options, o, String, 'srcField', 'src', 'wrap', 'magnifyOption')
+    Apply(this.options, o, String, 'srcField', 'src', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
   }

@@ -75,6 +75,7 @@ label:
   yes: Yes
   now: Now
   ok: Ok
+  or: OR
   pageLayout: Page layout
   pageBuilder: Page builder
   permissions: Permissions

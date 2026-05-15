@@ -21,6 +21,10 @@ const props = defineProps<{
   disabled?: boolean
 }>()
 
+const emit = defineEmits<{
+  'update:chart': [chart: any]
+}>()
+
 const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
 
@@ -51,5 +55,11 @@ async function updater(changes: any[]) {
     chartID: props.chart.chartID,
     translations: changes,
   })
+  // Re-fetch the chart so backend-applied translations (nested config labels) are reflected
+  const fresh = await $ComposeAPI.chartRead({
+    namespaceID: props.namespace.namespaceID,
+    chartID: props.chart.chartID,
+  })
+  emit('update:chart', fresh)
 }
 </script>

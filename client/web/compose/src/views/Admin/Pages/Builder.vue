@@ -40,7 +40,7 @@
           :page="page"
           :namespace="namespace"
           :layouts="layouts.filter(l => l.pageLayoutID !== '0')"
-          @update:page="page = $event"
+          @update:page="onPageTranslated"
           @update:layouts="layouts = $event"
         />
       </ButtonGroup>
@@ -56,7 +56,7 @@
     <!-- Builder Grid -->
     <div class="flex-1 overflow-auto">
       <Grid ref="gridRef" :blocks="blocks" :namespace="namespace" :page="page" editable>
-        <template #item-overlay="{ item }">
+        <template #item-overlay="{ item, block }">
           <div class="block-toolbox bg-emphasis flex items-center">
             <Button
               v-tooltip.top="$t('page.tooltip.drag.block')"
@@ -85,13 +85,13 @@
                 @click="cloneBlock(item.i)"
               />
               <Button
-                v-if="showTranslatorButton && blocks[item.i]?.blockID && blocks[item.i]?.blockID !== '0'"
+                v-if="showTranslatorButton && block?.blockID && block?.blockID !== '0'"
                 v-tooltip.top="$t('translator.button.tooltip')"
                 icon="pi pi-language"
                 text
                 size="small"
                 severity="secondary"
-                @click.stop="openBlockTranslation(blocks[item.i])"
+                @click.stop="openBlockTranslation(block)"
               />
               <Button
                 :title="$t('page.tooltip.delete.block')"
@@ -505,7 +505,6 @@ import ProgressConfigurator from '@/components/PageBlocks/Configurators/Progress
 import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue'
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
-import ChatbotConfigurator from '@/components/PageBlocks/Configurators/ChatbotConfigurator.vue'
 import AutomationButtonsEditor from '@/components/PageBlocks/Shared/AutomationButtonsEditor.vue'
 import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
 import { useResourceTranslations } from '@/composables/useResourceTranslations'
@@ -545,7 +544,7 @@ const editingBlockIndex = ref(-1)
 
 provide('blockDraft', editingBlock)
 provide('$pageBuilder', {
-  editTabbedBlock: (blockID) => editBlock(blockID),
+  editTabbedBlock: blockID => editBlock(blockID),
   removeTabEntry: (tabsBlockID, tabIndex) => removeTabEntry(tabsBlockID, tabIndex),
   cloneTabbedBlock: (tabsBlockID, tabIndex) => cloneTabbedBlock(tabsBlockID, tabIndex),
 })
@@ -688,7 +687,6 @@ const availableBlockTypes = computed(() => {
     { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-credit-card' },
-    { kind: 'ChatbotSessions', label: t('block.chatbotSessions.label'), icon: 'pi pi-inbox' },
   ].sort((a, b) => a.label.localeCompare(b.label))
 
   return [...recordBlocks, { kind: 'divider' }, ...otherBlocks]
@@ -718,7 +716,6 @@ const configurators = {
   RecordOrganizer: markRaw(RecordOrganizerConfigurator),
   RecordRevisions: markRaw(RecordRevisionsConfigurator),
   Geometry: markRaw(GeometryConfigurator),
-  ChatbotSessions: markRaw(ChatbotConfigurator),
 }
 
 const blockConfigurator = computed(() => {
@@ -777,7 +774,7 @@ function commitEditingBlock() {
   blocks.value.splice(editingBlockIndex.value, 1, updated)
   syncTabbedBlockVisibility()
   gridRef.value?.rebuildLayout()
-  editingBlock.value = JSON.parse(JSON.stringify(updated))
+  editingBlock.value = compose.PageBlockMaker(JSON.parse(JSON.stringify(updated)))
 
   return updated
 }
@@ -826,7 +823,7 @@ function addBlock(kind) {
 
     // Open the editor for the newly added block
     const index = blocks.value.length - 1
-    editingBlock.value = JSON.parse(JSON.stringify(block))
+    editingBlock.value = compose.PageBlockMaker(JSON.parse(JSON.stringify(block)))
     editingBlockIndex.value = index
     configuratorTab.value = 'block'
     isNewBlock.value = true
@@ -869,8 +866,8 @@ function editBlock(blockId) {
 
   const index = blocks.value.findIndex(b => String(getBlockId(b)) === blockId)
 
-  // Deep clone the block for editing
-  editingBlock.value = JSON.parse(JSON.stringify(block))
+  // Deep clone the block for editing, preserving the class instance so prototype methods (e.g. fetch) survive
+  editingBlock.value = compose.PageBlockMaker(JSON.parse(JSON.stringify(block)))
   editingBlockIndex.value = index
   configuratorTab.value = 'block'
   showConfigurator.value = true
@@ -954,6 +951,21 @@ function deleteBlock(blockId) {
   }
 }
 
+function syncBlockTranslations(updatedPageBlocks) {
+  for (const updatedBlock of updatedPageBlocks || []) {
+    const block = blocks.value.find(b => String(getBlockId(b)) === String(updatedBlock.blockID))
+    if (block) {
+      block.title = updatedBlock.title
+      block.description = updatedBlock.description
+    }
+  }
+}
+
+function onPageTranslated(updatedPage) {
+  page.value = updatedPage
+  syncBlockTranslations(updatedPage.blocks)
+}
+
 function openBlockTranslation(block) {
   const { namespaceID, pageID } = page.value
   const blockID = block.blockID
@@ -966,8 +978,8 @@ function openBlockTranslation(block) {
     fetcher: () =>
       $ComposeAPI
         .pageListTranslations({ namespaceID, pageID })
-        .then((set) => set.filter((tr) => tr.key.startsWith(`pageBlock.${blockID}.`))),
-    updater: async (changes) => {
+        .then(set => set.filter(tr => tr.key.startsWith(`pageBlock.${blockID}.`))),
+    updater: async changes => {
       await $ComposeAPI.pageUpdateTranslations({ namespaceID, pageID, translations: changes })
       const fresh = await $ComposeAPI.pageListTranslations({ namespaceID, pageID })
       const updatedPage = JSON.parse(JSON.stringify(page.value))
@@ -975,6 +987,7 @@ function openBlockTranslation(block) {
       applyPageTranslations(updatedPage, updatedLayouts, fresh, currentLanguage.value)
       page.value = updatedPage
       layouts.value = updatedLayouts
+      syncBlockTranslations(updatedPage.blocks)
     },
   })
 }
@@ -1263,13 +1276,13 @@ watch(
 <style scoped>
 .block-toolbox {
   position: absolute;
-  top: 0;
-  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 5;
   display: flex;
   justify-content: center;
   padding: 4px;
-  border-bottom-left-radius: var(--p-card-border-radius);
   border-top-right-radius: var(--p-card-border-radius);
+  border-bottom-left-radius: var(--p-card-border-radius);
 }
 </style>

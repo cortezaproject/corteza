@@ -84,6 +84,16 @@ export class ModuleFieldNumber extends ModuleField {
     if (o.thresholds) {
       this.options.thresholds = o.thresholds
     }
+
+    // Migrate legacy 'light' variant (no PrimeVue Button equivalent) → 'secondary'
+    if (this.options.variant === 'light') {
+      this.options.variant = 'secondary'
+    }
+    if (Array.isArray(this.options.thresholds)) {
+      for (const th of this.options.thresholds) {
+        if (th.variant === 'light') th.variant = 'secondary'
+      }
+    }
   }
 
   formatValue(value: string, format: string): string {

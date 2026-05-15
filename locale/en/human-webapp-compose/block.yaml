@@ -1067,6 +1067,13 @@ progress:
   animated: Animated
   default-variant: Default variant
   display-options: Display options
+  source:
+    static:
+      label: Static value
+      description: Use a fixed number
+    module:
+      label: From module
+      description: Aggregate field across records
   fetch-failed: Failed to fetch progress bar report
   field:
     label: Field
@@ -1092,6 +1099,9 @@ progress:
   thresholds:
     label: Thresholds
     empty: No thresholds configured
+    column:
+      value: At percentage
+      variant: Variant
   threshold:
     label: Threshold
     variant: Set which variant to show if value is equal or larger than the threshold
@@ -1114,6 +1124,7 @@ progress:
       label: Default value
       description: This value will be used if metric is not configured
   variant:
+    label: Variant
     default: Dark
     danger: Danger
     dark: Dark

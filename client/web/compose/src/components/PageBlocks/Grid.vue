@@ -39,7 +39,7 @@
       :w="item.w"
       :h="item.h"
       :min-w="6"
-      :min-h="5"
+      :min-h="3"
       :drag-allow-from="editable ? '.block-drag-handle' : undefined"
       :drag-ignore-from="editable ? '' : 'a, button'"
       :class="editable ? 'builder-grid-item' : 'view-grid-item'"
@@ -164,6 +164,11 @@ defineExpose({ rebuildLayout })
     background-color: var(--p-highlight-focus-background);
     border-radius: var(--p-card-border-radius);
   }
+}
+
+.vgl-layout:has(.vgl-item--resizing),
+.vgl-layout:has(.vgl-item--dragging) {
+  user-select: none;
 }
 
 /* Disable grid-layout-plus slide animation globally */
