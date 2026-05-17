@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/cli"
 	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/system/agentic/skills"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,15 +32,16 @@ func (m *mockRegistry) Get(_ context.Context, _ uint64) (*types.Agent, error) {
 }
 
 type mockLLM struct {
-	responses  []LLMResponse
-	callErrors []error
-	callIdx    int
-	// messages captured per call, for assertions
-	captured [][]types.AiConversationMessage
+	responses        []LLMResponse
+	callErrors       []error
+	callIdx          int
+	captured         [][]types.AiConversationMessage
+	capturedPrompts  []string
 }
 
-func (m *mockLLM) Chat(_ context.Context, _ string, msgs []types.AiConversationMessage, _ []Tool, _ LLMConfig) (*LLMResponse, error) {
+func (m *mockLLM) Chat(_ context.Context, prompt string, msgs []types.AiConversationMessage, _ []Tool, _ LLMConfig) (*LLMResponse, error) {
 	m.captured = append(m.captured, msgs)
+	m.capturedPrompts = append(m.capturedPrompts, prompt)
 	i := m.callIdx
 	m.callIdx++
 	if i < len(m.callErrors) && m.callErrors[i] != nil {
@@ -49,6 +52,19 @@ func (m *mockLLM) Chat(_ context.Context, _ string, msgs []types.AiConversationM
 		return &r, nil
 	}
 	return &LLMResponse{Text: "done"}, nil
+}
+
+type mockSkillRegistry struct {
+	skills map[string][]*skills.Skill
+}
+
+func (m *mockSkillRegistry) ForTool(name string) []*skills.Skill { return m.skills[name] }
+func (m *mockSkillRegistry) All() []*skills.Skill {
+	var out []*skills.Skill
+	for _, ss := range m.skills {
+		out = append(out, ss...)
+	}
+	return out
 }
 
 type mockMCP struct {
@@ -246,6 +262,61 @@ func TestRun_WindDownInjected(t *testing.T) {
 		}
 	}
 	assert.True(t, found, "expected wind-down message in conversation history before second LLM call")
+}
+
+func TestRun_SkillActivatedAfterToolCall(t *testing.T) {
+	llm := &mockLLM{responses: []LLMResponse{
+		{Text: "using tool", ToolCalls: []ToolCall{{ID: "1", Name: "test_tool", Args: map[string]any{}}}},
+		{Text: "final answer"},
+	}}
+	rt := newRuntime(
+		&mockRegistry{agent: activeAgent()},
+		llm,
+		&mockMCP{result: "ok"},
+	)
+	rt.SetSkillRegistry(&mockSkillRegistry{skills: map[string][]*skills.Skill{
+		"test_tool": {{
+			Name:     "demo_skill",
+			Triggers: []string{"test_tool"},
+			Body:     "DEMO_SKILL_BODY_MARKER",
+		}},
+	}})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{AgentID: 42, Input: "hi"})
+	require.NoError(t, err)
+	assert.Equal(t, "final answer", resp.Output)
+
+	require.Len(t, llm.capturedPrompts, 2)
+	assert.NotContains(t, llm.capturedPrompts[0], "DEMO_SKILL_BODY_MARKER", "skill must not appear in the first prompt — no tool called yet")
+	assert.Contains(t, llm.capturedPrompts[1], "DEMO_SKILL_BODY_MARKER", "skill must appear in the second prompt after the tool was called")
+	assert.Contains(t, llm.capturedPrompts[1], "## SKILL: demo_skill", "skill header must be present")
+}
+
+func TestRun_SkillInjectedOnlyOnce(t *testing.T) {
+	llm := &mockLLM{responses: []LLMResponse{
+		{Text: "tool 1", ToolCalls: []ToolCall{{ID: "1", Name: "test_tool", Args: map[string]any{}}}},
+		{Text: "tool 2", ToolCalls: []ToolCall{{ID: "2", Name: "test_tool", Args: map[string]any{}}}},
+		{Text: "final answer"},
+	}}
+	rt := newRuntime(
+		&mockRegistry{agent: activeAgent()},
+		llm,
+		&mockMCP{result: "ok"},
+	)
+	rt.SetSkillRegistry(&mockSkillRegistry{skills: map[string][]*skills.Skill{
+		"test_tool": {{
+			Name:     "demo_skill",
+			Triggers: []string{"test_tool"},
+			Body:     "DEMO_SKILL_BODY_MARKER",
+		}},
+	}})
+
+	_, err := rt.Run(testCtx(), &AgentRequest{AgentID: 42, Input: "hi"})
+	require.NoError(t, err)
+
+	require.Len(t, llm.capturedPrompts, 3)
+	count := strings.Count(llm.capturedPrompts[2], "DEMO_SKILL_BODY_MARKER")
+	assert.Equal(t, 1, count, "skill body should appear exactly once even after multiple matching tool calls")
 }
 
 func TestRun_HappyPath(t *testing.T) {
