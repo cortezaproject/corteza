@@ -15,6 +15,7 @@ import (
 type (
 	toolRegistrar interface {
 		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
+		RegisterHiddenTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
 	}
 
 	recordHandler struct {

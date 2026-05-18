@@ -245,7 +245,22 @@ func (r *runtime) getAvailableTools(ctx context.Context, agent *types.Agent, taq
 		}
 	}
 
+	if agentHasPageTools(agent) {
+		if bsTools, bsErr := r.mcp.GetTools(ctx, []string{"compose_page_block_schema"}); bsErr == nil {
+			tools = append(tools, bsTools...)
+		}
+	}
+
 	return tools, nil
+}
+
+func agentHasPageTools(agent *types.Agent) bool {
+	for _, t := range agent.Access.Tools {
+		if strings.HasPrefix(t.Name, "compose_page_") {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation) (string, string) {

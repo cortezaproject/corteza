@@ -58,6 +58,10 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 		return allowedDecision(agent, nil, args)
 	}
 
+	if tool == "compose_page_block_schema" && agentHasPageTool(agent) {
+		return allowedDecision(agent, nil, args)
+	}
+
 	if strings.HasPrefix(tool, "automation_") && tool != "automation_taq_lookup" && tool != "automation_workflow_exec" && tool != "automation_workflow_lookup" {
 		taqIDStr := strings.TrimPrefix(tool, "automation_")
 		if findTAQ(agent, taqIDStr) == nil {
@@ -148,6 +152,15 @@ func findWorkflow(agent *types.Agent, ref string) *types.AgentAccessWorkflow {
 		}
 	}
 	return nil
+}
+
+func agentHasPageTool(agent *types.Agent) bool {
+	for _, t := range agent.Access.Tools {
+		if strings.HasPrefix(t.Name, "compose_page_") {
+			return true
+		}
+	}
+	return false
 }
 
 // buildResource constructs a Human resource identifier from the tool name and args.

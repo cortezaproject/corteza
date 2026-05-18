@@ -17,6 +17,10 @@ func (s *stubRegistrar) RegisterTool(tool mcp.Tool, _ string, _ server.ToolHandl
 	s.names = append(s.names, tool.Name)
 }
 
+func (s *stubRegistrar) RegisterHiddenTool(tool mcp.Tool, _ string, _ server.ToolHandlerFunc) {
+	s.names = append(s.names, tool.Name)
+}
+
 func TestNamespaceHandlerRegistersTools(t *testing.T) {
 	reg := &stubRegistrar{}
 	NamespaceHandler(reg, nil)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -56,7 +57,7 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 	)
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_update",
-			mcp.WithDescription("Update an existing page. When blocks are provided they replace all existing blocks — call compose_page_lookup first if you need to preserve existing blocks."),
+			mcp.WithDescription("Update an existing page. Pass only the fields you want to change. Blocks are merged by blockID: blocks with a matching blockID overwrite existing ones, blocks without a blockID are appended, and existing blocks not in the payload are kept."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID")),
 			mcp.WithString("title", mcp.Description("New title")),
@@ -65,7 +66,7 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 			mcp.WithString("parent", mcp.Description("New parent page title, handle, or ID. Pass empty string to move to root.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID for record detail pages. Pass empty string to clear.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Replaces all existing blocks. Grid is 12 columns wide — full-width block uses xywh [0,0,12,20].`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Grid is 12 columns wide; a full-width block uses xywh [0,0,12,20].`)),
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
@@ -93,7 +94,7 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 		"Reorder pages",
 		h.reorder,
 	)
-	h.reg.RegisterTool(
+	h.reg.RegisterHiddenTool(
 		mcp.NewTool("compose_page_block_schema",
 			mcp.WithDescription("Get real examples of a page block kind from existing pages. Returns actual block configurations from the system so you know what options to use. Call this before creating blocks of an unfamiliar kind."),
 			mcp.WithString("kind", mcp.Required(), mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed")),
@@ -290,7 +291,11 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		if err != nil {
 			return nil, fmt.Errorf("invalid blocks: %w", err)
 		}
-		pg.Blocks = blocks
+		merged, err := mergePageBlocks(pg.Blocks, blocks)
+		if err != nil {
+			return nil, err
+		}
+		pg.Blocks = merged
 	}
 
 	if rawConfig, ok := args["config"]; ok && rawConfig != nil {
@@ -434,6 +439,7 @@ func supportedBlockKinds() string {
 }
 
 // findPageByAny resolves a page reference (numeric ID, handle, or title) within a namespace.
+// Title path uses Query because the auto-generated filter ignores the Title field.
 func findPageByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTypes.Page, error) {
 	if id, err := strconv.ParseUint(ref, 10, 64); err == nil {
 		return cmpService.DefaultPage.FindByID(ctx, namespaceID, id)
@@ -441,18 +447,45 @@ func findPageByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTyp
 	if p, err := cmpService.DefaultPage.FindByHandle(ctx, namespaceID, ref); err == nil {
 		return p, nil
 	}
-	// Fall back to title search
 	set, _, err := cmpService.DefaultPage.Find(ctx, cmpTypes.PageFilter{
 		NamespaceID: namespaceID,
-		Title:       ref,
+		Query:       ref,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("page lookup failed: %w", err)
 	}
-	if len(set) == 0 {
-		return nil, fmt.Errorf("page %q not found", ref)
+	for _, p := range set {
+		if strings.EqualFold(p.Title, ref) || strings.EqualFold(p.Handle, ref) {
+			return p, nil
+		}
 	}
-	return set[0], nil
+	return nil, fmt.Errorf("page %q not found", ref)
+}
+
+func mergePageBlocks(existing, incoming cmpTypes.PageBlocks) (cmpTypes.PageBlocks, error) {
+	if len(incoming) == 0 {
+		return existing, nil
+	}
+	indexByID := make(map[uint64]int, len(existing))
+	for i, b := range existing {
+		if b.BlockID != 0 {
+			indexByID[b.BlockID] = i
+		}
+	}
+	out := make(cmpTypes.PageBlocks, len(existing))
+	copy(out, existing)
+	for _, b := range incoming {
+		if b.BlockID == 0 {
+			out = append(out, b)
+			continue
+		}
+		idx, ok := indexByID[b.BlockID]
+		if !ok {
+			return nil, fmt.Errorf("unknown block ID %d", b.BlockID)
+		}
+		out[idx] = b
+	}
+	return out, nil
 }
 
 // parsePageBlocks unmarshals a JSON string or array into PageBlocks.
