@@ -463,6 +463,7 @@ func (r *runtime) runExecutionLoop(
 		llmSpan.Attributes = map[string]any{
 			"inputTokens":  llmResp.Usage.InputTokens,
 			"outputTokens": llmResp.Usage.OutputTokens,
+			"promptLength": len(systemPrompt),
 		}
 		r.emitSpan(llmSpan)
 
