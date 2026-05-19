@@ -94,13 +94,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		nsAggregation *esSearchResponse
 		mAggregation  *esSearchResponse
 
-		nsReq      *http.Request
-		nsRes      *http.Response
-		mReq       *http.Request
-		mRes       *http.Response
-		nsResponse cResponse
-		mResponse  cResponse
-		moduleMap  = make(map[string][]string)
+		indexFieldExclusions []indexField
 
 		nsHandleMap = make(map[string]nsMeta)
 		mHandleMap  = make(map[string]mMeta)
@@ -116,20 +110,26 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		searchMode = s.searchMode
 	}
 
+	indexFieldExclusions, nsHandleMap, mHandleMap, err = fetchModNamespaceResources(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch namespace/module resources: %w", err)
+	}
+
 	results, page, err = esSearch(ctx, log, esc, searchParams{
-		title:         "results",
-		query:         searchString,
-		resourceType:  resourceTypes,
-		from:          from,
-		size:          size,
-		moduleAggs:    moduleAggs,
-		namespaceAggs: namespaceAggs,
-		namespaceIDs:  namespaceIDs,
-		moduleIDs:     moduleIDs,
-		dumpRaw:       validDumpRaw,
-		allowedRoles:  allowedRoles,
-		embedder:      s.embedder,
-		searchMode:    searchMode,
+		title:                "results",
+		query:                searchString,
+		resourceType:         resourceTypes,
+		from:                 from,
+		size:                 size,
+		moduleAggs:           moduleAggs,
+		namespaceAggs:        namespaceAggs,
+		namespaceIDs:         namespaceIDs,
+		moduleIDs:            moduleIDs,
+		indexFieldExclusions: indexFieldExclusions,
+		dumpRaw:              validDumpRaw,
+		allowedRoles:         allowedRoles,
+		embedder:             s.embedder,
+		searchMode:           searchMode,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute search: %w", err)
@@ -294,67 +294,85 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 	}
 
 	noHits := len(searchString) == 0 && len(moduleAggs) == 0 && len(namespaceAggs) == 0
-	// if !noHits {
-	// @todo only fetch module from result but that requires another loop to fetch module Id from es response
-	// 			TEMP fix, I have solution use elastic for the same but different index
-	nsReq, err = searcher.DefaultApiClient.Namespaces()
+
+	return conv(results, aggregation, noHits, nsHandleMap, mHandleMap, page)
+}
+
+func fetchModNamespaceResources(ctx context.Context) (indexFieldExclusions []indexField, nsHandleMap map[string]nsMeta, mHandleMap map[string]mMeta, err error) {
+	nsHandleMap = make(map[string]nsMeta)
+	mHandleMap = make(map[string]mMeta)
+
+	// Prepare request to get namespaces
+	nsReq, err := searcher.DefaultApiClient.Namespaces()
 	if err != nil {
-		return nil, fmt.Errorf("failed to prepare namespace request: %w", err)
-	} else {
-		if nsRes, err = searcher.DefaultApiClient.HttpClient().Do(nsReq.WithContext(ctx)); err != nil {
-			return nil, fmt.Errorf("failed to send namespace request: %w", err)
-		}
-		if nsRes.StatusCode != http.StatusOK {
-			fmt.Println("err: ", err)
-			return nil, fmt.Errorf("request resulted in an unexpected status: %s: %w", err)
-		}
-		if err = json.NewDecoder(nsRes.Body).Decode(&nsResponse); err != nil {
-			return nil, fmt.Errorf("failed to decode namespace response: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to prepare namespace request: %w", err)
+	}
+
+	nsRes, err := searcher.DefaultApiClient.HttpClient().Do(nsReq.WithContext(ctx))
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to send namespace request: %w", err)
+	}
+	defer nsRes.Body.Close()
+
+	if nsRes.StatusCode != http.StatusOK {
+		return nil, nil, nil, fmt.Errorf("request resulted in an unexpected status: %s", nsRes.Status)
+	}
+
+	var nsResponse cResponse
+	if err = json.NewDecoder(nsRes.Body).Decode(&nsResponse); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to decode namespace response: %w", err)
+	}
+
+	for _, s := range nsResponse.Response.Set {
+		// Get the module handles for aggs response
+		nsHandleMap[s.Slug] = nsMeta{
+			Name:   s.Name,
+			Handle: s.Slug,
 		}
 
-		if err = nsRes.Body.Close(); err != nil {
-			return nil, fmt.Errorf("failed to close namespace response body: %w", err)
+		mReq, err := searcher.DefaultApiClient.Modules(s.NamespaceID)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("failed to prepare module meta request: %w", err)
 		}
 
-		for _, s := range nsResponse.Response.Set {
+		mRes, err := searcher.DefaultApiClient.HttpClient().Do(mReq.WithContext(ctx))
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("failed to send module request: %w", err)
+		}
+
+		if mRes.StatusCode != http.StatusOK {
+			_ = mRes.Body.Close()
+			return nil, nil, nil, fmt.Errorf("request resulted in an unexpected status: %s", mRes.Status)
+		}
+
+		var mResponse cResponse
+		if err = json.NewDecoder(mRes.Body).Decode(&mResponse); err != nil {
+			_ = mRes.Body.Close()
+			return nil, nil, nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+		_ = mRes.Body.Close()
+
+		for _, m := range mResponse.Response.Set {
 			// Get the module handles for aggs response
-			nsHandleMap[s.Slug] = nsMeta{
-				Name:   s.Name,
-				Handle: s.Slug,
-			}
-			if mReq, err = searcher.DefaultApiClient.Modules(s.NamespaceID); err != nil {
-				return nil, fmt.Errorf("failed to prepare module meta request: %w", err)
-			}
-			if mRes, err = searcher.DefaultApiClient.HttpClient().Do(mReq.WithContext(ctx)); err != nil {
-				return nil, fmt.Errorf("failed to send module request: %w", err)
-			}
-			if mRes.StatusCode != http.StatusOK {
-				return nil, fmt.Errorf("request resulted in an unexpected status: %s: %w", err)
-			}
-			if err = json.NewDecoder(mRes.Body).Decode(&mResponse); err != nil {
-				return nil, fmt.Errorf("failed to decode response: %w", err)
-			}
-			if err = mRes.Body.Close(); err != nil {
-				return nil, fmt.Errorf("failed to close response body: %w", err)
+			mHandleMap[m.Handle] = mMeta{
+				Name:   m.Name,
+				Handle: m.Slug,
 			}
 
-			for _, m := range mResponse.Response.Set {
-				// Get the module handles for aggs response
-				mHandleMap[m.Handle] = mMeta{
-					Name:   m.Name,
-					Handle: m.Slug,
+			key := fmt.Sprintf("human-private-compose-records-%d-%d", s.NamespaceID, m.ModuleID)
+			if len(m.Config.Discovery.Private.Result) > 0 && len(m.Config.Discovery.Private.Result[0].Fields) > 0 {
+				var fields []string
+				for _, field := range m.Config.Discovery.Private.Result[0].Fields {
+					fields = append(fields, fmt.Sprintf("values.%s", field))
 				}
 
-				var (
-					key = fmt.Sprintf("%d-%d", s.NamespaceID, m.ModuleID)
-				)
-				if len(m.Config.Discovery.Private.Result) > 0 && len(m.Config.Discovery.Private.Result[0].Fields) > 0 {
-					moduleMap[key] = m.Config.Discovery.Private.Result[0].Fields
-				}
+				indexFieldExclusions = append(indexFieldExclusions, indexField{
+					IndexName: key,
+					Fields:    fields,
+				})
 			}
 		}
 	}
-	// }
 
-	return conv(results, aggregation, noHits, moduleMap, nsHandleMap, mHandleMap, page)
+	return indexFieldExclusions, nsHandleMap, mHandleMap, nil
 }

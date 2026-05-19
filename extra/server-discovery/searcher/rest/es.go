@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	queryDsl "github.com/crusttech/human/extra/server-discovery/pkg/es/query"
 	"github.com/crusttech/human/extra/server-discovery/pkg/options"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -92,7 +93,7 @@ type (
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
 		Source       SourceFilter            `json:"_source,omitempty"`
 		MinScore     float32                 `json:"min_score,omitempty"`
-		Highlight    EsSearchHighlight       `json:"highlight,omitempty"`
+		Highlight    *EsSearchHighlight      `json:"highlight,omitempty"`
 	}
 
 	esSearchAggrTerm struct {
@@ -212,15 +213,16 @@ type (
 	}
 
 	searchParams struct {
-		title         string
-		query         string
-		moduleAggs    []string
-		namespaceAggs []string
-		namespaceIDs  []string
-		moduleIDs     []string
-		dumpRaw       bool
-		from          int
-		size          int
+		title                string
+		query                string
+		moduleAggs           []string
+		namespaceAggs        []string
+		namespaceIDs         []string
+		moduleIDs            []string
+		indexFieldExclusions []indexField
+		dumpRaw              bool
+		from                 int
+		size                 int
 
 		resourceType []string
 
@@ -236,6 +238,11 @@ type (
 		PreTags           []string `json:"pre_tags"`
 		PostTags          []string `json:"post_tags"`
 		NumberOfFragments int      `json:"number_of_fragments"`
+	}
+
+	indexField struct {
+		IndexName string
+		Fields    []string
 	}
 )
 
@@ -296,32 +303,16 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// filter by namespace IDs if provided
 	if len(p.namespaceIDs) > 0 {
-		query.Query.Bool.Filter = append(query.Query.Bool.Filter, map[string]interface{}{
-			"nested": map[string]interface{}{
-				"path":       "namespace",
-				"score_mode": "none",
-				"query": map[string]interface{}{
-					"terms": map[string]interface{}{
-						"namespace.namespaceID": parseIDsToInt64(p.namespaceIDs),
-					},
-				},
-			},
-		})
+		nsIDs := parseIDsToInt64(p.namespaceIDs)
+		nestedTerms := queryDsl.NewNestedTerms("namespace", "namespace.namespaceID", nsIDs, "none")
+		query.Query.Bool.Filter = append(query.Query.Bool.Filter, nestedTerms)
 	}
 
 	// filter by module IDs if provided
 	if len(p.moduleIDs) > 0 {
-		query.Query.Bool.Filter = append(query.Query.Bool.Filter, map[string]interface{}{
-			"nested": map[string]interface{}{
-				"path":       "module",
-				"score_mode": "none",
-				"query": map[string]interface{}{
-					"terms": map[string]interface{}{
-						"module.moduleID": parseIDsToInt64(p.moduleIDs),
-					},
-				},
-			},
-		})
+		modIDs := parseIDsToInt64(p.moduleIDs)
+		nestedTerms := queryDsl.NewNestedTerms("module", "module.moduleID", modIDs, "none")
+		query.Query.Bool.Filter = append(query.Query.Bool.Filter, nestedTerms)
 	}
 
 	// Decide what indexes we can use
@@ -334,29 +325,21 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 		if !allowedRoleExist {
 			// Skip all documents that do not have baring roles in to allow list
-			query.Query.Bool.Filter = append(query.Query.Bool.Filter, map[string]map[string]interface{}{
-				"terms": {"security.allowedRoles": roles},
-			})
+			query.Query.Bool.Filter = append(query.Query.Bool.Filter, queryDsl.NewTermsString("security.allowedRoles", roles))
 
 			// Skip all documents that have baring roles in to deny list
-			query.Query.Bool.MustNot = append(query.Query.Bool.MustNot, map[string]map[string]interface{}{
-				"terms": {"security.deniedRoles": roles},
-			})
+			query.Query.Bool.MustNot = append(query.Query.Bool.MustNot, queryDsl.NewTermsString("security.deniedRoles", roles))
 		}
 	}
 
-	// Aggregations V1.0
-	// if len(p.aggregations) > 0 {
-	//	query.Aggregations = make(map[string]esSearchAggr)
-	//
-	//	for _, a := range p.aggregations {
-	//		query.Aggregations[a] = esSearchAggr{esSearchAggrTerm{Field: a + ".keyword"}}
-	//	}
-	// }
+	// Apply field exclusions for the private record fields
+	for _, exConfig := range p.indexFieldExclusions {
+		exclusion := queryDsl.NewIndexScopedExclusion(exConfig.IndexName, exConfig.Fields, p.query)
+		query.Query.Bool.MustNot = append(query.Query.Bool.MustNot, exclusion)
+	}
 
 	// Search string filter
 	if !noQ {
-
 		switch p.searchMode {
 		case options.TraditionalSearchMode:
 			applyTraditionalSearch(query, index, sqs.Wrap.Query)
@@ -381,16 +364,18 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		}
 	}
 
-	// add the highlight for the matched fields.
-	query.Highlight = EsSearchHighlight{
-		RequireFieldMatch: false,
-		Fields: map[string]highlightSetting{
-			"values.*": {
-				PreTags:           []string{"*"},
-				PostTags:          []string{"*"},
-				NumberOfFragments: 0,
+	if p.query != "" && len(p.indexFieldExclusions) != 0 {
+		// add the highlight for the matched fields.
+		query.Highlight = &EsSearchHighlight{
+			RequireFieldMatch: false,
+			Fields: map[string]highlightSetting{
+				"values.*": {
+					PreTags:           []string{"*"},
+					PostTags:          []string{"*"},
+					NumberOfFragments: 0,
+				},
 			},
-		},
+		}
 	}
 
 	var (
@@ -403,10 +388,6 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		mm.Wrap.Type = "cross_fields"
 		mm.Wrap.MinimumShouldMatch = "100%"
 		mm.Wrap.Fields = []string{"module.name"}
-		// query.Query.Bool.Must = append(query.Query.Bool.Must, mm)
-		// query.Query.DisMax.Queries = append(query.Query.DisMax.Queries, mm)
-
-		// dd.Wrap.Queries = append(dd.Wrap.Queries, mm)
 		mdd.Wrap.Path = "module"
 		nsdd.Wrap.IgnoreUnmapped = true
 		mdd.Wrap.Query.Wrap.Queries = append(mdd.Wrap.Query.Wrap.Queries, mm)
@@ -423,10 +404,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		mm.Wrap.Type = "cross_fields"
 		mm.Wrap.MinimumShouldMatch = "100%"
 		mm.Wrap.Fields = []string{"namespace.name"}
-		// query.Query.Bool.Must = append(query.Query.Bool.Must, mm)
-		// query.Query.DisMax.Queries = append(query.Query.DisMax.Queries, mm)
 
-		// dd.Wrap.Queries = append(dd.Wrap.Queries, mm)
 		nsdd.Wrap.Path = "namespace"
 		nsdd.Wrap.IgnoreUnmapped = true
 		nsdd.Wrap.Query.Wrap.Queries = append(nsdd.Wrap.Query.Wrap.Queries, mm)
@@ -437,28 +415,6 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		query.Query.Bool.Must = append(query.Query.Bool.Must, nsdd)
 	}
 
-	// if !p.aggOnly && !noNSFilter {
-	// 	nsf := make(map[string]interface{})
-	// 	nsf["terms"] = map[string][]string{
-	// 		"namespace.name.keyword": p.namespaceAggs,
-	// 	}
-	// 	query.Query.Bool.Filter = append(query.Query.Bool.Filter, nsf)
-	// }
-
-	// Aggregations V1.0 Improved
-	// if len(p.aggregations) > 0 {
-	//	for _, a := range p.aggregations {
-	//		if len(a) > 0 {
-	//			sqs = esSimpleQueryString{}
-	//			sqs.Wrap.Query = a
-	//			query.Query.Bool.Must = append(query.Query.Bool.Must, sqs)
-	//		}
-	//	}
-	// }
-
-	// if noQ == 0 && len(p.moduleAggs) == 0 && len(p.namespaceAggs) == 0 {
-	//	query.Query.DisMax.Queries = append(query.Query.DisMax.Queries, index)
-	// }
 	query.Aggregations = make(map[string]esSearchNestedAggr)
 	query.Aggregations["namespace"] = esSearchNestedAggr{
 		Nested: esSearchNestedAggs{Path: "namespace"},
@@ -492,39 +448,6 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		}
 	}
 
-	// query.Aggregations["resource"] = esSearchAggr{
-	//	Terms: esSearchAggrTerm{
-	//		Field: "resourceType.keyword",
-	//		Size:  999,
-	//	},
-	//	Aggregations: EsSearchAggrTerms{
-	//		"resourceName": esSearchAggr{
-	//			Terms: esSearchAggrTerm{
-	//				Field: "name.keyword",
-	//				Size:  999,
-	//			},
-	//		},
-	//		"modules": esSearchAggr{
-	//			Terms: esSearchAggrTerm{
-	//				Field: "module.name.keyword",
-	//				Size:  999,
-	//			},
-	//		},
-	//		"namespaces": esSearchAggr{
-	//			Terms: esSearchAggrTerm{
-	//				Field: "namespace.name.keyword",
-	//				Size:  999,
-	//			},
-	//		},
-	//	},
-	// }
-
-	// Aggregations V2.0
-	// if len(p.aggregations) > 0 {
-	//	query.Aggregations = (Aggregations{}).encodeTerms(p.aggregations)
-	// }
-
-	// spew.Dump("query: ", query)
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		err = fmt.Errorf("could not encode query: %q", err)
 		return
@@ -669,7 +592,7 @@ func applyTraditionalSearch(query *esSearchParams, index interface{}, searchQuer
 	query.Query.Bool.Must = append(query.Query.Bool.Must, buildWildcardQuery(searchQuery))
 }
 
-func applySemanticSearch(query *esSearchParams, index interface{}, vector interface{}) {
+func applySemanticSearch(query *esSearchParams, index interface{}, vector []float64) {
 	query.Query.Bool.Should = []interface{}{index}
 	query.Query.Bool.Should = append(query.Query.Bool.Should, buildKNNQuery(vector))
 
@@ -677,7 +600,7 @@ func applySemanticSearch(query *esSearchParams, index interface{}, vector interf
 	query.MinScore = 1.6
 }
 
-func applyHybridSearch(query *esSearchParams, index interface{}, vector interface{}, searchQuery string) {
+func applyHybridSearch(query *esSearchParams, index interface{}, vector []float64, searchQuery string) {
 	query.Query.Bool.Should = []interface{}{index}
 	query.Query.Bool.Should = append(query.Query.Bool.Should, buildKNNQuery(vector))
 	query.Query.Bool.Should = append(query.Query.Bool.Should, buildMultiMatchQuery(searchQuery))
@@ -686,25 +609,12 @@ func applyHybridSearch(query *esSearchParams, index interface{}, vector interfac
 	query.MinScore = 1.6
 }
 
-func buildWildcardQuery(searchQuery string) map[string]interface{} {
-	return map[string]interface{}{
-		"wildcard": map[string]interface{}{
-			"catch_all": map[string]interface{}{
-				"value": fmt.Sprintf("*%s*", searchQuery),
-			},
-		},
-	}
+func buildWildcardQuery(searchQuery string) interface{} {
+	return queryDsl.NewWildcard("catch_all", queryDsl.WildcardValueForQ(searchQuery))
 }
 
-func buildKNNQuery(vector interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"knn": map[string]interface{}{
-			"vectorsValue": map[string]interface{}{
-				"vector": vector,
-				"k":      10,
-			},
-		},
-	}
+func buildKNNQuery(vector []float64) interface{} {
+	return queryDsl.NewKNN(vector, 10)
 }
 
 func buildMultiMatchQuery(searchQuery string) map[string]interface{} {

@@ -65,7 +65,7 @@ type (
 )
 
 // conv converts results from the backend into human-discovery (jsonld-ish) format
-func conv(sr *esSearchResponse, aggregation *esSearchResponse, noHits bool, moduleMeta map[string][]string, nsHandleMap map[string]nsMeta, mHandleMap map[string]mMeta, page pagination) (out *cdResults, err error) {
+func conv(sr *esSearchResponse, aggregation *esSearchResponse, noHits bool, nsHandleMap map[string]nsMeta, mHandleMap map[string]mMeta, page pagination) (out *cdResults, err error) {
 	if sr == nil {
 		return
 	}
@@ -285,7 +285,7 @@ hits:
 				Label string      `json:"label"`
 				Value interface{} `json:"value"`
 			}
-			key := fmt.Sprintf("%d-%d", r.Namespace.NamespaceId, r.Module.ModuleId)
+
 			var (
 				slice []valueJson
 				uc    = created{
@@ -294,35 +294,19 @@ hits:
 				}
 			)
 
-			if val, is := moduleMeta[key]; is {
-				for _, f := range val {
+			for k, v := range r.Values {
+				// @todo hardcoded value
+				sanitizedVal := sanitize(v)
+				if len(slice) < 5 && sanitizedVal != nil {
 					slice = append(slice, valueJson{
-						Name:  f,
-						Label: r.ValueLabels[f],
-						Value: sanitize(r.Values[f]),
+						Name:  k,
+						Label: r.ValueLabels[k],
+						Value: sanitizedVal,
 					})
 
-					if vv, ok := r.Values[f].([]interface{}); ok {
+					if vv, ok := v.([]interface{}); ok {
 						if len(vv) > 0 {
-							ssVal[f] = sanitize(vv[0])
-						}
-					}
-				}
-			} else {
-				for k, v := range r.Values {
-					// @todo hardcoded value
-					sanitizedVal := sanitize(v)
-					if len(slice) < 5 && sanitizedVal != nil {
-						slice = append(slice, valueJson{
-							Name:  k,
-							Label: r.ValueLabels[k],
-							Value: sanitizedVal,
-						})
-
-						if vv, ok := v.([]interface{}); ok {
-							if len(vv) > 0 {
-								ssVal[k] = sanitize(vv[0])
-							}
+							ssVal[k] = sanitize(vv[0])
 						}
 					}
 				}

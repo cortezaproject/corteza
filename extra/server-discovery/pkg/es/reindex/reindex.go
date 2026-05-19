@@ -810,20 +810,18 @@ func (ri *reIndexer) processResource(source []byte) (*bytes.Reader, error) {
 		return nil, fmt.Errorf("error unmarshaling record: %v", err)
 	}
 
-	if ri.vectorSearchOpt.SearchMode != options.TraditionalSearchMode {
-		joinedValues := ""
-		if len(record.CatchAll) > 0 {
-			catchAllValues := cast.ToStringSlice(record.CatchAll)
-			joinedValues = strings.TrimSpace(strings.Join(catchAllValues, ", "))
-		}
-
-		embeddings, err := ri.embedder.GenerateEmbeddings(joinedValues)
-		if err != nil {
-			return nil, err
-		}
-
-		record.VectorsValue = embeddings
+	joinedValues := ""
+	if len(record.CatchAll) > 0 {
+		catchAllValues := cast.ToStringSlice(record.CatchAll)
+		joinedValues = strings.TrimSpace(strings.Join(catchAllValues, ", "))
 	}
+
+	embeddings, err := ri.embedder.GenerateEmbeddings(joinedValues)
+	if err != nil {
+		return nil, err
+	}
+
+	record.VectorsValue = embeddings
 
 	updatedJSON, err := json.Marshal(record)
 	if err != nil {
