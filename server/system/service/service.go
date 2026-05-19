@@ -128,6 +128,7 @@ var (
 	DefaultKnowledgeBase        *knowledgeBase
 	DefaultChatbot              *chatbot
 	DefaultChatbotSession       *chatbotSession
+	DefaultChatbotPreview       *chatbotPreview
 	DefaultAgenticRuntime       AgenticRunner
 	DefaultMCPRegistry          *agenticMcp.Registry
 	DefaultLlmService           *llm.Service
@@ -286,6 +287,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultMCPRegistry = agenticMcp.NewRegistry()
 
 	DefaultObsBus = c.ObsBus
+
+	// Depends on DefaultObsBus being set so SSE emissions reach subscribers.
+	DefaultChatbotPreview = ChatbotPreview()
 
 	DefaultAgenticRuntime = agenticRuntime.Runtime(
 		DefaultAgent,

@@ -1517,7 +1517,7 @@ var ChatbotSessionHandoff = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "ClosedAt", Sortable: true,
-			Type:  &dal.TypeTimestamp{Precision: -1},
+			Type:  &dal.TypeTimestamp{Nullable: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "closed_at"},
 		},
 

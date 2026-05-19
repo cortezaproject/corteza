@@ -99,7 +99,7 @@ export const baseCSS = `
 .hb-msg.agent pre code { background: none; padding: 0; border-radius: 0; font-size: 0.88em; }
 .hb-msg.agent ul { margin: 6px 0; padding-left: 20px; }
 .hb-msg.agent strong { font-weight: 600; }
-.hb-footer { border-top: 1px solid #e5e7eb; padding: 8px; display: flex; gap: 6px; align-items: flex-end; font-size: var(--hb-font-base, 14px); }
+.hb-footer { border-top: 1px solid #e5e7eb; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; font-size: var(--hb-font-base, 14px); }
 .hb-input {
   flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px;
   font-family: inherit; color: inherit; background: var(--hb-bg, #fff);
@@ -156,6 +156,32 @@ export const baseCSS = `
   40%           { transform: translateY(-4px); opacity: 1; }
 }
 .hb-info { font-size: var(--hb-font-small, 12px); color: #6b7280; text-align: center; padding: 10px; }
+.hb-conv-actions { display: flex; gap: 6px; flex-wrap: wrap; flex-basis: 100%; width: 100%; padding-top: 6px; order: 2; }
+.hb-footer .hb-input { order: 1; }
+.hb-footer .hb-send { order: 1; }
+.hb-action {
+  background: transparent; color: var(--hb-primary, #09344E);
+  border: 1px solid #d1d5db; border-radius: 999px;
+  padding: 4px 10px; cursor: pointer; font-family: inherit;
+  font-size: var(--hb-font-small, 12px);
+}
+.hb-action:hover { background: rgba(0,0,0,0.04); }
+.hb-action:disabled { opacity: 0.45; cursor: not-allowed; }
+.hb-handoff-badge {
+  background: #fef3c7; color: #78350f;
+  border-bottom: 1px solid #fde68a;
+  padding: 8px 12px; font-size: var(--hb-font-small, 12px);
+  display: flex; align-items: center; gap: 8px;
+}
+.hb-handoff-badge .hb-action { border-color: #fcd34d; color: #78350f; }
+.hb-msg.agent .hb-operator-tag {
+  font-size: var(--hb-font-small, 12px); font-weight: 600;
+  color: #047857; margin-bottom: 2px;
+}
+.hb-msg.agent .hb-msg-body { white-space: pre-wrap; }
+.hb-field-error {
+  font-size: var(--hb-font-small, 12px); color: #b91c1c; padding-top: 2px;
+}
 .hb-hidden { display: none !important; }
 `
 

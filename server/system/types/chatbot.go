@@ -53,8 +53,14 @@ type (
 	}
 
 	ChatbotHandoff struct {
-		Enabled     bool     `json:"enabled"`
-		TargetRoles []uint64 `json:"targetRoles,omitempty"`
+		Enabled     bool                     `json:"enabled"`
+		TargetRoles []uint64                 `json:"targetRoles,omitempty"`
+		Automation  ChatbotHandoffAutomation `json:"automation"`
+	}
+
+	ChatbotHandoffAutomation struct {
+		OnRequested ChatbotAutomationHook `json:"onRequested"`
+		OnAccepted  ChatbotAutomationHook `json:"onAccepted"`
 	}
 
 	ChatbotStyling struct {
@@ -105,8 +111,13 @@ type (
 	}
 
 	ChatbotScenarioAutomation struct {
-		Before string `json:"before"`
-		After  string `json:"after"`
+		Before ChatbotAutomationHook `json:"before"`
+		After  ChatbotAutomationHook `json:"after"`
+	}
+
+	ChatbotAutomationHook struct {
+		Automation string `json:"automation"`
+		Async      bool   `json:"async"`
 	}
 
 	ChatbotScenarios []ChatbotScenario

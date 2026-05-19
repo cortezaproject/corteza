@@ -15,94 +15,120 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-func TestExecuteStep(t *testing.T) {
-	var (
-		req = require.New(t)
-		ctx = context.Background()
+func newTestChatbotSession(t *testing.T) (*chatbotSession, store.Storer, uint64) {
+	t.Helper()
+	req := require.New(t)
+	ctx := context.Background()
 
-		s store.Storer
-		err error
+	s, err := sqlite.ConnectInMemory(ctx)
+	req.NoError(err)
+	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
 
-		sessionID      = nextID()
-		conversationID = nextID()
-		scenarioIdx    = 0
-	)
-
-	// Setup in-memory SQLite
-	if s, err = sqlite.ConnectInMemory(ctx); err != nil {
-		req.NoError(err)
-	} else if err = store.Upgrade(ctx, zap.NewNop(), s); err != nil {
-		req.NoError(err)
-	}
-
-	// Create session
-	sess := &types.ChatbotSession{
+	sessionID := nextID()
+	req.NoError(store.CreateChatbotSession(ctx, s, &types.ChatbotSession{
 		ID:        sessionID,
 		ChatbotID: nextID(),
 		Status:    "active",
-	}
-	req.NoError(store.CreateChatbotSession(ctx, s, sess))
+	}))
 
-	// Create service with mock access control
 	svc := &chatbotSession{
 		actionlog: actionlog.NewService(s, zap.NewNop(), zap.NewNop(), actionlog.MakeDisabledPolicy()),
 		store:     s,
 		ac:        DefaultAccessControl,
 	}
+	return svc, s, sessionID
+}
 
-	t.Run("creates step and marks complete", func(t *testing.T) {
-		scenario := &types.ChatbotScenario{
-			ID:   "test-scenario",
-			Type: "conversation",
-		}
+func TestStartStep(t *testing.T) {
+	ctx := context.Background()
+	svc, s, sessionID := newTestChatbotSession(t)
+	convID := nextID()
 
-		step, err := svc.ExecuteStep(ctx, sessionID, scenario, conversationID, scenarioIdx, "")
+	t.Run("creates a step in active state", func(t *testing.T) {
+		scenario := &types.ChatbotScenario{ID: "intro", Type: "form"}
+		step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0, nil)
 		assert.NoError(t, err)
 		assert.NotNil(t, step)
-		assert.Equal(t, "complete", step.Status)
-		assert.Equal(t, scenarioIdx, step.ScenarioIndex)
-		assert.Equal(t, conversationID, step.ConversationID)
+		assert.Equal(t, "active", step.Status)
+		assert.Equal(t, 0, step.ScenarioIndex)
+		assert.Equal(t, convID, step.ConversationID)
 
-		// Verify step was persisted
 		stored, err := store.LookupChatbotSessionStepByID(ctx, s, step.ID)
 		assert.NoError(t, err)
-		assert.NotNil(t, stored)
-		assert.Equal(t, "complete", stored.Status)
+		assert.Equal(t, "active", stored.Status)
 	})
 
-	t.Run("before automation failure marks step failed", func(t *testing.T) {
+	t.Run("reuses an existing step row", func(t *testing.T) {
+		scenario := &types.ChatbotScenario{ID: "intro2", Type: "form"}
+		s1, err := svc.StartStep(ctx, sessionID, scenario, convID, 1, nil)
+		assert.NoError(t, err)
+		s2, err := svc.StartStep(ctx, sessionID, scenario, convID, 1, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, s1.ID, s2.ID)
+	})
+
+	t.Run("before-automation failure marks step failed", func(t *testing.T) {
 		scenario := &types.ChatbotScenario{
-			ID:   "test-scenario-before-fail",
+			ID:   "broken",
 			Type: "conversation",
 			Automation: types.ChatbotScenarioAutomation{
-				Before: fmt.Sprintf("corteza::automation:ng-automation/%d", nextID()),
+				Before: types.ChatbotAutomationHook{
+					Automation: fmt.Sprintf("corteza::automation:ng-automation/%d", nextID()),
+				},
 			},
 		}
-
-		// Without DefaultNgAutomation set, invokeAutomation will return error
-		step, err := svc.ExecuteStep(ctx, sessionID, scenario, conversationID, scenarioIdx+1, "")
-
-		// Execution should fail
+		step, err := svc.StartStep(ctx, sessionID, scenario, convID, 2, nil)
 		assert.Error(t, err)
 		assert.NotNil(t, step)
 		assert.Equal(t, "failed", step.Status)
 	})
+}
 
-	t.Run("reuses existing step on retry", func(t *testing.T) {
-		// Create first step
-		scenario := &types.ChatbotScenario{
-			ID:   "reuse-scenario",
-			Type: "conversation",
-		}
+func TestFinalizeStep(t *testing.T) {
+	ctx := context.Background()
+	svc, s, sessionID := newTestChatbotSession(t)
+	convID := nextID()
 
-		step1, err := svc.ExecuteStep(ctx, sessionID, scenario, conversationID, scenarioIdx+2, "")
-		assert.NoError(t, err)
-		stepID := step1.ID
+	scenario := &types.ChatbotScenario{ID: "x", Type: "conversation"}
+	step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0, nil)
+	require.NoError(t, err)
 
-		// Call ExecuteStep again without creating new step
-		step2, err := svc.ExecuteStep(ctx, sessionID, scenario, conversationID, scenarioIdx+2, "")
-		assert.NoError(t, err)
-		assert.Equal(t, stepID, step2.ID)
-		assert.Equal(t, "complete", step2.Status)
-	})
+	require.NoError(t, svc.FinalizeStep(ctx, step.ID, scenario, nil))
+
+	stored, err := store.LookupChatbotSessionStepByID(ctx, s, step.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "complete", stored.Status)
+}
+
+func TestHandoffLifecycle(t *testing.T) {
+	ctx := context.Background()
+	svc, s, sessionID := newTestChatbotSession(t)
+	convID := nextID()
+
+	scenario := &types.ChatbotScenario{ID: "conv", Type: "conversation"}
+	step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0, nil)
+	require.NoError(t, err)
+
+	h, err := svc.RequestHandoff(ctx, sessionID, step.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "requested", h.Status)
+
+	sess, err := svc.FindByID(ctx, sessionID)
+	require.NoError(t, err)
+	assert.Equal(t, "handoff_requested", sess.Status)
+
+	require.NoError(t, svc.ActivateHandoff(ctx, h.ID))
+	sess, _ = svc.FindByID(ctx, sessionID)
+	assert.Equal(t, "handoff_active", sess.Status)
+
+	// Closing the handoff MUST resume the session at "active" (not "closed")
+	// so the AI loop can pick up further user messages on the same step.
+	require.NoError(t, svc.CloseHandoff(ctx, h.ID))
+	sess, _ = svc.FindByID(ctx, sessionID)
+	assert.Equal(t, "active", sess.Status)
+
+	closed, err := store.LookupChatbotSessionHandoffByID(ctx, s, h.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "closed", closed.Status)
+	assert.NotNil(t, closed.ClosedAt)
 }

@@ -1,5 +1,5 @@
-import type { ChatbotConfig, Scenario } from './types'
-import { Engine, type Message } from './engine'
+import type { ChatbotConfig, StepStartPayload } from './types'
+import { Engine, type HandoffState, type Message } from './engine'
 import { applyStyling, baseCSS } from './styles'
 import { renderMarkdown } from './md'
 
@@ -7,7 +7,6 @@ const SVG_CLOSE =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M6 18L18 6"/></svg>'
 const SVG_SEND =
   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.6L21 12 3.4 3.4 3 10l12 2-12 2z"/></svg>'
-// PrimeIcons "comments" glyph — used when no custom launcher icon is set.
 const SVG_COMMENTS =
   '<svg viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10.5,0h-8C1.119,0,0,1.119,0,2.5v5C0,8.881,1.119,10,2.5,10H3v2.5c0,0.202,0.122,0.385,0.309,0.462C3.371,12.988,3.436,13,3.5,13c0.13,0,0.259-0.051,0.354-0.146L6.707,10H10.5C11.881,10,13,8.881,13,7.5v-5C13,1.119,11.881,0,10.5,0z"/></svg>'
 
@@ -31,9 +30,14 @@ export class WidgetUI {
   private cfg: ChatbotConfig
   private mo: MutationObserver | null = null
   private onToggle?: (open: boolean) => void
+  private currentForm: HTMLFormElement | null = null
 
   onUserInput: (text: string) => void = () => {}
   onFormSubmit: (values: Record<string, string>) => void = () => {}
+  onRequestHandoff: () => void = () => {}
+  onCancelHandoff: () => void = () => {}
+  onEndConversation: () => void = () => {}
+  onCloseSession: () => void = () => {}
 
   constructor(cfg: ChatbotConfig, engine: Engine, opts: WidgetUIOptions = {}) {
     this.cfg = cfg
@@ -49,9 +53,6 @@ export class WidgetUI {
     attach()
     this.host = host
 
-    // Only observe body when mounting to body — SPA hosts that re-render
-    // document.body (e.g. Vue mount('body')) wipe our widget. For contained
-    // previews the parent is stable, so no observer needed.
     if (!opts.container) {
       this.mo = new MutationObserver(() => attach())
       this.mo.observe(document.body, { childList: true })
@@ -117,7 +118,7 @@ export class WidgetUI {
       header.appendChild(img)
     }
     const title = document.createElement('span')
-    title.textContent = cfg.styling.launcher.label || ' '
+    title.textContent = cfg.styling.launcher.label || ' '
     header.appendChild(title)
 
     const closeBtn = document.createElement('button')
@@ -138,13 +139,30 @@ export class WidgetUI {
     this.panelEl.appendChild(this.footerEl)
 
     this.engine.on(ev => {
-      if (ev.type === 'scenario') this.renderScenario(ev.scenario)
-      else if (ev.type === 'message') this.appendMessage(ev.message)
-      else if (ev.type === 'typing') this.setTyping(ev.on)
-      else if (ev.type === 'agent_start') this.beginAgentStream()
-      else if (ev.type === 'agent_delta') this.appendAgentDelta(ev.text)
-      else if (ev.type === 'agent_end') this.endAgentStream()
-      else if (ev.type === 'error') this.appendMessage({ role: 'system', content: ev.error })
+      switch (ev.type) {
+        case 'step_start':
+          return this.renderStep(ev.payload)
+        case 'step_complete':
+          return
+        case 'message':
+          return this.appendMessage(ev.message)
+        case 'typing':
+          return this.setTyping(ev.on)
+        case 'agent_start':
+          return this.beginAgentStream()
+        case 'agent_delta':
+          return this.appendAgentDelta(ev.text)
+        case 'agent_end':
+          return this.endAgentStream()
+        case 'form_error':
+          return this.showFormErrors(ev.errors)
+        case 'handoff_change':
+          return this.renderHandoffBadge(ev.state)
+        case 'session_closed':
+          return this.renderClosed()
+        case 'error':
+          return this.appendMessage({ role: 'system', content: ev.error })
+      }
     })
   }
 
@@ -185,9 +203,23 @@ export class WidgetUI {
 
   appendMessage(m: Message) {
     const row = document.createElement('div')
-    const cls = m.role === 'user' ? 'user' : m.role === 'agent' ? 'agent' : 'system'
+    const cls =
+      m.role === 'user'
+        ? 'user'
+        : m.role === 'agent' || m.role === 'operator'
+          ? 'agent'
+          : 'system'
     row.className = `hb-msg ${cls}`
-    if (m.role === 'agent') {
+    if (m.role === 'operator') {
+      const tag = document.createElement('div')
+      tag.className = 'hb-operator-tag'
+      tag.textContent = m.operator ? m.operator : 'Operator'
+      row.appendChild(tag)
+      const body = document.createElement('div')
+      body.className = 'hb-msg-body'
+      body.textContent = m.content
+      row.appendChild(body)
+    } else if (m.role === 'agent') {
       row.innerHTML = renderMarkdown(m.content)
     } else {
       row.textContent = m.content
@@ -210,22 +242,23 @@ export class WidgetUI {
     }
   }
 
-  private renderScenario(s: Scenario) {
+  private renderStep(p: StepStartPayload) {
     this.footerEl.className = 'hb-footer hb-hidden'
     this.footerEl.innerHTML = ''
+    this.currentForm = null
 
-    switch (s.type) {
+    switch (p.type) {
       case 'static_message':
-        return this.renderStaticMessage(s)
+        return this.renderStaticMessage(p)
       case 'form':
-        return this.renderForm(s)
+        return this.renderForm(p)
       case 'conversation':
-        return this.renderConversation()
+        return this.renderConversation(p)
     }
   }
 
-  private renderStaticMessage(s: Scenario) {
-    const cfg = s.config || {}
+  private renderStaticMessage(p: StepStartPayload) {
+    const cfg = p.config || {}
     const row = document.createElement('div')
     row.className = 'hb-msg agent'
     if (cfg.isMarkdown) {
@@ -235,10 +268,29 @@ export class WidgetUI {
     }
     this.bodyEl.appendChild(row)
     this.bodyEl.scrollTop = this.bodyEl.scrollHeight
+
+    // Determine whether more scenarios follow. Past-last → close button;
+    // otherwise → next button. Auto-advance timing is driven by entry.ts.
+    const lastIdx = this.cfg.scenarios.length - 1
+    const isLast = p.scenarioIndex >= lastIdx
+    if (cfg.showCloseButton === false) return
+
+    this.footerEl.className = 'hb-footer'
+    const btn = document.createElement('button')
+    btn.className = 'hb-submit'
+    btn.type = 'button'
+    if (isLast) {
+      btn.textContent = cfg.closeLabel || 'Close'
+      btn.addEventListener('click', () => this.onCloseSession())
+    } else {
+      btn.textContent = cfg.nextLabel || 'Next'
+      btn.addEventListener('click', () => this.onEndConversation())
+    }
+    this.footerEl.appendChild(btn)
   }
 
-  private renderForm(s: Scenario) {
-    const cfg = s.config || {}
+  private renderForm(p: StepStartPayload) {
+    const cfg = p.config || {}
     const fields: Array<{ name: string; label: string; type?: string; required?: boolean }> =
       cfg.fields || []
     const form = document.createElement('form')
@@ -246,6 +298,7 @@ export class WidgetUI {
     fields.forEach(f => {
       const row = document.createElement('div')
       row.className = 'hb-field'
+      row.dataset.field = f.name
       const lbl = document.createElement('label')
       lbl.textContent = f.label || f.name
       row.appendChild(lbl)
@@ -254,6 +307,9 @@ export class WidgetUI {
       input.type = f.type || 'text'
       if (f.required) input.required = true
       row.appendChild(input)
+      const err = document.createElement('div')
+      err.className = 'hb-field-error hb-hidden'
+      row.appendChild(err)
       form.appendChild(row)
     })
     const actions = document.createElement('div')
@@ -281,17 +337,36 @@ export class WidgetUI {
       this.onFormSubmit(values)
     })
     this.bodyEl.appendChild(form)
+    this.currentForm = form
   }
 
-  private renderConversation() {
+  // showFormErrors displays inline validation errors on the current form.
+  // No-op if no form is mounted.
+  private showFormErrors(errors: Record<string, string>) {
+    const form = this.currentForm
+    if (!form) return
+    form.querySelectorAll<HTMLDivElement>('.hb-field-error').forEach(el => {
+      el.textContent = ''
+      el.classList.add('hb-hidden')
+    })
+    Object.entries(errors).forEach(([name, msg]) => {
+      const row = form.querySelector<HTMLDivElement>(`.hb-field[data-field="${CSS.escape(name)}"]`)
+      if (!row) return
+      const errEl = row.querySelector<HTMLDivElement>('.hb-field-error')
+      if (!errEl) return
+      errEl.textContent = msg
+      errEl.classList.remove('hb-hidden')
+    })
+  }
+
+  private renderConversation(p: StepStartPayload) {
     this.footerEl.className = 'hb-footer'
     this.footerEl.innerHTML = ''
     const input = document.createElement('textarea')
     input.className = 'hb-input'
     input.rows = 1
     input.placeholder =
-      (this.engine.current?.config as { placeholder?: string } | undefined)?.placeholder ||
-      'Type a message…'
+      (p.config as { placeholder?: string } | undefined)?.placeholder || 'Type a message…'
 
     const send = document.createElement('button')
     send.className = 'hb-send'
@@ -330,6 +405,74 @@ export class WidgetUI {
 
     this.footerEl.appendChild(input)
     this.footerEl.appendChild(send)
+
+    const actions = document.createElement('div')
+    actions.className = 'hb-conv-actions'
+
+    if (this.cfg.handoff.enabled && !this.cfg.handoff.notImplemented) {
+      const ho = document.createElement('button')
+      ho.className = 'hb-action'
+      ho.type = 'button'
+      ho.dataset.action = 'handoff'
+      ho.textContent = (p.config as { handoffLabel?: string } | undefined)?.handoffLabel || 'Talk to human'
+      ho.addEventListener('click', () => this.onRequestHandoff())
+      actions.appendChild(ho)
+    }
+
+    const end = document.createElement('button')
+    end.className = 'hb-action'
+    end.type = 'button'
+    end.dataset.action = 'end'
+    end.textContent = (p.config as { endLabel?: string } | undefined)?.endLabel || 'End conversation'
+    end.addEventListener('click', () => this.onEndConversation())
+    actions.appendChild(end)
+
+    this.footerEl.appendChild(actions)
   }
 
+  private renderHandoffBadge(state: HandoffState) {
+    let badge = this.panelEl.querySelector<HTMLDivElement>('.hb-handoff-badge')
+    if (state.phase === 'idle') {
+      if (badge) badge.remove()
+      // Re-enable handoff button in the conv footer if present.
+      this.footerEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
+        b.disabled = false
+      })
+      return
+    }
+    if (!badge) {
+      badge = document.createElement('div')
+      badge.className = 'hb-handoff-badge'
+      this.panelEl.insertBefore(badge, this.bodyEl)
+    }
+    badge.textContent =
+      state.phase === 'requested'
+        ? 'Waiting for an operator…'
+        : `Connected to ${state.operator || 'operator'}`
+
+    if (state.phase === 'requested') {
+      const cancel = document.createElement('button')
+      cancel.className = 'hb-action'
+      cancel.type = 'button'
+      cancel.textContent = 'Cancel'
+      cancel.addEventListener('click', () => this.onCancelHandoff())
+      badge.appendChild(document.createTextNode(' '))
+      badge.appendChild(cancel)
+    }
+
+    // Disable the request-handoff button while we are mid-handoff.
+    this.footerEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
+      b.disabled = true
+    })
+  }
+
+  private renderClosed() {
+    this.footerEl.className = 'hb-footer hb-hidden'
+    this.footerEl.innerHTML = ''
+    const row = document.createElement('div')
+    row.className = 'hb-msg system'
+    row.textContent = 'Conversation ended.'
+    this.bodyEl.appendChild(row)
+    this.bodyEl.scrollTop = this.bodyEl.scrollHeight
+  }
 }

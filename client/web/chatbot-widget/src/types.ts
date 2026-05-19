@@ -36,4 +36,70 @@ export interface Session {
   sessionID: string
   token: string
   conversationID: string
+  dbSessionID: string
+}
+
+// SSE event names emitted by the widget API. Token streaming events
+// (`token`, `done`) come from the agent runtime; the rest are emitted by the
+// widget controller during the scenario lifecycle.
+export type SSEEventName =
+  | 'token'
+  | 'done'
+  | 'step_start'
+  | 'step_complete'
+  | 'step_error'
+  | 'form_error'
+  | 'handoff_requested'
+  | 'handoff_active'
+  | 'handoff_complete'
+  | 'operator_message'
+  | 'user_message'
+  | 'session_closed'
+
+export interface StepStartPayload {
+  scenarioID: string
+  scenarioIndex: number
+  type: ScenarioType
+  config: any
+  stepID: string
+}
+
+export interface StepCompletePayload {
+  scenarioID: string
+  scenarioIndex: number
+}
+
+export interface FormErrorPayload {
+  scenarioID: string
+  errors: Record<string, string>
+}
+
+export interface HandoffRequestedPayload {
+  handoffID: string
+  reason?: string
+}
+
+export interface HandoffActivePayload {
+  handoffID: string
+  operator?: string
+}
+
+export interface HandoffCompletePayload {
+  handoffID: string
+}
+
+export interface OperatorMessagePayload {
+  content: string
+  operator?: string
+}
+
+export interface UserMessagePayload {
+  content: string
+}
+
+export interface StepErrorPayload {
+  scenarioID: string
+  scenarioIndex: number
+  phase: 'before' | 'after'
+  error: string
 }

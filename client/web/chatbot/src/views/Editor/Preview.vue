@@ -4,37 +4,29 @@
 
 <script setup>
 import { inject, onBeforeUnmount, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { Engine } from 'human-webapp-chatbot-widget/engine'
 import { WidgetUI } from 'human-webapp-chatbot-widget/ui'
+import { PreviewClient } from '@/composables/usePreviewClient'
 
 const props = defineProps({
   chatbot: { type: Object, required: true },
 })
 
-const { t } = useI18n()
 const $SystemAPI = inject('$SystemAPI')
 
 const hostRef = ref(null)
 let ui = null
 let engine = null
-let conversationID = null
-let sending = false
+let client = null
+let session = null
+let stream = null
 let userClosed = false
+let autoCloseTimer = null
 
-function apiOrigin() {
-  try {
-    return new URL($SystemAPI.baseURL).origin
-  } catch {
-    return window.location.origin
-  }
-}
-
-function absolutize(u) {
-  if (!u) return u
-  if (/^(https?:|blob:|data:)/i.test(u)) return u
-  if (u.startsWith('/')) return apiOrigin() + u
-  return u
+// Drop empty-string numeric ID fields; the server type uses uint64 with
+// `,string,omitempty` which rejects "" during decode.
+function cleanNumericID(v) {
+  return v === '' || v == null ? undefined : v
 }
 
 function buildConfig() {
@@ -43,64 +35,220 @@ function buildConfig() {
     id: s.id,
     name: s.name,
     type: s.type || 'conversation',
-    agentID: s.agentID,
+    agentID: cleanNumericID(s.agentID),
     config: s.config || {},
+    automation: s.automation,
   }))
+  const stylingSrc = cb.styling || {}
+  const launcherSrc = stylingSrc.launcher || {}
   const styling = {
-    ...(cb.styling || {}),
-    logoURL: absolutize(cb.styling?.logoURL),
+    ...stylingSrc,
+    logoAttachmentID: cleanNumericID(stylingSrc.logoAttachmentID),
     launcher: {
-      ...((cb.styling && cb.styling.launcher) || {}),
-      iconURL: absolutize(cb.styling?.launcher?.iconURL),
+      ...launcherSrc,
+      iconAttachmentID: cleanNumericID(launcherSrc.iconAttachmentID),
       position: 'bottom-right',
     },
   }
   return {
     styling,
     scenarios,
-    handoff: { enabled: !!cb.handoff?.enabled, notImplemented: true },
+    handoff: { enabled: !!cb.handoff?.enabled, notImplemented: false },
+  }
+}
+
+function clearAutoClose() {
+  if (autoCloseTimer) {
+    clearTimeout(autoCloseTimer)
+    autoCloseTimer = null
+  }
+}
+
+function parseEvent(ev) {
+  try {
+    return JSON.parse(ev.data || '{}')
+  } catch {
+    return null
+  }
+}
+
+function attachStream(s) {
+  s.addEventListener('open', () => console.debug('[preview] SSE open'))
+  s.addEventListener('error', e => console.warn('[preview] SSE error', e))
+  s.addEventListener('token', ev => {
+    const data = parseEvent(ev)
+    const text = data?.text || data?.token || ''
+    if (!text) return
+    engine.emit({ type: 'typing', on: false })
+    engine.appendAgentDelta(text)
+  })
+  s.addEventListener('done', () => {
+    engine.emit({ type: 'typing', on: false })
+    engine.endAgent()
+  })
+  s.addEventListener('agent_error', ev => {
+    const p = parseEvent(ev)
+    engine.emit({ type: 'typing', on: false })
+    engine.endAgent()
+    engine.pushMessage({ role: 'system', content: p?.error || 'agent error' })
+  })
+  s.addEventListener('step_start', ev => {
+    const p = parseEvent(ev)
+    console.debug('[preview] step_start', p)
+    if (!p) return
+    engine.handleStepStart(p)
+    if (p.type === 'static_message') {
+      const scenarios = props.chatbot.scenarios || []
+      const isLast = p.scenarioIndex >= scenarios.length - 1
+      const c = p.config || {}
+      clearAutoClose()
+      if (!isLast && typeof c.autoAdvanceMs === 'number' && c.autoAdvanceMs >= 0) {
+        autoCloseTimer = setTimeout(() => void handleEndConversation(), c.autoAdvanceMs)
+      } else if (isLast && typeof c.autoCloseAfterMs === 'number' && c.autoCloseAfterMs > 0) {
+        autoCloseTimer = setTimeout(() => void closeSession(), c.autoCloseAfterMs)
+      }
+    }
+  })
+  s.addEventListener('step_complete', ev => {
+    const p = parseEvent(ev)
+    if (p) engine.handleStepComplete(p.scenarioID, p.scenarioIndex)
+  })
+  s.addEventListener('form_error', ev => {
+    const p = parseEvent(ev)
+    if (p) engine.handleFormError(p.scenarioID, p.errors || {})
+  })
+  s.addEventListener('handoff_requested', ev => {
+    const p = parseEvent(ev)
+    if (p) engine.handleHandoffRequested(p.handoffID)
+  })
+  s.addEventListener('handoff_active', ev => {
+    const p = parseEvent(ev)
+    if (p) engine.handleHandoffActive(p.handoffID, p.operator)
+  })
+  s.addEventListener('handoff_complete', () => {
+    engine.handleHandoffComplete()
+  })
+  s.addEventListener('operator_message', ev => {
+    const p = parseEvent(ev)
+    if (p) engine.pushMessage({ role: 'operator', content: p.content, operator: p.operator })
+  })
+  s.addEventListener('session_closed', () => {
+    clearAutoClose()
+    engine.handleSessionClosed()
+  })
+  s.addEventListener('step_hook_skipped', ev => {
+    const p = parseEvent(ev)
+    if (!p) return
+    engine.emit({
+      type: 'message',
+      message: {
+        role: 'system',
+        content: `[preview] ${p.phase} hook ${p.resource} (async=${p.async}) — not executed`,
+      },
+    })
+  })
+  s.onerror = () => {
+    engine.emit({ type: 'typing', on: false })
+    engine.endAgent()
+  }
+}
+
+async function openSession() {
+  if (session) return session
+  const cfg = buildConfig()
+  const s = await client.openSession({
+    scenarios: cfg.scenarios,
+    handoff: cfg.handoff,
+    styling: cfg.styling,
+  })
+  session = s
+  stream = client.openStream(s.sessionID)
+  attachStream(stream)
+
+  // Wait until the EventSource has actually connected (onopen fired) before
+  // asking the server to emit the first step_start — the bus has no
+  // per-subscriber buffering, so an early emit would be silently dropped.
+  await waitForStreamOpen(stream)
+  try {
+    await client.startSession(s.sessionID)
+  } catch (err) {
+    engine?.emit({ type: 'error', error: err?.message || 'start failed' })
+  }
+  return session
+}
+
+function waitForStreamOpen(es) {
+  return new Promise(resolve => {
+    if (es.readyState === EventSource.OPEN) {
+      resolve()
+      return
+    }
+    const done = () => {
+      es.removeEventListener('open', done)
+      resolve()
+    }
+    es.addEventListener('open', done)
+    // Hard cap; never block startup longer than 1s even on slow proxies.
+    setTimeout(done, 1000)
+  })
+}
+
+async function closeSession() {
+  if (!session) return
+  try {
+    await client.closeSession(session.sessionID)
+  } catch {
+    /* ignore */
   }
 }
 
 async function handleUserInput(text) {
-  if (!engine) return
+  if (!engine || !session) return
   engine.pushMessage({ role: 'user', content: text })
-
-  const current = engine.current
-  const agentID = current?.agentID
-  if (!agentID) {
-    engine.pushMessage({
-      role: 'system',
-      content: t('chatbot.editor.preview.selectAgentHint'),
-    })
-    return
-  }
-  if (sending) return
-  sending = true
-  engine.emit({ type: 'typing', on: true })
-
+  const handoff = engine.handoffState.phase
+  if (handoff === 'idle') engine.emit({ type: 'typing', on: true })
   try {
-    const res = await $SystemAPI.agentExec({
-      agentID,
-      input: text,
-      ...(conversationID ? { conversationID } : {}),
-    })
-    if (res?.conversationID) conversationID = res.conversationID
-    const out =
-      res?.output ||
-      (typeof res === 'string' ? res : res?.response?.text || '')
-    engine.emit({ type: 'typing', on: false })
-    if (out) engine.pushMessage({ role: 'agent', content: out })
+    await client.sendMessage(session.sessionID, text)
   } catch (err) {
     engine.emit({ type: 'typing', on: false })
-    engine.pushMessage({
-      role: 'system',
-      content: t('chatbot.editor.preview.requestFailed', {
-        reason: err?.message || t('chatbot.editor.preview.requestFailedReason'),
-      }),
-    })
-  } finally {
-    sending = false
+    engine.emit({ type: 'error', error: err?.message || 'send failed' })
+  }
+}
+
+async function handleFormSubmit(values) {
+  if (!session) return
+  try {
+    const errors = await client.submitForm(session.sessionID, values)
+    if (errors) engine.handleFormError(engine.current?.scenarioID || '', errors)
+  } catch (err) {
+    engine.emit({ type: 'error', error: err?.message || 'submit failed' })
+  }
+}
+
+async function handleRequestHandoff() {
+  if (!session) return
+  try {
+    await client.requestHandoff(session.sessionID)
+  } catch (err) {
+    engine.emit({ type: 'error', error: err?.message || 'handoff failed' })
+  }
+}
+
+async function handleCancelHandoff() {
+  if (!session) return
+  try {
+    await client.closeHandoff(session.sessionID)
+  } catch (err) {
+    engine.emit({ type: 'error', error: err?.message || 'cancel failed' })
+  }
+}
+
+async function handleEndConversation() {
+  if (!session) return
+  try {
+    await client.advanceStep(session.sessionID)
+  } catch (err) {
+    engine.emit({ type: 'error', error: err?.message || 'end failed' })
   }
 }
 
@@ -108,7 +256,6 @@ function mount() {
   if (!hostRef.value) return
   destroy()
   const cfg = buildConfig()
-  conversationID = null
   engine = new Engine(cfg)
   ui = new WidgetUI(cfg, engine, {
     container: hostRef.value,
@@ -119,30 +266,50 @@ function mount() {
     },
   })
   ui.onUserInput = handleUserInput
-  ui.onFormSubmit = () => {
-    const idx = cfg.scenarios.findIndex(s => s.id === engine.current?.id)
-    const next = idx >= 0 ? cfg.scenarios[idx + 1] : null
-    if (next) {
-      engine.advance(next.id)
-    } else {
-      engine.emit({ type: 'message', message: { role: 'system', content: '✓ Done' } })
-    }
-  }
-  engine.start()
+  ui.onFormSubmit = handleFormSubmit
+  ui.onRequestHandoff = handleRequestHandoff
+  ui.onCancelHandoff = handleCancelHandoff
+  ui.onEndConversation = handleEndConversation
+  ui.onCloseSession = closeSession
+
+  client = new PreviewClient($SystemAPI)
+  void openSession()
 }
 
 function destroy() {
+  clearAutoClose()
+  if (stream) {
+    stream.close()
+    stream = null
+  }
+  if (session && client) {
+    void client.closeSession(session.sessionID).catch(() => {})
+  }
+  session = null
   if (ui) {
     ui.destroy()
     ui = null
   }
   engine = null
-  conversationID = null
+  client = null
+}
+
+// Re-mount on chatbot edits, but coalesce rapid keystrokes/sliders so each
+// change doesn't tear down + reopen a live SSE session.
+const remountDelayMs = 400
+let remountTimer = null
+
+function scheduleRemount() {
+  if (remountTimer) clearTimeout(remountTimer)
+  remountTimer = setTimeout(() => {
+    remountTimer = null
+    mount()
+  }, remountDelayMs)
 }
 
 watch(
   () => JSON.stringify(props.chatbot),
-  () => mount(),
+  () => scheduleRemount(),
   { immediate: false },
 )
 
@@ -150,7 +317,10 @@ watch(hostRef, host => {
   if (host) mount()
 })
 
-onBeforeUnmount(destroy)
+onBeforeUnmount(() => {
+  if (remountTimer) clearTimeout(remountTimer)
+  destroy()
+})
 </script>
 
 <style scoped>

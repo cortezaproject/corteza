@@ -1,32 +1,52 @@
-import type { ChatbotConfig, Scenario } from './types'
+import type {
+  ChatbotConfig,
+  Scenario,
+  StepStartPayload,
+} from './types'
 
-export type Message = { role: 'user' | 'agent' | 'system'; content: string }
+export type Message =
+  | { role: 'user'; content: string }
+  | { role: 'agent'; content: string }
+  | { role: 'operator'; content: string; operator?: string }
+  | { role: 'system'; content: string }
+
+// HandoffState tracks the visible state of an operator handover. The engine
+// does not orchestrate the handoff itself — it only reflects what the server
+// reports via SSE events.
+export type HandoffState =
+  | { phase: 'idle' }
+  | { phase: 'requested'; handoffID: string }
+  | { phase: 'active'; handoffID: string; operator?: string }
 
 export type EngineEvent =
-  | { type: 'scenario'; scenario: Scenario }
+  | { type: 'step_start'; payload: StepStartPayload }
+  | { type: 'step_complete'; scenarioID: string; scenarioIndex: number }
   | { type: 'message'; message: Message }
   | { type: 'typing'; on: boolean }
   | { type: 'agent_start' }
   | { type: 'agent_delta'; text: string }
   | { type: 'agent_end' }
+  | { type: 'form_error'; scenarioID: string; errors: Record<string, string> }
+  | { type: 'handoff_change'; state: HandoffState }
+  | { type: 'session_closed' }
   | { type: 'error'; error: string }
 
 type Handler = (ev: EngineEvent) => void
 
-// Engine is a tiny event-bus + scenario state machine. The DOM layer
-// subscribes; the transport layer (api + SSE) calls into `userInput` /
-// `advance`.
+// Engine is a thin pub/sub. It holds the *current step* state derived from the
+// last `step_start` event delivered by the server. The DOM layer subscribes;
+// the transport layer (api + SSE) calls into `userInput` / `submitForm` etc.
+// via the WidgetUI callbacks.
 export class Engine {
   private cfg: ChatbotConfig
-  private currentID: string
   private handlers: Handler[] = []
   private agentOpen = false
-  private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null
+  private currentStep: StepStartPayload | null = null
+  private handoff: HandoffState = { phase: 'idle' }
   messages: Message[] = []
 
   constructor(cfg: ChatbotConfig) {
     this.cfg = cfg
-    this.currentID = cfg.scenarios[0]?.id || ''
   }
 
   on(h: Handler) {
@@ -37,46 +57,52 @@ export class Engine {
     this.handlers.forEach(h => h(ev))
   }
 
-  get current(): Scenario | null {
-    return this.cfg.scenarios.find(s => s.id === this.currentID) || null
+  get current(): StepStartPayload | null {
+    return this.currentStep
   }
 
-  start() {
-    const s = this.current
-    if (s) this.enterScenario(s)
+  get handoffState(): HandoffState {
+    return this.handoff
   }
 
-  advance(nextID?: string) {
-    if (nextID) {
-      const s = this.cfg.scenarios.find(x => x.id === nextID)
-      if (!s) return
-      this.currentID = s.id
-      this.enterScenario(s)
-      return
-    }
-    const idx = this.cfg.scenarios.findIndex(x => x.id === this.currentID)
-    const nxt = idx >= 0 ? this.cfg.scenarios[idx + 1] : null
-    if (!nxt) return
-    this.currentID = nxt.id
-    this.enterScenario(nxt)
+  // Lookup a scenario by ID from the public config (used for static fallbacks
+  // when no step_start payload has been received yet, e.g. legacy clients).
+  scenarioByID(id: string): Scenario | undefined {
+    return this.cfg.scenarios.find(s => s.id === id)
   }
 
-  private enterScenario(s: Scenario) {
-    if (this.autoAdvanceTimer) {
-      clearTimeout(this.autoAdvanceTimer)
-      this.autoAdvanceTimer = null
-    }
-    this.emit({ type: 'scenario', scenario: s })
-    const idx = this.cfg.scenarios.findIndex(x => x.id === s.id)
-    const hasNext = idx >= 0 && idx + 1 < this.cfg.scenarios.length
-    if (s.type === 'static_message' && hasNext) {
-      const ms = Number((s.config as { autoAdvanceMs?: number } | undefined)?.autoAdvanceMs)
-      const delay = Number.isFinite(ms) && ms >= 0 ? ms : 500
-      this.autoAdvanceTimer = setTimeout(() => {
-        this.autoAdvanceTimer = null
-        this.advance()
-      }, delay)
-    }
+  handleStepStart(p: StepStartPayload) {
+    this.currentStep = p
+    if (this.agentOpen) this.endAgent()
+    this.emit({ type: 'step_start', payload: p })
+  }
+
+  handleStepComplete(scenarioID: string, scenarioIndex: number) {
+    this.emit({ type: 'step_complete', scenarioID, scenarioIndex })
+  }
+
+  handleFormError(scenarioID: string, errors: Record<string, string>) {
+    this.emit({ type: 'form_error', scenarioID, errors })
+  }
+
+  handleHandoffRequested(handoffID: string) {
+    this.handoff = { phase: 'requested', handoffID }
+    this.emit({ type: 'handoff_change', state: this.handoff })
+  }
+
+  handleHandoffActive(handoffID: string, operator?: string) {
+    this.handoff = { phase: 'active', handoffID, operator }
+    this.emit({ type: 'handoff_change', state: this.handoff })
+  }
+
+  handleHandoffComplete() {
+    this.handoff = { phase: 'idle' }
+    this.emit({ type: 'handoff_change', state: this.handoff })
+  }
+
+  handleSessionClosed() {
+    if (this.agentOpen) this.endAgent()
+    this.emit({ type: 'session_closed' })
   }
 
   pushMessage(m: Message) {

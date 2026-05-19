@@ -1,8 +1,17 @@
 import { WidgetAPI } from './api'
 import { Engine } from './engine'
 import { WidgetUI } from './ui'
+import type {
+  ChatbotConfig,
+  FormErrorPayload,
+  HandoffActivePayload,
+  HandoffRequestedPayload,
+  OperatorMessagePayload,
+  Session,
+  StepCompletePayload,
+  StepStartPayload,
+} from './types'
 
-// Locate our own <script> tag so we can read attributes + derive API base.
 function findSelf(): HTMLScriptElement | null {
   const current = document.currentScript as HTMLScriptElement | null
   if (current && current.getAttribute('data-widget-key')) return current
@@ -34,7 +43,7 @@ async function boot() {
   }
 
   const api = new WidgetAPI(script.src, widgetKey)
-  let cfg
+  let cfg: ChatbotConfig
   try {
     cfg = await api.config()
     console.log('[human-chatbot] config loaded', cfg)
@@ -43,9 +52,6 @@ async function boot() {
     return
   }
 
-  // logoURL / iconURL come back as server-relative paths like
-  // /api/widget/v1/asset/...?widgetKey=... — resolve against the widget host
-  // so they load from the right origin (not the embedding site).
   const absolutize = (u: string) => {
     if (!u) return u
     if (/^https?:\/\//i.test(u)) return u
@@ -70,17 +76,19 @@ async function boot() {
     return
   }
 
-  let session: { sessionID: string; conversationID: string } | null = null
+  let session: Session | null = null
   let stream: EventSource | null = null
+  let autoCloseTimer: ReturnType<typeof setTimeout> | null = null
 
-  async function ensureSession() {
-    if (session) return session
-    const s = await api.openSession()
-    api.setToken(s.token)
-    session = { sessionID: s.sessionID, conversationID: s.conversationID }
+  function clearAutoClose() {
+    if (autoCloseTimer) {
+      clearTimeout(autoCloseTimer)
+      autoCloseTimer = null
+    }
+  }
 
-    stream = api.openStream(s.sessionID)
-    stream.addEventListener('token', ev => {
+  function attachStream(s: EventSource) {
+    s.addEventListener('token', ev => {
       try {
         const data = JSON.parse((ev as MessageEvent).data || '{}')
         const text = data.text || data.token || ''
@@ -91,96 +99,181 @@ async function boot() {
         /* ignore */
       }
     })
-    stream.addEventListener('done', () => {
+    s.addEventListener('done', () => {
       engine.emit({ type: 'typing', on: false })
       engine.endAgent()
     })
-    // agent.completed fires when the runtime finishes a turn (non-streaming)
-    stream.addEventListener('agent.completed', ev => {
-      try {
-        const data = JSON.parse((ev as MessageEvent).data || '{}')
-        engine.emit({ type: 'typing', on: false })
-        if (data.response) {
-          engine.pushMessage({ role: 'agent', content: data.response })
-        } else {
-          engine.endAgent()
+    s.addEventListener('agent_error', ev => {
+      const p = parseEvent<{ error: string }>(ev)
+      engine.emit({ type: 'typing', on: false })
+      engine.endAgent()
+      engine.pushMessage({ role: 'system', content: p?.error || 'agent error' })
+    })
+    s.addEventListener('step_start', ev => {
+      const p = parseEvent<StepStartPayload>(ev)
+      if (!p) return
+      engine.handleStepStart(p)
+      // Static message auto-progression. Non-last steps advance to the next
+      // scenario after `autoAdvanceMs`; the last step auto-closes after
+      // `autoCloseAfterMs`. Either field is optional.
+      if (p.type === 'static_message') {
+        const c = (p.config as { autoAdvanceMs?: number; autoCloseAfterMs?: number } | undefined) || {}
+        const lastIdx = cfg.scenarios.length - 1
+        const isLast = p.scenarioIndex >= lastIdx
+        clearAutoClose()
+        if (!isLast && typeof c.autoAdvanceMs === 'number' && c.autoAdvanceMs >= 0) {
+          autoCloseTimer = setTimeout(() => { void advanceStep() }, c.autoAdvanceMs)
+        } else if (isLast && typeof c.autoCloseAfterMs === 'number' && c.autoCloseAfterMs > 0) {
+          autoCloseTimer = setTimeout(() => { void closeSession() }, c.autoCloseAfterMs)
         }
-      } catch {
-        engine.emit({ type: 'typing', on: false })
-        engine.endAgent()
       }
     })
-    // scenario_step_complete fires after advance-step; sessionComplete means the journey is done
-    stream.addEventListener('scenario_step_complete', ev => {
-      try {
-        const data = JSON.parse((ev as MessageEvent).data || '{}')
-        if (data.sessionComplete) {
-          engine.emit({ type: 'message', message: { role: 'system', content: '✓ Done' } })
-        } else if (data.nextScenarioID) {
-          engine.advance(data.nextScenarioID)
-        }
-      } catch {
-        /* ignore */
-      }
+    s.addEventListener('step_complete', ev => {
+      const p = parseEvent<StepCompletePayload>(ev)
+      if (!p) return
+      engine.handleStepComplete(p.scenarioID, p.scenarioIndex)
     })
-    stream.onerror = () => {
+    s.addEventListener('form_error', ev => {
+      const p = parseEvent<FormErrorPayload>(ev)
+      if (!p) return
+      engine.handleFormError(p.scenarioID, p.errors)
+    })
+    s.addEventListener('handoff_requested', ev => {
+      const p = parseEvent<HandoffRequestedPayload>(ev)
+      if (!p) return
+      engine.handleHandoffRequested(p.handoffID)
+    })
+    s.addEventListener('handoff_active', ev => {
+      const p = parseEvent<HandoffActivePayload>(ev)
+      if (!p) return
+      engine.handleHandoffActive(p.handoffID, p.operator)
+    })
+    s.addEventListener('handoff_complete', () => {
+      engine.handleHandoffComplete()
+    })
+    s.addEventListener('operator_message', ev => {
+      const p = parseEvent<OperatorMessagePayload>(ev)
+      if (!p) return
+      engine.pushMessage({ role: 'operator', content: p.content, operator: p.operator })
+    })
+    s.addEventListener('user_message', _ev => {
+      // The user already sees their own message locally (echoed by ui.ts on
+      // submit). This event is for the operator console; ignore on the widget.
+    })
+    s.addEventListener('session_closed', _ev => {
+      clearAutoClose()
+      engine.handleSessionClosed()
+    })
+    s.addEventListener('step_error', ev => {
+      const p = parseEvent<{ error: string }>(ev)
+      engine.emit({ type: 'error', error: p?.error || 'step error' })
+    })
+    s.onerror = () => {
       engine.emit({ type: 'typing', on: false })
       engine.endAgent()
     }
+  }
+
+  async function ensureSession(): Promise<Session> {
+    if (session) return session
+    const s = await api.openSession()
+    api.setToken(s.token)
+    session = s
+    stream = api.openStream(s.sessionID)
+    attachStream(stream)
     return session
+  }
+
+  async function closeSession() {
+    if (!session) return
+    try {
+      await api.closeSession(session.sessionID)
+    } catch (err) {
+      console.warn('[human-chatbot] close session failed', err)
+    }
+  }
+
+  async function advanceStep() {
+    if (!session) return
+    try {
+      await api.advanceStep(session.sessionID)
+    } catch (err) {
+      console.warn('[human-chatbot] advance step failed', err)
+    }
   }
 
   ui.onUserInput = async text => {
     const current = engine.current
-    if (!current || current.type !== 'conversation') return
+    if (!current) return
     engine.pushMessage({ role: 'user', content: text })
-    engine.emit({ type: 'typing', on: true })
+
+    // During handoff, the message is relayed to the operator (no agent typing).
+    const handoff = engine.handoffState.phase
+    if (handoff === 'idle') engine.emit({ type: 'typing', on: true })
+
     try {
       const s = await ensureSession()
-      await api.sendMessage(s.sessionID, current.id, text)
+      await api.sendMessage(s.sessionID, text)
     } catch (err: any) {
       engine.emit({ type: 'typing', on: false })
       engine.emit({ type: 'error', error: err?.message || 'send failed' })
     }
   }
 
-  ui.onFormSubmit = _values => {
-    ;(async () => {
-      try {
-        const s = await ensureSession()
-        const result = await api.advanceStep(s.sessionID)
-        if (result.sessionComplete) {
-          engine.emit({ type: 'message', message: { role: 'system', content: '✓ Done' } })
-        } else if (result.nextScenarioID) {
-          engine.advance(result.nextScenarioID)
-        } else {
-          engine.advance()
-        }
-      } catch {
-        engine.advance()
+  ui.onFormSubmit = async values => {
+    try {
+      const s = await ensureSession()
+      const errors = await api.submitForm(s.sessionID, values)
+      if (errors) {
+        engine.handleFormError(engine.current?.scenarioID || '', errors)
       }
-    })()
+    } catch (err: any) {
+      engine.emit({ type: 'error', error: err?.message || 'submit failed' })
+    }
   }
 
-  engine.on(ev => {
-    if (ev.type !== 'scenario') return
-    const s = ev.scenario
-    if (s.type !== 'conversation') return
-    const prompt = (s.config as { initialPrompt?: string } | undefined)?.initialPrompt
-    if (!prompt) return
-    ;(async () => {
-      engine.emit({ type: 'typing', on: true })
-      try {
-        const sess = await ensureSession()
-        await api.sendMessage(sess.sessionID, s.id, prompt)
-      } catch (err: any) {
-        engine.emit({ type: 'typing', on: false })
-        engine.emit({ type: 'error', error: err?.message || 'send failed' })
-      }
-    })()
-  })
+  ui.onRequestHandoff = async () => {
+    try {
+      const s = await ensureSession()
+      await api.requestHandoff(s.sessionID)
+    } catch (err: any) {
+      engine.emit({ type: 'error', error: err?.message || 'handoff failed' })
+    }
+  }
 
-  engine.start()
+  ui.onCancelHandoff = async () => {
+    const st = engine.handoffState
+    if (st.phase === 'idle') return
+    try {
+      const s = await ensureSession()
+      await api.closeHandoff(s.sessionID, st.handoffID)
+    } catch (err: any) {
+      engine.emit({ type: 'error', error: err?.message || 'cancel failed' })
+    }
+  }
+
+  ui.onEndConversation = async () => {
+    try {
+      const s = await ensureSession()
+      await api.advanceStep(s.sessionID)
+    } catch (err: any) {
+      engine.emit({ type: 'error', error: err?.message || 'end failed' })
+    }
+  }
+
+  ui.onCloseSession = closeSession
+
+  // Open the session immediately so the server can fire step_start for the
+  // first scenario over SSE. No client-side scenario tracking.
+  void ensureSession()
+}
+
+function parseEvent<T>(ev: Event): T | null {
+  try {
+    return JSON.parse((ev as MessageEvent).data || '{}') as T
+  } catch {
+    return null
+  }
 }
 
 if (document.readyState === 'loading') {

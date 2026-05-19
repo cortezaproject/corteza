@@ -62,6 +62,11 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewLlmProvider(LlmProvider{}.New()).MountRoutes(r)
 			handlers.NewKnowledgeBase(KnowledgeBase{}.New()).MountRoutes(r)
 			handlers.NewChatbot(Chatbot{}.New()).MountRoutes(r)
+
+			// Admin-authed chatbot preview API. Mirrors /api/widget/v1 but
+			// uses an in-memory FIFO store of inline chatbot configs so
+			// drafts can be exercised without persisting.
+			NewChatbotPreviewController().MountRoutes(r)
 		})
 	}
 }

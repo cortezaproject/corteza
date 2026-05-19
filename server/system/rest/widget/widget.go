@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/agentic/runtime"
@@ -28,7 +29,7 @@ type Controller struct {
 	chatbotLookup *ChatbotByKeyLookup
 	obsBus        *observability.Bus
 	runtime       AgenticRunner
-	convStore     AiConversationCreator
+	convStore     AiConversationStore
 	store         store.Storer
 	serverSecret  string
 	sessionSvc    ChatbotSessionService
@@ -39,8 +40,8 @@ type AgenticRunner interface {
 	Run(ctx context.Context, req *runtime.AgentRequest) (*runtime.AgentResponse, error)
 }
 
-// AiConversationCreator is satisfied by service.DefaultAiConversation.
-type AiConversationCreator interface {
+// AiConversationStore is satisfied by service.DefaultAiConversation.
+type AiConversationStore interface {
 	Create(ctx context.Context, new *types.AiConversation) (*types.AiConversation, error)
 }
 
@@ -49,11 +50,14 @@ type ChatbotSessionService interface {
 	Create(ctx context.Context, new *types.ChatbotSession) (*types.ChatbotSession, error)
 	FindByID(ctx context.Context, ID uint64) (*types.ChatbotSession, error)
 	UpdateStatus(ctx context.Context, id uint64, status string) error
+	UpdateCurrentStep(ctx context.Context, id uint64, idx int) error
 	CreateStep(ctx context.Context, step *types.ChatbotSessionStep) (*types.ChatbotSessionStep, error)
 	FindStepByID(ctx context.Context, id uint64) (*types.ChatbotSessionStep, error)
 	FindStepBySession(ctx context.Context, sessionID uint64) (*types.ChatbotSessionStep, error)
+	FindStepBySessionAndIndex(ctx context.Context, sessionID uint64, scenarioIndex int) (*types.ChatbotSessionStep, error)
 	CompleteStep(ctx context.Context, stepID uint64) error
-	ExecuteStep(ctx context.Context, sessionID uint64, scenario *types.ChatbotScenario, conversationID uint64, scenarioIndex int, input string) (*types.ChatbotSessionStep, error)
+	StartStep(ctx context.Context, sessionID uint64, scenario *types.ChatbotScenario, conversationID uint64, scenarioIndex int, vars *expr.Vars) (*types.ChatbotSessionStep, error)
+	FinalizeStep(ctx context.Context, stepID uint64, scenario *types.ChatbotScenario, vars *expr.Vars) error
 	RequestHandoff(ctx context.Context, sessionID, stepID uint64) (*types.ChatbotSessionHandoff, error)
 	ActivateHandoff(ctx context.Context, handoffID uint64) error
 	CloseHandoff(ctx context.Context, handoffID uint64) error
@@ -65,7 +69,7 @@ func New(
 	s store.Storer,
 	obsBus *observability.Bus,
 	rt AgenticRunner,
-	conv AiConversationCreator,
+	conv AiConversationStore,
 	serverSecret string,
 	sessionSvc ChatbotSessionService,
 ) *Controller {
@@ -93,7 +97,6 @@ func (c *Controller) resolveAgent(ctx context.Context, agentID uint64) (*types.A
 // with their full role memberships loaded from the store. Widget runs without
 // caller identity, so RBAC checks downstream rely entirely on this.
 func (c *Controller) impersonateServiceAccount(ctx context.Context, userID uint64) context.Context {
-	// resolve via service identity so RoleMember search itself isn't gated
 	svcCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
 	mm, _, err := store.SearchRoleMembers(svcCtx, c.store, types.RoleMemberFilter{
 		Resource: fmt.Sprintf("corteza::system:user/%d", userID),
@@ -108,15 +111,8 @@ func (c *Controller) impersonateServiceAccount(ctx context.Context, userID uint6
 }
 
 // MountRoutes mounts the widget routes onto r at the /widget/v1 prefix.
-// The caller is expected to mount this group under the API base URL and
-// *outside* the admin token validator so visitors on third-party sites can
-// reach it (canonical URL becomes /api/widget/v1/...).
 func (c *Controller) MountRoutes(r chi.Router) {
 	r.Route("/widget/v1", func(r chi.Router) {
-		// Asset route: widgetKey-gated GET, no origin allowlist.
-		// <img> requests don't send Origin consistently (and browsers don't
-		// honor CORS on no-cors image loads), so allowlist gating here would
-		// just break loading. The widgetKey + kind/owner check is the authz.
 		r.Group(func(r chi.Router) {
 			r.Use(c.keyOnly)
 			r.Options("/asset/{attachmentID}", okOptions)
@@ -137,11 +133,14 @@ func (c *Controller) MountRoutes(r chi.Router) {
 			r.Group(func(r chi.Router) {
 				r.Use(c.requireSessionJWT)
 
-				r.Options("/session/{id}/message", okOptions)
-				r.Post("/session/{id}/message", c.sendMessage)
+				r.Options("/session/{id}/submit", okOptions)
+				r.Post("/session/{id}/submit", c.submit)
 
 				r.Options("/session/{id}/advance-step", okOptions)
 				r.Post("/session/{id}/advance-step", c.advanceStep)
+
+				r.Options("/session/{id}/close", okOptions)
+				r.Post("/session/{id}/close", c.closeSession)
 
 				r.Options("/session/{id}/handoff", okOptions)
 				r.Post("/session/{id}/handoff", c.requestHandoff)
@@ -160,8 +159,6 @@ func (c *Controller) MountRoutes(r chi.Router) {
 
 // ---- handlers ---------------------------------------------------------------
 
-// readConfig returns a redacted view of the chatbot/agent config safe to
-// ship to a public client. Secrets/ops fields are stripped.
 func (c *Controller) readConfig(w http.ResponseWriter, r *http.Request) {
 	cb := chatbotFromCtx(r.Context())
 	if cb == nil {
@@ -171,10 +168,6 @@ func (c *Controller) readConfig(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, publicConfigChatbot(cb))
 }
 
-// readAsset serves a chatbot-kind attachment only when it belongs to the
-// chatbot resolved from the widgetKey. This keeps branding assets internal
-// (normal system.attachment rows) but publishes them through the widget route
-// so third-party embeds can load them without operator credentials.
 func (c *Controller) readAsset(w http.ResponseWriter, r *http.Request) {
 	cb := chatbotFromCtx(r.Context())
 	if cb == nil {
@@ -195,7 +188,6 @@ func (c *Controller) readAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Scoping: only chatbot-kind, only bound to this chatbot.
 	if att.Kind != types.AttachmentKindChatbot {
 		http.Error(w, "widget: asset not found", http.StatusNotFound)
 		return
@@ -220,25 +212,27 @@ func (c *Controller) readAsset(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, att.Name, att.CreatedAt, fh)
 }
 
-// createSession opens a new ChatbotSession with AiConversation and returns a signed JWT.
-// No agent is bound at session open — each sendMessage names its scenario.
+// createSession opens a new ChatbotSession + AiConversation and starts step 0
+// (runs its before-automation, emits step_start). Returns JWT.
 func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
 	cb := chatbotFromCtx(r.Context())
 	if cb == nil {
 		http.Error(w, "widget: no chatbot", http.StatusForbidden)
 		return
 	}
+	if len(cb.Scenarios) == 0 {
+		http.Error(w, "widget: chatbot has no scenarios", http.StatusServiceUnavailable)
+		return
+	}
 
 	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
 
-	// Create AiConversation
 	conv, err := c.convStore.Create(svcCtx, &types.AiConversation{})
 	if err != nil {
 		http.Error(w, "widget: cannot open session", http.StatusInternalServerError)
 		return
 	}
 
-	// Create ChatbotSession
 	session, err := c.sessionSvc.Create(svcCtx, &types.ChatbotSession{
 		ChatbotID: cb.ID,
 		Status:    "active",
@@ -248,26 +242,14 @@ func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create initial ChatbotSessionStep
-	step, err := c.sessionSvc.CreateStep(svcCtx, &types.ChatbotSessionStep{
-		SessionID:      session.ID,
-		ScenarioIndex:  0,
-		ConversationID: conv.ID,
-		Status:         "active",
-	})
-	if err != nil {
-		http.Error(w, "widget: cannot create session step", http.StatusInternalServerError)
-		return
-	}
-
 	ttl := parseTTL(cb.SessionTTL, 2*time.Hour)
-	now := time.Now()
+	nowT := time.Now()
 	claims := sessionClaims{
 		Sid:   randomID(),
 		Cid:   conv.ID,
 		Dbsid: session.ID,
-		Iat:   now.Unix(),
-		Exp:   now.Add(ttl).Unix(),
+		Iat:   nowT.Unix(),
+		Exp:   nowT.Add(ttl).Unix(),
 	}
 	tok, err := signSession(claims, deriveSessionSecret(cb.WidgetKey, c.serverSecret))
 	if err != nil {
@@ -280,14 +262,22 @@ func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
 		"token":          tok,
 		"conversationID": strconv.FormatUint(conv.ID, 10),
 		"dbSessionID":    strconv.FormatUint(session.ID, 10),
-		"stepID":         strconv.FormatUint(step.ID, 10),
 	})
+
+	// Kick off step 0 asynchronously: invoke before-automation and emit
+	// step_start so the SSE client receives the first scenario payload as soon
+	// as it connects. Errors are surfaced via SSE.
+	go c.startStep(context.Background(), cb, session.ID, conv.ID, 0, nil)
 }
 
-// sendMessage runs the scenario's agent against the session's conversation.
-// The scenario is identified by the request body's scenarioID; it must be a
-// conversation-type scenario with a non-zero agentID. Responds 202 immediately.
-func (c *Controller) sendMessage(w http.ResponseWriter, r *http.Request) {
+// submit is the single user-input endpoint. The payload is shape-typed:
+//
+//	{ "type": "message", "data": { "input": "..." } }   // conversation / handoff
+//	{ "type": "form",    "data": { "fields": {..} } }   // form scenario
+//
+// The server reads the current step to resolve the scenario; the client does
+// not pass a scenarioID. Type-vs-step mismatches return 400.
+func (c *Controller) submit(w http.ResponseWriter, r *http.Request) {
 	claims := claimsFromCtx(r.Context())
 	cb := chatbotFromCtx(r.Context())
 	if claims == nil || cb == nil {
@@ -295,36 +285,80 @@ func (c *Controller) sendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check session status
-	checkCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
-	session, err := c.sessionSvc.FindByID(checkCtx, claims.Dbsid)
-	if err != nil || session == nil {
-		http.Error(w, "widget: session not found", http.StatusUnauthorized)
-		return
-	}
-	if session.Status != "active" {
-		http.Error(w, "widget: session not active", http.StatusConflict)
-		return
-	}
-
 	var body struct {
-		ScenarioID string `json:"scenarioID"`
-		Input      string `json:"input"`
+		Type string          `json:"type"`
+		Data json.RawMessage `json:"data"`
 	}
 	if err := readJSON(r.Body, &body); err != nil {
 		http.Error(w, "widget: bad body", http.StatusBadRequest)
 		return
 	}
 
-	var scenario *types.ChatbotScenario
-	for i := range cb.Scenarios {
-		if cb.Scenarios[i].ID == body.ScenarioID {
-			scenario = &cb.Scenarios[i]
-			break
-		}
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+
+	session, err := c.sessionSvc.FindByID(svcCtx, claims.Dbsid)
+	if err != nil || session == nil {
+		http.Error(w, "widget: session not found", http.StatusUnauthorized)
+		return
 	}
-	if scenario == nil || scenario.Type != "conversation" || scenario.AgentID == 0 {
-		http.Error(w, "widget: scenario not runnable", http.StatusBadRequest)
+
+	switch body.Type {
+	case "message":
+		c.submitMessage(w, r, svcCtx, claims, cb, session, body.Data)
+	case "form":
+		c.submitForm(w, r, svcCtx, claims, cb, session, body.Data)
+	default:
+		http.Error(w, "widget: unknown submit type", http.StatusBadRequest)
+	}
+}
+
+// submitMessage handles { type: "message", data: { input } }. Active session →
+// agent runtime; handoff_active/requested → bypass agent and relay to operator.
+func (c *Controller) submitMessage(
+	w http.ResponseWriter,
+	r *http.Request,
+	svcCtx context.Context,
+	claims *sessionClaims,
+	cb *types.Chatbot,
+	session *types.ChatbotSession,
+	raw json.RawMessage,
+) {
+	var data struct {
+		Input string `json:"input"`
+	}
+	if err := json.Unmarshal(raw, &data); err != nil {
+		http.Error(w, "widget: bad message payload", http.StatusBadRequest)
+		return
+	}
+
+	switch session.Status {
+	case "handoff_requested", "handoff_active":
+		c.appendConversationMessage(svcCtx, claims.Cid, types.AiConversationMessage{
+			Role:    "user",
+			Content: data.Input,
+		})
+		c.emit(claims.Cid, "user_message", map[string]any{"content": data.Input})
+		w.WriteHeader(http.StatusAccepted)
+		return
+	case "active":
+		// fall through
+	default:
+		http.Error(w, "widget: session not active", http.StatusConflict)
+		return
+	}
+
+	step, err := c.sessionSvc.FindStepBySession(svcCtx, claims.Dbsid)
+	if err != nil || step == nil {
+		http.Error(w, "widget: step not found", http.StatusNotFound)
+		return
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		http.Error(w, "widget: scenario out of range", http.StatusBadRequest)
+		return
+	}
+	scenario := &cb.Scenarios[step.ScenarioIndex]
+	if scenario.Type != "conversation" || scenario.AgentID == 0 {
+		http.Error(w, "widget: current step does not accept messages", http.StatusBadRequest)
 		return
 	}
 
@@ -338,28 +372,104 @@ func (c *Controller) sendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// First-turn stamp: pin the conversation to this agent if it isn't already,
-	// so downstream listings/automation see a stable per-conversation agent.
-	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
 	if conv, err := store.LookupAiConversationByID(svcCtx, c.store, claims.Cid); err == nil && conv != nil && conv.AgentID == 0 {
 		conv.AgentID = agent.ID
 		_ = store.UpdateAiConversation(svcCtx, c.store, conv)
 	}
 
 	saCtx := c.impersonateServiceAccount(context.Background(), agent.Invocation.System.ServiceAccount)
+	cid := claims.Cid
 	go func() {
-		_, _ = c.runtime.Run(saCtx, &runtime.AgentRequest{
+		resp, err := c.runtime.Run(saCtx, &runtime.AgentRequest{
 			AgentID:        agent.ID,
-			Input:          body.Input,
-			ConversationID: claims.Cid,
+			Input:          data.Input,
+			ConversationID: cid,
 		})
+		// Surface runtime errors to the user as a system bubble.
+		if err != nil {
+			c.emit(cid, "agent_error", map[string]any{"error": err.Error()})
+		} else if resp != nil && resp.Output != "" {
+			// Non-streaming providers don't emit `token` events. Fan out
+			// the final assistant text so clients have a single shape.
+			c.emit(cid, "token", map[string]any{"text": resp.Output})
+		}
+		c.emit(cid, "done", map[string]any{})
 	}()
 
 	w.WriteHeader(http.StatusAccepted)
 }
 
-// advanceStep marks current step complete and triggers after-automation hooks.
-// Emits scenario_step_complete SSE event.
+// submitForm handles { type: "form", data: { fields } }. Validates against the
+// current scenario's config; on success finalizes the step and starts the next.
+func (c *Controller) submitForm(
+	w http.ResponseWriter,
+	_ *http.Request,
+	svcCtx context.Context,
+	claims *sessionClaims,
+	cb *types.Chatbot,
+	session *types.ChatbotSession,
+	raw json.RawMessage,
+) {
+	if session.Status != "active" {
+		http.Error(w, "widget: session not active", http.StatusConflict)
+		return
+	}
+
+	var data struct {
+		Fields map[string]string `json:"fields"`
+	}
+	if err := json.Unmarshal(raw, &data); err != nil {
+		http.Error(w, "widget: bad form payload", http.StatusBadRequest)
+		return
+	}
+
+	step, err := c.sessionSvc.FindStepBySession(svcCtx, claims.Dbsid)
+	if err != nil || step == nil {
+		http.Error(w, "widget: step not found", http.StatusNotFound)
+		return
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		http.Error(w, "widget: scenario out of range", http.StatusBadRequest)
+		return
+	}
+	scenario := &cb.Scenarios[step.ScenarioIndex]
+	if scenario.Type != "form" {
+		http.Error(w, "widget: current step is not a form", http.StatusConflict)
+		return
+	}
+
+	errs := service.ValidateChatbotFormFields(scenario.Config, data.Fields)
+	if len(errs) > 0 {
+		c.emit(claims.Cid, "form_error", map[string]any{
+			"scenarioID": scenario.ID,
+			"errors":     errs,
+		})
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]any{"errors": errs})
+		return
+	}
+
+	c.appendConversationMessage(svcCtx, claims.Cid, types.AiConversationMessage{
+		Role:    "user",
+		Content: service.EncodeChatbotFormSubmission(data.Fields),
+	})
+
+	vars := service.ChatbotVarsFromMap(data.Fields)
+	if err := c.sessionSvc.FinalizeStep(svcCtx, step.ID, scenario, vars); err != nil {
+		http.Error(w, fmt.Sprintf("widget: finalize: %v", err), http.StatusInternalServerError)
+		return
+	}
+	c.emit(claims.Cid, "step_complete", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": step.ScenarioIndex,
+	})
+
+	c.startStep(svcCtx, cb, claims.Dbsid, claims.Cid, step.ScenarioIndex+1, vars)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// advanceStep marks the current step complete (after-automation) and starts the
+// next scenario (before-automation + step_start emission).
 func (c *Controller) advanceStep(w http.ResponseWriter, r *http.Request) {
 	claims := claimsFromCtx(r.Context())
 	cb := chatbotFromCtx(r.Context())
@@ -370,61 +480,69 @@ func (c *Controller) advanceStep(w http.ResponseWriter, r *http.Request) {
 
 	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
 
-	// Get current step
+	// If a handoff is active or requested, close it first so the session resumes.
+	if h, _ := c.sessionSvc.FindHandoffBySession(svcCtx, claims.Dbsid); h != nil && h.ClosedAt == nil {
+		_ = c.sessionSvc.CloseHandoff(svcCtx, h.ID)
+		c.emit(claims.Cid, "handoff_complete", map[string]any{
+			"handoffID": strconv.FormatUint(h.ID, 10),
+		})
+	}
+
 	step, err := c.sessionSvc.FindStepBySession(svcCtx, claims.Dbsid)
 	if err != nil || step == nil {
 		http.Error(w, "widget: step not found", http.StatusNotFound)
 		return
 	}
-
-	// Find scenario for this step
 	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
 		http.Error(w, "widget: scenario not found", http.StatusBadRequest)
 		return
 	}
 	scenario := &cb.Scenarios[step.ScenarioIndex]
 
-	// ExecuteStep marks complete + runs after-automation
-	_, err = c.sessionSvc.ExecuteStep(svcCtx, claims.Dbsid, scenario, claims.Cid, step.ScenarioIndex, "")
-	if err != nil {
+	if err := c.sessionSvc.FinalizeStep(svcCtx, step.ID, scenario, nil); err != nil {
 		http.Error(w, fmt.Sprintf("widget: cannot advance step: %v", err), http.StatusInternalServerError)
 		return
 	}
-
-	nextScenarioIndex := step.ScenarioIndex + 1
-	isLast := nextScenarioIndex >= len(cb.Scenarios)
-
-	if isLast {
-		_ = c.sessionSvc.UpdateStatus(svcCtx, claims.Dbsid, "completed")
-	}
-
-	// Emit scenario_step_complete event via observability bus (picked up by SSE stream)
-	if c.obsBus != nil {
-		var nextScenarioID *string
-		if !isLast {
-			id := cb.Scenarios[nextScenarioIndex].ID
-			nextScenarioID = &id
-		}
-		c.obsBus.EmitEvent(observability.AgentEvent{
-			ConversationID: strconv.FormatUint(claims.Cid, 10),
-			Event:          "scenario_step_complete",
-			Details: map[string]any{
-				"nextScenarioID":  nextScenarioID,
-				"sessionComplete": isLast,
-			},
-			Timestamp: time.Now(),
-		})
-	}
-
-	var nextScenarioID *string
-	if !isLast {
-		id := cb.Scenarios[nextScenarioIndex].ID
-		nextScenarioID = &id
-	}
-	writeJSON(w, http.StatusOK, map[string]any{
-		"nextScenarioID":  nextScenarioID,
-		"sessionComplete": isLast,
+	c.emit(claims.Cid, "step_complete", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": step.ScenarioIndex,
 	})
+
+	c.startStep(svcCtx, cb, claims.Dbsid, claims.Cid, step.ScenarioIndex+1, nil)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// closeSession finalizes the current step and marks the session closed.
+// Intended for the final outro scenario.
+func (c *Controller) closeSession(w http.ResponseWriter, r *http.Request) {
+	claims := claimsFromCtx(r.Context())
+	cb := chatbotFromCtx(r.Context())
+	if claims == nil || cb == nil {
+		http.Error(w, "widget: no session", http.StatusUnauthorized)
+		return
+	}
+
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+
+	if step, err := c.sessionSvc.FindStepBySession(svcCtx, claims.Dbsid); err == nil && step != nil {
+		if step.ScenarioIndex >= 0 && step.ScenarioIndex < len(cb.Scenarios) {
+			scenario := &cb.Scenarios[step.ScenarioIndex]
+			_ = c.sessionSvc.FinalizeStep(svcCtx, step.ID, scenario, nil)
+			c.emit(claims.Cid, "step_complete", map[string]any{
+				"scenarioID":    scenario.ID,
+				"scenarioIndex": step.ScenarioIndex,
+			})
+		}
+	}
+
+	if err := c.sessionSvc.UpdateStatus(svcCtx, claims.Dbsid, "closed"); err != nil {
+		http.Error(w, "widget: cannot close session", http.StatusInternalServerError)
+		return
+	}
+	c.emit(claims.Cid, "session_closed", map[string]any{})
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // requestHandoff user requests handoff from AI to human
@@ -445,19 +563,22 @@ func (c *Controller) requestHandoff(w http.ResponseWriter, r *http.Request) {
 
 	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
 
-	// Get current step
 	step, err := c.sessionSvc.FindStepBySession(svcCtx, claims.Dbsid)
 	if err != nil || step == nil {
 		http.Error(w, "widget: step not found", http.StatusNotFound)
 		return
 	}
 
-	// Request handoff
 	h, err := c.sessionSvc.RequestHandoff(svcCtx, claims.Dbsid, step.ID)
 	if err != nil {
 		http.Error(w, "widget: cannot request handoff", http.StatusInternalServerError)
 		return
 	}
+
+	c.emit(claims.Cid, "handoff_requested", map[string]any{
+		"handoffID": strconv.FormatUint(h.ID, 10),
+		"reason":    body.Reason,
+	})
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":    "handoff_requested",
@@ -465,7 +586,10 @@ func (c *Controller) requestHandoff(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// sendOperatorMessage operator sends message to widget (requires Corteza auth)
+// sendOperatorMessage: operator sends message to widget user. Persists into the
+// AiConversation as an assistant turn (prefixed) so the LLM sees it on resume,
+// and broadcasts operator_message SSE to the widget. Auto-activates the
+// handoff on first operator turn.
 func (c *Controller) sendOperatorMessage(w http.ResponseWriter, r *http.Request) {
 	claims := claimsFromCtx(r.Context())
 	if claims == nil {
@@ -476,26 +600,52 @@ func (c *Controller) sendOperatorMessage(w http.ResponseWriter, r *http.Request)
 	var body struct {
 		Message   string `json:"message"`
 		HandoffID string `json:"handoffID"`
+		Operator  string `json:"operator,omitempty"`
 	}
 	if err := readJSON(r.Body, &body); err != nil {
 		http.Error(w, "widget: bad body", http.StatusBadRequest)
 		return
 	}
 
-	// Parse handoff ID (validation only; message is stored via conversation)
-	_, err := strconv.ParseUint(body.HandoffID, 10, 64)
-	if err != nil {
+	hid, err := strconv.ParseUint(body.HandoffID, 10, 64)
+	if err != nil || hid == 0 {
 		http.Error(w, "widget: bad handoff id", http.StatusBadRequest)
 		return
 	}
 
-	// TODO: Store operator message in conversation or separate table
-	// For now, just confirm receipt
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+
+	h, err := c.sessionSvc.FindHandoffByID(svcCtx, hid)
+	if err != nil || h == nil {
+		http.Error(w, "widget: handoff not found", http.StatusNotFound)
+		return
+	}
+	if h.Status == "requested" {
+		if err := c.sessionSvc.ActivateHandoff(svcCtx, hid); err != nil {
+			http.Error(w, "widget: cannot activate handoff", http.StatusInternalServerError)
+			return
+		}
+		c.emit(claims.Cid, "handoff_active", map[string]any{
+			"handoffID": body.HandoffID,
+			"operator":  body.Operator,
+		})
+	}
+
+	c.appendConversationMessage(svcCtx, claims.Cid, types.AiConversationMessage{
+		Role:    "assistant",
+		Content: "[operator] " + body.Message,
+	})
+
+	c.emit(claims.Cid, "operator_message", map[string]any{
+		"content":  body.Message,
+		"operator": body.Operator,
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// closeHandoff operator closes handoff
+// closeHandoff terminates the handoff. Flow resumes at the same step with
+// session.status="active"; the AI loop accepts further user messages.
 func (c *Controller) closeHandoff(w http.ResponseWriter, r *http.Request) {
 	claims := claimsFromCtx(r.Context())
 	if claims == nil {
@@ -511,7 +661,6 @@ func (c *Controller) closeHandoff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse handoff ID
 	hid, err := strconv.ParseUint(body.HandoffID, 10, 64)
 	if err != nil {
 		http.Error(w, "widget: bad handoff id", http.StatusBadRequest)
@@ -523,6 +672,10 @@ func (c *Controller) closeHandoff(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "widget: cannot close handoff", http.StatusInternalServerError)
 		return
 	}
+
+	c.emit(claims.Cid, "handoff_complete", map[string]any{
+		"handoffID": body.HandoffID,
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -539,14 +692,79 @@ func (c *Controller) stream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d := newSSEDispatcher(claims.Cid)
+	d := observability.NewSSEDispatcher(claims.Cid)
 	c.obsBus.Register(d)
-	defer d.close()
+	defer d.Close()
 
-	pumpSSE(w, r, d)
+	observability.PumpSSE(w, r, d)
+}
+
+// ---- step orchestration -----------------------------------------------------
+
+// startStep runs the scenario's before-automation, persists the new step row,
+// and broadcasts step_start with the scenario payload. If the index is beyond
+// the last scenario, emits session_closed instead.
+func (c *Controller) startStep(
+	ctx context.Context,
+	cb *types.Chatbot,
+	sessionID, convID uint64,
+	scenarioIndex int,
+	vars *expr.Vars,
+) {
+	svcCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
+	if scenarioIndex >= len(cb.Scenarios) {
+		_ = c.sessionSvc.UpdateStatus(svcCtx, sessionID, "closed")
+		c.emit(convID, "session_closed", map[string]any{})
+		return
+	}
+
+	scenario := &cb.Scenarios[scenarioIndex]
+	step, err := c.sessionSvc.StartStep(svcCtx, sessionID, scenario, convID, scenarioIndex, vars)
+	if err != nil {
+		c.emit(convID, "step_error", map[string]any{
+			"scenarioID":    scenario.ID,
+			"scenarioIndex": scenarioIndex,
+			"phase":         "before",
+			"error":         err.Error(),
+		})
+		return
+	}
+
+	c.emit(convID, "step_start", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": scenarioIndex,
+		"type":          scenario.Type,
+		"config":        service.ChatbotScenarioConfig(scenario),
+		"stepID":        strconv.FormatUint(step.ID, 10),
+	})
 }
 
 // ---- helpers ----------------------------------------------------------------
+
+// emit broadcasts an SSE event for the conversation. No-op when obsBus is nil.
+func (c *Controller) emit(convID uint64, name string, details map[string]any) {
+	if c.obsBus == nil {
+		return
+	}
+	c.obsBus.EmitEvent(observability.AgentEvent{
+		ConversationID: strconv.FormatUint(convID, 10),
+		Event:          name,
+		Details:        details,
+		Timestamp:      time.Now(),
+	})
+}
+
+// appendConversationMessage appends a message to the AiConversation. Best-effort.
+func (c *Controller) appendConversationMessage(ctx context.Context, convID uint64, msg types.AiConversationMessage) {
+	conv, err := store.LookupAiConversationByID(ctx, c.store, convID)
+	if err != nil || conv == nil {
+		return
+	}
+	conv.Messages = append(conv.Messages, msg)
+	_ = store.UpdateAiConversation(ctx, c.store, conv)
+}
+
 
 func okOptions(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }
 
@@ -619,7 +837,6 @@ func peekJSONString(r *http.Request, field string) string {
 	if err != nil {
 		return ""
 	}
-	// restore body for downstream reads
 	r.Body = io.NopCloser(readSeekerFromBytes(buf))
 
 	var m map[string]any
@@ -647,6 +864,3 @@ func (r *bytesReader) Read(p []byte) (int, error) {
 	r.i += n
 	return n, nil
 }
-
-// ensure unused imports don't creep in
-var _ = fmt.Sprintf

@@ -236,14 +236,14 @@ chatbot_session_handoff: {
 				goType: "time.Time"
 				ident: "initiatedAt"
 				storeIdent: "initiated_at"
-				dal: { type: "Timestamp" }
+				dal: { type: "Timestamp", nullable: false }
 			}
 			closed_at: {
 				sortable: true,
 				goType: "*time.Time"
 				ident: "closedAt"
 				storeIdent: "closed_at"
-				dal: { type: "Timestamp" }
+				dal: { type: "Timestamp", nullable: true }
 			}
 
 			created_at: schema.SortableTimestampNowField
