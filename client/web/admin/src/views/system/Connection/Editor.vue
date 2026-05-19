@@ -56,49 +56,24 @@
               <TabPanel value="general" class="p-4 overflow-y-auto h-full">
                 <div class="flex flex-col gap-6">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField name="name" class="flex flex-col gap-2">
-                      <label for="name" class="font-medium text-primary">
-                        {{ $t('system.connections.editor.info.name') }}
-                        <span class="text-red-500">*</span>
-                      </label>
+                    <CFormGroup name="name" :label="$t('system.connections.editor.info.name')" required>
                       <InputText id="name" name="name" v-model="connection.meta.short" />
-                      <Message
-                        v-if="$form.name?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                      >
-                        {{ $form.name.error?.message }}
-                      </Message>
-                    </FormField>
+                    </CFormGroup>
 
-                    <FormField name="handle" class="flex flex-col gap-2">
-                      <label for="handle" class="font-medium text-primary">
-                        {{ $t('system.connections.editor.info.handle') }}
-                      </label>
+                    <CFormGroup name="handle" :label="$t('system.connections.editor.info.handle')">
                       <InputText id="handle" name="handle" v-model="connection.handle" />
-                      <Message
-                        v-if="$form.handle?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                      >
-                        {{ $form.handle.error?.message }}
-                      </Message>
-                    </FormField>
+                    </CFormGroup>
 
-                    <div class="flex flex-col gap-2 md:col-span-2">
-                      <label for="description" class="font-medium text-primary">
-                        {{ $t('system.connections.editor.info.description') }}
-                      </label>
+                    <CFormGroup
+                      :label="$t('system.connections.editor.info.description')"
+                      input-id="description"
+                      class="md:col-span-2"
+                    >
                       <Textarea id="description" v-model="connection.meta.description" rows="3" />
-                    </div>
+                    </CFormGroup>
                   </div>
 
-                  <FormField name="service" class="flex flex-col gap-2">
-                    <label for="service" class="font-medium text-primary">
-                      {{ $t('system.connections.editor.service.title') }}
-                    </label>
+                  <CFormGroup name="service" :label="$t('system.connections.editor.service.title')">
                     <Textarea
                       id="service"
                       name="service"
@@ -108,15 +83,7 @@
                       class="font-mono text-sm"
                       @change="() => parseJSONField('service')"
                     />
-                    <Message
-                      v-if="$form.service?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.service.error?.message }}
-                    </Message>
-                  </FormField>
+                  </CFormGroup>
                 </div>
               </TabPanel>
 
@@ -128,7 +95,7 @@
                     :collapsed="false"
                     class="shadow"
                   >
-                    <FormField name="resources" class="flex flex-col gap-2">
+                    <CFormGroup name="resources">
                       <Textarea
                         id="resources"
                         name="resources"
@@ -137,15 +104,7 @@
                         class="font-mono text-sm max-h-[50vh] overflow-y-auto"
                         @change="() => parseJSONField('resources')"
                       />
-                      <Message
-                        v-if="$form.resources?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                      >
-                        {{ $form.resources.error?.message }}
-                      </Message>
-                    </FormField>
+                    </CFormGroup>
                   </Panel>
 
                   <Panel
@@ -154,7 +113,7 @@
                     :collapsed="false"
                     class="shadow"
                   >
-                    <FormField name="operations" class="flex flex-col gap-2">
+                    <CFormGroup name="operations">
                       <Textarea
                         id="operations"
                         name="operations"
@@ -163,15 +122,7 @@
                         class="font-mono text-sm max-h-[50vh] overflow-y-auto"
                         @change="() => parseJSONField('operations')"
                       />
-                      <Message
-                        v-if="$form.operations?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                      >
-                        {{ $form.operations.error?.message }}
-                      </Message>
-                    </FormField>
+                    </CFormGroup>
                   </Panel>
                 </div>
               </TabPanel>

@@ -1,16 +1,13 @@
 <template>
   <div>
     <div class="configurator-section">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('configurator.delay.duration.label') }}
-        </label>
+      <CFormGroup :label="$t('configurator.delay.duration.label')">
         <InputText
           v-model="item.config.arguments[0].expr"
           :placeholder="$t('configurator.delay.duration.placeholder')"
           @update:model-value="valueChanged"
         />
-      </div>
+      </CFormGroup>
     </div>
   </div>
 </template>

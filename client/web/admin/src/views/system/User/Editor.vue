@@ -67,43 +67,21 @@
         class="shadow"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="email" class="flex flex-col gap-2">
-            <label for="email" class="font-medium text-primary">
-              {{ $t('system.users.editor.info.email') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="email" :label="$t('system.users.editor.info.email')" required>
             <InputText id="email" name="email" v-model="user.email" type="email" />
-            <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.email.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="name" class="flex flex-col gap-2">
-            <label for="name" class="font-medium text-primary">
-              {{ $t('system.users.editor.info.name') }}
-            </label>
+          <CFormGroup name="name" :label="$t('system.users.editor.info.name')">
             <InputText id="name" name="name" v-model="user.name" />
-            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.name.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="handle" class="flex flex-col gap-2">
-            <label for="handle" class="font-medium text-primary">
-              {{ $t('system.users.editor.info.handle') }}
-            </label>
+          <CFormGroup name="handle" :label="$t('system.users.editor.info.handle')">
             <InputText id="handle" name="handle" v-model="user.handle" />
-            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.handle.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="userGroupID" class="flex flex-col gap-2">
-            <label for="userGroupID" class="font-medium text-primary">
-              {{ $t('system.users.editor.info.userGroup.label') }}
-            </label>
+          <CFormGroup name="userGroupID" :label="$t('system.users.editor.info.userGroup.label')">
             <CInputUserGroup id="userGroupID" v-model="user.userGroupID" :clearable="false" class="w-full" />
-          </FormField>
+          </CFormGroup>
         </div>
       </Panel>
 

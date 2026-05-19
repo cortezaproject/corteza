@@ -137,26 +137,20 @@
       :style="{ width: '32rem' }"
     >
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.labels.editor.namespaces.nameLabel') }}
-          </label>
+        <CFormGroup :label="$t('system.labels.editor.namespaces.nameLabel')">
           <InputText
             v-model="nsForm.name"
             :placeholder="$t('system.labels.editor.namespaces.namePlaceholder')"
             fluid
           />
-        </div>
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.labels.editor.namespaces.slugLabel') }}
-          </label>
+        </CFormGroup>
+        <CFormGroup :label="$t('system.labels.editor.namespaces.slugLabel')">
           <InputText
             v-model="nsForm.slug"
             :placeholder="$t('system.labels.editor.namespaces.slugPlaceholder')"
             fluid
           />
-        </div>
+        </CFormGroup>
       </div>
       <template #footer>
         <div class="flex items-center justify-end gap-2">
@@ -186,16 +180,13 @@
       :style="{ width: '32rem' }"
     >
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.labels.editor.agents.nameLabel') }}
-          </label>
+        <CFormGroup :label="$t('system.labels.editor.agents.nameLabel')">
           <InputText
             v-model="agentForm.name"
             :placeholder="$t('system.labels.editor.agents.namePlaceholder')"
             fluid
           />
-        </div>
+        </CFormGroup>
       </div>
       <template #footer>
         <div class="flex items-center justify-end gap-2">
@@ -225,16 +216,13 @@
       :style="{ width: '32rem' }"
     >
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.labels.editor.automations.nameLabel') }}
-          </label>
+        <CFormGroup :label="$t('system.labels.editor.automations.nameLabel')">
           <InputText
             v-model="taqForm.name"
             :placeholder="$t('system.labels.editor.automations.namePlaceholder')"
             fluid
           />
-        </div>
+        </CFormGroup>
       </div>
       <template #footer>
         <div class="flex items-center justify-end gap-2">

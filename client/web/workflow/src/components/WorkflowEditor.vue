@@ -313,21 +313,15 @@
           <!-- Body -->
           <div class="relative flex-1 mt-3">
             <div v-if="sidebar.item && !isContentNode" class="flex flex-col gap-3">
-              <div class="flex flex-col gap-1">
-                <label class="font-medium text-primary" for="sidebar-name">
-                  {{ $t('general.label.name') }}
-                </label>
+              <CFormGroup :label="$t('general.label.name')" input-id="sidebar-name">
                 <InputText
                   id="sidebar-name"
                   :model-value="sidebar.item.node?.value || ''"
                   class="w-full"
                   @update:model-value="onSidebarNameChange"
                 />
-              </div>
-              <div class="flex flex-col gap-1">
-                <label class="font-medium text-primary" for="sidebar-description">
-                  {{ $t('general.description') }}
-                </label>
+              </CFormGroup>
+              <CFormGroup :label="$t('general.description')" input-id="sidebar-description">
                 <Textarea
                   id="sidebar-description"
                   :model-value="sidebar.item.node?.description || ''"
@@ -336,7 +330,7 @@
                   class="w-full"
                   @update:model-value="onSidebarDescriptionChange"
                 />
-              </div>
+              </CFormGroup>
             </div>
             <Divider v-if="sidebar.item && !isContentNode" />
             <transition name="component-fade" mode="out-in">

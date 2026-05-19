@@ -640,8 +640,16 @@ const providerItems = computed(() => {
 })
 
 const providerFields = [
-  { key: 'enabled', header: t('system.settings.editor.external.table.header.enabled'), headerStyle: 'width: 80px' },
-  { key: 'provider', header: t('system.settings.editor.external.table.header.provider'), headerStyle: 'width: 200px' },
+  {
+    key: 'enabled',
+    header: t('system.settings.editor.external.table.header.enabled'),
+    headerStyle: 'width: 80px',
+  },
+  {
+    key: 'provider',
+    header: t('system.settings.editor.external.table.header.provider'),
+    headerStyle: 'width: 200px',
+  },
   { key: 'info', header: t('system.settings.editor.external.table.header.info') },
 ]
 

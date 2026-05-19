@@ -1,9 +1,6 @@
 <template>
   <div class="configurator-section">
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-primary">
-        {{ $t('steps.content.configurator.content-label') }}
-      </label>
+    <CFormGroup :label="$t('steps.content.configurator.content-label')">
       <div class="content-rte-wrap border border-surface rounded-border overflow-hidden">
         <c-rich-text-input
           v-model="label"
@@ -14,7 +11,7 @@
           @input="$emit('update-value', $event)"
         />
       </div>
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

@@ -9,15 +9,12 @@
     @hide="onModalHide"
   >
     <div class="flex flex-col gap-4 mt-2">
-      <div
+      <CFormGroup
         v-for="(fieldName, index) in fields"
         :key="fieldName"
-        class="flex flex-col gap-1 relative"
+        :label="getFieldLabel(getField(fieldName))"
       >
-        <div class="flex items-center gap-2 mb-1">
-          <label class="text-sm font-medium text-primary">
-            {{ getFieldLabel(getField(fieldName)) }}
-          </label>
+        <template #actions>
           <Button
             icon="pi pi-trash"
             text
@@ -26,7 +23,7 @@
             class="h-6 w-6 p-0"
             @click="fields.splice(index, 1)"
           />
-        </div>
+        </template>
         <CFieldEditor
           :field="getField(fieldName)"
           :namespace="namespace"
@@ -34,7 +31,7 @@
           :model-value="getFieldValue(fieldName)"
           @update:model-value="setFieldValue(fieldName, $event)"
         />
-      </div>
+      </CFormGroup>
 
       <Divider v-if="fields.length" class="!m-0" />
 

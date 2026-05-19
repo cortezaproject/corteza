@@ -15,8 +15,8 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
-      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+      <div v-if="isEdit" class="flex justify-end gap-2">
         <CPermissionsButton
           v-if="template.canGrant"
           v-tooltip.bottom="$t('general.label.permissions')"
@@ -25,119 +25,74 @@
           :target="template.meta?.short || template.handle || template.templateID"
         />
       </div>
-      <Card
-        :pt="{
-          body: { class: 'p-0 flex flex-col h-full min-h-0' },
-          content: { class: 'p-0 flex flex-col h-full min-h-0' },
-        }"
-        class="overflow-hidden flex-1 min-h-0 flex flex-col"
+
+      <Panel :header="$t('system.templates.editor.tabs.basic')" toggleable :collapsed="false">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CFormGroup name="name" :label="$t('system.templates.editor.info.meta.short')" required>
+            <InputText id="name" name="name" v-model="template.meta.short" />
+          </CFormGroup>
+
+          <CFormGroup name="handle" :label="$t('system.templates.editor.info.handle')">
+            <InputText id="handle" name="handle" v-model="template.handle" />
+          </CFormGroup>
+
+          <CFormGroup :label="$t('system.templates.editor.info.type')" input-id="type">
+            <Select
+              id="type"
+              v-model="template.type"
+              :options="typeOptions"
+              option-label="label"
+              option-value="value"
+            />
+          </CFormGroup>
+
+          <CFormGroup :label="$t('system.templates.editor.info.language')" input-id="language">
+            <InputText id="language" v-model="template.language" placeholder="en" />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('system.templates.editor.info.meta.description')"
+            input-id="description"
+            class="md:col-span-2"
+          >
+            <Textarea id="description" v-model="template.meta.description" rows="2" />
+          </CFormGroup>
+
+          <CInputToggleCard
+            v-model="template.partial"
+            :label="$t('system.templates.editor.info.partial')"
+            :description="$t('system.templates.editor.info.partialDescription')"
+            class="self-start"
+          />
+        </div>
+      </Panel>
+
+      <Panel :header="$t('system.templates.editor.tabs.content')" toggleable :collapsed="false">
+        <div class="flex gap-3">
+          <!-- Toolbox sidebar -->
+          <div class="w-64 shrink-0">
+            <CTemplateToolbox :partials="partials" />
+          </div>
+
+          <!-- Code editor -->
+          <div class="flex-1 min-w-0 flex flex-col">
+            <CCodeEditor
+              v-model="template.template"
+              :language="editorLanguage"
+              min-height="500px"
+            />
+          </div>
+        </div>
+      </Panel>
+
+      <Panel
+        v-if="isEdit && !template.partial"
+        :header="$t('system.templates.editor.tabs.preview')"
+        toggleable
+        :collapsed="false"
       >
-        <template #content>
-          <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
-            <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.templates.editor.tabs.basic') }}</Tab>
-              <Tab value="content">{{ $t('system.templates.editor.tabs.content') }}</Tab>
-              <Tab v-if="isEdit && !template.partial" value="preview">
-                {{ $t('system.templates.editor.tabs.preview') }}
-              </Tab>
-            </TabList>
-
-            <TabPanels class="flex-1 overflow-y-auto min-h-0">
-              <TabPanel value="basic">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField name="name" class="flex flex-col gap-2">
-                    <label for="name" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.meta.short') }}
-                      <span class="text-red-500">*</span>
-                    </label>
-                    <InputText id="name" name="name" v-model="template.meta.short" />
-                    <Message
-                      v-if="$form.name?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.name.error?.message }}
-                    </Message>
-                  </FormField>
-
-                  <FormField name="handle" class="flex flex-col gap-2">
-                    <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.handle') }}
-                    </label>
-                    <InputText id="handle" name="handle" v-model="template.handle" />
-                    <Message
-                      v-if="$form.handle?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.handle.error?.message }}
-                    </Message>
-                  </FormField>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="type" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.type') }}
-                    </label>
-                    <Select
-                      id="type"
-                      v-model="template.type"
-                      :options="typeOptions"
-                      option-label="label"
-                      option-value="value"
-                    />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <label for="language" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.language') }}
-                    </label>
-                    <InputText id="language" v-model="template.language" placeholder="en" />
-                  </div>
-
-                  <div class="flex flex-col gap-2 md:col-span-2">
-                    <label for="description" class="font-medium text-primary">
-                      {{ $t('system.templates.editor.info.meta.description') }}
-                    </label>
-                    <Textarea id="description" v-model="template.meta.description" rows="2" />
-                  </div>
-
-                  <div class="flex items-center gap-3">
-                    <ToggleSwitch id="partial" v-model="template.partial" />
-                    <label for="partial" class="font-medium text-primary cursor-pointer">
-                      {{ $t('system.templates.editor.info.partial') }}
-                    </label>
-                  </div>
-                </div>
-              </TabPanel>
-
-              <TabPanel value="content" class="h-full p-0">
-                <div class="flex h-full min-h-0 gap-3">
-                  <!-- Toolbox sidebar -->
-                  <div class="w-64 shrink-0 overflow-y-auto">
-                    <CTemplateToolbox :partials="partials" />
-                  </div>
-
-                  <!-- Code editor -->
-                  <div class="flex-1 min-w-0 flex flex-col">
-                    <CCodeEditor
-                      v-model="template.template"
-                      :language="editorLanguage"
-                      min-height="500px"
-                      :border="false"
-                    />
-                  </div>
-                </div>
-              </TabPanel>
-
-              <TabPanel v-if="isEdit && !template.partial" value="preview">
-                <CTemplatePreview :template="template" />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </template>
-      </Card>
+        <CTemplatePreview :template="template" />
+      </Panel>
     </div>
 
     <div class="shrink-0 border-t border-surface bg-surface">
@@ -180,7 +135,7 @@ import CCodeEditor from '@/components/Template/CCodeEditor.vue'
 import CTemplateToolbox from '@/components/Template/CTemplateToolbox.vue'
 import CTemplatePreview from '@/components/Template/CTemplatePreview.vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputToggleCard } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -194,7 +149,6 @@ const saving = ref(false)
 const deleting = ref(false)
 const template = ref(null)
 const initialTemplate = ref(null)
-const activeTab = ref('basic')
 const partials = ref([])
 
 const typeOptions = computed(() => [
@@ -267,7 +221,6 @@ async function loadTemplate() {
 
 async function handleSubmit({ valid }) {
   if (!valid) {
-    activeTab.value = 'basic'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
       document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })

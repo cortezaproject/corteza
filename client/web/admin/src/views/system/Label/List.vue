@@ -58,10 +58,12 @@
       :initialValues="{ name: newLabelName }"
       @submit="submitCreate"
     >
-      <FormField name="name" class="flex flex-col gap-2 pt-2">
-        <label for="new-label-name" class="font-medium text-primary text-sm">
-          {{ $t('system.labels.editor.info.name') }}
-        </label>
+      <CFormGroup
+        name="name"
+        input-id="new-label-name"
+        :label="$t('system.labels.editor.info.name')"
+        class="pt-2"
+      >
         <InputText
           id="new-label-name"
           name="name"
@@ -70,15 +72,7 @@
           autofocus
           fluid
         />
-        <Message
-          v-if="$form.name?.invalid"
-          severity="error"
-          size="small"
-          variant="simple"
-        >
-          {{ $form.name.error?.message }}
-        </Message>
-      </FormField>
+      </CFormGroup>
 
       <div class="flex items-center justify-end gap-2 mt-4">
         <Button

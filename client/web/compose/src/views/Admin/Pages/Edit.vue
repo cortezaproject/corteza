@@ -64,41 +64,28 @@
       <!-- General Panel -->
       <Panel :header="$t('general.label.general')" toggleable>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <FormField name="title" class="flex flex-col gap-2">
-            <label for="title" class="font-medium text-primary">
-              {{ $t('page.label.title') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="title" :label="$t('page.label.title')" required>
             <InputText id="title" name="title" v-model="page.title" />
-            <Message v-if="$form.title?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.title.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="handle" class="flex flex-col gap-2">
-            <label for="handle" class="font-medium text-primary">
-              {{ $t('page.label.handle') }}
-            </label>
+          <CFormGroup name="handle" :label="$t('page.label.handle')">
             <InputText id="handle" name="handle" v-model="page.handle" />
-            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.handle.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
         </div>
 
-        <div class="flex flex-col gap-2 mb-6">
-          <label for="description" class="font-medium text-primary">
-            {{ $t('page.label.description') }}
-          </label>
+        <CFormGroup
+          :label="$t('page.label.description')"
+          input-id="description"
+          class="mb-6"
+        >
           <Textarea id="description" v-model="page.description" rows="4" auto-resize />
-        </div>
+        </CFormGroup>
 
         <!-- Page Icon + Other Options (side by side like Human) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <!-- Page Icon -->
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-              <label class="font-medium text-primary">{{ $t('page.icon.page') }}</label>
+          <CFormGroup :label="$t('page.icon.page')">
+            <template #actions>
               <Button
                 v-tooltip.top="$t('page.icon.configure')"
                 icon="pi pi-pencil"
@@ -107,18 +94,16 @@
                 size="small"
                 @click="openIconModal"
               />
-            </div>
+            </template>
 
             <img v-if="pageIconSrc" :src="pageIconSrc" width="auto" height="50" />
             <span v-else class="text-muted-color">
               {{ $t('page.icon.noIcon') }}
             </span>
-          </div>
+          </CFormGroup>
 
           <!-- Other Options -->
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-primary">{{ $t('page.edit.otherOptions') }}</label>
-
+          <CFormGroup :label="$t('page.edit.otherOptions')">
             <CInputToggleCard
               v-model="page.visible"
               :label="$t('page.edit.visible')"
@@ -137,7 +122,7 @@
               :label="$t('page.edit.notifications.enabled')"
               :description="$t('page.edit.notifications.description')"
             />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -296,8 +281,7 @@
   >
     <template v-if="configLayout">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary">{{ $t('page.page-layout.title') }}</label>
+        <CFormGroup :label="$t('page.page-layout.title')">
           <InputGroup v-if="isRecordPage && configLayout.config.useTitle">
             <InputGroupAddon>ƒ</InputGroupAddon>
             <InputText
@@ -306,11 +290,10 @@
             />
           </InputGroup>
           <InputText v-else v-model="configLayout.meta.title" />
-        </div>
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary">{{ $t('page.page-layout.handle') }}</label>
+        </CFormGroup>
+        <CFormGroup :label="$t('page.page-layout.handle')">
           <InputText v-model="configLayout.handle" />
-        </div>
+        </CFormGroup>
       </div>
 
       <!-- Use Title (record pages only) -->
@@ -321,8 +304,7 @@
 
       <Divider />
 
-      <div class="flex flex-col gap-2 mb-4">
-        <label class="font-medium text-primary">{{ $t('page.page-layout.condition.label') }}</label>
+      <CFormGroup :label="$t('page.page-layout.condition.label')" class="mb-4">
         <InputGroup>
           <InputGroupAddon>ƒ</InputGroupAddon>
           <InputText
@@ -330,49 +312,46 @@
             :placeholder="$t('page.page-layout.condition.placeholder')"
           />
         </InputGroup>
-        <small class="text-muted-color" v-if="isRecordPage">
-          {{
-            $t('page.page-layout.condition.description.record-page', {
-              0: 'record.values.fieldName',
-              1: 'user.(userID/email...)',
-              2: 'screen.(width/height)',
-              3: 'isView/isCreate/isEdit',
-              4: 'user.userID == record.createdBy',
-              5: 'screen.width < 1024',
-            })
-          }}
-        </small>
-        <small class="text-muted-color" v-else>
-          {{
-            $t('page.page-layout.condition.description.non-record-page', {
-              0: 'user.(userID/email...)',
-              1: 'screen.(width/height)',
-              2: 'user.email == "test@mail.com"',
-              3: 'screen.width < 1024',
-            })
-          }}
-        </small>
-      </div>
+        <template #description>
+          <template v-if="isRecordPage">
+            {{
+              $t('page.page-layout.condition.description.record-page', {
+                0: 'record.values.fieldName',
+                1: 'user.(userID/email...)',
+                2: 'screen.(width/height)',
+                3: 'isView/isCreate/isEdit',
+                4: 'user.userID == record.createdBy',
+                5: 'screen.width < 1024',
+              })
+            }}
+          </template>
+          <template v-else>
+            {{
+              $t('page.page-layout.condition.description.non-record-page', {
+                0: 'user.(userID/email...)',
+                1: 'screen.(width/height)',
+                2: 'user.email == "test@mail.com"',
+                3: 'screen.width < 1024',
+              })
+            }}
+          </template>
+        </template>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-2 mb-4">
-        <label class="font-medium text-primary">{{ $t('page.page-layout.roles.label') }}</label>
+      <CFormGroup :label="$t('page.page-layout.roles.label')" class="mb-4">
         <CInputRole
           :value="configLayoutRoles"
           :placeholder="$t('page.page-layout.roles.placeholder')"
           multiple
           @input="onConfigLayoutRoleChange"
         />
-      </div>
+      </CFormGroup>
 
       <!-- Record Toolbar (record pages only) -->
       <template v-if="isRecordPage">
         <Divider />
 
-        <div class="flex flex-col gap-2 mb-4">
-          <label class="font-medium text-primary">
-            {{ $t('page.page-layout.recordToolbar.buttons.label') }}
-          </label>
-
+        <CFormGroup :label="$t('page.page-layout.recordToolbar.buttons.label')" class="mb-4">
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-3">
               <Checkbox
@@ -435,7 +414,7 @@
               </label>
             </div>
           </div>
-        </div>
+        </CFormGroup>
 
         <Divider />
 

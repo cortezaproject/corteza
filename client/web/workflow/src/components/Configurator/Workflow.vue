@@ -27,22 +27,16 @@
     </div>
 
     <div class="flex flex-col gap-4 px-3">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('configurator.name.label') }} <span class="text-red-500">*</span>
-        </label>
+      <CFormGroup :label="$t('configurator.name.label')" required>
         <InputText
           v-model="localWorkflow.meta.name"
           data-test-id="input-label"
           :placeholder="$t('configurator.name.placeholder')"
           :invalid="nameState === false"
         />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('configurator.handle.label') }}
-        </label>
+      <CFormGroup :label="$t('configurator.handle.label')">
         <InputText
           v-model="localWorkflow.handle"
           data-test-id="input-handle"
@@ -56,12 +50,9 @@
         >
           {{ $t('configurator.handle.invalid-handle-characters') }}
         </small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('configurator.description.label') }}
-        </label>
+      <CFormGroup :label="$t('configurator.description.label')">
         <Textarea
           v-model="localWorkflow.meta.description"
           data-test-id="input-description"
@@ -69,25 +60,19 @@
           rows="3"
           autoResize
         />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('configurator.labels.label') }}
-        </label>
+      <CFormGroup :label="$t('configurator.labels.label')">
         <namespace-module-selector
           :namespace-labels="localWorkflow?.labels?.ref_namespace || []"
           :module-labels="localWorkflow?.labels?.ref_module || []"
           @change="handleLabelsChange"
         />
-      </div>
+      </CFormGroup>
 
       <Divider class="!my-1" />
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('configurator.run-as.label') }}
-        </label>
+      <CFormGroup :label="$t('configurator.run-as.label')">
         <c-input-user
           v-model="localWorkflow.runAs"
           data-test-id="select-run-as"
@@ -96,7 +81,7 @@
         <small class="text-muted-color">
           {{ $t('configurator.run-as.description') }}
         </small>
-      </div>
+      </CFormGroup>
 
       <div class="flex items-center gap-2">
         <Checkbox

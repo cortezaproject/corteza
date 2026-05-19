@@ -36,13 +36,11 @@
       <transition name="fade">
         <div v-if="item._showDetails" class="p-3 border-t border-surface bg-emphasis">
           <div class="flex flex-col gap-3">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary text-sm">Target</label>
+            <CFormGroup label="Target">
               <InputText v-model="item.target" placeholder="Target" @input="emitChange" />
-            </div>
+            </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary text-sm">Type</label>
+            <CFormGroup label="Type">
               <Select
                 v-model="item.type"
                 :options="types"
@@ -53,7 +51,7 @@
               <small v-if="getTypeDescription(item.type)" class="text-muted-color">
                 {{ getTypeDescription(item.type) }}
               </small>
-            </div>
+            </CFormGroup>
 
             <div class="flex flex-col gap-1">
               <expression-editor

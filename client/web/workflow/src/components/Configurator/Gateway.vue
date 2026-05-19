@@ -6,19 +6,18 @@
       </div>
 
       <div v-else class="flex flex-col gap-4">
-        <div
+        <CFormGroup
           v-for="edge in gatewayEdges"
           :key="edge.id"
-          class="flex flex-col gap-1"
+          :label="edge.value"
         >
-          <label class="font-medium text-primary">{{ edge.value }}</label>
           <expression-editor
             v-model="edge.expr"
             show-line-numbers
             :show-popout="false"
             @input="updateEdge(edge.id, $event)"
           />
-        </div>
+        </CFormGroup>
       </div>
     </div>
   </div>

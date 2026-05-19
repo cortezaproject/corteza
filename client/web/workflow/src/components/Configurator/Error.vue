@@ -1,10 +1,7 @@
 <template>
   <div>
     <div class="configurator-section">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('general.error-expression') }}
-        </label>
+      <CFormGroup :label="$t('general.error-expression')">
         <expression-editor
           v-model="item.config.arguments[0].expr"
           font-size="18px"
@@ -12,7 +9,7 @@
           @open="openInEditor"
           @input="valueChanged"
         />
-      </div>
+      </CFormGroup>
     </div>
 
     <Dialog

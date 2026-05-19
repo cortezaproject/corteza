@@ -1,8 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <!-- Avatar Preview -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-primary">{{ $t('system.users.editor.avatar.preview') }}</label>
+    <CFormGroup :label="$t('system.users.editor.avatar.preview')">
       <div class="relative pointer-events-none">
         <Button
           rounded
@@ -22,11 +21,10 @@
           </template>
         </Button>
       </div>
-    </div>
+    </CFormGroup>
 
     <!-- Upload -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-primary">{{ $t('system.users.editor.avatar.upload') }}</label>
+    <CFormGroup :label="$t('system.users.editor.avatar.upload')">
       <input
         ref="fileInput"
         type="file"
@@ -34,7 +32,7 @@
         class="block w-full text-sm text-muted-color file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-contrast hover:file:opacity-90 cursor-pointer"
         @change="handleFileChange"
       />
-    </div>
+    </CFormGroup>
 
     <!-- Remove avatar button -->
     <div v-if="user.meta?.avatarID && user.meta.avatarID !== '0'">

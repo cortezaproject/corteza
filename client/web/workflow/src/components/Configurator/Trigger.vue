@@ -2,10 +2,7 @@
   <div class="flex flex-col gap-3">
     <div class="configurator-section">
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="font-medium text-primary">
-            {{ $t('steps.trigger.configurator.resource') }} <span class="text-red-500">*</span>
-          </label>
+        <CFormGroup :label="$t('steps.trigger.configurator.resource')" required>
           <Select
             v-model="item.triggers.resourceType"
             :options="resourceTypeOptions"
@@ -16,15 +13,13 @@
             class="w-full"
             @change="resourceChanged"
           />
-        </div>
+        </CFormGroup>
 
-        <div
+        <CFormGroup
           v-if="item.triggers.resourceType"
-          class="flex flex-col gap-1"
+          :label="$t('steps.trigger.configurator.event')"
+          required
         >
-          <label class="font-medium text-primary">
-            {{ $t('steps.trigger.configurator.event') }} <span class="text-red-500">*</span>
-          </label>
           <Select
             v-model="item.triggers.eventType"
             :options="eventTypeOptions"
@@ -35,7 +30,7 @@
             class="w-full"
             @change="eventChanged"
           />
-        </div>
+        </CFormGroup>
 
         <div class="flex items-center gap-2">
           <Checkbox
@@ -56,18 +51,17 @@
       v-if="showConstraints"
       class="configurator-section"
     >
-      <div class="flex items-center justify-between mb-2">
-        <label class="font-medium text-primary">
-          {{ $t('steps.trigger.configurator.constraints') }}
-        </label>
-        <Button
-          v-if="constraintNameTypes.length"
-          :label="$t('steps.trigger.configurator.add-constraints')"
-          severity="secondary"
-          size="small"
-          @click="addConstraint()"
-        />
-      </div>
+      <CFormGroup :label="$t('steps.trigger.configurator.constraints')">
+        <template #actions>
+          <Button
+            v-if="constraintNameTypes.length"
+            :label="$t('steps.trigger.configurator.add-constraints')"
+            severity="secondary"
+            size="small"
+            @click="addConstraint()"
+          />
+        </template>
+      </CFormGroup>
 
       <div v-if="constraintNameTypes.length">
         <div
@@ -106,10 +100,7 @@
             v-if="c._showDetails"
             class="px-3 py-3 border-t border-surface bg-emphasis flex flex-col gap-3"
           >
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary text-sm">
-                {{ $t('steps.trigger.configurator.resource') }}
-              </label>
+            <CFormGroup :label="$t('steps.trigger.configurator.resource')">
               <Select
                 v-model="c.name"
                 :options="constraintNameTypes"
@@ -120,12 +111,9 @@
                 class="w-full"
                 @change="emitChange"
               />
-            </div>
+            </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary text-sm">
-                {{ $t('steps.trigger.configurator.operator') }}
-              </label>
+            <CFormGroup :label="$t('steps.trigger.configurator.operator')">
               <Select
                 v-model="c.op"
                 :options="constraintOperatorTypes"
@@ -135,10 +123,9 @@
                 class="w-full"
                 @change="emitChange"
               />
-            </div>
+            </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary text-sm">Values</label>
+            <CFormGroup label="Values">
               <div
                 v-for="(value, vIndex) in c.values"
                 :key="vIndex"
@@ -174,19 +161,15 @@
                 size="small"
                 @click="c.values.push('')"
               />
-            </div>
+            </CFormGroup>
           </div>
         </div>
       </div>
 
-      <div
+      <CFormGroup
         v-else-if="item.triggers.constraints[0]"
-        class="flex flex-col gap-1"
+        :label="item.triggers.eventType.replace('on', '')"
       >
-        <label class="font-medium text-primary">
-          {{ item.triggers.eventType.replace('on', '') }}
-        </label>
-
         <CInputDateTime
           v-if="item.triggers.eventType === 'onTimestamp'"
           v-model="item.triggers.constraints[0].values[0]"
@@ -204,7 +187,7 @@
           v-model="item.triggers.constraints[0].values[0]"
           @input="emitChange"
         />
-      </div>
+      </CFormGroup>
     </div>
 
     <div

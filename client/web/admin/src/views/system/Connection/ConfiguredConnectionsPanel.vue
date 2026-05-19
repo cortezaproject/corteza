@@ -100,21 +100,19 @@
       class="flex flex-col h-full min-h-0"
     >
       <div class="p-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto">
-        <FormField name="name" class="flex flex-col gap-2">
-          <label for="ccName" class="font-medium text-primary">
-            {{ $t('system.configuredConnections.editor.info.name') }}
-            <span class="text-red-500">*</span>
-          </label>
+        <CFormGroup
+          name="name"
+          input-id="ccName"
+          :label="$t('system.configuredConnections.editor.info.name')"
+          required
+        >
           <InputText id="ccName" name="name" v-model="activeConfiguredConnection.name" />
-          <Message v-if="$modalForm.name?.invalid" severity="error" size="small" variant="simple">
-            {{ $modalForm.name.error?.message }}
-          </Message>
-        </FormField>
+        </CFormGroup>
 
-        <div v-if="activeConfiguredConnection.configurationID" class="flex flex-col gap-2">
-          <label class="font-medium text-primary">
-            {{ $t('system.configuredConnections.editor.info.status') }}
-          </label>
+        <CFormGroup
+          v-if="activeConfiguredConnection.configurationID"
+          :label="$t('system.configuredConnections.editor.info.status')"
+        >
           <div>
             <Tag
               :value="
@@ -126,18 +124,18 @@
               :severity="activeConfiguredConnection.status === 'active' ? 'success' : 'secondary'"
             />
           </div>
-        </div>
+        </CFormGroup>
 
-        <div v-for="param in uniqueDerivedParams" :key="param.name" class="flex flex-col gap-2">
-          <label :for="`param-${param.name}`" class="font-medium text-primary">
-            {{ param.label || param.name }}
-            <span v-if="param.required" class="text-red-500">*</span>
-          </label>
-          <small v-if="param.description" class="text-muted-color">
-            {{ param.description }}
-          </small>
+        <CFormGroup
+          v-for="param in uniqueDerivedParams"
+          :key="param.name"
+          :label="param.label || param.name"
+          :description="param.description || ''"
+          :required="param.required"
+          :input-id="`param-${param.name}`"
+        >
           <InputText :id="`param-${param.name}`" v-model="paramValues[param.name]" />
-        </div>
+        </CFormGroup>
       </div>
 
       <div class="border-t border-surface p-3 flex gap-2 shrink-0">

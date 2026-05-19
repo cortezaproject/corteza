@@ -1,15 +1,18 @@
 <template>
   <div class="grid grid-cols-12 gap-2 items-center mb-2">
-    <!-- Checkbox or Label -->
     <div class="col-span-3">
       <div v-if="allowOmitStrategy" class="flex items-center gap-2">
         <Checkbox
-          v-model="use"
+          :modelValue="use"
           :binary="true"
           :disabled="disabled"
-          :inputId="`chk-use-${field}`"
+          :inputId="checkboxId"
+          @update:modelValue="onUseToggle"
         />
-        <label :for="`chk-use-${field}`" class="cursor-pointer select-none">
+        <label
+          :for="checkboxId"
+          :class="['select-none', disabled ? 'cursor-not-allowed text-muted-color' : 'cursor-pointer']"
+        >
           {{ label }}
         </label>
       </div>
@@ -18,26 +21,25 @@
       </div>
     </div>
 
-    <!-- Strategy Select -->
     <div class="col-span-3">
       <Select
-        v-show="strategy !== 'omit'"
-        v-model="strategy"
+        v-show="strategy !== types.Omit"
+        :modelValue="strategy"
         :options="strategies"
         optionLabel="text"
         optionValue="value"
-        :disabled="!use"
+        :disabled="disabled || !use"
         size="small"
         class="w-full"
+        @update:modelValue="onStrategyChange"
       />
     </div>
 
-    <!-- Ident Input -->
     <div class="col-span-6">
       <InputText
-        v-if="strategy === ''"
+        v-if="strategy === types.Plain"
         :value="storeIdent"
-        :placeholder="$t('module.edit.config.dal.ident.placeholder')"
+        :placeholder="$t('module.edit.config.dal.encoding-strategy.ident.placeholder')"
         size="small"
         readonly
         class="w-full"
@@ -45,10 +47,11 @@
       <InputText
         v-else-if="showIdentInput"
         v-model="draft.ident"
-        :placeholder="$t('module.edit.config.dal.ident.placeholder')"
-        :disabled="disableIdentInput"
+        :placeholder="$t('module.edit.config.dal.encoding-strategy.ident.placeholder')"
+        :disabled="disabled"
         size="small"
         class="w-full"
+        @update:modelValue="onIdentInput"
       />
     </div>
   </div>
@@ -60,96 +63,66 @@ import { useI18n } from 'vue-i18n'
 import { defaultConfigDraft, types } from './encoding-strategy'
 
 const props = defineProps({
-  config: {
-    type: Object,
-    required: true,
-  },
-  field: {
-    type: String,
-    required: true,
-  },
-  label: {
-    type: String,
-    required: true,
-  },
-  isMulti: {
-    type: Boolean,
-    default: false,
-  },
-  storeIdent: {
-    type: String,
-    required: true,
-  },
-  defaultStrategy: {
-    type: String,
-    default: types.Plain,
-  },
-  allowOmitStrategy: {
-    type: Boolean,
-    default: true,
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
+  config: { type: Object, required: true },
+  field: { type: String, required: true },
+  label: { type: String, required: true },
+  isMulti: { type: Boolean, default: false },
+  storeIdent: { type: String, required: true },
+  defaultStrategy: { type: String, default: types.Plain },
+  allowOmitStrategy: { type: Boolean, default: true },
+  disabled: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['change'])
 const { t } = useI18n()
 
-// Holds working copy of strategy config
 const draft = ref(defaultConfigDraft(props.config, props.storeIdent))
-// Strategy before omit
 const undoOmit = ref(props.defaultStrategy)
 
-const strategies = computed(() => {
-  return [
-    { value: types.Plain, text: t('module.edit.config.dal.encoding-strategy.strategies.plain.label'), disabled: props.isMulti },
-    { value: types.Alias, text: t('module.edit.config.dal.encoding-strategy.strategies.alias.label'), disabled: props.isMulti },
-    { value: types.JSON, text: t('module.edit.config.dal.encoding-strategy.strategies.json.label') },
-  ].filter(({ disabled }) => !disabled)
+const checkboxId = computed(() => `dal-fse-${props.field}`)
+
+const strategies = computed(() => [
+  { value: types.Plain, text: t('module.edit.config.dal.encoding-strategy.strategies.plain.label'), disabled: props.isMulti },
+  { value: types.Alias, text: t('module.edit.config.dal.encoding-strategy.strategies.alias.label'), disabled: props.isMulti },
+  { value: types.JSON, text: t('module.edit.config.dal.encoding-strategy.strategies.json.label') },
+].filter(({ disabled }) => !disabled))
+
+const strategy = computed(() => {
+  for (const type of Object.values(types)) {
+    if (props.config[type] !== undefined) return type
+  }
+  return props.defaultStrategy
 })
 
-const showIdentInput = computed(() => {
-  return [types.JSON, types.Alias, types.Plain].includes(strategy.value)
-})
+const use = computed(() => strategy.value !== types.Omit)
 
-const disableIdentInput = computed(() => {
-  return [types.Plain].includes(strategy.value)
-})
+const showIdentInput = computed(() => [types.JSON, types.Alias, types.Plain].includes(strategy.value))
 
-const strategy = computed({
-  get() {
-    // iterate over all types and return the first one that matches
-    for (const type of Object.values(types)) {
-      if (props.config[type] === undefined) {
-        continue
-      }
-      return type
-    }
-    return props.defaultStrategy
-  },
-  set(newStrategy) {
-    emit('change', { strategy: newStrategy, config: draft.value })
-  },
-})
+function onUseToggle(newUse) {
+  if (strategy.value !== types.Omit) {
+    undoOmit.value = strategy.value
+  }
+  const next = newUse ? undoOmit.value : types.Omit
+  emit('change', { strategy: next, config: draft.value })
+}
 
-const use = computed({
-  get() {
-    return strategy.value !== types.Omit
-  },
-  set(newUse) {
-    if (strategy.value !== types.Omit) {
-      undoOmit.value = strategy.value
-    }
-    strategy.value = newUse ? undoOmit.value : types.Omit
-  },
-})
+function onStrategyChange(newStrategy) {
+  if (newStrategy == null || newStrategy === strategy.value) return
+  emit('change', { strategy: newStrategy, config: draft.value })
+}
 
+function onIdentInput() {
+  emit('change', { strategy: strategy.value, config: draft.value })
+}
+
+// Keep draft in sync if parent feeds a different config (e.g. preset reset)
 watch(
-  draft,
-  (newDraft) => {
-    emit('change', { strategy: strategy.value, config: newDraft })
+  () => props.config,
+  (cfg) => {
+    const next = defaultConfigDraft(cfg, props.storeIdent)
+    if (next.ident !== draft.value.ident) {
+      draft.value = next
+    }
   },
   { deep: true },
 )

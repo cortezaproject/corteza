@@ -59,31 +59,15 @@
 
       <Panel :header="$t('system.roles.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="name" class="flex flex-col gap-2">
-            <label for="name" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.name') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="name" :label="$t('system.roles.editor.info.name')" required>
             <InputText id="name" name="name" v-model="role.name" :disabled="role.isClosed" />
-            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.name.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="handle" class="flex flex-col gap-2">
-            <label for="handle" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.handle') }}
-            </label>
+          <CFormGroup name="handle" :label="$t('system.roles.editor.info.handle')">
             <InputText id="handle" name="handle" v-model="role.handle" :disabled="role.isClosed" />
-            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.handle.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="description" class="flex flex-col gap-2 md:col-span-2">
-            <label for="description" class="font-medium text-primary">
-              {{ $t('system.roles.editor.info.description') }}
-            </label>
+          <CFormGroup name="description" :label="$t('system.roles.editor.info.description')" class="md:col-span-2">
             <Textarea
               id="description"
               name="description"
@@ -91,43 +75,46 @@
               rows="3"
               :disabled="role.isClosed"
             />
-          </FormField>
+          </CFormGroup>
 
-          <!-- isContextual toggle -->
-          <div v-if="!role.isClosed" class="flex items-center gap-3">
-            <ToggleSwitch id="isContextual" v-model="isContextual" />
-            <label for="isContextual" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.roles.editor.info.context.label') }}
-            </label>
-          </div>
+          <CInputToggleCard
+            v-if="!role.isClosed"
+            v-model="isContextual"
+            :label="$t('system.roles.editor.info.context.label')"
+            :description="$t('system.roles.editor.info.context.description')"
+            class="self-start"
+          />
+        </div>
+      </Panel>
 
-          <!-- Contextual section (shown when isContextual) -->
-          <div
-            v-if="isContextual && !role.isClosed"
-            class="md:col-span-2 flex flex-col gap-4 p-4 border rounded-lg bg-surface"
+      <Panel
+        v-if="isContextual && !role.isClosed"
+        :header="$t('system.roles.editor.info.context.title')"
+        toggleable
+        :collapsed="false"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CFormGroup
+            :label="$t('system.roles.editor.info.context.expression-label')"
+            class="md:col-span-2"
           >
-            <div class="flex flex-col gap-2">
-              <label class="font-medium text-primary">
-                {{ $t('system.roles.editor.info.context.expression-label') }}
-              </label>
-              <InputText v-model="role.meta.context.expr" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="font-medium text-primary">
-                {{ $t('system.roles.editor.info.context.resource-types-label') }}
-              </label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div v-for="rt in resourceTypes" :key="rt.value" class="flex items-center gap-2">
-                  <Checkbox
-                    :inputId="rt.value"
-                    v-model="role.meta.context.resourceTypes"
-                    :value="rt.value"
-                  />
-                  <label :for="rt.value" class="cursor-pointer text-sm">{{ rt.label }}</label>
-                </div>
+            <InputText v-model="role.meta.context.expr" />
+          </CFormGroup>
+          <CFormGroup
+            :label="$t('system.roles.editor.info.context.resource-types-label')"
+            class="md:col-span-2"
+          >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div v-for="rt in resourceTypes" :key="rt.value" class="flex items-center gap-2">
+                <Checkbox
+                  :inputId="rt.value"
+                  v-model="role.meta.context.resourceTypes"
+                  :value="rt.value"
+                />
+                <label :for="rt.value" class="cursor-pointer text-sm">{{ rt.label }}</label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -202,7 +189,7 @@ import { cloneDeep, isEqual } from 'lodash-es'
 import RoleMembers from '@/components/Role/RoleMembers.vue'
 import RolePermissionClone from '@/components/Role/RolePermissionClone.vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputToggleCard } = components
 
 const route = useRoute()
 const router = useRouter()

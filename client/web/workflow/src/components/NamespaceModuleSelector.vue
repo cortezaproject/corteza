@@ -1,9 +1,6 @@
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-primary">
-        {{ $t('general.filter.namespace.label') }}
-      </label>
+    <CFormGroup :label="$t('general.filter.namespace.label')">
       <MultiSelect
         class="namespace-selector w-full"
         :options="namespace.options"
@@ -16,16 +13,13 @@
         @filter="searchNamespaces($event.value)"
         @update:modelValue="updateNamespaces"
       />
-    </div>
+    </CFormGroup>
 
-    <div
+    <CFormGroup
       v-for="ns in namespace.values"
       :key="ns"
-      class="flex flex-col gap-1"
+      :label="getModuleLabel(ns)"
     >
-      <label class="font-medium text-primary">
-        {{ getModuleLabel(ns) }}
-      </label>
       <MultiSelect
         class="module-selector w-full"
         :options="getModulesForNamespace(ns.split('/')[1])"
@@ -38,7 +32,7 @@
         @filter="e => searchModulesForNamespace(e.value, ns.split('/')[1])"
         @update:modelValue="modules => updateModulesForNamespace(modules, ns.split('/')[1])"
       />
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

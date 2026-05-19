@@ -9,10 +9,7 @@
         v-if="functionTypes.length"
         class="flex flex-col gap-3"
       >
-        <div class="flex flex-col gap-1">
-          <label class="font-medium text-primary">
-            {{ $t('steps.function.configurator.type') }}
-          </label>
+        <CFormGroup :label="$t('steps.function.configurator.type')">
           <Select
             v-model="functionRef"
             :options="functionTypes"
@@ -24,7 +21,7 @@
             class="w-full"
           @change="functionChanged(functionRef)"
           />
-        </div>
+        </CFormGroup>
 
         <p
           v-if="functionDescription"

@@ -159,46 +159,23 @@
             <TabPanels>
               <TabPanel value="fields">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <FormField name="name" class="flex flex-col gap-2">
-                    <label for="name" class="font-medium text-primary">
-                      {{ $t('module.general.label.name') }}
-                      <span class="text-red-500">*</span>
-                    </label>
+                  <CFormGroup name="name" :label="$t('module.general.label.name')" required>
                     <InputText
                       id="name"
                       name="name"
                       v-model="module.name"
                       :invalid="!!module.name && !isValidFieldName(module.name)"
                     />
-                    <Message
-                      v-if="$form.name?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.name.error?.message }}
-                    </Message>
-                  </FormField>
+                  </CFormGroup>
 
-                  <FormField name="handle" class="flex flex-col gap-2">
-                    <label for="handle" class="font-medium text-primary">
-                      {{ $t('module.general.label.handle') }}
-                    </label>
+                  <CFormGroup name="handle" :label="$t('module.general.label.handle')">
                     <InputText
                       id="handle"
                       name="handle"
                       v-model="module.handle"
                       :invalid="!!module.handle && !isValidHandle(module.handle)"
                     />
-                    <Message
-                      v-if="$form.handle?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.handle.error?.message }}
-                    </Message>
-                  </FormField>
+                  </CFormGroup>
                 </div>
 
                 <Divider />

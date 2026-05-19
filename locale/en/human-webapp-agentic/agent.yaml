@@ -107,7 +107,7 @@ editor:
     help: The specific model to use from the selected provider
   temperature:
     label: Temperature
-    help: Controls randomness. Lower values (0.0) are more deterministic, higher values (1.0) are more creative
+    help: Controls randomness. Lower values (0.0) are more deterministic, higher values (1.0) are more creative. Only supported on certain models.
 
   limits:
     label: Limits

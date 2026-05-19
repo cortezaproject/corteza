@@ -30,45 +30,26 @@
 
       <Panel :header="$t('automation.taq.editor.info.title')" toggleable :collapsed="false" class="shadow">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="name" class="flex flex-col gap-2">
-            <label for="name" class="font-medium text-primary">
-              {{ $t('automation.taq.editor.info.name') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="name" :label="$t('automation.taq.editor.info.name')" required>
             <InputText id="name" name="name" v-model="taq.meta.short" />
-            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.name.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="handle" class="flex flex-col gap-2">
-            <label for="handle" class="font-medium text-primary">
-              {{ $t('automation.taq.editor.info.handle') }}
-            </label>
+          <CFormGroup name="handle" :label="$t('automation.taq.editor.info.handle')">
             <InputText id="handle" name="handle" v-model="taq.handle" />
-            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.handle.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="description" class="flex flex-col gap-2 md:col-span-2">
-            <label for="description" class="font-medium text-primary">
-              {{ $t('automation.taq.editor.info.description') }}
-            </label>
+          <CFormGroup name="description" :label="$t('automation.taq.editor.info.description')" class="md:col-span-2">
             <Textarea
               id="description"
               name="description"
               v-model="taq.meta.description"
               rows="3"
             />
-          </FormField>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-primary">
-              {{ $t('automation.taq.editor.info.enabled') }}
-            </label>
+          <CFormGroup :label="$t('automation.taq.editor.info.enabled')">
             <ToggleSwitch v-model="taq.enabled" />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 

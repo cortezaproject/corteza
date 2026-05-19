@@ -1,11 +1,10 @@
 <template>
   <div v-if="filter.params && filter.params.length" class="flex flex-col gap-4">
-    <div
+    <CFormGroup
       v-for="(param, index) in filter.params"
       :key="index"
-      class="flex flex-col gap-2"
     >
-      <label class="font-medium text-primary text-sm">
+      <template #label>
         {{ getParamLabel(param.label) }}
         <a
           v-if="param.label === 'expr'"
@@ -15,7 +14,16 @@
         >
           <i class="pi pi-question-circle text-xs" />
         </a>
-      </label>
+      </template>
+      <template v-if="filter.ref === 'response' && param.type === 'header'" #actions>
+        <Button
+          :label="$t('system.apigw.editor.filters.addHeader')"
+          icon="pi pi-plus"
+          severity="secondary"
+          size="small"
+          @click="getHeaderValue(param).push({ name: '', expr: '' })"
+        />
+      </template>
 
       <!-- Boolean -->
       <ToggleSwitch
@@ -63,39 +71,27 @@
       </template>
 
       <!-- Response filter: header type -->
-      <template v-else-if="filter.ref === 'response' && param.type === 'header'">
-        <div
-          v-for="(header, hIndex) in getHeaderValue(param)"
-          :key="`header-${hIndex}`"
-          class="flex gap-2 items-center mb-2"
-        >
+      <CFormList
+        v-else-if="filter.ref === 'response' && param.type === 'header'"
+        :model-value="getHeaderValue(param)"
+        :columns="[
+          { label: $t('system.apigw.editor.filters.labels.name'), width: '1fr' },
+          { label: $t('system.apigw.editor.filters.labels.value'), width: '1fr' },
+        ]"
+      >
+        <template #row="{ item }">
           <InputText
-            v-model="header.name"
+            v-model="item.name"
             :placeholder="$t('system.apigw.editor.filters.labels.name')"
-            class="flex-1"
+            class="w-full"
           />
           <InputText
-            v-model="header.expr"
+            v-model="item.expr"
             :placeholder="$t('system.apigw.editor.filters.labels.value')"
-            class="flex-1"
+            class="w-full"
           />
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
-            @click="getHeaderValue(param).splice(hIndex, 1)"
-          />
-        </div>
-        <Button
-          :label="$t('system.apigw.editor.filters.addHeader')"
-          icon="pi pi-plus"
-          severity="secondary"
-          outlined
-          size="small"
-          @click="getHeaderValue(param).push({ name: '', expr: '' })"
-        />
-      </template>
+        </template>
+      </CFormList>
 
       <!-- JS function -->
       <Textarea
@@ -120,11 +116,7 @@
         v-else
         v-model="param.value"
       />
-    </div>
-  </div>
-
-  <div v-else class="text-muted-color text-sm text-center py-4">
-    {{ $t('system.apigw.editor.filters.noParams') }}
+    </CFormGroup>
   </div>
 </template>
 

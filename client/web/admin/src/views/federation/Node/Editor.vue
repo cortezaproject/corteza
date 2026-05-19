@@ -27,49 +27,36 @@
       <Card class="shadow">
         <template #content>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField name="name" class="flex flex-col gap-2 md:col-span-2">
-              <label for="name" class="font-medium text-primary">
-                {{ $t('federation.nodes.editor.info.name') }}
-                <span class="text-red-500">*</span>
-              </label>
+            <CFormGroup name="name" :label="$t('federation.nodes.editor.info.name')" required class="md:col-span-2">
               <InputText
                 id="name"
                 name="name"
                 v-model="node.name"
                 :placeholder="$t('federation.nodes.editor.info.name')"
               />
-              <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-                {{ $form.name.error?.message }}
-              </Message>
-            </FormField>
+            </CFormGroup>
 
-            <FormField name="baseURL" class="flex flex-col gap-2 md:col-span-2">
-              <label for="baseURL" class="font-medium text-primary">
-                {{ $t('federation.nodes.editor.info.baseURL') }}
-                <span class="text-red-500">*</span>
-              </label>
+            <CFormGroup name="baseURL" :label="$t('federation.nodes.editor.info.baseURL')" required class="md:col-span-2">
               <InputText
                 id="baseURL"
                 name="baseURL"
                 v-model="node.baseURL"
                 placeholder="https://..."
               />
-              <Message v-if="$form.baseURL?.invalid" severity="error" size="small" variant="simple">
-                {{ $form.baseURL.error?.message }}
-              </Message>
-            </FormField>
+            </CFormGroup>
 
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label for="contact" class="font-medium text-primary">
-                {{ $t('federation.nodes.editor.info.contact') }}
-              </label>
+            <CFormGroup
+              :label="$t('federation.nodes.editor.info.contact')"
+              input-id="contact"
+              class="md:col-span-2"
+            >
               <InputText
                 id="contact"
                 v-model="node.contact"
                 type="email"
                 placeholder="contact@example.com"
               />
-            </div>
+            </CFormGroup>
           </div>
         </template>
       </Card>

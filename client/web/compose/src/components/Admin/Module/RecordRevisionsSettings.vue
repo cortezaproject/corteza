@@ -10,10 +10,13 @@
       </label>
     </div>
 
-    <FormField name="recordRevisions.ident" class="flex flex-col gap-2 max-w-lg">
-      <label for="ident" class="font-medium text-primary">
-        {{ $t('module.edit.config.record-revisions.ident.label') }}
-      </label>
+    <CFormGroup
+      name="recordRevisions.ident"
+      :label="$t('module.edit.config.record-revisions.ident.label')"
+      :description="$t('module.edit.config.record-revisions.ident.description')"
+      input-id="ident"
+      class="max-w-lg"
+    >
       <InputText
         id="ident"
         v-model="module.config.recordRevisions.ident"
@@ -21,10 +24,7 @@
         :placeholder="$t('module.edit.config.record-revisions.ident.placeholder')"
         class="w-full"
       />
-      <small class="text-muted-color">
-        {{ $t('module.edit.config.record-revisions.ident.description') }}
-      </small>
-    </FormField>
+    </CFormGroup>
   </div>
 </template>
 

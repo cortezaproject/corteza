@@ -45,52 +45,26 @@
             <TabPanels class="flex-1 overflow-y-auto min-h-0">
               <TabPanel value="basic">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField name="name" class="flex flex-col gap-2">
-                    <label for="name" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.name.label') }}
-                      <span class="text-red-500">*</span>
-                    </label>
+                  <CFormGroup name="name" :label="$t('system.data-sources.editor.basic.form.name.label')" required>
                     <InputText id="name" name="name" v-model="dataSource.meta.name" />
-                    <Message
-                      v-if="$form.name?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.name.error?.message }}
-                    </Message>
-                  </FormField>
+                  </CFormGroup>
 
-                  <FormField name="handle" class="flex flex-col gap-2">
-                    <label for="handle" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.handle.label') }}
-                    </label>
+                  <CFormGroup name="handle" :label="$t('system.data-sources.editor.basic.form.handle.label')">
                     <InputText id="handle" name="handle" v-model="dataSource.handle" />
-                    <Message
-                      v-if="$form.handle?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.handle.error?.message }}
-                    </Message>
-                  </FormField>
+                  </CFormGroup>
 
-                  <div class="flex flex-col gap-2">
-                    <label for="ownership" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.basic.form.ownership.label') }}
-                    </label>
+                  <CFormGroup
+                    :label="$t('system.data-sources.editor.basic.form.ownership.label')"
+                    input-id="ownership"
+                  >
                     <InputText id="ownership" v-model="dataSource.meta.ownership" />
-                  </div>
+                  </CFormGroup>
                 </div>
               </TabPanel>
 
               <TabPanel v-if="showDalConfig" value="dal-config">
                 <div class="flex flex-col gap-4">
-                  <FormField name="dalConfig" class="flex flex-col gap-2">
-                    <label for="dalConfig" class="font-medium text-primary">
-                      {{ $t('system.data-sources.editor.dal.form.params.label') }}
-                    </label>
+                  <CFormGroup name="dalConfig" :label="$t('system.data-sources.editor.dal.form.params.label')">
                     <Textarea
                       id="dalConfig"
                       name="dalConfig"
@@ -100,15 +74,7 @@
                       class="font-mono text-sm"
                       @change="parseDalConfig"
                     />
-                    <Message
-                      v-if="$form.dalConfig?.invalid"
-                      severity="error"
-                      size="small"
-                      variant="simple"
-                    >
-                      {{ $form.dalConfig.error?.message }}
-                    </Message>
-                  </FormField>
+                  </CFormGroup>
                 </div>
               </TabPanel>
             </TabPanels>

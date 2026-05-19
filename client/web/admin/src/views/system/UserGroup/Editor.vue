@@ -29,69 +29,80 @@
       </div>
       <Panel :header="$t('system.user-groups.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="name" class="flex flex-col gap-2">
-            <label for="name" class="font-medium text-primary">
-              {{ $t('system.user-groups.editor.info.meta.short') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="name" :label="$t('system.user-groups.editor.info.meta.short')" required>
             <InputText id="name" name="name" v-model="userGroup.meta.short" />
-            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.name.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="handle" class="flex flex-col gap-2">
-            <label for="handle" class="font-medium text-primary">
-              {{ $t('system.user-groups.editor.info.handle') }}
-            </label>
+          <CFormGroup name="handle" :label="$t('system.user-groups.editor.info.handle')">
             <InputText id="handle" name="handle" v-model="userGroup.handle" />
-            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.handle.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="description" class="flex flex-col gap-2 md:col-span-2">
-            <label for="description" class="font-medium text-primary">
-              {{ $t('system.user-groups.editor.info.meta.description') }}
-            </label>
+          <CFormGroup name="description" :label="$t('system.user-groups.editor.info.meta.description')" class="md:col-span-2">
             <Textarea
               id="description"
               name="description"
               v-model="userGroup.meta.description"
               rows="3"
             />
-          </FormField>
+          </CFormGroup>
 
           <!-- Parent hierarchy (non-root groups) -->
-          <div v-if="!userGroup.isRoot" class="md:col-span-2 flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-              <label class="font-medium text-primary">{{ $t('system.user-groups.editor.info.parents.title') }}</label>
-              <Button icon="pi pi-plus" :label="$t('general.label.add')" text size="small" @click="addParent" />
-            </div>
-            <div v-if="!userGroup.config || !userGroup.config.path || userGroup.config.path.length === 0" class="text-muted-color text-sm p-3 border rounded bg-highlight text-center">
-              {{ $t('system.user-groups.editor.info.parents.empty') }}
-            </div>
-            <div v-else class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 px-1 mb-1">
-                <label class="flex-1 text-xs text-muted-color font-semibold uppercase">{{ $t('system.user-groups.editor.info.parents.parent.label') }}</label>
-                <label class="flex-1 text-xs text-muted-color font-semibold uppercase">{{ $t('system.user-groups.editor.info.parents.name.label') }}</label>
-                <div v-if="userGroup.config.path.length > 1" class="w-8"></div>
-              </div>
-              <div v-for="(parent, i) in userGroup.config.path" :key="i" class="flex items-center gap-2">
-                <CInputUserGroup v-model="parent.selfID" class="flex-1" :placeholder="$t('system.user-groups.editor.info.parents.parent.placeholder')" />
-                <InputText v-model="parent.name" :placeholder="$t('system.user-groups.editor.info.parents.name.placeholder')" class="flex-1" />
-                <Button v-if="userGroup.config.path.length > 1" icon="pi pi-trash" severity="danger" text rounded size="small" @click="removeParent(i)" />
-              </div>
-            </div>
-          </div>
+          <CFormGroup
+            v-if="!userGroup.isRoot"
+            :label="$t('system.user-groups.editor.info.parents.title')"
+            class="md:col-span-2"
+          >
+            <template #actions>
+              <Button
+                icon="pi pi-plus"
+                :label="$t('general.label.add')"
+                severity="secondary"
+                size="small"
+                @click="addParent"
+              />
+            </template>
+            <CFormList
+              v-if="userGroup.config?.path"
+              v-model="userGroup.config.path"
+              :min-items="1"
+              :empty-message="$t('system.user-groups.editor.info.parents.empty')"
+              :columns="[
+                { label: $t('system.user-groups.editor.info.parents.parent.label'), width: '1fr' },
+                { label: $t('system.user-groups.editor.info.parents.name.label'), width: '1fr' },
+              ]"
+            >
+              <template #row="{ item }">
+                <CInputUserGroup
+                  v-model="item.selfID"
+                  class="w-full"
+                  :placeholder="$t('system.user-groups.editor.info.parents.parent.placeholder')"
+                />
+                <InputText
+                  v-model="item.name"
+                  :placeholder="$t('system.user-groups.editor.info.parents.name.placeholder')"
+                  class="w-full"
+                />
+              </template>
+            </CFormList>
+          </CFormGroup>
         </div>
       </Panel>
 
-      <Panel v-if="isEdit" :header="$t('system.user-groups.editor.members.title')" toggleable class="shadow">
+      <Panel
+        v-if="isEdit"
+        :header="$t('system.user-groups.editor.members.title')"
+        toggleable
+        class="shadow"
+      >
         <UserGroupMembers :userGroupID="userGroup.userGroupID" />
       </Panel>
 
-      <Panel v-if="isEdit" :header="$t('system.user-groups.editor.roles.title')" toggleable class="shadow">
+      <Panel
+        v-if="isEdit"
+        :header="$t('system.user-groups.editor.roles.title')"
+        toggleable
+        class="shadow"
+      >
         <UserGroupRoles :userGroupID="userGroup.userGroupID" />
       </Panel>
     </div>
@@ -197,10 +208,6 @@ function addParent() {
   userGroup.value.config.path.push({ selfID: '', name: '' })
 }
 
-function removeParent(i) {
-  userGroup.value.config.path.splice(i, 1)
-}
-
 // Methods
 async function loadUserGroup() {
   const userGroupID = route.params.userGroupID
@@ -238,7 +245,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -310,7 +319,12 @@ async function handleUndelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!userGroup.value && !!initialUserGroup.value && !isEqual(userGroup.value, initialUserGroup.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!userGroup.value &&
+    !!initialUserGroup.value &&
+    !isEqual(userGroup.value, initialUserGroup.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 
@@ -320,7 +334,7 @@ watch(
     if (newID !== oldID) {
       loadUserGroup()
     }
-  }
+  },
 )
 
 onMounted(() => {

@@ -1,41 +1,20 @@
 <template>
-  <div class="flex flex-col gap-4">
-    <div v-if="loading" class="flex justify-center p-4">
-      <ProgressSpinner />
-    </div>
-
-    <div
-      v-else-if="credentials.length === 0"
-      class="text-muted-color p-4 border rounded-lg bg-surface text-center"
-    >
-      {{ $t('system.users.editor.externalAuth.empty') }}
-    </div>
-
-    <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
-      <div
-        v-for="item in credentials"
-        :key="item.credentialsID"
-        class="flex items-center justify-between p-3"
-      >
-        <div class="flex flex-col gap-1">
-          <span class="font-medium">{{ formatKind(item.label || item.kind) }}</span>
-          <span v-if="item.label && item.kind" class="text-xs text-muted-color">
-            {{ formatKind(item.kind) }}
-          </span>
-        </div>
-        <Button
-          icon="pi pi-trash"
-          severity="danger"
-          text
-          size="small"
-          :aria-label="$t('system.users.editor.externalAuth.remove')"
-          :title="$t('system.users.editor.externalAuth.remove')"
-          :loading="removingID === item.credentialsID"
-          @click="handleRemove(item)"
-        />
-      </div>
-    </div>
-  </div>
+  <CFormItemList
+    :items="credentials"
+    :loading="loading"
+    :empty-message="$t('system.users.editor.externalAuth.empty')"
+    :remove-label="$t('system.users.editor.externalAuth.remove')"
+    :loading-key="removingID"
+    item-key="credentialsID"
+    @remove="handleRemove"
+  >
+    <template #default="{ item }">
+      <span class="font-medium">{{ formatKind(item.label || item.kind) }}</span>
+      <span v-if="item.label && item.kind" class="text-xs text-muted-color block">
+        {{ formatKind(item.kind) }}
+      </span>
+    </template>
+  </CFormItemList>
 </template>
 
 <script setup>

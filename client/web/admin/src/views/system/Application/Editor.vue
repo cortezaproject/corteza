@@ -27,16 +27,9 @@
       </div>
       <Panel :header="$t('system.applications.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="name" class="flex flex-col gap-2 md:col-span-2">
-            <label for="name" class="font-medium text-primary">
-              {{ $t('system.applications.editor.info.name') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="name" :label="$t('system.applications.editor.info.name')" required class="md:col-span-2">
             <InputText id="name" name="name" v-model="application.name" />
-            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.name.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
           <CInputToggleCard
             v-model="application.enabled"
@@ -48,19 +41,13 @@
 
       <Panel :header="$t('system.applications.editor.unify.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label for="unifyName" class="font-medium text-primary">
-              {{ $t('system.applications.editor.unify.name.label') }}
-            </label>
+          <CFormGroup :label="$t('system.applications.editor.unify.name.label')" input-id="unifyName">
             <InputText id="unifyName" v-model="application.unify.name" />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label for="unifyUrl" class="font-medium text-primary">
-              {{ $t('system.applications.editor.unify.url.label') }}
-            </label>
+          <CFormGroup :label="$t('system.applications.editor.unify.url.label')" input-id="unifyUrl">
             <InputText id="unifyUrl" v-model="application.unify.url" />
-          </div>
+          </CFormGroup>
 
           <CInputToggleCard
             v-model="application.unify.listed"

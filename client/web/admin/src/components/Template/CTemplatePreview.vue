@@ -6,19 +6,16 @@
 
     <template v-else>
       <!-- Preview variables/options JSON editor -->
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary text-sm">
-          {{ $t('system.templates.editor.content.preview.title') }}
-        </label>
-        <small class="text-muted-color">
-          {{ $t('system.templates.editor.content.preview.description') }}
-        </small>
+      <CFormGroup
+        :label="$t('system.templates.editor.content.preview.title')"
+        :description="$t('system.templates.editor.content.preview.description')"
+      >
         <CCodeEditor
           v-model="previewData"
           language="json"
           min-height="200px"
         />
-      </div>
+      </CFormGroup>
 
       <!-- Preview buttons -->
       <div class="flex gap-2 flex-wrap">

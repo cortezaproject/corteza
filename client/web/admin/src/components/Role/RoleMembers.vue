@@ -1,58 +1,33 @@
 <template>
-  <div class="flex flex-col gap-6">
-    <div v-if="loading" class="flex justify-center p-4">
-      <ProgressSpinner />
-    </div>
+  <div class="flex flex-col gap-4">
+    <CInputUser
+      class="w-full"
+      :placeholder="$t('system.roles.editor.members.placeholder')"
+      clear-on-select
+      :exclude-users="Array.from(memberIDs)"
+      @select="onUserSelect"
+    />
 
-    <div v-else class="flex flex-col gap-4">
-      <!-- Add User -->
-      <div class="flex items-center gap-2">
-        <CInputUser
-          class="flex-1"
-          :placeholder="$t('system.roles.editor.members.placeholder')"
-          clear-on-select
-          :exclude-users="Array.from(memberIDs)"
-          @select="onUserSelect"
-        />
-      </div>
-
-      <!-- Current Members -->
-      <div
-        v-if="currentMembers.length === 0"
-        class="text-muted-color p-4 border rounded-lg bg-surface text-center"
-      >
-        {{ $t('system.roles.editor.members.empty') }}
-      </div>
-
-      <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
-        <div
-          v-for="member in currentMembers"
-          :key="member.userID"
-          class="flex items-center justify-between p-3"
+    <CFormItemList
+      :items="currentMembers"
+      :loading="loading"
+      :empty-message="$t('system.roles.editor.members.empty')"
+      :remove-label="$t('system.roles.editor.members.remove')"
+      item-key="userID"
+      @remove="removeMember"
+    >
+      <template #default="{ item }">
+        <span class="font-medium">
+          {{ item.name || item.email || item.handle || item.userID }}
+        </span>
+        <span
+          v-if="(item.name || item.handle) && item.email"
+          class="text-xs text-muted-color block"
         >
-          <div class="flex flex-col">
-            <span class="font-medium">
-              {{ member.name || member.email || member.handle || member.userID }}
-            </span>
-            <span
-              v-if="(member.name || member.handle) && member.email"
-              class="text-xs text-muted-color"
-            >
-              {{ member.email }}
-            </span>
-          </div>
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            rounded
-            :aria-label="$t('system.roles.editor.members.remove')"
-            :title="$t('system.roles.editor.members.remove')"
-            @click="removeMember(member)"
-          />
-        </div>
-      </div>
-    </div>
+          {{ item.email }}
+        </span>
+      </template>
+    </CFormItemList>
   </div>
 </template>
 

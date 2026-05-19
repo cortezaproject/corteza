@@ -50,18 +50,22 @@
     <Divider layout="horizontal" v-if="showValueExpr || (showDefaultValue && defaultValueEnabled)" />
 
     <!-- Value Expression / Default Value Editor -->
-    <div v-if="showValueExpr" class="flex flex-col gap-1">
-      <label class="font-medium text-primary">{{ $t('field.valueExpr.label') }}</label>
-      <small class="text-muted-color">{{ $t('field.valueExpr.description') }}</small>
+    <CFormGroup
+      v-if="showValueExpr"
+      :label="$t('field.valueExpr.label')"
+      :description="$t('field.valueExpr.description')"
+    >
       <InputText
         v-model="valueExpression"
         class="w-full mt-1"
         :placeholder="$t('field.valueExpr.placeholder')"
       />
-    </div>
+    </CFormGroup>
 
-    <div v-else-if="defaultValueEnabled && showDefaultValue" class="flex flex-col gap-1">
-      <label class="font-medium text-primary">{{ $t('field.defaultFieldValue') }}</label>
+    <CFormGroup
+      v-else-if="defaultValueEnabled && showDefaultValue"
+      :label="$t('field.defaultFieldValue')"
+    >
       <CFieldEditor
         :field="mockField"
         :namespace="namespace"
@@ -69,7 +73,7 @@
         @update:model-value="onMockValueChange"
         class="mt-1"
       />
-    </div>
+    </CFormGroup>
 
     <Divider layout="horizontal" v-if="showValueExpr || (showDefaultValue && defaultValueEnabled)" />
 

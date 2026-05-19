@@ -34,34 +34,29 @@
 
       <!-- Step 1: Configure name & slug -->
       <div v-else-if="step === 1" class="flex flex-col gap-5">
-        <div class="flex flex-col gap-2">
-          <label for="import-name" class="font-medium text-primary">
-            {{ $t('namespace.name.label') }}
-          </label>
+        <CFormGroup :label="$t('namespace.name.label')" input-id="import-name">
           <InputText
             id="import-name"
             v-model="name"
             :placeholder="$t('namespace.name.placeholder')"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-2">
-          <label for="import-slug" class="font-medium text-primary">
-            {{ $t('namespace.import.slug.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('namespace.import.slug.label')"
+          :description="$t('namespace.slug.description')"
+          input-id="import-slug"
+        >
           <InputText
             id="import-slug"
             v-model="slug"
             :placeholder="$t('namespace.slug.placeholder')"
             :invalid="slug.length > 0 && !slugValid"
           />
-          <small class="text-muted-color">
-            {{ $t('namespace.slug.description') }}
-          </small>
           <Message v-if="slug.length > 0 && !slugValid" severity="error" size="small" variant="simple">
             {{ $t('namespace.slug.invalid-handle-characters') }}
           </Message>
-        </div>
+        </CFormGroup>
 
         <div class="flex items-center justify-between pt-2">
           <Button

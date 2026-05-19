@@ -1,17 +1,12 @@
 <template>
   <div
     class="flex items-center gap-3 p-3 border border-surface rounded-lg transition-colors"
-    :class="[
-      disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis',
-    ]"
+    :class="[disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis']"
     @click="!disabled && $emit('update:modelValue', !modelValue)"
   >
-    <div
-      class="flex flex-col gap-0.5 flex-1 min-w-0"
-      :class="textOpacityClass"
-    >
+    <div class="flex flex-col gap-1 flex-1 min-w-0" :class="textOpacityClass">
       <div class="flex items-center gap-1">
-        <span class="font-medium text-primary text-sm">
+        <span class="font-medium text-primary">
           <slot name="label">{{ label }}</slot>
         </span>
         <i
@@ -27,7 +22,7 @@
           @click.stop
         />
       </div>
-      <small v-if="description || $slots.description" class="text-muted-color text-xs">
+      <small v-if="description || $slots.description" class="text-muted-color">
         <slot name="description">{{ description }}</slot>
       </small>
     </div>

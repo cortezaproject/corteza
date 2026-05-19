@@ -15,10 +15,6 @@
         :collapsed="false"
         class="shadow"
       >
-        <!-- General -->
-        <h5 class="text-sm font-semibold mb-3">
-          {{ $t('ui.settings.editor.topbar.general') }}
-        </h5>
         <div class="flex flex-col gap-3 mb-4">
           <div class="flex items-center gap-2">
             <Checkbox v-model="topbar.hideAppSelector" :binary="true" inputId="hideAppSelector" />
@@ -43,10 +39,7 @@
             </label>
           </div>
 
-          <div
-            v-if="$Settings.get('discovery.enabled', false)"
-            class="flex items-center gap-2"
-          >
+          <div v-if="$Settings.get('discovery.enabled', false)" class="flex items-center gap-2">
             <Checkbox v-model="hideSearch" :binary="true" inputId="hideSearch" />
             <label for="hideSearch">
               {{ $t('ui.settings.editor.topbar.search.hide') }}
@@ -61,16 +54,8 @@
           </div>
         </div>
 
-        <Divider />
-
-
-
-        <!-- Profile sub-section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div>
-            <h5 class="text-sm font-semibold mb-3">
-              {{ $t('ui.settings.editor.topbar.profile.title') }}
-            </h5>
+        <Fieldset :legend="$t('ui.settings.editor.topbar.profile.title')" class="mb-4">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="flex flex-col gap-3">
               <div class="flex items-center gap-2">
                 <Checkbox
@@ -103,152 +88,98 @@
                 </label>
               </div>
             </div>
-          </div>
 
-          <div class="lg:col-span-2">
-            <div class="flex flex-col gap-2">
-              <label class="font-medium text-sm text-primary">
-                {{ $t('ui.settings.editor.topbar.links.title') }}
-              </label>
-              <div v-if="topbar.profileLinks.length" class="flex flex-col gap-2">
-                <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 px-3 pt-2">
-                  <span class="text-xs font-semibold text-muted-color uppercase">
-                    {{ $t('ui.settings.editor.topbar.links.handle') }}
-                  </span>
-                  <span class="text-xs font-semibold text-muted-color uppercase">
-                    {{ $t('ui.settings.editor.topbar.links.url') }}
-                  </span>
-                  <span class="text-xs font-semibold text-muted-color uppercase text-center w-16">
-                    {{ $t('ui.settings.editor.topbar.links.new-tab') }}
-                  </span>
-                  <span class="w-10" />
-                </div>
-                <div
-                  v-for="(link, index) in topbar.profileLinks"
-                  :key="index"
-                  class="border border-surface rounded-border p-3"
-                >
-                  <div class="grid grid-cols-[1fr_1.5fr_auto_auto] gap-2 items-center">
-                    <InputText v-model="link.handle" size="small" class="w-full" />
-                    <InputText v-model="link.url" size="small" class="w-full" />
-                    <div class="flex items-center justify-center w-16">
-                      <Checkbox v-model="link.newTab" :binary="true" />
-                    </div>
-                    <div class="w-10 flex justify-end">
-                      <Button
-                        icon="pi pi-trash"
-                        severity="danger"
-                        text
-                        rounded
-                        size="small"
-                        @click="topbar.profileLinks.splice(index, 1)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
+            <CFormGroup :label="$t('ui.settings.editor.topbar.links.title')" class="lg:col-span-2">
+              <template #actions>
                 <Button
                   :label="$t('general.label.add')"
                   icon="pi pi-plus"
-                  size="small"
                   severity="secondary"
+                  size="small"
                   @click="topbar.profileLinks.push({ handle: '', url: '', newTab: true })"
                 />
-              </div>
-            </div>
+              </template>
+              <CFormList
+                v-model="topbar.profileLinks"
+                :columns="[
+                  { label: $t('ui.settings.editor.topbar.links.handle'), width: '1fr' },
+                  { label: $t('ui.settings.editor.topbar.links.url'), width: '1.5fr' },
+                  {
+                    label: $t('ui.settings.editor.topbar.links.new-tab'),
+                    width: '5rem',
+                    headerClass: 'text-center',
+                  },
+                ]"
+              >
+                <template #row="{ item }">
+                  <InputText v-model="item.handle" size="small" class="w-full" />
+                  <InputText v-model="item.url" size="small" class="w-full" />
+                  <div class="flex items-center justify-center">
+                    <Checkbox v-model="item.newTab" :binary="true" />
+                  </div>
+                </template>
+              </CFormList>
+            </CFormGroup>
           </div>
-        </div>
-
-        <Divider />
+        </Fieldset>
 
         <!-- Page buttons sub-section -->
-        <div>
-          <h5 class="text-sm font-semibold mb-1">
-            {{ $t('ui.settings.editor.topbar.page-buttons.title') }}
-          </h5>
-          <p class="text-xs text-muted-color mb-3">
-            {{ $t('ui.settings.editor.topbar.page-buttons.description') }}
-          </p>
-          <div class="flex flex-col gap-2">
-            <div v-if="topbar.pageButtons.length" class="flex flex-col gap-2">
-              <!-- Header row -->
-              <div class="grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 px-3 pt-2">
-                <span class="text-xs font-semibold text-muted-color uppercase">
-                  {{ $t('ui.settings.editor.topbar.page-buttons.label') }}
-                </span>
-                <span class="text-xs font-semibold text-muted-color uppercase">
-                  {{ $t('ui.settings.editor.topbar.page-buttons.url') }}
-                </span>
-                <span
-                  class="text-xs font-semibold text-muted-color uppercase flex items-center gap-1"
-                >
-                  {{ $t('ui.settings.editor.topbar.page-buttons.url-match') }}
-                  <i
-                    v-tooltip.top="
-                      $t('ui.settings.editor.topbar.page-buttons.url-match-description')
-                    "
-                    class="pi pi-info-circle text-xs cursor-help"
-                  />
-                </span>
-                <span class="text-xs font-semibold text-muted-color uppercase text-center w-16">
-                  {{ $t('ui.settings.editor.topbar.page-buttons.new-tab') }}
-                </span>
-                <span class="w-10" />
-              </div>
-
-              <!-- Entries -->
-              <div
-                v-for="(btn, index) in topbar.pageButtons"
-                :key="index"
-                class="border border-surface rounded-border p-3 flex flex-col gap-2"
-              >
-                <div class="grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 items-center">
-                  <InputText v-model="btn.label" size="small" class="w-full" />
-                  <InputText v-model="btn.url" size="small" class="w-full" />
-                  <InputText
-                    v-model="btn.urlMatch"
-                    size="small"
-                    class="w-full"
-                    placeholder="/builder"
-                  />
-                  <div class="flex items-center justify-center w-16">
-                    <Checkbox v-model="btn.newTab" :binary="true" />
-                  </div>
-                  <div class="w-10 flex justify-end">
-                    <Button
-                      icon="pi pi-trash"
-                      severity="danger"
-                      text
-                      rounded
-                      size="small"
-                      @click="topbar.pageButtons.splice(index, 1)"
-                    />
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <InputText
-                    v-model="btn.description"
-                    size="small"
-                    class="w-full"
-                    :placeholder="
-                      $t('ui.settings.editor.topbar.page-buttons.button-description-placeholder')
-                    "
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <Button
-                :label="$t('general.label.add')"
-                icon="pi pi-plus"
+        <CFormGroup
+          :label="$t('ui.settings.editor.topbar.page-buttons.title')"
+          :description="$t('ui.settings.editor.topbar.page-buttons.description')"
+        >
+          <template #actions>
+            <Button
+              :label="$t('general.label.add')"
+              icon="pi pi-plus"
+              severity="secondary"
+              size="small"
+              @click="addPageButton"
+            />
+          </template>
+          <CFormList
+            v-model="topbar.pageButtons"
+            :columns="[
+              { label: $t('ui.settings.editor.topbar.page-buttons.label'), width: '1fr' },
+              { label: $t('ui.settings.editor.topbar.page-buttons.url'), width: '1fr' },
+              {
+                label: $t('ui.settings.editor.topbar.page-buttons.url-match'),
+                tooltip: $t('ui.settings.editor.topbar.page-buttons.url-match-description'),
+                width: '1fr',
+              },
+              {
+                label: $t('ui.settings.editor.topbar.page-buttons.new-tab'),
+                width: '5rem',
+                headerClass: 'text-center',
+              },
+            ]"
+            class="mt-3"
+          >
+            <template #row="{ item }">
+              <InputText v-model="item.label" size="small" class="w-full" />
+              <InputText v-model="item.url" size="small" class="w-full" />
+              <InputText
+                v-model="item.urlMatch"
                 size="small"
-                severity="secondary"
-                @click="addPageButton"
+                class="w-full"
+                placeholder="/builder"
               />
-            </div>
-          </div>
-        </div>
+              <div class="flex items-center justify-center">
+                <Checkbox v-model="item.newTab" :binary="true" />
+              </div>
+            </template>
+            <template #extra="{ item }">
+              <InputText
+                v-model="item.description"
+                size="small"
+                class="w-full"
+                :placeholder="
+                  $t('ui.settings.editor.topbar.page-buttons.button-description-placeholder')
+                "
+              />
+            </template>
+          </CFormList>
+        </CFormGroup>
       </Panel>
     </div>
 

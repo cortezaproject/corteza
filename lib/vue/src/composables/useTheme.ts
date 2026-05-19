@@ -157,11 +157,21 @@ export function getTheme(theme: Theme) {
 
           .p-panel-title {
             font-size: 1.25rem;
-            font-weight: 500;
+            font-weight: 600;
           }
         }
+  
         .p-panel-content {
           padding: 0.5rem 1rem 1rem 1rem !important;
+        }
+      }
+
+      .p-fieldset {
+        --p-fieldset-legend-color: var(--p-primary-color);
+        --p-fieldset-legend-font-weight: 500;
+  
+        .p-fieldset-legend {
+          color: var(--p-fieldset-legend-color);
         }
       }
 

@@ -11,11 +11,12 @@
     </div>
 
     <div class="flex flex-col gap-4">
-      <div v-for="prop in filteredProperties" :key="prop.name" class="flex flex-col gap-2">
-        <label class="font-medium text-sm text-primary">
-          {{ capitalize(prop.meta?.short || prop.name) }}
-        </label>
-
+      <CFormGroup
+        v-for="prop in filteredProperties"
+        :key="prop.name"
+        :label="capitalize(prop.meta?.short || prop.name)"
+        :description="prop.meta?.description"
+      >
         <CInputRecord
           v-if="prop.type === 'ComposeRecord'"
           v-model="scope[prop.name]"
@@ -52,11 +53,7 @@
         />
         <!-- String, Number, and any other types -->
         <InputText v-else v-model="scope[prop.name]" class="w-full" />
-
-        <span v-if="prop.meta?.description" class="text-xs text-muted-color">
-          {{ prop.meta.description }}
-        </span>
-      </div>
+      </CFormGroup>
     </div>
 
     <template #footer>

@@ -1,4 +1,7 @@
 import type { App, Plugin } from 'vue'
+import CFormGroup from '../components/input/CFormGroup.vue'
+import CFormList from '../components/input/CFormList.vue'
+import CFormItemList from '../components/input/CFormItemList.vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
 import CInputToggleCard from '../components/input/CInputToggleCard.vue'
@@ -30,6 +33,7 @@ import Drawer from 'primevue/drawer'
 import FloatLabel from 'primevue/floatlabel'
 import Form from '@primevue/forms/form'
 import FormField from '@primevue/forms/formfield'
+import Fieldset from 'primevue/fieldset'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
@@ -93,6 +97,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('Divider', Divider)
     app.component('Drawer', Drawer)
     app.component('BlockUI', BlockUI)
+    app.component('Fieldset', Fieldset)
     app.component('FloatLabel', FloatLabel)
     app.component('Form', Form)
     app.component('FormField', FormField)
@@ -134,6 +139,9 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.directive('tooltip', Tooltip)
 
     // Human shared components
+    app.component('CFormGroup', CFormGroup)
+    app.component('CFormList', CFormList)
+    app.component('CFormItemList', CFormItemList)
     app.component('CInputSwitch', CInputSwitch)
     app.component('CInputRole', CInputRole)
     app.component('CInputToggleCard', CInputToggleCard)

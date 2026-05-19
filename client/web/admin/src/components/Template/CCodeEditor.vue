@@ -1,5 +1,5 @@
 <template>
-  <div ref="editorContainer" class="code-editor" :class="{ 'code-editor--bordered': border }" />
+  <div ref="editorContainer" class="code-editor" />
 </template>
 
 <script setup>
@@ -24,10 +24,6 @@ const props = defineProps({
   readOnly: {
     type: Boolean,
     default: false,
-  },
-  border: {
-    type: Boolean,
-    default: true,
   },
   minHeight: {
     type: String,
@@ -82,18 +78,19 @@ function getExtensions() {
         padding: '8px 0',
       },
       '.cm-gutters': {
-        borderRight: '1px solid var(--p-surface-200)',
-        backgroundColor: 'var(--p-surface-50)',
-        color: 'var(--p-surface-400)',
+        borderRight: '1px solid var(--p-content-border-color)',
+        backgroundColor: 'var(--p-content-background)',
+        color: 'var(--p-text-muted-color)',
       },
       '.cm-activeLineGutter': {
-        backgroundColor: 'var(--p-surface-100)',
+        backgroundColor: 'var(--p-content-hover-background)',
+        color: 'var(--p-text-color)',
       },
       '&.cm-focused': {
         outline: 'none',
       },
       '.cm-activeLine': {
-        backgroundColor: 'var(--p-primary-50)',
+        backgroundColor: 'var(--p-content-hover-background)',
       },
     }),
   ]
@@ -175,10 +172,7 @@ onBeforeUnmount(() => {
   width: 100%;
   overflow: hidden;
   border-radius: var(--p-content-border-radius);
-}
-
-.code-editor--bordered {
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
 }
 
 .code-editor :deep(.cm-editor) {

@@ -7,10 +7,7 @@
     <!-- Profiler & Proxy Settings -->
     <Panel :header="$t('system.apigw.settings.title')" toggleable :collapsed="false">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.apigw.settings.profiler.label') }}
-          </label>
+        <CFormGroup :label="$t('system.apigw.settings.profiler.label')">
           <SelectButton
             v-model="profilerSetting"
             :options="profilerOptions"
@@ -18,12 +15,9 @@
             option-value="value"
             @change="onSettingsChanged"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ $t('system.apigw.settings.proxy.label') }}
-          </label>
+        <CFormGroup :label="$t('system.apigw.settings.proxy.label')">
           <div class="flex items-center gap-3">
             <ToggleSwitch
               id="proxyFollow"
@@ -34,7 +28,7 @@
               {{ $t('system.apigw.settings.proxy.follow') }}
             </label>
           </div>
-        </div>
+        </CFormGroup>
       </div>
 
       <div class="flex justify-end mt-4">
@@ -205,11 +199,6 @@ const fields = [
     key: 'enabled',
     sortable: false,
     header: t('system.apigw.list.columns.enabled'),
-  },
-  {
-    key: 'group',
-    sortable: true,
-    header: t('system.apigw.list.columns.group'),
   },
   {
     key: 'createdAt',

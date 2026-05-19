@@ -1,21 +1,21 @@
 <template>
   <Panel :header="$t('chatbot.editor.panels.general')" toggleable>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1">
-        <label for="name" class="font-medium text-primary">
-          {{ $t('chatbot.editor.name.label') }}
-        </label>
-        <small class="text-muted-color">{{ $t('chatbot.editor.name.help') }}</small>
+      <CFormGroup
+        :label="$t('chatbot.editor.name.label')"
+        :description="$t('chatbot.editor.name.help')"
+        input-id="name"
+      >
         <InputText id="name" v-model="chatbot.name" />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label for="handle" class="font-medium text-primary">
-          {{ $t('chatbot.editor.handle.label') }}
-        </label>
-        <small class="text-muted-color">{{ $t('chatbot.editor.handle.help') }}</small>
+      <CFormGroup
+        :label="$t('chatbot.editor.handle.label')"
+        :description="$t('chatbot.editor.handle.help')"
+        input-id="handle"
+      >
         <InputText id="handle" v-model="chatbot.handle" />
-      </div>
+      </CFormGroup>
 
       <CInputToggleCard
         v-model="chatbot.enabled"
@@ -28,10 +28,7 @@
 
       <Divider class="lg:col-span-2 !my-0" />
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('chatbot.editor.embed.label') }}
-        </label>
+      <CFormGroup :label="$t('chatbot.editor.embed.label')">
         <div class="flex gap-2 items-start">
           <Textarea
             :model-value="embedSnippet"
@@ -47,12 +44,9 @@
             @click="copySnippet"
           />
         </div>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-primary">
-          {{ $t('chatbot.editor.widgetKey.label') }}
-        </label>
+      <CFormGroup :label="$t('chatbot.editor.widgetKey.label')">
         <div class="flex gap-2 items-start">
           <InputGroup class="flex-1">
             <InputText
@@ -76,46 +70,43 @@
             @click="copyKey"
           />
         </div>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary">
-          {{ $t('chatbot.editor.panels.origins') }}
-        </label>
-        <small class="text-muted-color">{{ $t('chatbot.editor.origins.help') }}</small>
-        <div v-for="(_, idx) in chatbot.allowedOrigins" :key="idx" class="flex items-center gap-2">
-          <InputText
-            v-model="chatbot.allowedOrigins[idx]"
-            placeholder="https://example.com"
-            class="flex-1"
-          />
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
-            @click="removeOrigin(idx)"
-          />
-        </div>
-        <div>
+      <CFormGroup
+        :label="$t('chatbot.editor.panels.origins')"
+        :description="$t('chatbot.editor.origins.help')"
+      >
+        <template #actions>
           <Button
             :label="$t('chatbot.editor.origins.add')"
             icon="pi pi-plus"
             severity="secondary"
-            outlined
             size="small"
             @click="addOrigin"
           />
-        </div>
-      </div>
+        </template>
+        <CFormList
+          v-model="chatbot.allowedOrigins"
+          :columns="[{ label: '', width: '1fr' }]"
+        >
+          <template #row="{ index }">
+            <InputText
+              v-model="chatbot.allowedOrigins[index]"
+              placeholder="https://example.com"
+              size="small"
+              class="w-full"
+            />
+          </template>
+        </CFormList>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1 self-start">
-        <label class="font-medium text-primary">
-          {{ $t('chatbot.editor.sessionTTL.label') }}
-        </label>
-        <small class="text-muted-color">{{ $t('chatbot.editor.sessionTTL.help') }}</small>
+      <CFormGroup
+        :label="$t('chatbot.editor.sessionTTL.label')"
+        :description="$t('chatbot.editor.sessionTTL.help')"
+        class="self-start"
+      >
         <InputText v-model="chatbot.sessionTTL" placeholder="2h" />
-      </div>
+      </CFormGroup>
     </div>
   </Panel>
 </template>
@@ -149,10 +140,6 @@ const embedSnippet = computed(() => {
 
 function addOrigin() {
   props.chatbot.allowedOrigins.push('')
-}
-
-function removeOrigin(idx) {
-  props.chatbot.allowedOrigins.splice(idx, 1)
 }
 
 async function copyKey() {

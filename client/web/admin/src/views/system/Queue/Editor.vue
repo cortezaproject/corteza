@@ -26,22 +26,11 @@
       </div>
       <Panel :header="$t('system.queues.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="queue" class="flex flex-col gap-2">
-            <label for="queue" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.name') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="queue" :label="$t('system.queues.editor.info.name')" required>
             <InputText id="queue" name="queue" v-model="queue.queue" />
-            <Message v-if="$form.queue?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.queue.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="consumer" class="flex flex-col gap-2">
-            <label for="consumer" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.consumer') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="consumer" :label="$t('system.queues.editor.info.consumer')" required>
             <Select
               id="consumer"
               v-model="queue.consumer"
@@ -49,45 +38,31 @@
               option-label="label"
               option-value="value"
             />
-            <Message v-if="$form.consumer?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.consumer.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label for="handler" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.handler') }}
-            </label>
+          <CFormGroup :label="$t('system.queues.editor.info.handler')" input-id="handler">
             <InputText id="handler" v-model="queue.meta.handler" />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label for="dispatchTimeout" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.dispatchTimeout') }}
-            </label>
+          <CFormGroup :label="$t('system.queues.editor.info.dispatchTimeout')" input-id="dispatchTimeout">
             <InputNumber id="dispatchTimeout" v-model="queue.meta.dispatch.timeout" :min="0" />
-          </div>
+          </CFormGroup>
 
-          <FormField name="pollDelay" class="flex flex-col gap-2">
-            <label for="pollDelay" class="font-medium text-primary">
-              {{ $t('system.queues.editor.info.poll_delay') }}
-            </label>
+          <CFormGroup
+            name="pollDelay"
+            :label="$t('system.queues.editor.info.poll_delay')"
+            :description="queue.meta.poll_delay
+              ? $t('system.queues.editor.info.poll_delay_set')
+              : $t('system.queues.editor.info.poll_delay_empty')
+            "
+          >
             <InputText
               id="pollDelay"
               name="pollDelay"
               v-model="queue.meta.poll_delay"
               placeholder="1h / 1m15s / 1h90s"
             />
-            <small class="text-muted-color">
-              {{ queue.meta.poll_delay
-                ? $t('system.queues.editor.info.poll_delay_set')
-                : $t('system.queues.editor.info.poll_delay_empty')
-              }}
-            </small>
-            <Message v-if="$form.pollDelay?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.pollDelay.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
           <div class="flex items-center gap-3">
             <ToggleSwitch id="dispatchEvents" v-model="queue.meta.dispatch_events" />

@@ -18,11 +18,7 @@
       @hide="onDialogHide"
     >
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary">
-            {{ $t('general.import.json') }}
-          </label>
-
+        <CFormGroup :label="$t('general.import.json')">
           <CFileDropZone
             accept=".json"
             :uploading="processing"
@@ -35,7 +31,7 @@
           <small class="text-muted-color">
             {{ $t('general.import.reassign-run-as') }}
           </small>
-        </div>
+        </CFormGroup>
 
         <div class="flex justify-end">
           <Button

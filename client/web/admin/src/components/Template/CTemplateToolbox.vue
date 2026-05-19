@@ -1,63 +1,25 @@
 <template>
   <div class="flex flex-col gap-2">
-    <!-- Partials section -->
-    <Panel
-      v-if="partials.length"
-      :header="$t('system.templates.editor.content.toolbox.partials')"
-      toggleable
-      :collapsed="false"
+    <Fieldset
+      v-for="section in sections"
+      v-show="section.items.length"
+      :key="section.key"
+      :legend="section.legend"
     >
       <div class="flex flex-col gap-1">
         <div
-          v-for="p in partials"
-          :key="p.templateID"
-          class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer group"
-          @click="copyToClipboard(`{{template &quot;${p.handle}&quot; }}`)"
+          v-for="item in section.items"
+          :key="item.key"
+          class="flex items-center justify-between p-2 rounded-lg hover:bg-emphasis transition-colors cursor-pointer group"
+          @click="copyToClipboard(item.value)"
         >
-          <span class="text-sm font-medium truncate">{{ p.meta?.short || p.handle }}</span>
-          <i class="pi pi-copy text-xs text-muted-color opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <small v-if="!partials.length" class="text-muted-color text-center p-2">
-          {{ $t('system.templates.editor.content.toolbox.noPartials') }}
-        </small>
-      </div>
-    </Panel>
-
-    <!-- Snippets section -->
-    <Panel
-      :header="$t('system.templates.editor.content.toolbox.snippets.label')"
-      toggleable
-      :collapsed="false"
-    >
-      <div class="flex flex-col gap-1">
-        <div
-          v-for="snippet in snippets"
-          :key="snippet.label"
-          class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer group"
-          @click="copyToClipboard(snippet.value)"
-        >
-          <span class="text-sm">{{ snippet.label }}</span>
-          <i class="pi pi-copy text-xs text-muted-color opacity-0 group-hover:opacity-100 transition-opacity" />
+          <span class="text-sm truncate">{{ item.label }}</span>
+          <i
+            class="pi pi-copy text-xs text-muted-color opacity-0 group-hover:opacity-100 transition-opacity"
+          />
         </div>
       </div>
-    </Panel>
-
-    <!-- Samples section -->
-    <Panel
-      :header="$t('system.templates.editor.content.toolbox.samples.label')"
-      toggleable
-      :collapsed="true"
-    >
-      <div class="flex flex-col gap-1">
-        <div
-          class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer group"
-          @click="copyToClipboard(defaultHTMLSample)"
-        >
-          <span class="text-sm">{{ $t('system.templates.editor.content.toolbox.samples.defaultHTML') }}</span>
-          <i class="pi pi-copy text-xs text-muted-color opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-      </div>
-    </Panel>
+    </Fieldset>
   </div>
 </template>
 
@@ -68,27 +30,12 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const $toast = inject('$toast')
 
-defineProps({
+const props = defineProps({
   partials: {
     type: Array,
     default: () => [],
   },
 })
-
-const snippets = computed(() => [
-  {
-    label: t('system.templates.editor.content.toolbox.snippets.interpolate'),
-    value: '{{.parameter}}',
-  },
-  {
-    label: t('system.templates.editor.content.toolbox.snippets.iterator'),
-    value: '{{range $index, $element := .ListOfItems}}\n\n{{end}}',
-  },
-  {
-    label: t('system.templates.editor.content.toolbox.snippets.funcCall'),
-    value: '{{funcName param1 param2 paramN}}',
-  },
-])
 
 const defaultHTMLSample = `<!DOCTYPE html>
 <html>
@@ -102,6 +49,50 @@ const defaultHTMLSample = `<!DOCTYPE html>
   <h1>Hello, world!</h1>
 </body>
 </html>`
+
+const sections = computed(() => [
+  {
+    key: 'partials',
+    legend: t('system.templates.editor.content.toolbox.partials'),
+    items: props.partials.map(p => ({
+      key: p.templateID,
+      label: p.meta?.short || p.handle,
+      value: `{{template "${p.handle}" }}`,
+    })),
+  },
+  {
+    key: 'snippets',
+    legend: t('system.templates.editor.content.toolbox.snippets.label'),
+    items: [
+      {
+        key: 'interpolate',
+        label: t('system.templates.editor.content.toolbox.snippets.interpolate'),
+        value: '{{.parameter}}',
+      },
+      {
+        key: 'iterator',
+        label: t('system.templates.editor.content.toolbox.snippets.iterator'),
+        value: '{{range $index, $element := .ListOfItems}}\n\n{{end}}',
+      },
+      {
+        key: 'funcCall',
+        label: t('system.templates.editor.content.toolbox.snippets.funcCall'),
+        value: '{{funcName param1 param2 paramN}}',
+      },
+    ],
+  },
+  {
+    key: 'samples',
+    legend: t('system.templates.editor.content.toolbox.samples.label'),
+    items: [
+      {
+        key: 'defaultHTML',
+        label: t('system.templates.editor.content.toolbox.samples.defaultHTML'),
+        value: defaultHTMLSample,
+      },
+    ],
+  },
+])
 
 function copyToClipboard(text) {
   navigator.clipboard

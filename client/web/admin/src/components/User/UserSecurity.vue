@@ -3,10 +3,7 @@
     <!-- Password Section -->
     <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-4">
-        <FormField name="password" class="flex flex-col gap-2">
-          <label for="password" class="font-medium text-primary">
-            {{ $t('system.users.editor.password.new') }}
-          </label>
+        <CFormGroup name="password" :label="$t('system.users.editor.password.new')">
           <Password
             id="password"
             name="password"
@@ -17,12 +14,9 @@
             inputClass="w-full"
             class="w-full relative"
           />
-        </FormField>
+        </CFormGroup>
 
-        <FormField name="confirmPassword" class="flex flex-col gap-2">
-          <label for="confirmPassword" class="font-medium text-primary">
-            {{ $t('system.users.editor.password.confirm') }}
-          </label>
+        <CFormGroup name="confirmPassword" :label="$t('system.users.editor.password.confirm')">
           <Password
             id="confirmPassword"
             name="confirmPassword"
@@ -33,55 +27,36 @@
             inputClass="w-full"
             class="w-full"
           />
-        </FormField>
+        </CFormGroup>
       </div>
     </div>
 
     <!-- MFA Section -->
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col md:flex-row flex-wrap gap-6">
-        <!-- Email OTP -->
-        <div
-          class="flex-1 min-w-[300px] flex items-start justify-between gap-4 p-4 border rounded-lg bg-emphasis"
-        >
-          <div class="flex flex-col gap-1">
-            <span class="font-medium">{{ $t('system.users.editor.mfa.emailOTP.label') }}</span>
-            <span class="text-sm text-muted-color" style="white-space: pre-line">
-              {{ $t('system.users.editor.mfa.emailOTP.description') }}
-            </span>
-          </div>
-          <div class="flex items-center">
-            <ToggleSwitch
-              :modelValue="user.meta.securityPolicy.mfa.enforcedEmailOTP"
-              @update:modelValue="val => $emit('update:mfa', 'enforcedEmailOTP', val)"
-            />
-          </div>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CInputToggleCard
+        :modelValue="user.meta.securityPolicy.mfa.enforcedEmailOTP"
+        :label="$t('system.users.editor.mfa.emailOTP.label')"
+        :description="$t('system.users.editor.mfa.emailOTP.description')"
+        @update:modelValue="val => $emit('update:mfa', 'enforcedEmailOTP', val)"
+      />
 
-        <!-- TOTP -->
-        <div
-          class="flex-1 min-w-[300px] flex items-start justify-between gap-4 p-4 border rounded-lg bg-emphasis"
-        >
-          <div class="flex flex-col gap-1">
-            <span class="font-medium">{{ $t('system.users.editor.mfa.TOTP.label') }}</span>
-            <span class="text-sm text-muted-color">
-              {{ $t('system.users.editor.mfa.TOTP.description') }}
-            </span>
-          </div>
-          <div class="flex items-center">
-            <ToggleSwitch
-              :modelValue="user.meta.securityPolicy.mfa.enforcedTOTP"
-              :disabled="!user.meta.securityPolicy.mfa.enforcedTOTP"
-              @update:modelValue="val => $emit('update:mfa', 'enforcedTOTP', val)"
-            />
-          </div>
-        </div>
-      </div>
+      <CInputToggleCard
+        :modelValue="user.meta.securityPolicy.mfa.enforcedTOTP"
+        :disabled="!user.meta.securityPolicy.mfa.enforcedTOTP"
+        :label="$t('system.users.editor.mfa.TOTP.label')"
+        :description="$t('system.users.editor.mfa.TOTP.description')"
+        dim-when-off
+        @update:modelValue="val => $emit('update:mfa', 'enforcedTOTP', val)"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
+import { components } from '@planetcrust/human-vue'
+
+const { CInputToggleCard } = components
+
 defineProps({
   user: {
     type: Object,

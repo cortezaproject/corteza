@@ -47,42 +47,30 @@
 
       <Panel :header="$t('system.llmProviders.editor.tabs.basic')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="short" class="flex flex-col gap-2">
-            <label for="short" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.short') }}
-            </label>
+          <CFormGroup name="short" :label="$t('system.llmProviders.editor.info.short')">
             <InputText id="short" name="short" v-model="llmProvider.meta.short" />
-          </FormField>
+          </CFormGroup>
 
-          <FormField name="handle" class="flex flex-col gap-2">
-            <label for="handle" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.handle') }}
-            </label>
+          <CFormGroup name="handle" :label="$t('system.llmProviders.editor.info.handle')">
             <InputText id="handle" name="handle" v-model="llmProvider.handle" />
-            <Message v-if="$form.handle?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.handle.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2 md:col-span-2">
-            <label for="description" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.description') }}
-            </label>
+          <CFormGroup
+            :label="$t('system.llmProviders.editor.info.description')"
+            input-id="description"
+            class="md:col-span-2"
+          >
             <Textarea
               id="description"
               v-model="llmProvider.meta.description"
               rows="3"
               auto-resize
             />
-          </div>
+          </CFormGroup>
 
           <Divider class="md:col-span-2" />
 
-          <FormField name="provider" class="flex flex-col gap-2">
-            <label for="provider" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.provider') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup name="provider" :label="$t('system.llmProviders.editor.info.provider')" required>
             <Select
               id="provider"
               name="provider"
@@ -91,31 +79,19 @@
               option-label="label"
               option-value="value"
             />
-            <Message v-if="$form.provider?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.provider.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label for="promptURL" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.config.promptURL') }}
-            </label>
-            <small class="text-muted-color">
-              {{ $t('system.llmProviders.editor.config.promptURLHelp') }}
-            </small>
+          <CFormGroup
+            :label="$t('system.llmProviders.editor.config.promptURL')"
+            :description="$t('system.llmProviders.editor.config.promptURLHelp')"
+            input-id="promptURL"
+          >
             <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
-          </div>
+          </CFormGroup>
 
-          <FormField v-if="!isEdit" name="apiKey" class="flex flex-col gap-2">
-            <label for="apiKey" class="font-medium text-primary">
-              {{ $t('system.llmProviders.editor.info.apiKey') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup v-if="!isEdit" name="apiKey" :label="$t('system.llmProviders.editor.info.apiKey')" required>
             <InputText id="apiKey" name="apiKey" v-model="apiKey" />
-            <Message v-if="$form.apiKey?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.apiKey.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
         </div>
       </Panel>
     </div>
@@ -154,12 +130,9 @@
     modal
     class="w-full max-w-lg"
   >
-    <div class="flex flex-col gap-2">
-      <label for="dialogApiKey" class="font-medium text-primary">
-        {{ $t('system.llmProviders.editor.info.apiKey') }}
-      </label>
+    <CFormGroup :label="$t('system.llmProviders.editor.info.apiKey')" input-id="dialogApiKey">
       <InputText id="dialogApiKey" v-model="apiKey" autocomplete="off" />
-    </div>
+    </CFormGroup>
 
     <template #footer>
       <Button :label="$t('general.label.cancel')" severity="secondary" @click="closeApiKeyDialog" />

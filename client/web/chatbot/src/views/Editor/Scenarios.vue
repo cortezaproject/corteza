@@ -3,7 +3,7 @@
     <p class="text-xs text-muted-color mb-3">
       {{ $t('chatbot.editor.scenarios.description') }}
     </p>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[320px]">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-[320px]">
       <div class="lg:col-span-1 flex flex-col gap-2 border border-surface rounded-lg p-2">
         <div class="flex items-center justify-between">
           <span class="font-medium text-sm">
@@ -58,212 +58,178 @@
         </TransitionGroup>
       </div>
 
-      <div class="lg:col-span-2 flex flex-col gap-3 border border-surface rounded-lg p-3">
+      <div class="xl:col-span-2 flex flex-col gap-3 border border-surface rounded-lg p-3">
         <template v-if="current">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.name') }}
-              </label>
+            <CFormGroup :label="$t('chatbot.editor.scenarios.name')">
               <InputText v-model="current.name" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.handle') }}
-              </label>
+            </CFormGroup>
+            <CFormGroup :label="$t('chatbot.editor.scenarios.handle')">
               <InputText v-model="current.id" :invalid="handleIsDuplicate" />
               <small v-if="handleIsDuplicate" class="text-red-500">
                 {{ $t('chatbot.editor.scenarios.handleDuplicate') }}
               </small>
-            </div>
+            </CFormGroup>
           </div>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-primary">
-              {{ $t('chatbot.editor.scenarios.type') }}
-            </label>
-            <Select
-              v-model="current.type"
-              :options="scenarioTypes"
-              optionLabel="label"
-              optionValue="value"
-              @change="ensureScenarioConfig"
-            />
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            <CFormGroup :label="$t('chatbot.editor.scenarios.type')">
+              <Select
+                v-model="current.type"
+                :options="scenarioTypes"
+                optionLabel="label"
+                optionValue="value"
+                @change="ensureScenarioConfig"
+              />
+            </CFormGroup>
           </div>
 
-          <template v-if="current.type === 'static_message'">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.static.message') }}
-              </label>
-              <Textarea v-model="current.config.message" :rows="3" />
-            </div>
-            <div class="flex items-center gap-2">
-              <ToggleSwitch v-model="current.config.isMarkdown" />
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.static.isMarkdown') }}
-              </label>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.static.autoAdvance') }}
-              </label>
-              <InputNumber v-model="current.config.autoAdvanceMs" :min="0" />
-            </div>
-          </template>
+          <Fieldset :legend="$t(`chatbot.editor.scenarios.types.${current.type}`)">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              <template v-if="current.type === 'static_message'">
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.static.message')"
+                  class="xl:col-span-2"
+                >
+                  <Textarea v-model="current.config.message" :rows="3" />
+                </CFormGroup>
+                <CInputToggleCard
+                  v-model="current.config.isMarkdown"
+                  :label="$t('chatbot.editor.scenarios.static.isMarkdown')"
+                  :description="$t('chatbot.editor.scenarios.static.isMarkdownDescription')"
+                />
+                <CFormGroup :label="$t('chatbot.editor.scenarios.static.autoAdvance')">
+                  <InputNumber v-model="current.config.autoAdvanceMs" :min="0" />
+                </CFormGroup>
+              </template>
 
-          <template v-else-if="current.type === 'conversation'">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.agent.label') }}
-                <span class="text-red-500">*</span>
-              </label>
-              <small class="text-muted-color">
-                {{ $t('chatbot.editor.scenarios.agent.help') }}
-              </small>
-              <div class="flex gap-2 items-start">
-                <Select
-                  v-model="current.agentID"
-                  :options="agentOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  :placeholder="$t('chatbot.editor.scenarios.agent.placeholder')"
-                  filter
-                  class="flex-1"
+              <template v-else-if="current.type === 'conversation'">
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.agent.label')"
+                  :description="$t('chatbot.editor.scenarios.agent.help')"
+                  required
+                >
+                  <div class="flex gap-2 items-start">
+                    <Select
+                      v-model="current.agentID"
+                      :options="agentOptions"
+                      optionLabel="label"
+                      optionValue="value"
+                      :placeholder="$t('chatbot.editor.scenarios.agent.placeholder')"
+                      filter
+                      class="flex-1"
+                    />
+                    <Button
+                      v-if="current.agentID"
+                      v-tooltip.bottom="$t('chatbot.editor.scenarios.agent.open')"
+                      icon="pi pi-external-link"
+                      severity="secondary"
+                      @click="openAgent(current.agentID)"
+                    />
+                    <Button
+                      v-else
+                      v-tooltip.bottom="$t('chatbot.editor.scenarios.agent.create')"
+                      icon="pi pi-plus"
+                      severity="secondary"
+                      @click="createAgent"
+                    />
+                  </div>
+                </CFormGroup>
+                <CFormGroup :label="$t('chatbot.editor.scenarios.conversation.placeholder')">
+                  <InputText v-model="current.config.placeholder" />
+                </CFormGroup>
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.conversation.initialPrompt')"
+                  class="xl:col-span-2"
+                >
+                  <Textarea v-model="current.config.initialPrompt" :rows="2" />
+                </CFormGroup>
+                <CInputToggleCard
+                  v-model="current.config.typingIndicator"
+                  :label="$t('chatbot.editor.scenarios.conversation.typingIndicator')"
+                  :description="
+                    $t('chatbot.editor.scenarios.conversation.typingIndicatorDescription')
+                  "
                 />
-                <Button
-                  v-if="current.agentID"
-                  v-tooltip.bottom="$t('chatbot.editor.scenarios.agent.open')"
-                  icon="pi pi-external-link"
-                  severity="secondary"
-                  @click="openAgent(current.agentID)"
-                />
-                <Button
-                  v-else
-                  v-tooltip.bottom="$t('chatbot.editor.scenarios.agent.create')"
-                  icon="pi pi-plus"
-                  severity="secondary"
-                  @click="createAgent"
-                />
-              </div>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.conversation.placeholder') }}
-              </label>
-              <InputText v-model="current.config.placeholder" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.conversation.initialPrompt') }}
-              </label>
-              <Textarea v-model="current.config.initialPrompt" :rows="2" />
-            </div>
-            <div class="flex items-center gap-2">
-              <ToggleSwitch v-model="current.config.typingIndicator" />
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.conversation.typingIndicator') }}
-              </label>
-            </div>
-          </template>
+              </template>
 
-          <template v-else-if="current.type === 'form'">
-            <div class="flex flex-col gap-2">
-              <label class="font-medium text-primary flex items-center justify-between">
-                <span>{{ $t('chatbot.editor.scenarios.form.fields') }}</span>
-                <Button
-                  icon="pi pi-plus"
-                  text
-                  size="small"
-                  @click="current.config.fields.push({ name:'', label:'', type:'text', required:false })"
-                />
-              </label>
-              <div class="border border-surface rounded-lg p-3 flex flex-col gap-2">
-                <div
-                  v-if="current.config.fields.length"
-                  class="grid grid-cols-12 gap-2 items-center"
-                >
-                  <span class="col-span-3 text-xs uppercase tracking-wide text-muted-color">
-                    {{ $t('chatbot.editor.scenarios.form.fieldName') }}
-                  </span>
-                  <span class="col-span-4 text-xs uppercase tracking-wide text-muted-color">
-                    {{ $t('chatbot.editor.scenarios.form.fieldLabel') }}
-                  </span>
-                  <span class="col-span-3 text-xs uppercase tracking-wide text-muted-color">
-                    {{ $t('chatbot.editor.scenarios.form.fieldType') }}
-                  </span>
-                  <span class="col-span-1 text-xs uppercase tracking-wide text-muted-color">
-                    {{ $t('chatbot.editor.scenarios.form.fieldRequired') }}
-                  </span>
-                  <span class="col-span-1" />
-                </div>
-                <div
-                  v-if="!current.config.fields.length"
-                  class="text-xs text-muted-color text-center py-2"
-                >
-                  {{ $t('chatbot.editor.scenarios.form.empty') }}
-                </div>
-                <div
-                  v-for="(f, fIdx) in current.config.fields"
-                  :key="fIdx"
-                  class="grid grid-cols-12 gap-2 items-center"
-                >
-                  <InputText v-model="f.name" class="col-span-3" />
-                  <InputText v-model="f.label" class="col-span-4" />
-                  <Select
-                    v-model="f.type"
-                    :options="fieldTypeOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    class="col-span-3"
-                  />
-                  <ToggleSwitch v-model="f.required" class="col-span-1" />
-                  <Button
-                    icon="pi pi-trash"
-                    severity="danger"
-                    text
-                    size="small"
-                    class="col-span-1"
-                    @click="current.config.fields.splice(fIdx, 1)"
-                  />
-                </div>
-              </div>
+              <template v-else-if="current.type === 'form'">
+                <CFormGroup :label="$t('chatbot.editor.scenarios.form.fields')" class="xl:col-span-2">
+                  <template #actions>
+                    <Button
+                      :label="$t('general.label.add')"
+                      icon="pi pi-plus"
+                      severity="secondary"
+                      size="small"
+                      @click="
+                        current.config.fields.push({
+                          name: '',
+                          label: '',
+                          type: 'text',
+                          required: false,
+                        })
+                      "
+                    />
+                  </template>
+                  <CFormList
+                    v-model="current.config.fields"
+                    :columns="[
+                      { label: $t('chatbot.editor.scenarios.form.fieldName'), width: '3fr' },
+                      { label: $t('chatbot.editor.scenarios.form.fieldLabel'), width: '4fr' },
+                      { label: $t('chatbot.editor.scenarios.form.fieldType'), width: '3fr' },
+                      {
+                        label: $t('chatbot.editor.scenarios.form.fieldRequired'),
+                        width: '6rem',
+                        headerClass: 'text-center',
+                      },
+                    ]"
+                    :empty-message="$t('chatbot.editor.scenarios.form.empty')"
+                  >
+                    <template #row="{ item }">
+                      <InputText v-model="item.name" size="small" class="w-full" />
+                      <InputText v-model="item.label" size="small" class="w-full" />
+                      <Select
+                        v-model="item.type"
+                        :options="fieldTypeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        size="small"
+                        class="w-full"
+                      />
+                      <div class="flex items-center justify-center">
+                        <ToggleSwitch v-model="item.required" />
+                      </div>
+                    </template>
+                  </CFormList>
+                </CFormGroup>
+                <CFormGroup :label="$t('chatbot.editor.scenarios.form.submitLabel')">
+                  <InputText v-model="current.config.submitLabel" />
+                </CFormGroup>
+              </template>
             </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.form.submitLabel') }}
-              </label>
-              <InputText v-model="current.config.submitLabel" />
-            </div>
-          </template>
+          </Fieldset>
 
           <Divider />
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.automation.before') }}
-              </label>
-              <small class="text-muted-color">
-                {{ $t('chatbot.editor.scenarios.automation.beforeHelp') }}
-              </small>
+            <CFormGroup
+              :label="$t('chatbot.editor.scenarios.automation.before')"
+              :description="$t('chatbot.editor.scenarios.automation.beforeHelp')"
+            >
               <CInputTAQ
                 :model-value="automationID(current.automation?.before)"
                 @update:model-value="setAutomation('before', $event)"
               />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-primary">
-                {{ $t('chatbot.editor.scenarios.automation.after') }}
-              </label>
-              <small class="text-muted-color">
-                {{ $t('chatbot.editor.scenarios.automation.afterHelp') }}
-              </small>
+            </CFormGroup>
+            <CFormGroup
+              :label="$t('chatbot.editor.scenarios.automation.after')"
+              :description="$t('chatbot.editor.scenarios.automation.afterHelp')"
+            >
               <CInputTAQ
                 :model-value="automationID(current.automation?.after)"
                 @update:model-value="setAutomation('after', $event)"
               />
-            </div>
+            </CFormGroup>
           </div>
         </template>
         <div v-else class="text-sm text-muted-color p-4 text-center">
@@ -311,9 +277,7 @@ const agentOptions = computed(() =>
 
 const selectedIdx = ref(props.scenarios.length ? 0 : -1)
 
-const current = computed(() =>
-  selectedIdx.value >= 0 ? props.scenarios[selectedIdx.value] : null,
-)
+const current = computed(() => (selectedIdx.value >= 0 ? props.scenarios[selectedIdx.value] : null))
 
 const scenarioTypes = computed(() => [
   { label: t('chatbot.editor.scenarios.types.static_message'), value: 'static_message' },
@@ -330,10 +294,14 @@ const fieldTypeOptions = computed(() => [
 
 function defaultScenarioConfig(type) {
   switch (type) {
-    case 'static_message': return { message: '', isMarkdown: false, autoAdvanceMs: 500 }
-    case 'conversation':   return { placeholder: '', initialPrompt: '', typingIndicator: true }
-    case 'form':           return { fields: [], submitLabel: '' }
-    default:               return {}
+    case 'static_message':
+      return { message: '', isMarkdown: false, autoAdvanceMs: 500 }
+    case 'conversation':
+      return { placeholder: '', initialPrompt: '', typingIndicator: true }
+    case 'form':
+      return { fields: [], submitLabel: '' }
+    default:
+      return {}
   }
 }
 
@@ -362,13 +330,16 @@ function isAutoName(name) {
 }
 
 watch(() => selectedIdx.value, normalizeCurrent, { immediate: true })
-watch(() => current.value?.type, (newType, oldType) => {
-  if (!current.value) return
-  ensureScenarioConfig()
-  if (newType && newType !== oldType && isAutoName(current.value.name)) {
-    current.value.name = typeLabelMap.value[newType] || current.value.name
-  }
-})
+watch(
+  () => current.value?.type,
+  (newType, oldType) => {
+    if (!current.value) return
+    ensureScenarioConfig()
+    if (newType && newType !== oldType && isAutoName(current.value.name)) {
+      current.value.name = typeLabelMap.value[newType] || current.value.name
+    }
+  },
+)
 
 function nextStepNumber() {
   const taken = new Set(props.scenarios.map(s => s.id))

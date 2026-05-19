@@ -12,15 +12,11 @@
     @hide="resetForm"
   >
     <div class="flex flex-col gap-6">
-      <div class="flex flex-col gap-2">
-        <label for="automation-name" class="font-medium text-primary">
-          {{
-            mode === 'create'
-              ? $t('list.dialog.create.name')
-              : $t('builder.configSidebar.node')
-          }}
-          <span class="text-red-500">*</span>
-        </label>
+      <CFormGroup
+        :label="mode === 'create' ? $t('list.dialog.create.name') : $t('builder.configSidebar.node')"
+        required
+        input-id="automation-name"
+      >
         <InputText
           id="automation-name"
           v-model="form.name"
@@ -31,12 +27,12 @@
           @keyup.enter="handleSubmit"
         />
         <small v-if="nameError" class="text-red-500">{{ nameError }}</small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-2">
-        <label for="automation-description" class="font-medium text-primary">
-          {{ $t('list.dialog.create.description') }}
-        </label>
+      <CFormGroup
+        :label="$t('list.dialog.create.description')"
+        input-id="automation-description"
+      >
         <Textarea
           id="automation-description"
           v-model="form.description"
@@ -44,22 +40,20 @@
           class="w-full"
           rows="3"
         />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary">
-          {{ $t('builder.generalConfig.runAs') }}
-        </label>
+      <CFormGroup
+        :label="$t('builder.generalConfig.runAs')"
+        :description="$t('builder.generalConfig.runAsHint')"
+      >
         <CInputUser
           v-model="form.runAs"
           :placeholder="$t('builder.generalConfig.runAsPlaceholder')"
           class="w-full"
         />
-        <small class="text-muted-color">{{ $t('builder.generalConfig.runAsHint') }}</small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-primary">{{ $t('list.dialog.create.labels') }}</label>
+      <CFormGroup :label="$t('list.dialog.create.labels')">
         <CInputLabel
           v-model="form.labels"
           :placeholder="$t('list.dialog.create.labelsPlaceholder')"
@@ -69,7 +63,7 @@
           :save-btn-label="$t('list.button.create')"
           :cancel-btn-label="$t('list.button.cancel')"
         />
-      </div>
+      </CFormGroup>
     </div>
     <template #footer>
       <div class="flex justify-end w-full h-full items-center gap-2">

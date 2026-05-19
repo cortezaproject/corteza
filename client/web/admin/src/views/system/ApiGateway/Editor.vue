@@ -27,31 +27,21 @@
       <!-- Route info panel -->
       <Panel :header="$t('system.apigw.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="endpoint" class="flex flex-col gap-2 md:col-span-2">
-            <label for="endpoint" class="font-medium text-primary">
-              {{ $t('system.apigw.editor.info.endpoint') }}
-              <span class="text-red-500">*</span>
-            </label>
+          <CFormGroup
+            name="endpoint"
+            :label="$t('system.apigw.editor.info.endpoint')"
+            required
+            class="md:col-span-2"
+          >
             <InputText
               id="endpoint"
               name="endpoint"
               v-model="route_.endpoint"
               placeholder="/api/v1/..."
             />
-            <Message
-              v-if="$form.endpoint?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-            >
-              {{ $form.endpoint.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label for="method" class="font-medium text-primary">
-              {{ $t('system.apigw.editor.info.method') }}
-            </label>
+          <CFormGroup :label="$t('system.apigw.editor.info.method')" input-id="method">
             <Select
               id="method"
               v-model="route_.method"
@@ -59,121 +49,94 @@
               option-label="label"
               option-value="value"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label for="group" class="font-medium text-primary">
-              {{ $t('system.apigw.editor.info.group') }}
-            </label>
-            <InputText id="group" v-model="route_.group" />
-          </div>
+          <CInputToggleCard
+            v-model="route_.enabled"
+            :label="$t('system.apigw.editor.info.enabled')"
+            :description="$t('system.apigw.editor.info.enabledDescription')"
+            class="self-end"
+          />
 
-          <div class="flex flex-col gap-2 md:col-span-2">
-            <label for="description" class="font-medium text-primary">
-              {{ $t('system.apigw.editor.info.description') }}
-            </label>
+          <CFormGroup
+            :label="$t('system.apigw.editor.info.description')"
+            input-id="description"
+            class="md:col-span-2"
+          >
             <Textarea id="description" v-model="route_.meta.description" rows="2" />
-          </div>
+          </CFormGroup>
 
-          <div class="flex items-center gap-3">
-            <ToggleSwitch id="enabled" v-model="route_.enabled" />
-            <label for="enabled" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.apigw.editor.info.enabled') }}
-            </label>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <ToggleSwitch id="async" v-model="route_.meta.async" />
-            <label for="async" class="font-medium text-primary cursor-pointer">
-              {{ $t('system.apigw.editor.info.async') }}
-            </label>
-          </div>
+          <CInputToggleCard
+            v-model="route_.meta.async"
+            :label="$t('system.apigw.editor.info.async')"
+            :description="$t('system.apigw.editor.info.asyncDescription')"
+            class="self-start"
+          />
         </div>
       </Panel>
 
       <!-- Filters panel -->
-      <Panel v-if="isEdit" :header="$t('system.apigw.editor.filters.title')" toggleable :collapsed="false">
+      <Panel
+        v-if="isEdit"
+        :header="$t('system.apigw.editor.filters.title')"
+        toggleable
+        :collapsed="false"
+        :pt="{ content: { style: 'padding: 0 !important' } }"
+      >
         <!-- Step tabs: Prefilter / Processer / Postfilter -->
-        <div class="flex border-b border-surface -mx-5 -mt-2 mb-3">
-          <button
-            v-for="(step, index) in steps"
-            :key="step"
-            type="button"
-            class="px-4 py-3 text-sm font-medium transition-colors border-b-2"
-            :class="activeStep === index
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-color hover:text-color hover:border-surface-300'"
-            @click="activeStep = index"
-          >
-            {{ $t(`system.apigw.editor.filters.step_title.${step}`) }}
-          </button>
-        </div>
+        <Tabs v-model:value="activeStep">
+          <TabList>
+            <Tab v-for="step in steps" :key="step" :value="step">
+              {{ $t(`system.apigw.editor.filters.step_title.${step}`) }}
+            </Tab>
+          </TabList>
+        </Tabs>
 
-        <!-- Add filter dropdown for current step -->
-        <div class="mb-3">
-          <Select
-            v-model="selectedFilterToAdd"
-            :options="availableFiltersForStep"
-            option-label="label"
-            :placeholder="$t('system.apigw.editor.filters.addFilter')"
-            showClear
-            class="w-full md:w-72"
-            @change="onAddFilter"
-          >
-            <template #option="{ option }">
-              <span :class="{ 'text-muted-color': option.disabled }">
-                {{ option.label }}
-              </span>
-            </template>
-          </Select>
-        </div>
-
-        <!-- Filter list for current step -->
-        <div v-if="filtersLoading" class="flex items-center justify-center py-8">
-          <ProgressSpinner style="width: 30px; height: 30px" />
-        </div>
-
-        <div v-else-if="filtersForStep.length === 0" class="text-center text-muted-color py-8">
-          {{ $t('system.apigw.editor.filters.list.noFilters') }}
-        </div>
-
-        <div v-else class="flex flex-col -mx-5">
-          <div
-            v-for="(filter, index) in filtersForStep"
-            :key="filter.ref || filter.filterID || index"
-            class="flex items-center gap-3 px-5 py-3 border-b border-surface hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors cursor-pointer group"
-            @click="openFilterModal(filter)"
-          >
-            <i class="pi pi-bars text-muted-color cursor-grab" />
-            <span class="flex-1 font-medium text-sm">
-              {{ filter.label || filter.ref || filter.kind }}
-            </span>
-            <Tag
-              :value="filter.enabled ? $t('system.apigw.editor.filters.enabled') : $t('system.apigw.editor.filters.disabled')"
-              :severity="filter.enabled ? 'success' : 'secondary'"
-              class="text-xs"
-            />
+        <div class="p-3">
+          <!-- Add filter dropdown for current step -->
+          <div class="mb-3">
             <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
+              :label="$t('system.apigw.editor.filters.addFilter')"
+              icon="pi pi-plus"
+              icon-pos="right"
               size="small"
-              class="opacity-0 group-hover:opacity-100 transition-opacity"
-              @click.stop="onRemoveFilter(filter)"
+              :disabled="!addFilterMenuItems.length"
+              @click="toggleAddFilterMenu"
             />
+            <Menu ref="addFilterMenu" :model="addFilterMenuItems" popup />
           </div>
-        </div>
 
-        <!-- Save filters button -->
-        <div class="flex justify-end mt-3">
-          <Button
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            size="small"
-            :loading="savingFilters"
-            :disabled="!hasFilterChanges"
-            @click="onFiltersSubmit"
-          />
+          <!-- Filter list for current step -->
+          <CFormItemList
+            :items="filtersForStep"
+            :loading="filtersLoading"
+            :empty-message="$t('system.apigw.editor.filters.list.noFilters')"
+            item-key="ref"
+            draggable
+            @remove="filter => onRemoveFilter(filter)"
+            @reorder="onReorderFilters"
+          >
+            <template #default="{ item: filter }">
+              <button
+                type="button"
+                class="flex items-center gap-3 w-full text-left bg-transparent border-0 p-0 cursor-pointer"
+                @click="openFilterModal(filter)"
+              >
+                <span>
+                  {{ filter.label || filter.ref || filter.kind }}
+                </span>
+                <Tag
+                  :value="
+                    filter.enabled
+                      ? $t('system.apigw.editor.filters.enabled')
+                      : $t('system.apigw.editor.filters.disabled')
+                  "
+                  :severity="filter.enabled ? 'success' : 'secondary'"
+                  class="text-xs"
+                />
+              </button>
+            </template>
+          </CFormItemList>
         </div>
       </Panel>
     </div>
@@ -204,11 +167,7 @@
             outlined
             @click="filterModalVisible = false"
           />
-          <Button
-            :label="$t('general.label.save')"
-            size="small"
-            @click="onFilterModalSave"
-          />
+          <Button :label="$t('general.label.save')" size="small" @click="onFilterModalSave" />
         </div>
       </div>
     </Dialog>
@@ -222,7 +181,6 @@
           @click="$router.push({ name: 'system.apiGateway' })"
         />
         <div class="flex gap-2">
-
           <CInputDelete
             v-if="isEdit && route_.canDeleteApigwRoute"
             :label="$t('system.apigw.editor.delete')"
@@ -252,7 +210,7 @@ import { NoID } from '@planetcrust/human-js'
 import { cloneDeep, isEqual } from 'lodash-es'
 import CFilterParamsEditor from '@/components/ApiGateway/CFilterParamsEditor.vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputToggleCard } = components
 
 const vueRoute = useRoute()
 const router = useRouter()
@@ -269,23 +227,15 @@ const route_ = ref(null)
 const initialRoute_ = ref(null)
 
 // Filter state
-const activeStep = ref(0)
+const steps = ['prefilter', 'processer', 'postfilter']
+const activeStep = ref(steps[0])
 const filtersLoading = ref(false)
-const savingFilters = ref(false)
 const filters = ref([])
 const availableFilters = ref([])
 const filterModalVisible = ref(false)
 const modalFilter = ref(null)
-const selectedFilterToAdd = ref(null)
 const hasFilterChanges = ref(false)
-
-const steps = ['prefilter', 'processer', 'postfilter']
-
-const mapKindToStep = {
-  prefilter: 0,
-  processer: 1,
-  postfilter: 2,
-}
+const addFilterMenu = ref(null)
 
 const methodOptions = [
   { label: 'GET', value: 'GET' },
@@ -316,19 +266,32 @@ const resolver = ref(({ values }) => {
 // Filters for the currently active step
 const filtersForStep = computed(() =>
   filters.value
-    .filter(f => mapKindToStep[f.kind] === activeStep.value && !f.deleted)
+    .filter(f => f.kind === activeStep.value && !f.deleted)
     .sort((a, b) => (a.weight || 0) - (b.weight || 0)),
 )
 
 // Available filter definitions for the active step, marking already-used ones as disabled
 const availableFiltersForStep = computed(() =>
   availableFilters.value
-    .filter(f => mapKindToStep[f.kind] === activeStep.value)
+    .filter(f => f.kind === activeStep.value)
     .map(f => ({
       ...f,
       disabled: filters.value.some(ef => ef.ref === f.ref && !ef.deleted),
     })),
 )
+
+// Menu items for the "Add filter" dropdown button
+const addFilterMenuItems = computed(() =>
+  availableFiltersForStep.value.map(f => ({
+    label: f.label,
+    disabled: f.disabled,
+    command: () => onAddFilter(f),
+  })),
+)
+
+function toggleAddFilterMenu(event) {
+  addFilterMenu.value?.toggle(event)
+}
 
 // --- Data fetching ---
 
@@ -387,15 +350,15 @@ async function fetchFilters() {
     const result = await $SystemAPI.apigwFilterList({ routeID: vueRoute.params.routeID })
     const routeFilters = result?.set || []
 
-    // Map route filters to their definitions for label + param structure
+    // Map route filters to their definitions: definition wins for kind/label/params shape,
+    // only stored fields (params values, weight, filterID, enabled) carry over from the route filter.
     filters.value = routeFilters.map(filter => {
       const def = availableFilters.value.find(af => af.ref === filter.ref) || {}
       return {
         ...def,
-        ...filter,
-        label: def.label || filter.ref || filter.kind,
         params: decodeParams(def, filter.params || {}),
         weight: parseInt(filter.weight) || 0,
+        filterID: filter.filterID,
         enabled: !!filter.enabled,
       }
     })
@@ -425,30 +388,25 @@ function encodeParams(params = []) {
 
 // --- Filter CRUD ---
 
-function onAddFilter(event) {
-  const filterDef = event.value
-  if (!filterDef || filterDef.disabled) {
-    selectedFilterToAdd.value = null
-    return
-  }
+function onAddFilter(filterDef) {
+  if (!filterDef || filterDef.disabled) return
 
   // Check if already exists
   const existing = filters.value.find(f => f.ref === filterDef.ref && !f.deleted)
   if (existing) {
     openFilterModal(existing)
-  } else {
-    const newFilter = {
-      ...filterDef,
-      created: true,
-      weight: filtersForStep.value.length,
-      params: filterDef.params
-        ? filterDef.params.map(p => ({ ...p, value: undefined, options: { ...p.options } }))
-        : [],
-    }
-    openFilterModal(newFilter)
+    return
   }
 
-  selectedFilterToAdd.value = null
+  const newFilter = {
+    ...filterDef,
+    created: true,
+    weight: filtersForStep.value.length,
+    params: filterDef.params
+      ? filterDef.params.map(p => ({ ...p, value: undefined, options: { ...p.options } }))
+      : [],
+  }
+  openFilterModal(newFilter)
 }
 
 function openFilterModal(filter) {
@@ -460,7 +418,10 @@ function openFilterModal(filter) {
 
       if (filter.ref === 'response') {
         if (p.type === 'header' && value) {
-          value = Object.entries(value).map(([name, v = []]) => ({ name, expr: Array.isArray(v) ? v.join('') : v }))
+          value = Object.entries(value).map(([name, v = []]) => ({
+            name,
+            expr: Array.isArray(v) ? v.join('') : v,
+          }))
         } else if (p.type === 'input') {
           value = { type: 'Any', expr: '', ...value }
         }
@@ -504,6 +465,17 @@ function onFilterModalSave() {
   filterModalVisible.value = false
 }
 
+function onReorderFilters(reordered) {
+  reordered.forEach((filter, idx) => {
+    const original = filters.value.find(f => f.ref === filter.ref && !f.deleted)
+    if (original && original.weight !== idx) {
+      original.weight = idx
+      original.updated = true
+    }
+  })
+  hasFilterChanges.value = true
+}
+
 function onRemoveFilter(filter) {
   confirmDelete({
     message: t('general.confirm.delete'),
@@ -527,43 +499,33 @@ function onRemoveFilter(filter) {
   })
 }
 
-async function onFiltersSubmit() {
-  savingFilters.value = true
-  try {
-    const routeID = vueRoute.params.routeID
+async function saveFilters(routeID) {
+  await Promise.all(
+    filters.value
+      .filter(f => f.created || f.updated || f.deleted)
+      .map(async filter => {
+        const payload = {
+          routeID,
+          ref: filter.ref,
+          kind: filter.kind,
+          weight: String(filter.weight || 0),
+          enabled: filter.enabled,
+          params: encodeParams(filter.params || []),
+        }
 
-    await Promise.all(
-      filters.value
-        .filter(f => f.created || f.updated || f.deleted)
-        .map(async (filter) => {
-          const payload = {
-            routeID,
-            ref: filter.ref,
-            kind: filter.kind,
-            weight: String(filter.weight || 0),
-            enabled: filter.enabled,
-            params: encodeParams(filter.params || []),
+        if (filter.filterID && filter.filterID !== NoID) {
+          if (filter.deleted) {
+            return $SystemAPI.apigwFilterDelete({ filterID: filter.filterID })
           }
+          payload.filterID = filter.filterID
+          return $SystemAPI.apigwFilterUpdate(payload)
+        } else if (!filter.deleted) {
+          return $SystemAPI.apigwFilterCreate(payload)
+        }
+      }),
+  )
 
-          if (filter.filterID && filter.filterID !== NoID) {
-            if (filter.deleted) {
-              return $SystemAPI.apigwFilterDelete({ filterID: filter.filterID })
-            }
-            payload.filterID = filter.filterID
-            return $SystemAPI.apigwFilterUpdate(payload)
-          } else if (!filter.deleted) {
-            return $SystemAPI.apigwFilterCreate(payload)
-          }
-        }),
-    )
-
-    $toast.toastSuccess(t('notification.gateway.filter.update.success'))
-    await fetchFilters()
-  } catch (e) {
-    $toast.toastErrorHandler(t('notification.gateway.filter.update.error'))(e)
-  } finally {
-    savingFilters.value = false
-  }
+  await fetchFilters()
 }
 
 // --- Route CRUD ---
@@ -572,7 +534,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -595,6 +559,9 @@ async function handleSubmit({ valid }) {
         meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
       }
       initialRoute_.value = cloneDeep(route_.value)
+      if (hasFilterChanges.value) {
+        await saveFilters(route_.value.routeID)
+      }
       $toast.toastSuccess(t('notification.gateway.update.success'))
     } else {
       const created = await $SystemAPI.apigwRouteCreate(payload)
@@ -603,7 +570,9 @@ async function handleSubmit({ valid }) {
       router.push({ name: 'system.apiGateway.edit', params: { routeID: created.routeID } })
     }
   } catch (e) {
-    $toast.toastErrorHandler(t(`notification.gateway.${isEdit.value ? 'update' : 'create'}.error`))(e)
+    $toast.toastErrorHandler(t(`notification.gateway.${isEdit.value ? 'update' : 'create'}.error`))(
+      e,
+    )
   } finally {
     saving.value = false
   }
@@ -623,7 +592,12 @@ async function handleDelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!route_.value && !!initialRoute_.value && !isEqual(route_.value, initialRoute_.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!route_.value &&
+    !!initialRoute_.value &&
+    (!isEqual(route_.value, initialRoute_.value) || hasFilterChanges.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

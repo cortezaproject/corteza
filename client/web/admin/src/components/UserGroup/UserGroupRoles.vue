@@ -1,18 +1,24 @@
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex items-center gap-2">
-      <CInputRole class="flex-1" :placeholder="$t('system.user-groups.editor.roles.placeholder')" :exclude-roles="roles.map(r => r.roleID)" clear-on-select filter-context-roles @select="addRole" />
-    </div>
-    <!-- Roles list -->
-    <div v-if="roles.length === 0" class="text-muted-color p-4 border rounded-lg bg-highlight text-center">
-      {{ $t('system.user-groups.editor.roles.empty') }}
-    </div>
-    <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
-      <div v-for="r in roles" :key="r.roleID" class="flex items-center justify-between p-3">
-        <span class="font-medium">{{ r.name || r.handle || r.roleID }}</span>
-        <Button icon="pi pi-trash" severity="danger" text rounded size="small" @click="removeRole(r)" />
-      </div>
-    </div>
+    <CInputRole
+      class="w-full"
+      :placeholder="$t('system.user-groups.editor.roles.placeholder')"
+      :exclude-roles="roles.map(r => r.roleID)"
+      clear-on-select
+      filter-context-roles
+      @select="addRole"
+    />
+
+    <CFormItemList
+      :items="roles"
+      :empty-message="$t('system.user-groups.editor.roles.empty')"
+      item-key="roleID"
+      @remove="removeRole"
+    >
+      <template #default="{ item }">
+        <span class="font-medium">{{ item.name || item.handle || item.roleID }}</span>
+      </template>
+    </CFormItemList>
   </div>
 </template>
 

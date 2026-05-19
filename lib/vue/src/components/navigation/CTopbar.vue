@@ -321,6 +321,15 @@ const profileMenuItems = computed(() => {
     })
   })
 
+  const hasBuiltInProfileItem =
+    !settings.value?.hideProfileLink ||
+    !settings.value?.hideChangePasswordLink ||
+    !settings.value?.hideThemeSelector
+
+  if (profileLinks.value.length && hasBuiltInProfileItem) {
+    items.push({ separator: true })
+  }
+
   if (!settings.value?.hideProfileLink) {
     items.push({
       label: props.labels.userSettingsProfile,

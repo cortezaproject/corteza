@@ -118,8 +118,10 @@ apigw:
       method: Method
       description: Description
       enabled: Enabled
+      enabledDescription: When disabled, this route will not respond to incoming requests.
       group: Group
       async: Async
+      asyncDescription: Acknowledge incoming requests immediately and process them in the background.
 
       delete: Delete
       undelete: Undelete
@@ -414,7 +416,7 @@ authclients:
       uri: URI
       cUrl: Example cURL
       accessToken: Access token
-      generateAccessToken: Test &amp; generate token
+      generateAccessToken: Test generate token
       discovery: Allow client access to Discovery API on behalf of user
       openid: Allow client to use OIDC and verify the user's identity
     new: New Auth Client
@@ -939,7 +941,9 @@ roles:
       description: Description
 
       context:
+        title: Context
         label: Contextual role
+        description: Contextual roles grant permissions only when the runtime expression matches the selected resource types, instead of being assigned to specific members.
         expression-label: Expression
         resource-types-label: Resource type
 

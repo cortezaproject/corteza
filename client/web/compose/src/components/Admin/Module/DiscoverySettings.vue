@@ -10,7 +10,7 @@
     modal
   >
     <div class="flex flex-col gap-4 py-4">
-      <FormField name="discoveryPrivateFields" class="flex flex-col gap-2">
+      <CFormGroup>
         <CFieldPicker
           :all-fields="moduleFieldsList"
           :model-value="currentFieldNames"
@@ -23,11 +23,11 @@
           :no-items-label="$t('field.no-items-found')"
           @update:model-value="currentFieldNames = $event"
         />
-        <small class="text-muted-color">
+        <template #description>
           {{ $t('module.edit.discoverySettings.description') }}
           If no fields are selected, all fields will be exposed.
-        </small>
-      </FormField>
+        </template>
+      </CFormGroup>
     </div>
 
     <template #footer>

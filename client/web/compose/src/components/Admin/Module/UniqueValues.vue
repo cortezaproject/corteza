@@ -30,7 +30,7 @@
       </div>
 
       <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
-        <FormField :name="`rule_${index}_field`" class="flex flex-col gap-2 flex-grow max-w-sm">
+        <CFormGroup :name="`rule_${index}_field`" class="flex-grow max-w-sm">
           <Select
             v-model="rule.currentField"
             :placeholder="$t('module.edit.config.uniqueValues.searchFields')"
@@ -48,7 +48,7 @@
               <span v-else class="text-muted-color">{{ placeholder }}</span>
             </template>
           </Select>
-        </FormField>
+        </CFormGroup>
 
         <FormField :name="`rule_${index}_strict`" class="flex items-center gap-3">
           <label class="font-medium text-primary mb-0">

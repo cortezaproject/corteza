@@ -1,55 +1,29 @@
 <template>
-  <div class="flex flex-col gap-6">
-    <!-- Loading -->
-    <div v-if="loading" class="flex justify-center p-4">
-      <ProgressSpinner />
-    </div>
+  <div class="flex flex-col gap-4">
+    <CInputRole
+      class="w-full"
+      :placeholder="$t('system.users.editor.roles.placeholder')"
+      clear-on-select
+      filter-context-roles
+      :exclude-roles="Array.from(membershipIDs)"
+      @select="onRoleSelect"
+    />
 
-    <div v-else class="flex flex-col gap-4">
-      <!-- Add Role -->
-      <div class="flex items-center gap-2">
-        <CInputRole
-          class="flex-1"
-          :placeholder="$t('system.users.editor.roles.placeholder')"
-          clear-on-select
-          filter-context-roles
-          :exclude-roles="Array.from(membershipIDs)"
-          @select="onRoleSelect"
-        />
-      </div>
-
-      <!-- Current Roles -->
-      <div
-        v-if="currentRoles.length === 0"
-        class="text-muted-color p-4 border rounded-lg bg-surface text-center"
-      >
-        {{ $t('system.users.editor.roles.empty') }}
-      </div>
-
-      <div v-else class="flex flex-col border rounded-lg divide-y bg-surface">
-        <div
-          v-for="role in currentRoles"
-          :key="role.roleID"
-          class="flex items-center justify-between p-3"
-        >
-          <div class="flex flex-col">
-            <span class="font-medium">{{ role.name || role.handle || role.roleID }}</span>
-            <span v-if="role.name && role.handle" class="text-xs text-muted-color">
-              {{ role.handle }}
-            </span>
-          </div>
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            rounded
-            :aria-label="$t('system.users.editor.roles.remove')"
-            :title="$t('system.users.editor.roles.remove')"
-            @click="removeRole(role)"
-          />
-        </div>
-      </div>
-    </div>
+    <CFormItemList
+      :items="currentRoles"
+      :loading="loading"
+      :empty-message="$t('system.users.editor.roles.empty')"
+      :remove-label="$t('system.users.editor.roles.remove')"
+      item-key="roleID"
+      @remove="removeRole"
+    >
+      <template #default="{ item }">
+        <span class="font-medium">{{ item.name || item.handle || item.roleID }}</span>
+        <span v-if="item.name && item.handle" class="text-xs text-muted-color block">
+          {{ item.handle }}
+        </span>
+      </template>
+    </CFormItemList>
   </div>
 </template>
 

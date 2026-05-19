@@ -15,15 +15,6 @@
         :collapsed="false"
         class="shadow"
       >
-        <div class="mb-4">
-          <Button
-            :label="$t('system.code-snippets.editor.code-snippets.new')"
-            icon="pi pi-plus"
-            size="small"
-            @click="openEditor()"
-          />
-        </div>
-
         <CResourceTable
           :items="codeSnippets"
           :fields="snippetFields"
@@ -32,6 +23,14 @@
           :row-class="() => 'cursor-pointer'"
           @row-click="({ index }) => openEditor(index)"
         >
+          <template #header>
+            <Button
+              :label="$t('system.code-snippets.editor.code-snippets.new')"
+              icon="pi pi-plus"
+              size="small"
+              @click="openEditor()"
+            />
+          </template>
           <template #body-enabled="{ data }">
             <i
               :class="

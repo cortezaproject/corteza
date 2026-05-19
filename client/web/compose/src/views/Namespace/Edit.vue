@@ -67,45 +67,33 @@
           <div class="flex flex-col gap-5 p-5">
             <!-- Name + Slug inline -->
             <div class="flex gap-4">
-              <FormField name="name" class="flex flex-col gap-2 flex-1">
-                <label for="name" class="font-medium text-primary">
-                  {{ $t('namespace.name.label') }}
-                  <span class="text-red-500">*</span>
-                </label>
+              <CFormGroup name="name" :label="$t('namespace.name.label')" required class="flex-1">
                 <InputText
                   id="name"
                   name="name"
                   v-model="namespace.name"
                   :placeholder="$t('namespace.name.placeholder')"
                 />
-                <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-                  {{ $form.name.error?.message }}
-                </Message>
-              </FormField>
+              </CFormGroup>
 
-              <FormField name="slug" class="flex flex-col gap-2 flex-1">
-                <label for="slug" class="font-medium text-primary">
-                  {{ $t('namespace.slug.label') }}
-                </label>
+              <CFormGroup
+                name="slug"
+                :label="$t('namespace.slug.label')"
+                :description="$t('namespace.slug.description')"
+                class="flex-1"
+              >
                 <InputText
                   id="slug"
                   name="slug"
                   v-model="namespace.slug"
                   :placeholder="$t('namespace.slug.placeholder')"
                 />
-                <small class="text-muted-color">
-                  {{ $t('namespace.slug.description') }}
-                </small>
-                <Message v-if="$form.slug?.invalid" severity="error" size="small" variant="simple">
-                  {{ $form.slug.error?.message }}
-                </Message>
-              </FormField>
+              </CFormGroup>
             </div>
 
             <!-- Labels -->
             <div class="flex gap-4">
-              <div class="flex flex-col gap-2 flex-1">
-                <label class="font-medium text-primary">{{ $t('namespace.labels.label') }}</label>
+              <CFormGroup :label="$t('namespace.labels.label')" class="flex-1">
                 <CInputLabel
                   v-model="namespace.labels"
                   :placeholder="$t('namespace.labels.placeholder')"
@@ -115,7 +103,7 @@
                   :save-btn-label="$t('general.label.save')"
                   :cancel-btn-label="$t('general.label.cancel')"
                 />
-              </div>
+              </CFormGroup>
               <div class="flex-1" />
             </div>
 
@@ -151,22 +139,16 @@
             </div>
 
             <!-- Subtitle -->
-            <div class="flex flex-col gap-2">
-              <label for="subtitle" class="font-medium text-primary">
-                {{ $t('namespace.subtitle.label') }}
-              </label>
+            <CFormGroup :label="$t('namespace.subtitle.label')" input-id="subtitle">
               <InputText
                 id="subtitle"
                 v-model="namespace.meta.subtitle"
                 :placeholder="$t('namespace.subtitle.placeholder')"
               />
-            </div>
+            </CFormGroup>
 
             <!-- Description -->
-            <div class="flex flex-col gap-2">
-              <label for="description" class="font-medium text-primary">
-                {{ $t('namespace.description.label') }}
-              </label>
+            <CFormGroup :label="$t('namespace.description.label')" input-id="description">
               <Textarea
                 id="description"
                 v-model="namespace.meta.description"
@@ -174,7 +156,7 @@
                 rows="3"
                 auto-resize
               />
-            </div>
+            </CFormGroup>
 
             <Divider />
 
