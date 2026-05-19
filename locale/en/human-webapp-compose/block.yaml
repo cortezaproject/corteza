@@ -1288,3 +1288,28 @@ tabs:
 
 noConfiguration: Block not configured correctly
 interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+
+chatbotInbox:
+  label: Chatbot inbox
+  inbox: Inbox
+  empty: No pending handoffs
+  emptyNoChatbots: No chatbots selected. Pick at least one in the block configurator.
+  selectHint: Select a session to take over
+  session: Session
+  accept: Accept
+  resolve: Resolve
+  composerPlaceholder: Reply as operator…
+  composerDisabled: Accept the handoff to reply
+  status:
+    handoff_requested: Requested
+    handoff_active: In progress
+    active: Active
+    closed: Closed
+  config:
+    chatbots: Chatbots
+    chatbotsPlaceholder: Select chatbots to monitor
+    chatbotsHint: Sessions from these chatbots show up in the inbox.
+    status: Status filter
+    refresh: Refresh interval (seconds)
+    refreshHint: How often the list polls for new pending handoffs.
+    autoOpen: Auto-open the most recent pending session

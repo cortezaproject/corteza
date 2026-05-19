@@ -67,6 +67,10 @@ func MountRoutes() func(r chi.Router) {
 			// uses an in-memory FIFO store of inline chatbot configs so
 			// drafts can be exercised without persisting.
 			NewChatbotPreviewController().MountRoutes(r)
+
+			// Admin-authed handoff/operator API for DB-backed chatbot
+			// sessions. RBAC honors chatbot.Handoff.TargetRoles.
+			NewChatbotHandoffController().MountRoutes(r)
 		})
 	}
 }

@@ -39,9 +39,19 @@ interface ChatbotStyling {
   launcher: ChatbotLauncher
 }
 
+interface ChatbotAutomationHook {
+  automation: string
+  async: boolean
+}
+
 interface ChatbotScenarioAutomation {
-  before?: string
-  after?: string
+  before?: ChatbotAutomationHook
+  after?: ChatbotAutomationHook
+}
+
+interface ChatbotHandoffAutomation {
+  onRequested?: ChatbotAutomationHook
+  onAccepted?: ChatbotAutomationHook
 }
 
 interface ChatbotScenario {
@@ -56,6 +66,7 @@ interface ChatbotScenario {
 interface ChatbotHandoff {
   enabled: boolean
   targetRoles: string[]
+  automation?: ChatbotHandoffAutomation
 }
 
 interface PartialChatbot extends Partial<
@@ -64,6 +75,31 @@ interface PartialChatbot extends Partial<
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
   deletedAt?: string | number | Date
+}
+
+// normalizeHook accepts either the legacy string shape (resource id) or the
+// current {automation, async} object shape and yields the canonical object
+// shape. Empty / missing inputs become a zero hook.
+function normalizeHook(input: unknown): ChatbotAutomationHook {
+  if (typeof input === 'string') {
+    return { automation: input, async: false }
+  }
+  if (input && typeof input === 'object') {
+    const h = input as Partial<ChatbotAutomationHook>
+    return {
+      automation: typeof h.automation === 'string' ? h.automation : '',
+      async: !!h.async,
+    }
+  }
+  return { automation: '', async: false }
+}
+
+function normalizeScenarioAutomation(input: unknown): ChatbotScenarioAutomation {
+  const a = (input || {}) as Partial<ChatbotScenarioAutomation>
+  return {
+    before: normalizeHook(a.before),
+    after: normalizeHook(a.after),
+  }
 }
 
 export class Chatbot {
@@ -167,6 +203,7 @@ export class Chatbot {
         ? o.scenarios.map(s => ({
             ...s,
             agentID: s.agentID ? HumanID(s.agentID) : undefined,
+            automation: normalizeScenarioAutomation(s.automation),
           }))
         : this.scenarios
     }

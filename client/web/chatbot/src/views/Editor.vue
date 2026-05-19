@@ -48,7 +48,11 @@
                     :is-create="isCreate"
                     @regenerate-key="handleRegenerateKey"
                   />
-                  <Scenarios :scenarios="chatbot.scenarios" :agents="agents" />
+                  <Scenarios
+                    :scenarios="chatbot.scenarios"
+                    :agents="agents"
+                    :handoff="chatbot.handoff"
+                  />
                   <Styling :styling="chatbot.styling" :chatbot-id="chatbot.chatbotID" />
                 </TabPanel>
                 <TabPanel value="sessions" class="h-full overflow-hidden p-0">

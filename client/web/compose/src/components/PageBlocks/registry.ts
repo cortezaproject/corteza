@@ -18,6 +18,7 @@ const BLOCK_REGISTRY: Record<string, Component> = {
   RecordOrganizer: defineAsyncComponent(() => import('./Blocks/RecordOrganizerBlock.vue')),
   RecordRevisions: defineAsyncComponent(() => import('./Blocks/RecordRevisionsBlock.vue')),
   Geometry: defineAsyncComponent(() => import('./Blocks/GeometryBlock.vue')),
+  ChatbotInbox: defineAsyncComponent(() => import('./Blocks/ChatbotInboxBlock.vue')),
 
 }
 

@@ -114,6 +114,13 @@ type (
 		Filter           string `json:"filter"`
 		Sort             string `json:"sort"`
 	}
+
+	ChatbotInboxBlockOptions struct {
+		ChatbotIDs    []string `json:"chatbotIDs"`
+		StatusFilter  []string `json:"statusFilter"`
+		RefreshRate   int      `json:"refreshRate"`
+		AutoOpenFirst bool     `json:"autoOpenFirst"`
+	}
 )
 
 // PageBlockOptionSchemas maps each block kind to a zero-value of its options struct.
@@ -130,4 +137,5 @@ var PageBlockOptionSchemas = map[string]any{
 	"Comment":         CommentBlockOptions{},
 	"Calendar":        CalendarBlockOptions{},
 	"RecordOrganizer": RecordOrganizerBlockOptions{},
+	"ChatbotInbox":    ChatbotInboxBlockOptions{},
 }

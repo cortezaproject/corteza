@@ -67,12 +67,21 @@ editor:
     add: Add origin
     help: Only these origins can load the widget. Use * to allow all.
   handoff:
-    preview: Data persisted but not routed yet — operator inbox ships in a later iteration.
+    sectionTitle: Handoff
     enabled:
       label: Enable handoff
-      help: Allow the widget to request a live operator (stub — no routing yet)
+      help: Show the "Talk to human" button in the widget on conversation steps.
     targetRoles:
       label: Target roles
+      help: Operators with at least one of these roles can accept the handoff. Leave empty to allow any signed-in admin.
+      placeholder: Pick roles
+    automation:
+      onRequested:
+        label: When handoff requested
+        help: Automation triggered when the visitor asks for a human.
+      onAccepted:
+        label: When operator accepts
+        help: Automation triggered when an operator picks up the handoff.
   styling:
     logo:
       label: Logo

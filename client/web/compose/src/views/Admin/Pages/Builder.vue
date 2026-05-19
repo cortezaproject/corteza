@@ -494,6 +494,7 @@ import ProgressConfigurator from '@/components/PageBlocks/Configurators/Progress
 import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue'
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
+import ChatbotInboxConfigurator from '@/components/PageBlocks/Configurators/ChatbotInboxConfigurator.vue'
 import AutomationButtonsEditor from '@/components/PageBlocks/Shared/AutomationButtonsEditor.vue'
 import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
 import { useResourceTranslations } from '@/composables/useResourceTranslations'
@@ -676,6 +677,7 @@ const availableBlockTypes = computed(() => {
     { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-credit-card' },
+    { kind: 'ChatbotInbox', label: t('block.chatbotInbox.label'), icon: 'pi pi-comments' },
   ].sort((a, b) => a.label.localeCompare(b.label))
 
   return [...recordBlocks, { kind: 'divider' }, ...otherBlocks]
@@ -705,6 +707,7 @@ const configurators = {
   RecordOrganizer: markRaw(RecordOrganizerConfigurator),
   RecordRevisions: markRaw(RecordRevisionsConfigurator),
   Geometry: markRaw(GeometryConfigurator),
+  ChatbotInbox: markRaw(ChatbotInboxConfigurator),
 }
 
 const blockConfigurator = computed(() => {

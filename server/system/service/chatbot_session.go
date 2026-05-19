@@ -386,6 +386,75 @@ func (svc *chatbotSession) FindHandoffBySession(ctx context.Context, sessionID u
 	return store.LookupChatbotSessionHandoffBySessionID(ctx, svc.store, sessionID)
 }
 
+// FindLiveHandoffBySession returns the live (requested or active) handoff for a
+// session, preferring active over requested. Returns nil with no error when the
+// session has no live handoff.
+func (svc *chatbotSession) FindLiveHandoffBySession(ctx context.Context, sessionID uint64) (*types.ChatbotSessionHandoff, error) {
+	hh, _, err := store.SearchChatbotSessionHandoffs(ctx, svc.store, types.ChatbotSessionHandoffFilter{
+		SessionID: sessionID,
+		Paging:    filter.Paging{Limit: 1000},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var requested *types.ChatbotSessionHandoff
+	for _, h := range hh {
+		if h.ClosedAt != nil {
+			continue
+		}
+		switch h.Status {
+		case "active":
+			return h, nil
+		case "requested":
+			if requested == nil {
+				requested = h
+			}
+		}
+	}
+	return requested, nil
+}
+
+// SendOperatorMessage appends an operator turn to the conversation tied to the
+// handoff's step. The handoff must be in "active" state. Returns the
+// conversation ID so the caller can emit SSE without re-resolving the step.
+func (svc *chatbotSession) SendOperatorMessage(ctx context.Context, handoffID uint64, message string) (uint64, error) {
+	h, err := svc.FindHandoffByID(ctx, handoffID)
+	if err != nil {
+		return 0, err
+	}
+	if h == nil {
+		return 0, fmt.Errorf("handoff not found")
+	}
+	if h.Status != "active" {
+		return 0, fmt.Errorf("handoff not active")
+	}
+
+	step, err := svc.FindStepByID(ctx, h.StepID)
+	if err != nil {
+		return 0, fmt.Errorf("step lookup: %w", err)
+	}
+	if step == nil || step.ConversationID == 0 {
+		return 0, fmt.Errorf("step has no conversation")
+	}
+
+	conv, err := store.LookupAiConversationByID(ctx, svc.store, step.ConversationID)
+	if err != nil {
+		return 0, fmt.Errorf("conversation lookup: %w", err)
+	}
+	if conv == nil {
+		return 0, fmt.Errorf("conversation not found")
+	}
+
+	conv.Messages = append(conv.Messages, types.AiConversationMessage{
+		Role:    "assistant",
+		Content: "[operator] " + message,
+	})
+	if err := store.UpdateAiConversation(ctx, svc.store, conv); err != nil {
+		return 0, err
+	}
+	return conv.ID, nil
+}
+
 // FindPendingHandoffs find all pending handoffs (requested or active)
 func (svc *chatbotSession) FindPendingHandoffs(ctx context.Context) ([]*types.ChatbotSessionHandoff, error) {
 	f := types.ChatbotSessionHandoffFilter{

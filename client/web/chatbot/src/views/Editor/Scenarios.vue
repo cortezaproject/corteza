@@ -217,7 +217,7 @@
               :description="$t('chatbot.editor.scenarios.automation.beforeHelp')"
             >
               <CInputTAQ
-                :model-value="automationID(current.automation?.before)"
+                :model-value="automationID(current.automation?.before?.automation)"
                 @update:model-value="setAutomation('before', $event)"
               />
             </CFormGroup>
@@ -226,7 +226,7 @@
               :description="$t('chatbot.editor.scenarios.automation.afterHelp')"
             >
               <CInputTAQ
-                :model-value="automationID(current.automation?.after)"
+                :model-value="automationID(current.automation?.after?.automation)"
                 @update:model-value="setAutomation('after', $event)"
               />
             </CFormGroup>
@@ -237,6 +237,55 @@
         </div>
       </div>
     </div>
+
+    <Divider class="!my-4" />
+
+    <div class="flex flex-col gap-4">
+      <h3 class="text-primary font-medium">
+        {{ $t('chatbot.editor.handoff.sectionTitle') }}
+      </h3>
+
+      <CInputToggleCard
+        v-model="handoff.enabled"
+        :label="$t('chatbot.editor.handoff.enabled.label')"
+        :description="$t('chatbot.editor.handoff.enabled.help')"
+        class="self-start"
+      />
+
+      <template v-if="handoff.enabled">
+        <CFormGroup
+          :label="$t('chatbot.editor.handoff.targetRoles.label')"
+          :description="$t('chatbot.editor.handoff.targetRoles.help')"
+        >
+          <CInputRole
+            v-model="handoff.targetRoles"
+            multiple
+            :placeholder="$t('chatbot.editor.handoff.targetRoles.placeholder')"
+          />
+        </CFormGroup>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <CFormGroup
+            :label="$t('chatbot.editor.handoff.automation.onRequested.label')"
+            :description="$t('chatbot.editor.handoff.automation.onRequested.help')"
+          >
+            <CInputTAQ
+              :model-value="automationID(handoff.automation?.onRequested?.automation)"
+              @update:model-value="setHandoffAutomation('onRequested', $event)"
+            />
+          </CFormGroup>
+          <CFormGroup
+            :label="$t('chatbot.editor.handoff.automation.onAccepted.label')"
+            :description="$t('chatbot.editor.handoff.automation.onAccepted.help')"
+          >
+            <CInputTAQ
+              :model-value="automationID(handoff.automation?.onAccepted?.automation)"
+              @update:model-value="setHandoffAutomation('onAccepted', $event)"
+            />
+          </CFormGroup>
+        </div>
+      </template>
+    </div>
   </Panel>
 </template>
 
@@ -245,7 +294,7 @@ import { components } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CInputTAQ } = components
+const { CInputTAQ, CInputRole, CInputToggleCard } = components
 const { t } = useI18n()
 
 const AUTOMATION_PREFIX = 'corteza::automation:ng-automation/'
@@ -259,14 +308,40 @@ function automationID(resourceStr) {
 
 function setAutomation(field, id) {
   if (!current.value) return
-  if (!current.value.automation) current.value.automation = {}
-  current.value.automation[field] = id ? `${AUTOMATION_PREFIX}${id}` : ''
+  if (!current.value.automation) current.value.automation = emptyAutomation()
+  const hook = current.value.automation[field] || { automation: '', async: false }
+  current.value.automation[field] = {
+    automation: id ? `${AUTOMATION_PREFIX}${id}` : '',
+    async: !!hook.async,
+  }
+}
+
+function emptyAutomation() {
+  return {
+    before: { automation: '', async: false },
+    after: { automation: '', async: false },
+  }
 }
 
 const props = defineProps({
   scenarios: { type: Array, required: true },
   agents: { type: Array, default: () => [] },
+  handoff: { type: Object, required: true },
 })
+
+function setHandoffAutomation(phase, id) {
+  if (!props.handoff.automation) {
+    props.handoff.automation = {
+      onRequested: { automation: '', async: false },
+      onAccepted: { automation: '', async: false },
+    }
+  }
+  const prev = props.handoff.automation[phase] || { automation: '', async: false }
+  props.handoff.automation[phase] = {
+    automation: id ? `${AUTOMATION_PREFIX}${id}` : '',
+    async: !!prev.async,
+  }
+}
 
 const agentOptions = computed(() =>
   props.agents.map(a => ({
@@ -355,7 +430,7 @@ function addScenario() {
     name: t('chatbot.editor.scenarios.stepName', { n }),
     type: 'static_message',
     config: defaultScenarioConfig('static_message'),
-    automation: { before: '', after: '' },
+    automation: emptyAutomation(),
   })
   selectedIdx.value = props.scenarios.length - 1
 }
