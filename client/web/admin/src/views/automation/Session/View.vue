@@ -86,33 +86,23 @@
       </Panel>
     </div>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'automation.sessions' })"
-        />
-        <div class="flex gap-2">
-          <Button
-            v-if="session.workflowID"
-            :label="$t('automation.sessions.editor.info.openWorkflow')"
-            icon="pi pi-arrow-right"
-            severity="secondary"
-            @click="$router.push({ name: 'automation.workflows.edit', params: { workflowID: session.workflowID } })"
-          />
-          <Button
-            v-if="isActive"
-            :label="$t('automation.sessions.editor.info.cancel')"
-            icon="pi pi-times"
-            severity="danger"
-            :loading="canceling"
-            @click="handleCancel"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'automation.sessions' }">
+      <Button
+        v-if="session.workflowID"
+        :label="$t('automation.sessions.editor.info.openWorkflow')"
+        icon="pi pi-arrow-right"
+        severity="secondary"
+        @click="$router.push({ name: 'automation.workflows.edit', params: { workflowID: session.workflowID } })"
+      />
+      <Button
+        v-if="isActive"
+        :label="$t('automation.sessions.editor.info.cancel')"
+        icon="pi pi-times"
+        severity="danger"
+        :loading="canceling"
+        @click="handleCancel"
+      />
+    </CEditorActions>
   </div>
 </template>
 

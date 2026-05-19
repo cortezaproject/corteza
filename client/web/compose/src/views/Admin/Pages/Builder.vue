@@ -107,50 +107,39 @@
       </Grid>
     </div>
 
-    <!-- Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="flex items-center justify-between p-3">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.back()"
-        />
-
+    <CEditorActions :back-to="true" @back="$router.back()">
+      <template #center>
         <Button
           :label="$t('page.build.addBlock')"
           icon="pi pi-plus"
           severity="secondary"
           @click="showAddBlock = true"
         />
-
-        <div class="flex gap-2">
-          <Button
-            v-if="pageLayout"
-            :label="$t('page.build.saveAsCopy')"
-            icon="pi pi-copy"
-            severity="secondary"
-            :loading="saving"
-            @click="handleSaveAsCopy"
-          />
-          <Button
-            v-if="pageLayout && layouts.length > 1"
-            v-tooltip.top="$t('page.build.layout.delete')"
-            icon="pi pi-trash"
-            severity="danger"
-            outlined
-            :loading="saving"
-            @click="showDeleteLayoutConfirm = true"
-          />
-          <Button
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-            @click="handleSave"
-          />
-        </div>
-      </div>
-    </div>
+      </template>
+      <Button
+        v-if="pageLayout"
+        :label="$t('page.build.saveAsCopy')"
+        icon="pi pi-copy"
+        severity="secondary"
+        :loading="saving"
+        @click="handleSaveAsCopy"
+      />
+      <Button
+        v-if="pageLayout && layouts.length > 1"
+        v-tooltip.top="$t('page.build.layout.delete')"
+        icon="pi pi-trash"
+        severity="danger"
+        outlined
+        :loading="saving"
+        @click="showDeleteLayoutConfirm = true"
+      />
+      <Button
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+        @click="handleSave"
+      />
+    </CEditorActions>
   </div>
 
   <!-- Add Block Dialog -->

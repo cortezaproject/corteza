@@ -132,42 +132,33 @@
       </Panel>
     </div>
 
-    <!-- Bottom Actions Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.roles' })"
+    <CEditorActions :back-to="{ name: 'system.roles' }">
+      <template v-if="!role.isClosed">
+        <CInputDelete
+          v-if="isEdit && role.canDeleteRole && !role.deletedAt && !role.isSystem"
+          :label="$t('system.roles.editor.info.delete')"
+          :message="$t('general.confirm.delete')"
+          :header="role.name || role.handle || role.roleID"
+          :disabled="deleting"
+          @confirm="handleDelete"
         />
-        <div v-if="!role.isClosed" class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && role.canDeleteRole && !role.deletedAt && !role.isSystem"
-            :label="$t('system.roles.editor.info.delete')"
-            :message="$t('general.confirm.delete')"
-            :header="role.name || role.handle || role.roleID"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            v-if="isEdit && role.deletedAt && !role.isSystem"
-            :label="$t('system.roles.editor.info.undelete')"
-            icon="pi pi-refresh"
-            severity="success"
-            :disabled="saving"
-            @click="handleUndelete"
-          />
-          <Button
-            v-if="!role.isSystem || role.canUpdateRole"
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+        <Button
+          v-if="isEdit && role.deletedAt && !role.isSystem"
+          :label="$t('system.roles.editor.info.undelete')"
+          icon="pi pi-refresh"
+          severity="success"
+          :disabled="saving"
+          @click="handleUndelete"
+        />
+        <Button
+          v-if="!role.isSystem || role.canUpdateRole"
+          type="submit"
+          :label="$t('general.label.save')"
+          icon="pi pi-save"
+          :loading="saving"
+        />
+      </template>
+    </CEditorActions>
   </Form>
 
   <!-- Clone Permissions Dialog -->

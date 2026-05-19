@@ -758,32 +758,22 @@
       </template>
     </Dialog>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="flex items-center justify-between p-3">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="router.back()"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="!isCreate && agent.canDeleteAgent"
-            :label="$t('general.label.delete')"
-            :message="$t('agent.list.delete')"
-            :header="agent?.meta?.short || agent?.handle || $t('general.label.delete')"
-            @confirm="handleDelete"
-          />
-          <Button
-            type="button"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-            @click="submitForm"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="true" @back="$router.back()">
+      <CInputDelete
+        v-if="!isCreate && agent.canDeleteAgent"
+        :label="$t('general.label.delete')"
+        :message="$t('agent.list.delete')"
+        :header="agent?.meta?.short || agent?.handle || $t('general.label.delete')"
+        @confirm="handleDelete"
+      />
+      <Button
+        type="button"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+        @click="submitForm"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

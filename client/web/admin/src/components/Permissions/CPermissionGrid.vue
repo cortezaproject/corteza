@@ -130,16 +130,14 @@
       </Card>
     </div>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-end">
-        <Button
-          :label="$t('permissions.ui.save')"
-          icon="pi pi-save"
-          :loading="saving"
-          @click="onSubmit"
-        />
-      </div>
-    </div>
+    <CEditorActions>
+      <Button
+        :label="$t('permissions.ui.save')"
+        icon="pi pi-save"
+        :loading="saving"
+        @click="onSubmit"
+      />
+    </CEditorActions>
 
     <!-- Add role dialog -->
     <Dialog

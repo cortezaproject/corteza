@@ -95,32 +95,22 @@
       </Panel>
     </div>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.templates' })"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && template.canDeleteTemplate"
-            :label="$t('system.templates.editor.info.delete')"
-            :message="$t('general.confirm.delete')"
-            :header="template.meta?.short || template.handle"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'system.templates' }">
+      <CInputDelete
+        v-if="isEdit && template.canDeleteTemplate"
+        :label="$t('system.templates.editor.info.delete')"
+        :message="$t('general.confirm.delete')"
+        :header="template.meta?.short || template.handle"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

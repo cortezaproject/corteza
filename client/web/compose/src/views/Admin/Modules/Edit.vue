@@ -289,42 +289,32 @@
       </Card>
     </div>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="flex items-center justify-between p-3">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.back()"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && module.canDeleteModule"
-            :label="$t('general.label.delete')"
-            :message="$t('module.edit.deleteConfirm')"
-            :header="module.name"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            v-if="isEdit"
-            :label="$t('general.label.saveAsCopy')"
-            icon="pi pi-copy"
-            severity="secondary"
-            :loading="cloning"
-            :disabled="!canSave"
-            @click="handleClone"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-            :disabled="!canSave"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="true" @back="$router.back()">
+      <CInputDelete
+        v-if="isEdit && module.canDeleteModule"
+        :label="$t('general.label.delete')"
+        :message="$t('module.edit.deleteConfirm')"
+        :header="module.name"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit"
+        :label="$t('general.label.saveAsCopy')"
+        icon="pi pi-copy"
+        severity="secondary"
+        :loading="cloning"
+        :disabled="!canSave"
+        @click="handleClone"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+        :disabled="!canSave"
+      />
+    </CEditorActions>
 
     <!-- Field Configurator Modal -->
     <CFieldConfigurator

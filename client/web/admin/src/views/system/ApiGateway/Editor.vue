@@ -172,32 +172,22 @@
       </div>
     </Dialog>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.apiGateway' })"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && route_.canDeleteApigwRoute"
-            :label="$t('system.apigw.editor.delete')"
-            :message="$t('general.confirm.delete')"
-            :header="route_.endpoint || route_.routeID"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'system.apiGateway' }">
+      <CInputDelete
+        v-if="isEdit && route_.canDeleteApigwRoute"
+        :label="$t('system.apigw.editor.delete')"
+        :message="$t('general.confirm.delete')"
+        :header="route_.endpoint || route_.routeID"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

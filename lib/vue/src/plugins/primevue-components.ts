@@ -1,4 +1,5 @@
 import type { App, Plugin } from 'vue'
+import CEditorActions from '../components/input/CEditorActions.vue'
 import CFormGroup from '../components/input/CFormGroup.vue'
 import CFormList from '../components/input/CFormList.vue'
 import CFormItemList from '../components/input/CFormItemList.vue'
@@ -139,6 +140,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.directive('tooltip', Tooltip)
 
     // Human shared components
+    app.component('CEditorActions', CEditorActions)
     app.component('CFormGroup', CFormGroup)
     app.component('CFormList', CFormList)
     app.component('CFormItemList', CFormItemList)

@@ -107,41 +107,30 @@
       </Panel>
     </div>
 
-    <!-- Bottom Actions Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.userGroups' })"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && userGroup.canDeleteUserGroup && !userGroup.deletedAt"
-            :label="$t('system.user-groups.editor.info.delete')"
-            :message="$t('general.confirm.delete')"
-            :header="userGroup.meta.short || userGroup.handle || userGroup.userGroupID"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            v-if="isEdit && userGroup.deletedAt"
-            :label="$t('system.user-groups.editor.info.undelete')"
-            icon="pi pi-refresh"
-            severity="success"
-            :disabled="saving"
-            @click="handleUndelete"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'system.userGroups' }">
+      <CInputDelete
+        v-if="isEdit && userGroup.canDeleteUserGroup && !userGroup.deletedAt"
+        :label="$t('system.user-groups.editor.info.delete')"
+        :message="$t('general.confirm.delete')"
+        :header="userGroup.meta.short || userGroup.handle || userGroup.userGroupID"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && userGroup.deletedAt"
+        :label="$t('system.user-groups.editor.info.undelete')"
+        icon="pi pi-refresh"
+        severity="success"
+        :disabled="saving"
+        @click="handleUndelete"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

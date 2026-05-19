@@ -120,33 +120,22 @@
       </Panel>
     </div>
 
-    <!-- Bottom Actions Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.users' })"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && user.canDeleteUser"
-            :label="$t('system.users.editor.info.delete')"
-            :message="$t('system.users.editor.info.deleteConfirm')"
-            :header="user.name || user.handle || user.email || user.userID"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'system.users' }">
+      <CInputDelete
+        v-if="isEdit && user.canDeleteUser"
+        :label="$t('system.users.editor.info.delete')"
+        :message="$t('system.users.editor.info.deleteConfirm')"
+        :header="user.name || user.handle || user.email || user.userID"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

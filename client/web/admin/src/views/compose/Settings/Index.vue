@@ -144,16 +144,14 @@
       </Panel>
     </div>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-end">
-        <Button
-          :label="$t('general.label.save')"
-          icon="pi pi-save"
-          :loading="saving"
-          @click="handleSave"
-        />
-      </div>
-    </div>
+    <CEditorActions>
+      <Button
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+        @click="handleSave"
+      />
+    </CEditorActions>
   </div>
 </template>
 

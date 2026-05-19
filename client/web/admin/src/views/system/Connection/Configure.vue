@@ -36,16 +36,7 @@
     <ConfiguredConnectionsPanel v-if="connection" :connection="connection" class="flex-1 min-h-0" />
     </div>
 
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.connections' })"
-        />
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'system.connections' }" />
   </div>
 </template>
 

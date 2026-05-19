@@ -192,44 +192,33 @@
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="flex items-center justify-between p-3">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.back()"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && chart.canDeleteChart"
-            :label="$t('general.label.delete')"
-            :message="$t('chart.list.delete')"
-            :header="chart.name"
-            :disabled="processingDelete"
-            @confirm="handleDelete"
-          />
-          <Button
-            v-if="isEdit"
-            :label="$t('general.label.saveAsCopy')"
-            icon="pi pi-copy"
-            severity="secondary"
-            :loading="processingClone"
-            :disabled="disableSave"
-            @click="handleClone"
-          />
-          <Button
-            v-if="!hideSave"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="processingSave"
-            :disabled="disableSave"
-            @click="handleSave"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="true" @back="$router.back()">
+      <CInputDelete
+        v-if="isEdit && chart.canDeleteChart"
+        :label="$t('general.label.delete')"
+        :message="$t('chart.list.delete')"
+        :header="chart.name"
+        :disabled="processingDelete"
+        @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit"
+        :label="$t('general.label.saveAsCopy')"
+        icon="pi pi-copy"
+        severity="secondary"
+        :loading="processingClone"
+        :disabled="disableSave"
+        @click="handleClone"
+      />
+      <Button
+        v-if="!hideSave"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="processingSave"
+        :disabled="disableSave"
+        @click="handleSave"
+      />
+    </CEditorActions>
   </div>
 </template>
 

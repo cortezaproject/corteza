@@ -79,40 +79,29 @@
       </Panel>
     </div>
 
-    <!-- Bottom Actions Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'automation.taq' })"
-        />
-        <div class="flex gap-2">
-          <Button
-            v-if="isEdit"
-            :label="$t('automation.taq.editor.info.openBuilder')"
-            icon="pi pi-external-link"
-            severity="secondary"
-            @click="openInBuilder"
-          />
-          <CInputDelete
-            v-if="isEdit && taq.canDeleteNgAutomation && !taq.deletedAt"
-            :label="$t('automation.taq.editor.info.delete')"
-            :message="$t('general.confirm.delete')"
-            :header="taq.meta?.short || taq.handle || taq.automationID"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'automation.taq' }">
+      <Button
+        v-if="isEdit"
+        :label="$t('automation.taq.editor.info.openBuilder')"
+        icon="pi pi-external-link"
+        severity="secondary"
+        @click="openInBuilder"
+      />
+      <CInputDelete
+        v-if="isEdit && taq.canDeleteNgAutomation && !taq.deletedAt"
+        :label="$t('automation.taq.editor.info.delete')"
+        :message="$t('general.confirm.delete')"
+        :header="taq.meta?.short || taq.handle || taq.automationID"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

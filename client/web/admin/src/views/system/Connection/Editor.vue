@@ -140,33 +140,22 @@
       </Card>
     </div>
 
-    <!-- Bottom Actions Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="p-3 flex items-center justify-between">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'system.connections' })"
-        />
-        <div class="flex gap-2">
-          <CInputDelete
-            v-if="isEdit && connection.canDeleteConnection"
-            :label="$t('system.connections.editor.delete')"
-            :message="$t('system.connections.editor.deleteConfirm')"
-            :header="connection.meta?.short || connection.handle"
-            :disabled="deleting"
-            @confirm="handleDelete"
-          />
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-          />
-        </div>
-      </div>
-    </div>
+    <CEditorActions :back-to="{ name: 'system.connections' }">
+      <CInputDelete
+        v-if="isEdit && connection.canDeleteConnection"
+        :label="$t('system.connections.editor.delete')"
+        :message="$t('system.connections.editor.deleteConfirm')"
+        :header="connection.meta?.short || connection.handle"
+        :disabled="deleting"
+        @confirm="handleDelete"
+      />
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
+    </CEditorActions>
   </Form>
 </template>
 

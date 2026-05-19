@@ -213,60 +213,49 @@
       </Panel>
     </div>
 
-    <!-- Toolbar -->
-    <div class="shrink-0 border-t border-surface bg-surface">
-      <div class="flex items-center justify-between p-3">
-        <Button
-          :label="$t('general.label.back')"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          @click="$router.push({ name: 'admin.pages' })"
+    <CEditorActions :back-to="{ name: 'admin.pages' }">
+      <!-- Delete with strategy for pages with children -->
+      <template v-if="isEdit && page.canDeletePage">
+        <template v-if="hasChildren">
+          <Button
+            :label="$t('general.label.delete')"
+            icon="pi pi-trash"
+            severity="danger"
+            outlined
+            size="small"
+            @click="toggleDeleteMenu"
+          />
+          <TieredMenu ref="deleteMenu" :model="deleteMenuItems" popup />
+        </template>
+
+        <CInputDelete
+          v-else
+          :label="$t('general.label.delete')"
+          :message="$t('page.edit.deleteConfirm')"
+          :header="page.title"
+          :disabled="deleting"
+          @confirm="handleDelete('abort')"
         />
-        <div class="flex gap-2">
-          <!-- Delete with strategy for pages with children -->
-          <template v-if="isEdit && page.canDeletePage">
-            <template v-if="hasChildren">
-              <Button
-                :label="$t('general.label.delete')"
-                icon="pi pi-trash"
-                severity="danger"
-                outlined
-                size="small"
-                @click="toggleDeleteMenu"
-              />
-              <TieredMenu ref="deleteMenu" :model="deleteMenuItems" popup />
-            </template>
+      </template>
 
-            <CInputDelete
-              v-else
-              :label="$t('general.label.delete')"
-              :message="$t('page.edit.deleteConfirm')"
-              :header="page.title"
-              :disabled="deleting"
-              @confirm="handleDelete('abort')"
-            />
-          </template>
+      <Button
+        v-if="isEdit && !isRecordPage"
+        :label="$t('general.label.saveAsCopy')"
+        icon="pi pi-copy"
+        severity="secondary"
+        :loading="cloning"
+        :disabled="!canSave"
+        @click="handleClone"
+      />
 
-          <Button
-            v-if="isEdit && !isRecordPage"
-            :label="$t('general.label.saveAsCopy')"
-            icon="pi pi-copy"
-            severity="secondary"
-            :loading="cloning"
-            :disabled="!canSave"
-            @click="handleClone"
-          />
-
-          <Button
-            type="submit"
-            :label="$t('general.label.save')"
-            icon="pi pi-save"
-            :loading="saving"
-            :disabled="!canSave"
-          />
-        </div>
-      </div>
-    </div>
+      <Button
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+        :disabled="!canSave"
+      />
+    </CEditorActions>
   </Form>
 
   <!-- Layout Configuration Dialog -->
