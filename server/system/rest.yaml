@@ -3920,7 +3920,7 @@ endpoints:
         parameters:
           get:
             - { type: uint64, name: chatbotID, title: Filter by chatbot ID }
-            - { type: string, name: status, title: Filter by status }
+            - { type: '[]string', name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
             - { type: string, name: pageCursor, title: Page cursor }
@@ -3933,7 +3933,7 @@ endpoints:
           path:
             - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
           get:
-            - { type: string, name: status, title: Filter by status }
+            - { type: '[]string', name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
             - { type: string, name: pageCursor, title: Page cursor }

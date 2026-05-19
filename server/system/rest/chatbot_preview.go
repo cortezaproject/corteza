@@ -79,6 +79,7 @@ func (c *ChatbotPreviewController) MountRoutes(r chi.Router) {
 		r.Post("/session/{id}/advance-step", c.advanceStep)
 		r.Post("/session/{id}/close", c.closeSession)
 		r.Post("/session/{id}/handoff", c.requestHandoff)
+		r.Post("/session/{id}/handoff-accept", c.acceptHandoff)
 		r.Post("/session/{id}/operator-message", c.sendOperatorMessage)
 		r.Post("/session/{id}/handoff-complete", c.closeHandoff)
 		r.Get("/session/{id}/stream", c.stream)
@@ -333,6 +334,37 @@ func (c *ChatbotPreviewController) requestHandoff(w http.ResponseWriter, r *http
 	})
 }
 
+func (c *ChatbotPreviewController) acceptHandoff(w http.ResponseWriter, r *http.Request) {
+	if !c.adminGate(w, r) {
+		return
+	}
+	ps := c.sessionFromURL(w, r)
+	if ps == nil {
+		return
+	}
+
+	var body struct {
+		Operator string `json:"operator,omitempty"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+
+	if ps.Handoff == nil {
+		http.Error(w, "preview: no handoff", http.StatusNotFound)
+		return
+	}
+	if ps.Handoff.Status == "active" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if ps.Handoff.Status != "requested" {
+		http.Error(w, "preview: handoff not in requested state", http.StatusConflict)
+		return
+	}
+
+	c.preview.ActivateHandoff(ps, body.Operator)
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (c *ChatbotPreviewController) sendOperatorMessage(w http.ResponseWriter, r *http.Request) {
 	if !c.adminGate(w, r) {
 		return
@@ -351,8 +383,9 @@ func (c *ChatbotPreviewController) sendOperatorMessage(w http.ResponseWriter, r 
 		return
 	}
 
-	if ps.Handoff != nil && ps.Handoff.Status == "requested" {
-		c.preview.ActivateHandoff(ps, body.Operator)
+	if ps.Handoff == nil || ps.Handoff.Status != "active" {
+		http.Error(w, "preview: handoff not accepted", http.StatusConflict)
+		return
 	}
 
 	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())

@@ -55,7 +55,7 @@ chatbot_session: {
 		struct: {
 			chatbot_session_id: {goType: "[]uint64", ident: "chatbotSessionID", storeIdent: "id"}
 			chatbot_id: {goType: "uint64", ident: "chatbotID", storeIdent: "rel_chatbot"}
-			status: {goType: "string"}
+			status: {goType: "[]string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 

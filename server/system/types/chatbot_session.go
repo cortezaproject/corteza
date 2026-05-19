@@ -23,7 +23,7 @@ type (
 	ChatbotSessionFilter struct {
 		ChatbotSessionID []uint64 `json:"chatbotSessionID"`
 		ChatbotID        uint64   `json:"chatbotID"`
-		Status           string   `json:"status"`
+		Status           []string `json:"status"`
 		Query            string   `json:"query"`
 
 		Deleted filter.State `json:"deleted"`

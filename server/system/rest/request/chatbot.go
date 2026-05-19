@@ -232,7 +232,7 @@ type (
 		// Status GET parameter
 		//
 		// Filter by status
-		Status string
+		Status []string
 
 		// Limit GET parameter
 		//
@@ -264,7 +264,7 @@ type (
 		// Status GET parameter
 		//
 		// Filter by status
-		Status string
+		Status []string
 
 		// Limit GET parameter
 		//
@@ -1246,7 +1246,7 @@ func (r ChatbotSessionList) GetChatbotID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ChatbotSessionList) GetStatus() string {
+func (r ChatbotSessionList) GetStatus() []string {
 	return r.Status
 }
 
@@ -1283,8 +1283,13 @@ func (r *ChatbotSessionList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["status"]; ok && len(val) > 0 {
-			r.Status, err = val[0], nil
+		if val, ok := tmp["status[]"]; ok {
+			r.Status, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["status"]; ok {
+			r.Status, err = val, nil
 			if err != nil {
 				return err
 			}
@@ -1341,7 +1346,7 @@ func (r ChatbotSessionListByChatbot) GetChatbotID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ChatbotSessionListByChatbot) GetStatus() string {
+func (r ChatbotSessionListByChatbot) GetStatus() []string {
 	return r.Status
 }
 
@@ -1372,8 +1377,13 @@ func (r *ChatbotSessionListByChatbot) Fill(req *http.Request) (err error) {
 		// GET params
 		tmp := req.URL.Query()
 
-		if val, ok := tmp["status"]; ok && len(val) > 0 {
-			r.Status, err = val[0], nil
+		if val, ok := tmp["status[]"]; ok {
+			r.Status, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["status"]; ok {
+			r.Status, err = val, nil
 			if err != nil {
 				return err
 			}

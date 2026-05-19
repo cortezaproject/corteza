@@ -145,6 +145,9 @@ func (c *Controller) MountRoutes(r chi.Router) {
 				r.Options("/session/{id}/handoff", okOptions)
 				r.Post("/session/{id}/handoff", c.requestHandoff)
 
+				r.Options("/session/{id}/handoff-accept", okOptions)
+				r.Post("/session/{id}/handoff-accept", c.acceptHandoff)
+
 				r.Options("/session/{id}/operator-message", okOptions)
 				r.Post("/session/{id}/operator-message", c.sendOperatorMessage)
 
@@ -586,10 +589,63 @@ func (c *Controller) requestHandoff(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// acceptHandoff explicitly activates a requested handoff. Operator must call
+// this before sendOperatorMessage; messages on a non-active handoff are rejected.
+func (c *Controller) acceptHandoff(w http.ResponseWriter, r *http.Request) {
+	claims := claimsFromCtx(r.Context())
+	if claims == nil {
+		http.Error(w, "widget: no session", http.StatusUnauthorized)
+		return
+	}
+
+	var body struct {
+		HandoffID string `json:"handoffID"`
+		Operator  string `json:"operator,omitempty"`
+	}
+	if err := readJSON(r.Body, &body); err != nil {
+		http.Error(w, "widget: bad body", http.StatusBadRequest)
+		return
+	}
+
+	hid, err := strconv.ParseUint(body.HandoffID, 10, 64)
+	if err != nil || hid == 0 {
+		http.Error(w, "widget: bad handoff id", http.StatusBadRequest)
+		return
+	}
+
+	svcCtx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
+
+	h, err := c.sessionSvc.FindHandoffByID(svcCtx, hid)
+	if err != nil || h == nil {
+		http.Error(w, "widget: handoff not found", http.StatusNotFound)
+		return
+	}
+	if h.Status == "active" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if h.Status != "requested" {
+		http.Error(w, "widget: handoff not in requested state", http.StatusConflict)
+		return
+	}
+
+	if err := c.sessionSvc.ActivateHandoff(svcCtx, hid); err != nil {
+		http.Error(w, "widget: cannot activate handoff", http.StatusInternalServerError)
+		return
+	}
+
+	c.emit(claims.Cid, "handoff_active", map[string]any{
+		"handoffID": body.HandoffID,
+		"operator":  body.Operator,
+	})
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // sendOperatorMessage: operator sends message to widget user. Persists into the
 // AiConversation as an assistant turn (prefixed) so the LLM sees it on resume,
-// and broadcasts operator_message SSE to the widget. Auto-activates the
-// handoff on first operator turn.
+// and broadcasts operator_message SSE to the widget. Requires the handoff to
+// already be in "active" state (see acceptHandoff).
 func (c *Controller) sendOperatorMessage(w http.ResponseWriter, r *http.Request) {
 	claims := claimsFromCtx(r.Context())
 	if claims == nil {
@@ -620,15 +676,9 @@ func (c *Controller) sendOperatorMessage(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "widget: handoff not found", http.StatusNotFound)
 		return
 	}
-	if h.Status == "requested" {
-		if err := c.sessionSvc.ActivateHandoff(svcCtx, hid); err != nil {
-			http.Error(w, "widget: cannot activate handoff", http.StatusInternalServerError)
-			return
-		}
-		c.emit(claims.Cid, "handoff_active", map[string]any{
-			"handoffID": body.HandoffID,
-			"operator":  body.Operator,
-		})
+	if h.Status != "active" {
+		http.Error(w, "widget: handoff not accepted", http.StatusConflict)
+		return
 	}
 
 	c.appendConversationMessage(svcCtx, claims.Cid, types.AiConversationMessage{

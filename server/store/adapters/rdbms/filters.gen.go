@@ -691,8 +691,8 @@ func ChatbotSessionFilter(d drivers.Dialect, f systemType.ChatbotSessionFilter) 
 		ee = append(ee, goqu.C("rel_chatbot").Eq(f.ChatbotID))
 	}
 
-	if val := strings.TrimSpace(f.Status); len(val) > 0 {
-		ee = append(ee, goqu.C("status").Eq(f.Status))
+	if ss := trimStringSlice(f.Status); len(ss) > 0 {
+		ee = append(ee, goqu.C("status").In(ss))
 	}
 
 	if f.Query != "" {
