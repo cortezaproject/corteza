@@ -1298,8 +1298,21 @@ chatbotInbox:
   session: Session
   accept: Accept
   resolve: Resolve
+  operator: Operator
+  replyingAs: Replying as {name}
+  changeAlias: Change display name
+  aliasLabel: Display name
+  aliasHint: Shown to visitors next to your messages. Leave empty to use your account name.
+  aliasSave: Save
+  aliasReset: Reset
   composerPlaceholder: Reply as operator…
   composerDisabled: Accept the handoff to reply
+  confirmAccept:
+    header: Accept handoff
+    message: Take over this conversation as the operator? The visitor will see your replies in real time.
+  confirmResolve:
+    header: Resolve handoff
+    message: End the handoff and let the AI resume at the same step? You can still view the conversation history later.
   status:
     handoff_requested: Requested
     handoff_active: In progress
