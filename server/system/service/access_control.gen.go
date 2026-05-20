@@ -507,6 +507,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.ChatbotResourceType,
+			"any":  types.ChatbotRbacResource(0),
+			"op":   "sessions.view",
+		},
+		{
+			"type": types.ChatbotResourceType,
+			"any":  types.ChatbotRbacResource(0),
+			"op":   "sessions.manage",
+		},
+		{
+			"type": types.ChatbotResourceType,
+			"any":  types.ChatbotRbacResource(0),
+			"op":   "sessions.handoff.manage",
+		},
+		{
 			"type": types.ChatbotSessionResourceType,
 			"any":  types.ChatbotSessionRbacResource(0),
 			"op":   "read",
@@ -1384,6 +1399,27 @@ func (svc accessControl) CanDeleteChatbot(ctx context.Context, r *types.Chatbot)
 	return svc.can(ctx, "delete", r)
 }
 
+// CanViewSessionsOnChatbot checks if current user can view chatbot sessions
+//
+// This function is auto-generated
+func (svc accessControl) CanViewSessionsOnChatbot(ctx context.Context, r *types.Chatbot) bool {
+	return svc.can(ctx, "sessions.view", r)
+}
+
+// CanManageSessionsOnChatbot checks if current user can manage chatbot sessions (advance, close)
+//
+// This function is auto-generated
+func (svc accessControl) CanManageSessionsOnChatbot(ctx context.Context, r *types.Chatbot) bool {
+	return svc.can(ctx, "sessions.manage", r)
+}
+
+// CanManageSessionsHandoffOnChatbot checks if current user can manage chatbot session handoffs
+//
+// This function is auto-generated
+func (svc accessControl) CanManageSessionsHandoffOnChatbot(ctx context.Context, r *types.Chatbot) bool {
+	return svc.can(ctx, "sessions.handoff.manage", r)
+}
+
 // CanReadChatbotSession checks if current user can read chatbot session
 //
 // This function is auto-generated
@@ -2202,9 +2238,12 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ChatbotResourceType:
 		return map[string]bool{
-			"read":   true,
-			"update": true,
-			"delete": true,
+			"read":                    true,
+			"update":                  true,
+			"delete":                  true,
+			"sessions.view":           true,
+			"sessions.manage":         true,
+			"sessions.handoff.manage": true,
 		}
 	case types.ChatbotSessionResourceType:
 		return map[string]bool{

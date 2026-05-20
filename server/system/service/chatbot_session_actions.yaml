@@ -1,0 +1,92 @@
+# List of loggable service actions
+
+resource: system:chatbot-session
+service: chatbotSession
+
+defaultActionSeverity: notice
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: session
+    type: "*types.ChatbotSession"
+    fields: [ ID, ChatbotID, Status ]
+  - name: handoff
+    type: "*types.ChatbotSessionHandoff"
+    fields: [ ID, SessionID, Status ]
+  - name: search
+    type: "*types.ChatbotSessionFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for chatbot sessions"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{session}}"
+    severity: info
+
+  - action: create
+    log: "created {{session}}"
+
+  - action: update
+    log: "updated {{session}}"
+
+  - action: delete
+    log: "deleted {{session}}"
+
+errors:
+  - error: chatbotNoScenarios
+    message: "chatbot has no scenarios"
+    severity: warning
+
+  - error: sessionNotActive
+    message: "session not active"
+    severity: warning
+
+  - error: sessionNotFound
+    message: "session not found"
+    severity: warning
+
+  - error: noActiveStep
+    message: "no active step"
+    severity: warning
+
+  - error: scenarioOutOfRange
+    message: "scenario out of range"
+    severity: warning
+
+  - error: scenarioNotMessage
+    message: "current step does not accept messages"
+    severity: warning
+
+  - error: scenarioNotForm
+    message: "current step is not a form"
+    severity: warning
+
+  - error: agentUnavailable
+    message: "agent unavailable"
+    severity: warning
+
+  - error: agentNotConfigured
+    message: "agent not configured for system invocation"
+    severity: warning
+
+  - error: handoffNotFound
+    message: "handoff not found"
+    severity: warning
+
+  - error: handoffNotRequested
+    message: "handoff not in requested state"
+    severity: warning
+
+  - error: handoffNotActive
+    message: "handoff not active"
+    severity: warning
+
+  - error: badHandoffID
+    message: "bad handoff id"
+    severity: warning

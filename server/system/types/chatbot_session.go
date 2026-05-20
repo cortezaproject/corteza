@@ -1,23 +1,56 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
 	ChatbotSession struct {
-		ID           uint64     `json:"id,string"`
-		ChatbotID    uint64     `json:"chatbotID,string"`
-		Status       string     `json:"status"`
-		CurrentStep  int        `json:"currentStep"`
-		CreatedAt    time.Time  `json:"createdAt,omitempty"`
-		CreatedBy    uint64     `json:"createdBy,string"`
-		UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy    uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt    *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy    uint64     `json:"deletedBy,string,omitempty"`
+		ID          uint64              `json:"id,string"`
+		ChatbotID   uint64              `json:"chatbotID,string"`
+		Status      string              `json:"status"`
+		CurrentStep int                 `json:"currentStep"`
+		State       ChatbotSessionState `json:"state,omitempty"`
+		CreatedAt   time.Time           `json:"createdAt,omitempty"`
+		CreatedBy   uint64              `json:"createdBy,string"`
+		UpdatedAt   *time.Time          `json:"updatedAt,omitempty"`
+		UpdatedBy   uint64              `json:"updatedBy,string,omitempty"`
+		DeletedAt   *time.Time          `json:"deletedAt,omitempty"`
+		DeletedBy   uint64              `json:"deletedBy,string,omitempty"`
+	}
+
+	// ChatbotSessionState is per-scenario state for a session. Discriminated
+	// by Type — only the matching sub-field is populated. Stored as a JSON
+	// blob on the chatbot_sessions row.
+	ChatbotSessionState []ChatbotSessionStepState
+
+	ChatbotSessionStepState struct {
+		ScenarioID string `json:"scenarioID"`
+		Type       string `json:"type"`
+
+		Conversation *ChatbotConversationStepState `json:"conversation,omitempty"`
+		Form         *ChatbotFormStepState         `json:"form,omitempty"`
+	}
+
+	ChatbotConversationStepState struct {
+		ConversationID uint64                           `json:"conversationID,string,omitempty"`
+		History        []AiConversationMessage          `json:"history,omitempty"`
+		Handoff        *ChatbotConversationHandoffState `json:"handoff,omitempty"`
+	}
+
+	ChatbotConversationHandoffState struct {
+		OperatorID   uint64 `json:"operatorID,string,omitempty"`
+		OperatorName string `json:"operatorName,omitempty"`
+	}
+
+	ChatbotFormStepState struct {
+		Fields    map[string]string `json:"fields,omitempty"`
+		Submitted bool              `json:"submitted,omitempty"`
 	}
 
 	ChatbotSessionFilter struct {
@@ -93,3 +126,26 @@ type (
 		filter.Paging
 	}
 )
+
+func (s *ChatbotSessionState) Scan(src any) error          { return sql.ParseJSON(src, s) }
+func (s ChatbotSessionState) Value() (driver.Value, error) { return json.Marshal(s) }
+
+// ForScenario returns the existing per-scenario state entry, or nil.
+func (s ChatbotSessionState) ForScenario(scenarioID string) *ChatbotSessionStepState {
+	for i := range s {
+		if s[i].ScenarioID == scenarioID {
+			return &s[i]
+		}
+	}
+	return nil
+}
+
+// Upsert returns the entry for scenarioID, creating it (with the given type)
+// if missing. Returned pointer is valid for in-place mutation.
+func (s *ChatbotSessionState) Upsert(scenarioID, typ string) *ChatbotSessionStepState {
+	if e := s.ForScenario(scenarioID); e != nil {
+		return e
+	}
+	*s = append(*s, ChatbotSessionStepState{ScenarioID: scenarioID, Type: typ})
+	return &(*s)[len(*s)-1]
+}

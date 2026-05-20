@@ -1,14 +1,19 @@
 package service
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
 
+	pkgAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/agentic/observability"
+	"github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -49,11 +54,29 @@ type (
 	}
 
 	chatbotPreview struct {
-		mu    sync.Mutex
-		order []*ChatbotPreviewSession
-		byID  map[string]*ChatbotPreviewSession
-		cap   int
-		bus   *observability.Bus
+		mu      sync.Mutex
+		order   []*ChatbotPreviewSession
+		byID    map[string]*ChatbotPreviewSession
+		cap     int
+		bus     *observability.Bus
+		runtime previewAgenticRunner
+		agent   previewAgentLookup
+		conv    previewConvService
+		store   store.Storer
+	}
+
+	previewAgenticRunner interface {
+		Run(ctx context.Context, req *runtime.AgentRequest) (*runtime.AgentResponse, error)
+	}
+
+	previewAgentLookup interface {
+		FindByID(ctx context.Context, ID uint64) (*types.Agent, error)
+	}
+
+	previewConvService interface {
+		Create(ctx context.Context, new *types.AiConversation) (*types.AiConversation, error)
+		FindByID(ctx context.Context, ID uint64) (*types.AiConversation, error)
+		Update(ctx context.Context, upd *types.AiConversation) (*types.AiConversation, error)
 	}
 )
 
@@ -66,6 +89,214 @@ func ChatbotPreview() *chatbotPreview {
 		cap:  previewCap,
 		bus:  DefaultObsBus,
 	}
+}
+
+// WithDeps wires the agentic runtime, agent svc, conv svc and store. Called
+// once after all dependent services are constructed.
+func (s *chatbotPreview) WithDeps(rt previewAgenticRunner, ag previewAgentLookup, cv previewConvService, st store.Storer) *chatbotPreview {
+	s.runtime = rt
+	s.agent = ag
+	s.conv = cv
+	s.store = st
+	return s
+}
+
+// OpenWithConversation creates a fresh AiConversation under service identity
+// and opens a preview session bound to it.
+func (s *chatbotPreview) OpenWithConversation(ctx context.Context, cb types.Chatbot) (*ChatbotPreviewSession, *types.AiConversation, error) {
+	if len(cb.Scenarios) == 0 {
+		return nil, nil, ChatbotSessionErrChatbotNoScenarios()
+	}
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	conv, err := s.conv.Create(svcCtx, &types.AiConversation{})
+	if err != nil {
+		return nil, nil, err
+	}
+	ps := s.Open(cb, conv.ID)
+	return ps, conv, nil
+}
+
+// Start is idempotent: starts step 0 only if no step has been started yet.
+func (s *chatbotPreview) Start(ps *ChatbotPreviewSession) {
+	if s.CurrentStep(ps) == nil {
+		s.StartStep(ps, 0)
+	}
+}
+
+// SubmitMessage handles a user message turn. Returns typed errors for state
+// mismatches; runtime execution is fire-and-forget via SSE.
+func (s *chatbotPreview) SubmitMessage(ctx context.Context, ps *ChatbotPreviewSession, input string) error {
+	switch ps.Status {
+	case "handoff_requested", "handoff_active":
+		s.appendUserMessage(ps, input)
+		s.EmitUserMessage(ps, input)
+		return nil
+	case "active":
+		// fall through
+	default:
+		return ChatbotSessionErrSessionNotActive()
+	}
+
+	step := s.CurrentStep(ps)
+	if step == nil {
+		return ChatbotSessionErrNoActiveStep()
+	}
+	scenario := s.scenarioAt(ps, step.ScenarioIndex)
+	if scenario == nil {
+		return ChatbotSessionErrScenarioOutOfRange()
+	}
+	if scenario.Type != "conversation" || scenario.AgentID == 0 {
+		return ChatbotSessionErrScenarioNotMessage()
+	}
+
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	agent, err := s.agent.FindByID(svcCtx, scenario.AgentID)
+	if err != nil || agent == nil {
+		return ChatbotSessionErrAgentUnavailable()
+	}
+	if !agent.Invocation.System.Enabled || agent.Invocation.System.ServiceAccount == 0 {
+		return ChatbotSessionErrAgentNotConfigured()
+	}
+
+	if conv, err := s.conv.FindByID(svcCtx, ps.ConversationID); err == nil && conv != nil && conv.AgentID == 0 {
+		conv.AgentID = agent.ID
+		_, _ = s.conv.Update(svcCtx, conv)
+	}
+
+	saCtx := ImpersonateServiceAccount(context.Background(), s.store, agent.Invocation.System.ServiceAccount)
+	cid := ps.ConversationID
+	agentID := agent.ID
+	go func() {
+		resp, err := s.runtime.Run(saCtx, &runtime.AgentRequest{
+			AgentID:        agentID,
+			Input:          input,
+			ConversationID: cid,
+		})
+		if err != nil {
+			s.emit(cid, "agent_error", map[string]any{"error": err.Error()})
+		} else if resp != nil && resp.Output != "" {
+			s.emit(cid, "token", map[string]any{"text": resp.Output})
+		}
+		s.emit(cid, "done", map[string]any{})
+	}()
+	return nil
+}
+
+// SubmitForm validates and processes a form scenario submission. The first
+// return is per-field validation errors (non-empty means the form was rejected
+// without state change); the second is any unexpected error.
+func (s *chatbotPreview) SubmitForm(ctx context.Context, ps *ChatbotPreviewSession, fields map[string]string) (map[string]string, error) {
+	if ps.Status != "active" {
+		return nil, ChatbotSessionErrSessionNotActive()
+	}
+	step := s.CurrentStep(ps)
+	if step == nil {
+		return nil, ChatbotSessionErrNoActiveStep()
+	}
+	scenario := s.scenarioAt(ps, step.ScenarioIndex)
+	if scenario == nil {
+		return nil, ChatbotSessionErrScenarioOutOfRange()
+	}
+	if scenario.Type != "form" {
+		return nil, ChatbotSessionErrScenarioNotForm()
+	}
+
+	errs := ValidateChatbotFormFields(scenario.Config, fields)
+	if len(errs) > 0 {
+		s.EmitFormError(ps, scenario.ID, errs)
+		return errs, nil
+	}
+
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	s.appendConvMessage(svcCtx, ps.ConversationID, types.AiConversationMessage{
+		Role:    "user",
+		Content: EncodeChatbotFormSubmission(fields),
+	})
+
+	s.FinalizeStep(ps)
+	s.StartStep(ps, step.ScenarioIndex+1)
+	return nil, nil
+}
+
+// AdvanceStep finalizes the current step and starts the next. Closes any
+// open handoff first.
+func (s *chatbotPreview) AdvanceStep(ps *ChatbotPreviewSession) error {
+	if ps.Handoff != nil && ps.Handoff.Status != "closed" {
+		s.CloseHandoff(ps)
+	}
+	step := s.CurrentStep(ps)
+	if step == nil {
+		return ChatbotSessionErrNoActiveStep()
+	}
+	s.FinalizeStep(ps)
+	s.StartStep(ps, step.ScenarioIndex+1)
+	return nil
+}
+
+// CloseSession finalizes any active step and closes the session.
+func (s *chatbotPreview) CloseSession(ps *ChatbotPreviewSession) error {
+	if step := s.CurrentStep(ps); step != nil {
+		s.FinalizeStep(ps)
+	}
+	s.Close(ps, "")
+	return nil
+}
+
+// AcceptHandoff activates a requested handoff. Idempotent if already active.
+func (s *chatbotPreview) AcceptHandoff(ps *ChatbotPreviewSession, operator string) error {
+	if ps.Handoff == nil {
+		return ChatbotSessionErrHandoffNotFound()
+	}
+	if ps.Handoff.Status == "active" {
+		return nil
+	}
+	if ps.Handoff.Status != "requested" {
+		return ChatbotSessionErrHandoffNotRequested()
+	}
+	s.ActivateHandoff(ps, operator)
+	return nil
+}
+
+// SendOperatorMessage persists an operator message into the conversation and
+// emits operator_message. Requires the handoff to be active.
+func (s *chatbotPreview) SendOperatorMessage(ctx context.Context, ps *ChatbotPreviewSession, msg, operator string) error {
+	if ps.Handoff == nil || ps.Handoff.Status != "active" {
+		return ChatbotSessionErrHandoffNotActive()
+	}
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	s.appendConvMessage(svcCtx, ps.ConversationID, types.AiConversationMessage{
+		Role:    "assistant",
+		Content: "[operator] " + msg,
+	})
+	s.EmitOperatorMessage(ps, msg, operator)
+	return nil
+}
+
+func (s *chatbotPreview) scenarioAt(ps *ChatbotPreviewSession, idx int) *types.ChatbotScenario {
+	if idx < 0 || idx >= len(ps.Chatbot.Scenarios) {
+		return nil
+	}
+	return &ps.Chatbot.Scenarios[idx]
+}
+
+func (s *chatbotPreview) appendConvMessage(ctx context.Context, convID uint64, msg types.AiConversationMessage) {
+	if s.conv == nil {
+		return
+	}
+	conv, err := s.conv.FindByID(ctx, convID)
+	if err != nil || conv == nil {
+		return
+	}
+	conv.Messages = append(conv.Messages, msg)
+	_, _ = s.conv.Update(ctx, conv)
+}
+
+func (s *chatbotPreview) appendUserMessage(ps *ChatbotPreviewSession, content string) {
+	svcCtx := pkgAuth.SetIdentityToContext(context.Background(), pkgAuth.ServiceUser())
+	s.appendConvMessage(svcCtx, ps.ConversationID, types.AiConversationMessage{
+		Role:    "user",
+		Content: content,
+	})
 }
 
 // Open allocates a new preview session. The Chatbot snapshot is taken by
@@ -110,6 +341,37 @@ func (s *chatbotPreview) Find(id string) *ChatbotPreviewSession {
 	}
 	ps.LastSeen = time.Now()
 	return ps
+}
+
+// List returns preview sessions filtered by chatbotID (0 = all) and status
+// (nil/empty = all). Result ordered by CreatedAt desc.
+func (s *chatbotPreview) List(chatbotID uint64, status []string) []*ChatbotPreviewSession {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	out := make([]*ChatbotPreviewSession, 0, len(s.order))
+	for _, ps := range s.order {
+		if chatbotID != 0 && ps.Chatbot.ID != chatbotID {
+			continue
+		}
+		if len(status) > 0 {
+			matched := false
+			for _, st := range status {
+				if ps.Status == st {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				continue
+			}
+		}
+		out = append(out, ps)
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		return out[i].CreatedAt.After(out[j].CreatedAt)
+	})
+	return out
 }
 
 // StartStep records the active step, logs any automation hook that *would*

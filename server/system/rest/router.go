@@ -63,9 +63,13 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewKnowledgeBase(KnowledgeBase{}.New()).MountRoutes(r)
 			handlers.NewChatbot(Chatbot{}.New()).MountRoutes(r)
 
+			handlers.NewChatbotSession(ChatbotSession{}.New()).MountRoutes(r)
+
 			// Admin-authed chatbot preview API. Mirrors /api/widget/v1 but
 			// uses an in-memory FIFO store of inline chatbot configs so
 			// drafts can be exercised without persisting.
+			//
+			// @todo can/should we pipe this via our standard approach instead?
 			NewChatbotPreviewController().MountRoutes(r)
 
 			// Admin-authed handoff/operator API for DB-backed chatbot

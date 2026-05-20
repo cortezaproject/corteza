@@ -315,6 +315,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		log.Info("no guard provider configured")
 	}
 
+	// Wire preview service deps now that runtime + agent + conv are constructed.
+	DefaultChatbotPreview.WithDeps(DefaultAgenticRuntime, DefaultAgent, DefaultAiConversation, DefaultStore)
+	DefaultChatbotSession.WithDeps(DefaultObsBus, DefaultAgenticRuntime, DefaultAgent, DefaultAiConversation)
+
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()

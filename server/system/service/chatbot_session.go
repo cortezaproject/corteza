@@ -13,6 +13,8 @@ import (
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/agentic/observability"
+	"github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -21,6 +23,13 @@ type (
 		actionlog actionlog.Recorder
 		store     store.Storer
 		ac        chatbotSessionAccessController
+
+		// Orchestration deps; wired post-init via WithDeps. nil-safe — methods
+		// that need them no-op or error when unset.
+		bus     *observability.Bus
+		runtime previewAgenticRunner
+		agent   previewAgentLookup
+		conv    previewConvService
 	}
 
 	chatbotSessionAccessController interface {
@@ -510,6 +519,489 @@ func (svc *chatbotSession) invokeAutomation(ctx context.Context, resourceID stri
 		Input: vars,
 	})
 	return err
+}
+
+// WithDeps wires orchestration deps (bus, runtime, agent svc, conv svc).
+// Called once post-init from service.Initialize.
+func (svc *chatbotSession) WithDeps(bus *observability.Bus, rt previewAgenticRunner, ag previewAgentLookup, cv previewConvService) *chatbotSession {
+	svc.bus = bus
+	svc.runtime = rt
+	svc.agent = ag
+	svc.conv = cv
+	return svc
+}
+
+// Open validates the chatbot has scenarios, creates a fresh AiConversation
+// and ChatbotSession in "active" state. JWT mint stays in REST.
+func (svc *chatbotSession) Open(ctx context.Context, cb *types.Chatbot) (*types.ChatbotSession, *types.AiConversation, error) {
+	if cb == nil || len(cb.Scenarios) == 0 {
+		return nil, nil, ChatbotSessionErrChatbotNoScenarios()
+	}
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	conv, err := svc.conv.Create(svcCtx, &types.AiConversation{})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	session, err := svc.Create(svcCtx, &types.ChatbotSession{
+		ChatbotID: cb.ID,
+		Status:    "active",
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return session, conv, nil
+}
+
+// Start runs the scenario's before-automation, persists the new step row, and
+// broadcasts step_start. If the index is beyond the last scenario, emits
+// session_closed instead.
+func (svc *chatbotSession) Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int, vars *expr.Vars) {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	if scenarioIndex >= len(cb.Scenarios) {
+		_ = svc.UpdateStatus(svcCtx, sessionID, "closed")
+		svc.emit(convID, "session_closed", map[string]any{})
+		return
+	}
+
+	scenario := &cb.Scenarios[scenarioIndex]
+	step, err := svc.StartStep(svcCtx, sessionID, scenario, convID, scenarioIndex, vars)
+	if err != nil {
+		svc.emit(convID, "step_error", map[string]any{
+			"scenarioID":    scenario.ID,
+			"scenarioIndex": scenarioIndex,
+			"phase":         "before",
+			"error":         err.Error(),
+		})
+		return
+	}
+
+	svc.stateInit(svcCtx, sessionID, scenario.ID, scenario.Type, convID)
+
+	svc.emit(convID, "step_start", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": scenarioIndex,
+		"type":          scenario.Type,
+		"config":        ChatbotScenarioConfig(scenario),
+		"stepID":        strconv.FormatUint(step.ID, 10),
+	})
+}
+
+// SubmitMessage handles a user message turn for a persisted widget session.
+// Active session → agent runtime; handoff_active/requested → bypass agent.
+func (svc *chatbotSession) SubmitMessage(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, input string) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	session, err := svc.FindByID(svcCtx, sessionID)
+	if err != nil || session == nil {
+		return ChatbotSessionErrSessionNotFound()
+	}
+
+	switch session.Status {
+	case "handoff_requested", "handoff_active":
+		msg := types.AiConversationMessage{Role: "user", Content: input}
+		svc.appendConversationMessage(svcCtx, convID, msg)
+		if sid := svc.scenarioIDForActiveStep(svcCtx, cb, sessionID); sid != "" {
+			svc.stateAppendHistory(svcCtx, sessionID, sid, msg)
+		}
+		svc.emit(convID, "user_message", map[string]any{"content": input})
+		return nil
+	case "active":
+		// fall through
+	default:
+		return ChatbotSessionErrSessionNotActive()
+	}
+
+	step, err := svc.FindStepBySession(svcCtx, sessionID)
+	if err != nil || step == nil {
+		return ChatbotSessionErrNoActiveStep()
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		return ChatbotSessionErrScenarioOutOfRange()
+	}
+	scenario := &cb.Scenarios[step.ScenarioIndex]
+	if scenario.Type != "conversation" || scenario.AgentID == 0 {
+		return ChatbotSessionErrScenarioNotMessage()
+	}
+
+	agent, err := svc.resolveAgent(ctx, scenario.AgentID)
+	if err != nil || agent == nil {
+		return ChatbotSessionErrAgentUnavailable()
+	}
+	if !agent.Invocation.System.Enabled || agent.Invocation.System.ServiceAccount == 0 {
+		return ChatbotSessionErrAgentNotConfigured()
+	}
+
+	if conv, err := store.LookupAiConversationByID(svcCtx, svc.store, convID); err == nil && conv != nil && conv.AgentID == 0 {
+		conv.AgentID = agent.ID
+		_ = store.UpdateAiConversation(svcCtx, svc.store, conv)
+	}
+
+	svc.stateAppendHistory(svcCtx, sessionID, scenario.ID, types.AiConversationMessage{
+		Role:    "user",
+		Content: input,
+	})
+
+	saCtx := ImpersonateServiceAccount(context.Background(), svc.store, agent.Invocation.System.ServiceAccount)
+	agentID := agent.ID
+	scenarioID := scenario.ID
+	go func() {
+		resp, err := svc.runtime.Run(saCtx, &runtime.AgentRequest{
+			AgentID:        agentID,
+			Input:          input,
+			ConversationID: convID,
+		})
+		if err != nil {
+			svc.emit(convID, "agent_error", map[string]any{"error": err.Error()})
+		} else if resp != nil && resp.Output != "" {
+			svc.stateAppendHistory(saCtx, sessionID, scenarioID, types.AiConversationMessage{
+				Role:    "assistant",
+				Content: resp.Output,
+			})
+			svc.emit(convID, "token", map[string]any{"text": resp.Output})
+		}
+		svc.emit(convID, "done", map[string]any{})
+	}()
+	return nil
+}
+
+// SubmitForm validates and processes a form scenario submission. Non-empty
+// returned errors map signals rejected input without state change.
+func (svc *chatbotSession) SubmitForm(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, fields map[string]string) (map[string]string, error) {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	session, err := svc.FindByID(svcCtx, sessionID)
+	if err != nil || session == nil {
+		return nil, ChatbotSessionErrSessionNotFound()
+	}
+	if session.Status != "active" {
+		return nil, ChatbotSessionErrSessionNotActive()
+	}
+
+	step, err := svc.FindStepBySession(svcCtx, sessionID)
+	if err != nil || step == nil {
+		return nil, ChatbotSessionErrNoActiveStep()
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		return nil, ChatbotSessionErrScenarioOutOfRange()
+	}
+	scenario := &cb.Scenarios[step.ScenarioIndex]
+	if scenario.Type != "form" {
+		return nil, ChatbotSessionErrScenarioNotForm()
+	}
+
+	errs := ValidateChatbotFormFields(scenario.Config, fields)
+	if len(errs) > 0 {
+		svc.emit(convID, "form_error", map[string]any{
+			"scenarioID": scenario.ID,
+			"errors":     errs,
+		})
+		return errs, nil
+	}
+
+	msg := types.AiConversationMessage{
+		Role:    "user",
+		Content: EncodeChatbotFormSubmission(fields),
+	}
+	svc.appendConversationMessage(svcCtx, convID, msg)
+	svc.stateRecordFormSubmit(svcCtx, sessionID, scenario.ID, fields)
+
+	vars := ChatbotVarsFromMap(fields)
+	if err := svc.FinalizeStep(svcCtx, step.ID, scenario, vars); err != nil {
+		return nil, err
+	}
+	svc.emit(convID, "step_complete", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": step.ScenarioIndex,
+	})
+
+	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1, vars)
+	return nil, nil
+}
+
+// AdvanceStep finalizes the current step (after-automation) and starts the
+// next scenario. Closes any open handoff first.
+func (svc *chatbotSession) AdvanceStep(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	if h, _ := svc.FindHandoffBySession(svcCtx, sessionID); h != nil && h.ClosedAt == nil {
+		_ = svc.CloseHandoff(svcCtx, h.ID)
+		svc.emit(convID, "handoff_complete", map[string]any{
+			"handoffID": strconv.FormatUint(h.ID, 10),
+		})
+	}
+
+	step, err := svc.FindStepBySession(svcCtx, sessionID)
+	if err != nil || step == nil {
+		return ChatbotSessionErrNoActiveStep()
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		return ChatbotSessionErrScenarioOutOfRange()
+	}
+	scenario := &cb.Scenarios[step.ScenarioIndex]
+
+	if err := svc.FinalizeStep(svcCtx, step.ID, scenario, nil); err != nil {
+		return err
+	}
+	svc.emit(convID, "step_complete", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": step.ScenarioIndex,
+	})
+
+	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1, nil)
+	return nil
+}
+
+// CloseSession finalizes the current step (if any) and marks the session closed.
+func (svc *chatbotSession) CloseSession(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	if step, err := svc.FindStepBySession(svcCtx, sessionID); err == nil && step != nil {
+		if step.ScenarioIndex >= 0 && step.ScenarioIndex < len(cb.Scenarios) {
+			scenario := &cb.Scenarios[step.ScenarioIndex]
+			_ = svc.FinalizeStep(svcCtx, step.ID, scenario, nil)
+			svc.emit(convID, "step_complete", map[string]any{
+				"scenarioID":    scenario.ID,
+				"scenarioIndex": step.ScenarioIndex,
+			})
+		}
+	}
+
+	if err := svc.UpdateStatus(svcCtx, sessionID, "closed"); err != nil {
+		return err
+	}
+	svc.emit(convID, "session_closed", map[string]any{})
+	return nil
+}
+
+// AcceptHandoffByID activates a requested handoff and emits handoff_active.
+// Idempotent when already active. operatorID/operatorName are recorded on
+// the per-scenario session State for the active conversation step.
+func (svc *chatbotSession) AcceptHandoffByID(ctx context.Context, cb *types.Chatbot, sessionID, convID, handoffID uint64, operatorID uint64, operatorName string) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	h, err := svc.FindHandoffByID(svcCtx, handoffID)
+	if err != nil || h == nil {
+		return ChatbotSessionErrHandoffNotFound()
+	}
+	if h.Status == "active" {
+		return nil
+	}
+	if h.Status != "requested" {
+		return ChatbotSessionErrHandoffNotRequested()
+	}
+	if err := svc.ActivateHandoff(svcCtx, handoffID); err != nil {
+		return err
+	}
+
+	if cb != nil {
+		if sid := svc.scenarioIDForActiveStep(svcCtx, cb, sessionID); sid != "" {
+			svc.stateRecordHandoffOperator(svcCtx, sessionID, sid, operatorID, operatorName)
+		}
+	}
+
+	svc.emit(convID, "handoff_active", map[string]any{
+		"handoffID":    strconv.FormatUint(handoffID, 10),
+		"operatorID":   strconv.FormatUint(operatorID, 10),
+		"operatorName": operatorName,
+	})
+	return nil
+}
+
+// SendOperatorMessage persists an operator message and emits operator_message.
+// Requires the handoff to be active.
+func (svc *chatbotSession) SendOperatorMessage(ctx context.Context, cb *types.Chatbot, sessionID, convID, handoffID uint64, msg, operator string) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	h, err := svc.FindHandoffByID(svcCtx, handoffID)
+	if err != nil || h == nil {
+		return ChatbotSessionErrHandoffNotFound()
+	}
+	if h.Status != "active" {
+		return ChatbotSessionErrHandoffNotActive()
+	}
+
+	m := types.AiConversationMessage{
+		Role:    "assistant",
+		Content: "[operator] " + msg,
+	}
+	svc.appendConversationMessage(svcCtx, convID, m)
+	if cb != nil {
+		if sid := svc.scenarioIDForActiveStep(svcCtx, cb, sessionID); sid != "" {
+			svc.stateAppendHistory(svcCtx, sessionID, sid, m)
+		}
+	}
+	svc.emit(convID, "operator_message", map[string]any{
+		"content":  msg,
+		"operator": operator,
+	})
+	return nil
+}
+
+// RequestHandoffPublic wraps RequestHandoff and emits handoff_requested for
+// widget-driven flows.
+func (svc *chatbotSession) RequestHandoffPublic(ctx context.Context, sessionID, convID uint64, reason string) (*types.ChatbotSessionHandoff, error) {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	step, err := svc.FindStepBySession(svcCtx, sessionID)
+	if err != nil || step == nil {
+		return nil, ChatbotSessionErrNoActiveStep()
+	}
+
+	h, err := svc.RequestHandoff(svcCtx, sessionID, step.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.emit(convID, "handoff_requested", map[string]any{
+		"handoffID": strconv.FormatUint(h.ID, 10),
+		"reason":    reason,
+	})
+	return h, nil
+}
+
+// CloseHandoffPublic wraps CloseHandoff with the operator_message-style emission.
+func (svc *chatbotSession) CloseHandoffPublic(ctx context.Context, convID, handoffID uint64) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	if err := svc.CloseHandoff(svcCtx, handoffID); err != nil {
+		return err
+	}
+	svc.emit(convID, "handoff_complete", map[string]any{
+		"handoffID": strconv.FormatUint(handoffID, 10),
+	})
+	return nil
+}
+
+// emit broadcasts an SSE event for the conversation. No-op when bus is nil.
+func (svc *chatbotSession) emit(convID uint64, name string, details map[string]any) {
+	if svc.bus == nil {
+		return
+	}
+	svc.bus.EmitEvent(observability.AgentEvent{
+		ConversationID: strconv.FormatUint(convID, 10),
+		Event:          name,
+		Details:        details,
+	})
+}
+
+// appendConversationMessage appends a message to the AiConversation. Best-effort.
+func (svc *chatbotSession) appendConversationMessage(ctx context.Context, convID uint64, msg types.AiConversationMessage) {
+	conv, err := store.LookupAiConversationByID(ctx, svc.store, convID)
+	if err != nil || conv == nil {
+		return
+	}
+	conv.Messages = append(conv.Messages, msg)
+	_ = store.UpdateAiConversation(ctx, svc.store, conv)
+}
+
+// scenarioIDForActiveStep returns the scenario ID of the active step for a
+// session, or "" if it cannot be resolved. Used to key State writes.
+func (svc *chatbotSession) scenarioIDForActiveStep(ctx context.Context, cb *types.Chatbot, sessionID uint64) string {
+	step, err := svc.FindStepBySession(ctx, sessionID)
+	if err != nil || step == nil {
+		return ""
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		return ""
+	}
+	return cb.Scenarios[step.ScenarioIndex].ID
+}
+
+// stateInit ensures a per-scenario state entry exists and seeds the typed
+// sub-struct. Idempotent — re-running on an existing entry leaves data intact.
+func (svc *chatbotSession) stateInit(ctx context.Context, sessionID uint64, scenarioID, scenarioType string, convID uint64) {
+	if sessionID == 0 || scenarioID == "" {
+		return
+	}
+	session, err := svc.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return
+	}
+	entry := session.State.Upsert(scenarioID, scenarioType)
+	switch scenarioType {
+	case "conversation":
+		if entry.Conversation == nil {
+			entry.Conversation = &types.ChatbotConversationStepState{ConversationID: convID}
+		} else if entry.Conversation.ConversationID == 0 {
+			entry.Conversation.ConversationID = convID
+		}
+	case "form":
+		if entry.Form == nil {
+			entry.Form = &types.ChatbotFormStepState{}
+		}
+	}
+	_ = store.UpdateChatbotSession(ctx, svc.store, session)
+}
+
+// stateAppendHistory mirrors a conversation message into the per-scenario
+// State.Conversation.History. Best-effort.
+func (svc *chatbotSession) stateAppendHistory(ctx context.Context, sessionID uint64, scenarioID string, msg types.AiConversationMessage) {
+	if sessionID == 0 || scenarioID == "" {
+		return
+	}
+	session, err := svc.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return
+	}
+	entry := session.State.ForScenario(scenarioID)
+	if entry == nil {
+		return
+	}
+	if entry.Conversation == nil {
+		entry.Conversation = &types.ChatbotConversationStepState{}
+	}
+	entry.Conversation.History = append(entry.Conversation.History, msg)
+	_ = store.UpdateChatbotSession(ctx, svc.store, session)
+}
+
+// stateRecordFormSubmit persists submitted form fields into per-scenario state.
+func (svc *chatbotSession) stateRecordFormSubmit(ctx context.Context, sessionID uint64, scenarioID string, fields map[string]string) {
+	if sessionID == 0 || scenarioID == "" {
+		return
+	}
+	session, err := svc.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return
+	}
+	entry := session.State.Upsert(scenarioID, "form")
+	if entry.Form == nil {
+		entry.Form = &types.ChatbotFormStepState{}
+	}
+	entry.Form.Fields = fields
+	entry.Form.Submitted = true
+	_ = store.UpdateChatbotSession(ctx, svc.store, session)
+}
+
+// stateRecordHandoffOperator stores operator identity on the active
+// conversation step's handoff state. No-op if no active conversation entry.
+func (svc *chatbotSession) stateRecordHandoffOperator(ctx context.Context, sessionID uint64, scenarioID string, operatorID uint64, operatorName string) {
+	if sessionID == 0 || scenarioID == "" {
+		return
+	}
+	session, err := svc.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return
+	}
+	entry := session.State.ForScenario(scenarioID)
+	if entry == nil || entry.Conversation == nil {
+		return
+	}
+	entry.Conversation.Handoff = &types.ChatbotConversationHandoffState{
+		OperatorID:   operatorID,
+		OperatorName: operatorName,
+	}
+	_ = store.UpdateChatbotSession(ctx, svc.store, session)
+}
+
+// resolveAgent loads an Agent by ID under service identity.
+func (svc *chatbotSession) resolveAgent(ctx context.Context, agentID uint64) (*types.Agent, error) {
+	if agentID == 0 {
+		return nil, ChatbotSessionErrAgentUnavailable()
+	}
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	return store.LookupAgentByID(svcCtx, svc.store, agentID)
 }
 
 // loadChatbotSession loads a ChatbotSession by ID for RBAC checks.

@@ -20,7 +20,11 @@ type (
     // Internal API interface
     {{ export $.Endpoint.Entrypoint }}API interface {
     {{- range $a := $.Endpoint.Apis }}
+        {{- if $a.Raw }}
+        {{ export $a.Name }}(http.ResponseWriter, *http.Request)
+        {{- else }}
         {{ export $a.Name }}(context.Context, *request.{{ export $.Endpoint.Entrypoint $a.Name }}) (interface{}, error)
+        {{- end }}
     {{- end }}
     }
 
@@ -35,6 +39,9 @@ type (
 func {{ export "New" $.Endpoint.Entrypoint }}(h {{ export $.Endpoint.Entrypoint }}API) *{{ export $.Endpoint.Entrypoint }} {
 	return &{{ export $.Endpoint.Entrypoint }}{
     {{- range $a := .Endpoint.Apis }}
+        {{- if $a.Raw }}
+		{{ export $a.Name }}: h.{{ export $a.Name }},
+        {{- else }}
 		{{ export $a.Name }}: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.New{{ export $.Endpoint.Entrypoint $a.Name }}()
@@ -51,6 +58,7 @@ func {{ export "New" $.Endpoint.Entrypoint }}(h {{ export $.Endpoint.Entrypoint 
 
 			api.Send(w, r, value)
 		},
+        {{- end }}
     {{- end }}
 	}
 }

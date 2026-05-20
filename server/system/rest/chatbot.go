@@ -16,7 +16,6 @@ import (
 type (
 	Chatbot struct {
 		svc        chatbotService
-		sessionSvc chatbotSessionService
 		attachment service.AttachmentService
 		ac         chatbotAccessController
 	}
@@ -34,11 +33,6 @@ type (
 		Set    []*chatbotPayload   `json:"set"`
 	}
 
-	chatbotSessionPayload struct {
-		Filter types.ChatbotSessionFilter `json:"filter"`
-		Set    []*types.ChatbotSession    `json:"set"`
-	}
-
 	chatbotService interface {
 		FindByID(ctx context.Context, ID uint64) (c *types.Chatbot, err error)
 		Create(ctx context.Context, new *types.Chatbot) (c *types.Chatbot, err error)
@@ -47,12 +41,6 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) (err error)
 		Search(ctx context.Context, filter types.ChatbotFilter) (set types.ChatbotSet, f types.ChatbotFilter, err error)
 		RegenerateWidgetKey(ctx context.Context, ID uint64) (c *types.Chatbot, err error)
-	}
-
-	chatbotSessionService interface {
-		Search(ctx context.Context, f types.ChatbotSessionFilter) (types.ChatbotSessionSet, types.ChatbotSessionFilter, error)
-		FindByID(ctx context.Context, ID uint64) (*types.ChatbotSession, error)
-		FindStepsBySession(ctx context.Context, sessionID uint64) (types.ChatbotSessionStepSet, error)
 	}
 
 	chatbotAccessController interface {
@@ -67,7 +55,6 @@ type (
 func (Chatbot) New() *Chatbot {
 	return &Chatbot{
 		svc:        service.DefaultChatbot,
-		sessionSvc: service.ChatbotSession(),
 		attachment: service.DefaultAttachment,
 		ac:         service.DefaultAccessControl,
 	}
@@ -245,64 +232,3 @@ func (ctrl *Chatbot) makeFilterPayload(ctx context.Context, nn types.ChatbotSet,
 	return msp, nil
 }
 
-func (ctrl *Chatbot) SessionList(ctx context.Context, r *request.ChatbotSessionList) (interface{}, error) {
-	var (
-		err error
-		f   = types.ChatbotSessionFilter{
-			ChatbotID: r.ChatbotID,
-			Status:    r.Status,
-		}
-	)
-
-	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
-	}
-	f.IncTotal = r.IncTotal
-
-	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
-	}
-
-	set, f, err := ctrl.sessionSvc.Search(ctx, f)
-	if err != nil {
-		return nil, err
-	}
-	return &chatbotSessionPayload{Filter: f, Set: set}, nil
-}
-
-func (ctrl *Chatbot) SessionListByChatbot(ctx context.Context, r *request.ChatbotSessionListByChatbot) (interface{}, error) {
-	var (
-		err error
-		f   = types.ChatbotSessionFilter{
-			ChatbotID: r.ChatbotID,
-			Status:    r.Status,
-		}
-	)
-
-	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
-	}
-	f.IncTotal = r.IncTotal
-
-	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
-	}
-
-	set, f, err := ctrl.sessionSvc.Search(ctx, f)
-	if err != nil {
-		return nil, err
-	}
-	return &chatbotSessionPayload{Filter: f, Set: set}, nil
-}
-
-func (ctrl *Chatbot) SessionRead(ctx context.Context, r *request.ChatbotSessionRead) (interface{}, error) {
-	session, err := ctrl.sessionSvc.FindByID(ctx, r.SessionID)
-	if err != nil {
-		return nil, err
-	}
-	steps, err := ctrl.sessionSvc.FindStepsBySession(ctx, r.SessionID)
-	if err != nil {
-		return nil, err
-	}
-	return map[string]interface{}{"session": session, "steps": steps}, nil
-}

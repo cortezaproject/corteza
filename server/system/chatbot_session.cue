@@ -31,6 +31,12 @@ chatbot_session: {
 				storeIdent: "current_step"
 				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
+			state: {
+				goType: "types.ChatbotSessionState"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

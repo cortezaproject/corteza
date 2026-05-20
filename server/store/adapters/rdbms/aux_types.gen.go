@@ -290,16 +290,17 @@ type (
 
 	// auxChatbotSession is an auxiliary structure used for transporting to/from RDBMS store
 	auxChatbotSession struct {
-		ID          uint64     `db:"id"`
-		ChatbotID   uint64     `db:"chatbot_id"`
-		Status      string     `db:"status"`
-		CurrentStep int        `db:"current_step"`
-		CreatedAt   time.Time  `db:"created_at"`
-		UpdatedAt   *time.Time `db:"updated_at"`
-		DeletedAt   *time.Time `db:"deleted_at"`
-		CreatedBy   uint64     `db:"created_by"`
-		UpdatedBy   uint64     `db:"updated_by"`
-		DeletedBy   uint64     `db:"deleted_by"`
+		ID          uint64                         `db:"id"`
+		ChatbotID   uint64                         `db:"chatbot_id"`
+		Status      string                         `db:"status"`
+		CurrentStep int                            `db:"current_step"`
+		State       systemType.ChatbotSessionState `db:"state"`
+		CreatedAt   time.Time                      `db:"created_at"`
+		UpdatedAt   *time.Time                     `db:"updated_at"`
+		DeletedAt   *time.Time                     `db:"deleted_at"`
+		CreatedBy   uint64                         `db:"created_by"`
+		UpdatedBy   uint64                         `db:"updated_by"`
+		DeletedBy   uint64                         `db:"deleted_by"`
 	}
 
 	// auxChatbotSessionHandoff is an auxiliary structure used for transporting to/from RDBMS store
@@ -1850,6 +1851,7 @@ func (aux *auxChatbotSession) encode(res *systemType.ChatbotSession) (_ error) {
 	aux.ChatbotID = res.ChatbotID
 	aux.Status = res.Status
 	aux.CurrentStep = res.CurrentStep
+	aux.State = res.State
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -1868,6 +1870,7 @@ func (aux auxChatbotSession) decode() (res *systemType.ChatbotSession, _ error) 
 	res.ChatbotID = aux.ChatbotID
 	res.Status = aux.Status
 	res.CurrentStep = aux.CurrentStep
+	res.State = aux.State
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -1886,6 +1889,7 @@ func (aux *auxChatbotSession) scan(row scanner) error {
 		&aux.ChatbotID,
 		&aux.Status,
 		&aux.CurrentStep,
+		&aux.State,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

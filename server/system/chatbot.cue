@@ -95,9 +95,12 @@ chatbot: {
 
 	rbac: {
 		operations: {
-			read: description:   "Read chatbot"
-			update: description: "Update chatbot"
-			delete: description: "Delete chatbot"
+			read: description:                      "Read chatbot"
+			update: description:                    "Update chatbot"
+			delete: description:                    "Delete chatbot"
+			"sessions.view": description:           "View chatbot sessions"
+			"sessions.manage": description:         "Manage chatbot sessions (advance, close)"
+			"sessions.handoff.manage": description: "Manage chatbot session handoffs"
 		}
 	}
 

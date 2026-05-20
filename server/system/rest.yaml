@@ -3913,35 +3913,77 @@ endpoints:
             - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
           post:
             - { type: '*multipart.FileHeader', name: upload, title: Asset file to upload }
-      - name: sessionList
+
+  - title: Chatbot sessions
+    path: '/chatbots/sessions'
+    entrypoint: chatbotSession
+    authentication: []
+    apis:
+      - name: list
         method: GET
-        title: List chatbot sessions
-        path: '/sessions'
+        title: List sessions (widget + preview, aggregated)
+        path: '/'
         parameters:
           get:
             - { type: uint64, name: chatbotID, title: Filter by chatbot ID }
             - { type: '[]string', name: status, title: Filter by status }
+            - { type: string, name: source, title: 'Filter by source (widget|preview)' }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
             - { type: string, name: pageCursor, title: Page cursor }
             - { type: string, name: sort, title: Sort items }
-      - name: sessionListByChatbot
-        method: GET
-        title: List sessions for chatbot
-        path: '/{chatbotID}/sessions'
-        parameters:
-          path:
-            - { type: uint64, name: chatbotID, required: true, title: Chatbot ID }
-          get:
-            - { type: '[]string', name: status, title: Filter by status }
-            - { type: uint, name: limit, title: Limit }
-            - { type: bool, name: incTotal, title: Include total counter }
-            - { type: string, name: pageCursor, title: Page cursor }
-            - { type: string, name: sort, title: Sort items }
-      - name: sessionRead
+      - name: read
         method: GET
         title: Read session with steps
-        path: '/sessions/{sessionID}'
+        path: '/{sessionID}'
         parameters:
           path:
-            - { type: uint64, name: sessionID, required: true, title: Session ID }
+            - { type: string, name: sessionID, required: true, title: Session ID }
+      - name: advanceStep
+        method: POST
+        title: Force-advance session step (admin)
+        path: '/{sessionID}/advance-step'
+        parameters:
+          path:
+            - { type: string, name: sessionID, required: true, title: Session ID }
+      - name: close
+        method: POST
+        title: Close session (admin)
+        path: '/{sessionID}/close'
+        parameters:
+          path:
+            - { type: string, name: sessionID, required: true, title: Session ID }
+      - name: handoffAccept
+        method: POST
+        title: Accept pending handoff
+        path: '/{sessionID}/handoff-accept'
+        parameters:
+          path:
+            - { type: string, name: sessionID, required: true, title: Session ID }
+          post:
+            - { type: string, name: operator, title: Operator label }
+      - name: operatorMessage
+        method: POST
+        title: Send operator message
+        path: '/{sessionID}/operator-message'
+        parameters:
+          path:
+            - { type: string, name: sessionID, required: true, title: Session ID }
+          post:
+            - { type: string, name: message, required: true, title: Message body }
+            - { type: string, name: operator, title: Operator label }
+      - name: handoffComplete
+        method: POST
+        title: Complete handoff
+        path: '/{sessionID}/handoff-complete'
+        parameters:
+          path:
+            - { type: string, name: sessionID, required: true, title: Session ID }
+      - name: stream
+        method: GET
+        title: SSE stream of session events
+        path: '/{sessionID}/stream'
+        raw: true
+        parameters:
+          path:
+            - { type: string, name: sessionID, required: true, title: Session ID }

@@ -42,6 +42,10 @@ type (
 		Title  string                `yaml:"title"`
 		Path   string                `yaml:"path"`
 		Params restEndpointParamsDef `yaml:"parameters,omitempty"`
+		// Raw skips request/response envelope (api.Send / params.Fill) and
+		// delegates straight to the controller method `func(w, r)`. Use for
+		// SSE, file downloads, or any non-JSON transport.
+		Raw bool `yaml:"raw,omitempty"`
 	}
 
 	restEndpointParamsDef struct {
