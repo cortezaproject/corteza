@@ -172,10 +172,9 @@ func (ctrl *ChatbotSession) List(ctx context.Context, r *request.ChatbotSessionL
 
 	if source == "" || source == "preview" {
 		for _, ps := range ctrl.previewSvc.List(r.ChatbotID, r.Status) {
-			cb := &ps.Chatbot
-			if !ctrl.ac.CanViewSessionsOnChatbot(ctx, cb) {
-				continue
-			}
+			// Preview is admin-gated at the route level and operates on
+			// unsaved drafts (cb.ID may be 0), so RBAC on the chatbot
+			// resource is skipped here.
 			out = append(out, ctrl.toUnifiedFromPreview(ctx, ps))
 		}
 	}
