@@ -1290,7 +1290,7 @@ noConfiguration: Block not configured correctly
 interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)
 
 chatbotInbox:
-  label: Chatbot inbox
+  label: Chatbot
   inbox: Inbox
   empty: No pending handoffs
   emptyNoChatbots: No chatbots selected. Pick at least one in the block configurator.

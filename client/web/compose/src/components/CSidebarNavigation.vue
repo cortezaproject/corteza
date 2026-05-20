@@ -16,6 +16,7 @@
         id-key="pageID"
         parent-key="selfID"
         label-key="title"
+        icon-key="_icon"
         weight-key="weight"
         route-key="_route"
         :filter-fn="p => p.visible"
@@ -50,13 +51,14 @@
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { components } from '@planetcrust/human-vue'
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { CSidebarNav, CInputSearch } = components
 const { t } = useI18n()
 const route = useRoute()
+const $ComposeAPI = inject('$ComposeAPI')
 
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
@@ -77,12 +79,20 @@ const searchPlaceholder = computed(() => {
     : t('sidebar.searchPlaceholder.public')
 })
 
+function resolvePageIcon(p) {
+  const icon = p?.config?.navItem?.icon
+  if (!icon?.src) return undefined
+  if (icon.type === 'link') return icon.src
+  return `${$ComposeAPI?.baseURL || ''}${icon.src}`
+}
+
 // Page tree items with routes to public page view.
 // Record pages route to the new-record creator (recordID '0') so a click
 // opens the creation form instead of the page (which has no record context).
 const pageNavItems = computed(() => {
   return pageStore.set.map(p => ({
     ...p,
+    _icon: resolvePageIcon(p),
     _route: p.isRecordPage
       ? {
           name: 'page.record',

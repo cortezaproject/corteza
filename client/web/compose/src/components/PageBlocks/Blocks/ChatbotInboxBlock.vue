@@ -3,7 +3,7 @@
     <div class="flex flex-row flex-1 min-h-0 overflow-hidden">
       <!-- Sessions list -->
       <div class="w-96 shrink-0 border-r border-surface flex flex-col min-h-0">
-        <div class="px-3 py-2 border-b border-surface flex items-center gap-2 shrink-0">
+        <div class="p-3 border-b border-surface flex items-center gap-2 shrink-0">
           <span class="font-medium text-sm flex-1 truncate">
             {{ $t('block.chatbotInbox.inbox') }}
           </span>
@@ -14,11 +14,17 @@
           <ProgressSpinner style="width: 24px; height: 24px" strokeWidth="4" />
         </div>
 
-        <div v-else-if="!chatbotIDs.length" class="flex-1 flex items-center justify-center p-4 text-muted-color text-sm text-center">
+        <div
+          v-else-if="!chatbotIDs.length"
+          class="flex-1 flex items-center justify-center p-4 text-muted-color text-sm text-center"
+        >
           {{ $t('block.chatbotInbox.emptyNoChatbots') }}
         </div>
 
-        <div v-else-if="!sessions.length" class="flex-1 flex items-center justify-center p-4 text-muted-color text-sm text-center">
+        <div
+          v-else-if="!sessions.length"
+          class="flex-1 flex items-center justify-center p-4 text-muted-color text-sm text-center"
+        >
           {{ $t('block.chatbotInbox.empty') }}
         </div>
 
@@ -53,7 +59,10 @@
 
       <!-- Takeover panel -->
       <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div v-if="!selected" class="flex-1 flex items-center justify-center text-muted-color text-sm text-center p-4">
+        <div
+          v-if="!selected"
+          class="flex-1 flex items-center justify-center text-muted-color text-sm text-center p-4"
+        >
           {{ $t('block.chatbotInbox.selectHint') }}
         </div>
 
@@ -142,17 +151,17 @@
               <ProgressSpinner style="width: 24px; height: 24px" strokeWidth="4" />
             </div>
             <template v-else>
-              <div ref="messagesScrollRef" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 min-h-0">
+              <div
+                ref="messagesScrollRef"
+                class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 min-h-0"
+              >
                 <div
                   v-for="(msg, idx) in visibleMessages"
                   :key="idx"
                   class="flex flex-col gap-1"
                   :class="msg.role === 'user' ? 'items-end' : 'items-start'"
                 >
-                  <span
-                    v-if="msg.authorName"
-                    class="text-xs font-semibold text-primary px-1"
-                  >
+                  <span v-if="msg.authorName" class="text-xs font-semibold text-primary px-1">
                     {{ msg.authorName }}
                   </span>
                   <div
@@ -214,14 +223,11 @@ const $SystemAPI = inject('$SystemAPI', null)
 const $Auth = inject('$Auth', null)
 const confirm = useConfirm()
 
-
 // Surface the `operator` field on assistant messages so the renderer can show
 // it as the speaker label above the bubble.
 function decorateMessages(list) {
   return list.map(m =>
-    m.role === 'assistant' && m.operator
-      ? { ...m, authorName: m.operator }
-      : m,
+    m.role === 'assistant' && m.operator ? { ...m, authorName: m.operator } : m,
   )
 }
 
@@ -275,9 +281,7 @@ const aliasStorageKey = computed(() => {
 
 const operatorAlias = ref(readAlias())
 
-const operatorName = computed(
-  () => operatorAlias.value?.trim() || defaultOperatorName.value,
-)
+const operatorName = computed(() => operatorAlias.value?.trim() || defaultOperatorName.value)
 
 function readAlias() {
   const key = aliasStorageKey.value
@@ -314,7 +318,13 @@ function resetAlias() {
   aliasMenu.value?.hide()
 }
 
-watch(operatorAlias, v => { aliasDraft.value = v }, { immediate: true })
+watch(
+  operatorAlias,
+  v => {
+    aliasDraft.value = v
+  },
+  { immediate: true },
+)
 
 watch(
   () => visibleMessages.value.length,
@@ -335,7 +345,9 @@ function submitComposer() {
 
 const canAccept = computed(() => selected.value?.status === 'handoff_requested')
 const canSend = computed(() => selected.value?.status === 'handoff_active')
-const canResolve = computed(() => ['handoff_requested', 'handoff_active'].includes(selected.value?.status))
+const canResolve = computed(() =>
+  ['handoff_requested', 'handoff_active'].includes(selected.value?.status),
+)
 
 const composerPlaceholder = computed(() =>
   canSend.value
@@ -450,9 +462,7 @@ async function loadSessionMessages(sessionID) {
   messages.value = []
   try {
     const res = await $SystemAPI.chatbotSessionRead({ sessionID })
-    const steps = (res?.steps || []).sort(
-      (a, b) => (a.scenarioIndex ?? 0) - (b.scenarioIndex ?? 0),
-    )
+    const steps = (res?.steps || []).sort((a, b) => (a.scenarioIndex ?? 0) - (b.scenarioIndex ?? 0))
     const all = []
     for (const step of steps) {
       if (!step.conversationID || step.conversationID === '0') continue
@@ -536,10 +546,7 @@ function attachStream(sessionID) {
     // Coalesce streaming agent tokens into the last assistant bubble.
     const last = messages.value[messages.value.length - 1]
     if (last && last.role === 'assistant' && last.streaming) {
-      messages.value = [
-        ...messages.value.slice(0, -1),
-        { ...last, content: last.content + text },
-      ]
+      messages.value = [...messages.value.slice(0, -1), { ...last, content: last.content + text }]
     } else {
       pushMessage({ role: 'assistant', content: text, streaming: true })
     }
@@ -547,10 +554,7 @@ function attachStream(sessionID) {
   stream.addEventListener('done', () => {
     const last = messages.value[messages.value.length - 1]
     if (last?.streaming) {
-      messages.value = [
-        ...messages.value.slice(0, -1),
-        { ...last, streaming: false },
-      ]
+      messages.value = [...messages.value.slice(0, -1), { ...last, streaming: false }]
     }
   })
   stream.addEventListener('handoff_active', () => {
@@ -578,9 +582,7 @@ function closeStream() {
 // without waiting for the next poll cycle.
 function bumpSessionStatus(status) {
   if (!selectedID.value) return
-  sessions.value = sessions.value.map(s =>
-    s.id === selectedID.value ? { ...s, status } : s,
-  )
+  sessions.value = sessions.value.map(s => (s.id === selectedID.value ? { ...s, status } : s))
 }
 
 function safeJSON(s) {
@@ -596,9 +598,17 @@ function onAccept() {
   confirm.require({
     message: t('block.chatbotInbox.confirmAccept.message'),
     header: t('block.chatbotInbox.confirmAccept.header'),
-    icon: 'pi pi-question-circle',
-    acceptLabel: t('block.chatbotInbox.accept'),
-    acceptClass: 'p-button-success',
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      outlined: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('block.chatbotInbox.accept'),
+      severity: 'success',
+      size: 'small',
+    },
     accept: () => void doAccept(),
   })
 }
@@ -633,9 +643,17 @@ function onResolve() {
   confirm.require({
     message: t('block.chatbotInbox.confirmResolve.message'),
     header: t('block.chatbotInbox.confirmResolve.header'),
-    icon: 'pi pi-question-circle',
-    acceptLabel: t('block.chatbotInbox.resolve'),
-    acceptClass: 'p-button-warn',
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      outlined: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('block.chatbotInbox.resolve'),
+      severity: 'warn',
+      size: 'small',
+    },
     accept: () => void doResolve(),
   })
 }
@@ -657,7 +675,9 @@ async function doResolve() {
 // is wired to `refreshAll` on the root <PageBlock>.
 watch(
   () => [chatbotIDs.value.join(','), statusFilter.value.join(',')],
-  () => { refreshAll() },
+  () => {
+    refreshAll()
+  },
   { immediate: true },
 )
 

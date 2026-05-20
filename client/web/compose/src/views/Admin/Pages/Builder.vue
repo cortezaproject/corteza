@@ -677,7 +677,7 @@ const availableBlockTypes = computed(() => {
     { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-credit-card' },
-    { kind: 'ChatbotInbox', label: t('block.chatbotInbox.label'), icon: 'pi pi-comments' },
+    { kind: 'ChatbotInbox', label: t('block.chatbotInbox.label'), icon: 'pi pi-headphones' },
   ].sort((a, b) => a.label.localeCompare(b.label))
 
   return [...recordBlocks, { kind: 'divider' }, ...otherBlocks]

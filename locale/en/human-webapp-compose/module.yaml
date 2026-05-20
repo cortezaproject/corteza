@@ -28,6 +28,8 @@ edit:
   fields:
     deleteConfirm: Are you sure you want to remove this field?
     label: Fields
+    empty: No fields yet. Click "Add new field" to add one.
+    duplicateName: Duplicate field name
     columns:
       name:
         label: Name
@@ -39,6 +41,7 @@ edit:
         label: Required
       multi:
         label: Multi
+  systemField: System field (read-only)
   federationSettings:
     downstream:
       allFields: All Fields

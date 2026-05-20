@@ -73,11 +73,7 @@
           </CFormGroup>
         </div>
 
-        <CFormGroup
-          :label="$t('page.label.description')"
-          input-id="description"
-          class="mb-6"
-        >
+        <CFormGroup :label="$t('page.label.description')" input-id="description" class="mb-6">
           <Textarea id="description" v-model="page.description" rows="4" auto-resize />
         </CFormGroup>
 
@@ -96,14 +92,16 @@
               />
             </template>
 
-            <img v-if="pageIconSrc" :src="pageIconSrc" width="auto" height="50" />
-            <span v-else class="text-muted-color">
-              {{ $t('page.icon.noIcon') }}
-            </span>
+            <div class="inline-flex">
+              <img v-if="pageIconSrc" :src="pageIconSrc" class="h-10 w-auto" />
+              <span v-else class="text-muted-color">
+                {{ $t('page.icon.noIcon') }}
+              </span>
+            </div>
           </CFormGroup>
 
           <!-- Other Options -->
-          <CFormGroup :label="$t('page.edit.otherOptions')">
+          <CFormGroup>
             <CInputToggleCard
               v-model="page.visible"
               :label="$t('page.edit.visible')"
@@ -128,59 +126,60 @@
 
       <!-- Layouts Panel -->
       <Panel v-if="isEdit" :header="$t('page.page-layout.layouts')" toggleable>
-        <div class="flex items-center justify-end mb-4">
+        <div class="flex items-center mb-4">
           <Button
             :label="$t('page.page-layout.add')"
             icon="pi pi-plus"
+            severity="secondary"
             size="small"
             @click="addLayout"
           />
         </div>
 
-        <CResourceTable
-          v-if="layouts.length > 0"
-          :items="layouts"
-          :fields="layoutFields"
-          :action-items="getLayoutActions"
-          primary-key="_key"
+        <CFormList
+          v-model="layouts"
+          hide-remove
+          draggable
+          :empty-message="$t('page.noLayouts')"
+          :columns="[
+            {
+              label: $t('page.page-layout.title'),
+              width: '1fr',
+              tooltip: $t('page.page-layout.tooltip.title'),
+            },
+            {
+              label: $t('page.page-layout.handle'),
+              width: '1fr',
+              tooltip: $t('page.page-layout.tooltip.handle'),
+            },
+            { width: '2.5rem' },
+          ]"
         >
-          <template #body-_order="{ index }">
-            <div class="flex gap-1">
-              <Button
-                icon="pi pi-arrow-up"
-                text
-                severity="secondary"
-                size="small"
-                :disabled="index === 0"
-                @click="moveLayout(index, -1)"
-              />
-              <Button
-                icon="pi pi-arrow-down"
-                text
-                severity="secondary"
-                size="small"
-                :disabled="index === layouts.length - 1"
-                @click="moveLayout(index, 1)"
-              />
-            </div>
-          </template>
-
-          <template #body-title="{ data }">
-            <InputText
-              v-model="data.meta.title"
-              class="w-full"
-              size="small"
-              @input="data._updated = true"
-            />
-          </template>
-
-          <template #body-handle="{ data }">
-            <InputGroup>
+          <template #row="{ item, index }">
+            <div class="flex flex-col gap-1">
               <InputText
-                v-model="data.handle"
+                v-model="item.meta.title"
                 class="w-full"
                 size="small"
-                @input="data._updated = true"
+                :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                @input="item._updated = true"
+              />
+              <Message
+                v-if="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                severity="error"
+                size="small"
+                variant="simple"
+              >
+                {{ $t('general.label.required') }}
+              </Message>
+            </div>
+
+            <InputGroup>
+              <InputText
+                v-model="item.handle"
+                class="w-full"
+                size="small"
+                @input="item._updated = true"
               />
               <InputGroupAddon>
                 <Button
@@ -189,7 +188,7 @@
                   severity="secondary"
                   size="small"
                   class="w-full border-none"
-                  @click="openLayoutConfig(data)"
+                  @click="openLayoutConfig(item)"
                 />
               </InputGroupAddon>
               <InputGroupAddon>
@@ -199,17 +198,21 @@
                   severity="secondary"
                   size="small"
                   class="w-full border-none"
-                  :disabled="data.pageLayoutID === NoID"
-                  @click="goToLayoutBuilder(data)"
+                  :disabled="item.pageLayoutID === NoID"
+                  @click="goToLayoutBuilder(item)"
                 />
               </InputGroupAddon>
             </InputGroup>
-          </template>
-        </CResourceTable>
 
-        <div v-else class="text-center py-4 text-muted-color border border-surface rounded-border">
-          {{ $t('page.noBlock') }}
-        </div>
+            <Button
+              icon="pi pi-trash"
+              severity="danger"
+              text
+              size="small"
+              @click="removeLayout(index)"
+            />
+          </template>
+        </CFormList>
       </Panel>
     </div>
 
@@ -286,10 +289,13 @@
       </div>
 
       <!-- Use Title (record pages only) -->
-      <div v-if="isRecordPage" class="flex items-center gap-3 mb-4">
-        <ToggleSwitch v-model="configLayout.config.useTitle" />
-        <label class="font-medium text-primary">{{ $t('page.page-layout.useTitle') }}</label>
-      </div>
+      <CInputToggleCard
+        v-if="isRecordPage"
+        v-model="configLayout.config.useTitle"
+        :label="$t('page.page-layout.useTitle')"
+        :description="$t('page.page-layout.useTitleDescription')"
+        class="mb-4"
+      />
 
       <Divider />
 
@@ -304,24 +310,24 @@
         <template #description>
           <template v-if="isRecordPage">
             {{
-              $t('page.page-layout.condition.description.record-page', {
-                0: 'record.values.fieldName',
-                1: 'user.(userID/email...)',
-                2: 'screen.(width/height)',
-                3: 'isView/isCreate/isEdit',
-                4: 'user.userID == record.createdBy',
-                5: 'screen.width < 1024',
-              })
+              $t('page.page-layout.condition.description.record-page', [
+                'record.values.fieldName',
+                'user.(userID/email...)',
+                'screen.(width/height)',
+                'isView/isCreate/isEdit',
+                'user.userID == record.createdBy',
+                'screen.width < 1024',
+              ])
             }}
           </template>
           <template v-else>
             {{
-              $t('page.page-layout.condition.description.non-record-page', {
-                0: 'user.(userID/email...)',
-                1: 'screen.(width/height)',
-                2: 'user.email == "test@mail.com"',
-                3: 'screen.width < 1024',
-              })
+              $t('page.page-layout.condition.description.non-record-page', [
+                'user.(userID/email...)',
+                'screen.(width/height)',
+                'user.email == "test@mail.com"',
+                'screen.width < 1024',
+              ])
             }}
           </template>
         </template>
@@ -408,102 +414,111 @@
         <Divider />
 
         <!-- Custom Actions -->
-        <div class="flex items-center justify-between mb-3">
-          <h5 class="font-semibold">{{ $t('page.page-layout.recordToolbar.actions.label') }}</h5>
-          <Button
-            :label="$t('general.label.add')"
-            icon="pi pi-plus"
-            size="small"
-            @click="addLayoutAction"
-          />
-        </div>
-
-        <CResourceTable
-          v-if="configLayout.config.actions.length > 0"
-          :items="configLayout.config.actions"
-          :fields="actionTableFields"
-          :action-items="getActionTableActions"
-        >
-          <template #body-label="{ data }">
-            <InputText v-model="data.meta.label" class="w-full" size="small" />
+        <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.label')">
+          <template #actions>
+            <Button
+              :label="$t('general.label.add')"
+              icon="pi pi-plus"
+              severity="secondary"
+              size="small"
+              @click="addLayoutAction"
+            />
           </template>
 
-          <template #body-kind="{ data }">
+          <CFormList
+            v-model="configLayout.config.actions"
+            draggable
+            :empty-message="$t('page.page-layout.recordToolbar.actions.empty')"
+          :columns="[
+            { label: $t('page.page-layout.recordToolbar.actions.buttonLabel'), width: '1fr' },
+            { label: $t('page.page-layout.recordToolbar.actions.kind.label'), width: '180px' },
+            { label: $t('page.page-layout.recordToolbar.actions.variant'), width: '140px' },
+            { label: $t('page.page-layout.recordToolbar.actions.placement.label'), width: '120px' },
+            {
+              label: $t('page.page-layout.recordToolbar.actions.visible'),
+              width: '5rem',
+              headerClass: 'text-center',
+            },
+          ]"
+        >
+          <template #row="{ item }">
+            <InputText v-model="item.meta.label" class="w-full" size="small" />
+
             <Select
-              v-model="data.kind"
+              v-model="item.kind"
               :options="actionKindOptions"
               option-label="label"
               option-value="value"
               class="w-full"
               size="small"
-              @change="onActionKindChange(data)"
+              @change="onActionKindChange(item)"
             />
-          </template>
 
-          <template #body-variant="{ data }">
             <Select
-              v-model="data.meta.style.variant"
+              v-model="item.meta.style.variant"
               :options="actionVariantOptions"
               option-label="label"
               option-value="value"
               class="w-full"
               size="small"
             />
-          </template>
 
-          <template #body-placement="{ data }">
             <Select
-              v-model="data.placement"
+              v-model="item.placement"
               :options="actionPlacementOptions"
               option-label="label"
               option-value="value"
               class="w-full"
               size="small"
             />
+
+            <div class="flex justify-center">
+              <Checkbox v-model="item.enabled" :binary="true" />
+            </div>
           </template>
 
-          <template #body-enabled="{ data }">
-            <Checkbox v-model="data.enabled" :binary="true" />
+          <template #extra="{ item }">
+            <div
+              v-if="item.kind === 'toLayout' || item.kind === 'toURL'"
+              class="border-t border-surface pt-3 mt-1 grid grid-cols-1 md:grid-cols-2 gap-3"
+            >
+              <CFormGroup
+                v-if="item.kind === 'toLayout'"
+                :label="$t('page.page-layout.recordToolbar.actions.toLayout.label')"
+              >
+                <Select
+                  v-model="item.params.pageLayoutID"
+                  :options="actionLayoutOptions"
+                  option-label="label"
+                  option-value="value"
+                  class="w-full"
+                  size="small"
+                />
+              </CFormGroup>
+
+              <template v-else-if="item.kind === 'toURL'">
+                <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.toURL.label')">
+                  <InputText
+                    v-model="item.params.url"
+                    :placeholder="$t('page.page-layout.recordToolbar.actions.toURL.placeholder')"
+                    size="small"
+                  />
+                </CFormGroup>
+                <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.openIn.label')">
+                  <Select
+                    v-model="item.params.openIn"
+                    :options="actionOpenInOptions"
+                    option-label="label"
+                    option-value="value"
+                    class="w-full"
+                    size="small"
+                  />
+                </CFormGroup>
+              </template>
+            </div>
           </template>
-        </CResourceTable>
-
-        <!-- Action-specific config (shown per action in the table) -->
-        <div v-for="(action, aIdx) in configLayout.config.actions" :key="aIdx" class="mb-2">
-          <div v-if="action.kind === 'toLayout'" class="flex flex-col gap-2">
-            <label class="text-sm text-muted-color">
-              {{ $t('page.page-layout.recordToolbar.actions.toLayout.label') }} —
-              {{ action.meta.label || `#${aIdx + 1}` }}
-            </label>
-            <Select
-              v-model="action.params.pageLayoutID"
-              :options="actionLayoutOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              size="small"
-            />
-          </div>
-
-          <div v-if="action.kind === 'toURL'" class="flex flex-col gap-2">
-            <label class="text-sm text-muted-color">
-              {{ $t('page.page-layout.recordToolbar.actions.toURL.label') }} —
-              {{ action.meta.label || `#${aIdx + 1}` }}
-            </label>
-            <InputText
-              v-model="action.params.url"
-              :placeholder="$t('page.page-layout.recordToolbar.actions.toURL.placeholder')"
-              size="small"
-            />
-            <Select
-              v-model="action.params.openIn"
-              :options="actionOpenInOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              size="small"
-            />
-          </div>
-        </div>
+          </CFormList>
+        </CFormGroup>
       </template>
     </template>
 
@@ -520,17 +535,119 @@
       />
     </template>
   </Dialog>
+
+  <!-- Icon Configuration Dialog -->
+  <Dialog
+    v-model:visible="showIconModal"
+    :header="$t('page.icon.configure')"
+    modal
+    :style="{ width: '40rem' }"
+    :breakpoints="{ '768px': '90vw' }"
+    :closable="true"
+    @hide="closeIconModal"
+  >
+    <div class="flex flex-col gap-4">
+      <CFormGroup :label="$t('page.icon.upload')">
+        <CFileDropZone
+          accept="image/*"
+          :uploading="iconUploading"
+          :error="iconUploadError"
+          :drop-label="$t('general.label.dropFiles')"
+          compact
+          @select="onIconFileSelect"
+        />
+      </CFormGroup>
+
+      <CFormGroup :label="$t('page.url.label')">
+        <InputGroup>
+          <InputText v-model="linkUrl" :disabled="isIconSet" />
+          <InputGroupAddon>
+            <Button
+              v-tooltip.top="$t('page.tooltip.preview-link')"
+              icon="pi pi-external-link"
+              severity="secondary"
+              :disabled="!linkUrl"
+              @click="showLinkPreview = true"
+            />
+          </InputGroupAddon>
+        </InputGroup>
+      </CFormGroup>
+
+      <template v-if="attachments.length > 0">
+        <Divider />
+
+        <CFormGroup :label="$t('page.icon.list')" class="mb-4">
+          <div v-if="processingIcon" class="flex items-center justify-center h-24">
+            <ProgressSpinner style="width: 2rem; height: 2rem" />
+          </div>
+          <div v-else class="flex flex-wrap gap-2">
+            <img
+              v-for="a in attachments"
+              :key="a.attachmentID"
+              :src="a.src"
+              :alt="a.name"
+              class="h-12 w-auto rounded cursor-pointer p-1 border-2"
+              :class="
+                selectedAttachmentID === a.attachmentID
+                  ? 'border-primary'
+                  : 'border-transparent'
+              "
+              @click="toggleSelectedIcon(a.attachmentID)"
+            />
+          </div>
+        </CFormGroup>
+      </template>
+    </div>
+
+    <template #footer>
+      <div class="flex items-center w-full">
+        <CInputDelete
+          v-if="selectedAttachmentID"
+          :label="$t('page.icon.delete')"
+          :message="$t('page.icon.delete')"
+          :header="$t('page.icon.delete')"
+          :disabled="processingIcon"
+          size="small"
+          @confirm="deleteIcon"
+        />
+        <div class="ml-auto flex gap-2">
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            size="small"
+            @click="closeIconModal"
+          />
+          <Button
+            :label="$t('general.label.saveAndClose')"
+            size="small"
+            @click="saveIconModal"
+          />
+        </div>
+      </div>
+    </template>
+  </Dialog>
+
+  <Dialog
+    v-model:visible="showLinkPreview"
+    modal
+    dismissable-mask
+    :closable="true"
+    :show-header="false"
+    :style="{ maxWidth: '90vw' }"
+  >
+    <img :src="linkUrl" class="max-w-full h-auto" />
+  </Dialog>
 </template>
 
 <script setup>
 import { usePageStore } from '@/stores/page'
 import { usePageLayoutStore } from '@/stores/page-layout'
 import { compose, NoID } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useFileUpload, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
-const { CInputDelete, CInputToggleCard, CResourceTable } = components
+const { CInputDelete, CInputToggleCard, CFileDropZone } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
@@ -616,22 +733,61 @@ const resolver = ref(({ values }) => {
   return { errors }
 })
 
+const layoutsValid = computed(() => {
+  return layouts.value.every(l => !!l.meta?.title && l.meta.title.trim().length > 0)
+})
+
 const canSave = computed(() => {
   if (isEdit.value && !page.value?.canUpdatePage) return false
   return true
 })
+
+const validationTriggered = ref(false)
 
 const hasChildren = computed(() => {
   if (!page.value) return false
   return pageStore.set.some(p => p.selfID === page.value.pageID)
 })
 
+// ─── Icon state ─────────────────────────────────────────────────────────────
+const showIconModal = ref(false)
+const showLinkPreview = ref(false)
+const attachments = ref([])
+const selectedAttachmentID = ref('')
+const linkUrl = ref('')
+const processingIcon = ref(false)
+
+const {
+  uploading: iconUploading,
+  uploadError: iconUploadError,
+  uploadFileRaw: uploadIconRaw,
+  reset: resetIconUpload,
+} = useFileUpload()
+
+const pageIcon = computed({
+  get() {
+    return page.value?.config?.navItem?.icon || {}
+  },
+  set(icon) {
+    if (!page.value) return
+    if (!page.value.config) page.value.config = {}
+    if (!page.value.config.navItem) page.value.config.navItem = {}
+    page.value.config.navItem.icon = icon
+  },
+})
+
+function makeAttachmentUrl(src) {
+  return `${$ComposeAPI.baseURL}${src}`
+}
+
 // Page icon source
 const pageIconSrc = computed(() => {
-  const icon = page.value?.config?.navItem?.icon
+  const icon = pageIcon.value
   if (!icon?.src) return ''
-  return icon.type === 'link' ? icon.src : icon.src
+  return icon.type === 'link' ? icon.src : makeAttachmentUrl(icon.src)
 })
+
+const isIconSet = computed(() => !!selectedAttachmentID.value)
 
 // Show sub-pages computed property with getter/setter
 const showSubPages = computed({
@@ -723,66 +879,6 @@ const actionPlacementOptions = computed(() => [
   { value: 'center', label: t('page.page-layout.recordToolbar.actions.placement.center') },
   { value: 'end', label: t('page.page-layout.recordToolbar.actions.placement.end') },
 ])
-// ─── Table field definitions ────────────────────────────────────────────────
-
-const layoutFields = [
-  { key: '_order', header: '', headerStyle: 'width: 5rem' },
-  { key: 'title', header: t('page.page-layout.title'), style: 'min-width: 250px' },
-  { key: 'handle', header: t('page.page-layout.handle'), style: 'min-width: 250px' },
-]
-
-function getLayoutActions(data, index) {
-  return [
-    {
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => removeLayout(index),
-    },
-  ]
-}
-
-const actionTableFields = [
-  {
-    key: 'label',
-    header: t('page.page-layout.recordToolbar.actions.buttonLabel'),
-    style: 'min-width: 200px',
-  },
-  {
-    key: 'kind',
-    header: t('page.page-layout.recordToolbar.actions.kind.label'),
-    style: 'min-width: 180px',
-  },
-  {
-    key: 'variant',
-    header: t('page.page-layout.recordToolbar.actions.variant'),
-    style: 'min-width: 140px',
-  },
-  {
-    key: 'placement',
-    header: t('page.page-layout.recordToolbar.actions.placement.label'),
-    style: 'min-width: 120px',
-  },
-  {
-    key: 'enabled',
-    header: t('page.page-layout.recordToolbar.actions.visible'),
-    headerStyle: 'width: 5rem',
-    headerClass: 'text-center',
-    bodyClass: 'text-center',
-  },
-]
-
-function getActionTableActions(data, index) {
-  return [
-    {
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => removeLayoutAction(index),
-    },
-  ]
-}
-
 // ─── Methods ────────────────────────────────────────────────────────────────
 
 function ensureLayoutKey(layout) {
@@ -822,6 +918,7 @@ async function loadPage() {
 
     // Load layouts for this page
     await loadLayouts()
+    await fetchAttachments()
     initialPage.value = cloneDeep(page.value)
     initialLayouts.value = cloneDeep(layouts.value)
   } catch (e) {
@@ -872,14 +969,6 @@ function removeLayout(index) {
     removedLayouts.value.push(layout)
   }
   layouts.value.splice(index, 1)
-}
-
-function moveLayout(index, direction) {
-  const newIndex = index + direction
-  if (newIndex < 0 || newIndex >= layouts.value.length) return
-
-  const item = layouts.value.splice(index, 1)[0]
-  layouts.value.splice(newIndex, 0, item)
 }
 
 // ─── Layout Config Dialog ───────────────────────────────────────────────────
@@ -944,10 +1033,6 @@ function addLayoutAction() {
   })
 }
 
-function removeLayoutAction(index) {
-  configLayout.value.config.actions.splice(index, 1)
-}
-
 function onActionKindChange(action) {
   if (action.kind === 'toURL' && !action.params.openIn) {
     action.params.openIn = 'sameTab'
@@ -957,14 +1042,18 @@ function onActionKindChange(action) {
 // ─── Save / Delete ──────────────────────────────────────────────────────────
 
 async function handleSubmit({ valid }) {
-  if (!valid) {
+  if (!valid || !layoutsValid.value) {
+    validationTriggered.value = true
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error, .p-inputtext.p-invalid')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
   if (!canSave.value) return
+  validationTriggered.value = false
 
   saving.value = true
   try {
@@ -982,6 +1071,14 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.pageID = page.value.pageID
+
+      // Save icon first; merge the returned icon into the page payload
+      const savedIcon = await saveIcon()
+      if (savedIcon) {
+        if (!payload.config.navItem) payload.config.navItem = {}
+        payload.config.navItem.icon = savedIcon
+      }
+
       const updated = await pageStore.update(payload)
       page.value = new compose.Page({ ...updated })
 
@@ -1099,6 +1196,12 @@ async function handleClone() {
     }
 
     const created = await pageStore.create(payload)
+    await pageLayoutStore.create({
+      namespaceID: props.namespace.namespaceID,
+      pageID: created.pageID,
+      handle: 'primary',
+      meta: { title: created.title || payload.title },
+    })
     $toast.toastSuccess(t('notification.page.created'))
     markSaved()
     router.push({
@@ -1135,9 +1238,119 @@ async function handleDelete(strategy = 'abort') {
 
 // ─── Icon ───────────────────────────────────────────────────────────────────
 
+async function fetchAttachments() {
+  processingIcon.value = true
+  try {
+    const { set = [] } = await $ComposeAPI.iconList({ sort: 'id DESC' })
+    const baseURL = $ComposeAPI.baseURL
+    if (set.length === 0) {
+      attachments.value = []
+      if (page.value && pageIcon.value?.src && pageIcon.value.type !== 'link') {
+        pageIcon.value = {}
+      }
+      if (initialPage.value?.config?.navItem) {
+        initialPage.value.config.navItem.icon = cloneDeep(pageIcon.value)
+      }
+    } else {
+      attachments.value = set.map(a => ({
+        ...a,
+        src: a.url && !a.url.includes(baseURL) ? makeAttachmentUrl(a.url) : a.url,
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to fetch icons:', e)
+    $toast.toastDanger(t('notification.page.iconFetchFailed'))
+  } finally {
+    processingIcon.value = false
+  }
+}
+
+function setCurrentIcon() {
+  const match = attachments.value.find(a => a.url === pageIcon.value?.src)
+  selectedAttachmentID.value = match?.attachmentID || ''
+  if (!selectedAttachmentID.value && pageIcon.value?.type !== 'link') {
+    pageIcon.value = {}
+  }
+}
+
+function toggleSelectedIcon(attachmentID = '') {
+  selectedAttachmentID.value =
+    selectedAttachmentID.value === attachmentID ? '' : attachmentID
+}
+
 function openIconModal() {
-  // TODO: Implement full icon management dialog (upload, select, URL link)
-  console.warn('Icon management dialog not yet implemented')
+  linkUrl.value = pageIcon.value?.type === 'link' ? pageIcon.value.src : ''
+  setCurrentIcon()
+  resetIconUpload()
+  showIconModal.value = true
+}
+
+function closeIconModal() {
+  linkUrl.value = pageIcon.value?.type === 'link' ? pageIcon.value.src : ''
+  setCurrentIcon()
+  resetIconUpload()
+  showIconModal.value = false
+}
+
+function saveIconModal() {
+  const type = selectedAttachmentID.value ? 'attachment' : 'link'
+  let src = linkUrl.value
+  if (selectedAttachmentID.value) {
+    const att = attachments.value.find(
+      ({ attachmentID }) => attachmentID === selectedAttachmentID.value,
+    )
+    src = att?.url || ''
+  }
+
+  pageIcon.value = type === 'link' && !src ? {} : { type, src }
+  showIconModal.value = false
+}
+
+async function onIconFileSelect(files) {
+  const file = files?.[0]
+  if (!file) return
+  try {
+    const endpoint = $ComposeAPI.baseURL + $ComposeAPI.iconUploadEndpoint()
+    const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
+    const att = await uploadIconRaw(file, {
+      url: endpoint,
+      token,
+      fieldName: 'icon',
+    })
+    await fetchAttachments()
+    if (att?.attachmentID) {
+      toggleSelectedIcon(att.attachmentID)
+    }
+  } catch (e) {
+    console.error('Failed to upload icon:', e)
+  }
+}
+
+async function deleteIcon() {
+  if (!selectedAttachmentID.value) return
+  processingIcon.value = true
+  try {
+    await $ComposeAPI.iconDelete({ iconID: selectedAttachmentID.value })
+    await fetchAttachments()
+    setCurrentIcon()
+    $toast.toastSuccess(t('notification.page.iconDeleteSuccess'))
+  } catch (e) {
+    console.error('Failed to delete icon:', e)
+    $toast.toastDanger(t('notification.page.iconDeleteFailed'))
+  } finally {
+    processingIcon.value = false
+  }
+}
+
+async function saveIcon() {
+  if (!page.value?.pageID || page.value.pageID === NoID) return null
+  const icon = pageIcon.value || {}
+  return $ComposeAPI.pageUpdateIcon({
+    namespaceID: props.namespace.namespaceID,
+    pageID: page.value.pageID,
+    type: icon.type || 'link',
+    source: icon.src || '',
+  })
 }
 
 // ─── Navigation ─────────────────────────────────────────────────────────────

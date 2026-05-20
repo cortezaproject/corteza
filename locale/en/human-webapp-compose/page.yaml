@@ -8,8 +8,10 @@ page-layout:
   visibility: Visibility
   general: General
   useTitle: Use layout title
+  useTitleDescription: Use a custom title (with record value expressions) instead of the default record page title
   tooltip:
-    title: Use the layout title instead of the record page default. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    title: Display title shown for this layout
+    handle: Optional. Unique identifier for this layout (alphanumerics, dash, underscore, dot)
     configure: Configure layout
     builder: Open layout in builder
     performance:
@@ -19,8 +21,8 @@ page-layout:
     label: Condition
     placeholder: When will the layout be shown
     description:
-      record-page: 'You can use {0}, {1}, {2}, {3} inside  the expression, for example: {4} or {5}'
-      non-record-page: 'You can use {0}, {1} inside  the expression, for example: {2} or {3}'
+      record-page: 'You can use {0}, {1}, {2}, {3} inside the expression, for example: {4} or {5}'
+      non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}'
   roles:
     label: Roles
     placeholder: Pick roles that the layout will be shown to
@@ -37,6 +39,7 @@ page-layout:
     actions:
       label: Actions
       add: Add action
+      empty: No actions defined yet. Click "Add" to create one.
       buttonLabel: Label
       variant: Variant
       visible: Visible
@@ -139,6 +142,7 @@ navigation:
   editModule: Edit module
 noBlock: No block added yet
 noPages: No pages
+noLayouts: No layouts yet
 createLabel: New Page
 searchPlaceholder: Search pages...
 notVisible: Hidden

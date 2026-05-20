@@ -164,7 +164,7 @@
                       id="name"
                       name="name"
                       v-model="module.name"
-                      :invalid="!!module.name && !isValidFieldName(module.name)"
+                      :invalid="!module.name || !isValidFieldName(module.name)"
                     />
                   </CFormGroup>
 
@@ -181,58 +181,71 @@
                 <Divider />
 
                 <!-- Module Fields -->
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center mb-4">
                   <Button
                     :label="$t('module.edit.newField')"
                     icon="pi pi-plus"
+                    severity="secondary"
                     size="small"
                     @click="addField"
                   />
                 </div>
 
-                <CResourceTable
-                  ref="fieldTableRef"
-                  :items="allFieldsForTable"
-                  :fields="fieldTableColumns"
-                  :action-items="getFieldActionsMenuItems"
-                  :scroll-height="tableScrollHeight"
-                  :reorderable-rows="true"
-                  :row-class="fieldRowClass"
-                  empty-message="—"
-                  @row-reorder="onRowReorder"
+                <CFormList
+                  v-model="module.fields"
+                  draggable
+                  :empty-message="$t('module.edit.fields.empty')"
+                  :columns="fieldFormListColumns"
                 >
-                  <template #body-name="{ data }">
-                    <span v-if="data.isSystem" class="text-muted-color">{{ data.name }}</span>
-                    <InputText
-                      v-else
-                      v-model="data.name"
-                      class="w-full"
-                      size="small"
-                      :invalid="!!data.name && !isValidFieldName(data.name)"
-                    />
-                  </template>
-
-                  <template #body-label="{ data }">
-                    <span v-if="data.isSystem" class="text-muted-color">{{ data.label }}</span>
-                    <div v-else class="flex items-center gap-1">
-                      <InputText v-model="data.label" class="w-full" size="small" />
-                      <Button
-                        v-if="showTranslatorButton && isEdit && data.fieldID && data.fieldID !== '0'"
-                        icon="pi pi-language"
-                        text
+                  <template #row="{ item: field, index }">
+                    <div class="flex flex-col gap-1">
+                      <InputText
+                        v-model="field.name"
+                        class="w-full"
                         size="small"
-                        severity="secondary"
-                        v-tooltip.top="$t('field.translate.label')"
-                        @click="openFieldTranslation(data)"
+                        :invalid="validationTriggered && fieldNameError(field) !== ''"
                       />
+                      <Message
+                        v-if="validationTriggered && fieldNameError(field)"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ fieldNameError(field) }}
+                      </Message>
                     </div>
-                  </template>
 
-                  <template #body-kind="{ data, index }">
-                    <span v-if="data.isSystem" class="text-muted-color">{{ data.kind }}</span>
-                    <InputGroup v-else>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-1">
+                        <InputText
+                          v-model="field.label"
+                          class="w-full"
+                          size="small"
+                          :invalid="validationTriggered && (!field.label || !field.label.trim())"
+                        />
+                        <Button
+                          v-if="showTranslatorButton && isEdit && field.fieldID && field.fieldID !== '0'"
+                          icon="pi pi-language"
+                          text
+                          size="small"
+                          severity="secondary"
+                          v-tooltip.top="$t('field.translate.label')"
+                          @click="openFieldTranslation(field)"
+                        />
+                      </div>
+                      <Message
+                        v-if="validationTriggered && (!field.label || !field.label.trim())"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $t('general.label.required') }}
+                      </Message>
+                    </div>
+
+                    <InputGroup>
                       <Select
-                        v-model="data.kind"
+                        v-model="field.kind"
                         :options="fieldKinds"
                         option-label="label"
                         option-value="value"
@@ -244,28 +257,67 @@
                           severity="secondary"
                           size="small"
                           class="w-full border-none"
-                          @click="openFieldConfigurator(data, index)"
+                          @click="openFieldConfigurator(field, index)"
                         />
                       </InputGroupAddon>
                     </InputGroup>
-                  </template>
 
-                  <template #body-isRequired="{ data }">
-                    <div v-if="!data.isSystem" class="flex justify-center">
-                      <Checkbox v-model="data.isRequired" :binary="true" />
+                    <div class="flex justify-center">
+                      <Checkbox v-model="field.isRequired" :binary="true" />
                     </div>
-                    <span v-else />
-                  </template>
 
-                  <template #body-isMulti="{ data }">
-                    <div v-if="!data.isSystem" class="flex justify-center">
-                      <Checkbox v-model="data.isMulti" :binary="true" />
+                    <div class="flex justify-center">
+                      <Checkbox v-model="field.isMulti" :binary="true" />
                     </div>
-                    <span v-else />
+
+                    <div class="flex justify-center">
+                      <Button
+                        v-if="fieldActionsMenuItems(field, index).length"
+                        icon="pi pi-ellipsis-v"
+                        text
+                        severity="secondary"
+                        size="small"
+                        @click="showFieldActionsMenu($event, field, index)"
+                      />
+                    </div>
                   </template>
 
+                  <template #footer="{ gridStyle }">
+                    <div
+                      v-for="f in systemFieldsForDisplay"
+                      :key="f.name"
+                      class="border border-surface rounded-border p-3 bg-highlight text-muted-color"
+                      v-tooltip.left="$t('module.edit.systemField')"
+                    >
+                      <div :style="gridStyle" class="grid gap-2 items-center">
+                        <i class="pi pi-lock text-muted-color text-center" />
+                        <InputText :model-value="f.name" class="w-full" size="small" disabled />
+                        <InputText :model-value="f.label" class="w-full" size="small" disabled />
+                        <InputText :model-value="f.kind" class="w-full" size="small" disabled />
+                        <div class="flex justify-center">
+                          <i
+                            :class="[
+                              'pi',
+                              f.isRequired ? 'pi-check text-primary' : 'pi-minus text-muted-color',
+                            ]"
+                          />
+                        </div>
+                        <div class="flex justify-center">
+                          <i
+                            :class="[
+                              'pi',
+                              f.isMulti ? 'pi-check text-primary' : 'pi-minus text-muted-color',
+                            ]"
+                          />
+                        </div>
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                  </template>
+                </CFormList>
 
-                </CResourceTable>
+                <TieredMenu ref="fieldActionsMenuRef" :model="currentFieldMenuItems" popup />
               </TabPanel>
 
               <TabPanel value="dal">
@@ -339,6 +391,7 @@
 <script setup>
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
+import { usePageLayoutStore } from '@/stores/page-layout'
 import { compose } from '@planetcrust/human-js'
 import {
   components,
@@ -347,7 +400,7 @@ import {
   useUnsavedGuard,
 } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
-import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch, nextTick } from 'vue'
+import { computed, inject, onMounted, provide, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/components/ModuleFields/Configurator/index.vue'
 import DalSettings from '@/components/Admin/Module/DalSettings.vue'
 import UniqueValues from '@/components/Admin/Module/UniqueValues.vue'
@@ -361,7 +414,7 @@ import { useTranslatorStore } from '@/stores/translator'
 import { useResourceTranslations } from '@/composables/useResourceTranslations'
 import { applyFieldTranslations, applySelectTranslations, applyBoolTranslations } from '@/lib/resource-translations'
 
-const { CInputDelete, CRouterLinkButton, CResourceTable } = components
+const { CInputDelete, CRouterLinkButton } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -379,6 +432,7 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
+const pageLayoutStore = usePageLayoutStore()
 
 // State
 const loading = ref(false)
@@ -405,16 +459,14 @@ const { markSaved } = useUnsavedGuard({
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
 
-const tableScrollHeight = ref('50vh')
-let resizeObserver = null
-
 // Configurator State
 const configuratorVisible = ref(false)
 const activeConfiguratorField = ref(null)
 const activeConfiguratorFieldIndex = ref(-1)
 
-// Field table ref
-const fieldTableRef = ref()
+// Field row action menu
+const fieldActionsMenuRef = ref(null)
+const currentFieldMenuItems = ref([])
 
 // App State Defaults
 const $SystemAPI = inject('$SystemAPI')
@@ -494,53 +546,46 @@ const fieldKinds = [
   { label: t('general.fieldKinds.Geometry.label'), value: 'Geometry' },
 ]
 
-// Field table column definitions
-const fieldTableColumns = [
-  { key: 'name', header: t('module.edit.fields.columns.name.label') },
-  { key: 'label', header: t('module.edit.fields.columns.title.label') },
-  { key: 'kind', header: t('module.edit.fields.columns.type.label') },
+// Field list column definitions (CFormList)
+const fieldFormListColumns = computed(() => [
   {
-    key: 'isRequired',
-    header: t('module.edit.fields.columns.required.label'),
-    headerStyle: 'width: 5rem',
-    headerClass: 'text-center',
-    bodyClass: 'text-center',
+    label: t('module.edit.fields.columns.name.label'),
+    tooltip: t('module.edit.tooltip.name'),
+    width: 'minmax(180px, 1.2fr)',
   },
   {
-    key: 'isMulti',
-    header: t('module.edit.fields.columns.multi.label'),
-    headerStyle: 'width: 5rem',
-    headerClass: 'text-center',
-    bodyClass: 'text-center',
+    label: t('module.edit.fields.columns.title.label'),
+    tooltip: t('module.edit.tooltip.title'),
+    width: 'minmax(180px, 1.2fr)',
   },
-]
+  {
+    label: t('module.edit.fields.columns.type.label'),
+    width: 'minmax(200px, 1.4fr)',
+  },
+  {
+    label: t('module.edit.fields.columns.required.label'),
+    width: '6rem',
+    headerClass: 'text-center',
+  },
+  {
+    label: t('module.edit.fields.columns.multi.label'),
+    width: '6rem',
+    headerClass: 'text-center',
+  },
+  { width: '2.5rem' },
+])
 
-// Stable key counter for new fields (fieldID is '0' for unsaved fields, so not usable as key)
-let _fieldKeyCounter = 0
-
-function ensureFieldKey(field) {
-  if (!field._dataKey) {
-    field._dataKey =
-      field.fieldID && field.fieldID !== '0' ? field.fieldID : `new_${++_fieldKeyCounter}`
-  }
-}
-
-// Fields with stable _dataKey so DataTable doesn't re-mount rows on name changes
-const fieldsForTable = computed(() => {
-  if (!module.value?.fields) return []
-  module.value.fields.forEach(ensureFieldKey)
-  return module.value.fields
-})
-
-// Combined regular + system fields for a single table
-const allFieldsForTable = computed(() => {
-  const regular = fieldsForTable.value
-  if (!module.value) return regular
-  const system = module.value.systemFields().map(f => ({
-    ...f,
-    _dataKey: `sys_${f.name}`,
+const systemFieldsForDisplay = computed(() => {
+  if (!module.value) return []
+  const systemFieldEncoding = module.value.config?.dal?.systemFieldEncoding || {}
+  return (module.value.systemFields() || []).map(sf => ({
+    name: sf.name,
+    label: sf.label || sf.name,
+    kind: sf.kind,
+    isRequired: !!sf.isRequired,
+    isMulti: !!sf.isMulti,
+    ...(systemFieldEncoding[sf.name] || {}),
   }))
-  return [...regular, ...system]
 })
 
 // Computed
@@ -575,11 +620,6 @@ const resolver = ref(({ values }) => {
   return { errors }
 })
 
-const canSave = computed(() => {
-  if (isEdit.value && !module.value?.canUpdateModule) return false
-  return true
-})
-
 // Valid field/module name: starts with letter, only letters/numbers/underscores
 function isValidFieldName(name) {
   return /^[A-Za-z][A-Za-z0-9_]*$/.test(name)
@@ -589,6 +629,46 @@ function isValidFieldName(name) {
 function isValidHandle(handle) {
   return /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(handle)
 }
+
+const duplicateFieldNames = computed(() => {
+  const seen = new Set()
+  const dups = new Set()
+  for (const f of module.value?.fields || []) {
+    if (!f.name) continue
+    if (seen.has(f.name)) dups.add(f.name)
+    seen.add(f.name)
+  }
+  return dups
+})
+
+function isFieldNameDuplicate(name) {
+  return !!name && duplicateFieldNames.value.has(name)
+}
+
+function fieldNameError(field) {
+  if (!field || field.isSystem) return ''
+  if (!field.name) return t('general.label.required')
+  if (!isValidFieldName(field.name)) return t('module.edit.tooltip.name')
+  if (isFieldNameDuplicate(field.name)) return t('module.edit.fields.duplicateName')
+  return ''
+}
+
+const fieldsValid = computed(() => {
+  const fields = module.value?.fields || []
+  return fields.every(f => {
+    if (!f.name || !isValidFieldName(f.name)) return false
+    if (isFieldNameDuplicate(f.name)) return false
+    if (!f.label || !f.label.trim()) return false
+    return true
+  })
+})
+
+const canSave = computed(() => {
+  if (isEdit.value && !module.value?.canUpdateModule) return false
+  return true
+})
+
+const validationTriggered = ref(false)
 
 // Related Pages - find existing pages for this module
 const recordPage = computed(() => {
@@ -614,7 +694,6 @@ async function loadModule() {
       namespaceID: props.namespace?.namespaceID,
       fields: [],
     })
-    module.value.fields.forEach(ensureFieldKey)
     initialModule.value = cloneDeep(module.value)
     return
   }
@@ -631,7 +710,6 @@ async function loadModule() {
       })
       module.value = new compose.Module({ ...m })
     }
-    module.value.fields.forEach(ensureFieldKey)
     initialModule.value = cloneDeep(module.value)
 
     // Auto-trigger schema alterations check if module has issues (matching Human behavior)
@@ -651,23 +729,11 @@ function addField() {
   if (!module.value.fields) {
     module.value.fields = []
   }
-  const field = new compose.ModuleFieldString()
-  ensureFieldKey(field)
-  module.value.fields.push(field)
+  module.value.fields.push(new compose.ModuleFieldString())
 }
 
 function removeField(index) {
   module.value.fields.splice(index, 1)
-}
-
-function onRowReorder(event) {
-  // Extract only the non-system fields to update module.fields
-  const reordered = (event.value || []).filter(f => !f.isSystem)
-  module.value.fields = reordered
-}
-
-function fieldRowClass(data) {
-  return data.isSystem ? 'system-field-row' : ''
 }
 
 function onIssuesTabClick() {
@@ -692,8 +758,8 @@ function openFieldTranslation(field) {
   })
 }
 
-function getFieldActionsMenuItems(field, index) {
-  if (field.isSystem) return []
+function fieldActionsMenuItems(field, index) {
+  if (!field || field.isSystem) return []
 
   const items = []
 
@@ -768,22 +834,12 @@ function getFieldActionsMenuItems(field, index) {
     }
   }
 
-  items.push({
-    label: t('general.label.delete'),
-    icon: 'pi pi-trash',
-    class: 'text-red-500',
-    command: () => onConfirmFieldDelete(field, index),
-  })
-
   return items
 }
 
-function onConfirmFieldDelete(field, index) {
-  confirmDelete({
-    message: t('module.edit.fields.deleteConfirm'),
-    header: field.label || field.name || t('module.edit.fields.columns.name.label'),
-    onConfirm: () => removeField(index),
-  })
+function showFieldActionsMenu(event, field, index) {
+  currentFieldMenuItems.value = fieldActionsMenuItems(field, index)
+  nextTick(() => fieldActionsMenuRef.value?.toggle(event))
 }
 
 function openFieldConfigurator(field, index) {
@@ -799,17 +855,19 @@ function onFieldSave(updatedField) {
 }
 
 async function handleSubmit({ valid }) {
-  if (!valid) {
+  if (!valid || !fieldsValid.value) {
+    validationTriggered.value = true
     activeTab.value = 'fields'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
       document
-        .querySelector('.p-message-error')
+        .querySelector('.p-message-error, .p-inputtext.p-invalid')
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
   if (!canSave.value) return
+  validationTriggered.value = false
 
   saving.value = true
   try {
@@ -826,7 +884,6 @@ async function handleSubmit({ valid }) {
       payload.moduleID = module.value.moduleID
       const updated = await moduleStore.update(payload)
       module.value = new compose.Module({ ...updated })
-      module.value.fields.forEach(ensureFieldKey)
       initialModule.value = cloneDeep(module.value)
       $toast.toastSuccess(t('notification.module.saved'))
     } else {
@@ -905,6 +962,20 @@ async function checkSchemaAlterations() {
   }
 }
 
+async function createDefaultLayout(page) {
+  if (!page?.pageID) return
+  try {
+    await pageLayoutStore.create({
+      namespaceID: props.namespace.namespaceID,
+      pageID: page.pageID,
+      handle: 'primary',
+      meta: { title: page.title },
+    })
+  } catch (e) {
+    console.error('Failed to create default page layout:', e)
+  }
+}
+
 async function handleRecordPageCreation() {
   creatingRecordPage.value = true
   try {
@@ -923,7 +994,8 @@ async function handleRecordPageCreation() {
       blocks,
     })
 
-    await pageStore.create(page)
+    const created = await pageStore.create(page)
+    await createDefaultLayout(created)
     $toast.toastSuccess(t('notification.page.created'))
   } catch (e) {
     console.error('Failed to create record page:', e)
@@ -958,6 +1030,7 @@ async function handleRecordListPageCreation() {
     })
 
     const createdPage = await pageStore.create(page)
+    await createDefaultLayout(createdPage)
 
     // Update the record page to set this as its parent
     if (recordPage.value) {
@@ -976,40 +1049,8 @@ async function handleRecordListPageCreation() {
   }
 }
 
-// Lifecycle
-function updateTableScrollHeight() {
-  nextTick(() => {
-    const el = fieldTableRef.value?.dataTableRef?.$el
-    if (!el) return
-
-    // Find the header row inside DataTable to measure its height
-    const header = el.querySelector('.p-datatable-header-cell')?.closest('thead')
-    const headerHeight = header?.offsetHeight || 40
-
-    const rect = el.getBoundingClientRect()
-    const footerOffset = 70 // footer bar height + padding
-    const remaining = window.innerHeight - rect.top - headerHeight - footerOffset
-    const minHeight = window.innerHeight * 0.5 // 50vh
-
-    tableScrollHeight.value = `${Math.max(remaining, minHeight)}px`
-  })
-}
-
 onMounted(() => {
   loadModule()
-
-  // Observe layout changes to recalculate scroll height
-  updateTableScrollHeight()
-  window.addEventListener('resize', updateTableScrollHeight)
-
-  resizeObserver = new ResizeObserver(updateTableScrollHeight)
-  const formEl = document.querySelector('form')
-  if (formEl) resizeObserver.observe(formEl)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateTableScrollHeight)
-  resizeObserver?.disconnect()
 })
 
 watch(
@@ -1018,11 +1059,6 @@ watch(
     loadModule()
   },
 )
-
-// Recalculate scroll height when loading finishes and DataTable renders
-watch(loading, val => {
-  if (!val) updateTableScrollHeight()
-})
 
 function exportModule() {
   if (!module.value) return
@@ -1038,9 +1074,3 @@ function exportModule() {
 }
 </script>
 
-<style scoped>
-:deep(.system-field-row) .p-datatable-reorderable-row-handle {
-  visibility: hidden;
-  pointer-events: none;
-}
-</style>

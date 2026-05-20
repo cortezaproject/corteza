@@ -62,6 +62,15 @@
         :align-frozen="field.alignFrozen"
         :pt="field.pt"
       >
+        <template v-if="field.hint" #header>
+          <span class="flex items-center gap-1">
+            {{ field.header }}
+            <i
+              v-tooltip.top="field.hint"
+              class="pi pi-info-circle text-xs cursor-help"
+            />
+          </span>
+        </template>
         <template #body="slotProps">
           <slot :name="`body-${field.key}`" v-bind="slotProps">
             {{ slotProps.data[field.key] }}

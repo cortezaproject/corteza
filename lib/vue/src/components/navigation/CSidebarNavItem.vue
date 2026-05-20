@@ -16,7 +16,13 @@
     >
       <template #default>
         <div class="flex items-center gap-2 flex-1 cursor-pointer overflow-hidden">
-          <i v-if="itemIcon" :class="itemIcon" />
+          <img
+            v-if="itemIconIsImage"
+            :src="itemIcon"
+            class="h-4 w-4 object-contain"
+            :alt="label"
+          />
+          <i v-else-if="itemIcon" :class="itemIcon" />
           <span class="truncate">{{ label }}</span>
         </div>
         <i
@@ -215,5 +221,10 @@ const itemIcon = computed(() => {
     return props.node[props.iconKey]
   }
   return props.icon
+})
+
+const itemIconIsImage = computed(() => {
+  const v = itemIcon.value
+  return typeof v === 'string' && (v.startsWith('http') || v.startsWith('/'))
 })
 </script>
