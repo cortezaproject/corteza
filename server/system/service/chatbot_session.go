@@ -423,10 +423,12 @@ func (svc *chatbotSession) FindLiveHandoffBySession(ctx context.Context, session
 	return requested, nil
 }
 
-// SendOperatorMessage appends an operator turn to the conversation tied to the
-// handoff's step. The handoff must be in "active" state. Returns the
+// AppendOperatorMessage appends an operator turn to the conversation tied to
+// the handoff's step. The handoff must be in "active" state. Returns the
 // conversation ID so the caller can emit SSE without re-resolving the step.
-func (svc *chatbotSession) SendOperatorMessage(ctx context.Context, handoffID uint64, message string) (uint64, error) {
+// Used by the legacy operator console; the fat SendOperatorMessage below is
+// the canonical path for the aggregated session API.
+func (svc *chatbotSession) AppendOperatorMessage(ctx context.Context, handoffID uint64, message string) (uint64, error) {
 	h, err := svc.FindHandoffByID(ctx, handoffID)
 	if err != nil {
 		return 0, err

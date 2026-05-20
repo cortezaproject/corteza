@@ -39,7 +39,7 @@ type chatbotSession interface {
 	FindLiveHandoffBySession(ctx context.Context, sessionID uint64) (*types.ChatbotSessionHandoff, error)
 	ActivateHandoff(ctx context.Context, handoffID uint64) error
 	CloseHandoff(ctx context.Context, handoffID uint64) error
-	SendOperatorMessage(ctx context.Context, handoffID uint64, message string) (uint64, error)
+	AppendOperatorMessage(ctx context.Context, handoffID uint64, message string) (uint64, error)
 }
 
 // NewChatbotHandoffController wires the controller with shared services. All
@@ -138,7 +138,7 @@ func (c *ChatbotHandoffController) sendOperatorMessage(w http.ResponseWriter, r 
 		return
 	}
 
-	convID, err := c.sessionSvc.SendOperatorMessage(r.Context(), h.ID, body.Message)
+	convID, err := c.sessionSvc.AppendOperatorMessage(r.Context(), h.ID, body.Message)
 	if err != nil {
 		http.Error(w, "handoff: send failed", http.StatusInternalServerError)
 		return
