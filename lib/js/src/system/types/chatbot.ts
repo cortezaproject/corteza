@@ -65,7 +65,6 @@ interface ChatbotScenario {
 
 interface ChatbotHandoff {
   enabled: boolean
-  targetRoles: string[]
   automation?: ChatbotHandoffAutomation
 }
 
@@ -114,7 +113,6 @@ export class Chatbot {
 
   public handoff: ChatbotHandoff = {
     enabled: false,
-    targetRoles: [],
   }
 
   public styling: ChatbotStyling = {
@@ -181,9 +179,6 @@ export class Chatbot {
       this.handoff = {
         ...this.handoff,
         ...(o.handoff || {}),
-        targetRoles: Array.isArray(o.handoff?.targetRoles)
-          ? o.handoff.targetRoles
-          : this.handoff.targetRoles,
       }
     }
 
@@ -214,71 +209,94 @@ export class Chatbot {
   }
 }
 
+export interface ChatbotSessionHandoff {
+  id: string
+  status: string
+  startedAt?: Date
+  closedAt?: Date
+}
+
 interface PartialChatbotSession extends Partial<
-  Omit<ChatbotSession, 'createdAt' | 'updatedAt' | 'deletedAt'>
+  Omit<ChatbotSession, 'createdAt' | 'updatedAt'>
 > {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
-  deletedAt?: string | number | Date
 }
 
+// ChatbotSession mirrors the unified wire shape returned by
+// /chatbots/sessions. `id` is a string because preview-source sessions use an
+// opaque (non-numeric) identifier; widget-source sessions use the DB id as a
+// numeric string. RBAC flags are populated per-row by the server.
 export class ChatbotSession {
-  public sessionID = NoID
+  public id = ''
+  public source = ''
   public chatbotID = NoID
   public status = ''
   public currentStep = 0
+  public conversationID = NoID
+
+  public handoff?: ChatbotSessionHandoff = undefined
+
+  public canView = false
+  public canManage = false
+  public canManageHandoff = false
 
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
-  public deletedAt?: Date = undefined
-
-  public createdBy = NoID
-  public updatedBy = NoID
-  public deletedBy = NoID
 
   constructor(o?: PartialChatbotSession) {
     this.apply(o)
   }
 
   apply(o?: PartialChatbotSession): void {
-    Apply(this, o, HumanID, 'sessionID', 'chatbotID', 'createdBy', 'updatedBy', 'deletedBy')
-    Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, o, String, 'status')
+    if (!o) return
+    Apply(this, o, String, 'id', 'source', 'status')
+    Apply(this, o, HumanID, 'chatbotID', 'conversationID')
     Apply(this, o, Number, 'currentStep')
+    Apply(this, o, Boolean, 'canView', 'canManage', 'canManageHandoff')
+    Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt')
+
+    if (IsOf(o, 'handoff') && o.handoff) {
+      const h = o.handoff as Partial<ChatbotSessionHandoff> & { startedAt?: string | Date; closedAt?: string | Date }
+      this.handoff = {
+        id: String(h.id || ''),
+        status: String(h.status || ''),
+        startedAt: h.startedAt ? new Date(h.startedAt) : undefined,
+        closedAt: h.closedAt ? new Date(h.closedAt) : undefined,
+      }
+    }
   }
 }
 
 interface PartialChatbotSessionStep extends Partial<
-  Omit<ChatbotSessionStep, 'createdAt' | 'updatedAt' | 'deletedAt'>
+  Omit<ChatbotSessionStep, 'createdAt'>
 > {
   createdAt?: string | number | Date
-  updatedAt?: string | number | Date
-  deletedAt?: string | number | Date
 }
 
 export class ChatbotSessionStep {
-  public stepID = NoID
-  public sessionID = NoID
-  public conversationID = NoID
+  public id = ''
   public scenarioIndex = 0
+  public scenarioID = ''
+  public conversationID = NoID
   public status = ''
+  public hookLog: string[] = []
 
   public createdAt?: Date = undefined
-  public updatedAt?: Date = undefined
-  public deletedAt?: Date = undefined
-
-  public createdBy = NoID
-  public updatedBy = NoID
-  public deletedBy = NoID
 
   constructor(o?: PartialChatbotSessionStep) {
     this.apply(o)
   }
 
   apply(o?: PartialChatbotSessionStep): void {
-    Apply(this, o, HumanID, 'stepID', 'sessionID', 'conversationID', 'createdBy', 'updatedBy', 'deletedBy')
-    Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, o, String, 'status')
+    if (!o) return
+    Apply(this, o, String, 'id', 'scenarioID', 'status')
+    Apply(this, o, HumanID, 'conversationID')
     Apply(this, o, Number, 'scenarioIndex')
+    Apply(this, o, ISO8601Date, 'createdAt')
+
+    if (IsOf(o, 'hookLog')) {
+      this.hookLog = Array.isArray(o.hookLog) ? o.hookLog.map(String) : []
+    }
   }
 }

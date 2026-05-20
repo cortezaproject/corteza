@@ -55,8 +55,14 @@
                   />
                   <Styling :styling="chatbot.styling" :chatbot-id="chatbot.chatbotID" />
                 </TabPanel>
-                <TabPanel value="sessions" class="h-full overflow-hidden p-0">
-                  <SessionsList :chatbot-id="chatbot.chatbotID" />
+                <TabPanel value="sessions" class="h-full overflow-hidden p-0 flex flex-col">
+                  <CChatbotInbox
+                    :chatbot-i-ds="[chatbot.chatbotID]"
+                    :status-filter="['handoff_requested', 'handoff_active', 'active', 'closed']"
+                    :show-filter="true"
+                    :refresh-rate="5"
+                    :translations="inboxTranslations"
+                  />
                 </TabPanel>
               </TabPanels>
             </Tabs>
@@ -90,7 +96,7 @@
 </template>
 
 <script setup>
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { CChatbotInbox, components, makeChatbotInboxTranslations, useUnsavedGuard } from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'
@@ -102,7 +108,6 @@ import General from './Editor/General.vue'
 import Styling from './Editor/Styling.vue'
 import Scenarios from './Editor/Scenarios.vue'
 import Preview from './Editor/Preview.vue'
-import SessionsList from '@/components/SessionsList.vue'
 
 const { CInputDelete } = components
 
@@ -114,6 +119,10 @@ const $SystemAPI = inject('$SystemAPI')
 const chatbotStore = useChatbotStore()
 
 const activeTab = ref('config')
+
+// Inbox strings come from the chatbot admin's own locale tree; the lib
+// component itself has no opinion on i18n.
+const inboxTranslations = computed(() => makeChatbotInboxTranslations(t, 'chatbot.inbox.'))
 
 const loading = ref(false)
 const saving = ref(false)

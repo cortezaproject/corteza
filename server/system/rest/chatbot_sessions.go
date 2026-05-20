@@ -34,6 +34,11 @@ type (
 
 	// chatbotUnifiedSession is the wire shape returned by /chatbots/sessions
 	// for both widget-persisted and preview in-memory sessions.
+	//
+	// The chatbot name is intentionally not embedded — clients resolve it
+	// from chatbotID via the chatbot list so renames flow through without
+	// stale snapshots. Preview rows for unsaved drafts carry chatbotID "0"
+	// and the client falls back to a generic label.
 	chatbotUnifiedSession struct {
 		ID             string                 `json:"id"`
 		Source         string                 `json:"source"`
@@ -484,10 +489,9 @@ func (ctrl *ChatbotSession) toUnifiedFromDB(
 }
 
 func (ctrl *ChatbotSession) toUnifiedFromPreview(
-	ctx context.Context,
+	_ context.Context,
 	ps *service.ChatbotPreviewSession,
 ) *chatbotUnifiedSession {
-	cb := &ps.Chatbot
 	out := &chatbotUnifiedSession{
 		ID:             ps.ID,
 		Source:         "preview",
@@ -497,9 +501,13 @@ func (ctrl *ChatbotSession) toUnifiedFromPreview(
 		ConversationID: ps.ConversationID,
 		CreatedAt:      ps.CreatedAt,
 
-		CanView:          ctrl.ac.CanViewSessionsOnChatbot(ctx, cb),
-		CanManage:        ctrl.ac.CanManageSessionsOnChatbot(ctx, cb),
-		CanManageHandoff: ctrl.ac.CanManageSessionsHandoffOnChatbot(ctx, cb),
+		// Preview is admin-gated at the route level; the chatbot snapshot is
+		// the unsaved editor draft, so chatbot-resource RBAC checks never
+		// match. Surface the route-level gate as "yes" on the wire so the
+		// inbox doesn't grey out actions on legitimate preview rows.
+		CanView:          true,
+		CanManage:        true,
+		CanManageHandoff: true,
 	}
 	if ps.Handoff != nil {
 		out.Handoff = &chatbotUnifiedHandoff{

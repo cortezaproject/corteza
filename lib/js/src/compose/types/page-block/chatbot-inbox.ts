@@ -8,6 +8,7 @@ interface Options {
   statusFilter: string[]
   refreshRate: number
   autoOpenFirst: boolean
+  showFilter: boolean
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -15,6 +16,7 @@ const defaults: Readonly<Options> = Object.freeze({
   statusFilter: ['handoff_requested', 'handoff_active'],
   refreshRate: 5,
   autoOpenFirst: false,
+  showFilter: false,
 })
 
 export class PageBlockChatbotInbox extends PageBlock {
@@ -39,6 +41,7 @@ export class PageBlockChatbotInbox extends PageBlock {
 
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'autoOpenFirst')
+    Apply(this.options, o, Boolean, 'showFilter')
   }
 }
 
@@ -51,6 +54,7 @@ function cloneDefaults(): Options {
     statusFilter: [...defaults.statusFilter],
     refreshRate: defaults.refreshRate,
     autoOpenFirst: defaults.autoOpenFirst,
+    showFilter: defaults.showFilter,
   }
 }
 

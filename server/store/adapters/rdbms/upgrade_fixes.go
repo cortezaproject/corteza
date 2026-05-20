@@ -62,8 +62,24 @@ var (
 		fix_2024_09_05_addUserGroupReferenceToUser,
 		fix_2026_04_00_addChatbotColumnToAgents,
 		fix_2026_05_00_addSourceOnConnections,
+		fix_2026_05_00_addStateOnChatbotSessions,
 	}
 )
+
+// fix_2026_05_00_addStateOnChatbotSessions backfills the JSON `state` column
+// introduced alongside the unified chatbot session model. Default is `[]`
+// because the underlying Go type (types.ChatbotSessionState) is a slice — a
+// `{}` backfill would fail to scan on first read.
+func fix_2026_05_00_addStateOnChatbotSessions(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"chatbot_sessions",
+		&dal.Attribute{
+			Ident: "State",
+			Type:  &dal.TypeJSON{DefaultValue: "[]"},
+			Store: &dal.CodecAlias{Ident: "state"},
+		},
+	)
+}
 
 func fix_2026_04_00_addChatbotColumnToAgents(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,

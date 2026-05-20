@@ -154,7 +154,10 @@
               </template>
 
               <template v-else-if="current.type === 'form'">
-                <CFormGroup :label="$t('chatbot.editor.scenarios.form.fields')" class="xl:col-span-2">
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.form.fields')"
+                  class="xl:col-span-2"
+                >
                   <template #actions>
                     <Button
                       :label="$t('general.label.add')"
@@ -218,6 +221,7 @@
             >
               <CInputTAQ
                 :model-value="automationID(current.automation?.before?.automation)"
+                :placeholder="$t('chatbot.editor.scenarios.automation.placeholder')"
                 @update:model-value="setAutomation('before', $event)"
               />
             </CFormGroup>
@@ -227,6 +231,7 @@
             >
               <CInputTAQ
                 :model-value="automationID(current.automation?.after?.automation)"
+                :placeholder="$t('chatbot.editor.scenarios.automation.placeholder')"
                 @update:model-value="setAutomation('after', $event)"
               />
             </CFormGroup>
@@ -245,25 +250,16 @@
         {{ $t('chatbot.editor.handoff.sectionTitle') }}
       </h3>
 
-      <CInputToggleCard
-        v-model="handoff.enabled"
-        :label="$t('chatbot.editor.handoff.enabled.label')"
-        :description="$t('chatbot.editor.handoff.enabled.help')"
-        class="self-start"
-      />
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <CInputToggleCard
+          v-model="handoff.enabled"
+          :label="$t('chatbot.editor.handoff.enabled.label')"
+          :description="$t('chatbot.editor.handoff.enabled.help')"
+          class="self-start"
+        />
+      </div>
 
       <template v-if="handoff.enabled">
-        <CFormGroup
-          :label="$t('chatbot.editor.handoff.targetRoles.label')"
-          :description="$t('chatbot.editor.handoff.targetRoles.help')"
-        >
-          <CInputRole
-            v-model="handoff.targetRoles"
-            multiple
-            :placeholder="$t('chatbot.editor.handoff.targetRoles.placeholder')"
-          />
-        </CFormGroup>
-
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <CFormGroup
             :label="$t('chatbot.editor.handoff.automation.onRequested.label')"
@@ -271,6 +267,7 @@
           >
             <CInputTAQ
               :model-value="automationID(handoff.automation?.onRequested?.automation)"
+              :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
               @update:model-value="setHandoffAutomation('onRequested', $event)"
             />
           </CFormGroup>
@@ -280,6 +277,7 @@
           >
             <CInputTAQ
               :model-value="automationID(handoff.automation?.onAccepted?.automation)"
+              :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
               @update:model-value="setHandoffAutomation('onAccepted', $event)"
             />
           </CFormGroup>
@@ -294,7 +292,7 @@ import { components } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CInputTAQ, CInputRole, CInputToggleCard } = components
+const { CInputTAQ, CInputToggleCard } = components
 const { t } = useI18n()
 
 const AUTOMATION_PREFIX = 'corteza::automation:ng-automation/'

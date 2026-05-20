@@ -68,12 +68,27 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		}
 	}
 
-	// Add user message to history if input exists
+	// Add user message to history if input exists, then persist eagerly so
+	// live readers (e.g. the operator inbox SSE stream + historical reads)
+	// see the turn before the full LLM round-trip completes. The final save
+	// at the end of this function still happens — overwriting with the
+	// agent's response appended — so this just shortens the window where the
+	// user turn is in-memory only.
+	//
+	// The returned conv carries the post-write UpdatedAt; reassign so the
+	// final save doesn't trip the stale-data check.
 	if req.Input != "" {
 		conversation.Messages = append(conversation.Messages, types.AiConversationMessage{
 			Role:    "user",
 			Content: req.Input,
 		})
+		saved, err := r.conversationStore.Update(ctx, conversation)
+		if err != nil {
+			return nil, fmt.Errorf("failed to persist user turn: %w", err)
+		}
+		if saved != nil {
+			conversation = saved
+		}
 	}
 
 	tc := newTraceCtx(ctx, agent.ID, conversation.ID)

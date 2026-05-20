@@ -1,11 +1,21 @@
 import type { Styling } from './types'
 
 export const baseCSS = `
-:host { all: initial; }
+:host {
+  all: initial;
+  /* Defaults for theme variables. applyStyling() overrides individual
+    values from the chatbot's styling config; anything it skips falls back
+    to these so the widget never inherits whatever weird font the host
+    page happens to be using. */
+  --hb-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --hb-font-base: 14px;
+  --hb-font-small: 12px;
+  --hb-font-heading: 16px;
+}
 .hb-root {
   position: fixed; bottom: 16px; right: 16px; z-index: 2147483646;
-  font-family: var(--hb-font, system-ui, sans-serif);
-  font-size: var(--hb-font-base, 14px);
+  font-family: var(--hb-font);
+  font-size: var(--hb-font-base);
   color: var(--hb-text, #111);
 }
 .hb-root.hb-pos-bottom-left { right: auto; left: 16px; }
@@ -77,6 +87,7 @@ export const baseCSS = `
   display: flex; align-items: center; gap: 8px;
 }
 .hb-header img { height: 24px; max-width: 140px; object-fit: contain; display: block; flex: none; }
+.hb-title { min-height: 1.2em; display: flex; align-items: center; }
 .hb-close {
   position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
   width: 28px; height: 28px; padding: 0;
@@ -171,9 +182,15 @@ export const baseCSS = `
   background: #fef3c7; color: #78350f;
   border-bottom: 1px solid #fde68a;
   padding: 8px 12px; font-size: var(--hb-font-small, 12px);
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .hb-handoff-badge .hb-action { border-color: #fcd34d; color: #78350f; }
+.hb-handoff-badge .hb-operator-name {
+  font-weight: 700; font-size: 1.1em;
+  /* Match the parent's line-height so the taller font-size doesn't push
+    the name's baseline off the rest of the row. */
+  line-height: 1; display: inline-flex; align-items: center;
+}
 .hb-msg.agent .hb-operator-tag {
   font-size: var(--hb-font-small, 12px); font-weight: 600;
   color: #047857; margin-bottom: 2px;

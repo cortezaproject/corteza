@@ -163,6 +163,11 @@ func (s *chatbotPreview) SubmitMessage(ctx context.Context, ps *ChatbotPreviewSe
 		_, _ = s.conv.Update(svcCtx, conv)
 	}
 
+	// Broadcast the user turn so live SSE subscribers (operator inbox) see
+	// the visitor's input during the bot phase, not just the agent's reply.
+	// Mirrors the widget-side behavior in chatbot_session.SubmitMessage.
+	s.EmitUserMessage(ps, input)
+
 	saCtx := ImpersonateServiceAccount(context.Background(), s.store, agent.Invocation.System.ServiceAccount)
 	cid := ps.ConversationID
 	agentID := agent.ID
@@ -264,9 +269,13 @@ func (s *chatbotPreview) SendOperatorMessage(ctx context.Context, ps *ChatbotPre
 		return ChatbotSessionErrHandoffNotActive()
 	}
 	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+	// Persist operator attribution as a structured field; the historical
+	// load path reconstructs the same shape the SSE `operator_message` event
+	// already carries (content + operator name).
 	s.appendConvMessage(svcCtx, ps.ConversationID, types.AiConversationMessage{
-		Role:    "assistant",
-		Content: "[operator] " + msg,
+		Role:     "assistant",
+		Content:  msg,
+		Operator: operator,
 	})
 	s.EmitOperatorMessage(ps, msg, operator)
 	return nil

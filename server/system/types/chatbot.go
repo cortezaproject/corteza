@@ -53,9 +53,8 @@ type (
 	}
 
 	ChatbotHandoff struct {
-		Enabled     bool                     `json:"enabled"`
-		TargetRoles []uint64                 `json:"targetRoles,omitempty"`
-		Automation  ChatbotHandoffAutomation `json:"automation"`
+		Enabled    bool                     `json:"enabled"`
+		Automation ChatbotHandoffAutomation `json:"automation"`
 	}
 
 	ChatbotHandoffAutomation struct {

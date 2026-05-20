@@ -27,6 +27,7 @@ type (
 	AiConversationMessage struct {
 		Role        string                     `json:"role"`
 		Content     string                     `json:"content"`
+		Operator    string                     `json:"operator,omitempty"`
 		ToolCalls   []AiConversationToolCall   `json:"toolCalls,omitempty"`
 		ToolResults []AiConversationToolResult `json:"toolResults,omitempty"`
 	}

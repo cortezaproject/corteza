@@ -71,10 +71,6 @@ func MountRoutes() func(r chi.Router) {
 			//
 			// @todo can/should we pipe this via our standard approach instead?
 			NewChatbotPreviewController().MountRoutes(r)
-
-			// Admin-authed handoff/operator API for DB-backed chatbot
-			// sessions. RBAC honors chatbot.Handoff.TargetRoles.
-			NewChatbotHandoffController().MountRoutes(r)
 		})
 	}
 }

@@ -66,16 +66,14 @@ editor:
   origins:
     add: Add origin
     help: Only these origins can load the widget. Use * to allow all.
+    empty: No allowed origins set. Add one above.
   handoff:
     sectionTitle: Handoff
     enabled:
       label: Enable handoff
       help: Show the "Talk to human" button in the widget on conversation steps.
-    targetRoles:
-      label: Target roles
-      help: Operators with at least one of these roles can accept the handoff. Leave empty to allow any signed-in admin.
-      placeholder: Pick roles
     automation:
+      placeholder: Select automation
       onRequested:
         label: When handoff requested
         help: Automation triggered when the visitor asks for a human.
@@ -202,22 +200,59 @@ editor:
       beforeHelp: Runs before the step executes. Blocks on failure.
       after: After automation
       afterHelp: Runs after the step completes. Errors are logged only.
+      placeholder: Select automation
 
 sessions:
   title: Sessions
-  searchPlaceholder: Search sessions
-  status:
-    active: Active
-    completed: Completed
-    handoff: Handoff
-    error: Error
-  columns:
-    chatbot: Chatbot
-    status: Status
-    createdAt: Created
-  detail:
-    title: Session details
-    empty: No messages in this session
-  filter:
-    chatbot: Chatbot
-    allChatbots: All chatbots
+
+# Flat keys consumed by lib/vue CChatbotInbox via
+# makeChatbotInboxTranslations(t, 'chatbot.inbox.').
+inbox:
+  inbox: Inbox
+  sourcePreview: Preview
+  draftChatbot: Draft chatbot
+  authorUser: User
+  authorAgent: Agent
+  sectionHandoffRequested: Awaiting operator
+  sectionHandoffActive: In progress
+  sectionActive: Active
+  sectionClosed: Closed
+  empty: No pending handoffs
+  emptyNoChatbots: No chatbots selected.
+  selectHint: Select a session to take over
+  accept: Accept
+  resolve: Resolve
+  operator: Operator
+  replyingAs: Replying as {name}
+  changeAlias: Change display name
+  aliasLabel: Display name
+  aliasHint: Shown to visitors next to your messages. Leave empty to use your account name.
+  aliasSave: Save
+  aliasReset: Reset
+  composerPlaceholder: Reply as operator…
+  composerDisabled: Accept the handoff to reply
+  confirmAcceptHeader: Accept handoff
+  confirmAcceptMessage: Take over this conversation as the operator? The visitor will see your replies in real time.
+  confirmResolveHeader: Resolve handoff
+  confirmResolveMessage: End the handoff and let the AI resume at the same step? You can still view the conversation history later.
+  adminActions: Admin actions
+  adminAdvanceStep: Force advance step
+  adminCloseSession: Force close session
+  confirmAdvanceStepHeader: Force advance step
+  confirmAdvanceStepMessage: Skip the current step and move the visitor to the next one in the journey? This bypasses any pending input on the current step.
+  confirmCloseSessionHeader: Force close session
+  confirmCloseSessionMessage: End this session immediately? The visitor's widget will receive a close event. This cannot be undone.
+  statusHandoffRequested: Requested
+  statusHandoffActive: In progress
+  statusActive: Active
+  statusClosed: Closed
+  filterTitle: Filter sessions
+  filterStatus: Status
+  filterChatbot: Chatbot
+  filterSource: Source
+  filterSourceLive: Live
+  filterSourcePreview: Preview
+  filterApply: Apply
+  filterReset: Reset
+  filterEmptyFiltered: No sessions match the current filter
+  cancel: Cancel

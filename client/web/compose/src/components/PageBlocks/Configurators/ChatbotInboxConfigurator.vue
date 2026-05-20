@@ -64,6 +64,13 @@
         {{ $t('block.chatbotInbox.config.autoOpen') }}
       </label>
     </div>
+
+    <div class="flex items-center gap-2">
+      <Checkbox v-model="showFilter" :binary="true" input-id="cb-inbox-show-filter" />
+      <label for="cb-inbox-show-filter" class="text-sm">
+        {{ $t('block.chatbotInbox.config.showFilter') }}
+      </label>
+    </div>
   </div>
 </template>
 
@@ -107,6 +114,11 @@ const refreshRate = computed({
 const autoOpenFirst = computed({
   get: () => opts.value.autoOpenFirst,
   set: v => { opts.value.autoOpenFirst = !!v },
+})
+
+const showFilter = computed({
+  get: () => opts.value.showFilter,
+  set: v => { opts.value.showFilter = !!v },
 })
 
 onMounted(async () => {

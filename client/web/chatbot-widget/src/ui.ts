@@ -31,6 +31,11 @@ export class WidgetUI {
   private mo: MutationObserver | null = null
   private onToggle?: (open: boolean) => void
   private currentForm: HTMLFormElement | null = null
+  // Mirrors the typing-indicator state so rapid double-sends can't trigger
+  // overlapping runtime calls (the BE conversation save races on a stale
+  // UpdatedAt otherwise). Updated from the typing on/off events; gates the
+  // composer disabled state alongside the empty-input check.
+  private agentBusy = false
 
   onUserInput: (text: string) => void = () => {}
   onFormSubmit: (values: Record<string, string>) => void = () => {}
@@ -118,7 +123,8 @@ export class WidgetUI {
       header.appendChild(img)
     }
     const title = document.createElement('span')
-    title.textContent = cfg.styling.launcher.label || ' '
+    title.className = 'hb-title'
+    title.textContent = cfg.styling.launcher.label || ''
     header.appendChild(title)
 
     const closeBtn = document.createElement('button')
@@ -240,6 +246,24 @@ export class WidgetUI {
       this.typingEl.remove()
       this.typingEl = null
     }
+    this.agentBusy = on
+    this.refreshComposerBusyState()
+  }
+
+  // Look up the currently-mounted conversation composer and toggle its
+  // disabled state to match `agentBusy`. The send button still respects the
+  // empty-input rule when re-enabled. No-op when the composer isn't mounted
+  // (e.g. on a form / static step).
+  private refreshComposerBusyState() {
+    const input = this.footerEl.querySelector<HTMLTextAreaElement>('.hb-input')
+    const send = this.footerEl.querySelector<HTMLButtonElement>('.hb-send')
+    if (!input || !send) return
+    input.disabled = this.agentBusy
+    if (this.agentBusy) {
+      send.disabled = true
+    } else {
+      send.disabled = input.value.trim().length === 0
+    }
   }
 
   private renderStep(p: StepStartPayload) {
@@ -338,6 +362,23 @@ export class WidgetUI {
     })
     this.bodyEl.appendChild(form)
     this.currentForm = form
+
+    // Mirror the conversation scenario's footer: a small "End conversation"
+    // action button so the visitor can bail out of a form step the same way
+    // they would from a chat step. Reuses the same hb-conv-actions /
+    // hb-action styling for visual parity.
+    this.footerEl.className = 'hb-footer'
+    this.footerEl.innerHTML = ''
+    const formActions = document.createElement('div')
+    formActions.className = 'hb-conv-actions'
+    const end = document.createElement('button')
+    end.className = 'hb-action'
+    end.type = 'button'
+    end.dataset.action = 'end'
+    end.textContent = (p.config as { endLabel?: string } | undefined)?.endLabel || 'End conversation'
+    end.addEventListener('click', () => this.onEndConversation())
+    formActions.appendChild(end)
+    this.footerEl.appendChild(formActions)
   }
 
   // showFormErrors displays inline validation errors on the current form.
@@ -380,9 +421,14 @@ export class WidgetUI {
       input.style.height = Math.min(input.scrollHeight, 120) + 'px'
     }
     const refreshDisabled = () => {
-      send.disabled = input.value.trim().length === 0
+      send.disabled = this.agentBusy || input.value.trim().length === 0
     }
     const submit = () => {
+      // Front-stop the rapid double-send: if the agent is still working on
+      // the previous turn, the BE save would race with this one and trip
+      // the conversation isStale check. The typing event re-enables the
+      // composer as soon as the runtime is idle again.
+      if (this.agentBusy) return
       const v = input.value.trim()
       if (!v) return
       this.onUserInput(v)
@@ -405,6 +451,10 @@ export class WidgetUI {
 
     this.footerEl.appendChild(input)
     this.footerEl.appendChild(send)
+    // Apply current busy state if the agent is mid-stream when this composer
+    // mounts (e.g. after a step transition while a response is still
+    // generating).
+    this.refreshComposerBusyState()
 
     const actions = document.createElement('div')
     actions.className = 'hb-conv-actions'
@@ -445,10 +495,18 @@ export class WidgetUI {
       badge.className = 'hb-handoff-badge'
       this.panelEl.insertBefore(badge, this.bodyEl)
     }
-    badge.textContent =
-      state.phase === 'requested'
-        ? 'Waiting for an operator…'
-        : `Connected to ${state.operator || 'operator'}`
+    // Reset before re-rendering — handoff state may transition from
+    // 'requested' (with Cancel button) to 'active' on the same badge node.
+    badge.textContent = ''
+    if (state.phase === 'requested') {
+      badge.appendChild(document.createTextNode('Waiting for an operator…'))
+    } else {
+      badge.appendChild(document.createTextNode('Connected to '))
+      const name = document.createElement('span')
+      name.className = 'hb-operator-name'
+      name.textContent = state.operator || 'operator'
+      badge.appendChild(name)
+    }
 
     if (state.phase === 'requested') {
       const cancel = document.createElement('button')

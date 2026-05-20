@@ -50,7 +50,13 @@ function buildConfig() {
       position: 'bottom-right',
     },
   }
+  // Identity is propagated so the unified inbox can resolve preview sessions
+  // back to their source chatbot (otherwise BE decode lands at `Chatbot.ID=0`
+  // and the inbox can't look up the name).
   return {
+    chatbotID: cleanNumericID(cb.chatbotID),
+    handle: cb.handle || '',
+    name: cb.name || '',
     styling,
     scenarios,
     handoff: { enabled: !!cb.handoff?.enabled, notImplemented: false },
@@ -156,11 +162,10 @@ function attachStream(s) {
 async function openSession() {
   if (session) return session
   const cfg = buildConfig()
-  const s = await client.openSession({
-    scenarios: cfg.scenarios,
-    handoff: cfg.handoff,
-    styling: cfg.styling,
-  })
+  // Forward the full snapshot (identity + config) so the BE-side preview
+  // session carries the source chatbot's ID / name / handle. Without these
+  // the unified inbox can't resolve preview rows back to a chatbot.
+  const s = await client.openSession(cfg)
   session = s
   stream = client.openStream(s.sessionID)
   attachStream(stream)

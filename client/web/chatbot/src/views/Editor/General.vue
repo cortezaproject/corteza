@@ -88,6 +88,7 @@
         <CFormList
           v-model="chatbot.allowedOrigins"
           :columns="[{ label: '', width: '1fr' }]"
+          :empty-message="$t('chatbot.editor.origins.empty')"
         >
           <template #row="{ index }">
             <InputText

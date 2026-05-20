@@ -1291,11 +1291,28 @@ interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when 
 
 chatbotInbox:
   label: Chatbot
+  config:
+    chatbots: Chatbots
+    chatbotsPlaceholder: Select chatbots to monitor
+    chatbotsHint: Sessions from these chatbots show up in the inbox.
+    status: Status filter
+    refresh: Refresh interval (seconds)
+    refreshHint: How often the list polls for new pending handoffs.
+    autoOpen: Auto-open the most recent pending session
+    showFilter: Show filter
+
   inbox: Inbox
+  sourcePreview: Preview
+  draftChatbot: Draft chatbot
+  authorUser: User
+  authorAgent: Agent
+  sectionHandoffRequested: Awaiting operator
+  sectionHandoffActive: In progress
+  sectionActive: Active
+  sectionClosed: Closed
   empty: No pending handoffs
   emptyNoChatbots: No chatbots selected. Pick at least one in the block configurator.
   selectHint: Select a session to take over
-  session: Session
   accept: Accept
   resolve: Resolve
   operator: Operator
@@ -1307,22 +1324,28 @@ chatbotInbox:
   aliasReset: Reset
   composerPlaceholder: Reply as operator…
   composerDisabled: Accept the handoff to reply
-  confirmAccept:
-    header: Accept handoff
-    message: Take over this conversation as the operator? The visitor will see your replies in real time.
-  confirmResolve:
-    header: Resolve handoff
-    message: End the handoff and let the AI resume at the same step? You can still view the conversation history later.
-  status:
-    handoff_requested: Requested
-    handoff_active: In progress
-    active: Active
-    closed: Closed
-  config:
-    chatbots: Chatbots
-    chatbotsPlaceholder: Select chatbots to monitor
-    chatbotsHint: Sessions from these chatbots show up in the inbox.
-    status: Status filter
-    refresh: Refresh interval (seconds)
-    refreshHint: How often the list polls for new pending handoffs.
-    autoOpen: Auto-open the most recent pending session
+  confirmAcceptHeader: Accept handoff
+  confirmAcceptMessage: Take over this conversation as the operator? The visitor will see your replies in real time.
+  confirmResolveHeader: Resolve handoff
+  confirmResolveMessage: End the handoff and let the AI resume at the same step? You can still view the conversation history later.
+  adminActions: Admin actions
+  adminAdvanceStep: Force advance step
+  adminCloseSession: Force close session
+  confirmAdvanceStepHeader: Force advance step
+  confirmAdvanceStepMessage: Skip the current step and move the visitor to the next one in the journey? This bypasses any pending input on the current step.
+  confirmCloseSessionHeader: Force close session
+  confirmCloseSessionMessage: End this session immediately? The visitor's widget will receive a close event. This cannot be undone.
+  statusHandoffRequested: Requested
+  statusHandoffActive: In progress
+  statusActive: Active
+  statusClosed: Closed
+  filterTitle: Filter sessions
+  filterStatus: Status
+  filterChatbot: Chatbot
+  filterSource: Source
+  filterSourceLive: Live
+  filterSourcePreview: Preview
+  filterApply: Apply
+  filterReset: Reset
+  filterEmptyFiltered: No sessions match the current filter
+  cancel: Cancel

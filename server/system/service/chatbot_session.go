@@ -456,9 +456,12 @@ func (svc *chatbotSession) AppendOperatorMessage(ctx context.Context, handoffID 
 		return 0, fmt.Errorf("conversation not found")
 	}
 
+	// Operator attribution is left empty here — AppendOperatorMessage is the
+	// legacy ChatbotHandoffController path which doesn't carry an operator
+	// label. Kept for compatibility; live callers use SendOperatorMessage.
 	conv.Messages = append(conv.Messages, types.AiConversationMessage{
 		Role:    "assistant",
-		Content: "[operator] " + message,
+		Content: message,
 	})
 	if err := store.UpdateAiConversation(ctx, svc.store, conv); err != nil {
 		return 0, err
@@ -646,6 +649,13 @@ func (svc *chatbotSession) SubmitMessage(ctx context.Context, cb *types.Chatbot,
 		Content: input,
 	})
 
+	// Broadcast the user turn so live SSE subscribers (operator inbox) see
+	// the visitor's input during the bot phase, not just the agent's reply.
+	// The runtime persists the user message to the conversation for history;
+	// this event covers the live-watch case where loadSessionMessages has
+	// already run.
+	svc.emit(convID, "user_message", map[string]any{"content": input})
+
 	saCtx := ImpersonateServiceAccount(context.Background(), svc.store, agent.Invocation.System.ServiceAccount)
 	agentID := agent.ID
 	scenarioID := scenario.ID
@@ -825,9 +835,14 @@ func (svc *chatbotSession) SendOperatorMessage(ctx context.Context, cb *types.Ch
 		return ChatbotSessionErrHandoffNotActive()
 	}
 
+	// Persist with the operator attribution as a structured field so a
+	// historical reload reconstructs the same `{operator, content}` shape the
+	// SSE `operator_message` event carries. Avoids the old "[operator] "
+	// content-prefix hack that diverged from live-stream rendering.
 	m := types.AiConversationMessage{
-		Role:    "assistant",
-		Content: "[operator] " + msg,
+		Role:     "assistant",
+		Content:  msg,
+		Operator: operator,
 	}
 	svc.appendConversationMessage(svcCtx, convID, m)
 	if cb != nil {
