@@ -57,16 +57,13 @@
     <div class="flex-1 overflow-auto">
       <Grid ref="gridRef" :blocks="blocks" :namespace="namespace" :page="page" editable>
         <template #item-overlay="{ item, block }">
+          <div
+            v-tooltip.top="$t('page.tooltip.drag.block')"
+            class="block-drag-handle block-drag-tab bg-emphasis"
+          >
+            <i class="pi pi-bars text-base" />
+          </div>
           <div class="block-toolbox bg-emphasis flex items-center">
-            <Button
-              v-tooltip.top="$t('page.tooltip.drag.block')"
-              icon="pi pi-arrows-alt"
-              text
-              size="small"
-              severity="secondary"
-              class="block-drag-handle !cursor-move"
-            />
-            <Divider layout="vertical" class="!mx-1 !my-0" />
             <ButtonGroup>
               <Button
                 :title="$t('page.tooltip.edit.block')"
@@ -1269,15 +1266,47 @@ watch(
 </script>
 
 <style scoped>
+/* Positions are relative to .grid-stack-item (the outer gridstack-positioned div).
+ * .grid-stack-item-content is inset 6px on every side by gridstack's margin and
+ * carries the dashed border. Anchoring the overlay at 6px (= the border-box outer
+ * edge of .grid-stack-item-content) makes it land exactly on top of the border. */
 .block-toolbox {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 5;
+  bottom: 5px;
+  left: 5px;
+  z-index: 10;
   display: flex;
   justify-content: center;
   padding: 4px;
   border-top-right-radius: var(--p-card-border-radius);
   border-bottom-left-radius: var(--p-card-border-radius);
+}
+
+.block-drag-tab {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 6px 44px;
+  cursor: move;
+  color: var(--p-text-muted-color);
+  background-clip: padding-box;
+  border: 1px solid var(--p-content-border-color);
+  border-top: none;
+  border-bottom-left-radius: var(--p-card-border-radius);
+  border-bottom-right-radius: var(--p-card-border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.block-drag-tab:hover {
+  opacity: 1;
+  color: var(--p-primary-color);
 }
 </style>

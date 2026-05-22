@@ -14,65 +14,59 @@
     </div>
   </div>
 
-  <!-- Multiple blocks or builder mode: use grid layout -->
-  <GridLayout
-    v-else
-    v-model:layout="layoutModel"
-    :col-num="48"
-    :row-height="10"
-    :margin="[12, 12]"
-    :is-draggable="editable"
-    :is-resizable="editable"
-    :responsive="!editable"
-    :breakpoints="{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }"
-    :cols="{ lg: 48, md: 48, sm: 1, xs: 1, xxs: 1 }"
-    :vertical-compact="true"
-    :use-css-transforms="true"
-    @layout-updated="onLayoutUpdated"
-  >
-    <GridItem
-      v-for="item in layoutModel"
-      :key="item.i"
-      :i="item.i"
-      :x="item.x"
-      :y="item.y"
-      :w="item.w"
-      :h="item.h"
-      :min-w="6"
-      :min-h="3"
-      :drag-allow-from="editable ? '.block-drag-handle' : undefined"
-      :drag-ignore-from="editable ? '' : 'a, button'"
-      :class="editable ? 'builder-grid-item' : 'view-grid-item'"
-    >
-      <!-- Scoped slot for custom per-item overlay (e.g. builder toolbox) -->
-      <slot name="item-overlay" :item="item" :block="blockMap.get(item.i)" />
-
-      <!-- Block content — always fills the grid item -->
-      <div class="block-content">
-        <component
-          :is="resolveBlock(blockMap.get(item.i)?.kind)"
-          v-if="resolveBlock(blockMap.get(item.i)?.kind)"
-          :block="blockMap.get(item.i)"
-          :blocks="blocks"
-          :namespace="namespace"
-          :page="page"
-          :record="record"
-        />
-        <div v-else class="flex items-center justify-center h-full text-muted-color italic p-2">
-          <div class="text-center">
-            <i class="pi pi-box text-2xl mb-2" />
-            <div>{{ blockMap.get(item.i)?.kind || $t('block.noConfiguration') }}</div>
+  <!-- Multiple blocks or builder mode: use gridstack.
+       Padding lives on the wrapper, not .grid-stack itself — gridstack items are
+       absolutely positioned and their containing block is the padding edge, so
+       padding on .grid-stack is ignored visually. -->
+  <div v-else class="p-2">
+    <div ref="gridEl" class="grid-stack">
+      <div
+        v-for="block in visibleBlocks"
+        :key="getBlockId(block)"
+        class="grid-stack-item"
+        :class="editable ? 'builder-grid-item' : 'view-grid-item'"
+        :gs-id="getBlockId(block)"
+        :gs-x="block.xywh?.[0] ?? 0"
+        :gs-y="block.xywh?.[1] ?? 0"
+        :gs-w="block.xywh?.[2] ?? 24"
+        :gs-h="block.xywh?.[3] ?? 18"
+        gs-min-w="6"
+        gs-min-h="3"
+      >
+        <!-- Slot lives outside .grid-stack-item-content (which is overflow:auto) so the
+             overlay can extend over the dashed border without triggering scrollbars. -->
+        <slot name="item-overlay" :item="{ i: getBlockId(block) }" :block="block" />
+        <div class="grid-stack-item-content">
+          <div class="block-content">
+            <component
+              :is="resolveBlock(block.kind)"
+              v-if="resolveBlock(block.kind)"
+              :block="block"
+              :blocks="blocks"
+              :namespace="namespace"
+              :page="page"
+              :record="record"
+            />
+            <div v-else class="flex items-center justify-center h-full text-muted-color italic p-2">
+              <div class="text-center">
+                <i class="pi pi-box text-2xl mb-2" />
+                <div>{{ block.kind || $t('block.noConfiguration') }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </GridItem>
-  </GridLayout>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { GridLayout, GridItem } from 'grid-layout-plus'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { GridStack } from 'gridstack'
+import 'gridstack/dist/gridstack.min.css'
 import { resolveBlock } from './registry'
+
+const COLS = 48
 
 const props = defineProps({
   blocks: {
@@ -99,103 +93,198 @@ const props = defineProps({
 
 const emit = defineEmits(['update:blocks', 'layout-updated'])
 
-// Single block in view mode — bypass grid entirely, let CSS flex handle sizing
 const visibleBlocks = computed(() => props.blocks.filter(block => !block.meta?.hidden))
 
 const isSingleBlockView = computed(() => !props.editable && visibleBlocks.value.length === 1)
 
-// Unique ID for each block — blockID '0' is NoID (unsaved), so fall back to tempID
 function getBlockId(block) {
   const bid = block.blockID
-  if (bid && bid !== '0') return bid
-  return block.meta?.tempID || ''
+  if (bid && bid !== '0') return String(bid)
+  return String(block.meta?.tempID || '')
 }
 
-// Block map for grid lookups
-const blockMap = computed(() => {
-  const map = new Map()
-  for (const block of visibleBlocks.value) {
-    const id = getBlockId(block)
-    if (id) map.set(String(id), block)
+// Gridstack ships CSS only for 12 columns. Inject percentage rules for 48 cols once.
+function ensureColumnStyles() {
+  const styleId = `gs-cols-${COLS}-style`
+  if (document.getElementById(styleId)) return
+  const rules = [`.gs-${COLS} > .grid-stack-item { width: ${100 / COLS}%; }`]
+  for (let i = 1; i < COLS; i++) {
+    rules.push(`.gs-${COLS} > .grid-stack-item[gs-x="${i}"] { left: ${(i * 100) / COLS}%; }`)
   }
-  return map
-})
-
-// Mutable layout ref so grid-layout-plus can update it directly during drag/resize
-const layoutModel = ref([])
-
-// Build layout from blocks
-function rebuildLayout() {
-  layoutModel.value = visibleBlocks.value.map(block => {
-    const [x, y, w, h] = block.xywh || [0, 0, 24, 18]
-    return {
-      i: String(getBlockId(block)),
-      x,
-      y,
-      w,
-      h,
-    }
-  })
+  for (let i = 2; i <= COLS; i++) {
+    rules.push(`.gs-${COLS} > .grid-stack-item[gs-w="${i}"] { width: ${(i * 100) / COLS}%; }`)
+  }
+  const style = document.createElement('style')
+  style.id = styleId
+  style.textContent = rules.join('\n')
+  document.head.appendChild(style)
 }
 
-// Rebuild when blocks array reference changes
-watch(() => props.blocks, rebuildLayout, { immediate: true })
+const gridEl = ref(null)
+let grid = null
 
-// Sync grid positions back to blocks
-function onLayoutUpdated(newLayout) {
-  if (props.editable) {
-    for (const item of newLayout) {
-      const block = props.blocks.find(b => String(getBlockId(b)) === item.i)
+function initGrid() {
+  if (!gridEl.value) return
+  ensureColumnStyles()
+
+  const opts = {
+    column: COLS,
+    cellHeight: 10,
+    // Gridstack applies margin to all 4 sides of each item, so the gap between adjacent
+    // items is 2 × margin. Half the old [12, 12] inter-item gap to preserve spacing.
+    margin: 6,
+    float: true,
+    animate: true,
+    disableDrag: !props.editable,
+    disableResize: !props.editable,
+    draggable: { handle: '.block-drag-handle' },
+    resizable: { handles: 'all', autoHide: true },
+    alwaysShowResizeHandle: false,
+  }
+
+  // Mobile reflow only in view mode — builder stays full 48-col so authors design for desktop.
+  // columnMax must be set explicitly; otherwise gridstack defaults it to 12 and collapses the
+  // grid on any width above the 1-col breakpoint.
+  if (!props.editable) {
+    opts.columnOpts = {
+      breakpointForWindow: true,
+      columnMax: COLS,
+      breakpoints: [{ w: 768, c: 1, layout: 'list' }],
+    }
+  }
+
+  grid = GridStack.init(opts, gridEl.value)
+
+  grid.on('change', onGridChange)
+}
+
+function onGridChange(_event, items) {
+  if (props.editable && Array.isArray(items)) {
+    for (const item of items) {
+      const block = props.blocks.find(b => getBlockId(b) === item.id)
       if (block) {
-        block.xywh = [item.x, item.y, item.w, item.h]
+        block.xywh = [item.x ?? 0, item.y ?? 0, item.w ?? 1, item.h ?? 1]
       }
     }
   }
-  emit('layout-updated', newLayout)
+  emit('layout-updated', items)
 }
 
-// Expose rebuildLayout so parent can call it after add/clone/delete
+function rebuildLayout() {
+  if (!grid || !gridEl.value) return
+  grid.batchUpdate()
+  // Detach all from gridstack tracking; Vue still owns the DOM nodes.
+  grid.removeAll(false)
+  for (const block of visibleBlocks.value) {
+    const id = getBlockId(block)
+    if (!id) continue
+    const el = gridEl.value.querySelector(`.grid-stack-item[gs-id="${CSS.escape(id)}"]`)
+    if (el) grid.makeWidget(el)
+  }
+  grid.commit()
+}
+
+onMounted(() => {
+  // Defer init until v-for children are in the DOM so gridstack picks them up.
+  nextTick(initGrid)
+})
+
+onBeforeUnmount(() => {
+  if (grid) {
+    grid.off('change', onGridChange)
+    grid.destroy(false)
+    grid = null
+  }
+})
+
+// Rebuild only when the set of visible block IDs changes (add/remove/visibility),
+// not when positions inside xywh change — gridstack already owns those.
+watch(
+  () => visibleBlocks.value.map(getBlockId).join('|'),
+  () => {
+    nextTick(rebuildLayout)
+  },
+)
+
 defineExpose({ rebuildLayout })
 </script>
 
 <style>
-.vgl-layout {
-  .vgl-item--placeholder {
-    background-color: var(--p-highlight-focus-background);
-    border-radius: var(--p-card-border-radius);
-  }
+/* Drag-target placeholder: subtle dashed outline instead of a solid fill — a filled
+ * placeholder flashes hard each time it jumps to a new cell as you drag. */
+.grid-stack > .grid-stack-placeholder > .placeholder-content {
+  background-color: transparent;
+  border: 2px dashed var(--p-primary-color);
+  border-radius: var(--p-card-border-radius);
+  opacity: 0.5;
 }
 
-.vgl-layout:has(.vgl-item--resizing),
-.vgl-layout:has(.vgl-item--dragging) {
-  user-select: none;
+/* Item border (view mode keeps it invisible to match builder layout) */
+.grid-stack > .view-grid-item > .grid-stack-item-content {
+  border: 2px solid transparent;
+  border-radius: var(--p-card-border-radius);
 }
 
-/* Disable grid-layout-plus slide animation globally */
-.vue-grid-item {
-  transition: none !important;
+.grid-stack > .builder-grid-item > .grid-stack-item-content {
+  border: 2px dashed var(--p-content-border-color);
+  border-radius: var(--p-card-border-radius);
 }
 
-.vgl-item__resizer {
-  right: 0.25rem;
-  bottom: 0.25rem;
-
-  &::before {
-    border: 0 solid var(--p-primary-color);
-    border-right-width: var(--vgl-resizer-border-width);
-    border-bottom-width: var(--vgl-resizer-border-width);
-  }
+/* View mode: let the Card's box-shadow render past the item bounds so blocks look
+ * like proper cards. Builder mode keeps the default overflow — otherwise the Card
+ * shadow renders through the dashed border's gaps and looks like a second border. */
+.grid-stack > .view-grid-item > .grid-stack-item-content {
+  overflow: visible;
 }
 
-.vgl-item--transform {
-  right: auto !important;
-  left: 0 !important;
-  transition-property: none !important;
+.grid-stack > .builder-grid-item:hover > .grid-stack-item-content {
+  /* Use the full shorthand so border-style stays dashed — without this the cascade
+   * flips the style to solid on hover. */
+  border: 2px dashed var(--p-primary-color);
 }
+
+/* Hide the per-block Card border (PageBlock.vue adds `border border-surface` when
+ * block.style.border.enabled is true) while editing — the dashed builder indicator
+ * is the relevant visual in this mode; the Card border just doubles up underneath.
+ * View mode is untouched so a user-configured border still shows there. */
+.grid-stack > .builder-grid-item .p-card {
+  border: none;
+}
+
+/* The drag handle is a PrimeVue <Button> (a real <button>). Gridstack's dd-draggable
+ * skips mousedown when e.target.closest('button') matches but e.target isn't the dragEl
+ * itself. Disabling pointer-events on descendants forces e.target === button, so
+ * gridstack always starts the drag regardless of which pixel inside the button is hit. */
+.block-drag-handle * {
+  pointer-events: none;
+}
+
+/* Resize handles — keep below toolbox (z-index 5) so the drag handle stays clickable. */
+.grid-stack > .grid-stack-item > .ui-resizable-handle {
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.1s ease;
+}
+
+.grid-stack > .grid-stack-item:hover > .ui-resizable-handle {
+  opacity: 1;
+}
+
+/* Corner handles — strip the default chevron icon, shrink so they don't crowd the toolbox. */
+.grid-stack > .grid-stack-item > .ui-resizable-se,
+.grid-stack > .grid-stack-item > .ui-resizable-sw,
+.grid-stack > .grid-stack-item > .ui-resizable-ne,
+.grid-stack > .grid-stack-item > .ui-resizable-nw {
+  background-image: none;
+  width: 10px;
+  height: 10px;
+}
+
+/* Edge handles stay completely invisible — only the resize cursor indicates the
+ * grab zone when hovering near a side. */
 </style>
 
 <style scoped>
-/* Single block: fill all available parent space */
 .single-block-wrapper {
   height: 100%;
   width: 100%;
@@ -207,23 +296,6 @@ defineExpose({ rebuildLayout })
 .single-block-wrapper > .block-content {
   height: 100%;
   overflow: hidden;
-}
-
-/* View mode — invisible border to match builder sizing */
-.view-grid-item {
-  border: 2px solid transparent;
-  border-radius: var(--p-card-border-radius);
-}
-
-/* Builder mode — dashed border, same 2px as view for layout parity */
-.builder-grid-item {
-  position: relative;
-  border: 2px dashed var(--p-content-border-color);
-  border-radius: var(--p-card-border-radius);
-}
-
-.builder-grid-item:hover {
-  border-color: var(--p-primary-color);
 }
 
 .block-content {
