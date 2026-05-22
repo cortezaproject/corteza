@@ -2,21 +2,13 @@
   <div>
     <div class="flex flex-col gap-5 pb-16">
       <!-- Value Section -->
-      <Panel :header="$t('block.progress.value.label')" toggleable>
+      <Fieldset :legend="$t('block.progress.value.label')" toggleable>
         <div class="flex flex-col gap-3">
-          <!-- Static value row — dimmed when module is selected -->
-          <div
-            class="flex flex-col gap-1.5 transition-opacity"
-            :class="{ 'opacity-40': !!valueModuleID }"
+          <CFormGroup
+            :label="$t('block.progress.source.static.label')"
+            :description="$t('block.progress.source.static.description')"
+            :class="['transition-opacity', { 'opacity-40': !!valueModuleID }]"
           >
-            <div class="flex flex-col">
-              <span class="text-primary font-medium text-sm">
-                {{ $t('block.progress.source.static.label') }}
-              </span>
-              <small class="text-muted-color text-xs">
-                {{ $t('block.progress.source.static.description') }}
-              </small>
-            </div>
             <InputNumber
               v-model="fixedValue"
               :placeholder="$t('block.progress.value.fixed')"
@@ -25,25 +17,18 @@
               class="md:w-1/2"
               fluid
             />
-          </div>
+          </CFormGroup>
 
-          <!-- OR divider -->
           <div class="flex items-center gap-2">
             <div class="flex-1 border-t border-surface" />
             <span class="text-muted-color text-xs font-medium">{{ $t('general.label.or') }}</span>
             <div class="flex-1 border-t border-surface" />
           </div>
 
-          <!-- From module row -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex flex-col">
-              <span class="text-primary font-medium text-sm">
-                {{ $t('block.progress.source.module.label') }}
-              </span>
-              <small class="text-muted-color text-xs">
-                {{ $t('block.progress.source.module.description') }}
-              </small>
-            </div>
+          <CFormGroup
+            :label="$t('block.progress.source.module.label')"
+            :description="$t('block.progress.source.module.description')"
+          >
             <Select
               v-model="valueModuleID"
               :options="modules"
@@ -54,7 +39,7 @@
               filter
               show-clear
             />
-          </div>
+          </CFormGroup>
 
           <template v-if="valueModuleID">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -84,24 +69,18 @@
             />
           </template>
         </div>
-      </Panel>
+      </Fieldset>
+
+      <Divider />
 
       <!-- Min Value Section -->
-      <Panel :header="$t('block.progress.minValue.label')" toggleable>
+      <Fieldset :legend="$t('block.progress.minValue.label')" toggleable>
         <div class="flex flex-col gap-3">
-          <!-- Static value row — dimmed when module is selected -->
-          <div
-            class="flex flex-col gap-1.5 transition-opacity"
-            :class="{ 'opacity-40': !!minValueModuleID }"
+          <CFormGroup
+            :label="$t('block.progress.source.static.label')"
+            :description="$t('block.progress.source.static.description')"
+            :class="['transition-opacity', { 'opacity-40': !!minValueModuleID }]"
           >
-            <div class="flex flex-col">
-              <span class="text-primary font-medium text-sm">
-                {{ $t('block.progress.source.static.label') }}
-              </span>
-              <small class="text-muted-color text-xs">
-                {{ $t('block.progress.source.static.description') }}
-              </small>
-            </div>
             <InputNumber
               v-model="fixedMinValue"
               :placeholder="$t('block.progress.minValue.fixed')"
@@ -110,25 +89,18 @@
               class="md:w-1/2"
               fluid
             />
-          </div>
+          </CFormGroup>
 
-          <!-- OR divider -->
           <div class="flex items-center gap-2">
             <div class="flex-1 border-t border-surface" />
             <span class="text-muted-color text-xs font-medium">{{ $t('general.label.or') }}</span>
             <div class="flex-1 border-t border-surface" />
           </div>
 
-          <!-- From module row -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex flex-col">
-              <span class="text-primary font-medium text-sm">
-                {{ $t('block.progress.source.module.label') }}
-              </span>
-              <small class="text-muted-color text-xs">
-                {{ $t('block.progress.source.module.description') }}
-              </small>
-            </div>
+          <CFormGroup
+            :label="$t('block.progress.source.module.label')"
+            :description="$t('block.progress.source.module.description')"
+          >
             <Select
               v-model="minValueModuleID"
               :options="modules"
@@ -139,7 +111,7 @@
               filter
               show-clear
             />
-          </div>
+          </CFormGroup>
 
           <template v-if="minValueModuleID">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -169,24 +141,18 @@
             />
           </template>
         </div>
-      </Panel>
+      </Fieldset>
+
+      <Divider />
 
       <!-- Max Value Section -->
-      <Panel :header="$t('block.progress.maxValue.label')" toggleable>
+      <Fieldset :legend="$t('block.progress.maxValue.label')" toggleable>
         <div class="flex flex-col gap-3">
-          <!-- Static value row — dimmed when module is selected -->
-          <div
-            class="flex flex-col gap-1.5 transition-opacity"
-            :class="{ 'opacity-40': !!maxValueModuleID }"
+          <CFormGroup
+            :label="$t('block.progress.source.static.label')"
+            :description="$t('block.progress.source.static.description')"
+            :class="['transition-opacity', { 'opacity-40': !!maxValueModuleID }]"
           >
-            <div class="flex flex-col">
-              <span class="text-primary font-medium text-sm">
-                {{ $t('block.progress.source.static.label') }}
-              </span>
-              <small class="text-muted-color text-xs">
-                {{ $t('block.progress.source.static.description') }}
-              </small>
-            </div>
             <InputNumber
               v-model="fixedMaxValue"
               :placeholder="$t('block.progress.maxValue.fixed')"
@@ -195,25 +161,18 @@
               class="md:w-1/2"
               fluid
             />
-          </div>
+          </CFormGroup>
 
-          <!-- OR divider -->
           <div class="flex items-center gap-2">
             <div class="flex-1 border-t border-surface" />
             <span class="text-muted-color text-xs font-medium">{{ $t('general.label.or') }}</span>
             <div class="flex-1 border-t border-surface" />
           </div>
 
-          <!-- From module row -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex flex-col">
-              <span class="text-primary font-medium text-sm">
-                {{ $t('block.progress.source.module.label') }}
-              </span>
-              <small class="text-muted-color text-xs">
-                {{ $t('block.progress.source.module.description') }}
-              </small>
-            </div>
+          <CFormGroup
+            :label="$t('block.progress.source.module.label')"
+            :description="$t('block.progress.source.module.description')"
+          >
             <Select
               v-model="maxValueModuleID"
               :options="modules"
@@ -224,7 +183,7 @@
               filter
               show-clear
             />
-          </div>
+          </CFormGroup>
 
           <template v-if="maxValueModuleID">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -254,15 +213,13 @@
             />
           </template>
         </div>
-      </Panel>
+      </Fieldset>
+
+      <Divider />
 
       <!-- Display Options -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Variant (left) -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.progress.variant.label') }}
-          </label>
+        <CFormGroup :label="$t('block.progress.variant.label')">
           <Select
             v-model="variant"
             :options="variantOptions"
@@ -289,13 +246,9 @@
               />
             </template>
           </Select>
-        </div>
+        </CFormGroup>
 
-        <!-- Display Options checkboxes (right) -->
-        <div class="flex flex-col gap-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.progress.display-options') }}
-          </label>
+        <CFormGroup :label="$t('block.progress.display-options')">
           <div class="flex items-center gap-2">
             <Checkbox v-model="showValue" binary input-id="showValue" />
             <label for="showValue" class="text-sm">{{ $t('block.progress.show.value') }}</label>
@@ -316,17 +269,14 @@
               </label>
             </div>
           </template>
-        </div>
+        </CFormGroup>
       </div>
 
       <Divider />
 
       <!-- Thresholds -->
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center gap-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.progress.thresholds.label') }}
-          </label>
+      <CFormGroup :label="$t('block.progress.thresholds.label')">
+        <template #actions>
           <Button
             :label="$t('general.label.add')"
             icon="pi pi-plus"
@@ -334,7 +284,7 @@
             severity="secondary"
             @click="addThreshold"
           />
-        </div>
+        </template>
 
         <!-- Column headers (shown once above the first card) -->
         <div v-if="thresholds.length" class="flex items-end gap-3 px-2">
@@ -410,19 +360,18 @@
         <small v-if="!thresholds.length" class="text-muted-color">
           {{ $t('block.progress.thresholds.empty') }}
         </small>
-      </div>
+      </CFormGroup>
     </div>
 
     <!-- Sticky live preview -->
     <div
-      class="sticky bottom-0 left-0 flex flex-col gap-1 w-full bg-surface rounded-border shadow p-3 z-10"
+      class="sticky bottom-0 left-0 w-full bg-surface rounded-border shadow p-3 z-10"
     >
-      <label class="text-primary font-medium text-sm">
-        {{ $t('block.progress.preview') }}
-      </label>
-      <div class="h-14">
-        <ProgressBlock :key="previewFetchKey" :block="previewBlock" :namespace="namespace" />
-      </div>
+      <CFormGroup :label="$t('block.progress.preview')">
+        <div class="h-14">
+          <ProgressBlock :key="previewFetchKey" :block="previewBlock" :namespace="namespace" />
+        </div>
+      </CFormGroup>
     </div>
   </div>
 </template>

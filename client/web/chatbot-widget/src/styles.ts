@@ -104,13 +104,14 @@ export const baseCSS = `
 .hb-msg.user { align-self: flex-end; background: var(--hb-user-bubble, #09344E); color: #fff; white-space: pre-wrap; }
 .hb-msg.agent { align-self: flex-start; background: var(--hb-agent-bubble, #f4f4f5); color: var(--hb-text, #111); line-height: 1.45; }
 .hb-msg.system { align-self: center; max-width: 90%; background: transparent; color: #9ca3af; font-size: var(--hb-font-small, 12px); font-style: italic; padding: 4px 8px; }
+.hb-msg.system.error { color: #dc2626; background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.25); border-radius: 8px; font-style: normal; font-weight: 500; }
 .hb-msg.agent a { color: var(--hb-primary, #09344E); text-decoration: underline; }
 .hb-msg.agent code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.92em; }
 .hb-msg.agent pre { background: rgba(0,0,0,0.06); padding: 8px 10px; border-radius: 8px; overflow-x: auto; margin: 6px 0; }
 .hb-msg.agent pre code { background: none; padding: 0; border-radius: 0; font-size: 0.88em; }
 .hb-msg.agent ul { margin: 6px 0; padding-left: 20px; }
 .hb-msg.agent strong { font-weight: 600; }
-.hb-footer { border-top: 1px solid #e5e7eb; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; font-size: var(--hb-font-base, 14px); }
+.hb-footer { border-top: 1px solid #e5e7eb; padding: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; font-size: var(--hb-font-base, 14px); }
 .hb-input {
   flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px;
   font-family: inherit; color: inherit; background: var(--hb-bg, #fff);
@@ -167,7 +168,7 @@ export const baseCSS = `
   40%           { transform: translateY(-4px); opacity: 1; }
 }
 .hb-info { font-size: var(--hb-font-small, 12px); color: #6b7280; text-align: center; padding: 10px; }
-.hb-conv-actions { display: flex; gap: 6px; flex-wrap: wrap; flex-basis: 100%; width: 100%; padding-top: 6px; order: 2; }
+.hb-conv-actions { display: flex; gap: 6px; flex-wrap: wrap; flex-basis: 100%; width: 100%; order: 2; }
 .hb-footer .hb-input { order: 1; }
 .hb-footer .hb-send { order: 1; }
 .hb-action {
@@ -178,6 +179,20 @@ export const baseCSS = `
 }
 .hb-action:hover { background: rgba(0,0,0,0.04); }
 .hb-action:disabled { opacity: 0.45; cursor: not-allowed; }
+.hb-consent-block {
+  align-self: stretch; display: flex; flex-direction: column;
+  gap: 8px; padding: 4px 8px; word-wrap: break-word; overflow-wrap: anywhere;
+}
+/* Consent body mirrors whatever the RTE produced — only structural rules
+   (link affordance, list indentation, paragraph spacing). No color / size /
+   style here so author inline declarations from TipTap come through 1:1. */
+.hb-consent-body { text-align: left; line-height: 1.45; }
+.hb-consent-body a { color: var(--hb-primary, #09344E); text-decoration: underline; }
+.hb-consent-body p { margin: 0 0 6px 0; }
+.hb-consent-body p:last-child { margin-bottom: 0; }
+.hb-consent-body ul, .hb-consent-body ol { margin: 6px 0; padding-left: 20px; }
+.hb-consent-decision { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.hb-consent-decision .hb-consent-reject { border-radius: 8px; padding: 6px 14px; font-size: var(--hb-font-base, 14px); }
 .hb-handoff-badge {
   background: #fef3c7; color: #78350f;
   border-bottom: 1px solid #fde68a;

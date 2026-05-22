@@ -554,6 +554,38 @@ func ChatbotSessionErrScenarioNotForm(mm ...*chatbotSessionActionProps) *errors.
 	return e
 }
 
+// ChatbotSessionErrScenarioNotConsent returns "system:chatbot-session.scenarioNotConsent" as *errors.Error
+//
+// This function is auto-generated.
+func ChatbotSessionErrScenarioNotConsent(mm ...*chatbotSessionActionProps) *errors.Error {
+	var p = &chatbotSessionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("current step is not a consent step", nil),
+
+		errors.Meta("type", "scenarioNotConsent"),
+		errors.Meta("resource", "system:chatbot-session"),
+
+		errors.Meta(chatbotSessionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "chatbot-session.errors.scenarioNotConsent"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ChatbotSessionErrAgentUnavailable returns "system:chatbot-session.agentUnavailable" as *errors.Error
 //
 // This function is auto-generated.

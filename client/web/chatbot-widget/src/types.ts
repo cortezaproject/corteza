@@ -1,4 +1,4 @@
-export type ScenarioType = 'static_message' | 'conversation' | 'form'
+export type ScenarioType = 'static_message' | 'conversation' | 'form' | 'consent'
 
 export interface Scenario {
   id: string

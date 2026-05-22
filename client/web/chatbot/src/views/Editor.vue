@@ -12,7 +12,9 @@
 
   <div v-else-if="chatbot" class="flex flex-col h-full overflow-hidden">
     <div class="flex-1 flex flex-row min-h-0 overflow-hidden">
-      <div class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden">
+      <div
+        class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden w-full max-w-screen-2xl mx-auto"
+      >
         <Card
           :pt="{
             body: { class: 'p-0 h-full flex flex-col' },
@@ -70,7 +72,7 @@
         </Card>
       </div>
 
-      <div class="hidden md:flex shrink-0 flex-col overflow-hidden w-[390px]">
+      <div class="hidden md:flex shrink-0 flex-col w-[390px]">
         <Preview :chatbot="chatbot" />
       </div>
     </div>

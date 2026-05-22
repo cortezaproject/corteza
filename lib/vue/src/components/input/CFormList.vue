@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="overflow-x-auto">
     <div
       v-if="!items.length && !$slots.footer && emptyMessage"
       class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"
@@ -12,7 +12,7 @@
       <div
         v-if="hasHeaders && (items.length || $slots.footer)"
         :style="gridStyle"
-        class="grid gap-2 pt-2 px-3"
+        class="grid gap-2 pt-3 px-4"
       >
         <span v-if="draggable" class="w-10" />
         <span

@@ -1,11 +1,7 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- Configured buttons -->
-    <div class="flex flex-col gap-1">
-      <div class="flex items-center justify-between">
-        <label class="text-primary font-medium text-sm">
-          {{ $t('block.automation.configuredButtons') }}
-        </label>
+    <CFormGroup :label="$t('block.automation.configuredButtons')">
+      <template #actions>
         <Button
           :label="$t('block.automation.addPlaceholderLabel')"
           icon="pi pi-plus"
@@ -13,85 +9,53 @@
           severity="secondary"
           @click="addPlaceholder"
         />
-      </div>
+      </template>
 
-      <div v-if="!normalizedButtons.length" class="text-muted-color text-sm italic p-2">
-        {{ $t('block.automation.noScripts') }}
-      </div>
+      <CFormList
+        v-model="buttonsModel"
+        draggable
+        :empty-message="$t('block.automation.noScripts')"
+        :columns="[{ width: '1fr' }, { width: '3rem' }]"
+        @change="selectedIndex = -1"
+        @reorder="selectedIndex = -1"
+      >
+        <template #row="{ item, index }">
+          <Button
+            :label="item.label || '-'"
+            :severity="mapVariantSeverity(item.variant)"
+            size="small"
+            class="pointer-events-none truncate justify-self-start"
+          />
+          <Button
+            icon="pi pi-pencil"
+            text
+            rounded
+            size="small"
+            @click="selectButton(index)"
+          />
+        </template>
 
-      <div v-else class="flex flex-col gap-2">
-        <div
-          v-for="(btn, i) in normalizedButtons"
-          :key="i"
-          class="border border-surface rounded-border p-3"
-          :class="{ 'border-primary': selectedIndex === i }"
-        >
-          <div class="flex items-center gap-2">
-            <div class="flex gap-1">
-              <Button
-                icon="pi pi-chevron-up"
-                text
-                rounded
-                size="small"
-                severity="secondary"
-                :disabled="i === 0"
-                @click="moveButton(i, -1)"
-              />
-              <Button
-                icon="pi pi-chevron-down"
-                text
-                rounded
-                size="small"
-                severity="secondary"
-                :disabled="i === normalizedButtons.length - 1"
-                @click="moveButton(i, 1)"
-              />
-            </div>
-            <Button
-              :label="btn.label || '-'"
-              :severity="mapVariantSeverity(btn.variant)"
-              size="small"
-              class="pointer-events-none truncate"
-            />
-            <div class="flex-1" />
-            <Button icon="pi pi-pencil" text rounded size="small" @click="selectButton(i)" />
-            <Button
-              icon="pi pi-trash"
-              text
-              rounded
-              size="small"
-              severity="danger"
-              @click="removeButton(i)"
-            />
-          </div>
-
-          <!-- Inline editor when selected -->
+        <template #extra="{ item, index }">
           <div
-            v-if="selectedIndex === i"
-            class="mt-3 flex flex-col gap-2 border-t border-surface pt-3"
+            v-if="selectedIndex === index"
+            class="flex flex-col gap-2 border-t border-surface pt-3"
           >
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.automation.buttonLabel') }}
-              </label>
+            <CFormGroup :label="$t('block.automation.buttonLabel')">
               <InputText
-                :model-value="btn.label"
+                :model-value="item.label"
                 class="w-full"
-                @update:model-value="updateField(i, 'label', $event)"
+                @update:model-value="updateField(index, 'label', $event)"
               />
-            </div>
+            </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <label class="text-sm text-muted-color">
-                {{ $t('block.automation.buttonVariant') }}
-              </label>
+            <CFormGroup :label="$t('block.automation.buttonVariant')">
               <Select
-                :model-value="btn.variant"
+                :model-value="item.variant"
                 :options="variantOptions"
                 option-label="label"
                 option-value="value"
                 class="w-full"
-                @update:model-value="updateField(i, 'variant', $event)"
+                @update:model-value="updateField(index, 'variant', $event)"
               >
                 <template #value="{ value, placeholder }">
                   <Button
@@ -112,22 +76,17 @@
                   />
                 </template>
               </Select>
-            </div>
+            </CFormGroup>
           </div>
-        </div>
-      </div>
-    </div>
+        </template>
+      </CFormList>
+    </CFormGroup>
 
     <Divider />
 
-    <!-- Available workflows/triggers -->
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">
-        {{
-          $t('block.automation.availableScriptsAndWorkflow', { count: availableTriggers.length })
-        }}
-      </label>
-
+    <CFormGroup
+      :label="$t('block.automation.availableScriptsAndWorkflow', { count: availableTriggers.length })"
+    >
       <div v-if="loadingTriggers" class="flex justify-center p-3">
         <ProgressSpinner style="width: 24px; height: 24px" />
       </div>
@@ -139,79 +98,64 @@
           class="w-full"
         />
 
-        <Tabs v-model:value="activeTab">
+        <Tabs v-model:value="activeTab" class="border border-surface rounded-border overflow-hidden">
           <TabList>
             <Tab value="taqs">{{ $t('block.automation.tabs.taqs') }}</Tab>
             <Tab value="workflows">{{ $t('block.automation.tabs.workflows') }}</Tab>
             <Tab value="scripts">{{ $t('block.automation.tabs.scripts') }}</Tab>
           </TabList>
-          <TabPanels class="px-0 pb-0">
+          <TabPanels>
             <TabPanel value="taqs">
-              <div v-if="filteredTaqs.length" class="flex flex-col gap-1">
-                <div
-                  v-for="(trigger, i) in filteredTaqs"
-                  :key="i"
-                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
-                  @click="addTriggerButton(trigger)"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm">{{ trigger.label }}</span>
-                  </div>
-                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
-                    {{ trigger.description }}
+              <CFormItemList
+                :items="filteredTaqs"
+                :empty-message="$t('block.automation.noScripts')"
+                hide-remove
+                @select="addTriggerButton"
+              >
+                <template #default="{ item }">
+                  <span class="font-medium text-sm">{{ item.label }}</span>
+                  <p v-if="item.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ item.description }}
                   </p>
-                </div>
-              </div>
-              <div v-else class="text-muted-color text-sm italic p-2">
-                {{ $t('block.automation.noScripts') }}
-              </div>
+                </template>
+              </CFormItemList>
             </TabPanel>
 
             <TabPanel value="workflows">
-              <div v-if="filteredWorkflows.length" class="flex flex-col gap-1">
-                <div
-                  v-for="(trigger, i) in filteredWorkflows"
-                  :key="i"
-                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
-                  @click="addTriggerButton(trigger)"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm">{{ trigger.label }}</span>
-                  </div>
-                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
-                    {{ trigger.description }}
+              <CFormItemList
+                :items="filteredWorkflows"
+                :empty-message="$t('block.automation.noScripts')"
+                hide-remove
+                @select="addTriggerButton"
+              >
+                <template #default="{ item }">
+                  <span class="font-medium text-sm">{{ item.label }}</span>
+                  <p v-if="item.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ item.description }}
                   </p>
-                </div>
-              </div>
-              <div v-else class="text-muted-color text-sm italic p-2">
-                {{ $t('block.automation.noScripts') }}
-              </div>
+                </template>
+              </CFormItemList>
             </TabPanel>
 
             <TabPanel value="scripts">
-              <div v-if="filteredScripts.length" class="flex flex-col gap-1">
-                <div
-                  v-for="(trigger, i) in filteredScripts"
-                  :key="i"
-                  class="p-3 border border-surface rounded-border cursor-pointer hover:bg-highlight transition-colors"
-                  @click="addTriggerButton(trigger)"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm">{{ trigger.label }}</span>
-                  </div>
-                  <p v-if="trigger.description" class="text-sm text-muted-color mt-1 mb-0">
-                    {{ trigger.description }}
+              <CFormItemList
+                :items="filteredScripts"
+                :empty-message="$t('block.automation.noScripts')"
+                hide-remove
+                @select="addTriggerButton"
+              >
+                <template #default="{ item }">
+                  <span class="font-medium text-sm">{{ item.label }}</span>
+                  <p v-if="item.description" class="text-sm text-muted-color mt-1 mb-0">
+                    {{ item.description }}
                   </p>
-                </div>
-              </div>
-              <div v-else class="text-muted-color text-sm italic p-2">
-                {{ $t('block.automation.noScripts') }}
-              </div>
+                </template>
+              </CFormItemList>
             </TabPanel>
           </TabPanels>
         </Tabs>
       </div>
-    </div>
+    </CFormGroup>
   </div>
 </template>
 
@@ -263,6 +207,14 @@ const normalizedButtons = computed(() =>
   })),
 )
 
+// CFormList does in-place splice for remove and reassignment for reorder.
+// Get returns the prop array directly so in-place mutations reach the parent;
+// set emits an update for full reassignments (reorder).
+const buttonsModel = computed({
+  get: () => props.buttons || [],
+  set: next => emit('update:buttons', next),
+})
+
 const availableTriggers = computed(() => {
   const existingKeys = normalizedButtons.value.map(b => {
     if (b.automationID) return `taq-${b.automationID}-${b.triggerHandle}`
@@ -294,18 +246,6 @@ const filteredTaqs = computed(() => {
   const q = searchQuery.value.toLowerCase()
   return triggers.filter(t => `${t.label} ${t.description || ''}`.toLowerCase().includes(q))
 })
-
-function mapSeverity(variant) {
-  const map = {
-    primary: undefined,
-    secondary: 'secondary',
-    success: 'success',
-    danger: 'danger',
-    warning: 'warn',
-    info: 'info',
-  }
-  return map[variant] || undefined
-}
 
 function emitButtons(next) {
   emit('update:buttons', next)
@@ -351,25 +291,8 @@ function addTriggerButton(trigger) {
   emitButtons([...normalizedButtons.value, newButton])
 }
 
-function removeButton(index) {
-  const next = [...normalizedButtons.value]
-  next.splice(index, 1)
-  emitButtons(next)
-  if (selectedIndex.value === index) selectedIndex.value = -1
-}
-
 function selectButton(index) {
   selectedIndex.value = selectedIndex.value === index ? -1 : index
-}
-
-function moveButton(index, direction) {
-  const next = [...normalizedButtons.value]
-  const newIndex = index + direction
-  if (newIndex < 0 || newIndex >= next.length) return
-  const temp = next[index]
-  next[index] = next[newIndex]
-  next[newIndex] = temp
-  emitButtons(next)
 }
 
 async function fetchTriggers() {

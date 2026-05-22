@@ -166,6 +166,7 @@ editor:
       static_message: Static message
       conversation: Conversation
       form: Form
+      consent: Consent
     static:
       message: Message
       isMarkdown: Render as Markdown
@@ -173,12 +174,13 @@ editor:
       autoAdvance: Auto-advance delay (ms)
     agent:
       label: Agent
-      help: The agent that powers this conversation step
+      help: The agent must have System Invocation enabled and a Service Account configured.
       placeholder: Select an agent
       open: Open agent
       create: Create new agent
     conversation:
       placeholder: Input placeholder
+      placeholderHelp: Hint text shown inside the visitor's message input when it is empty.
       initialPrompt: Initial prompt (optional)
       typingIndicator: Show typing indicator
       typingIndicatorDescription: Show an animated indicator while the agent is generating a reply.
@@ -195,6 +197,19 @@ editor:
         email: Email
         number: Number
         textarea: Multi-line text
+    consent:
+      body:
+        label: Body
+        help: Text shown to the visitor before they accept or reject. Supports links to external documents.
+        placeholder: e.g. Read our terms of service before continuing…
+      acceptLabel:
+        label: Accept button label
+        help: Defaults to "Accept" when left empty.
+        placeholder: Accept
+      rejectLabel:
+        label: Reject button label
+        help: Defaults to "Reject" when left empty. Rejecting ends the session.
+        placeholder: Reject
     automation:
       before: Before automation
       beforeHelp: Runs before the step executes. Blocks on failure.

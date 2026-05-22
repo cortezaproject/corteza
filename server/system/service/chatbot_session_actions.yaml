@@ -67,6 +67,10 @@ errors:
     message: "current step is not a form"
     severity: warning
 
+  - error: scenarioNotConsent
+    message: "current step is not a consent step"
+    severity: warning
+
   - error: agentUnavailable
     message: "agent unavailable"
     severity: warning

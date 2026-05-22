@@ -1,12 +1,12 @@
 <template>
   <div
-    class="flex items-center gap-3 p-3 border border-surface rounded-lg transition-colors"
+    class="flex items-center gap-3 p-3 border border-surface rounded-lg transition-colors max-w-xl"
     :class="[disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis']"
     @click="!disabled && $emit('update:modelValue', !modelValue)"
   >
-    <div class="flex flex-col gap-1 flex-1 min-w-0" :class="textOpacityClass">
+    <div class="flex flex-col flex-1 min-w-0" :class="textOpacityClass">
       <div class="flex items-center gap-1">
-        <span class="font-medium text-primary">
+        <span class="font-medium text-primary text-sm">
           <slot name="label">{{ label }}</slot>
         </span>
         <i

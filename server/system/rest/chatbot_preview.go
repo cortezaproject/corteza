@@ -35,6 +35,7 @@ type previewService interface {
 	Start(ps *service.ChatbotPreviewSession)
 	SubmitMessage(ctx context.Context, ps *service.ChatbotPreviewSession, input string) error
 	SubmitForm(ctx context.Context, ps *service.ChatbotPreviewSession, fields map[string]string) (map[string]string, error)
+	SubmitConsent(ps *service.ChatbotPreviewSession, accepted bool) error
 	AdvanceStep(ps *service.ChatbotPreviewSession) error
 	CloseSession(ps *service.ChatbotPreviewSession) error
 	RequestHandoff(ps *service.ChatbotPreviewSession) *service.ChatbotPreviewHandoff
@@ -151,6 +152,19 @@ func (c *ChatbotPreviewController) submit(w http.ResponseWriter, r *http.Request
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
+	case "consent":
+		var d struct {
+			Accepted bool `json:"accepted"`
+		}
+		if err := json.Unmarshal(body.Data, &d); err != nil {
+			http.Error(w, "preview: bad consent payload", http.StatusBadRequest)
+			return
+		}
+		if err := c.preview.SubmitConsent(ps, d.Accepted); err != nil {
+			c.writePreviewError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	default:
 		http.Error(w, "preview: unknown submit type", http.StatusBadRequest)
 	}
@@ -251,6 +265,7 @@ func (c *ChatbotPreviewController) writePreviewError(w http.ResponseWriter, err 
 		http.Error(w, "preview: "+err.Error(), http.StatusBadRequest)
 	case errors.Is(err, service.ChatbotSessionErrSessionNotActive()),
 		errors.Is(err, service.ChatbotSessionErrScenarioNotForm()),
+		errors.Is(err, service.ChatbotSessionErrScenarioNotConsent()),
 		errors.Is(err, service.ChatbotSessionErrHandoffNotRequested()),
 		errors.Is(err, service.ChatbotSessionErrHandoffNotActive()):
 		http.Error(w, "preview: "+err.Error(), http.StatusConflict)

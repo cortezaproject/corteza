@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
 	automationTypes "github.com/crusttech/human/server/automation/types"
@@ -789,6 +790,52 @@ func (svc *chatbotSession) SubmitForm(ctx context.Context, cb *types.Chatbot, se
 	return nil, nil
 }
 
+// SubmitConsent records the visitor's accept/reject decision on a consent
+// step. Accept advances to the next scenario; reject closes the session
+// (after persisting the decision for audit). The decision is final per step.
+func (svc *chatbotSession) SubmitConsent(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, accepted bool) error {
+	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
+
+	session, err := svc.FindByID(svcCtx, sessionID)
+	if err != nil || session == nil {
+		return ChatbotSessionErrSessionNotFound()
+	}
+	if session.Status != "active" {
+		return ChatbotSessionErrSessionNotActive()
+	}
+
+	step, err := svc.FindStepBySession(svcCtx, sessionID)
+	if err != nil || step == nil {
+		return ChatbotSessionErrNoActiveStep()
+	}
+	if step.ScenarioIndex < 0 || step.ScenarioIndex >= len(cb.Scenarios) {
+		return ChatbotSessionErrScenarioOutOfRange()
+	}
+	scenario := &cb.Scenarios[step.ScenarioIndex]
+	if scenario.Type != "consent" {
+		return ChatbotSessionErrScenarioNotConsent()
+	}
+
+	svc.stateRecordConsentDecision(svcCtx, sessionID, scenario.ID, accepted)
+
+	if !accepted {
+		// Reject path: close session after persisting the decision. The
+		// existing CloseSession emits step_complete + session_closed.
+		return svc.CloseSession(svcCtx, cb, sessionID, convID)
+	}
+
+	if err := svc.FinalizeStep(svcCtx, step.ID, sessionID, scenario); err != nil {
+		return err
+	}
+	svc.emit(convID, "step_complete", map[string]any{
+		"scenarioID":    scenario.ID,
+		"scenarioIndex": step.ScenarioIndex,
+	})
+
+	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1)
+	return nil
+}
+
 // AdvanceStep finalizes the current step (after-automation) and starts the
 // next scenario. Closes any open handoff first.
 func (svc *chatbotSession) AdvanceStep(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64) error {
@@ -1044,6 +1091,24 @@ func (svc *chatbotSession) stateRecordFormSubmit(ctx context.Context, sessionID 
 	}
 	entry.Form.Fields = fields
 	entry.Form.Submitted = true
+	_ = store.UpdateChatbotSession(ctx, svc.store, session)
+}
+
+// stateRecordConsentDecision persists the visitor's accept/reject decision
+// into per-scenario session state for audit purposes.
+func (svc *chatbotSession) stateRecordConsentDecision(ctx context.Context, sessionID uint64, scenarioID string, accepted bool) {
+	if sessionID == 0 || scenarioID == "" {
+		return
+	}
+	session, err := svc.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return
+	}
+	entry := session.State.Upsert(scenarioID, "consent")
+	entry.Consent = &types.ChatbotConsentStepState{
+		Accepted: accepted,
+		At:       time.Now(),
+	}
 	_ = store.UpdateChatbotSession(ctx, svc.store, session)
 }
 

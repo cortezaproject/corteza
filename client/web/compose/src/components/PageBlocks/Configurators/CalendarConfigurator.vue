@@ -1,17 +1,8 @@
 <template>
   <div class="flex flex-col gap-4">
-    <!-- Display Settings -->
-    <div class="flex flex-col gap-3">
-      <h5 class="text-lg font-semibold text-primary m-0">
-        {{ $t('block.calendar.viewLabel') }}
-      </h5>
-
+    <Fieldset :legend="$t('block.calendar.viewLabel')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <!-- Enabled views -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.calendar.view.enabled') }}
-          </label>
+        <CFormGroup :label="$t('block.calendar.view.enabled')">
           <div class="flex flex-wrap gap-2">
             <div v-for="view in availableViews" :key="view" class="flex items-center gap-1">
               <Checkbox
@@ -26,13 +17,12 @@
               </label>
             </div>
           </div>
-        </div>
+        </CFormGroup>
 
-        <!-- Default view -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.calendar.view.default') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.calendar.view.default')"
+          :description="$t('block.calendar.view.footnote')"
+        >
           <Select
             :model-value="localOptions.defaultView"
             :options="viewOptions"
@@ -41,14 +31,9 @@
             class="w-full"
             @update:model-value="updateOption('defaultView', $event)"
           />
-          <small class="text-muted-color">{{ $t('block.calendar.view.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Event click behavior -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.calendar.view.onEventClick') }}
-          </label>
+        <CFormGroup :label="$t('block.calendar.view.onEventClick')">
           <Select
             :model-value="localOptions.eventDisplayOption || 'sameTab'"
             :options="eventDisplayOptions"
@@ -57,13 +42,9 @@
             class="w-full"
             @update:model-value="updateOption('eventDisplayOption', $event)"
           />
-        </div>
+        </CFormGroup>
 
-        <!-- Header toggles -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.calendar.calendarHeader') }}
-          </label>
+        <CFormGroup :label="$t('block.calendar.calendarHeader')">
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
               <Checkbox v-model="headerHide" input-id="hide-header" binary />
@@ -99,148 +80,123 @@
               <label for="hide-title" class="text-sm">{{ $t('block.calendar.hideTitle') }}</label>
             </div>
           </div>
-        </div>
+        </CFormGroup>
       </div>
-    </div>
+    </Fieldset>
 
     <Divider />
 
-    <!-- Feed Sources -->
-    <div class="flex flex-col gap-3">
-      <h5 class="text-lg font-semibold text-primary m-0">
-        {{ $t('block.calendar.feedLabel') }}
-      </h5>
-
-      <div v-for="(feed, i) in feeds" :key="i" class="flex flex-col gap-2 p-3 border rounded-lg">
-        <div class="flex items-center justify-between">
-          <span class="font-semibold text-sm">
-            {{ $t('block.calendar.source.label') }} {{ i + 1 }}
-          </span>
-          <Button icon="pi pi-trash" severity="danger" text size="small" @click="removeFeed(i)" />
-        </div>
-
-        <!-- Module -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <!-- Resource type -->
-          <div class="flex flex-col gap-1 md:col-span-2">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.recordFeed.resourceType') }}
-            </label>
-            <Select
-              :model-value="feed.resourceType || 'record'"
-              :options="resourceTypeOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              @update:model-value="updateFeedResourceType(feed, $event)"
-            />
+    <Fieldset :legend="$t('block.calendar.feedLabel')">
+      <div class="flex flex-col gap-3">
+        <div v-for="(feed, i) in feeds" :key="i" class="flex flex-col gap-2 p-3 border border-surface rounded-border">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-sm">
+              {{ $t('block.calendar.source.label') }} {{ i + 1 }}
+            </span>
+            <Button icon="pi pi-trash" severity="danger" text size="small" @click="removeFeed(i)" />
           </div>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.recordFeed.moduleLabel') }}
-            </label>
-            <Select
-              :model-value="feed.options?.moduleID"
-              :options="modules"
-              option-label="name"
-              option-value="moduleID"
-              :placeholder="$t('block.calendar.recordFeed.modulePlaceholder')"
-              class="w-full"
-              filter
-              @update:model-value="onModuleChange(feed, $event)"
-            />
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <CFormGroup
+              :label="$t('block.calendar.recordFeed.resourceType')"
+              class="md:col-span-2"
+            >
+              <Select
+                :model-value="feed.resourceType || 'record'"
+                :options="resourceTypeOptions"
+                option-label="label"
+                option-value="value"
+                class="w-full"
+                @update:model-value="updateFeedResourceType(feed, $event)"
+              />
+            </CFormGroup>
 
-          <!-- Title field -->
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.recordFeed.titleLabel') }}
-            </label>
-            <Select
-              v-model="feed.titleField"
-              :options="getTitleFields(feed.options?.moduleID)"
-              option-label="label"
-              option-value="name"
-              :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
-              class="w-full"
-              :disabled="!feed.options?.moduleID"
-            />
-          </div>
+            <CFormGroup :label="$t('block.calendar.recordFeed.moduleLabel')">
+              <Select
+                :model-value="feed.options?.moduleID"
+                :options="modules"
+                option-label="name"
+                option-value="moduleID"
+                :placeholder="$t('block.calendar.recordFeed.modulePlaceholder')"
+                class="w-full"
+                filter
+                @update:model-value="onModuleChange(feed, $event)"
+              />
+            </CFormGroup>
 
-          <!-- Start field -->
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.recordFeed.eventStartFieldLabel') }}
-            </label>
-            <Select
-              v-model="feed.startField"
-              :options="getDateFields(feed.options?.moduleID)"
-              option-label="label"
-              option-value="name"
-              :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
-              class="w-full"
-              :disabled="!feed.options?.moduleID"
-            />
-          </div>
+            <CFormGroup :label="$t('block.calendar.recordFeed.titleLabel')">
+              <Select
+                v-model="feed.titleField"
+                :options="getTitleFields(feed.options?.moduleID)"
+                option-label="label"
+                option-value="name"
+                :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
+                class="w-full"
+                :disabled="!feed.options?.moduleID"
+              />
+            </CFormGroup>
 
-          <!-- End field -->
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.recordFeed.eventEndFieldLabel') }}
-            </label>
-            <Select
-              v-model="feed.endField"
-              :options="getDateFields(feed.options?.moduleID)"
-              option-label="label"
-              option-value="name"
-              :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
-              class="w-full"
-              :disabled="!feed.options?.moduleID || feed.allDay"
-            />
-            <div class="flex items-center gap-2 mt-1">
-              <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
-              <label :for="`all-day-${i}`" class="text-sm">
-                {{ $t('block.calendar.recordFeed.eventAllDay') }}
-              </label>
-            </div>
-          </div>
+            <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')">
+              <Select
+                v-model="feed.startField"
+                :options="getDateFields(feed.options?.moduleID)"
+                option-label="label"
+                option-value="name"
+                :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
+                class="w-full"
+                :disabled="!feed.options?.moduleID"
+              />
+            </CFormGroup>
 
-          <!-- Prefilter -->
-          <div class="flex flex-col gap-1 md:col-span-2">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.recordFeed.prefilterLabel') }}
-            </label>
-            <InputText
-              v-model="feed.options.prefilter"
-              :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
-              class="w-full"
-            />
-          </div>
+            <CFormGroup :label="$t('block.calendar.recordFeed.eventEndFieldLabel')">
+              <Select
+                v-model="feed.endField"
+                :options="getDateFields(feed.options?.moduleID)"
+                option-label="label"
+                option-value="name"
+                :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
+                class="w-full"
+                :disabled="!feed.options?.moduleID || feed.allDay"
+              />
+              <div class="flex items-center gap-2 mt-1">
+                <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
+                <label :for="`all-day-${i}`" class="text-sm">
+                  {{ $t('block.calendar.recordFeed.eventAllDay') }}
+                </label>
+              </div>
+            </CFormGroup>
 
-          <!-- Event color -->
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.calendar.colorLabel') }}
-            </label>
-            <CInputColorPicker
-              :model-value="feed.options?.color || '#09344E'"
-              show-text
-              @update:model-value="feed.options.color = $event"
-            />
+            <CFormGroup
+              :label="$t('block.calendar.recordFeed.prefilterLabel')"
+              class="md:col-span-2"
+            >
+              <InputText
+                v-model="feed.options.prefilter"
+                :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
+                class="w-full"
+              />
+            </CFormGroup>
+
+            <CFormGroup :label="$t('block.calendar.colorLabel')">
+              <CInputColorPicker
+                :model-value="feed.options?.color || '#09344E'"
+                show-text
+                @update:model-value="feed.options.color = $event"
+              />
+            </CFormGroup>
           </div>
         </div>
+
+        <Button
+          :label="$t('block.calendar.addEventsSource')"
+          icon="pi pi-plus"
+          severity="secondary"
+          size="small"
+          class="self-start"
+          @click="addFeed"
+        />
       </div>
-
-      <Button
-        :label="$t('block.calendar.addEventsSource')"
-        icon="pi pi-plus"
-        severity="secondary"
-        size="small"
-        class="self-start"
-        @click="addFeed"
-      />
-    </div>
+    </Fieldset>
   </div>
 </template>
 

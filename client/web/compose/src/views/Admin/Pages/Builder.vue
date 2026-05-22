@@ -365,59 +365,36 @@
 
             <Divider />
 
-            <!-- Visibility -->
-            <h5 class="text-lg font-semibold text-primary m-0">
-              {{ $t('block.general.visibility.label') }}
-            </h5>
+            <Fieldset :legend="$t('block.general.visibility.label')">
+              <div class="flex flex-col gap-3">
+                <CFormGroup :description="visibilityConditionDescription">
+                  <template #label>
+                    <span class="flex items-center gap-1">
+                      {{ $t('block.general.visibility.condition.label') }}
+                      <i
+                        class="pi pi-exclamation-triangle text-orange-500 text-xs"
+                        v-tooltip="$t('block.general.visibility.tooltip.performance.condition')"
+                      />
+                    </span>
+                  </template>
+                  <Textarea
+                    v-model="editingBlock.meta.visibility.expression"
+                    :placeholder="$t('block.general.visibility.condition.placeholder')"
+                    rows="2"
+                    class="w-full"
+                  />
+                </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-1">
-                <label class="text-primary font-medium text-sm">
-                  {{ $t('block.general.visibility.condition.label') }}
-                </label>
-                <i
-                  class="pi pi-exclamation-triangle text-orange-500 text-xs"
-                  v-tooltip="$t('block.general.visibility.tooltip.performance.condition')"
-                />
+                <CFormGroup :label="$t('block.general.visibility.roles.label')">
+                  <CInputRole
+                    v-model="editingBlock.meta.visibility.roles"
+                    multiple
+                    :placeholder="$t('block.general.visibility.roles.placeholder')"
+                    class="w-full"
+                  />
+                </CFormGroup>
               </div>
-              <Textarea
-                v-model="editingBlock.meta.visibility.expression"
-                :placeholder="$t('block.general.visibility.condition.placeholder')"
-                rows="2"
-                class="w-full"
-              />
-              <small class="text-muted-color">
-                {{
-                  isRecordPage
-                    ? $t('block.general.visibility.condition.description.record-page', [
-                        'record.values.fieldName',
-                        'user.(userID/email...)',
-                        'screen.(width/height)',
-                        'isView/isCreate/isEdit',
-                        'user.userID == record.createdBy',
-                        'screen.width < 1024',
-                      ])
-                    : $t('block.general.visibility.condition.description.non-record-page', [
-                        'user.(userID/email...)',
-                        'screen.(width/height)',
-                        'user.email == "test@mail.com"',
-                        'screen.width < 1024',
-                      ])
-                }}
-              </small>
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.general.visibility.roles.label') }}
-              </label>
-              <CInputRole
-                v-model="editingBlock.meta.visibility.roles"
-                multiple
-                :placeholder="$t('block.general.visibility.roles.placeholder')"
-                class="w-full"
-              />
-            </div>
+            </Fieldset>
           </div>
         </TabPanel>
 
@@ -557,6 +534,24 @@ const magnifyOptions = computed(() => [
 ])
 
 const isRecordPage = computed(() => !!page.value?.isRecordPage)
+
+const visibilityConditionDescription = computed(() =>
+  isRecordPage.value
+    ? t('block.general.visibility.condition.description.record-page', [
+        'record.values.fieldName',
+        'user.(userID/email...)',
+        'screen.(width/height)',
+        'isView/isCreate/isEdit',
+        'user.userID == record.createdBy',
+        'screen.width < 1024',
+      ])
+    : t('block.general.visibility.condition.description.non-record-page', [
+        'user.(userID/email...)',
+        'screen.(width/height)',
+        'user.email == "test@mail.com"',
+        'screen.width < 1024',
+      ]),
+)
 
 const layoutOptions = computed(() =>
   layouts.value.map(l => ({

@@ -163,7 +163,7 @@ editor:
     help: Select roles that will see this agent in their App Sidebar.
   systemEnabled:
     label: Enable System Invocation
-    help: Allow this agent to be invoked programmatically by the system (e.g. workflows, automation)
+    help: Allow this agent to be invoked programmatically by the system (e.g. automation, chatbot)
   serviceAccount:
     label: Service Account
     help: The user account this agent impersonates when running system invocations

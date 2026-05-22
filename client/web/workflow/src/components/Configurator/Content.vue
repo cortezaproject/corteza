@@ -1,7 +1,7 @@
 <template>
   <div class="configurator-section">
     <CFormGroup :label="$t('steps.content.configurator.content-label')">
-      <div class="content-rte-wrap border border-surface rounded-border overflow-hidden">
+      <div class="content-rte-wrap">
         <c-rich-text-input
           v-model="label"
           :labels="{

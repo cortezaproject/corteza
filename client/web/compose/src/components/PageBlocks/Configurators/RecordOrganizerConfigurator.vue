@@ -1,7 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.module.placeholder') }}</label>
+    <CFormGroup :label="$t('block.recordOrganizer.module.placeholder')">
       <Select
         v-model="moduleID"
         :options="modules"
@@ -12,11 +11,13 @@
         filter
         show-clear
       />
-    </div>
+    </CFormGroup>
 
     <template v-if="moduleID">
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.labelField.label') }}</label>
+      <CFormGroup
+        :label="$t('block.recordOrganizer.labelField.label')"
+        :description="$t('block.recordOrganizer.labelField.footnote')"
+      >
         <Select
           v-model="labelField"
           :options="fieldOptions"
@@ -26,11 +27,12 @@
           filter
           show-clear
         />
-        <small class="text-muted-color">{{ $t('block.recordOrganizer.labelField.footnote') }}</small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.descriptionField.label') }}</label>
+      <CFormGroup
+        :label="$t('block.recordOrganizer.descriptionField.label')"
+        :description="$t('block.recordOrganizer.descriptionField.footnote')"
+      >
         <Select
           v-model="descriptionField"
           :options="fieldOptions"
@@ -40,11 +42,12 @@
           filter
           show-clear
         />
-        <small class="text-muted-color">{{ $t('block.recordOrganizer.descriptionField.footnote') }}</small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.positionField.label') }}</label>
+      <CFormGroup
+        :label="$t('block.recordOrganizer.positionField.label')"
+        :description="$t('block.recordOrganizer.positionField.footnote')"
+      >
         <Select
           v-model="positionField"
           :options="numberFieldOptions"
@@ -55,11 +58,12 @@
           filter
           show-clear
         />
-        <small class="text-muted-color">{{ $t('block.recordOrganizer.positionField.footnote') }}</small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.groupField.label') }}</label>
+      <CFormGroup
+        :label="$t('block.recordOrganizer.groupField.label')"
+        :description="$t('block.recordOrganizer.groupField.footnote')"
+      >
         <Select
           v-model="groupField"
           :options="fieldOptions"
@@ -69,17 +73,17 @@
           filter
           show-clear
         />
-        <small class="text-muted-color">{{ $t('block.recordOrganizer.groupField.footnote') }}</small>
-      </div>
+      </CFormGroup>
 
-      <div v-if="groupField" class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.group.label') }}</label>
+      <CFormGroup
+        v-if="groupField"
+        :label="$t('block.recordOrganizer.group.label')"
+        :description="$t('block.recordOrganizer.group.footnote')"
+      >
         <InputText v-model="group" class="w-full" />
-        <small class="text-muted-color">{{ $t('block.recordOrganizer.group.footnote') }}</small>
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.displayOption.label') }}</label>
+      <CFormGroup :label="$t('block.recordOrganizer.displayOption.label')">
         <Select
           v-model="displayOption"
           :options="displayOptions"
@@ -87,18 +91,19 @@
           option-value="value"
           class="w-full"
         />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.recordOrganizer.prefilter.label') }}</label>
+      <CFormGroup
+        :label="$t('block.recordOrganizer.prefilter.label')"
+        :description="$t('block.recordOrganizer.prefilter.footnote')"
+      >
         <Textarea
           v-model="prefilter"
           :placeholder="$t('block.recordOrganizer.prefilter.placeholder')"
           rows="3"
           class="w-full"
         />
-        <small class="text-muted-color">{{ $t('block.recordOrganizer.prefilter.footnote') }}</small>
-      </div>
+      </CFormGroup>
     </template>
   </div>
 </template>

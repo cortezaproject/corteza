@@ -107,7 +107,7 @@ async function boot() {
       const p = parseEvent<{ error: string }>(ev)
       engine.emit({ type: 'typing', on: false })
       engine.endAgent()
-      engine.pushMessage({ role: 'system', content: p?.error || 'agent error' })
+      engine.emit({ type: 'error', error: p?.error || 'agent error' })
     })
     s.addEventListener('step_start', ev => {
       const p = parseEvent<StepStartPayload>(ev)
@@ -229,6 +229,15 @@ async function boot() {
       }
     } catch (err: any) {
       engine.emit({ type: 'error', error: err?.message || 'submit failed' })
+    }
+  }
+
+  ui.onConsentDecision = async accepted => {
+    try {
+      const s = await ensureSession()
+      await api.submitConsent(s.sessionID, accepted)
+    } catch (err: any) {
+      engine.emit({ type: 'error', error: err?.message || 'consent failed' })
     }
   }
 

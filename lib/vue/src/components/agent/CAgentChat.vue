@@ -44,7 +44,7 @@
         <button
           v-for="(conv, idx) in conversations"
           :key="idx"
-          class="group flex items-center gap-1.5 p-3 text-sm border-b-2 whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
+          class="group flex items-center gap-1.5 py-2 pl-3 pr-1 text-sm border-b-2 border-r border-r-surface whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
           :class="[
             activeConversationIndex === idx
               ? 'border-b-primary text-primary font-medium'
@@ -56,23 +56,12 @@
             {{ tabLabel(conv) }}
           </span>
           <i
-            class="pi pi-times text-sm opacity-0 group-hover:opacity-100 p-1 hover:bg-surface rounded-full transition-all shrink-0"
+            class="pi pi-times text-xs opacity-0 group-hover:opacity-100 p-1 hover:bg-surface rounded-full transition-all shrink-0"
             @click.stop="agentStore.closeConversation(agentStore.activeAgentID, idx)"
           />
         </button>
       </div>
       <div class="flex items-center px-1 border-l border-surface shrink-0">
-        <Button
-          icon="pi pi-history"
-          severity="secondary"
-          variant="text"
-          rounded
-          size="small"
-          class="!w-7 !h-7"
-          v-tooltip.bottom="{ value: translations.history.button, showDelay: 500 }"
-          @click="openHistory"
-        />
-        <Divider layout="vertical" class="!mx-1 !my-0 !h-5" />
         <Button
           icon="pi pi-plus"
           severity="secondary"
@@ -83,16 +72,16 @@
           v-tooltip.bottom="{ value: translations.newChat, showDelay: 500 }"
           @click="agentStore.startNewConversation(agentStore.activeAgentID)"
         />
+        <Divider layout="vertical" class="!mx-1 !my-0 !h-5" />
         <Button
-          v-if="conversations.length > 1"
-          icon="pi pi-trash"
-          severity="danger"
+          icon="pi pi-history"
+          severity="secondary"
           variant="text"
           rounded
           size="small"
           class="!w-7 !h-7"
-          v-tooltip.bottom="{ value: translations.clearAllChats, showDelay: 500 }"
-          @click="agentStore.clearConversation(agentStore.activeAgentID)"
+          v-tooltip.bottom="{ value: translations.history.button, showDelay: 500 }"
+          @click="openHistory"
         />
       </div>
     </div>

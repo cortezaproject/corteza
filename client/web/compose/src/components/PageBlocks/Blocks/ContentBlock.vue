@@ -27,10 +27,10 @@ const props = defineProps({
 const $auth = inject('$auth', {})
 
 const contentBody = computed(() => {
-  try {
-    const { body = '' } = props.block.options || {}
-    if (!body) return ''
+  const { body = '' } = props.block.options || {}
+  if (!body) return ''
 
+  try {
     const record = props.record
     const user = $auth?.user || {}
 
@@ -41,8 +41,8 @@ const contentBody = computed(() => {
       ownerID: record?.ownedBy || '0',
       userID: user?.userID || '0',
     })
-  } catch (e) {
-    return e
+  } catch {
+    return body
   }
 })
 </script>

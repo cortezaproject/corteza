@@ -1,12 +1,8 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- General -->
-    <Panel :header="$t('block.recordList.record.generalLabel')" toggleable>
+    <Fieldset :legend="$t('block.recordList.record.generalLabel')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.general.module') }}
-          </label>
+        <CFormGroup :label="$t('block.general.module')">
           <Select
             v-model="moduleID"
             :options="modules"
@@ -16,7 +12,7 @@
             class="w-full"
             filter
           />
-        </div>
+        </CFormGroup>
 
         <CInputToggleCard
           v-if="recordListModule"
@@ -25,11 +21,12 @@
           :description="$t('block.recordList.record.inlineEditorAllowDescription')"
         />
 
-        <!-- refField (parent link) — only on record pages -->
-        <div v-if="recordListModule && onRecordPage" class="flex flex-col gap-1 md:col-span-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.recordList.refField.label') }}
-          </label>
+        <CFormGroup
+          v-if="recordListModule && onRecordPage"
+          :label="$t('block.recordList.refField.label')"
+          :description="$t('block.recordList.refField.footnote')"
+          class="md:col-span-2"
+        >
           <Select
             v-model="refField"
             :options="parentFields"
@@ -39,16 +36,14 @@
             class="w-full"
             show-clear
           />
-          <small class="text-muted-color">
-            {{ $t('block.recordList.refField.footnote') }}
-          </small>
-        </div>
+        </CFormGroup>
       </div>
-    </Panel>
+    </Fieldset>
 
     <template v-if="recordListModule">
-      <!-- Fields -->
-      <Panel :header="$t('block.general.fields')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.general.fields')">
         <div class="flex flex-col gap-3">
           <small class="text-muted-color">
             {{ $t('block.recordList.moduleFieldsFootnote') }}
@@ -65,30 +60,31 @@
             @update:model-value="onFieldPickerUpdate"
           />
         </div>
-      </Panel>
+      </Fieldset>
 
-      <!-- Inline Editor -->
-      <Panel v-if="editable" :header="$t('block.recordList.record.inlineEditor')" toggleable>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.recordList.editFields') }}
-          </label>
-          <CFieldPicker
-            :all-fields="editableFieldSubset"
-            :model-value="selectedEditFieldNames"
-            :available-label="$t('field.selector.available')"
-            :selected-label="$t('field.selector.selected')"
-            :select-all-label="$t('field.selector.selectAll')"
-            :unselect-all-label="$t('field.selector.unselectAll')"
-            :search-placeholder="$t('field.selector.search')"
-            :no-items-label="$t('field.no-items-found')"
-            @update:model-value="onEditFieldPickerUpdate"
-          />
-        </div>
-      </Panel>
+      <template v-if="editable">
+        <Divider />
 
-      <!-- Prefilter & Search -->
-      <Panel :header="$t('block.recordList.record.prefilterLabel')" toggleable>
+        <Fieldset :legend="$t('block.recordList.record.inlineEditor')">
+          <CFormGroup :label="$t('block.recordList.editFields')">
+            <CFieldPicker
+              :all-fields="editableFieldSubset"
+              :model-value="selectedEditFieldNames"
+              :available-label="$t('field.selector.available')"
+              :selected-label="$t('field.selector.selected')"
+              :select-all-label="$t('field.selector.selectAll')"
+              :unselect-all-label="$t('field.selector.unselectAll')"
+              :search-placeholder="$t('field.selector.search')"
+              :no-items-label="$t('field.no-items-found')"
+              @update:model-value="onEditFieldPickerUpdate"
+            />
+          </CFormGroup>
+        </Fieldset>
+      </template>
+
+      <Divider />
+
+      <Fieldset :legend="$t('block.recordList.record.prefilterLabel')">
         <div class="flex flex-col gap-3">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <CInputToggleCard
@@ -103,10 +99,11 @@
             />
           </div>
 
-          <div v-if="showSearch" class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.recordList.record.searchableFields') }}
-            </label>
+          <CFormGroup
+            v-if="showSearch"
+            :label="$t('block.recordList.record.searchableFields')"
+            :description="$t('block.recordList.record.searchableFieldsFootnote')"
+          >
             <CFieldPicker
               :all-fields="queryableFields"
               :model-value="selectedSearchableFieldNames"
@@ -118,37 +115,31 @@
               :no-items-label="$t('field.no-items-found')"
               @update:model-value="onSearchableFieldPickerUpdate"
             />
-            <small class="text-muted-color">
-              {{ $t('block.recordList.record.searchableFieldsFootnote') }}
-            </small>
-          </div>
+          </CFormGroup>
 
-          <div v-if="showSearch" class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.recordList.record.searchSubmitMode') }}
-            </label>
+          <CFormGroup
+            v-if="showSearch"
+            :label="$t('block.recordList.record.searchSubmitMode')"
+          >
             <Select
               v-model="searchSubmitMode"
               :options="searchSubmitModeOptions"
               option-label="text"
               option-value="value"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.recordList.record.prefilterLabel') }}
-            </label>
+          <CFormGroup
+            :label="$t('block.recordList.record.prefilterLabel')"
+            :description="$t('block.recordList.record.prefilterFootnote')"
+          >
             <Textarea
               v-model="prefilter"
               rows="3"
               class="w-full"
               :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
             />
-            <small class="text-muted-color">
-              {{ $t('block.recordList.record.prefilterFootnote') }}
-            </small>
-          </div>
+          </CFormGroup>
 
           <!-- Filter Presets -->
           <div class="flex flex-col gap-3">
@@ -184,17 +175,14 @@
                     @click="removeFilterPreset(i)"
                   />
                 </div>
-                <div class="flex flex-col gap-1">
-                  <label class="text-sm text-muted-color">
-                    {{ $t('block.recordList.record.presetRoles') }}
-                  </label>
+                <CFormGroup :label="$t('block.recordList.record.presetRoles')">
                   <CInputRole
                     :model-value="preset.roles || []"
                     multiple
                     class="w-full"
                     @update:model-value="updateFilterPreset(i, 'roles', $event)"
                   />
-                </div>
+                </CFormGroup>
               </div>
               <Button
                 :label="$t('general.label.add')"
@@ -207,21 +195,18 @@
             </template>
           </div>
         </div>
-      </Panel>
+      </Fieldset>
 
-      <!-- Sorting -->
-      <Panel :header="$t('block.recordList.record.presortLabel')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.recordList.record.presortLabel')">
         <div class="flex flex-col gap-3">
           <CInputToggleCard
             v-model="showSorting"
             :label="$t('block.recordList.record.presortHideSort')"
             :description="$t('block.recordList.record.presortHideSortDescription')"
           />
-          <div class="flex flex-col gap-2">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.recordList.record.presortInputLabel') }}
-            </label>
-
+          <CFormGroup :label="$t('block.recordList.record.presortInputLabel')">
             <div
               v-for="(item, i) in presortItems"
               :key="i"
@@ -266,12 +251,13 @@
               class="self-start"
               @click="addPresortItem"
             />
-          </div>
+          </CFormGroup>
         </div>
-      </Panel>
+      </Fieldset>
 
-      <!-- Paging -->
-      <Panel :header="$t('block.recordList.record.pagingLabel')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.recordList.record.pagingLabel')">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <CInputToggleCard
             v-model="showPaging"
@@ -284,16 +270,15 @@
             :description="$t('block.recordList.record.fullPageNavigationDescription')"
             :warning="$t('block.recordList.record.fullPageNavigationHint')"
           />
-          <div class="flex flex-col gap-1">
-            <label
-              v-tooltip.top="$t('block.recordList.record.perPageHint')"
-              class="text-primary font-medium text-sm"
-            >
-              {{ $t('block.recordList.record.perPage') }}
-              <i class="pi pi-info-circle text-muted-color text-xs ml-1" />
-            </label>
+          <CFormGroup>
+            <template #label>
+              <span v-tooltip.top="$t('block.recordList.record.perPageHint')">
+                {{ $t('block.recordList.record.perPage') }}
+                <i class="pi pi-info-circle text-muted-color text-xs ml-1" />
+              </span>
+            </template>
             <InputNumber v-model="perPage" :min="1" :max="1000" class="w-full" />
-          </div>
+          </CFormGroup>
           <CInputToggleCard
             v-model="showRecordPerPageOption"
             :label="$t('block.recordList.record.showRecordPerPageOption')"
@@ -305,10 +290,11 @@
             :description="$t('block.recordList.record.showTotalCountDescription')"
           />
         </div>
-      </Panel>
+      </Fieldset>
 
-      <!-- Summaries -->
-      <Panel :header="$t('block.recordList.record.summaries')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.recordList.record.summaries')">
         <div class="flex flex-col gap-3">
           <CInputToggleCard
             v-model="customSummaries"
@@ -359,17 +345,14 @@
                   @update:model-value="updateSummary(i, 'metric', $event)"
                 />
               </div>
-              <div class="flex flex-col gap-1">
-                <label class="text-sm text-muted-color">
-                  {{ $t('block.recordList.record.summaryRoles') }}
-                </label>
+              <CFormGroup :label="$t('block.recordList.record.summaryRoles')">
                 <CInputRole
                   :model-value="summary.roles || []"
                   multiple
                   class="w-full"
                   @update:model-value="updateSummary(i, 'roles', $event)"
                 />
-              </div>
+              </CFormGroup>
             </div>
             <Button
               :label="$t('general.label.add')"
@@ -381,16 +364,14 @@
             />
           </template>
         </div>
-      </Panel>
+      </Fieldset>
 
-      <!-- Records -->
-      <Panel :header="$t('block.recordList.record.recordsLabel')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.recordList.record.recordsLabel')">
         <div class="flex flex-col gap-3">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.recordList.record.recordDisplayOptions') }}
-              </label>
+            <CFormGroup :label="$t('block.recordList.record.recordDisplayOptions')">
               <Select
                 v-model="recordDisplayOption"
                 :options="recordDisplayOptions"
@@ -398,11 +379,8 @@
                 option-value="value"
                 class="w-full"
               />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.recordList.record.recordSelectorDisplayOptions') }}
-              </label>
+            </CFormGroup>
+            <CFormGroup :label="$t('block.recordList.record.recordSelectorDisplayOptions')">
               <Select
                 v-model="recordSelectorDisplayOption"
                 :options="recordDisplayOptions"
@@ -410,16 +388,13 @@
                 option-value="value"
                 class="w-full"
               />
-            </div>
+            </CFormGroup>
             <CInputToggleCard
               v-model="showAddButton"
               :label="$t('block.recordList.record.hideAddButton')"
               :description="$t('block.recordList.record.hideAddButtonDescription')"
             />
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.recordList.record.addRecordDisplayOption') }}
-              </label>
+            <CFormGroup :label="$t('block.recordList.record.addRecordDisplayOption')">
               <Select
                 v-model="addRecordDisplayOption"
                 :options="recordCreateOptions"
@@ -428,7 +403,7 @@
                 class="w-full"
                 :disabled="!showAddButton"
               />
-            </div>
+            </CFormGroup>
             <CInputToggleCard
               v-model="openRecordInEditMode"
               :label="$t('block.recordList.record.openRecordInEditMode')"
@@ -493,11 +468,10 @@
             />
           </div>
 
-          <!-- Inline Edit Fields Picker -->
-          <div v-if="inlineRecordEditEnabled" class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.recordList.record.inlineEditFields') }}
-            </label>
+          <CFormGroup
+            v-if="inlineRecordEditEnabled"
+            :label="$t('block.recordList.record.inlineEditFields')"
+          >
             <CFieldPicker
               :all-fields="editableFieldSubset"
               :model-value="selectedInlineEditFieldNames"
@@ -509,13 +483,9 @@
               :no-items-label="$t('field.no-items-found')"
               @update:model-value="onInlineEditFieldPickerUpdate"
             />
-          </div>
+          </CFormGroup>
 
-          <!-- Row Action Buttons -->
-          <div class="flex flex-col gap-2">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.recordList.record.rowActionButtons') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.record.rowActionButtons')">
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <Checkbox v-model="hideRecordViewButton" binary input-id="hideRecordViewButton" />
@@ -566,9 +536,9 @@
                 </label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
         </div>
-      </Panel>
+      </Fieldset>
     </template>
   </div>
 </template>

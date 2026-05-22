@@ -1,8 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- Chart selection -->
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.chart.display') }}</label>
+    <CFormGroup :label="$t('block.chart.display')">
       <div class="flex gap-2">
         <CInputChart
           v-model="chartID"
@@ -18,49 +16,51 @@
           @click="goToChart"
         />
       </div>
-    </div>
+    </CFormGroup>
 
-    <template v-if="chartID">
-      <div v-if="isDrillDownAvailable" class="flex flex-col gap-3">
-        <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.chart.drillDown.label') }}</h5>
+    <template v-if="chartID && isDrillDownAvailable">
+      <Divider />
 
-        <CInputToggleCard
-          v-model="drillDownEnabled"
-          :label="$t('block.chart.drillDown.enabled')"
-          :description="$t('block.chart.drillDown.description')"
-        />
+      <Fieldset :legend="$t('block.chart.drillDown.label')">
+        <div class="flex flex-col gap-3">
+          <CInputToggleCard
+            v-model="drillDownEnabled"
+            :label="$t('block.chart.drillDown.enabled')"
+            :description="$t('block.chart.drillDown.description')"
+          />
 
-        <template v-if="drillDownEnabled">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.chart.drillDown.blockID') }}</label>
-            <Select
-              v-model="drillDownBlockID"
-              :options="drillDownOptions"
-              option-label="label"
-              option-value="value"
-              :placeholder="$t('block.chart.drillDown.openInModal')"
-              class="w-full"
-              show-clear
-            />
-            <small class="text-muted-color">{{ $t('block.chart.drillDown.blockIDFootnote') }}</small>
-          </div>
+          <template v-if="drillDownEnabled">
+            <CFormGroup
+              :label="$t('block.chart.drillDown.blockID')"
+              :description="$t('block.chart.drillDown.blockIDFootnote')"
+            >
+              <Select
+                v-model="drillDownBlockID"
+                :options="drillDownOptions"
+                option-label="label"
+                option-value="value"
+                :placeholder="$t('block.chart.drillDown.openInModal')"
+                class="w-full"
+                show-clear
+              />
+            </CFormGroup>
 
-          <div v-if="!drillDownBlockID" class="flex flex-col gap-1 mt-2">
-            <label class="text-primary font-medium text-sm">{{ $t('block.chart.drillDown.fields') }}</label>
-            <CFieldPicker
-              :all-fields="allModuleFields"
-              :model-value="drillDownFields"
-              :available-label="$t('field.selector.available')"
-              :selected-label="$t('field.selector.selected')"
-              :select-all-label="$t('field.selector.selectAll')"
-              :unselect-all-label="$t('field.selector.unselectAll')"
-              :search-placeholder="$t('field.selector.search')"
-              :no-items-label="$t('field.no-items-found')"
-              @update:model-value="onFieldPickerUpdate"
-            />
-          </div>
-        </template>
-      </div>
+            <CFormGroup v-if="!drillDownBlockID" :label="$t('block.chart.drillDown.fields')">
+              <CFieldPicker
+                :all-fields="allModuleFields"
+                :model-value="drillDownFields"
+                :available-label="$t('field.selector.available')"
+                :selected-label="$t('field.selector.selected')"
+                :select-all-label="$t('field.selector.selectAll')"
+                :unselect-all-label="$t('field.selector.unselectAll')"
+                :search-placeholder="$t('field.selector.search')"
+                :no-items-label="$t('field.no-items-found')"
+                @update:model-value="onFieldPickerUpdate"
+              />
+            </CFormGroup>
+          </template>
+        </div>
+      </Fieldset>
     </template>
   </div>
 </template>

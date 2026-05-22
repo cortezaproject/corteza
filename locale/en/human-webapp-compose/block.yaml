@@ -165,7 +165,7 @@ content:
   ok: Ok
   label: Content
   placeholder: Write your content here...
-  interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+  interpolationFootnote: "Available variables (evaluated when present):"
   urlPlaceholder: https://example.tld
 file:
   label: File
@@ -1287,7 +1287,6 @@ tabs:
     remove: Remove tab
 
 noConfiguration: Block not configured correctly
-interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)
 
 agentChat:
   label: Agent Chat
@@ -1314,7 +1313,7 @@ agentChat:
     defaultAgentPlaceholder: First allowed agent
     defaultAgentHint: Preselected when the page loads.
     autoResume: Resume most recent conversation on load
-    autoResumeHint: When on, the latest past conversation for the active agent is loaded into the first tab.
+    autoResumeHint: The latest past conversation for the active agent is loaded into the first tab.
 
 chatbotInbox:
   label: Chatbot

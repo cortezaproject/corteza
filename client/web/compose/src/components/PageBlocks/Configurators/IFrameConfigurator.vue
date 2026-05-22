@@ -1,8 +1,10 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- URL field from record (only on record pages) -->
-    <div v-if="isRecordPage" class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.iframe.srcFieldLabel') }}</label>
+    <CFormGroup
+      v-if="isRecordPage"
+      :label="$t('block.iframe.srcFieldLabel')"
+      :description="$t('block.iframe.srcFieldDesc')"
+    >
       <Select
         v-model="srcField"
         :options="urlFields"
@@ -13,19 +15,18 @@
         show-clear
         :disabled="!urlFields.length"
       />
-      <small class="text-muted-color">{{ $t('block.iframe.srcFieldDesc') }}</small>
-    </div>
+    </CFormGroup>
 
-    <!-- Static URL -->
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.iframe.srcLabel') }}</label>
+    <CFormGroup
+      :label="$t('block.iframe.srcLabel')"
+      :description="isRecordPage ? $t('block.iframe.srcDesc') : ''"
+    >
       <InputText
         v-model="srcUrl"
         :placeholder="$t('block.content.urlPlaceholder')"
         class="w-full"
       />
-      <small v-if="isRecordPage" class="text-muted-color">{{ $t('block.iframe.srcDesc') }}</small>
-    </div>
+    </CFormGroup>
 
     <!-- Interpolation footnote -->
     <small class="text-muted-color">

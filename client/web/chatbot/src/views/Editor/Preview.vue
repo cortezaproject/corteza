@@ -96,7 +96,7 @@ function attachStream(s) {
     const p = parseEvent(ev)
     engine.emit({ type: 'typing', on: false })
     engine.endAgent()
-    engine.pushMessage({ role: 'system', content: p?.error || 'agent error' })
+    engine.emit({ type: 'error', error: p?.error || 'agent error' })
   })
   s.addEventListener('step_start', ev => {
     const p = parseEvent(ev)
@@ -230,6 +230,15 @@ async function handleFormSubmit(values) {
   }
 }
 
+async function handleConsentDecision(accepted) {
+  if (!session) return
+  try {
+    await client.submitConsent(session.sessionID, accepted)
+  } catch (err) {
+    engine.emit({ type: 'error', error: err?.message || 'consent failed' })
+  }
+}
+
 async function handleRequestHandoff() {
   if (!session) return
   try {
@@ -272,6 +281,7 @@ function mount() {
   })
   ui.onUserInput = handleUserInput
   ui.onFormSubmit = handleFormSubmit
+  ui.onConsentDecision = handleConsentDecision
   ui.onRequestHandoff = handleRequestHandoff
   ui.onCancelHandoff = handleCancelHandoff
   ui.onEndConversation = handleEndConversation
@@ -333,6 +343,9 @@ onBeforeUnmount(() => {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  /* No overflow clipping here so the widget panel's box-shadow can extend
+     past the host into the gap between this column and the config card.
+     The panel itself still has its own overflow:hidden so message content
+     stays clipped to its rounded box. */
 }
 </style>

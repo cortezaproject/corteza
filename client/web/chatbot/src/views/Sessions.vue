@@ -4,13 +4,23 @@
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0 flex flex-col">
-    <CChatbotInbox
-      :chatbot-i-ds="chatbotIDs"
-      :status-filter="['handoff_requested', 'handoff_active', 'active', 'closed']"
-      :show-filter="true"
-      :refresh-rate="5"
-      :translations="inboxTranslations"
-    />
+    <Card
+      :pt="{
+        body: { class: 'p-0 h-full flex flex-col min-h-0' },
+        content: { class: 'p-0 h-full flex flex-col min-h-0 overflow-hidden' },
+      }"
+      class="flex-1 min-h-0 overflow-hidden"
+    >
+      <template #content>
+        <CChatbotInbox
+          :chatbot-i-ds="chatbotIDs"
+          :status-filter="['handoff_requested', 'handoff_active', 'active', 'closed']"
+          :show-filter="true"
+          :refresh-rate="5"
+          :translations="inboxTranslations"
+        />
+      </template>
+    </Card>
   </div>
 </template>
 

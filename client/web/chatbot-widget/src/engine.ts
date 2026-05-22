@@ -96,8 +96,18 @@ export class Engine {
   }
 
   handleHandoffComplete() {
+    // If an operator was actually connected, surface a system message so the
+    // visitor sees the conversation ended (otherwise the widget silently
+    // hands control back to the agent and the transition is opaque).
+    const wasActive = this.handoff.phase === 'active'
     this.handoff = { phase: 'idle' }
     this.emit({ type: 'handoff_change', state: this.handoff })
+    if (wasActive) {
+      this.pushMessage({
+        role: 'system',
+        content: 'Conversation with operator has ended.',
+      })
+    }
   }
 
   handleSessionClosed() {

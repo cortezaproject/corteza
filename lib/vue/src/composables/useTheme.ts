@@ -168,7 +168,7 @@ export function getTheme(theme: Theme) {
 
       .p-fieldset {
         --p-fieldset-legend-color: var(--p-primary-color);
-        --p-fieldset-legend-font-weight: 500;
+        --p-fieldset-legend-font-weight: 400;
   
         .p-fieldset-legend {
           color: var(--p-fieldset-legend-color);

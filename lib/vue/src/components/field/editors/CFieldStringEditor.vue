@@ -3,7 +3,7 @@
     v-if="field.options?.useRichTextEditor"
     :model-value="modelValue"
     :hide-toolbar="disabled"
-    class="w-full border rounded-border"
+    class="w-full"
     @update:model-value="$emit('update:modelValue', $event)"
   />
   <Textarea

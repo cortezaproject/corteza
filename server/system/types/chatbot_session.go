@@ -35,6 +35,15 @@ type (
 
 		Conversation *ChatbotConversationStepState `json:"conversation,omitempty"`
 		Form         *ChatbotFormStepState         `json:"form,omitempty"`
+		Consent      *ChatbotConsentStepState      `json:"consent,omitempty"`
+	}
+
+	// ChatbotConsentStepState captures the visitor's response to a consent
+	// step (e.g. TOS acceptance) for audit purposes. Decision is final per
+	// step; At is set to the server-side timestamp at submit time.
+	ChatbotConsentStepState struct {
+		Accepted bool      `json:"accepted"`
+		At       time.Time `json:"at"`
 	}
 
 	ChatbotConversationStepState struct {

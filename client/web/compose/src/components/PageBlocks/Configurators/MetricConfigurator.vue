@@ -1,284 +1,237 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- Metrics list -->
-    <div class="flex flex-col gap-3">
-      <h5 class="text-lg font-semibold text-primary m-0">
-        {{ $t('block.metric.edit.tabTitle') }}
-      </h5>
-
-      <div
-        v-for="(metric, i) in metrics"
-        :key="i"
-        class="flex flex-col gap-2 p-3 border rounded-lg"
-      >
-        <div class="flex items-center gap-2 justify-between">
-          <span class="text-sm font-semibold">
-            {{ metric.label || $t('block.metric.defaultMetricLabel') }}
-          </span>
-          <div class="flex gap-1">
-            <Button
-              :icon="expandedMetric === i ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-              text
-              size="small"
-              @click="expandedMetric = expandedMetric === i ? -1 : i"
-            />
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              size="small"
-              @click="removeMetric(i)"
-            />
+    <Fieldset :legend="$t('block.metric.edit.tabTitle')">
+      <div class="flex flex-col gap-3">
+        <div
+          v-for="(metric, i) in metrics"
+          :key="i"
+          class="flex flex-col gap-2 p-3 border border-surface rounded-border"
+        >
+          <div class="flex items-center gap-2 justify-between">
+            <span class="text-sm font-semibold">
+              {{ metric.label || $t('block.metric.defaultMetricLabel') }}
+            </span>
+            <div class="flex gap-1">
+              <Button
+                :icon="expandedMetric === i ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                text
+                size="small"
+                @click="expandedMetric = expandedMetric === i ? -1 : i"
+              />
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                size="small"
+                @click="removeMetric(i)"
+              />
+            </div>
           </div>
+
+          <template v-if="expandedMetric === i">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <CFormGroup :label="$t('block.metric.edit.labelLabel')">
+                <InputText
+                  v-model="metric.label"
+                  :placeholder="$t('block.metric.edit.labelPlaceholder')"
+                  class="w-full"
+                />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.moduleLabel')">
+                <Select
+                  :model-value="metric.moduleID"
+                  :options="modules"
+                  option-label="name"
+                  option-value="moduleID"
+                  :placeholder="$t('block.metric.edit.modulePlaceholder')"
+                  class="w-full"
+                  filter
+                  @update:model-value="onModuleChange(metric, $event)"
+                />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.metricFieldLabel')">
+                <Select
+                  :model-value="metric.metricField"
+                  :options="getMetricFields(metric.moduleID)"
+                  option-label="label"
+                  option-value="name"
+                  class="w-full"
+                  :placeholder="$t('block.metric.edit.metricFieldSelect')"
+                  :disabled="!metric.moduleID"
+                  @update:model-value="onMetricFieldChange(metric, $event)"
+                />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.metricAggregateLabel')">
+                <Select
+                  v-model="metric.operation"
+                  :options="aggregationOperations"
+                  option-label="label"
+                  option-value="operation"
+                  class="w-full"
+                  :placeholder="$t('block.metric.edit.metricSelectAggregate')"
+                  :disabled="metric.metricField === 'count'"
+                />
+              </CFormGroup>
+
+              <CFormGroup
+                :label="$t('block.metric.edit.transformFunctionLabel')"
+                :description="$t('block.metric.edit.transformFunctionDescription')"
+                class="md:col-span-2"
+              >
+                <InputText v-model="metric.transformFx" class="w-full" placeholder="v" />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.numberFormat')">
+                <InputText v-model="metric.numberFormat" class="w-full" placeholder="0,0.00" />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.prefixLabel')">
+                <InputText v-model="metric.prefix" class="w-full" placeholder="$" />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.suffixLabel')">
+                <InputText v-model="metric.suffix" class="w-full" placeholder="USD/mo" />
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.edit.filterLabel')" class="md:col-span-2">
+                <InputText
+                  v-model="metric.filter"
+                  class="w-full"
+                  placeholder="field1 = 1 AND field2 > 0"
+                />
+              </CFormGroup>
+            </div>
+
+            <Divider />
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <CFormGroup :label="$t('block.metric.editStyle.color')">
+                <div class="flex items-center gap-2">
+                  <CInputColorPicker
+                    :model-value="metric.valueStyle?.color || ''"
+                    :default-value="defaultTextColor"
+                    show-text
+                    :empty-label="$t('block.metric.editStyle.default')"
+                    @update:model-value="onStyleChange(metric, 'color', $event)"
+                  />
+                  <Button
+                    icon="pi pi-undo"
+                    severity="secondary"
+                    text
+                    rounded
+                    size="small"
+                    :title="$t('block.metric.editStyle.resetToDefault')"
+                    @click="onStyleChange(metric, 'color', '')"
+                  />
+                </div>
+              </CFormGroup>
+
+              <CFormGroup :label="$t('block.metric.editStyle.backgroundColor')">
+                <div class="flex items-center gap-2">
+                  <CInputColorPicker
+                    :model-value="metric.valueStyle?.backgroundColor || ''"
+                    show-text
+                    :empty-label="$t('block.metric.editStyle.default')"
+                    @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
+                  />
+                  <Button
+                    icon="pi pi-undo"
+                    severity="secondary"
+                    text
+                    rounded
+                    size="small"
+                    :title="$t('block.metric.editStyle.resetToDefault')"
+                    @click="onStyleChange(metric, 'backgroundColor', '')"
+                  />
+                </div>
+              </CFormGroup>
+            </div>
+
+            <Divider />
+
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  :model-value="metric.comparison?.enabled || false"
+                  binary
+                  :input-id="`comparison-enabled-${i}`"
+                  @update:model-value="onComparisonChange(metric, 'enabled', $event)"
+                />
+                <label :for="`comparison-enabled-${i}`" class="text-sm">
+                  {{ $t('block.metric.comparison.enabled') }}
+                </label>
+              </div>
+
+              <template v-if="metric.comparison?.enabled">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <CFormGroup :label="$t('block.metric.comparison.period')">
+                    <Select
+                      :model-value="metric.comparison?.period || 'month'"
+                      :options="comparisonPeriods"
+                      option-label="label"
+                      option-value="value"
+                      class="w-full"
+                      @update:model-value="onComparisonChange(metric, 'period', $event)"
+                    />
+                  </CFormGroup>
+
+                  <CFormGroup :label="$t('block.metric.comparison.customFilter')">
+                    <InputText
+                      :model-value="metric.comparison?.customFilter || ''"
+                      class="w-full"
+                      placeholder="field1 = 1 AND field2 > 0"
+                      @update:model-value="onComparisonChange(metric, 'customFilter', $event)"
+                    />
+                  </CFormGroup>
+                </div>
+              </template>
+            </div>
+
+            <Divider />
+
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  :model-value="metric.drillDown?.enabled || false"
+                  binary
+                  :input-id="`drilldown-enabled-${i}`"
+                  @update:model-value="onDrillDownChange(metric, 'enabled', $event)"
+                />
+                <label :for="`drilldown-enabled-${i}`" class="text-sm">
+                  {{ $t('block.metric.drillDown.enabled') }}
+                </label>
+              </div>
+
+              <template v-if="metric.drillDown?.enabled">
+                <CFormGroup
+                  :label="$t('block.metric.drillDown.blockID')"
+                  :description="$t('block.metric.drillDown.blockIDFootnote')"
+                >
+                  <InputText
+                    :model-value="metric.drillDown?.blockID || ''"
+                    :placeholder="$t('block.metric.drillDown.blockIDPlaceholder')"
+                    class="w-full"
+                    @update:model-value="onDrillDownChange(metric, 'blockID', $event)"
+                  />
+                </CFormGroup>
+              </template>
+            </div>
+          </template>
         </div>
 
-        <template v-if="expandedMetric === i">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Label -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.labelLabel') }}
-              </label>
-              <InputText
-                v-model="metric.label"
-                :placeholder="$t('block.metric.edit.labelPlaceholder')"
-                class="w-full"
-              />
-            </div>
-
-            <!-- Module (per-metric) -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.moduleLabel') }}
-              </label>
-              <Select
-                :model-value="metric.moduleID"
-                :options="modules"
-                option-label="name"
-                option-value="moduleID"
-                :placeholder="$t('block.metric.edit.modulePlaceholder')"
-                class="w-full"
-                filter
-                @update:model-value="onModuleChange(metric, $event)"
-              />
-            </div>
-
-            <!-- Metric Field -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.metricFieldLabel') }}
-              </label>
-              <Select
-                :model-value="metric.metricField"
-                :options="getMetricFields(metric.moduleID)"
-                option-label="label"
-                option-value="name"
-                class="w-full"
-                :placeholder="$t('block.metric.edit.metricFieldSelect')"
-                :disabled="!metric.moduleID"
-                @update:model-value="onMetricFieldChange(metric, $event)"
-              />
-            </div>
-
-            <!-- Aggregation operation -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.metricAggregateLabel') }}
-              </label>
-              <Select
-                v-model="metric.operation"
-                :options="aggregationOperations"
-                option-label="label"
-                option-value="operation"
-                class="w-full"
-                :placeholder="$t('block.metric.edit.metricSelectAggregate')"
-                :disabled="metric.metricField === 'count'"
-              />
-            </div>
-
-            <!-- Transform function -->
-            <div class="flex flex-col gap-1 md:col-span-2">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.transformFunctionLabel') }}
-              </label>
-              <InputText v-model="metric.transformFx" class="w-full" placeholder="v" />
-              <small class="text-muted-color">
-                {{ $t('block.metric.edit.transformFunctionDescription') }}
-              </small>
-            </div>
-
-            <!-- Number format -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.numberFormat') }}
-              </label>
-              <InputText v-model="metric.numberFormat" class="w-full" placeholder="0,0.00" />
-            </div>
-
-            <!-- Prefix -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.prefixLabel') }}
-              </label>
-              <InputText v-model="metric.prefix" class="w-full" placeholder="$" />
-            </div>
-
-            <!-- Suffix -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.suffixLabel') }}
-              </label>
-              <InputText v-model="metric.suffix" class="w-full" placeholder="USD/mo" />
-            </div>
-
-            <!-- Filter -->
-            <div class="flex flex-col gap-1 md:col-span-2">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.edit.filterLabel') }}
-              </label>
-              <InputText
-                v-model="metric.filter"
-                class="w-full"
-                placeholder="field1 = 1 AND field2 > 0"
-              />
-            </div>
-          </div>
-
-          <!-- Value Style -->
-          <Divider />
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <!-- Text color -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.editStyle.color') }}
-              </label>
-              <div class="flex items-center gap-2">
-                <CInputColorPicker
-                  :model-value="metric.valueStyle?.color || ''"
-                  :default-value="defaultTextColor"
-                  show-text
-                  :empty-label="$t('block.metric.editStyle.default')"
-                  @update:model-value="onStyleChange(metric, 'color', $event)"
-                />
-                <Button
-                  icon="pi pi-undo"
-                  severity="secondary"
-                  text
-                  rounded
-                  size="small"
-                  :title="$t('block.metric.editStyle.resetToDefault')"
-                  @click="onStyleChange(metric, 'color', '')"
-                />
-              </div>
-            </div>
-
-            <!-- Background color -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.metric.editStyle.backgroundColor') }}
-              </label>
-              <div class="flex items-center gap-2">
-                <CInputColorPicker
-                  :model-value="metric.valueStyle?.backgroundColor || ''"
-                  show-text
-                  :empty-label="$t('block.metric.editStyle.default')"
-                  @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
-                />
-                <Button
-                  icon="pi pi-undo"
-                  severity="secondary"
-                  text
-                  rounded
-                  size="small"
-                  :title="$t('block.metric.editStyle.resetToDefault')"
-                  @click="onStyleChange(metric, 'backgroundColor', '')"
-                />
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Change Indicator -->
-          <Divider />
-
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-2">
-              <ToggleSwitch
-                :model-value="metric.comparison?.enabled || false"
-                @update:model-value="onComparisonChange(metric, 'enabled', $event)"
-              />
-              <label class="text-sm">{{ $t('block.metric.comparison.enabled') }}</label>
-            </div>
-
-            <template v-if="metric.comparison?.enabled">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                  <label class="text-primary font-medium text-sm">
-                    {{ $t('block.metric.comparison.period') }}
-                  </label>
-                  <Select
-                    :model-value="metric.comparison?.period || 'month'"
-                    :options="comparisonPeriods"
-                    option-label="label"
-                    option-value="value"
-                    class="w-full"
-                    @update:model-value="onComparisonChange(metric, 'period', $event)"
-                  />
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <label class="text-primary font-medium text-sm">
-                    {{ $t('block.metric.comparison.customFilter') }}
-                  </label>
-                  <InputText
-                    :model-value="metric.comparison?.customFilter || ''"
-                    class="w-full"
-                    placeholder="field1 = 1 AND field2 > 0"
-                    @update:model-value="onComparisonChange(metric, 'customFilter', $event)"
-                  />
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <!-- Drill-down -->
-          <Divider />
-
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-2">
-              <ToggleSwitch
-                :model-value="metric.drillDown?.enabled || false"
-                @update:model-value="onDrillDownChange(metric, 'enabled', $event)"
-              />
-              <label class="text-sm">{{ $t('block.metric.drillDown.enabled') }}</label>
-            </div>
-
-            <template v-if="metric.drillDown?.enabled">
-              <div class="flex flex-col gap-1">
-                <label class="text-primary font-medium text-sm">{{ $t('block.metric.drillDown.blockID') }}</label>
-                <InputText
-                  :model-value="metric.drillDown?.blockID || ''"
-                  :placeholder="$t('block.metric.drillDown.blockIDPlaceholder')"
-                  class="w-full"
-                  @update:model-value="onDrillDownChange(metric, 'blockID', $event)"
-                />
-                <small class="text-muted-color">{{ $t('block.metric.drillDown.blockIDFootnote') }}</small>
-              </div>
-            </template>
-          </div>
-        </template>
+        <Button
+          :label="$t('block.metric.add')"
+          icon="pi pi-plus"
+          severity="secondary"
+          size="small"
+          class="self-start"
+          @click="addMetric"
+        />
       </div>
-
-      <Button
-        :label="$t('block.metric.add')"
-        icon="pi pi-plus"
-        severity="secondary"
-        size="small"
-        class="self-start"
-        @click="addMetric"
-      />
-    </div>
+    </Fieldset>
   </div>
 </template>
 

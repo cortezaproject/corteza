@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('block.agentChat.config.allowedAgents') }}
-      </label>
+    <CFormGroup
+      :label="$t('block.agentChat.config.allowedAgents')"
+      :description="$t('block.agentChat.config.allowedAgentsHint')"
+    >
       <MultiSelect
         v-model="allowedAgentIDs"
         :options="agents"
@@ -15,15 +15,12 @@
         display="chip"
         class="w-full"
       />
-      <small class="text-muted-color">
-        {{ $t('block.agentChat.config.allowedAgentsHint') }}
-      </small>
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('block.agentChat.config.defaultAgent') }}
-      </label>
+    <CFormGroup
+      :label="$t('block.agentChat.config.defaultAgent')"
+      :description="$t('block.agentChat.config.defaultAgentHint')"
+    >
       <Select
         v-model="defaultAgentID"
         :options="allowedAgents"
@@ -34,22 +31,14 @@
         show-clear
         class="w-full"
       />
-      <small class="text-muted-color">
-        {{ $t('block.agentChat.config.defaultAgentHint') }}
-      </small>
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <div class="flex items-center gap-2">
-        <Checkbox v-model="autoResume" :binary="true" input-id="ac-auto-resume" />
-        <label for="ac-auto-resume" class="text-sm">
-          {{ $t('block.agentChat.config.autoResume') }}
-        </label>
-      </div>
-      <small class="text-muted-color">
-        {{ $t('block.agentChat.config.autoResumeHint') }}
-      </small>
-    </div>
+    <CInputToggleCard
+      v-model="autoResume"
+      class="max-w-xl"
+      :label="$t('block.agentChat.config.autoResume')"
+      :description="$t('block.agentChat.config.autoResumeHint')"
+    />
   </div>
 </template>
 

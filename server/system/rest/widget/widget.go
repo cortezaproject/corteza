@@ -45,6 +45,7 @@ type ChatbotSessionService interface {
 	Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int)
 	SubmitMessage(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, input string) error
 	SubmitForm(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, fields map[string]string) (map[string]string, error)
+	SubmitConsent(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, accepted bool) error
 	AdvanceStep(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64) error
 	CloseSession(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64) error
 	RequestHandoffPublic(ctx context.Context, sessionID, convID uint64, reason string) (*types.ChatbotSessionHandoff, error)
@@ -267,6 +268,19 @@ func (c *Controller) submit(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
+	case "consent":
+		var d struct {
+			Accepted bool `json:"accepted"`
+		}
+		if err := json.Unmarshal(body.Data, &d); err != nil {
+			http.Error(w, "widget: bad consent payload", http.StatusBadRequest)
+			return
+		}
+		if err := c.sessionSvc.SubmitConsent(r.Context(), cb, claims.Dbsid, claims.Cid, d.Accepted); err != nil {
+			c.writeWidgetError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	default:
 		http.Error(w, "widget: unknown submit type", http.StatusBadRequest)
 	}
@@ -433,6 +447,7 @@ func (c *Controller) writeWidgetError(w http.ResponseWriter, err error) {
 		http.Error(w, "widget: "+err.Error(), http.StatusBadRequest)
 	case errors.Is(err, service.ChatbotSessionErrSessionNotActive()),
 		errors.Is(err, service.ChatbotSessionErrScenarioNotForm()),
+		errors.Is(err, service.ChatbotSessionErrScenarioNotConsent()),
 		errors.Is(err, service.ChatbotSessionErrHandoffNotRequested()),
 		errors.Is(err, service.ChatbotSessionErrHandoffNotActive()):
 		http.Error(w, "widget: "+err.Error(), http.StatusConflict)

@@ -61,7 +61,7 @@
         v-model="chatInput"
         :placeholder="placeholder"
         class="flex-1"
-        @keyup.enter="submit"
+        @keydown.enter.exact.prevent="submit"
         :disabled="disabled || executing"
       />
       <Button

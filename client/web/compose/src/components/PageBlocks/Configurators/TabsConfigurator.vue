@@ -1,14 +1,8 @@
 <template>
   <div class="flex flex-col gap-4">
-    <!-- Style section -->
-    <div class="flex flex-col gap-3">
-      <h5 class="text-lg font-semibold text-primary m-0">{{ $t('block.tabs.style.label') }}</h5>
-
+    <Fieldset :legend="$t('block.tabs.style.label')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.tabs.style.appearance') }}
-          </label>
+        <CFormGroup :label="$t('block.tabs.style.appearance')">
           <Select
             v-model="appearance"
             :options="appearanceOptions"
@@ -16,12 +10,9 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.tabs.style.justify') }}
-          </label>
+        <CFormGroup :label="$t('block.tabs.style.justify')">
           <Select
             v-model="justify"
             :options="justifyOptions"
@@ -29,12 +20,9 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.tabs.style.orientation') }}
-          </label>
+        <CFormGroup :label="$t('block.tabs.style.orientation')">
           <Select
             v-model="orientation"
             :options="orientationOptions"
@@ -42,12 +30,9 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.tabs.style.position') }}
-          </label>
+        <CFormGroup :label="$t('block.tabs.style.position')">
           <Select
             v-model="position"
             :options="positionOptions"
@@ -55,12 +40,9 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.tabs.style.alignment') }}
-          </label>
+        <CFormGroup :label="$t('block.tabs.style.alignment')">
           <Select
             v-model="alignment"
             :options="alignmentOptions"
@@ -69,9 +51,9 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
       </div>
-    </div>
+    </Fieldset>
 
     <Divider />
 

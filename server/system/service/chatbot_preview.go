@@ -223,6 +223,33 @@ func (s *chatbotPreview) SubmitForm(ctx context.Context, ps *ChatbotPreviewSessi
 	return nil, nil
 }
 
+// SubmitConsent records the visitor's accept/reject decision on a consent
+// step. Accept advances the preview; reject closes the preview session. The
+// decision itself is not persisted (preview is in-memory).
+func (s *chatbotPreview) SubmitConsent(ps *ChatbotPreviewSession, accepted bool) error {
+	if ps.Status != "active" {
+		return ChatbotSessionErrSessionNotActive()
+	}
+	step := s.CurrentStep(ps)
+	if step == nil {
+		return ChatbotSessionErrNoActiveStep()
+	}
+	scenario := s.scenarioAt(ps, step.ScenarioIndex)
+	if scenario == nil {
+		return ChatbotSessionErrScenarioOutOfRange()
+	}
+	if scenario.Type != "consent" {
+		return ChatbotSessionErrScenarioNotConsent()
+	}
+
+	if !accepted {
+		return s.CloseSession(ps)
+	}
+	s.FinalizeStep(ps)
+	s.StartStep(ps, step.ScenarioIndex+1)
+	return nil
+}
+
 // AdvanceStep finalizes the current step and starts the next. Closes any
 // open handoff first.
 func (s *chatbotPreview) AdvanceStep(ps *ChatbotPreviewSession) error {

@@ -1,12 +1,10 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- General -->
-    <Panel :header="$t('block.recordList.record.generalLabel')" toggleable>
+    <Fieldset :legend="$t('block.recordList.record.generalLabel')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.general.module') }}</label>
+        <CFormGroup :label="$t('block.general.module')">
           <InputText :model-value="moduleName" disabled class="w-full" />
-        </div>
+        </CFormGroup>
 
         <CInputToggleCard
           v-model="horizontalLayout"
@@ -15,10 +13,7 @@
           :disabled="layoutMode === 'noWrap'"
         />
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.record.fieldsLayoutMode.label') }}
-          </label>
+        <CFormGroup :label="$t('block.record.fieldsLayoutMode.label')">
           <Select
             v-model="layoutMode"
             :options="fieldLayoutOptions"
@@ -26,12 +21,12 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('block.record.referenceRecordField') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.record.referenceRecordField')"
+          :description="$t('block.record.referenceRecordFieldDescription')"
+        >
           <Select
             v-model="referenceField"
             :options="recordSelectorFields"
@@ -42,16 +37,14 @@
             show-clear
             :disabled="!selectedModule"
           />
-          <small class="text-muted-color">
-            {{ $t('block.record.referenceRecordFieldDescription') }}
-          </small>
-        </div>
+        </CFormGroup>
       </div>
-    </Panel>
+    </Fieldset>
 
     <template v-if="fieldPickerModule">
-      <!-- Fields -->
-      <Panel :header="$t('block.general.fields')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.general.fields')">
         <CFieldPicker
           :all-fields="allModuleFields"
           :model-value="selectedFieldNames"
@@ -63,33 +56,33 @@
           :no-items-label="$t('field.no-items-found')"
           @update:model-value="onFieldPickerUpdate"
         />
-      </Panel>
+      </Fieldset>
 
-      <!-- Inline editing -->
-      <Panel :header="$t('block.record.inlineEdit.label')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.record.inlineEdit.label')">
         <CInputToggleCard
           v-model="inlineEditEnabled"
           :label="$t('block.record.inlineEdit.enabled')"
           :description="$t('block.record.inlineEdit.description')"
         />
-      </Panel>
+      </Fieldset>
 
-      <!-- Inline copy -->
-      <Panel :header="$t('block.record.inlineCopy.label')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.record.inlineCopy.label')">
         <CInputToggleCard
           v-model="inlineCopyEnabled"
           :label="$t('block.record.inlineCopy.enabled')"
           :description="$t('block.record.inlineCopy.description')"
         />
-      </Panel>
+      </Fieldset>
 
-      <!-- Record selector -->
-      <Panel :header="$t('block.record.recordDisplay.label')" toggleable>
+      <Divider />
+
+      <Fieldset :legend="$t('block.record.recordDisplay.label')">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.record.recordSelectorDisplayOptions') }}
-            </label>
+          <CFormGroup :label="$t('block.record.recordSelectorDisplayOptions')">
             <Select
               v-model="recordSelectorDisplayOption"
               :options="displayOptions"
@@ -97,7 +90,7 @@
               option-value="value"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
           <CInputToggleCard
             v-model="recordSelectorShowAddRecordButton"
@@ -105,10 +98,7 @@
             :description="$t('block.record.recordSelectorCanAddRecordDescription')"
           />
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('block.record.recordSelectorAddRecordDisplayOption') }}
-            </label>
+          <CFormGroup :label="$t('block.record.recordSelectorAddRecordDisplayOption')">
             <Select
               v-model="recordSelectorAddRecordDisplayOption"
               :options="displayOptions"
@@ -117,13 +107,14 @@
               class="w-full"
               :disabled="!recordSelectorShowAddRecordButton"
             />
-          </div>
+          </CFormGroup>
         </div>
-      </Panel>
+      </Fieldset>
 
-      <!-- Field conditions -->
-      <Panel toggleable>
-        <template #header>
+      <Divider />
+
+      <Fieldset>
+        <template #legend>
           <div class="flex items-center gap-2">
             <span>{{ $t('block.record.fieldConditions.label') }}</span>
             <i
@@ -190,7 +181,7 @@
             {{ $t('block.record.fieldConditions.description') }}
           </small>
         </div>
-      </Panel>
+      </Fieldset>
     </template>
   </div>
 </template>

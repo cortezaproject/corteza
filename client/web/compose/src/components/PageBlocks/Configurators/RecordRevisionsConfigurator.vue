@@ -5,8 +5,10 @@
       <label for="preload" class="text-sm">{{ $t('block.recordRevisions.configurator.preload') }}</label>
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">{{ $t('block.recordRevisions.configurator.sortDirection.label') }}</label>
+    <CFormGroup
+      :label="$t('block.recordRevisions.configurator.sortDirection.label')"
+      :description="$t('block.recordRevisions.configurator.sortDirection.footnote')"
+    >
       <Select
         v-model="sortDirection"
         :options="sortOptions"
@@ -14,19 +16,12 @@
         option-value="value"
         class="w-full"
       />
-      <small class="text-muted-color">
-        {{ $t('block.recordRevisions.configurator.sortDirection.footnote') }}
-      </small>
-    </div>
+    </CFormGroup>
 
     <template v-if="selectedModule">
       <Divider />
 
-      <div class="flex flex-col gap-3">
-        <h5 class="text-lg font-semibold text-primary m-0">
-          {{ $t('block.recordRevisions.configurator.displayedFields') }}
-        </h5>
-
+      <Fieldset :legend="$t('block.recordRevisions.configurator.displayedFields')">
         <CFieldPicker
           :all-fields="allModuleFields"
           :model-value="selectedFieldNames"
@@ -38,7 +33,7 @@
           :no-items-label="$t('field.no-items-found')"
           @update:model-value="onFieldPickerUpdate"
         />
-      </div>
+      </Fieldset>
     </template>
   </div>
 </template>

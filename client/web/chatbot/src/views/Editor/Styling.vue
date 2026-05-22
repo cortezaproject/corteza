@@ -32,158 +32,165 @@
       </CFormGroup>
     </div>
 
-    <Divider align="left">
-      <span class="text-xs uppercase tracking-wide text-muted-color">
-        {{ $t('chatbot.editor.styling.colors') }}
-      </span>
-    </Divider>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <CFormGroup
-        v-for="slot in contentColorSlots"
-        :key="slot"
-        :label="$t(`chatbot.editor.styling.color.${slot}`)"
-      >
-        <CInputColorPicker v-model="styling.colors[slot]" />
-      </CFormGroup>
-    </div>
+    <Divider />
 
-    <Divider align="left">
-      <span class="text-xs uppercase tracking-wide text-muted-color">
-        {{ $t('chatbot.editor.styling.typography') }}
-      </span>
-    </Divider>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <CFormGroup
-        :label="$t('chatbot.editor.styling.fontSize.heading')"
-        :description="$t('chatbot.editor.styling.fontSizeHelp.heading')"
-      >
-        <InputNumber v-model="fontHeadingPx" :min="8" :max="48" suffix=" px" fluid />
-      </CFormGroup>
-      <CFormGroup
-        :label="$t('chatbot.editor.styling.fontSize.base')"
-        :description="$t('chatbot.editor.styling.fontSizeHelp.base')"
-      >
-        <InputNumber v-model="fontBasePx" :min="8" :max="48" suffix=" px" fluid />
-      </CFormGroup>
-    </div>
-
-    <Divider align="left">
-      <span class="text-xs uppercase tracking-wide text-muted-color">
-        {{ $t('chatbot.editor.styling.buttonTitle') }}
-      </span>
-    </Divider>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <CFormGroup
-        :label="$t('chatbot.editor.styling.button.label.label')"
-        :description="$t('chatbot.editor.styling.button.label.help')"
-      >
-        <InputText v-model="styling.launcher.buttonLabel" />
-      </CFormGroup>
-
-      <CFormGroup
-        :label="$t('chatbot.editor.styling.button.position.label')"
-        :description="$t('chatbot.editor.styling.button.position.help')"
-      >
-        <Select
-          v-model="styling.launcher.position"
-          :options="[
-            {
-              label: $t('chatbot.editor.styling.button.position.bottomRight'),
-              value: 'bottom-right',
-            },
-            {
-              label: $t('chatbot.editor.styling.button.position.bottomCenter'),
-              value: 'bottom-center',
-            },
-            {
-              label: $t('chatbot.editor.styling.button.position.bottomLeft'),
-              value: 'bottom-left',
-            },
-            {
-              label: $t('chatbot.editor.styling.button.position.leftMiddle'),
-              value: 'left-middle',
-            },
-            {
-              label: $t('chatbot.editor.styling.button.position.rightMiddle'),
-              value: 'right-middle',
-            },
-            { label: $t('chatbot.editor.styling.button.position.topRight'), value: 'top-right' },
-            { label: $t('chatbot.editor.styling.button.position.topCenter'), value: 'top-center' },
-            { label: $t('chatbot.editor.styling.button.position.topLeft'), value: 'top-left' },
-          ]"
-          optionLabel="label"
-          optionValue="value"
-        />
-      </CFormGroup>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-      <CFormGroup
-        :label="$t('chatbot.editor.styling.button.shape.label')"
-        :description="$t('chatbot.editor.styling.button.shape.help')"
-      >
-        <Select
-          v-model="styling.launcher.shape"
-          :options="[
-            { label: $t('chatbot.editor.styling.button.shape.circle'), value: 'circle' },
-            { label: $t('chatbot.editor.styling.button.shape.square'), value: 'square' },
-          ]"
-          optionLabel="label"
-          optionValue="value"
-        />
-      </CFormGroup>
-
-      <CFormGroup
-        :label="$t('chatbot.editor.styling.button.size.label')"
-        :description="$t('chatbot.editor.styling.button.size.help')"
-      >
-        <InputNumber v-model="launcherSizePx" :min="32" :max="96" suffix=" px" fluid />
-      </CFormGroup>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-      <CFormGroup :label="$t('chatbot.editor.styling.button.color.label')">
-        <CInputColorPicker v-model="styling.colors.primary" />
-      </CFormGroup>
-
-      <CFormGroup :label="$t('chatbot.editor.styling.button.colorText.label')">
-        <CInputColorPicker v-model="styling.colors.primaryText" />
-      </CFormGroup>
-
-      <div class="flex flex-col gap-2">
-        <CInputToggleCard
-          v-model="styling.launcher.iconVisible"
-          :label="$t('chatbot.editor.styling.button.icon.label')"
-          :description="$t('chatbot.editor.styling.button.icon.help')"
-        />
-        <CFileDropZone
-          v-if="styling.launcher.iconVisible"
-          accept="image/*"
-          :uploading="iconUploading"
-          :error="iconError || uploadDisabledLabel"
-          :preview-url="iconPreviewUrl"
-          :clearable="!!styling.launcher.iconURL"
-          :disabled="!canUpload"
-          :drop-label="
-            canUpload ? $t('chatbot.editor.styling.button.icon.placeholder') : uploadDisabledLabel
-          "
-          :label="$t('chatbot.editor.styling.button.icon.label')"
-          compact
-          preview-max-width="100%"
-          preview-max-height="140px"
-          @select="onIconSelect"
-          @clear="onIconClear"
-        />
+    <Fieldset :legend="$t('chatbot.editor.styling.colors')" class="mb-7">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <CFormGroup
+          v-for="slot in contentColorSlots"
+          :key="slot"
+          :label="$t(`chatbot.editor.styling.color.${slot}`)"
+        >
+          <CInputColorPicker v-model="styling.colors[slot]" />
+        </CFormGroup>
       </div>
+    </Fieldset>
 
-      <div class="flex flex-col gap-2">
-        <CInputToggleCard
-          v-model="styling.launcher.startOpen"
-          :label="$t('chatbot.editor.styling.button.startOpen.label')"
-          :description="$t('chatbot.editor.styling.button.startOpen.help')"
-        />
+    <Divider />
+
+    <Fieldset :legend="$t('chatbot.editor.styling.typography')" class="mb-7">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <CFormGroup
+          :label="$t('chatbot.editor.styling.fontSize.heading')"
+          :description="$t('chatbot.editor.styling.fontSizeHelp.heading')"
+        >
+          <InputNumber v-model="fontHeadingPx" :min="8" :max="48" suffix=" px" fluid />
+        </CFormGroup>
+        <CFormGroup
+          :label="$t('chatbot.editor.styling.fontSize.base')"
+          :description="$t('chatbot.editor.styling.fontSizeHelp.base')"
+        >
+          <InputNumber v-model="fontBasePx" :min="8" :max="48" suffix=" px" fluid />
+        </CFormGroup>
       </div>
-    </div>
+    </Fieldset>
+
+    <Divider />
+
+    <Fieldset :legend="$t('chatbot.editor.styling.buttonTitle')">
+      <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CFormGroup
+            :label="$t('chatbot.editor.styling.button.label.label')"
+            :description="$t('chatbot.editor.styling.button.label.help')"
+          >
+            <InputText v-model="styling.launcher.buttonLabel" />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('chatbot.editor.styling.button.position.label')"
+            :description="$t('chatbot.editor.styling.button.position.help')"
+          >
+            <Select
+              v-model="styling.launcher.position"
+              :options="[
+                {
+                  label: $t('chatbot.editor.styling.button.position.bottomRight'),
+                  value: 'bottom-right',
+                },
+                {
+                  label: $t('chatbot.editor.styling.button.position.bottomCenter'),
+                  value: 'bottom-center',
+                },
+                {
+                  label: $t('chatbot.editor.styling.button.position.bottomLeft'),
+                  value: 'bottom-left',
+                },
+                {
+                  label: $t('chatbot.editor.styling.button.position.leftMiddle'),
+                  value: 'left-middle',
+                },
+                {
+                  label: $t('chatbot.editor.styling.button.position.rightMiddle'),
+                  value: 'right-middle',
+                },
+                {
+                  label: $t('chatbot.editor.styling.button.position.topRight'),
+                  value: 'top-right',
+                },
+                {
+                  label: $t('chatbot.editor.styling.button.position.topCenter'),
+                  value: 'top-center',
+                },
+                { label: $t('chatbot.editor.styling.button.position.topLeft'), value: 'top-left' },
+              ]"
+              optionLabel="label"
+              optionValue="value"
+            />
+          </CFormGroup>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CFormGroup
+            :label="$t('chatbot.editor.styling.button.shape.label')"
+            :description="$t('chatbot.editor.styling.button.shape.help')"
+          >
+            <Select
+              v-model="styling.launcher.shape"
+              :options="[
+                { label: $t('chatbot.editor.styling.button.shape.circle'), value: 'circle' },
+                { label: $t('chatbot.editor.styling.button.shape.square'), value: 'square' },
+              ]"
+              optionLabel="label"
+              optionValue="value"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('chatbot.editor.styling.button.size.label')"
+            :description="$t('chatbot.editor.styling.button.size.help')"
+          >
+            <InputNumber v-model="launcherSizePx" :min="32" :max="96" suffix=" px" fluid />
+          </CFormGroup>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CFormGroup :label="$t('chatbot.editor.styling.button.color.label')">
+            <CInputColorPicker v-model="styling.colors.primary" />
+          </CFormGroup>
+
+          <CFormGroup :label="$t('chatbot.editor.styling.button.colorText.label')">
+            <CInputColorPicker v-model="styling.colors.primaryText" />
+          </CFormGroup>
+
+          <div class="flex flex-col gap-2">
+            <CInputToggleCard
+              v-model="styling.launcher.iconVisible"
+              :label="$t('chatbot.editor.styling.button.icon.label')"
+              :description="$t('chatbot.editor.styling.button.icon.help')"
+            />
+            <CFileDropZone
+              v-if="styling.launcher.iconVisible"
+              accept="image/*"
+              :uploading="iconUploading"
+              :error="iconError || uploadDisabledLabel"
+              :preview-url="iconPreviewUrl"
+              :clearable="!!styling.launcher.iconURL"
+              :disabled="!canUpload"
+              :drop-label="
+                canUpload
+                  ? $t('chatbot.editor.styling.button.icon.placeholder')
+                  : uploadDisabledLabel
+              "
+              :label="$t('chatbot.editor.styling.button.icon.label')"
+              compact
+              preview-max-width="100%"
+              preview-max-height="140px"
+              @select="onIconSelect"
+              @clear="onIconClear"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <CInputToggleCard
+              v-model="styling.launcher.startOpen"
+              :label="$t('chatbot.editor.styling.button.startOpen.label')"
+              :description="$t('chatbot.editor.styling.button.startOpen.help')"
+            />
+          </div>
+        </div>
+      </div>
+    </Fieldset>
   </Panel>
 </template>
 

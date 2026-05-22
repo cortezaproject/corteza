@@ -1,8 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex flex-col gap-1 border border-surface rounded-border">
-      <CRichTextInput v-model="body" class="w-full" />
-    </div>
+    <CRichTextInput v-model="body" class="w-full" />
 
     <small class="text-muted-color">
       {{ $t('block.content.interpolationFootnote') }}

@@ -9,6 +9,15 @@ function apiRoot(scriptSrc: string): string {
   }
 }
 
+// Extracts a human-readable error from a failed widget HTTP response. The
+// backend writes plain text via http.Error with a "widget: " prefix — strip
+// it so the message lands cleanly in the chat as a system message.
+async function errorFromResponse(r: Response, fallback: string): Promise<Error> {
+  const raw = (await r.text().catch(() => '')).trim()
+  const msg = raw.replace(/^widget:\s*/i, '').trim() || fallback
+  return new Error(msg)
+}
+
 export class WidgetAPI {
   private base: string
   private key: string
@@ -31,7 +40,7 @@ export class WidgetAPI {
     const r = await fetch(`${this.base}/config?widgetKey=${encodeURIComponent(this.key)}`, {
       credentials: 'omit',
     })
-    if (!r.ok) throw new Error('widget: config failed')
+    if (!r.ok) throw await errorFromResponse(r, 'config failed')
     return r.json()
   }
 
@@ -42,13 +51,18 @@ export class WidgetAPI {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ widgetKey: this.key }),
     })
-    if (!r.ok) throw new Error('widget: session failed')
+    if (!r.ok) throw await errorFromResponse(r, 'session failed')
     return r.json()
   }
 
   async sendMessage(sessionID: string, input: string): Promise<void> {
     const r = await this.post(sessionID, 'submit', { type: 'message', data: { input } })
-    if (r.status !== 202) throw new Error('widget: send failed')
+    if (r.status !== 202) throw await errorFromResponse(r, 'send failed')
+  }
+
+  async submitConsent(sessionID: string, accepted: boolean): Promise<void> {
+    const r = await this.post(sessionID, 'submit', { type: 'consent', data: { accepted } })
+    if (r.status !== 204) throw await errorFromResponse(r, 'consent failed')
   }
 
   // submitForm posts the form values. Returns a map of field→error when the
@@ -60,28 +74,28 @@ export class WidgetAPI {
       const body = (await r.json().catch(() => ({}))) as { errors?: Record<string, string> }
       return body.errors || {}
     }
-    throw new Error('widget: form submit failed')
+    throw await errorFromResponse(r, 'form submit failed')
   }
 
   async advanceStep(sessionID: string): Promise<void> {
     const r = await this.post(sessionID, 'advance-step', {})
-    if (r.status !== 204) throw new Error('widget: advance failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'advance failed')
   }
 
   async closeSession(sessionID: string): Promise<void> {
     const r = await this.post(sessionID, 'close', {})
-    if (r.status !== 204) throw new Error('widget: close failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'close failed')
   }
 
   async requestHandoff(sessionID: string, reason?: string): Promise<{ handoffID: string }> {
     const r = await this.post(sessionID, 'handoff', { reason: reason || '' })
-    if (!r.ok) throw new Error('widget: handoff failed')
+    if (!r.ok) throw await errorFromResponse(r, 'handoff failed')
     return r.json()
   }
 
   async closeHandoff(sessionID: string, handoffID: string): Promise<void> {
     const r = await this.post(sessionID, 'handoff-complete', { handoffID })
-    if (r.status !== 204) throw new Error('widget: handoff-complete failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'handoff-complete failed')
   }
 
   openStream(sessionID: string): EventSource {

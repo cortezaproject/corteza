@@ -137,7 +137,9 @@
             min-body-height="4rem"
             max-body-height="10rem"
             body-class="overflow-auto"
+            submit-on-enter
             @upload="handleFileUpload"
+            @submit="onComposerSubmit"
           />
 
           <!-- Attachment previews -->
@@ -642,8 +644,13 @@ async function loadMoreMessages() {
 
 // ---- Submit ----
 
+function onComposerSubmit() {
+  if (submitting.value) return
+  submitComment()
+}
+
 async function submitComment() {
-  if (!isValid.value || !roModule.value) return
+  if (!isValid.value || !roModule.value || submitting.value) return
 
   submitting.value = true
 

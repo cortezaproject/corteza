@@ -8,7 +8,7 @@
         <label
           v-if="label || $slots.label"
           :for="inputId || name"
-          class="font-medium text-primary"
+          class="font-medium text-primary text-sm"
         >
           <slot name="label">{{ label }}</slot>
           <span v-if="required" class="text-red-500">*</span>
@@ -20,15 +20,11 @@
       </small>
     </div>
     <slot />
-    <Message
-      v-if="$field?.invalid"
-      severity="error"
-      size="small"
-      variant="simple"
-    >
+    <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">
       {{ $field.error?.message }}
     </Message>
   </FormField>
+
   <div v-else class="flex flex-col gap-2">
     <div
       v-if="label || $slots.label || $slots.actions || description || $slots.description"
@@ -38,7 +34,7 @@
         <label
           v-if="label || $slots.label"
           :for="inputId || undefined"
-          class="font-medium text-primary"
+          class="font-medium text-primary text-sm"
         >
           <slot name="label">{{ label }}</slot>
           <span v-if="required" class="text-red-500">*</span>

@@ -20,7 +20,9 @@
     class="flex flex-col h-full overflow-hidden"
   >
     <div class="flex-1 flex flex-row min-h-0 overflow-hidden">
-      <div class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden">
+      <div
+        class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden w-full max-w-screen-2xl mx-auto"
+      >
         <Card
           :pt="{
             body: { class: 'p-0 h-full flex flex-col' },
@@ -374,7 +376,7 @@
                       <CFormItemList
                         :items="selectedTools"
                         item-key="name"
-                        @remove="(tool) => removeTool(tool)"
+                        @remove="tool => removeTool(tool)"
                       >
                         <template #default="{ item: tool }">
                           <span class="font-medium text-color text-sm truncate">
@@ -639,37 +641,43 @@
                 <div
                   class="flex items-center gap-0 border-b border-surface shrink-0 bg-surface-ground"
                 >
-                  <div class="flex items-center gap-0 flex-1 overflow-x-auto">
+                  <div class="flex items-center gap-0 flex-1 overflow-x-auto no-scrollbar">
                     <button
                       v-for="(conv, idx) in conversations"
                       :key="idx"
                       type="button"
-                      class="flex items-center gap-1.5 p-3 text-sm border-b-2 whitespace-nowrap transition-colors"
+                      class="group flex items-center gap-1.5 py-2 pl-3 pr-1 pb-1 text-sm border-b-2 border-r border-r-surface whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
                       :class="
                         activeConvIndex === idx
-                          ? 'border-primary text-primary font-medium'
-                          : 'border-transparent text-muted-color hover:text-color hover:border-surface'
+                          ? 'border-b-primary text-primary font-medium'
+                          : 'border-b-transparent text-muted-color hover:text-color hover:border-b-surface-border'
                       "
                       @click="activeConvIndex = idx"
                     >
-                      <i class="pi pi-comments text-xs" />
-                      <span>{{ conv.label }}</span>
+                      <span class="whitespace-nowrap truncate">{{ conv.label }}</span>
                       <i
-                        v-if="conversations.length > 1"
-                        class="pi pi-times text-xs opacity-50 hover:opacity-100 ml-1"
-                        @click.stop="closeConversation(idx)"
+                        class="pi pi-times text-xs p-1 hover:bg-surface rounded-full transition-all shrink-0"
+                        :class="
+                          conversations.length > 1
+                            ? 'opacity-0 group-hover:opacity-100'
+                            : 'invisible'
+                        "
+                        @click.stop="conversations.length > 1 && closeConversation(idx)"
                       />
                     </button>
                   </div>
-                  <Button
-                    icon="pi pi-plus"
-                    text
-                    severity="secondary"
-                    size="small"
-                    @click="addConversation"
-                    :disabled="isCreate"
-                    class="shrink-0 mr-1"
-                  />
+                  <div class="flex items-center px-1 border-l border-surface shrink-0">
+                    <Button
+                      icon="pi pi-plus"
+                      severity="secondary"
+                      variant="text"
+                      rounded
+                      size="small"
+                      class="!w-7 !h-7"
+                      :disabled="isCreate"
+                      @click="addConversation"
+                    />
+                  </div>
                 </div>
               </template>
             </AiChat>

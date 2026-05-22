@@ -1,10 +1,6 @@
 <template>
   <div class="flex flex-col gap-4">
-    <!-- Module -->
-    <div class="flex flex-col gap-1">
-      <label class="font-semibold text-primary text-sm">
-        {{ $t('block.general.module') }}
-      </label>
+    <CFormGroup :label="$t('block.general.module')">
       <Select
         v-model="options.moduleID"
         :options="modules"
@@ -14,27 +10,22 @@
         filter
         class="w-full"
       />
-    </div>
+    </CFormGroup>
 
     <template v-if="selectedModule">
-      <!-- Prefilter -->
-      <div class="flex flex-col gap-1">
-        <label class="font-semibold text-primary text-sm">
-          {{ $t('block.recordList.record.prefilterLabel') }}
-        </label>
+      <CFormGroup :label="$t('block.recordList.record.prefilterLabel')">
         <InputText
           v-model.trim="options.filter"
           :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
           class="w-full"
         />
-      </div>
+      </CFormGroup>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Title field -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.titleField.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.titleField.label')"
+          :description="$t('block.comment.titleField.footnote')"
+        >
           <Select
             v-model="options.titleField"
             :options="stringFields"
@@ -44,14 +35,12 @@
             show-clear
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.titleField.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Content field -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.contentField.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.contentField.label')"
+          :description="$t('block.comment.contentField.footnote')"
+        >
           <Select
             v-model="options.contentField"
             :options="stringFields"
@@ -61,14 +50,12 @@
             show-clear
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.contentField.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Reply field -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.replyField.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.replyField.label')"
+          :description="$t('block.comment.replyField.footnote')"
+        >
           <Select
             v-model="options.replyField"
             :options="recordFields"
@@ -78,14 +65,12 @@
             show-clear
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.replyField.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Reference field -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.referenceField.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.referenceField.label')"
+          :description="$t('block.comment.referenceField.footnote')"
+        >
           <Select
             v-model="options.referenceField"
             :options="recordFields"
@@ -95,14 +80,12 @@
             show-clear
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.referenceField.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Attachment field -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.attachmentField.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.attachmentField.label')"
+          :description="$t('block.comment.attachmentField.footnote')"
+        >
           <Select
             v-model="options.attachmentField"
             :options="fileFields"
@@ -112,14 +95,12 @@
             show-clear
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.attachmentField.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Sort direction -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.sortDirection.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.sortDirection.label')"
+          :description="$t('block.comment.sortDirection.footnote')"
+        >
           <Select
             v-model="options.sortDirection"
             :options="sortDirections"
@@ -127,14 +108,12 @@
             option-value="value"
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.sortDirection.footnote') }}</small>
-        </div>
+        </CFormGroup>
 
-        <!-- Reactions field -->
-        <div class="flex flex-col gap-1">
-          <label class="font-semibold text-primary text-sm">
-            {{ $t('block.comment.reactionsField.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.comment.reactionsField.label')"
+          :description="$t('block.comment.reactionsField.footnote')"
+        >
           <Select
             v-model="options.reactionsField"
             :options="stringFields"
@@ -144,8 +123,7 @@
             show-clear
             class="w-full"
           />
-          <small class="text-muted-color">{{ $t('block.comment.reactionsField.footnote') }}</small>
-        </div>
+        </CFormGroup>
       </div>
     </template>
   </div>

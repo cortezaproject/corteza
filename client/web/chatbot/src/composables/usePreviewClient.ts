@@ -22,6 +22,15 @@ function apiOrigin(baseURL: string): string {
   }
 }
 
+// Extracts a human-readable error from a failed preview HTTP response. The
+// backend writes plain text via http.Error with a "preview: " prefix — strip
+// it so the message lands cleanly in the chat as a system message.
+async function errorFromResponse(r: Response, fallback: string): Promise<Error> {
+  const raw = (await r.text().catch(() => '')).trim()
+  const msg = raw.replace(/^preview:\s*/i, '').trim() || fallback
+  return new Error(msg)
+}
+
 export class PreviewClient {
   private base: string
   private origin: string
@@ -41,13 +50,13 @@ export class PreviewClient {
 
   async openSession(chatbot: any): Promise<PreviewSession> {
     const r = await this.post('/session', { chatbot })
-    if (!r.ok) throw new Error('preview: openSession failed')
+    if (!r.ok) throw await errorFromResponse(r, 'openSession failed')
     return r.json()
   }
 
   async startSession(sessionID: string): Promise<void> {
     const r = await this.post(`/session/${encodeURIComponent(sessionID)}/start`, {})
-    if (r.status !== 204) throw new Error('preview: startSession failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'startSession failed')
   }
 
   async sendMessage(sessionID: string, input: string): Promise<void> {
@@ -55,7 +64,15 @@ export class PreviewClient {
       type: 'message',
       data: { input },
     })
-    if (r.status !== 202) throw new Error('preview: sendMessage failed')
+    if (r.status !== 202) throw await errorFromResponse(r, 'sendMessage failed')
+  }
+
+  async submitConsent(sessionID: string, accepted: boolean): Promise<void> {
+    const r = await this.post(`/session/${encodeURIComponent(sessionID)}/submit`, {
+      type: 'consent',
+      data: { accepted },
+    })
+    if (r.status !== 204) throw await errorFromResponse(r, 'submitConsent failed')
   }
 
   async submitForm(
@@ -71,28 +88,28 @@ export class PreviewClient {
       const body = (await r.json().catch(() => ({}))) as { errors?: Record<string, string> }
       return body.errors || {}
     }
-    throw new Error('preview: submitForm failed')
+    throw await errorFromResponse(r, 'submitForm failed')
   }
 
   async advanceStep(sessionID: string): Promise<void> {
     const r = await this.post(`/session/${encodeURIComponent(sessionID)}/advance-step`, {})
-    if (r.status !== 204) throw new Error('preview: advanceStep failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'advanceStep failed')
   }
 
   async closeSession(sessionID: string): Promise<void> {
     const r = await this.post(`/session/${encodeURIComponent(sessionID)}/close`, {})
-    if (r.status !== 204) throw new Error('preview: closeSession failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'closeSession failed')
   }
 
   async requestHandoff(sessionID: string): Promise<{ handoffID: string }> {
     const r = await this.post(`/session/${encodeURIComponent(sessionID)}/handoff`, {})
-    if (!r.ok) throw new Error('preview: requestHandoff failed')
+    if (!r.ok) throw await errorFromResponse(r, 'requestHandoff failed')
     return r.json()
   }
 
   async closeHandoff(sessionID: string): Promise<void> {
     const r = await this.post(`/session/${encodeURIComponent(sessionID)}/handoff-complete`, {})
-    if (r.status !== 204) throw new Error('preview: closeHandoff failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'closeHandoff failed')
   }
 
   async sendOperatorMessage(sessionID: string, message: string, operator?: string): Promise<void> {
@@ -100,7 +117,7 @@ export class PreviewClient {
       message,
       operator,
     })
-    if (r.status !== 204) throw new Error('preview: operator-message failed')
+    if (r.status !== 204) throw await errorFromResponse(r, 'operator-message failed')
   }
 
   openStream(sessionID: string): EventSource {

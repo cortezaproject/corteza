@@ -10,6 +10,86 @@ const SVG_SEND =
 const SVG_COMMENTS =
   '<svg viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10.5,0h-8C1.119,0,0,1.119,0,2.5v5C0,8.881,1.119,10,2.5,10H3v2.5c0,0.202,0.122,0.385,0.309,0.462C3.371,12.988,3.436,13,3.5,13c0.13,0,0.259-0.051,0.354-0.146L6.707,10H10.5C11.881,10,13,8.881,13,7.5v-5C13,1.119,11.881,0,10.5,0z"/></svg>'
 
+function capitalizeFirst(s: string): string {
+  if (!s) return s
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// sanitizeRichHTML strips the input to an allow-list of tags/attributes
+// suitable for consent-step body content (TOS, privacy notices). Anything
+// outside the list is replaced with its text content. Used because the
+// editor emits raw HTML from a rich-text editor and we don't want to push
+// that straight into innerHTML.
+const HB_CONSENT_ALLOWED_TAGS = new Set([
+  'p', 'br', 'span', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4', 'blockquote', 'code', 'pre',
+])
+// Inline-style declarations the RTE produces that we want to preserve so the
+// chatbot renders text the way the author saw it in the editor (TipTap's
+// TextStyle / Color extensions emit these on <span>). Anything outside the
+// list is dropped. We additionally reject values containing url(), expression()
+// or javascript: to block CSS-vector XSS.
+const HB_CONSENT_ALLOWED_STYLE_PROPS = new Set([
+  'color', 'background-color', 'font-weight', 'font-style',
+  'text-decoration', 'text-decoration-line', 'text-align',
+])
+function sanitizeStyle(raw: string): string {
+  return raw
+    .split(';')
+    .map(decl => decl.trim())
+    .filter(Boolean)
+    .map(decl => {
+      const idx = decl.indexOf(':')
+      if (idx < 0) return ''
+      const prop = decl.slice(0, idx).trim().toLowerCase()
+      const val = decl.slice(idx + 1).trim()
+      if (!HB_CONSENT_ALLOWED_STYLE_PROPS.has(prop)) return ''
+      if (/url\(|expression\(|javascript:|@import/i.test(val)) return ''
+      return `${prop}: ${val}`
+    })
+    .filter(Boolean)
+    .join('; ')
+}
+function sanitizeRichHTML(html: string): string {
+  if (!html) return ''
+  const tpl = document.createElement('template')
+  tpl.innerHTML = html
+  hbScrubNode(tpl.content)
+  return tpl.innerHTML
+}
+function hbScrubNode(node: Node): void {
+  const children = Array.from(node.childNodes)
+  for (const child of children) {
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const el = child as Element
+      const tag = el.tagName.toLowerCase()
+      if (!HB_CONSENT_ALLOWED_TAGS.has(tag)) {
+        const replacement = document.createTextNode(el.textContent || '')
+        el.replaceWith(replacement)
+        continue
+      }
+      // Capture safe attributes before stripping everything else.
+      let safeHref = ''
+      if (tag === 'a') {
+        const href = el.getAttribute('href') || ''
+        if (/^(https?:|mailto:|tel:|\/|#)/i.test(href)) safeHref = href
+      }
+      const safeStyle = sanitizeStyle(el.getAttribute('style') || '')
+      const attrs = Array.from(el.attributes).map(a => a.name)
+      for (const a of attrs) el.removeAttribute(a)
+      if (tag === 'a' && safeHref) {
+        el.setAttribute('href', safeHref)
+        el.setAttribute('target', '_blank')
+        el.setAttribute('rel', 'noopener noreferrer')
+      }
+      if (safeStyle) el.setAttribute('style', safeStyle)
+      hbScrubNode(el)
+    } else if (child.nodeType !== Node.TEXT_NODE) {
+      child.parentNode?.removeChild(child)
+    }
+  }
+}
+
 export interface WidgetUIOptions {
   container?: HTMLElement
   contained?: boolean
@@ -39,6 +119,7 @@ export class WidgetUI {
 
   onUserInput: (text: string) => void = () => {}
   onFormSubmit: (values: Record<string, string>) => void = () => {}
+  onConsentDecision: (accepted: boolean) => void = () => {}
   onRequestHandoff: () => void = () => {}
   onCancelHandoff: () => void = () => {}
   onEndConversation: () => void = () => {}
@@ -167,7 +248,10 @@ export class WidgetUI {
         case 'session_closed':
           return this.renderClosed()
         case 'error':
-          return this.appendMessage({ role: 'system', content: ev.error })
+          return this.appendMessage(
+            { role: 'system', content: capitalizeFirst(ev.error) },
+            { error: true },
+          )
       }
     })
   }
@@ -207,7 +291,7 @@ export class WidgetUI {
     this.host.remove()
   }
 
-  appendMessage(m: Message) {
+  appendMessage(m: Message, opts: { error?: boolean } = {}) {
     const row = document.createElement('div')
     const cls =
       m.role === 'user'
@@ -215,7 +299,7 @@ export class WidgetUI {
         : m.role === 'agent' || m.role === 'operator'
           ? 'agent'
           : 'system'
-    row.className = `hb-msg ${cls}`
+    row.className = `hb-msg ${cls}${opts.error ? ' error' : ''}`
     if (m.role === 'operator') {
       const tag = document.createElement('div')
       tag.className = 'hb-operator-tag'
@@ -266,6 +350,23 @@ export class WidgetUI {
     }
   }
 
+  // Appends the persistent "Talk to human" button to a per-step actions
+  // container so it sits inline with whatever step-specific buttons exist
+  // (e.g. End conversation, Next, Close). No-op if handoff is disabled.
+  // Pre-disables the button when a handoff is already requested/active so a
+  // step transition mid-handoff doesn't re-enable it.
+  private appendHandoffAction(actions: HTMLElement) {
+    if (!this.cfg.handoff.enabled || this.cfg.handoff.notImplemented) return
+    const btn = document.createElement('button')
+    btn.className = 'hb-action'
+    btn.type = 'button'
+    btn.dataset.action = 'handoff'
+    btn.textContent = 'Talk to human'
+    if (this.engine.handoffState.phase !== 'idle') btn.disabled = true
+    btn.addEventListener('click', () => this.onRequestHandoff())
+    actions.appendChild(btn)
+  }
+
   private renderStep(p: StepStartPayload) {
     this.footerEl.className = 'hb-footer hb-hidden'
     this.footerEl.innerHTML = ''
@@ -278,39 +379,38 @@ export class WidgetUI {
         return this.renderForm(p)
       case 'conversation':
         return this.renderConversation(p)
+      case 'consent':
+        return this.renderConsent(p)
     }
   }
 
   private renderStaticMessage(p: StepStartPayload) {
     const cfg = p.config || {}
-    const row = document.createElement('div')
-    row.className = 'hb-msg agent'
-    if (cfg.isMarkdown) {
-      row.innerHTML = renderMarkdown(cfg.message || '')
-    } else {
-      row.textContent = cfg.message || ''
-    }
-    this.bodyEl.appendChild(row)
+    // Static messages reuse the consent-step body styling so author HTML/RTE
+    // content flows full-width with neutral typography rather than living in
+    // an agent-bubble. No buttons under the body — static steps advance via
+    // auto-advance / scenario flow.
+    const block = document.createElement('div')
+    block.className = 'hb-consent-block'
+
+    const body = document.createElement('div')
+    body.className = 'hb-consent-body'
+    body.innerHTML = sanitizeRichHTML(cfg.message || '')
+    block.appendChild(body)
+
+    this.bodyEl.appendChild(block)
     this.bodyEl.scrollTop = this.bodyEl.scrollHeight
 
-    // Determine whether more scenarios follow. Past-last → close button;
-    // otherwise → next button. Auto-advance timing is driven by entry.ts.
-    const lastIdx = this.cfg.scenarios.length - 1
-    const isLast = p.scenarioIndex >= lastIdx
-    if (cfg.showCloseButton === false) return
+    // Static messages advance via auto-advance / scenario flow — no Next/Close
+    // button. The only footer affordance is the optional "Talk to human"
+    // button when handoff is enabled.
+    const actions = document.createElement('div')
+    actions.className = 'hb-conv-actions'
+    this.appendHandoffAction(actions)
 
+    if (actions.children.length === 0) return
     this.footerEl.className = 'hb-footer'
-    const btn = document.createElement('button')
-    btn.className = 'hb-submit'
-    btn.type = 'button'
-    if (isLast) {
-      btn.textContent = cfg.closeLabel || 'Close'
-      btn.addEventListener('click', () => this.onCloseSession())
-    } else {
-      btn.textContent = cfg.nextLabel || 'Next'
-      btn.addEventListener('click', () => this.onEndConversation())
-    }
-    this.footerEl.appendChild(btn)
+    this.footerEl.appendChild(actions)
   }
 
   private renderForm(p: StepStartPayload) {
@@ -363,21 +463,15 @@ export class WidgetUI {
     this.bodyEl.appendChild(form)
     this.currentForm = form
 
-    // Mirror the conversation scenario's footer: a small "End conversation"
-    // action button so the visitor can bail out of a form step the same way
-    // they would from a chat step. Reuses the same hb-conv-actions /
-    // hb-action styling for visual parity.
-    this.footerEl.className = 'hb-footer'
-    this.footerEl.innerHTML = ''
+    // Form Submit lives inside the form itself. The only footer affordance is
+    // the optional "Talk to human" button when handoff is enabled — there is
+    // no End conversation here (the visitor either submits or abandons).
     const formActions = document.createElement('div')
     formActions.className = 'hb-conv-actions'
-    const end = document.createElement('button')
-    end.className = 'hb-action'
-    end.type = 'button'
-    end.dataset.action = 'end'
-    end.textContent = (p.config as { endLabel?: string } | undefined)?.endLabel || 'End conversation'
-    end.addEventListener('click', () => this.onEndConversation())
-    formActions.appendChild(end)
+    this.appendHandoffAction(formActions)
+    if (formActions.children.length === 0) return
+    this.footerEl.className = 'hb-footer'
+    this.footerEl.innerHTML = ''
     this.footerEl.appendChild(formActions)
   }
 
@@ -459,15 +553,7 @@ export class WidgetUI {
     const actions = document.createElement('div')
     actions.className = 'hb-conv-actions'
 
-    if (this.cfg.handoff.enabled && !this.cfg.handoff.notImplemented) {
-      const ho = document.createElement('button')
-      ho.className = 'hb-action'
-      ho.type = 'button'
-      ho.dataset.action = 'handoff'
-      ho.textContent = (p.config as { handoffLabel?: string } | undefined)?.handoffLabel || 'Talk to human'
-      ho.addEventListener('click', () => this.onRequestHandoff())
-      actions.appendChild(ho)
-    }
+    this.appendHandoffAction(actions)
 
     const end = document.createElement('button')
     end.className = 'hb-action'
@@ -484,8 +570,8 @@ export class WidgetUI {
     let badge = this.panelEl.querySelector<HTMLDivElement>('.hb-handoff-badge')
     if (state.phase === 'idle') {
       if (badge) badge.remove()
-      // Re-enable handoff button in the conv footer if present.
-      this.footerEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
+      // Re-enable any handoff buttons (persistent bar + any per-step buttons).
+      this.panelEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
         b.disabled = false
       })
       return
@@ -518,10 +604,71 @@ export class WidgetUI {
       badge.appendChild(cancel)
     }
 
-    // Disable the request-handoff button while we are mid-handoff.
-    this.footerEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
+    // Disable the request-handoff buttons while we are mid-handoff (persistent
+    // bar + any per-step buttons).
+    this.panelEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
       b.disabled = true
     })
+  }
+
+  private renderConsent(p: StepStartPayload) {
+    const cfg = (p.config || {}) as {
+      body?: string
+      acceptLabel?: string
+      rejectLabel?: string
+    }
+
+    // Consent body sits in the message stream styled like a system info
+    // message (centered, muted) rather than an agent bubble. Accept/Reject
+    // live directly under the text so the decision stays anchored to the
+    // content the visitor is consenting to.
+    const block = document.createElement('div')
+    block.className = 'hb-consent-block'
+
+    const body = document.createElement('div')
+    body.className = 'hb-consent-body'
+    body.innerHTML = sanitizeRichHTML(cfg.body || '')
+    block.appendChild(body)
+
+    const decision = document.createElement('div')
+    decision.className = 'hb-consent-decision'
+
+    const reject = document.createElement('button')
+    reject.className = 'hb-action hb-consent-reject'
+    reject.type = 'button'
+    reject.dataset.action = 'consent-reject'
+    reject.textContent = cfg.rejectLabel || 'Reject'
+    reject.addEventListener('click', () => {
+      reject.disabled = true
+      accept.disabled = true
+      this.onConsentDecision(false)
+    })
+
+    const accept = document.createElement('button')
+    accept.className = 'hb-submit hb-consent-accept'
+    accept.type = 'button'
+    accept.dataset.action = 'consent-accept'
+    accept.textContent = cfg.acceptLabel || 'Accept'
+    accept.addEventListener('click', () => {
+      accept.disabled = true
+      reject.disabled = true
+      this.onConsentDecision(true)
+    })
+
+    decision.appendChild(reject)
+    decision.appendChild(accept)
+    block.appendChild(decision)
+    this.bodyEl.appendChild(block)
+    this.bodyEl.scrollTop = this.bodyEl.scrollHeight
+
+    // Footer only carries the persistent Talk to human button (when handoff
+    // is enabled); when handoff is disabled the footer stays hidden.
+    const actions = document.createElement('div')
+    actions.className = 'hb-conv-actions'
+    this.appendHandoffAction(actions)
+    if (actions.children.length === 0) return
+    this.footerEl.className = 'hb-footer'
+    this.footerEl.appendChild(actions)
   }
 
   private renderClosed() {

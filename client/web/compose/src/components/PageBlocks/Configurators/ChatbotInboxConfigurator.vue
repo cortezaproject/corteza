@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('block.chatbotInbox.config.chatbots') }}
-      </label>
+    <CFormGroup
+      :label="$t('block.chatbotInbox.config.chatbots')"
+      :description="$t('block.chatbotInbox.config.chatbotsHint')"
+    >
       <MultiSelect
         v-model="chatbotIDs"
         :options="chatbots"
@@ -15,15 +15,9 @@
         display="chip"
         class="w-full"
       />
-      <small class="text-muted-color">
-        {{ $t('block.chatbotInbox.config.chatbotsHint') }}
-      </small>
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('block.chatbotInbox.config.status') }}
-      </label>
+    <CFormGroup :label="$t('block.chatbotInbox.config.status')">
       <div class="flex flex-wrap gap-3">
         <div
           v-for="s in statusChoices"
@@ -40,12 +34,12 @@
           </label>
         </div>
       </div>
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('block.chatbotInbox.config.refresh') }}
-      </label>
+    <CFormGroup
+      :label="$t('block.chatbotInbox.config.refresh')"
+      :description="$t('block.chatbotInbox.config.refreshHint')"
+    >
       <InputNumber
         v-model="refreshRate"
         :min="1"
@@ -53,10 +47,7 @@
         show-buttons
         class="w-full"
       />
-      <small class="text-muted-color">
-        {{ $t('block.chatbotInbox.config.refreshHint') }}
-      </small>
-    </div>
+    </CFormGroup>
 
     <div class="flex items-center gap-2">
       <Checkbox v-model="autoOpenFirst" :binary="true" input-id="cb-inbox-auto" />
@@ -86,10 +77,10 @@ const loading = ref(false)
 const chatbots = ref([])
 
 const statusChoices = computed(() => [
-  { value: 'handoff_requested', label: t('block.chatbotInbox.status.handoff_requested') },
-  { value: 'handoff_active', label: t('block.chatbotInbox.status.handoff_active') },
-  { value: 'active', label: t('block.chatbotInbox.status.active') },
-  { value: 'closed', label: t('block.chatbotInbox.status.closed') },
+  { value: 'handoff_requested', label: t('block.chatbotInbox.statusHandoffRequested') },
+  { value: 'handoff_active', label: t('block.chatbotInbox.statusHandoffActive') },
+  { value: 'active', label: t('block.chatbotInbox.statusActive') },
+  { value: 'closed', label: t('block.chatbotInbox.statusClosed') },
 ])
 
 // PageBlockChatbotInbox in lib/js guarantees options is shaped on construction,

@@ -3,62 +3,43 @@
     <p class="text-xs text-muted-color mb-3">
       {{ $t('chatbot.editor.scenarios.description') }}
     </p>
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-[320px]">
-      <div class="lg:col-span-1 flex flex-col gap-2 border border-surface rounded-lg p-2">
-        <div class="flex items-center justify-between">
-          <span class="font-medium text-sm">
-            {{ $t('chatbot.editor.scenarios.list') }}
-          </span>
-          <Button
-            :label="$t('chatbot.editor.scenarios.add')"
-            icon="pi pi-plus"
-            severity="secondary"
-            size="small"
-            @click="addScenario"
-          />
-        </div>
-        <div v-if="!scenarios.length" class="text-xs text-muted-color p-2">
-          {{ $t('chatbot.editor.scenarios.empty') }}
-        </div>
-        <TransitionGroup
-          tag="ul"
-          class="flex flex-col gap-1"
-          move-class="transition-transform duration-300 ease-in-out"
-        >
-          <li
-            v-for="(s, idx) in scenarios"
-            :key="s.id || idx"
-            class="group flex items-center gap-2 p-2 rounded cursor-grab"
-            :class="[
-              selectedIdx === idx ? 'bg-primary/10 border border-primary/40' : 'hover:bg-emphasis',
-              dropTargetIdx === idx && draggedIdx !== idx ? 'border-t-2 !border-t-primary' : '',
-            ]"
-            draggable="true"
-            @click="selectedIdx = idx"
-            @dragstart="onDragStart(idx)"
-            @dragover.prevent="onDragOver(idx)"
-            @dragleave="onDragLeave"
-            @drop.prevent="onDrop(idx)"
-          >
-            <span class="flex-1 text-sm truncate">
-              {{ s.name || s.id || $t('chatbot.editor.scenarios.unnamed') }}
-            </span>
-            <Button
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              size="small"
-              :class="[
-                'transition-opacity',
-                selectedIdx === idx ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
-              ]"
-              @click.stop="removeScenario(idx)"
-            />
-          </li>
-        </TransitionGroup>
-      </div>
 
-      <div class="xl:col-span-2 flex flex-col gap-3 border border-surface rounded-lg p-3">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-[320px] pb-3">
+      <Fieldset class="lg:col-span-1">
+        <template #legend>
+          <div class="flex items-center gap-2">
+            <span>{{ $t('chatbot.editor.scenarios.list') }}</span>
+            <Button
+              :label="$t('chatbot.editor.scenarios.add')"
+              icon="pi pi-plus"
+              severity="secondary"
+              size="small"
+              @click="addScenario"
+            />
+          </div>
+        </template>
+        <CFormItemList
+          :items="props.scenarios"
+          :empty-message="$t('chatbot.editor.scenarios.empty')"
+          item-key="id"
+          :selected-key="current?.id"
+          draggable
+          @select="(_item, index) => (selectedIdx = index)"
+          @remove="onScenarioRemove"
+          @reorder="onScenariosReorder"
+        >
+          <template #default="{ item, index }">
+            <span
+              class="block w-full text-sm truncate"
+              :class="selectedIdx === index ? 'text-primary font-medium' : ''"
+            >
+              {{ item.name || item.id || $t('chatbot.editor.scenarios.unnamed') }}
+            </span>
+          </template>
+        </CFormItemList>
+      </Fieldset>
+
+      <div class="xl:col-span-2 flex flex-col gap-3 border border-surface rounded-lg p-3 mt-6">
         <template v-if="current">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <CFormGroup :label="$t('chatbot.editor.scenarios.name')">
@@ -84,20 +65,20 @@
             </CFormGroup>
           </div>
 
-          <Fieldset :legend="$t(`chatbot.editor.scenarios.types.${current.type}`)">
+          <Fieldset :legend="$t(`chatbot.editor.scenarios.types.${current.type}`)" class="mb-3">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
               <template v-if="current.type === 'static_message'">
                 <CFormGroup
                   :label="$t('chatbot.editor.scenarios.static.message')"
                   class="xl:col-span-2"
+                  required
                 >
-                  <Textarea v-model="current.config.message" :rows="3" />
+                  <CRichTextInput
+                    v-model="current.config.message"
+                    min-body-height="6rem"
+                    max-body-height="14rem"
+                  />
                 </CFormGroup>
-                <CInputToggleCard
-                  v-model="current.config.isMarkdown"
-                  :label="$t('chatbot.editor.scenarios.static.isMarkdown')"
-                  :description="$t('chatbot.editor.scenarios.static.isMarkdownDescription')"
-                />
                 <CFormGroup :label="$t('chatbot.editor.scenarios.static.autoAdvance')">
                   <InputNumber v-model="current.config.autoAdvanceMs" :min="0" />
                 </CFormGroup>
@@ -135,7 +116,11 @@
                     />
                   </div>
                 </CFormGroup>
-                <CFormGroup :label="$t('chatbot.editor.scenarios.conversation.placeholder')">
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.conversation.placeholder')"
+                  :description="$t('chatbot.editor.scenarios.conversation.placeholderHelp')"
+                  class="xl:col-span-2"
+                >
                   <InputText v-model="current.config.placeholder" />
                 </CFormGroup>
                 <CFormGroup
@@ -150,6 +135,7 @@
                   :description="
                     $t('chatbot.editor.scenarios.conversation.typingIndicatorDescription')
                   "
+                  class="col-span-2"
                 />
               </template>
 
@@ -178,7 +164,7 @@
                     v-model="current.config.fields"
                     :columns="[
                       { label: $t('chatbot.editor.scenarios.form.fieldName'), width: '3fr' },
-                      { label: $t('chatbot.editor.scenarios.form.fieldLabel'), width: '4fr' },
+                      { label: $t('chatbot.editor.scenarios.form.fieldLabel'), width: '3fr' },
                       { label: $t('chatbot.editor.scenarios.form.fieldType'), width: '3fr' },
                       {
                         label: $t('chatbot.editor.scenarios.form.fieldRequired'),
@@ -207,6 +193,40 @@
                 </CFormGroup>
                 <CFormGroup :label="$t('chatbot.editor.scenarios.form.submitLabel')">
                   <InputText v-model="current.config.submitLabel" />
+                </CFormGroup>
+              </template>
+
+              <template v-else-if="current.type === 'consent'">
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.consent.body.label')"
+                  :description="$t('chatbot.editor.scenarios.consent.body.help')"
+                  class="xl:col-span-2"
+                  required
+                >
+                  <CRichTextInput
+                    v-model="current.config.body"
+                    :placeholder="$t('chatbot.editor.scenarios.consent.body.placeholder')"
+                    min-body-height="6rem"
+                    max-body-height="14rem"
+                  />
+                </CFormGroup>
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.consent.acceptLabel.label')"
+                  :description="$t('chatbot.editor.scenarios.consent.acceptLabel.help')"
+                >
+                  <InputText
+                    v-model="current.config.acceptLabel"
+                    :placeholder="$t('chatbot.editor.scenarios.consent.acceptLabel.placeholder')"
+                  />
+                </CFormGroup>
+                <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.consent.rejectLabel.label')"
+                  :description="$t('chatbot.editor.scenarios.consent.rejectLabel.help')"
+                >
+                  <InputText
+                    v-model="current.config.rejectLabel"
+                    :placeholder="$t('chatbot.editor.scenarios.consent.rejectLabel.placeholder')"
+                  />
                 </CFormGroup>
               </template>
             </div>
@@ -243,47 +263,42 @@
       </div>
     </div>
 
-    <Divider class="!my-4" />
+    <Divider />
 
-    <div class="flex flex-col gap-4">
-      <h3 class="text-primary font-medium">
-        {{ $t('chatbot.editor.handoff.sectionTitle') }}
-      </h3>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+    <Fieldset :legend="$t('chatbot.editor.handoff.sectionTitle')">
+      <div class="flex flex-col gap-4">
         <CInputToggleCard
           v-model="handoff.enabled"
           :label="$t('chatbot.editor.handoff.enabled.label')"
           :description="$t('chatbot.editor.handoff.enabled.help')"
-          class="self-start"
         />
-      </div>
 
-      <template v-if="handoff.enabled">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <CFormGroup
-            :label="$t('chatbot.editor.handoff.automation.onRequested.label')"
-            :description="$t('chatbot.editor.handoff.automation.onRequested.help')"
-          >
-            <CInputTAQ
-              :model-value="automationID(handoff.automation?.onRequested?.automation)"
-              :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
-              @update:model-value="setHandoffAutomation('onRequested', $event)"
-            />
-          </CFormGroup>
-          <CFormGroup
-            :label="$t('chatbot.editor.handoff.automation.onAccepted.label')"
-            :description="$t('chatbot.editor.handoff.automation.onAccepted.help')"
-          >
-            <CInputTAQ
-              :model-value="automationID(handoff.automation?.onAccepted?.automation)"
-              :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
-              @update:model-value="setHandoffAutomation('onAccepted', $event)"
-            />
-          </CFormGroup>
-        </div>
-      </template>
-    </div>
+        <template v-if="handoff.enabled">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <CFormGroup
+              :label="$t('chatbot.editor.handoff.automation.onRequested.label')"
+              :description="$t('chatbot.editor.handoff.automation.onRequested.help')"
+            >
+              <CInputTAQ
+                :model-value="automationID(handoff.automation?.onRequested?.automation)"
+                :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
+                @update:model-value="setHandoffAutomation('onRequested', $event)"
+              />
+            </CFormGroup>
+            <CFormGroup
+              :label="$t('chatbot.editor.handoff.automation.onAccepted.label')"
+              :description="$t('chatbot.editor.handoff.automation.onAccepted.help')"
+            >
+              <CInputTAQ
+                :model-value="automationID(handoff.automation?.onAccepted?.automation)"
+                :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
+                @update:model-value="setHandoffAutomation('onAccepted', $event)"
+              />
+            </CFormGroup>
+          </div>
+        </template>
+      </div>
+    </Fieldset>
   </Panel>
 </template>
 
@@ -292,7 +307,7 @@ import { components } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CInputTAQ, CInputToggleCard } = components
+const { CInputTAQ, CInputToggleCard, CRichTextInput } = components
 const { t } = useI18n()
 
 const AUTOMATION_PREFIX = 'corteza::automation:ng-automation/'
@@ -356,6 +371,7 @@ const scenarioTypes = computed(() => [
   { label: t('chatbot.editor.scenarios.types.static_message'), value: 'static_message' },
   { label: t('chatbot.editor.scenarios.types.conversation'), value: 'conversation' },
   { label: t('chatbot.editor.scenarios.types.form'), value: 'form' },
+  { label: t('chatbot.editor.scenarios.types.consent'), value: 'consent' },
 ])
 
 const fieldTypeOptions = computed(() => [
@@ -368,11 +384,13 @@ const fieldTypeOptions = computed(() => [
 function defaultScenarioConfig(type) {
   switch (type) {
     case 'static_message':
-      return { message: '', isMarkdown: false, autoAdvanceMs: 500 }
+      return { message: '', autoAdvanceMs: 500 }
     case 'conversation':
       return { placeholder: '', initialPrompt: '', typingIndicator: true }
     case 'form':
       return { fields: [], submitLabel: '' }
+    case 'consent':
+      return { body: '', acceptLabel: '', rejectLabel: '' }
     default:
       return {}
   }
@@ -438,37 +456,20 @@ const handleIsDuplicate = computed(() => {
   return props.scenarios.some((s, i) => i !== selectedIdx.value && s.id === current.value.id)
 })
 
-const draggedIdx = ref(null)
-const dropTargetIdx = ref(null)
-
-function onDragStart(idx) {
-  draggedIdx.value = idx
-}
-
-function onDragOver(idx) {
-  dropTargetIdx.value = idx
-}
-
-function onDragLeave() {
-  dropTargetIdx.value = null
-}
-
-function onDrop(idx) {
-  const from = draggedIdx.value
-  draggedIdx.value = null
-  dropTargetIdx.value = null
-  if (from === null || from === idx) return
+// CFormItemList passes items as a one-way prop, so we mutate the parent's
+// scenarios array in place on reorder/remove (keeping the reference stable
+// for the Editor's chatbot.scenarios binding). Selection is re-mapped by
+// scenario ID so the editor stays on the same step after reorder.
+function onScenariosReorder(reordered) {
   const selectedID = current.value?.id
-  const [moved] = props.scenarios.splice(from, 1)
-  props.scenarios.splice(idx, 0, moved)
-  if (selectedID) {
-    const newIdx = props.scenarios.findIndex(s => s.id === selectedID)
-    if (newIdx >= 0) selectedIdx.value = newIdx
-  }
+  props.scenarios.splice(0, props.scenarios.length, ...reordered)
+  if (!selectedID) return
+  const newIdx = props.scenarios.findIndex(s => s.id === selectedID)
+  if (newIdx >= 0) selectedIdx.value = newIdx
 }
 
-function removeScenario(idx) {
-  props.scenarios.splice(idx, 1)
+function onScenarioRemove(_item, index) {
+  props.scenarios.splice(index, 1)
   if (selectedIdx.value >= props.scenarios.length) {
     selectedIdx.value = props.scenarios.length - 1
   }

@@ -16,11 +16,13 @@
       :key="getKey(item, index)"
       :draggable="draggable"
       :class="[
-        'flex items-center gap-2 p-3 border border-surface rounded-border shadow-sm hover:bg-emphasis transition-colors',
+        'flex items-center gap-2 p-3 border border-surface rounded-border shadow-sm cursor-pointer hover:bg-emphasis transition-colors',
+        isSelected(item, index) ? 'bg-highlight' : '',
         draggable && dropTargetIndex === index && draggedIndex !== index
           ? '!border-t-2 !border-t-primary'
           : '',
       ]"
+      @click="$emit('select', item, index)"
       @dragstart="draggable && onDragStart(index)"
       @dragover="draggable && onDragOver($event, index)"
       @dragleave="draggable && onDragLeave()"
@@ -41,7 +43,7 @@
         :loading="loadingKey !== null && loadingKey === getKey(item, index)"
         :aria-label="removeLabel || undefined"
         :title="removeLabel || undefined"
-        @click="$emit('remove', item, index)"
+        @click.stop="$emit('remove', item, index)"
       />
     </div>
   </div>
@@ -59,13 +61,21 @@ const props = defineProps({
   loadingKey: { type: [String, Number, null], default: null },
   removeLabel: { type: String, default: '' },
   draggable: { type: Boolean, default: false },
+  // Key of the currently selected item — compared against getKey(item, index).
+  // When matched, the row gets bg-highlight styling. Pass null/undefined for no selection.
+  selectedKey: { type: [String, Number, null], default: null },
 })
 
-const emit = defineEmits(['remove', 'reorder'])
+const emit = defineEmits(['remove', 'reorder', 'select'])
 
 function getKey(item, index) {
   if (typeof props.itemKey === 'function') return props.itemKey(item)
   return item?.[props.itemKey] ?? index
+}
+
+function isSelected(item, index) {
+  if (props.selectedKey === null || props.selectedKey === undefined) return false
+  return getKey(item, index) === props.selectedKey
 }
 
 const draggedIndex = ref(null)

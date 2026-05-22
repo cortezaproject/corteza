@@ -91,7 +91,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:blocks', 'layout-updated'])
+const emit = defineEmits(['layout-updated'])
 
 const visibleBlocks = computed(() => props.blocks.filter(block => !block.meta?.hidden))
 
@@ -213,7 +213,6 @@ defineExpose({ rebuildLayout })
 /* Drag-target placeholder: subtle dashed outline instead of a solid fill — a filled
  * placeholder flashes hard each time it jumps to a new cell as you drag. */
 .grid-stack > .grid-stack-placeholder > .placeholder-content {
-  background-color: transparent;
   border: 2px dashed var(--p-primary-color);
   border-radius: var(--p-card-border-radius);
   opacity: 0.5;
@@ -259,18 +258,15 @@ defineExpose({ rebuildLayout })
   pointer-events: none;
 }
 
-/* Resize handles — keep below toolbox (z-index 5) so the drag handle stays clickable. */
+/* Resize handles: invisible by design. Corners are shrunk to 10×10 (vs gridstack's
+ * default 20×20) and the chevron icon is stripped so they don't crowd the toolbox.
+ * Edge handles keep gridstack's default dimensions but have no background.
+ * Visual feedback comes from the resize cursor; z-index keeps them under the
+ * toolbox (z-index 5) so the drag handle stays clickable. */
 .grid-stack > .grid-stack-item > .ui-resizable-handle {
-  opacity: 0;
   z-index: 1;
-  transition: opacity 0.1s ease;
 }
 
-.grid-stack > .grid-stack-item:hover > .ui-resizable-handle {
-  opacity: 1;
-}
-
-/* Corner handles — strip the default chevron icon, shrink so they don't crowd the toolbox. */
 .grid-stack > .grid-stack-item > .ui-resizable-se,
 .grid-stack > .grid-stack-item > .ui-resizable-sw,
 .grid-stack > .grid-stack-item > .ui-resizable-ne,
@@ -279,9 +275,6 @@ defineExpose({ rebuildLayout })
   width: 10px;
   height: 10px;
 }
-
-/* Edge handles stay completely invisible — only the resize cursor indicates the
- * grab zone when hovering near a side. */
 </style>
 
 <style scoped>

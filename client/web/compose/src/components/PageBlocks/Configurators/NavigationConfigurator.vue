@@ -1,246 +1,233 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.navigation.appearance') }}</label>
-        <Select
-          v-model="appearance"
-          :options="appearanceOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
-        />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.navigation.alignment') }}</label>
-        <Select
-          v-model="alignment"
-          :options="alignmentOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
-        />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="text-primary font-medium text-sm">{{ $t('block.navigation.justify') }}</label>
-        <Select
-          v-model="justify"
-          :options="justifyOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
-        />
-      </div>
-    </div>
-
-    <Divider />
-
-    <div class="flex items-center justify-between">
-      <label class="text-primary font-medium text-sm">{{ $t('block.navigation.navigationItems') }}</label>
-      <Button
-        :label="$t('block.navigation.add')"
-        icon="pi pi-plus"
-        size="small"
-        severity="secondary"
-        @click="addNavItem"
-      />
-    </div>
-
-    <Panel
-      v-for="(item, index) in navItems"
-      :key="index"
-      :header="item.options?.item?.label || $t('block.navigation.newItem')"
-      toggleable
-    >
-      <template #icons>
-        <Button
-          icon="pi pi-chevron-up"
-          text rounded size="small" severity="secondary"
-          :disabled="index === 0"
-          @click="moveItem(index, -1)"
-        />
-        <Button
-          icon="pi pi-chevron-down"
-          text rounded size="small" severity="secondary"
-          :disabled="index === navItems.length - 1"
-          @click="moveItem(index, 1)"
-        />
-        <Button
-          icon="pi pi-trash"
-          text rounded size="small" severity="danger"
-          @click="removeNavItem(index)"
-        />
-      </template>
-
-      <div class="flex flex-col gap-2">
-        <!-- Label -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.navigation.fieldLabel') }}</label>
-          <InputText
-            :model-value="item.options?.item?.label || ''"
-            class="w-full"
-            @update:model-value="updateNavItemOption(index, 'label', $event)"
-          />
-        </div>
-
-        <!-- Type selector -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('block.navigation.type') }}</label>
+    <Fieldset :legend="$t('block.navigation.appearance')">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <CFormGroup :label="$t('block.navigation.appearance')">
           <Select
-            :model-value="item.type"
-            :options="typeOptions"
+            v-model="appearance"
+            :options="appearanceOptions"
             option-label="label"
             option-value="value"
             class="w-full"
-            @update:model-value="updateNavItem(index, 'type', $event)"
+          />
+        </CFormGroup>
+
+        <CFormGroup :label="$t('block.navigation.alignment')">
+          <Select
+            v-model="alignment"
+            :options="alignmentOptions"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </CFormGroup>
+
+        <CFormGroup :label="$t('block.navigation.justify')">
+          <Select
+            v-model="justify"
+            :options="justifyOptions"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </CFormGroup>
+      </div>
+    </Fieldset>
+
+    <Divider />
+
+    <Fieldset :legend="$t('block.navigation.navigationItems')">
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-end">
+          <Button
+            :label="$t('block.navigation.add')"
+            icon="pi pi-plus"
+            size="small"
+            severity="secondary"
+            @click="addNavItem"
           />
         </div>
 
-        <!-- URL type: URL input + target -->
-        <template v-if="item.type === 'url'">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.url') }}</label>
-            <InputText
-              :model-value="item.options?.item?.url || ''"
-              placeholder="https://"
-              class="w-full"
-              @update:model-value="updateNavItemOption(index, 'url', $event)"
+        <Panel
+          v-for="(item, index) in navItems"
+          :key="index"
+          :header="item.options?.item?.label || $t('block.navigation.newItem')"
+          toggleable
+        >
+          <template #icons>
+            <Button
+              icon="pi pi-chevron-up"
+              text rounded size="small" severity="secondary"
+              :disabled="index === 0"
+              @click="moveItem(index, -1)"
             />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target') }}</label>
-            <Select
-              :model-value="item.options?.item?.target || 'sameTab'"
-              :options="targetOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              @update:model-value="updateNavItemOption(index, 'target', $event)"
+            <Button
+              icon="pi pi-chevron-down"
+              text rounded size="small" severity="secondary"
+              :disabled="index === navItems.length - 1"
+              @click="moveItem(index, 1)"
             />
-          </div>
-        </template>
+            <Button
+              icon="pi pi-trash"
+              text rounded size="small" severity="danger"
+              @click="removeNavItem(index)"
+            />
+          </template>
 
-        <!-- Compose Page type: page selector + options -->
-        <template v-else-if="item.type === 'compose'">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.composePage') }}</label>
-            <Select
-              :model-value="item.options?.item?.pageID || null"
-              :options="pageOptions"
-              option-label="label"
-              option-value="value"
-              :placeholder="$t('block.navigation.selectPage')"
-              filter
-              show-clear
-              class="w-full"
-              @update:model-value="updateNavItemOption(index, 'pageID', $event)"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.target') }}</label>
-            <Select
-              :model-value="item.options?.item?.target || 'sameTab'"
-              :options="targetOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              @update:model-value="updateNavItemOption(index, 'target', $event)"
-            />
-          </div>
-          <CInputToggleCard
-            :model-value="!!item.options?.item?.displaySubPages"
-            :label="$t('block.navigation.displaySubPages')"
-            :description="$t('block.navigation.displaySubPagesDescription')"
-            @update:model-value="updateNavItemOption(index, 'displaySubPages', $event)"
-          />
-        </template>
-
-        <!-- Dropdown type: items -->
-        <template v-else-if="item.type === 'dropdown'">
           <div class="flex flex-col gap-2">
-            <div class="flex items-center justify-between">
-              <label class="text-primary font-medium text-sm">{{ $t('block.navigation.dropdownItems') }}</label>
-              <Button
-                :label="$t('general.label.add')"
-                icon="pi pi-plus"
-                size="small"
-                severity="secondary"
-                text
-                @click="addDropdownItem(index)"
+            <CFormGroup :label="$t('block.navigation.fieldLabel')">
+              <InputText
+                :model-value="item.options?.item?.label || ''"
+                class="w-full"
+                @update:model-value="updateNavItemOption(index, 'label', $event)"
               />
-            </div>
+            </CFormGroup>
 
-            <div
-              v-for="(dItem, dIndex) in (item.options?.item?.dropdown?.items || [])"
-              :key="dIndex"
-              class="border border-surface rounded-border p-2 flex flex-col gap-2"
-            >
-              <div class="flex items-center justify-between">
-                <CInputToggleCard
-                  :model-value="!!dItem.delimiter"
-                  :label="$t('block.navigation.delimiter')"
-                  :description="$t('block.navigation.delimiterDescription')"
-                  @update:model-value="updateDropdownItem(index, dIndex, 'delimiter', $event)"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  text rounded size="small" severity="danger"
-                  @click="removeDropdownItem(index, dIndex)"
-                />
-              </div>
+            <CFormGroup :label="$t('block.navigation.type')">
+              <Select
+                :model-value="item.type"
+                :options="typeOptions"
+                option-label="label"
+                option-value="value"
+                class="w-full"
+                @update:model-value="updateNavItem(index, 'type', $event)"
+              />
+            </CFormGroup>
 
-              <template v-if="!dItem.delimiter">
+            <template v-if="item.type === 'url'">
+              <CFormGroup :label="$t('block.navigation.url')">
                 <InputText
-                  :model-value="dItem.label || ''"
-                  :placeholder="$t('block.navigation.fieldLabel')"
-                  class="w-full"
-                  size="small"
-                  @update:model-value="updateDropdownItem(index, dIndex, 'label', $event)"
-                />
-                <InputText
-                  :model-value="dItem.url || ''"
+                  :model-value="item.options?.item?.url || ''"
                   placeholder="https://"
                   class="w-full"
-                  size="small"
-                  @update:model-value="updateDropdownItem(index, dIndex, 'url', $event)"
+                  @update:model-value="updateNavItemOption(index, 'url', $event)"
                 />
+              </CFormGroup>
+              <CFormGroup :label="$t('block.navigation.target')">
                 <Select
-                  :model-value="dItem.target || 'sameTab'"
+                  :model-value="item.options?.item?.target || 'sameTab'"
                   :options="targetOptions"
                   option-label="label"
                   option-value="value"
                   class="w-full"
-                  size="small"
-                  @update:model-value="updateDropdownItem(index, dIndex, 'target', $event)"
+                  @update:model-value="updateNavItemOption(index, 'target', $event)"
                 />
-              </template>
+              </CFormGroup>
+            </template>
+
+            <template v-else-if="item.type === 'compose'">
+              <CFormGroup :label="$t('block.navigation.composePage')">
+                <Select
+                  :model-value="item.options?.item?.pageID || null"
+                  :options="pageOptions"
+                  option-label="label"
+                  option-value="value"
+                  :placeholder="$t('block.navigation.selectPage')"
+                  filter
+                  show-clear
+                  class="w-full"
+                  @update:model-value="updateNavItemOption(index, 'pageID', $event)"
+                />
+              </CFormGroup>
+              <CFormGroup :label="$t('block.navigation.target')">
+                <Select
+                  :model-value="item.options?.item?.target || 'sameTab'"
+                  :options="targetOptions"
+                  option-label="label"
+                  option-value="value"
+                  class="w-full"
+                  @update:model-value="updateNavItemOption(index, 'target', $event)"
+                />
+              </CFormGroup>
+              <CInputToggleCard
+                :model-value="!!item.options?.item?.displaySubPages"
+                :label="$t('block.navigation.displaySubPages')"
+                :description="$t('block.navigation.displaySubPagesDescription')"
+                @update:model-value="updateNavItemOption(index, 'displaySubPages', $event)"
+              />
+            </template>
+
+            <template v-else-if="item.type === 'dropdown'">
+              <CFormGroup :label="$t('block.navigation.dropdownItems')">
+                <template #actions>
+                  <Button
+                    :label="$t('general.label.add')"
+                    icon="pi pi-plus"
+                    size="small"
+                    severity="secondary"
+                    text
+                    @click="addDropdownItem(index)"
+                  />
+                </template>
+
+                <div
+                  v-for="(dItem, dIndex) in (item.options?.item?.dropdown?.items || [])"
+                  :key="dIndex"
+                  class="border border-surface rounded-border p-2 flex flex-col gap-2"
+                >
+                  <div class="flex items-center justify-between">
+                    <CInputToggleCard
+                      :model-value="!!dItem.delimiter"
+                      :label="$t('block.navigation.delimiter')"
+                      :description="$t('block.navigation.delimiterDescription')"
+                      @update:model-value="updateDropdownItem(index, dIndex, 'delimiter', $event)"
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      text rounded size="small" severity="danger"
+                      @click="removeDropdownItem(index, dIndex)"
+                    />
+                  </div>
+
+                  <template v-if="!dItem.delimiter">
+                    <InputText
+                      :model-value="dItem.label || ''"
+                      :placeholder="$t('block.navigation.fieldLabel')"
+                      class="w-full"
+                      size="small"
+                      @update:model-value="updateDropdownItem(index, dIndex, 'label', $event)"
+                    />
+                    <InputText
+                      :model-value="dItem.url || ''"
+                      placeholder="https://"
+                      class="w-full"
+                      size="small"
+                      @update:model-value="updateDropdownItem(index, dIndex, 'url', $event)"
+                    />
+                    <Select
+                      :model-value="dItem.target || 'sameTab'"
+                      :options="targetOptions"
+                      option-label="label"
+                      option-value="value"
+                      class="w-full"
+                      size="small"
+                      @update:model-value="updateDropdownItem(index, dIndex, 'target', $event)"
+                    />
+                  </template>
+                </div>
+              </CFormGroup>
+            </template>
+
+            <div class="grid grid-cols-2 gap-2">
+              <CFormGroup :label="$t('block.navigation.textColor')">
+                <CInputColorPicker
+                  :model-value="item.options?.item?.textColor || ''"
+                  show-text
+                  @update:model-value="updateNavItemOption(index, 'textColor', $event)"
+                />
+              </CFormGroup>
+              <CFormGroup :label="$t('block.navigation.backgroundColor')">
+                <CInputColorPicker
+                  :model-value="item.options?.item?.backgroundColor || ''"
+                  show-text
+                  @update:model-value="updateNavItemOption(index, 'backgroundColor', $event)"
+                />
+              </CFormGroup>
             </div>
           </div>
-        </template>
-
-        <!-- Text and Background Colours (all types) -->
-        <div class="grid grid-cols-2 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.textColor') }}</label>
-            <CInputColorPicker
-              :model-value="item.options?.item?.textColor || ''"
-              show-text
-              @update:model-value="updateNavItemOption(index, 'textColor', $event)"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('block.navigation.backgroundColor') }}</label>
-            <CInputColorPicker
-              :model-value="item.options?.item?.backgroundColor || ''"
-              show-text
-              @update:model-value="updateNavItemOption(index, 'backgroundColor', $event)"
-            />
-          </div>
-        </div>
+        </Panel>
       </div>
-    </Panel>
+    </Fieldset>
   </div>
 </template>
 

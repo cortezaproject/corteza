@@ -54,6 +54,8 @@
               min-body-height="4rem"
               max-body-height="10rem"
               body-class="overflow-auto"
+              submit-on-enter
+              @submit="onEditSubmit"
             />
 
             <div class="flex justify-end gap-1">
@@ -312,6 +314,11 @@ function onSave() {
     content: editContent.value,
   })
   isEditing.value = false
+}
+
+function onEditSubmit() {
+  if (!isValid.value) return
+  onSave()
 }
 </script>
 

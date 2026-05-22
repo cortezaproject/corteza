@@ -1,5 +1,5 @@
 <template>
-  <div class="c-rich-text-input rounded">
+  <div class="c-rich-text-input border border-surface rounded-border">
     <!-- Toolbar -->
     <div v-if="editor && !hideToolbar" class="rt-toolbar flex flex-wrap items-center p-1 gap-0.5">
       <!-- Bold -->
@@ -64,7 +64,9 @@
             class="rt-toolbar-btn"
             @click="toggle"
           >
-            <span :style="{ borderBottom: `3px solid ${displayTextColor}` }" class="rt-color-label">A</span>
+            <span :style="{ borderBottom: `3px solid ${displayTextColor}` }" class="rt-color-label">
+              A
+            </span>
           </Button>
         </template>
       </CInputColorPicker>
@@ -86,7 +88,9 @@
             class="rt-toolbar-btn"
             @click="toggle"
           >
-            <span :style="{ backgroundColor: displayBgColor }" class="rt-color-label rt-bg-label">A</span>
+            <span :style="{ backgroundColor: displayBgColor }" class="rt-color-label rt-bg-label">
+              A
+            </span>
           </Button>
         </template>
       </CInputColorPicker>
@@ -267,7 +271,7 @@
             class="rt-link-input"
             @keydown.enter.prevent="applyLink"
             @keydown.escape.prevent="showLinkInput = false"
-          >
+          />
           <Button
             size="small"
             severity="success"
@@ -415,9 +419,13 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  submitOnEnter: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['update:modelValue', 'upload'])
+const emit = defineEmits(['update:modelValue', 'upload', 'submit'])
 
 // Refs
 const linkUrlInput = ref(null)
@@ -505,6 +513,16 @@ const editor = useEditor({
   parseOptions: {
     preserveWhitespace: 'full',
   },
+  editorProps: {
+    handleKeyDown(_view, event) {
+      if (props.submitOnEnter && event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault()
+        emit('submit')
+        return true
+      }
+      return false
+    },
+  },
   onUpdate: ({ editor: e }) => {
     const html = e.getHTML().replace(/<p><\/p>/g, '<p><br></p>')
     const value = html === '<p><br></p>' ? '' : html
@@ -515,12 +533,15 @@ const editor = useEditor({
 
 let emittedContent = false
 
-watch(() => props.modelValue, (val) => {
-  if (!emittedContent && editor.value) {
-    editor.value.commands.setContent(val || '', false)
-  }
-  emittedContent = false
-})
+watch(
+  () => props.modelValue,
+  val => {
+    if (!emittedContent && editor.value) {
+      editor.value.commands.setContent(val || '', false)
+    }
+    emittedContent = false
+  },
+)
 
 // Color methods
 function applyTextColor(color) {
@@ -563,19 +584,45 @@ function execTableOp(op) {
   if (!chain) return
 
   switch (op.type) {
-    case 'insertTable': chain.insertTable(op.attrs).run(); break
-    case 'addColumnBefore': chain.addColumnBefore().run(); break
-    case 'addColumnAfter': chain.addColumnAfter().run(); break
-    case 'deleteColumn': chain.deleteColumn().run(); break
-    case 'addRowBefore': chain.addRowBefore().run(); break
-    case 'addRowAfter': chain.addRowAfter().run(); break
-    case 'deleteRow': chain.deleteRow().run(); break
-    case 'mergeCells': chain.mergeCells().run(); break
-    case 'splitCell': chain.splitCell().run(); break
-    case 'toggleHeaderRow': chain.toggleHeaderRow().run(); break
-    case 'toggleHeaderCell': chain.toggleHeaderCell().run(); break
-    case 'toggleHeaderColumn': chain.toggleHeaderColumn().run(); break
-    case 'deleteTable': chain.deleteTable().run(); break
+    case 'insertTable':
+      chain.insertTable(op.attrs).run()
+      break
+    case 'addColumnBefore':
+      chain.addColumnBefore().run()
+      break
+    case 'addColumnAfter':
+      chain.addColumnAfter().run()
+      break
+    case 'deleteColumn':
+      chain.deleteColumn().run()
+      break
+    case 'addRowBefore':
+      chain.addRowBefore().run()
+      break
+    case 'addRowAfter':
+      chain.addRowAfter().run()
+      break
+    case 'deleteRow':
+      chain.deleteRow().run()
+      break
+    case 'mergeCells':
+      chain.mergeCells().run()
+      break
+    case 'splitCell':
+      chain.splitCell().run()
+      break
+    case 'toggleHeaderRow':
+      chain.toggleHeaderRow().run()
+      break
+    case 'toggleHeaderCell':
+      chain.toggleHeaderCell().run()
+      break
+    case 'toggleHeaderColumn':
+      chain.toggleHeaderColumn().run()
+      break
+    case 'deleteTable':
+      chain.deleteTable().run()
+      break
   }
 
   showTableMenu.value = false
@@ -623,10 +670,14 @@ function onEmojiPopoverShow() {
 
 function onEmojiSelect(emoji) {
   if (emoji && emoji.name) {
-    editor.value?.chain().focus().insertContent({
-      type: 'emoji',
-      attrs: { name: emoji.name },
-    }).run()
+    editor.value
+      ?.chain()
+      .focus()
+      .insertContent({
+        type: 'emoji',
+        attrs: { name: emoji.name },
+      })
+      .run()
   }
   emojiPopoverRef.value?.hide()
 }
@@ -809,7 +860,7 @@ defineExpose({ focus, clear, editor, allEmojis })
  */
 
 /* In the editor, checkboxes should be interactive */
-.c-rich-text-input .rt-editor-content .tiptap input[type="checkbox"] {
+.c-rich-text-input .rt-editor-content .tiptap input[type='checkbox'] {
   pointer-events: auto !important;
   cursor: pointer !important;
 }
