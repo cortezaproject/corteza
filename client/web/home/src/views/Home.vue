@@ -27,8 +27,11 @@
     </div>
 
     <!-- ── Agent column (middle) ────────────────────────────── -->
+    <!-- Same wiring as CAgentSidebar: translation namespace + route context
+         provider so the inline agent block behaves identically to the
+         right-side sidebar in other webapps. -->
     <div class="column-panel flex flex-col flex-1 min-w-0">
-      <CAgentChat />
+      <CAgentChat :translations="agentTranslations" :context-provider="agentContextProvider" />
     </div>
 
     <!-- ── Resize handle: agent / notifications ──────────────── -->
@@ -44,8 +47,14 @@
 </template>
 
 <script setup>
-import { components, useNotificationsStore } from '@planetcrust/human-vue'
-import { ref } from 'vue'
+import {
+  components,
+  makeAgentChatTranslations,
+  useAgentRouteContextProvider,
+  useNotificationsStore,
+} from '@planetcrust/human-vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useColumnResize } from '../composables/useColumnResize'
 
 const { CInputSearch, CAppList, CAgentChat, CNotificationsPanel } = components
@@ -54,6 +63,14 @@ const appsQuery = ref('')
 
 // ── Notifications column ─────────────────────────────────────
 useNotificationsStore()
+
+// ── Agent column ─────────────────────────────────────────────
+// Mirrors the CAgentSidebar wiring used by every other webapp's App.vue —
+// the `agent.sidebar.*` namespace already exists in the home locale, so the
+// inline block picks up the same labels.
+const { t } = useI18n()
+const agentTranslations = computed(() => makeAgentChatTranslations(t, 'agent.sidebar.'))
+const agentContextProvider = useAgentRouteContextProvider('home')
 
 // ── Column resize ────────────────────────────────────────────
 const { menuWidth, notificationsWidth, startMenuResize, startNotificationsResize } =
