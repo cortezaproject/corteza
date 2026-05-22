@@ -199,7 +199,6 @@ func (svc *chatbotSession) StartStep(
 	scenario *types.ChatbotScenario,
 	conversationID uint64,
 	scenarioIndex int,
-	vars *expr.Vars,
 ) (*types.ChatbotSessionStep, error) {
 	step, err := svc.FindStepBySessionAndIndex(ctx, sessionID, scenarioIndex)
 	if err != nil {
@@ -221,7 +220,7 @@ func (svc *chatbotSession) StartStep(
 	_ = svc.UpdateCurrentStep(ctx, sessionID, scenarioIndex)
 
 	if scenario != nil {
-		if err := svc.runHook(ctx, scenario.Automation.Before, vars, "before"); err != nil {
+		if err := svc.runStepHook(ctx, scenario.Automation.Before, scenario, sessionID, step.ID, "before"); err != nil {
 			step.Status = "failed"
 			_ = store.UpdateChatbotSessionStep(ctx, svc.store, step)
 			return step, fmt.Errorf("before automation: %w", err)
@@ -236,15 +235,15 @@ func (svc *chatbotSession) StartStep(
 func (svc *chatbotSession) FinalizeStep(
 	ctx context.Context,
 	stepID uint64,
+	sessionID uint64,
 	scenario *types.ChatbotScenario,
-	vars *expr.Vars,
 ) error {
 	if err := svc.CompleteStep(ctx, stepID); err != nil {
 		return fmt.Errorf("complete step: %w", err)
 	}
 
 	if scenario != nil {
-		if err := svc.runHook(ctx, scenario.Automation.After, vars, "after"); err != nil {
+		if err := svc.runStepHook(ctx, scenario.Automation.After, scenario, sessionID, stepID, "after"); err != nil {
 			svc.actionlog.Record(ctx, &actionlog.Action{
 				Resource: "chatbot-session-step",
 				Action:   "automation-error",
@@ -266,7 +265,7 @@ func (svc *chatbotSession) runHook(ctx context.Context, hook types.ChatbotAutoma
 		svc.invokeAutomationAsync(ctx, hook.Automation, vars, phase)
 		return nil
 	}
-	return svc.invokeAutomation(ctx, hook.Automation, vars)
+	return svc.invokeAutomation(ctx, hook.Automation, vars, "", "")
 }
 
 // RequestHandoff request handoff from AI to human
@@ -491,7 +490,7 @@ func (svc *chatbotSession) invokeAutomationAsync(_ context.Context, resourceID s
 	// Snapshot the identity so the goroutine doesn't outlive the request ctx.
 	svcCtx := pkgAuth.SetIdentityToContext(context.Background(), pkgAuth.ServiceUser())
 	go func() {
-		if err := svc.invokeAutomation(svcCtx, resourceID, vars); err != nil {
+		if err := svc.invokeAutomation(svcCtx, resourceID, vars, "", ""); err != nil {
 			svc.actionlog.Record(svcCtx, &actionlog.Action{
 				Resource: "chatbot-session-step",
 				Action:   "automation-error",
@@ -503,7 +502,9 @@ func (svc *chatbotSession) invokeAutomationAsync(_ context.Context, resourceID s
 
 // invokeAutomation executes an automation by resource identifier synchronously under service identity.
 // Resource format: corteza::automation:ng-automation/{ID}
-func (svc *chatbotSession) invokeAutomation(ctx context.Context, resourceID string, vars *expr.Vars) error {
+// eventType and resourceType are passed to ExecAndWait for trigger InputSchema validation;
+// pass empty strings to fall back to first-trigger behaviour (used by handoff hooks).
+func (svc *chatbotSession) invokeAutomation(ctx context.Context, resourceID string, vars *expr.Vars, eventType, resourceType string) error {
 	if automationService.DefaultNgAutomation == nil {
 		return fmt.Errorf("automation service not available")
 	}
@@ -521,9 +522,65 @@ func (svc *chatbotSession) invokeAutomation(ctx context.Context, resourceID stri
 
 	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
 	_, err = automationService.DefaultNgAutomation.ExecAndWait(svcCtx, automationID, automationTypes.NgAutomationExecParams{
-		Input: vars,
+		EventType:    eventType,
+		ResourceType: resourceType,
+		Input:        vars,
 	})
 	return err
+}
+
+func (svc *chatbotSession) runStepHook(ctx context.Context, hook types.ChatbotAutomationHook, scenario *types.ChatbotScenario, sessionID, stepID uint64, phase string) error {
+	if hook.Automation == "" {
+		return nil
+	}
+
+	session, err := svc.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return fmt.Errorf("load session for hook: %w", err)
+	}
+
+	input := &expr.Vars{}
+
+	// predefined properties — auto-injected if trigger declares them in InputSchema
+	_ = input.Set("chatbotID", session.ChatbotID)
+	_ = input.Set("sessionID", session.ID)
+	_ = input.Set("stepID", stepID)
+	_ = input.Set("agentID", scenario.AgentID)
+
+	// user-defined mappings: resolved lazily via per-step-type provider
+	for _, m := range hook.Mappings {
+		if m.TriggerParam == "" {
+			continue
+		}
+		e := m.StateExpression
+		var val interface{}
+		switch {
+		case e.Source != "":
+			v, err := resolveStepSource(e.Source, session, scenario.ID, phase)
+			if err != nil {
+				return fmt.Errorf("mapping %q source %q: %w", m.TriggerParam, e.Source, err)
+			}
+			val = v
+		case e.Value != nil:
+			val = e.Value
+		default:
+			continue
+		}
+		if err := input.Set(m.TriggerParam, val); err != nil {
+			return fmt.Errorf("mapping %q: %w", m.TriggerParam, err)
+		}
+	}
+
+	eventType := "onBeforeStep"
+	if phase == "after" {
+		eventType = "onAfterStep"
+	}
+
+	if hook.Async {
+		svc.invokeAutomationAsync(ctx, hook.Automation, input, phase)
+		return nil
+	}
+	return svc.invokeAutomation(ctx, hook.Automation, input, eventType, "corteza::system:chatbot")
 }
 
 // WithDeps wires orchestration deps (bus, runtime, agent svc, conv svc).
@@ -562,7 +619,7 @@ func (svc *chatbotSession) Open(ctx context.Context, cb *types.Chatbot) (*types.
 // Start runs the scenario's before-automation, persists the new step row, and
 // broadcasts step_start. If the index is beyond the last scenario, emits
 // session_closed instead.
-func (svc *chatbotSession) Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int, vars *expr.Vars) {
+func (svc *chatbotSession) Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int) {
 	svcCtx := pkgAuth.SetIdentityToContext(ctx, pkgAuth.ServiceUser())
 
 	if scenarioIndex >= len(cb.Scenarios) {
@@ -572,7 +629,7 @@ func (svc *chatbotSession) Start(ctx context.Context, cb *types.Chatbot, session
 	}
 
 	scenario := &cb.Scenarios[scenarioIndex]
-	step, err := svc.StartStep(svcCtx, sessionID, scenario, convID, scenarioIndex, vars)
+	step, err := svc.StartStep(svcCtx, sessionID, scenario, convID, scenarioIndex)
 	if err != nil {
 		svc.emit(convID, "step_error", map[string]any{
 			"scenarioID":    scenario.ID,
@@ -720,8 +777,7 @@ func (svc *chatbotSession) SubmitForm(ctx context.Context, cb *types.Chatbot, se
 	svc.appendConversationMessage(svcCtx, convID, msg)
 	svc.stateRecordFormSubmit(svcCtx, sessionID, scenario.ID, fields)
 
-	vars := ChatbotVarsFromMap(fields)
-	if err := svc.FinalizeStep(svcCtx, step.ID, scenario, vars); err != nil {
+	if err := svc.FinalizeStep(svcCtx, step.ID, session.ID, scenario); err != nil {
 		return nil, err
 	}
 	svc.emit(convID, "step_complete", map[string]any{
@@ -729,7 +785,7 @@ func (svc *chatbotSession) SubmitForm(ctx context.Context, cb *types.Chatbot, se
 		"scenarioIndex": step.ScenarioIndex,
 	})
 
-	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1, vars)
+	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1)
 	return nil, nil
 }
 
@@ -754,7 +810,7 @@ func (svc *chatbotSession) AdvanceStep(ctx context.Context, cb *types.Chatbot, s
 	}
 	scenario := &cb.Scenarios[step.ScenarioIndex]
 
-	if err := svc.FinalizeStep(svcCtx, step.ID, scenario, nil); err != nil {
+	if err := svc.FinalizeStep(svcCtx, step.ID, sessionID, scenario); err != nil {
 		return err
 	}
 	svc.emit(convID, "step_complete", map[string]any{
@@ -762,7 +818,7 @@ func (svc *chatbotSession) AdvanceStep(ctx context.Context, cb *types.Chatbot, s
 		"scenarioIndex": step.ScenarioIndex,
 	})
 
-	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1, nil)
+	svc.Start(svcCtx, cb, sessionID, convID, step.ScenarioIndex+1)
 	return nil
 }
 
@@ -773,7 +829,7 @@ func (svc *chatbotSession) CloseSession(ctx context.Context, cb *types.Chatbot, 
 	if step, err := svc.FindStepBySession(svcCtx, sessionID); err == nil && step != nil {
 		if step.ScenarioIndex >= 0 && step.ScenarioIndex < len(cb.Scenarios) {
 			scenario := &cb.Scenarios[step.ScenarioIndex]
-			_ = svc.FinalizeStep(svcCtx, step.ID, scenario, nil)
+			_ = svc.FinalizeStep(svcCtx, step.ID, sessionID, scenario)
 			svc.emit(convID, "step_complete", map[string]any{
 				"scenarioID":    scenario.ID,
 				"scenarioIndex": step.ScenarioIndex,

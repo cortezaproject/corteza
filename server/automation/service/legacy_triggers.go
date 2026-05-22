@@ -2,6 +2,19 @@ package service
 
 import "github.com/crusttech/human/server/automation/types"
 
+func chatbotStepProperties() []types.ConstructTriggerProperty {
+	return []types.ConstructTriggerProperty{
+		{Name: "chatbotID", Type: "ID", Meta: types.ConstructTriggerPropertyMeta{Short: "Chatbot ID"}},
+		{Name: "sessionID", Type: "ID", Meta: types.ConstructTriggerPropertyMeta{Short: "Session ID"}},
+		{Name: "stepID", Type: "ID", Meta: types.ConstructTriggerPropertyMeta{Short: "Step ID"}},
+		{Name: "agentID", Type: "ID", Meta: types.ConstructTriggerPropertyMeta{Short: "Agent ID"}},
+		{Name: "steps", Type: "", Meta: types.ConstructTriggerPropertyMeta{
+			Short:       "Steps",
+			Description: "State of completed scenario steps keyed by scenarioID. Each entry: steps.<scenarioID>.form.{fields,submitted} or steps.<scenarioID>.conversation.{conversationID,handoff}",
+		}},
+	}
+}
+
 func recordConstraints() []types.ConstructTriggerConstraint {
 	return []types.ConstructTriggerConstraint{
 		{Name: "namespace", Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true},
@@ -86,6 +99,28 @@ func init() {
 				Description: "Triggered by an Agent providing a variable payload",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "sparkles"},
 			},
+		},
+		types.ConstructTrigger{
+			ResourceType: "corteza::system:chatbot",
+			EventType:    "onBeforeStep",
+			Groups:       []string{"Chatbot"},
+			Meta: &types.ConstructTriggerMeta{
+				Short:       "Before Chatbot Step",
+				Description: "Triggered before a chatbot scenario step executes. steps contains state from all previously completed steps.",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "comments"},
+			},
+			Properties: chatbotStepProperties(),
+		},
+		types.ConstructTrigger{
+			ResourceType: "corteza::system:chatbot",
+			EventType:    "onAfterStep",
+			Groups:       []string{"Chatbot"},
+			Meta: &types.ConstructTriggerMeta{
+				Short:       "After Chatbot Step",
+				Description: "Triggered after a chatbot scenario step completes. steps contains state from all steps including the current one.",
+				Icon:        &types.NgAutomationIcon{Type: "name", Value: "comments"},
+			},
+			Properties: chatbotStepProperties(),
 		},
 		types.ConstructTrigger{
 			ResourceType: "compose:record",

@@ -115,8 +115,25 @@ type (
 	}
 
 	ChatbotAutomationHook struct {
-		Automation string `json:"automation"`
-		Async      bool   `json:"async"`
+		Automation string               `json:"automation"`
+		Async      bool                 `json:"async"`
+		Mappings   []ChatbotHookMapping `json:"mappings,omitempty"`
+	}
+
+	// ChatbotHookMapping maps a chatbot session state expression to a TAQ trigger input param.
+	// StateExpression mirrors automation/types.Expr (circular import prevents direct use).
+	ChatbotHookMapping struct {
+		StateExpression ChatbotStateExpression `json:"stateExpression"`
+		TriggerParam    string                 `json:"triggerParam"`
+	}
+
+	// ChatbotStateExpression holds an expression evaluated against chatbot session/step state.
+	// Fields mirror automation/types.Expr Source/Expr/Value/Type for eval compatibility.
+	ChatbotStateExpression struct {
+		Source string      `json:"source,omitempty"`
+		Expr   string      `json:"expr,omitempty"`
+		Value  interface{} `json:"value,omitempty"`
+		Type   string      `json:"type,omitempty"`
 	}
 
 	ChatbotScenarios []ChatbotScenario

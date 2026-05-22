@@ -15,7 +15,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/crusttech/human/server/pkg/auth"
-	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/service"
@@ -43,7 +42,7 @@ type AiConversationStore interface {
 // ChatbotSessionService is satisfied by service.ChatbotSession().
 type ChatbotSessionService interface {
 	Open(ctx context.Context, cb *types.Chatbot) (*types.ChatbotSession, *types.AiConversation, error)
-	Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int, vars *expr.Vars)
+	Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int)
 	SubmitMessage(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, input string) error
 	SubmitForm(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, fields map[string]string) (map[string]string, error)
 	AdvanceStep(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64) error
@@ -215,7 +214,7 @@ func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Kick off step 0 asynchronously so SSE listeners attach in time.
-	go c.sessionSvc.Start(context.Background(), cb, session.ID, conv.ID, 0, nil)
+	go c.sessionSvc.Start(context.Background(), cb, session.ID, conv.ID, 0)
 }
 
 // submit dispatches on payload.type — message or form.
