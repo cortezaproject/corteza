@@ -36,7 +36,7 @@ export class WidgetAPI {
   }
 
   async openSession(): Promise<Session> {
-    const r = await fetch(`${this.base}/session`, {
+    const r = await fetch(`${this.base}/session?widgetKey=${encodeURIComponent(this.key)}`, {
       method: 'POST',
       credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
