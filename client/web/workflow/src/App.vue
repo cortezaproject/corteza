@@ -86,7 +86,7 @@
 
     <CPrompts />
     <CNotificationSidebar />
-    <CAgentSidebar />
+    <CAgentSidebar :context-provider="agentContextProvider" />
     <CPermissionsDialog />
     <CTopbarSearch
       ref="searchRef"
@@ -111,6 +111,7 @@ import { useWorkflowStore } from '@/stores/workflow'
 import {
   components,
   providePermissions,
+  useAgentRouteContextProvider,
   useApplicationsStore,
   useNotificationsStore,
   useRBACStore,
@@ -134,6 +135,8 @@ const {
 
 // Provide permissions dialog context for the entire app
 providePermissions()
+
+const agentContextProvider = useAgentRouteContextProvider('workflow')
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

@@ -14,12 +14,12 @@
 <script setup lang="ts">
 import { inject, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAgentSidebarStore } from '../../stores/useAgentSidebarStore'
+import { useAgentChatStore } from '../../stores/useAgentChatStore'
 
 const { t } = useI18n()
 const tooltipText = computed(() => t('agent.sidebar.title'))
 
-const agentStore = useAgentSidebarStore()
+const agentStore = useAgentChatStore()
 const $SystemAPI = inject<any>('$SystemAPI')
 const $Auth = inject<any>('$Auth')
 

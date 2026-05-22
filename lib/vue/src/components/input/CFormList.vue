@@ -1,5 +1,5 @@
 <template>
-  <div class="border border-surface rounded-border p-3 pt-2 overflow-x-auto">
+  <div>
     <div
       v-if="!items.length && !$slots.footer && emptyMessage"
       class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"

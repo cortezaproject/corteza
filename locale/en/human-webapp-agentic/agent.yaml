@@ -222,3 +222,9 @@ sidebar:
   placeholder: Message...
   thinking: Thinking...
   noAgents: No assistant agents are configured for your account.
+  history:
+    button: History
+    empty: No previous conversations
+    loading: Loading…
+    deleteTooltip: Delete conversation
+    untitled: New conversation

@@ -217,6 +217,11 @@ type (
 		//
 		// Conversation ID for multi-turn
 		ConversationID uint64 `json:",string"`
+
+		// Context POST parameter
+		//
+		// Caller-supplied execution context exposed to the agent prompt
+		Context map[string]interface{}
 	}
 )
 
@@ -1056,6 +1061,7 @@ func (r AgentExec) Auditable() map[string]interface{} {
 		"agentID":        r.AgentID,
 		"input":          r.Input,
 		"conversationID": r.ConversationID,
+		"context":        r.Context,
 	}
 }
 
@@ -1072,6 +1078,11 @@ func (r AgentExec) GetInput() string {
 // Auditable returns all auditable/loggable parameters
 func (r AgentExec) GetConversationID() uint64 {
 	return r.ConversationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentExec) GetContext() map[string]interface{} {
+	return r.Context
 }
 
 // Fill processes request and fills internal variables
@@ -1108,6 +1119,18 @@ func (r *AgentExec) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["context[]"]; ok {
+				r.Context, err = parseMapStringInterface(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["context"]; ok {
+				r.Context, err = parseMapStringInterface(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1127,6 +1150,18 @@ func (r *AgentExec) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["conversationID"]; ok && len(val) > 0 {
 			r.ConversationID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["context[]"]; ok {
+			r.Context, err = parseMapStringInterface(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["context"]; ok {
+			r.Context, err = parseMapStringInterface(val)
 			if err != nil {
 				return err
 			}

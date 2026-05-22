@@ -86,7 +86,7 @@
 
     <CPrompts />
     <CNotificationSidebar />
-    <CAgentSidebar />
+    <CAgentSidebar :context-provider="agentContextProvider" />
     <CPermissionsDialog />
     <CTopbarSearch
       ref="searchRef"
@@ -111,6 +111,7 @@ import { useAgentStore } from '@/stores/agent'
 import {
   components,
   providePermissions,
+  useAgentRouteContextProvider,
   useApplicationsStore,
   useNotificationsStore,
   useRBACStore,
@@ -133,6 +134,8 @@ const {
 } = components
 
 providePermissions()
+
+const agentContextProvider = useAgentRouteContextProvider('agentic')
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

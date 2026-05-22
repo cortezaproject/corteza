@@ -89,7 +89,15 @@ export default class Compose {
 
   // List namespaces
   async namespaceList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, slug, limit, incTotal, labels, pageCursor, sort } = (a as KV) || {}
+    const {
+      query,
+      slug,
+      limit,
+      incTotal,
+      labels,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -111,8 +119,7 @@ export default class Compose {
   }
 
   namespaceListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -131,7 +138,13 @@ export default class Compose {
 
   // Create namespace
   async namespaceCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { name, labels, slug, enabled, meta } = (a as KV) || {}
+    const {
+      name,
+      labels,
+      slug,
+      enabled,
+      meta,
+    } = (a as KV) || {}
     if (!name) {
       throw Error('field name is empty')
     }
@@ -156,8 +169,7 @@ export default class Compose {
   }
 
   namespaceCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -176,7 +188,9 @@ export default class Compose {
 
   // Read namespace
   async namespaceRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID } = (a as KV) || {}
+    const {
+      namespaceID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -194,8 +208,7 @@ export default class Compose {
   }
 
   namespaceReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -209,13 +222,23 @@ export default class Compose {
   }
 
   namespaceReadEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}`
   }
 
   // Update namespace
   async namespaceUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, name, slug, enabled, meta, labels, updatedAt } = (a as KV) || {}
+    const {
+      namespaceID,
+      name,
+      slug,
+      enabled,
+      meta,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -246,8 +269,7 @@ export default class Compose {
   }
 
   namespaceUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -261,13 +283,17 @@ export default class Compose {
   }
 
   namespaceUpdateEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}`
   }
 
   // Delete namespace
   async namespaceDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID } = (a as KV) || {}
+    const {
+      namespaceID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -285,8 +311,7 @@ export default class Compose {
   }
 
   namespaceDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -300,13 +325,17 @@ export default class Compose {
   }
 
   namespaceDeleteEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}`
   }
 
   // Upload namespace assets
   async namespaceUpload(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { upload } = (a as KV) || {}
+    const {
+      upload,
+    } = (a as KV) || {}
     if (!upload) {
       throw Error('field upload is empty')
     }
@@ -324,8 +353,7 @@ export default class Compose {
   }
 
   namespaceUploadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -344,7 +372,11 @@ export default class Compose {
 
   // Clone compose namespace
   async namespaceClone(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, name, slug } = (a as KV) || {}
+    const {
+      namespaceID,
+      name,
+      slug,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -368,8 +400,7 @@ export default class Compose {
   }
 
   namespaceCloneCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -383,13 +414,18 @@ export default class Compose {
   }
 
   namespaceCloneEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/clone`
   }
 
   // Export compose namespace
   async namespaceExport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, filename } = (a as KV) || {}
+    const {
+      namespaceID,
+      filename,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -400,8 +436,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.namespaceExportEndpoint({
-        namespaceID,
-        filename,
+        namespaceID, filename,
       }),
     }
 
@@ -411,8 +446,7 @@ export default class Compose {
   }
 
   namespaceExportCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -426,13 +460,18 @@ export default class Compose {
   }
 
   namespaceExportEndpoint(a: KV): string {
-    const { namespaceID, filename } = a || {}
+    const {
+      namespaceID,
+      filename,
+    } = a || {}
     return `/namespace/${namespaceID}/export/${filename}.zip`
   }
 
   // Initiate namespace import session
   async namespaceImportInit(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { upload } = (a as KV) || {}
+    const {
+      upload,
+    } = (a as KV) || {}
     if (!upload) {
       throw Error('field upload is empty')
     }
@@ -450,8 +489,7 @@ export default class Compose {
   }
 
   namespaceImportInitCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -470,7 +508,11 @@ export default class Compose {
 
   // Run namespace import
   async namespaceImportRun(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { sessionID, name, slug } = (a as KV) || {}
+    const {
+      sessionID,
+      name,
+      slug,
+    } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -494,8 +536,7 @@ export default class Compose {
   }
 
   namespaceImportRunCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -509,13 +550,19 @@ export default class Compose {
   }
 
   namespaceImportRunEndpoint(a: KV): string {
-    const { sessionID } = a || {}
+    const {
+      sessionID,
+    } = a || {}
     return `/namespace/import/${sessionID}`
   }
 
   // Fire compose:namespace trigger
   async namespaceTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, script, args } = (a as KV) || {}
+    const {
+      namespaceID,
+      script,
+      args,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -539,8 +586,7 @@ export default class Compose {
   }
 
   namespaceTriggerScriptCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -554,13 +600,17 @@ export default class Compose {
   }
 
   namespaceTriggerScriptEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/trigger`
   }
 
   // List translation
   async namespaceListTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID } = (a as KV) || {}
+    const {
+      namespaceID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -578,8 +628,7 @@ export default class Compose {
   }
 
   namespaceListTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -593,13 +642,18 @@ export default class Compose {
   }
 
   namespaceListTranslationsEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/translation`
   }
 
   // Update translation
   async namespaceUpdateTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, translations } = (a as KV) || {}
+    const {
+      namespaceID,
+      translations,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -622,8 +676,7 @@ export default class Compose {
   }
 
   namespaceUpdateTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -637,14 +690,25 @@ export default class Compose {
   }
 
   namespaceUpdateTranslationsEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/translation`
   }
 
   // List available pages
   async pageList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, selfID, moduleID, query, handle, labels, limit, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      selfID,
+      moduleID,
+      query,
+      handle,
+      labels,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -672,8 +736,7 @@ export default class Compose {
   }
 
   pageListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -687,7 +750,9 @@ export default class Compose {
   }
 
   pageListEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/`
   }
 
@@ -739,8 +804,7 @@ export default class Compose {
   }
 
   pageCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -754,13 +818,18 @@ export default class Compose {
   }
 
   pageCreateEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/`
   }
 
   // Get page details
   async pageRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -771,8 +840,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.pageReadEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
 
@@ -782,8 +850,7 @@ export default class Compose {
   }
 
   pageReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -797,13 +864,18 @@ export default class Compose {
   }
 
   pageReadEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}`
   }
 
   // Get page all (non-record) pages, hierarchically
   async pageTree(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID } = (a as KV) || {}
+    const {
+      namespaceID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -821,8 +893,7 @@ export default class Compose {
   }
 
   pageTreeCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -836,7 +907,9 @@ export default class Compose {
   }
 
   pageTreeEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/tree`
   }
 
@@ -871,8 +944,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageUpdateEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -895,8 +967,7 @@ export default class Compose {
   }
 
   pageUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -910,13 +981,20 @@ export default class Compose {
   }
 
   pageUpdateEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}`
   }
 
   // Reorder pages
   async pageReorder(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, selfID, pageIDs } = (a as KV) || {}
+    const {
+      namespaceID,
+      selfID,
+      pageIDs,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -930,8 +1008,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageReorderEndpoint({
-        namespaceID,
-        selfID,
+        namespaceID, selfID,
       }),
     }
     cfg.data = {
@@ -943,8 +1020,7 @@ export default class Compose {
   }
 
   pageReorderCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -958,13 +1034,20 @@ export default class Compose {
   }
 
   pageReorderEndpoint(a: KV): string {
-    const { namespaceID, selfID } = a || {}
+    const {
+      namespaceID,
+      selfID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${selfID}/reorder`
   }
 
   // Delete page
   async pageDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, strategy } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      strategy,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -975,8 +1058,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.pageDeleteEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.params = {
@@ -989,8 +1071,7 @@ export default class Compose {
   }
 
   pageDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1004,13 +1085,20 @@ export default class Compose {
   }
 
   pageDeleteEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}`
   }
 
   // Uploads attachment to page
   async pageUpload(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, upload } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      upload,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1024,8 +1112,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageUploadEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -1037,8 +1124,7 @@ export default class Compose {
   }
 
   pageUploadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1052,13 +1138,21 @@ export default class Compose {
   }
 
   pageUploadEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/attachment`
   }
 
   // Fire compose:page trigger
   async pageTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, script, args } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      script,
+      args,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1072,8 +1166,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageTriggerScriptEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -1086,8 +1179,7 @@ export default class Compose {
   }
 
   pageTriggerScriptCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1101,13 +1193,19 @@ export default class Compose {
   }
 
   pageTriggerScriptEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/trigger`
   }
 
   // List page translation
   async pageListTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1118,8 +1216,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.pageListTranslationsEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
 
@@ -1129,8 +1226,7 @@ export default class Compose {
   }
 
   pageListTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1144,13 +1240,20 @@ export default class Compose {
   }
 
   pageListTranslationsEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/translation`
   }
 
   // Update page translation
   async pageUpdateTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, translations } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      translations,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1164,8 +1267,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.pageUpdateTranslationsEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -1177,8 +1279,7 @@ export default class Compose {
   }
 
   pageUpdateTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1192,13 +1293,22 @@ export default class Compose {
   }
 
   pageUpdateTranslationsEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/translation`
   }
 
   // Update icon for page
   async pageUpdateIcon(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, type, source, style } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      type,
+      source,
+      style,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1212,8 +1322,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.pageUpdateIconEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -1227,8 +1336,7 @@ export default class Compose {
   }
 
   pageUpdateIconCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1242,13 +1350,21 @@ export default class Compose {
   }
 
   pageUpdateIconEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/icon`
   }
 
   // List icons
   async iconList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const {
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1267,8 +1383,7 @@ export default class Compose {
   }
 
   iconListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1287,7 +1402,9 @@ export default class Compose {
 
   // Upload icon
   async iconUpload(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { icon } = (a as KV) || {}
+    const {
+      icon,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -1302,8 +1419,7 @@ export default class Compose {
   }
 
   iconUploadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1322,7 +1438,9 @@ export default class Compose {
 
   // Delete icon
   async iconDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { iconID } = (a as KV) || {}
+    const {
+      iconID,
+    } = (a as KV) || {}
     if (!iconID) {
       throw Error('field iconID is empty')
     }
@@ -1340,8 +1458,7 @@ export default class Compose {
   }
 
   iconDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1355,7 +1472,9 @@ export default class Compose {
   }
 
   iconDeleteEndpoint(a: KV): string {
-    const { iconID } = a || {}
+    const {
+      iconID,
+    } = a || {}
     return `/icon/${iconID}`
   }
 
@@ -1401,8 +1520,7 @@ export default class Compose {
   }
 
   pageLayoutListNamespaceCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1416,7 +1534,9 @@ export default class Compose {
   }
 
   pageLayoutListNamespaceEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/page-layout`
   }
 
@@ -1444,8 +1564,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.pageLayoutListEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.params = {
@@ -1465,8 +1584,7 @@ export default class Compose {
   }
 
   pageLayoutListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1480,7 +1598,10 @@ export default class Compose {
   }
 
   pageLayoutListEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/`
   }
 
@@ -1509,8 +1630,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageLayoutCreateEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -1530,8 +1650,7 @@ export default class Compose {
   }
 
   pageLayoutCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1545,13 +1664,20 @@ export default class Compose {
   }
 
   pageLayoutCreateEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/`
   }
 
   // Get page details
   async pageLayoutRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, pageLayoutID } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1565,9 +1691,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.pageLayoutReadEndpoint({
-        namespaceID,
-        pageID,
-        pageLayoutID,
+        namespaceID, pageID, pageLayoutID,
       }),
     }
 
@@ -1577,8 +1701,7 @@ export default class Compose {
   }
 
   pageLayoutReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1592,7 +1715,11 @@ export default class Compose {
   }
 
   pageLayoutReadEndpoint(a: KV): string {
-    const { namespaceID, pageID, pageLayoutID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
   }
 
@@ -1626,9 +1753,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageLayoutUpdateEndpoint({
-        namespaceID,
-        pageID,
-        pageLayoutID,
+        namespaceID, pageID, pageLayoutID,
       }),
     }
     cfg.data = {
@@ -1649,8 +1774,7 @@ export default class Compose {
   }
 
   pageLayoutUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1664,13 +1788,21 @@ export default class Compose {
   }
 
   pageLayoutUpdateEndpoint(a: KV): string {
-    const { namespaceID, pageID, pageLayoutID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
   }
 
   // Reorder page layouts
   async pageLayoutReorder(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, pageIDs } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      pageIDs,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1684,8 +1816,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageLayoutReorderEndpoint({
-        namespaceID,
-        pageID,
+        namespaceID, pageID,
       }),
     }
     cfg.data = {
@@ -1697,8 +1828,7 @@ export default class Compose {
   }
 
   pageLayoutReorderCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1712,13 +1842,21 @@ export default class Compose {
   }
 
   pageLayoutReorderEndpoint(a: KV): string {
-    const { namespaceID, pageID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/reorder`
   }
 
   // Delete page layout
   async pageLayoutDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, pageLayoutID, strategy } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+      strategy,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1732,9 +1870,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.pageLayoutDeleteEndpoint({
-        namespaceID,
-        pageID,
-        pageLayoutID,
+        namespaceID, pageID, pageLayoutID,
       }),
     }
     cfg.params = {
@@ -1747,8 +1883,7 @@ export default class Compose {
   }
 
   pageLayoutDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1762,13 +1897,21 @@ export default class Compose {
   }
 
   pageLayoutDeleteEndpoint(a: KV): string {
-    const { namespaceID, pageID, pageLayoutID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
   }
 
   // Undelete soft deleted Delete page layout
   async pageLayoutUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, pageLayoutID } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1782,9 +1925,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.pageLayoutUndeleteEndpoint({
-        namespaceID,
-        pageID,
-        pageLayoutID,
+        namespaceID, pageID, pageLayoutID,
       }),
     }
 
@@ -1794,8 +1935,7 @@ export default class Compose {
   }
 
   pageLayoutUndeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1809,13 +1949,21 @@ export default class Compose {
   }
 
   pageLayoutUndeleteEndpoint(a: KV): string {
-    const { namespaceID, pageID, pageLayoutID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}/undelete`
   }
 
   // List page layout translation
   async pageLayoutListTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, pageLayoutID } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1829,9 +1977,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.pageLayoutListTranslationsEndpoint({
-        namespaceID,
-        pageID,
-        pageLayoutID,
+        namespaceID, pageID, pageLayoutID,
       }),
     }
 
@@ -1841,8 +1987,7 @@ export default class Compose {
   }
 
   pageLayoutListTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1856,13 +2001,22 @@ export default class Compose {
   }
 
   pageLayoutListTranslationsEndpoint(a: KV): string {
-    const { namespaceID, pageID, pageLayoutID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}/translation`
   }
 
   // Update page layout translation
   async pageLayoutUpdateTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, pageID, pageLayoutID, translations } = (a as KV) || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+      translations,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1879,9 +2033,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.pageLayoutUpdateTranslationsEndpoint({
-        namespaceID,
-        pageID,
-        pageLayoutID,
+        namespaceID, pageID, pageLayoutID,
       }),
     }
     cfg.data = {
@@ -1893,8 +2045,7 @@ export default class Compose {
   }
 
   pageLayoutUpdateTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1908,14 +2059,27 @@ export default class Compose {
   }
 
   pageLayoutUpdateTranslationsEndpoint(a: KV): string {
-    const { namespaceID, pageID, pageLayoutID } = a || {}
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}/translation`
   }
 
   // List modules
   async moduleList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, query, name, handle, limit, incTotal, pageCursor, labels, sort } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      query,
+      name,
+      handle,
+      limit,
+      incTotal,
+      pageCursor,
+      labels,
+      sort,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1943,8 +2107,7 @@ export default class Compose {
   }
 
   moduleListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1958,13 +2121,23 @@ export default class Compose {
   }
 
   moduleListEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/`
   }
 
   // Create module
   async moduleCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, name, handle, config, meta, fields, labels } = (a as KV) || {}
+    const {
+      namespaceID,
+      name,
+      handle,
+      config,
+      meta,
+      fields,
+      labels,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1998,8 +2171,7 @@ export default class Compose {
   }
 
   moduleCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2013,13 +2185,18 @@ export default class Compose {
   }
 
   moduleCreateEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/`
   }
 
   // Read module
   async moduleRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2030,8 +2207,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.moduleReadEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
 
@@ -2041,8 +2217,7 @@ export default class Compose {
   }
 
   moduleReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2056,14 +2231,26 @@ export default class Compose {
   }
 
   moduleReadEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}`
   }
 
   // Update module
   async moduleUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, name, handle, config, meta, fields, labels, updatedAt } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      name,
+      handle,
+      config,
+      meta,
+      fields,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2083,8 +2270,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.moduleUpdateEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2102,8 +2288,7 @@ export default class Compose {
   }
 
   moduleUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2117,13 +2302,19 @@ export default class Compose {
   }
 
   moduleUpdateEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}`
   }
 
   // Delete module
   async moduleDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2134,8 +2325,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.moduleDeleteEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
 
@@ -2145,8 +2335,7 @@ export default class Compose {
   }
 
   moduleDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2160,13 +2349,21 @@ export default class Compose {
   }
 
   moduleDeleteEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}`
   }
 
   // Fire compose:module trigger
   async moduleTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, script, args } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      script,
+      args,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2180,8 +2377,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.moduleTriggerScriptEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2194,8 +2390,7 @@ export default class Compose {
   }
 
   moduleTriggerScriptCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2209,13 +2404,19 @@ export default class Compose {
   }
 
   moduleTriggerScriptEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/trigger`
   }
 
   // List moudle translation
   async moduleListTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2226,8 +2427,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.moduleListTranslationsEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
 
@@ -2237,8 +2437,7 @@ export default class Compose {
   }
 
   moduleListTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2252,13 +2451,20 @@ export default class Compose {
   }
 
   moduleListTranslationsEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/translation`
   }
 
   // Update module translation
   async moduleUpdateTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, translations } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      translations,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2272,8 +2478,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.moduleUpdateTranslationsEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2285,8 +2490,7 @@ export default class Compose {
   }
 
   moduleUpdateTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2300,13 +2504,22 @@ export default class Compose {
   }
 
   moduleUpdateTranslationsEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/translation`
   }
 
   // Generates report from module records
   async recordReport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, metrics, dimensions, filter } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      metrics,
+      dimensions,
+      filter,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2320,8 +2533,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.recordReportEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.params = {
@@ -2336,8 +2548,7 @@ export default class Compose {
   }
 
   recordReportCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2351,7 +2562,10 @@ export default class Compose {
   }
 
   recordReportEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/report`
   }
 
@@ -2380,8 +2594,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.recordListEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.params = {
@@ -2402,8 +2615,7 @@ export default class Compose {
   }
 
   recordListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2417,13 +2629,20 @@ export default class Compose {
   }
 
   recordListEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/`
   }
 
   // Initiate record import session
   async recordImportInit(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, upload } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      upload,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2437,8 +2656,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordImportInitEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2450,8 +2668,7 @@ export default class Compose {
   }
 
   recordImportInitCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2465,14 +2682,23 @@ export default class Compose {
   }
 
   recordImportInitEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/import`
   }
 
   // Run record import
   async recordImportRun(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, sessionID, fields, onError, multiValueDelimiter } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      sessionID,
+      fields,
+      onError,
+      multiValueDelimiter,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2492,9 +2718,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.recordImportRunEndpoint({
-        namespaceID,
-        moduleID,
-        sessionID,
+        namespaceID, moduleID, sessionID,
       }),
     }
     cfg.data = {
@@ -2508,8 +2732,7 @@ export default class Compose {
   }
 
   recordImportRunCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2523,13 +2746,21 @@ export default class Compose {
   }
 
   recordImportRunEndpoint(a: KV): string {
-    const { namespaceID, moduleID, sessionID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      sessionID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/import/${sessionID}`
   }
 
   // Get import progress
   async recordImportProgress(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, sessionID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      sessionID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2543,9 +2774,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.recordImportProgressEndpoint({
-        namespaceID,
-        moduleID,
-        sessionID,
+        namespaceID, moduleID, sessionID,
       }),
     }
 
@@ -2555,8 +2784,7 @@ export default class Compose {
   }
 
   recordImportProgressCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2570,7 +2798,11 @@ export default class Compose {
   }
 
   recordImportProgressEndpoint(a: KV): string {
-    const { namespaceID, moduleID, sessionID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      sessionID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/import/${sessionID}`
   }
 
@@ -2604,10 +2836,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.recordExportEndpoint({
-        namespaceID,
-        moduleID,
-        filename,
-        ext,
+        namespaceID, moduleID, filename, ext,
       }),
     }
     cfg.params = {
@@ -2625,8 +2854,7 @@ export default class Compose {
   }
 
   recordExportCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2640,13 +2868,23 @@ export default class Compose {
   }
 
   recordExportEndpoint(a: KV): string {
-    const { namespaceID, moduleID, filename, ext } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      filename,
+      ext,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/export${filename}.${ext}`
   }
 
   // Executes server-side procedure over one or more module records
   async recordExec(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, procedure, args } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      procedure,
+      args,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2660,9 +2898,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordExecEndpoint({
-        namespaceID,
-        moduleID,
-        procedure,
+        namespaceID, moduleID, procedure,
       }),
     }
     cfg.data = {
@@ -2674,8 +2910,7 @@ export default class Compose {
   }
 
   recordExecCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2689,13 +2924,24 @@ export default class Compose {
   }
 
   recordExecEndpoint(a: KV): string {
-    const { namespaceID, moduleID, procedure } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      procedure,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/exec/${procedure}`
   }
 
   // Create record in module section
   async recordCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, values, ownedBy, records, meta } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      values,
+      ownedBy,
+      records,
+      meta,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2706,8 +2952,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordCreateEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2722,8 +2967,7 @@ export default class Compose {
   }
 
   recordCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2737,13 +2981,20 @@ export default class Compose {
   }
 
   recordCreateEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/`
   }
 
   // Read records by ID from module section
   async recordRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2757,9 +3008,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.recordReadEndpoint({
-        namespaceID,
-        moduleID,
-        recordID,
+        namespaceID, moduleID, recordID,
       }),
     }
 
@@ -2769,8 +3018,7 @@ export default class Compose {
   }
 
   recordReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2784,14 +3032,26 @@ export default class Compose {
   }
 
   recordReadEndpoint(a: KV): string {
-    const { namespaceID, moduleID, recordID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}`
   }
 
   // Update records in module section
   async recordUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID, values, ownedBy, meta, records, updatedAt } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+      values,
+      ownedBy,
+      meta,
+      records,
+      updatedAt,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2805,9 +3065,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordUpdateEndpoint({
-        namespaceID,
-        moduleID,
-        recordID,
+        namespaceID, moduleID, recordID,
       }),
     }
     cfg.data = {
@@ -2823,8 +3081,7 @@ export default class Compose {
   }
 
   recordUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2838,13 +3095,22 @@ export default class Compose {
   }
 
   recordUpdateEndpoint(a: KV): string {
-    const { namespaceID, moduleID, recordID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}`
   }
 
   // Partially update record values
   async recordPatch(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, values, query } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      values,
+      query,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2855,8 +3121,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.recordPatchEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2869,8 +3134,7 @@ export default class Compose {
   }
 
   recordPatchCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2884,13 +3148,21 @@ export default class Compose {
   }
 
   recordPatchEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/`
   }
 
   // Delete record row from module section
   async recordBulkDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, truncate, query } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      truncate,
+      query,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2901,8 +3173,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.recordBulkDeleteEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -2915,8 +3186,7 @@ export default class Compose {
   }
 
   recordBulkDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2930,13 +3200,20 @@ export default class Compose {
   }
 
   recordBulkDeleteEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/`
   }
 
   // Delete record row from module section
   async recordDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2950,9 +3227,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.recordDeleteEndpoint({
-        namespaceID,
-        moduleID,
-        recordID,
+        namespaceID, moduleID, recordID,
       }),
     }
 
@@ -2962,8 +3237,7 @@ export default class Compose {
   }
 
   recordDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2977,13 +3251,21 @@ export default class Compose {
   }
 
   recordDeleteEndpoint(a: KV): string {
-    const { namespaceID, moduleID, recordID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}`
   }
 
   // Undelete soft-deleted record from module section
   async recordUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2997,9 +3279,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordUndeleteEndpoint({
-        namespaceID,
-        moduleID,
-        recordID,
+        namespaceID, moduleID, recordID,
       }),
     }
 
@@ -3009,8 +3289,7 @@ export default class Compose {
   }
 
   recordUndeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3024,13 +3303,21 @@ export default class Compose {
   }
 
   recordUndeleteEndpoint(a: KV): string {
-    const { namespaceID, moduleID, recordID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}/undelete`
   }
 
   // Undelete soft-deleted records from module section
   async recordBulkUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, query } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      query,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3041,8 +3328,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.recordBulkUndeleteEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -3054,8 +3340,7 @@ export default class Compose {
   }
 
   recordBulkUndeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3069,13 +3354,22 @@ export default class Compose {
   }
 
   recordBulkUndeleteEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/undelete`
   }
 
   // Uploads attachment and validates it against record field requirements
   async recordUpload(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID, fieldName, upload } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+      fieldName,
+      upload,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3092,8 +3386,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordUploadEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -3107,8 +3400,7 @@ export default class Compose {
   }
 
   recordUploadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3122,13 +3414,22 @@ export default class Compose {
   }
 
   recordUploadEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/attachment`
   }
 
   // Fire compose:record trigger
   async recordTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID, script, values } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+      script,
+      values,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3148,9 +3449,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordTriggerScriptEndpoint({
-        namespaceID,
-        moduleID,
-        recordID,
+        namespaceID, moduleID, recordID,
       }),
     }
     cfg.data = {
@@ -3163,8 +3462,7 @@ export default class Compose {
   }
 
   recordTriggerScriptCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3178,13 +3476,22 @@ export default class Compose {
   }
 
   recordTriggerScriptEndpoint(a: KV): string {
-    const { namespaceID, moduleID, recordID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}/trigger`
   }
 
   // Fire compose:record trigger
   async recordTriggerScriptOnList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, script, args } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      script,
+      args,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3198,8 +3505,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.recordTriggerScriptOnListEndpoint({
-        namespaceID,
-        moduleID,
+        namespaceID, moduleID,
       }),
     }
     cfg.data = {
@@ -3212,8 +3518,7 @@ export default class Compose {
   }
 
   recordTriggerScriptOnListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3227,13 +3532,21 @@ export default class Compose {
   }
 
   recordTriggerScriptOnListEndpoint(a: KV): string {
-    const { namespaceID, moduleID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/trigger`
   }
 
   // List record revisions
   async recordRevisions(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, recordID, sort } = (a as KV) || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+      sort,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3247,9 +3560,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.recordRevisionsEndpoint({
-        namespaceID,
-        moduleID,
-        recordID,
+        namespaceID, moduleID, recordID,
       }),
     }
     cfg.params = {
@@ -3262,8 +3573,7 @@ export default class Compose {
   }
 
   recordRevisionsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3277,13 +3587,20 @@ export default class Compose {
   }
 
   recordRevisionsEndpoint(a: KV): string {
-    const { namespaceID, moduleID, recordID } = a || {}
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}/revisions`
   }
 
   // List records for data privacy
   async dataPrivacyRecordList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { sensitivityLevelID, connectionID } = (a as KV) || {}
+    const {
+      sensitivityLevelID,
+      connectionID,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -3300,8 +3617,7 @@ export default class Compose {
   }
 
   dataPrivacyRecordListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3320,7 +3636,12 @@ export default class Compose {
 
   // List modules
   async dataPrivacyModuleList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, limit, pageCursor, sort } = (a as KV) || {}
+    const {
+      connectionID,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -3339,8 +3660,7 @@ export default class Compose {
   }
 
   dataPrivacyModuleListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3359,8 +3679,16 @@ export default class Compose {
 
   // List/read charts
   async chartList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, query, handle, labels, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      query,
+      handle,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3387,8 +3715,7 @@ export default class Compose {
   }
 
   chartListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3402,13 +3729,21 @@ export default class Compose {
   }
 
   chartListEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/`
   }
 
   // List/read charts
   async chartCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, config, name, handle, labels } = (a as KV) || {}
+    const {
+      namespaceID,
+      config,
+      name,
+      handle,
+      labels,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3437,8 +3772,7 @@ export default class Compose {
   }
 
   chartCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3452,13 +3786,18 @@ export default class Compose {
   }
 
   chartCreateEndpoint(a: KV): string {
-    const { namespaceID } = a || {}
+    const {
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/`
   }
 
   // Read charts by ID
   async chartRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, chartID } = (a as KV) || {}
+    const {
+      namespaceID,
+      chartID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3469,8 +3808,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.chartReadEndpoint({
-        namespaceID,
-        chartID,
+        namespaceID, chartID,
       }),
     }
 
@@ -3480,8 +3818,7 @@ export default class Compose {
   }
 
   chartReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3495,13 +3832,24 @@ export default class Compose {
   }
 
   chartReadEndpoint(a: KV): string {
-    const { namespaceID, chartID } = a || {}
+    const {
+      namespaceID,
+      chartID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/${chartID}`
   }
 
   // Add/update charts
   async chartUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, chartID, config, name, handle, labels, updatedAt } = (a as KV) || {}
+    const {
+      namespaceID,
+      chartID,
+      config,
+      name,
+      handle,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3518,8 +3866,7 @@ export default class Compose {
       ...extra,
       method: 'post',
       url: this.chartUpdateEndpoint({
-        namespaceID,
-        chartID,
+        namespaceID, chartID,
       }),
     }
     cfg.data = {
@@ -3535,8 +3882,7 @@ export default class Compose {
   }
 
   chartUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3550,13 +3896,19 @@ export default class Compose {
   }
 
   chartUpdateEndpoint(a: KV): string {
-    const { namespaceID, chartID } = a || {}
+    const {
+      namespaceID,
+      chartID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/${chartID}`
   }
 
   // Delete chart
   async chartDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, chartID } = (a as KV) || {}
+    const {
+      namespaceID,
+      chartID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3567,8 +3919,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.chartDeleteEndpoint({
-        namespaceID,
-        chartID,
+        namespaceID, chartID,
       }),
     }
 
@@ -3578,8 +3929,7 @@ export default class Compose {
   }
 
   chartDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3593,13 +3943,19 @@ export default class Compose {
   }
 
   chartDeleteEndpoint(a: KV): string {
-    const { namespaceID, chartID } = a || {}
+    const {
+      namespaceID,
+      chartID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/${chartID}`
   }
 
   // List chart translation
   async chartListTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, chartID } = (a as KV) || {}
+    const {
+      namespaceID,
+      chartID,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3610,8 +3966,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.chartListTranslationsEndpoint({
-        namespaceID,
-        chartID,
+        namespaceID, chartID,
       }),
     }
 
@@ -3621,8 +3976,7 @@ export default class Compose {
   }
 
   chartListTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3636,13 +3990,20 @@ export default class Compose {
   }
 
   chartListTranslationsEndpoint(a: KV): string {
-    const { namespaceID, chartID } = a || {}
+    const {
+      namespaceID,
+      chartID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/${chartID}/translation`
   }
 
   // Update chart translation
   async chartUpdateTranslations(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, chartID, translations } = (a as KV) || {}
+    const {
+      namespaceID,
+      chartID,
+      translations,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3656,8 +4017,7 @@ export default class Compose {
       ...extra,
       method: 'patch',
       url: this.chartUpdateTranslationsEndpoint({
-        namespaceID,
-        chartID,
+        namespaceID, chartID,
       }),
     }
     cfg.data = {
@@ -3669,8 +4029,7 @@ export default class Compose {
   }
 
   chartUpdateTranslationsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3684,13 +4043,23 @@ export default class Compose {
   }
 
   chartUpdateTranslationsEndpoint(a: KV): string {
-    const { namespaceID, chartID } = a || {}
+    const {
+      namespaceID,
+      chartID,
+    } = a || {}
     return `/namespace/${namespaceID}/chart/${chartID}/translation`
   }
 
   // Send email from the Compose
   async notificationEmailSend(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { to, cc, replyTo, subject, content, remoteAttachments } = (a as KV) || {}
+    const {
+      to,
+      cc,
+      replyTo,
+      subject,
+      content,
+      remoteAttachments,
+    } = (a as KV) || {}
     if (!to) {
       throw Error('field to is empty')
     }
@@ -3716,8 +4085,7 @@ export default class Compose {
   }
 
   notificationEmailSendCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3758,8 +4126,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.attachmentListEndpoint({
-        kind,
-        namespaceID,
+        kind, namespaceID,
       }),
     }
     cfg.params = {
@@ -3779,8 +4146,7 @@ export default class Compose {
   }
 
   attachmentListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3794,13 +4160,22 @@ export default class Compose {
   }
 
   attachmentListEndpoint(a: KV): string {
-    const { kind, namespaceID } = a || {}
+    const {
+      kind,
+      namespaceID,
+    } = a || {}
     return `/namespace/${namespaceID}/attachment/${kind}/`
   }
 
   // Attachment details
   async attachmentRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { kind, namespaceID, attachmentID, sign, userID } = (a as KV) || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+      sign,
+      userID,
+    } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -3814,9 +4189,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.attachmentReadEndpoint({
-        kind,
-        namespaceID,
-        attachmentID,
+        kind, namespaceID, attachmentID,
       }),
     }
     cfg.params = {
@@ -3830,8 +4203,7 @@ export default class Compose {
   }
 
   attachmentReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3845,13 +4217,23 @@ export default class Compose {
   }
 
   attachmentReadEndpoint(a: KV): string {
-    const { kind, namespaceID, attachmentID } = a || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+    } = a || {}
     return `/namespace/${namespaceID}/attachment/${kind}/${attachmentID}`
   }
 
   // Delete attachment
   async attachmentDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { kind, namespaceID, attachmentID, sign, userID } = (a as KV) || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+      sign,
+      userID,
+    } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -3865,9 +4247,7 @@ export default class Compose {
       ...extra,
       method: 'delete',
       url: this.attachmentDeleteEndpoint({
-        kind,
-        namespaceID,
-        attachmentID,
+        kind, namespaceID, attachmentID,
       }),
     }
     cfg.params = {
@@ -3881,8 +4261,7 @@ export default class Compose {
   }
 
   attachmentDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3896,13 +4275,25 @@ export default class Compose {
   }
 
   attachmentDeleteEndpoint(a: KV): string {
-    const { kind, namespaceID, attachmentID } = a || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+    } = a || {}
     return `/namespace/${namespaceID}/attachment/${kind}/${attachmentID}`
   }
 
   // Serves attached file
   async attachmentOriginal(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { kind, namespaceID, attachmentID, name, sign, userID, download } = (a as KV) || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+      name,
+      sign,
+      userID,
+      download,
+    } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -3919,10 +4310,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.attachmentOriginalEndpoint({
-        kind,
-        namespaceID,
-        attachmentID,
-        name,
+        kind, namespaceID, attachmentID, name,
       }),
     }
     cfg.params = {
@@ -3937,8 +4325,7 @@ export default class Compose {
   }
 
   attachmentOriginalCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3952,13 +4339,25 @@ export default class Compose {
   }
 
   attachmentOriginalEndpoint(a: KV): string {
-    const { kind, namespaceID, attachmentID, name } = a || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+      name,
+    } = a || {}
     return `/namespace/${namespaceID}/attachment/${kind}/${attachmentID}/original/${name}`
   }
 
   // Serves preview of an attached file
   async attachmentPreview(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { kind, namespaceID, attachmentID, ext, sign, userID } = (a as KV) || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+      ext,
+      sign,
+      userID,
+    } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -3975,10 +4374,7 @@ export default class Compose {
       ...extra,
       method: 'get',
       url: this.attachmentPreviewEndpoint({
-        kind,
-        namespaceID,
-        attachmentID,
-        ext,
+        kind, namespaceID, attachmentID, ext,
       }),
     }
     cfg.params = {
@@ -3992,8 +4388,7 @@ export default class Compose {
   }
 
   attachmentPreviewCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4007,12 +4402,18 @@ export default class Compose {
   }
 
   attachmentPreviewEndpoint(a: KV): string {
-    const { kind, namespaceID, attachmentID, ext } = a || {}
+    const {
+      kind,
+      namespaceID,
+      attachmentID,
+      ext,
+    } = a || {}
     return `/namespace/${namespaceID}/attachment/${kind}/${attachmentID}/preview.${ext}`
   }
 
   // Retrieve defined permissions
   async permissionsList(extra: AxiosRequestConfig = {}): Promise<KV> {
+
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4024,10 +4425,9 @@ export default class Compose {
       .then(result => stdResolve(result))
   }
 
-  permissionsListCancellable(extra: AxiosRequestConfig = {}): {
-    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
-    cancel: () => void
-  } {
+  permissionsListCancellable(
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -4045,7 +4445,9 @@ export default class Compose {
 
   // Effective rules for current user
   async permissionsEffective(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { resource } = (a as KV) || {}
+    const {
+      resource,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4061,8 +4463,7 @@ export default class Compose {
   }
 
   permissionsEffectiveCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4081,7 +4482,11 @@ export default class Compose {
 
   // Evaluate rules for given user/role combo
   async permissionsTrace(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { resource, userID, roleID } = (a as KV) || {}
+    const {
+      resource,
+      userID,
+      roleID,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4099,8 +4504,7 @@ export default class Compose {
   }
 
   permissionsTraceCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4119,7 +4523,10 @@ export default class Compose {
 
   // Retrieve role permissions
   async permissionsRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { roleID, resource } = (a as KV) || {}
+    const {
+      roleID,
+      resource,
+    } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -4140,8 +4547,7 @@ export default class Compose {
   }
 
   permissionsReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4155,13 +4561,17 @@ export default class Compose {
   }
 
   permissionsReadEndpoint(a: KV): string {
-    const { roleID } = a || {}
+    const {
+      roleID,
+    } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Remove all defined role permissions
   async permissionsDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { roleID } = (a as KV) || {}
+    const {
+      roleID,
+    } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -4179,8 +4589,7 @@ export default class Compose {
   }
 
   permissionsDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4194,13 +4603,18 @@ export default class Compose {
   }
 
   permissionsDeleteEndpoint(a: KV): string {
-    const { roleID } = a || {}
+    const {
+      roleID,
+    } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Update permission settings
   async permissionsUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { roleID, rules } = (a as KV) || {}
+    const {
+      roleID,
+      rules,
+    } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -4223,8 +4637,7 @@ export default class Compose {
   }
 
   permissionsUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4238,7 +4651,9 @@ export default class Compose {
   }
 
   permissionsUpdateEndpoint(a: KV): string {
-    const { roleID } = a || {}
+    const {
+      roleID,
+    } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
@@ -4272,8 +4687,7 @@ export default class Compose {
   }
 
   automationListCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4292,14 +4706,16 @@ export default class Compose {
 
   // Serves client scripts bundle
   async automationBundle(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { bundle, type, ext } = (a as KV) || {}
+    const {
+      bundle,
+      type,
+      ext,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.automationBundleEndpoint({
-        bundle,
-        type,
-        ext,
+        bundle, type, ext,
       }),
     }
 
@@ -4309,8 +4725,7 @@ export default class Compose {
   }
 
   automationBundleCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4324,13 +4739,20 @@ export default class Compose {
   }
 
   automationBundleEndpoint(a: KV): string {
-    const { bundle, type, ext } = a || {}
+    const {
+      bundle,
+      type,
+      ext,
+    } = a || {}
     return `/automation/${bundle}-${type}.${ext}`
   }
 
   // Triggers execution of a specific script on a system service level
   async automationTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { script, args } = (a as KV) || {}
+    const {
+      script,
+      args,
+    } = (a as KV) || {}
     if (!script) {
       throw Error('field script is empty')
     }
@@ -4349,8 +4771,7 @@ export default class Compose {
   }
 
   automationTriggerScriptCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4366,4 +4787,5 @@ export default class Compose {
   automationTriggerScriptEndpoint(): string {
     return '/automation/trigger'
   }
+
 }

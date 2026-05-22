@@ -70,7 +70,7 @@
 
     <CPrompts />
     <CNotificationSidebar />
-    <CAgentSidebar />
+    <CAgentSidebar :context-provider="agentContextProvider" />
     <CPermissionsDialog />
   </div>
 </template>
@@ -80,6 +80,7 @@ import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import {
   components,
   providePermissions,
+  useAgentRouteContextProvider,
   useApplicationsStore,
   useNotificationsStore,
   useRBACStore,
@@ -102,6 +103,8 @@ const {
 
 // Provide permissions dialog context for the entire app
 providePermissions()
+
+const agentContextProvider = useAgentRouteContextProvider('admin')
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

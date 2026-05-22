@@ -150,6 +150,7 @@ func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{},
 		AgentID:        r.AgentID,
 		Input:          r.Input,
 		ConversationID: r.ConversationID,
+		ExecContext:    r.Context,
 	})
 }
 

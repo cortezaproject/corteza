@@ -103,7 +103,7 @@
         numberOfResults: count => $t('navigation.search.numberOfResults', { count }),
       }"
     />
-    <CAgentSidebar />
+    <CAgentSidebar :context-provider="agentContextProvider" />
     <ReminderSidebar />
     <ReminderToastHost />
     <CPermissionsDialog />
@@ -117,13 +117,16 @@ import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import ReminderSidebar from '@/components/Reminders/ReminderSidebar.vue'
 import ReminderToastHost from '@/components/Reminders/ReminderToastHost.vue'
 import CTranslatorDialog from '@/components/Translator/CTranslatorDialog.vue'
+import { useModuleStore } from '@/stores/module'
 import { useNamespaceStore } from '@/stores/namespace'
+import { usePageStore } from '@/stores/page'
 import { useRecordStore } from '@/stores/record'
 import { useReminderStore } from '@/stores/reminder'
 import { useUserStore } from '@/stores/user'
 import {
   components,
   providePermissions,
+  useAgentRouteContextProvider,
   useApplicationsStore,
   useNotificationsStore,
   useRBACStore,
@@ -165,6 +168,76 @@ const loading = ref(true)
 const namespaceStore = useNamespaceStore()
 const usersStore = useUserStore()
 const recordStore = useRecordStore()
+const moduleStore = useModuleStore()
+const pageStore = usePageStore()
+
+// Base route-only context — every webapp uses this; compose layers
+// resolved entities on top.
+const baseContextProvider = useAgentRouteContextProvider('compose')
+
+function agentContextProvider() {
+  const ctx = baseContextProvider()
+  const params = ctx.routeParams || {}
+
+  // Resolve namespace by URL part (slug or numeric ID, depending on the route).
+  if (params.slug) {
+    const ns = namespaceStore.getByUrlPart?.(params.slug)
+    if (ns) {
+      ctx.namespace = {
+        namespaceID: String(ns.namespaceID),
+        slug: ns.slug,
+        name: ns.name,
+      }
+    }
+  }
+
+  if (params.pageID) {
+    const page = pageStore.getByID?.(params.pageID)
+    if (page) {
+      ctx.page = {
+        pageID: String(page.pageID),
+        handle: page.handle,
+        title: page.title,
+        moduleID: page.moduleID ? String(page.moduleID) : undefined,
+      }
+    }
+  }
+
+  if (params.moduleID) {
+    const mod = moduleStore.getByID?.(params.moduleID)
+    if (mod) {
+      ctx.module = {
+        moduleID: String(mod.moduleID),
+        handle: mod.handle,
+        name: mod.name,
+      }
+    }
+  }
+
+  if (params.recordID) {
+    const record =
+      recordStore.records?.get?.(params.recordID) ||
+      recordStore.labelCache?.get?.(params.recordID)
+    if (record) {
+      ctx.record = {
+        recordID: String(record.recordID),
+        moduleID: record.moduleID ? String(record.moduleID) : undefined,
+      }
+      if (record.values) {
+        if (Array.isArray(record.values)) {
+          ctx.record.values = record.values.reduce((acc, v) => {
+            if (v && v.name) acc[v.name] = v.value
+            return acc
+          }, {})
+        } else if (typeof record.values === 'object') {
+          ctx.record.values = { ...record.values }
+        }
+      }
+    }
+  }
+
+  return ctx
+}
 const rbacStore = useRBACStore()
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()

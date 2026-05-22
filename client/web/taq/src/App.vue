@@ -86,7 +86,7 @@
 
     <CPrompts />
     <CNotificationSidebar />
-    <CAgentSidebar />
+    <CAgentSidebar :context-provider="agentContextProvider" />
     <CPermissionsDialog />
     <CTopbarSearch
       ref="searchRef"
@@ -110,6 +110,7 @@ import CSidebarNavigation from '@/components/CSidebarNavigation.vue'
 import {
   components,
   providePermissions,
+  useAgentRouteContextProvider,
   withMinDuration,
   useApplicationsStore,
   useNotificationsStore,
@@ -134,6 +135,8 @@ const {
 } = components
 
 providePermissions()
+
+const agentContextProvider = useAgentRouteContextProvider('taq')
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')

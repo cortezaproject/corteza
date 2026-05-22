@@ -495,6 +495,7 @@ import RecordOrganizerConfigurator from '@/components/PageBlocks/Configurators/R
 import RecordRevisionsConfigurator from '@/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue'
 import GeometryConfigurator from '@/components/PageBlocks/Configurators/GeometryConfigurator.vue'
 import ChatbotInboxConfigurator from '@/components/PageBlocks/Configurators/ChatbotInboxConfigurator.vue'
+import AgentChatConfigurator from '@/components/PageBlocks/Configurators/AgentChatConfigurator.vue'
 import AutomationButtonsEditor from '@/components/PageBlocks/Shared/AutomationButtonsEditor.vue'
 import PageTranslator from '@/components/Admin/Page/PageTranslator.vue'
 import { useResourceTranslations } from '@/composables/useResourceTranslations'
@@ -678,6 +679,7 @@ const availableBlockTypes = computed(() => {
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
     { kind: 'Tabs', label: t('block.tabs.label'), icon: 'pi pi-credit-card' },
     { kind: 'ChatbotInbox', label: t('block.chatbotInbox.label'), icon: 'pi pi-headphones' },
+    { kind: 'AgentChat', label: t('block.agentChat.label'), icon: 'pi pi-sparkles' },
   ].sort((a, b) => a.label.localeCompare(b.label))
 
   return [...recordBlocks, { kind: 'divider' }, ...otherBlocks]
@@ -708,6 +710,7 @@ const configurators = {
   RecordRevisions: markRaw(RecordRevisionsConfigurator),
   Geometry: markRaw(GeometryConfigurator),
   ChatbotInbox: markRaw(ChatbotInboxConfigurator),
+  AgentChat: markRaw(AgentChatConfigurator),
 }
 
 const blockConfigurator = computed(() => {

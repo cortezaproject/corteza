@@ -1289,6 +1289,33 @@ tabs:
 noConfiguration: Block not configured correctly
 interpolationFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available)
 
+agentChat:
+  label: Agent Chat
+  description: Embed an agent conversation on the page. Context (record, namespace, page) is passed to the agent automatically.
+  title: Agent Chat
+  chatTab: Chat {id}
+  newChat: New Chat
+  clearAllChats: Clear All Chats
+  empty: How can I help you today?
+  placeholder: Message...
+  thinking: Thinking...
+  noAgents: No agent configured
+  history:
+    button: History
+    empty: No previous conversations
+    loading: Loading…
+    deleteTooltip: Delete conversation
+    untitled: New conversation
+  config:
+    allowedAgents: Allowed agents
+    allowedAgentsPlaceholder: Select agents to expose...
+    allowedAgentsHint: The viewer can pick among these agents. Leave empty to expose none.
+    defaultAgent: Default agent
+    defaultAgentPlaceholder: First allowed agent
+    defaultAgentHint: Preselected when the page loads.
+    autoResume: Resume most recent conversation on load
+    autoResumeHint: When on, the latest past conversation for the active agent is loaded into the first tab.
+
 chatbotInbox:
   label: Chatbot
   config:

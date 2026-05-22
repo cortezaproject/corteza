@@ -3546,6 +3546,13 @@ endpoints:
                 required: false,
                 title: Conversation ID for multi-turn,
               }
+            - {
+                type: 'map[string]interface{}',
+                name: context,
+                parser: parseMapStringInterface,
+                required: false,
+                title: Caller-supplied execution context exposed to the agent prompt,
+              }
 
   - title: LLM Providers
     path: '/llm-providers'

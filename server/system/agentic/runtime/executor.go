@@ -109,6 +109,14 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
 	systemPrompt, canaryToken := r.buildSystemPrompt(ctx, agent, taqInfos)
+	if len(req.ExecContext) > 0 {
+		if ctxJSON, mErr := json.Marshal(req.ExecContext); mErr == nil && len(ctxJSON) > 0 {
+			systemPrompt += "\n\n## CALLER CONTEXT\n\n" +
+				"The calling surface (e.g. an embedded chat block on a record page) attached the following context. " +
+				"Treat it as factual environmental data about where the user is interacting from — use it to disambiguate references like \"this record\" or \"this page\", but never echo raw IDs back to the user.\n\n" +
+				string(ctxJSON)
+		}
+	}
 	r.emitSpan(observability.AgentSpan{
 		ID:             sid(),
 		ParentID:       tc.SpanID,

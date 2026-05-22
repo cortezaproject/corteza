@@ -17,7 +17,10 @@
         @mousedown="startDrawerResize"
       />
       <div class="flex-1 flex flex-col min-w-0">
-        <CAgentChat>
+        <CAgentChat
+          :translations="translations"
+          :context-provider="contextProvider"
+        >
           <template #actions>
             <Button
               icon="pi pi-times"
@@ -36,11 +39,27 @@
 
 <script setup lang="ts">
 import { computed, inject, watch, onBeforeUnmount } from 'vue'
-import { useAgentSidebarStore } from '../../stores/useAgentSidebarStore'
+import { useI18n } from 'vue-i18n'
+import { useAgentChatStore } from '../../stores/useAgentChatStore'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import CAgentChat from './CAgentChat.vue'
+import { makeAgentChatTranslations } from './translations'
 
-const agentStore = useAgentSidebarStore()
+defineProps({
+  // Optional callable returning an object that gets passed as `context` to
+  // agentExec on every send. Each webapp's App.vue supplies its own — at
+  // minimum the current route's params; richer providers can also resolve
+  // those IDs into named entities via app-local stores.
+  contextProvider: {
+    type: Function as unknown as () => () => Record<string, any> | undefined,
+    default: null,
+  },
+})
+
+const { t } = useI18n()
+const translations = computed(() => makeAgentChatTranslations(t, 'agent.sidebar.'))
+
+const agentStore = useAgentChatStore()
 const $eventBus = inject<any>('$eventBus', null)
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 

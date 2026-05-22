@@ -57,7 +57,7 @@
     />
 
     <CPrompts />
-    <CAgentSidebar />
+    <CAgentSidebar :context-provider="agentContextProvider" />
     <CNotificationSidebar />
     <CTopbarSearch
       ref="searchRef"
@@ -79,6 +79,7 @@
 <script setup>
 import {
   components,
+  useAgentRouteContextProvider,
   useApplicationsStore,
   useNotificationsStore,
   useWorkflowPromptsStore,
@@ -93,6 +94,8 @@ const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
 const $SystemAPI = inject('$SystemAPI')
 const $AutomationAPI = inject('$AutomationAPI')
+
+const agentContextProvider = useAgentRouteContextProvider('one')
 
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
