@@ -19,6 +19,16 @@ There are two distinct page types:
 1. **Record list page** — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
 2. **Record detail page** — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module.
 
+## Record list + detail go together
+
+When you create a list page for a module, also create the matching record detail page:
+
+- Set the detail page's `parent` to the list page (so it's nested under it).
+- Set the detail page's `visible: false` — it should not show up in main navigation; it opens by clicking a record in the list.
+- Reorder so the detail page sits directly under its list page using `compose_page_reorder` if it isn't already.
+
+If a record list page exists without a matching detail page, the user can't open individual records. Treat them as a pair.
+
 ## Creating a page
 
 - Call `compose_page_create` directly. Never suggest that an existing page could serve the same purpose. Never ask if the user wants to use something else instead.
