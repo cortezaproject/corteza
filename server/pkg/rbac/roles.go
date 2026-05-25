@@ -157,6 +157,7 @@ func getSessionRoles(s Session, res Resource, preloadedRoles []*Role) (out partR
 	}
 
 	scope["userID"] = s.Identity()
+	scope["agentID"] = s.AgentID()
 
 	for _, r := range preloadedRoles {
 		if r.kind == ContextRole {

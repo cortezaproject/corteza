@@ -853,6 +853,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	var (
 		aProps    = &recordActionProps{record: new}
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
+		agentID   = auth.GetAgentIDFromContext(ctx)
 
 		ns *types.Namespace
 		m  *types.Module
@@ -891,7 +892,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		dd, err = svc.DupDetection(ctx, m, new)
 
 		// handle input payload errors
-		if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
+		if rve = svc.procCreate(ctx, invokerID, agentID, m, new); !rve.IsValid() {
 			return nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -910,7 +911,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	new.Values = RecordValueDefaults(m, new.Values)
 
 	// Handle payload from automation scripts
-	if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
+	if rve = svc.procCreate(ctx, invokerID, agentID, m, new); !rve.IsValid() {
 		return nil, dd, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -1369,7 +1370,7 @@ func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Rec
 // of the creation procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
+func (svc record) procCreate(ctx context.Context, invokerID, agentID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
 	new.Values.SetUpdatedFlag(true)
 
 	new.Values.Walk(func(v *types.RecordValue) error {
@@ -1397,6 +1398,7 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 	new.ID = nextID()
 	new.Revision = 1
 	new.CreatedBy = invokerID
+	new.CreatedByAgent = agentID
 	new.CreatedAt = *nowUTC()
 	new.UpdatedAt = nil
 	new.UpdatedBy = 0
@@ -1994,6 +1996,7 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error) {
 	var (
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
+		agentID   = auth.GetAgentIDFromContext(ctx)
 
 		ns   *types.Namespace
 		m    *types.Module
@@ -2058,7 +2061,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					rec.Values = RecordValueDefaults(m, rec.Values)
 
 					// Handle payload from automation scripts
-					if rve := svc.procCreate(ctx, invokerID, m, rec); !rve.IsValid() {
+					if rve := svc.procCreate(ctx, invokerID, agentID, m, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 

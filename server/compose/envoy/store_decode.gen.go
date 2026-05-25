@@ -307,6 +307,12 @@ func ModuleToEnvoyNode(r *types.Module) (node *envoyx.Node, err error) {
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.CreatedByAgent > 0 {
+		refs["CreatedByAgent"] = envoyx.Ref{
+			ResourceType: "corteza::system:agent",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedByAgent),
+		}
+	}
 	if r.NamespaceID > 0 {
 		refs["NamespaceID"] = envoyx.Ref{
 			ResourceType: "corteza::compose:namespace",
@@ -406,6 +412,12 @@ func ModuleFieldToEnvoyNode(r *types.ModuleField) (node *envoyx.Node, err error)
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.CreatedByAgent > 0 {
+		refs["CreatedByAgent"] = envoyx.Ref{
+			ResourceType: "corteza::system:agent",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedByAgent),
+		}
+	}
 	if r.ModuleID > 0 {
 		refs["ModuleID"] = envoyx.Ref{
 			ResourceType: "corteza::compose:module",
@@ -479,6 +491,12 @@ func NamespaceToEnvoyNode(r *types.Namespace) (node *envoyx.Node, err error) {
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.CreatedByAgent > 0 {
+		refs["CreatedByAgent"] = envoyx.Ref{
+			ResourceType: "corteza::system:agent",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedByAgent),
+		}
+	}
 
 	var scope envoyx.Scope
 

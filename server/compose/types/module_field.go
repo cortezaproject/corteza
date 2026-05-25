@@ -46,6 +46,8 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
+
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
@@ -138,6 +140,22 @@ type (
 var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
+
+// Dict exposes module field attributes for RBAC contextual role evaluation.
+func (f ModuleField) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             f.ID,
+		"fieldID":        f.ID,
+		"moduleID":       f.ModuleID,
+		"namespaceID":    f.NamespaceID,
+		"kind":           f.Kind,
+		"name":           f.Name,
+		"createdAt":      f.CreatedAt,
+		"createdByAgent": f.CreatedByAgent,
+		"updatedAt":      f.UpdatedAt,
+		"deletedAt":      f.DeletedAt,
+	}
+}
 
 func (f *ModuleField) SelectOptions() (out []string) {
 	if f.Kind != "Select" {

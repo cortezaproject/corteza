@@ -2486,6 +2486,7 @@ var (
 			"created_at",
 			"updated_at",
 			"deleted_at",
+			"created_by_agent",
 		).From(composeModuleTable)
 	}
 
@@ -2495,15 +2496,16 @@ var (
 	composeModuleInsertQuery = func(d goqu.DialectWrapper, res *composeType.Module) *goqu.InsertDataset {
 		return d.Insert(composeModuleTable).
 			Rows(goqu.Record{
-				"id":            res.ID,
-				"rel_namespace": res.NamespaceID,
-				"handle":        res.Handle,
-				"name":          res.Name,
-				"meta":          res.Meta,
-				"config":        res.Config,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"id":               res.ID,
+				"rel_namespace":    res.NamespaceID,
+				"handle":           res.Handle,
+				"name":             res.Name,
+				"meta":             res.Meta,
+				"config":           res.Config,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			})
 	}
 
@@ -2517,14 +2519,15 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"rel_namespace": res.NamespaceID,
-						"handle":        res.Handle,
-						"name":          res.Name,
-						"meta":          res.Meta,
-						"config":        res.Config,
-						"created_at":    res.CreatedAt,
-						"updated_at":    res.UpdatedAt,
-						"deleted_at":    res.DeletedAt,
+						"rel_namespace":    res.NamespaceID,
+						"handle":           res.Handle,
+						"name":             res.Name,
+						"meta":             res.Meta,
+						"config":           res.Config,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+						"created_by_agent": res.CreatedByAgent,
 					},
 				),
 			)
@@ -2536,14 +2539,15 @@ var (
 	composeModuleUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Module) *goqu.UpdateDataset {
 		return d.Update(composeModuleTable).
 			Set(goqu.Record{
-				"rel_namespace": res.NamespaceID,
-				"handle":        res.Handle,
-				"name":          res.Name,
-				"meta":          res.Meta,
-				"config":        res.Config,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"rel_namespace":    res.NamespaceID,
+				"handle":           res.Handle,
+				"name":             res.Name,
+				"meta":             res.Meta,
+				"config":           res.Config,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			}).
 			Where(composeModulePrimaryKeys(res))
 	}
@@ -2596,6 +2600,7 @@ var (
 			"created_at",
 			"updated_at",
 			"deleted_at",
+			"created_by_agent",
 		).From(composeModuleFieldTable)
 	}
 
@@ -2605,21 +2610,22 @@ var (
 	composeModuleFieldInsertQuery = func(d goqu.DialectWrapper, res *composeType.ModuleField) *goqu.InsertDataset {
 		return d.Insert(composeModuleFieldTable).
 			Rows(goqu.Record{
-				"id":            res.ID,
-				"rel_module":    res.ModuleID,
-				"place":         res.Place,
-				"kind":          res.Kind,
-				"options":       res.Options,
-				"name":          res.Name,
-				"label":         res.Label,
-				"config":        res.Config,
-				"is_required":   res.Required,
-				"is_multi":      res.Multi,
-				"default_value": res.DefaultValue,
-				"expressions":   res.Expressions,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"id":               res.ID,
+				"rel_module":       res.ModuleID,
+				"place":            res.Place,
+				"kind":             res.Kind,
+				"options":          res.Options,
+				"name":             res.Name,
+				"label":            res.Label,
+				"config":           res.Config,
+				"is_required":      res.Required,
+				"is_multi":         res.Multi,
+				"default_value":    res.DefaultValue,
+				"expressions":      res.Expressions,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			})
 	}
 
@@ -2633,20 +2639,21 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"rel_module":    res.ModuleID,
-						"place":         res.Place,
-						"kind":          res.Kind,
-						"options":       res.Options,
-						"name":          res.Name,
-						"label":         res.Label,
-						"config":        res.Config,
-						"is_required":   res.Required,
-						"is_multi":      res.Multi,
-						"default_value": res.DefaultValue,
-						"expressions":   res.Expressions,
-						"created_at":    res.CreatedAt,
-						"updated_at":    res.UpdatedAt,
-						"deleted_at":    res.DeletedAt,
+						"rel_module":       res.ModuleID,
+						"place":            res.Place,
+						"kind":             res.Kind,
+						"options":          res.Options,
+						"name":             res.Name,
+						"label":            res.Label,
+						"config":           res.Config,
+						"is_required":      res.Required,
+						"is_multi":         res.Multi,
+						"default_value":    res.DefaultValue,
+						"expressions":      res.Expressions,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+						"created_by_agent": res.CreatedByAgent,
 					},
 				),
 			)
@@ -2658,20 +2665,21 @@ var (
 	composeModuleFieldUpdateQuery = func(d goqu.DialectWrapper, res *composeType.ModuleField) *goqu.UpdateDataset {
 		return d.Update(composeModuleFieldTable).
 			Set(goqu.Record{
-				"rel_module":    res.ModuleID,
-				"place":         res.Place,
-				"kind":          res.Kind,
-				"options":       res.Options,
-				"name":          res.Name,
-				"label":         res.Label,
-				"config":        res.Config,
-				"is_required":   res.Required,
-				"is_multi":      res.Multi,
-				"default_value": res.DefaultValue,
-				"expressions":   res.Expressions,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"rel_module":       res.ModuleID,
+				"place":            res.Place,
+				"kind":             res.Kind,
+				"options":          res.Options,
+				"name":             res.Name,
+				"label":            res.Label,
+				"config":           res.Config,
+				"is_required":      res.Required,
+				"is_multi":         res.Multi,
+				"default_value":    res.DefaultValue,
+				"expressions":      res.Expressions,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			}).
 			Where(composeModuleFieldPrimaryKeys(res))
 	}
@@ -2717,6 +2725,7 @@ var (
 			"created_at",
 			"updated_at",
 			"deleted_at",
+			"created_by_agent",
 		).From(composeNamespaceTable)
 	}
 
@@ -2726,14 +2735,15 @@ var (
 	composeNamespaceInsertQuery = func(d goqu.DialectWrapper, res *composeType.Namespace) *goqu.InsertDataset {
 		return d.Insert(composeNamespaceTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"slug":       res.Slug,
-				"enabled":    res.Enabled,
-				"meta":       res.Meta,
-				"name":       res.Name,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
+				"id":               res.ID,
+				"slug":             res.Slug,
+				"enabled":          res.Enabled,
+				"meta":             res.Meta,
+				"name":             res.Name,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			})
 	}
 
@@ -2747,13 +2757,14 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"slug":       res.Slug,
-						"enabled":    res.Enabled,
-						"meta":       res.Meta,
-						"name":       res.Name,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
+						"slug":             res.Slug,
+						"enabled":          res.Enabled,
+						"meta":             res.Meta,
+						"name":             res.Name,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+						"created_by_agent": res.CreatedByAgent,
 					},
 				),
 			)
@@ -2765,13 +2776,14 @@ var (
 	composeNamespaceUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Namespace) *goqu.UpdateDataset {
 		return d.Update(composeNamespaceTable).
 			Set(goqu.Record{
-				"slug":       res.Slug,
-				"enabled":    res.Enabled,
-				"meta":       res.Meta,
-				"name":       res.Name,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
+				"slug":             res.Slug,
+				"enabled":          res.Enabled,
+				"meta":             res.Meta,
+				"name":             res.Name,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			}).
 			Where(composeNamespacePrimaryKeys(res))
 	}

@@ -56,13 +56,14 @@ type (
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
-		OwnedBy   uint64     `json:"ownedBy,string"`
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
+		OwnedBy        uint64     `json:"ownedBy,string"`
+		CreatedAt      time.Time  `json:"createdAt,omitempty"`
+		CreatedBy      uint64     `json:"createdBy,string" `
+		CreatedByAgent uint64     `json:"createdByAgent,string,omitempty"`
+		UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy      uint64     `json:"updatedBy,string,omitempty"`
+		DeletedAt      *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy      uint64     `json:"deletedBy,string,omitempty"`
 	}
 
 	RecordSummary struct {
@@ -345,19 +346,20 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 
 func (r Record) Dict() map[string]interface{} {
 	dict := map[string]interface{}{
-		"ID":          r.ID,
-		"recordID":    r.ID,
-		"moduleID":    r.ModuleID,
-		"revision":    r.Revision,
-		"meta":        r.Meta,
-		"namespaceID": r.NamespaceID,
-		"ownedBy":     r.OwnedBy,
-		"createdAt":   r.CreatedAt,
-		"createdBy":   r.CreatedBy,
-		"updatedAt":   r.UpdatedAt,
-		"updatedBy":   r.UpdatedBy,
-		"deletedAt":   r.DeletedAt,
-		"deletedBy":   r.DeletedBy,
+		"ID":             r.ID,
+		"recordID":       r.ID,
+		"moduleID":       r.ModuleID,
+		"revision":       r.Revision,
+		"meta":           r.Meta,
+		"namespaceID":    r.NamespaceID,
+		"ownedBy":        r.OwnedBy,
+		"createdAt":      r.CreatedAt,
+		"createdBy":      r.CreatedBy,
+		"createdByAgent": r.CreatedByAgent,
+		"updatedAt":      r.UpdatedAt,
+		"updatedBy":      r.UpdatedBy,
+		"deletedAt":      r.DeletedAt,
+		"deletedBy":      r.DeletedBy,
 	}
 
 	if r.module != nil {

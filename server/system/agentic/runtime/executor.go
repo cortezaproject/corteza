@@ -34,6 +34,10 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		return nil, err
 	}
 
+	// Tag the identity with the agent ID so resources created during this
+	// invocation are attributed back to the agent (see compose service Create).
+	ctx = auth.SetIdentityToContext(ctx, auth.IdentityWithAgent(auth.GetIdentityFromContext(ctx), agent.ID))
+
 	// Pre-fetch all TAQ infos once to avoid N+1 lookups across tool building,
 	// system prompt generation, and input schema computation.
 	taqInfos := r.loadTAQInfos(ctx, agent)

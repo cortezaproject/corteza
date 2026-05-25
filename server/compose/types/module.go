@@ -41,6 +41,8 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
+
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
@@ -140,6 +142,21 @@ func (m Module) Clone() *Module {
 	c := &m
 	c.Fields = m.Fields.Clone()
 	return c
+}
+
+// Dict exposes module attributes for RBAC contextual role evaluation.
+func (m Module) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             m.ID,
+		"moduleID":       m.ID,
+		"namespaceID":    m.NamespaceID,
+		"handle":         m.Handle,
+		"name":           m.Name,
+		"createdAt":      m.CreatedAt,
+		"createdByAgent": m.CreatedByAgent,
+		"updatedAt":      m.UpdatedAt,
+		"deletedAt":      m.DeletedAt,
+	}
 }
 
 func (m Module) HasIssues() bool {

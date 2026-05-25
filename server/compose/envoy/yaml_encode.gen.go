@@ -231,6 +231,10 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	if err != nil {
 		return
 	}
+	auxCreatedByAgent, err := e.encodeRef(p, res.CreatedByAgent, "CreatedByAgent", node, tt)
+	if err != nil {
+		return
+	}
 	auxDeletedAt, err := e.encodeTimestampNil(p, res.DeletedAt)
 	if err != nil {
 		return
@@ -248,6 +252,7 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	out, err = y7s.AddMap(out,
 		"config", res.Config,
 		"createdAt", auxCreatedAt,
+		"createdByAgent", auxCreatedByAgent,
 		"deletedAt", auxDeletedAt,
 		"handle", res.Handle,
 		"moduleID", res.ID,
@@ -323,6 +328,10 @@ func (e YamlEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodeParam
 	if err != nil {
 		return
 	}
+	auxCreatedByAgent, err := e.encodeRef(p, res.CreatedByAgent, "CreatedByAgent", node, tt)
+	if err != nil {
+		return
+	}
 
 	auxDeletedAt, err := e.encodeTimestampNil(p, res.DeletedAt)
 	if err != nil {
@@ -347,6 +356,7 @@ func (e YamlEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodeParam
 	out, err = y7s.AddMap(out,
 		"config", res.Config,
 		"createdAt", auxCreatedAt,
+		"createdByAgent", auxCreatedByAgent,
 		"defaultValue", res.DefaultValue,
 		"deletedAt", auxDeletedAt,
 		"expressions", res.Expressions,
@@ -402,6 +412,10 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 	if err != nil {
 		return
 	}
+	auxCreatedByAgent, err := e.encodeRef(p, res.CreatedByAgent, "CreatedByAgent", node, tt)
+	if err != nil {
+		return
+	}
 	auxDeletedAt, err := e.encodeTimestampNil(p, res.DeletedAt)
 	if err != nil {
 		return
@@ -414,6 +428,7 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 
 	out, err = y7s.AddMap(out,
 		"createdAt", auxCreatedAt,
+		"createdByAgent", auxCreatedByAgent,
 		"deletedAt", auxDeletedAt,
 		"enabled", res.Enabled,
 		"id", res.ID,

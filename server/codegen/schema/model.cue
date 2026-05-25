@@ -256,6 +256,16 @@ AttributeUserRef: {
 	}
 }
 
+AttributeAgentRef: {
+	goType: "uint64"
+	dal: { type: "Ref", refModelResType: "corteza::system:agent", default: 0 }
+	envoy: {
+		store: {
+			omitRefFilter: true
+		}
+	}
+}
+
 SortableTimestampField: {
 	sortable: true
 	goType: "time.Time"

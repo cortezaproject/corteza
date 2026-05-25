@@ -30,3 +30,13 @@ func GetIdentityFromContextWithKey(ctx context.Context, key interface{}) Identif
 		return nil
 	}
 }
+
+// GetAgentIDFromContext returns the agent ID when the context identity was
+// established for an agent invocation, or 0 otherwise.
+func GetAgentIDFromContext(ctx context.Context) uint64 {
+	if ai, ok := GetIdentityFromContext(ctx).(AgentIdentifiable); ok {
+		return ai.AgentID()
+	}
+
+	return 0
+}

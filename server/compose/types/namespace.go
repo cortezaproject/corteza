@@ -23,6 +23,8 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
+
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
@@ -77,6 +79,21 @@ type (
 func (n Namespace) Clone() *Namespace {
 	c := &n
 	return c
+}
+
+// Dict exposes namespace attributes for RBAC contextual role evaluation.
+func (n Namespace) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             n.ID,
+		"namespaceID":    n.ID,
+		"slug":           n.Slug,
+		"name":           n.Name,
+		"enabled":        n.Enabled,
+		"createdAt":      n.CreatedAt,
+		"createdByAgent": n.CreatedByAgent,
+		"updatedAt":      n.UpdatedAt,
+		"deletedAt":      n.DeletedAt,
+	}
 }
 
 // FindByHandle finds namespace by it's handle/slug

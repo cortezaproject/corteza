@@ -261,9 +261,10 @@ func (h *moduleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 	}
 
 	mod := &cmpTypes.Module{
-		NamespaceID: ns.ID,
-		Name:        name,
-		Handle:      handle,
+		NamespaceID:    ns.ID,
+		Name:           name,
+		Handle:         handle,
+		CreatedByAgent: a.GetAgentIDFromContext(ctx),
 	}
 
 	if rawFields, ok := args["fields"]; ok && rawFields != nil {
