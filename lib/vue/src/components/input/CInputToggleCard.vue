@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center gap-3 p-3 border border-surface rounded-lg transition-colors max-w-xl"
+    class="flex gap-3 p-3 border border-surface rounded-lg transition-colors max-w-2xl"
     :class="[disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis']"
     @click="!disabled && $emit('update:modelValue', !modelValue)"
   >

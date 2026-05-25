@@ -3,12 +3,10 @@
     <span>{{ pageTitle }}</span>
   </Teleport>
 
-  <!-- Loading -->
   <div v-if="loading" class="flex items-center justify-center h-full">
     <ProgressSpinner />
   </div>
 
-  <!-- Form -->
   <Form
     v-else-if="dataSource"
     v-slot="$form"
@@ -17,7 +15,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
@@ -26,61 +24,181 @@
           :target="dataSource.meta?.name || dataSource.handle"
         />
       </div>
-      <Card
-        :pt="{
-          body: { class: 'p-0 flex flex-col h-full min-h-0' },
-          content: { class: 'p-0 flex flex-col h-full min-h-0' },
-        }"
-        class="overflow-hidden flex-1 min-h-0 flex flex-col"
+
+      <Panel :header="$t('system.data-sources.editor.basic.title')" toggleable :collapsed="false">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CFormGroup
+            name="name"
+            :label="$t('system.data-sources.editor.basic.form.name.label')"
+            required
+          >
+            <InputText
+              id="name"
+              name="name"
+              v-model="dataSource.meta.name"
+              :placeholder="$t('system.data-sources.editor.basic.form.name.placeholder')"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            name="handle"
+            :label="$t('system.data-sources.editor.basic.form.handle.label')"
+          >
+            <InputText
+              id="handle"
+              name="handle"
+              v-model="dataSource.handle"
+              :placeholder="$t('system.data-sources.editor.basic.form.handle.placeholder')"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('system.data-sources.editor.basic.form.location-name.label')"
+            :description="$t('system.data-sources.editor.basic.form.location-name.description')"
+            input-id="locationName"
+          >
+            <InputText
+              id="locationName"
+              v-model="dataSource.meta.location.properties.name"
+              :placeholder="$t('system.data-sources.editor.basic.form.location-name.placeholder')"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('system.data-sources.editor.basic.form.location-geometry.label')"
+            :description="$t('system.data-sources.editor.basic.form.location-geometry.description')"
+            input-id="locationCoords"
+          >
+            <CInputLocation
+              :model-value="locationPoint"
+              :dialog-header="dataSource.meta?.name || $t('system.data-sources.editor.basic.form.location-geometry.label')"
+              @update:model-value="onLocationUpdate"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('system.data-sources.editor.basic.form.ownership.label')"
+            :description="$t('system.data-sources.editor.basic.form.ownership.description')"
+            input-id="ownership"
+          >
+            <InputText
+              id="ownership"
+              v-model="dataSource.meta.ownership"
+              :placeholder="$t('system.data-sources.editor.basic.form.ownership.placeholder')"
+            />
+          </CFormGroup>
+        </div>
+      </Panel>
+
+      <Panel
+        v-if="isEdit && dataSource.meta.properties"
+        :header="$t('system.data-sources.editor.properties.title')"
+        toggleable
+        :collapsed="false"
       >
-        <template #content>
-          <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
-            <TabList class="rounded-t-lg shrink-0">
-              <Tab value="basic">{{ $t('system.data-sources.editor.tabs.basic') }}</Tab>
-              <Tab v-if="showDalConfig" value="dal-config">
-                {{ $t('system.data-sources.editor.tabs.dal-config') }}
-              </Tab>
-            </TabList>
+        <small class="block text-muted-color mb-4">
+          {{ $t('system.data-sources.editor.properties.intro') }}
+        </small>
+        <div class="flex flex-col">
+          <template v-for="(prop, index) in propertyKeys" :key="prop">
+            <Divider v-if="index > 0" class="my-4" />
+            <div class="flex flex-col gap-3">
+              <CInputToggleCard
+                v-model="dataSource.meta.properties[prop].enabled"
+                :label="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.label`)"
+                :description="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.description`)"
+              />
+              <CFormGroup
+                :label="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.notes.label`)"
+                :description="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.notes.description`)"
+                :input-id="`${prop}Notes`"
+                class="ml-2"
+              >
+                <Textarea
+                  :id="`${prop}Notes`"
+                  v-model="dataSource.meta.properties[prop].notes"
+                  rows="3"
+                  autoResize
+                />
+              </CFormGroup>
+            </div>
+          </template>
+        </div>
+      </Panel>
 
-            <TabPanels class="flex-1 overflow-y-auto min-h-0">
-              <TabPanel value="basic">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <CFormGroup name="name" :label="$t('system.data-sources.editor.basic.form.name.label')" required>
-                    <InputText id="name" name="name" v-model="dataSource.meta.name" />
-                  </CFormGroup>
+      <Panel
+        v-if="isEdit && canManageDal"
+        :header="$t('system.data-sources.editor.dal.title')"
+        toggleable
+        :collapsed="false"
+      >
+        <div class="flex flex-col">
+          <template v-if="dataSource.issues?.length">
+            <Message
+              v-for="issue in dataSource.issues"
+              :key="issue.issue"
+              severity="error"
+              :closable="false"
+              class="mb-3"
+            >
+              {{ issue.issue }}
+            </Message>
+          </template>
 
-                  <CFormGroup name="handle" :label="$t('system.data-sources.editor.basic.form.handle.label')">
-                    <InputText id="handle" name="handle" v-model="dataSource.handle" />
-                  </CFormGroup>
+          <CFormGroup
+            :label="$t('system.data-sources.editor.dal.form.model-ident.label')"
+            :description="$t('system.data-sources.editor.dal.form.model-ident.description', { interpolation: { prefix: '{{{', suffix: '}}}' } })"
+            input-id="modelIdent"
+          >
+            <InputText
+              id="modelIdent"
+              v-model="dataSource.config.dal.modelIdent"
+              :placeholder="$t('system.data-sources.editor.dal.form.model-ident.placeholder')"
+            />
+          </CFormGroup>
 
-                  <CFormGroup
-                    :label="$t('system.data-sources.editor.basic.form.ownership.label')"
-                    input-id="ownership"
-                  >
-                    <InputText id="ownership" v-model="dataSource.meta.ownership" />
-                  </CFormGroup>
-                </div>
-              </TabPanel>
+          <Divider class="my-4" />
 
-              <TabPanel v-if="showDalConfig" value="dal-config">
-                <div class="flex flex-col gap-4">
-                  <CFormGroup name="dalConfig" :label="$t('system.data-sources.editor.dal.form.params.label')">
-                    <Textarea
-                      id="dalConfig"
-                      name="dalConfig"
-                      v-model="rawDalConfig"
-                      rows="12"
-                      autoResize
-                      class="font-mono text-sm"
-                      @change="parseDalConfig"
-                    />
-                  </CFormGroup>
-                </div>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </template>
-      </Card>
+          <CFormGroup
+            :label="$t('system.data-sources.editor.dal.form.type.label')"
+            :description="$t('system.data-sources.editor.dal.form.type.description')"
+            input-id="dalType"
+          >
+            <InputText
+              id="dalType"
+              v-model="dataSource.config.dal.type"
+              :placeholder="$t('system.data-sources.editor.dal.form.type.placeholder')"
+            />
+          </CFormGroup>
+
+          <Divider class="my-4" />
+
+          <CFormGroup
+            name="dalParams"
+            :label="$t('system.data-sources.editor.dal.form.params.label')"
+            :description="$t('system.data-sources.editor.dal.form.params.description')"
+          >
+            <Textarea
+              id="dalParams"
+              name="dalParams"
+              v-model="rawDalParams"
+              rows="5"
+              autoResize
+              class="font-mono text-sm"
+              :placeholder="$t('system.data-sources.editor.dal.form.params.placeholder')"
+              @blur="parseDalParams"
+            />
+          </CFormGroup>
+        </div>
+      </Panel>
+
+      <Message
+        v-if="isEdit && !canManageDal"
+        severity="warn"
+        :closable="false"
+      >
+        {{ $t('system.data-sources.editor.dal.no-access-warning') }}
+      </Message>
     </div>
 
     <CEditorActions :back-to="{ name: 'system.dataSources' }">
@@ -108,9 +226,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { cloneDeep, isEqual, kebabCase } from 'lodash-es'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputToggleCard, CInputLocation } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -124,15 +242,19 @@ const saving = ref(false)
 const deleting = ref(false)
 const dataSource = ref(null)
 const initialDataSource = ref(null)
-const activeTab = ref('basic')
-const rawDalConfig = ref('{}')
+const rawDalParams = ref('{}')
+const initialRawDalParams = ref('{}')
+
+const propertyKeys = [
+  'dataAtRestEncryption',
+  'dataAtRestProtection',
+  'dataAtTransitEncryption',
+  'dataRestoration',
+]
 
 const isEdit = computed(() => !!route.params.connectionID)
 
-const showDalConfig = computed(() => {
-  if (!isEdit.value) return true
-  return dataSource.value?.canManageDalConfig
-})
+const canManageDal = computed(() => !!dataSource.value?.canManageDalConfig)
 
 const pageTitle = computed(() =>
   isEdit.value
@@ -140,10 +262,45 @@ const pageTitle = computed(() =>
     : t('system.data-sources.editor.title.create'),
 )
 
+const locationPoint = computed(() => {
+  const coords = dataSource.value?.meta?.location?.geometry?.coordinates
+  if (!Array.isArray(coords) || coords.length !== 2) return null
+  const [lng, lat] = coords
+  if (typeof lng !== 'number' || typeof lat !== 'number') return null
+  return { type: 'Point', coordinates: [lng, lat] }
+})
+
+function onLocationUpdate(point) {
+  if (!dataSource.value) return
+  ensureLocationShape()
+  if (!point?.coordinates) {
+    dataSource.value.meta.location.geometry.coordinates = []
+    return
+  }
+  dataSource.value.meta.location.geometry.coordinates = [...point.coordinates]
+}
+
+function ensureLocationShape() {
+  const meta = dataSource.value.meta
+  if (!meta.location || typeof meta.location !== 'object') {
+    meta.location = { type: 'Feature', geometry: { type: 'Point', coordinates: [] }, properties: { name: '' } }
+    return
+  }
+  if (!meta.location.type) meta.location.type = 'Feature'
+  if (!meta.location.geometry || typeof meta.location.geometry !== 'object') {
+    meta.location.geometry = { type: 'Point', coordinates: [] }
+  } else if (!meta.location.geometry.type) {
+    meta.location.geometry.type = 'Point'
+  }
+  if (!meta.location.properties || typeof meta.location.properties !== 'object') {
+    meta.location.properties = { name: '' }
+  }
+}
+
 const initialValues = computed(() => ({
   name: dataSource.value?.meta?.name || '',
   handle: dataSource.value?.handle || '',
-  dalConfig: rawDalConfig.value,
+  dalParams: rawDalParams.value,
 }))
 
 const resolver = ref(({ values }) => {
@@ -159,29 +316,37 @@ const resolver = ref(({ values }) => {
     ]
   }
 
-  try {
-    if (values.dalConfig) JSON.parse(values.dalConfig)
-  } catch {
-    errors.dalConfig = [{ message: t('system.data-sources.editor.dal.form.params.description') }]
+  if (values.dalParams) {
+    try {
+      const parsed = JSON.parse(values.dalParams)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        errors.dalParams = [{ message: t('system.data-sources.editor.dal.form.params.description') }]
+      }
+    } catch {
+      errors.dalParams = [{ message: t('system.data-sources.editor.dal.form.params.description') }]
+    }
   }
 
   return { errors }
 })
 
-function parseDalConfig() {
+function parseDalParams() {
   try {
-    const parsed = JSON.parse(rawDalConfig.value || '{}')
-    if (parsed && dataSource.value) {
-      dataSource.value.config.dal = parsed
+    const parsed = JSON.parse(rawDalParams.value || '{}')
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && dataSource.value) {
+      if (!dataSource.value.config.dal) dataSource.value.config.dal = {}
+      dataSource.value.config.dal.params = parsed
     }
   } catch {
-    // validation will catch it
+    // resolver will surface the error
   }
 }
 
 function initRawFields() {
   if (!dataSource.value) return
-  rawDalConfig.value = JSON.stringify(dataSource.value.config?.dal || {}, null, 2)
+  rawDalParams.value = JSON.stringify(dataSource.value.config?.dal?.params || { dsn: '' }, null, 2)
+  initialRawDalParams.value = rawDalParams.value
+  ensureLocationShape()
 }
 
 async function loadDataSource() {
@@ -209,7 +374,6 @@ async function loadDataSource() {
 
 async function handleSubmit({ valid }) {
   if (!valid) {
-    activeTab.value = 'basic'
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
       document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -219,7 +383,7 @@ async function handleSubmit({ valid }) {
 
   saving.value = true
   try {
-    parseDalConfig()
+    parseDalParams()
 
     const payload = {
       handle: dataSource.value.handle,
@@ -269,7 +433,13 @@ async function handleDelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!dataSource.value && !!initialDataSource.value && !isEqual(dataSource.value, initialDataSource.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!dataSource.value &&
+    !!initialDataSource.value &&
+    (!isEqual(dataSource.value, initialDataSource.value) ||
+      rawDalParams.value !== initialRawDalParams.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

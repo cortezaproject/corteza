@@ -965,11 +965,19 @@ async function checkSchemaAlterations() {
 async function createDefaultLayout(page) {
   if (!page?.pageID) return
   try {
+    // Seed layout with the page's blocks — View.vue intersects layout.blocks with
+    // page.blocks, so an empty layout hides every block until the user saves the
+    // Builder (which rebuilds layout.blocks from the page).
+    const layoutBlocks = (page.blocks || []).map(b => ({
+      blockID: b.blockID,
+      xywh: b.xywh,
+    }))
     await pageLayoutStore.create({
       namespaceID: props.namespace.namespaceID,
       pageID: page.pageID,
       handle: 'primary',
       meta: { title: page.title },
+      blocks: layoutBlocks,
     })
   } catch (e) {
     console.error('Failed to create default page layout:', e)

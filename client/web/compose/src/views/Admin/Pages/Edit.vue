@@ -224,7 +224,6 @@
             :label="$t('general.label.delete')"
             icon="pi pi-trash"
             severity="danger"
-            outlined
             size="small"
             @click="toggleDeleteMenu"
           />
@@ -1196,11 +1195,18 @@ async function handleClone() {
     }
 
     const created = await pageStore.create(payload)
+    // Seed layout with the cloned blocks — View.vue intersects layout.blocks with
+    // page.blocks, so an empty layout would hide everything until the next save.
+    const layoutBlocks = (created.blocks || []).map(b => ({
+      blockID: b.blockID,
+      xywh: b.xywh,
+    }))
     await pageLayoutStore.create({
       namespaceID: props.namespace.namespaceID,
       pageID: created.pageID,
       handle: 'primary',
       meta: { title: created.title || payload.title },
+      blocks: layoutBlocks,
     })
     $toast.toastSuccess(t('notification.page.created'))
     markSaved()

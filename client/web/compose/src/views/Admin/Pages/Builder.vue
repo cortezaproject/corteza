@@ -115,20 +115,19 @@
       </template>
       <Button
         v-if="pageLayout"
+        :label="$t('general.label.delete')"
+        icon="pi pi-trash"
+        severity="danger"
+        :loading="saving"
+        @click="showDeleteLayoutConfirm = true"
+      />
+      <Button
+        v-if="pageLayout"
         :label="$t('page.build.saveAsCopy')"
         icon="pi pi-copy"
         severity="secondary"
         :loading="saving"
         @click="handleSaveAsCopy"
-      />
-      <Button
-        v-if="pageLayout && layouts.length > 1"
-        v-tooltip.top="$t('page.build.layout.delete')"
-        icon="pi pi-trash"
-        severity="danger"
-        outlined
-        :loading="saving"
-        @click="showDeleteLayoutConfirm = true"
       />
       <Button
         :label="$t('general.label.save')"

@@ -18,6 +18,8 @@ kind:
       goToCurrentLocation: 'Go to current location'
       openMap: 'Open map'
       useCurrentLocation: 'Use current location'
+      zoomIn: 'Zoom in'
+      zoomOut: 'Zoom out'
   record:
     suggestionPlaceholder: 'Start typing to search for records'
   user:

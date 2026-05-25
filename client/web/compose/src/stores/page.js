@@ -152,6 +152,14 @@ export const usePageStore = defineStore('page', () => {
     try {
       await $ComposeAPI.pageDelete(item)
       removeFromSet([item])
+      // cascade deletes children server-side; rebase reparents them. Either way the
+      // local cache for the rest of the tree is now stale, so refetch.
+      if (item.strategy === 'cascade' || item.strategy === 'rebase') {
+        const nsID = item.namespaceID || state.namespaceID
+        if (nsID) {
+          await load({ namespaceID: nsID, force: true })
+        }
+      }
       return true
     } catch (error) {
       console.error('Failed to delete page:', error)

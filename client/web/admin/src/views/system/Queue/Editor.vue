@@ -40,14 +40,6 @@
             />
           </CFormGroup>
 
-          <CFormGroup :label="$t('system.queues.editor.info.handler')" input-id="handler">
-            <InputText id="handler" v-model="queue.meta.handler" />
-          </CFormGroup>
-
-          <CFormGroup :label="$t('system.queues.editor.info.dispatchTimeout')" input-id="dispatchTimeout">
-            <InputNumber id="dispatchTimeout" v-model="queue.meta.dispatch.timeout" :min="0" />
-          </CFormGroup>
-
           <CFormGroup
             name="pollDelay"
             :label="$t('system.queues.editor.info.poll_delay')"
@@ -64,17 +56,12 @@
             />
           </CFormGroup>
 
-          <div class="flex items-center gap-3">
-            <ToggleSwitch id="dispatchEvents" v-model="queue.meta.dispatch_events" />
-            <div class="flex flex-col">
-              <label for="dispatchEvents" class="font-medium text-primary cursor-pointer">
-                {{ $t('system.queues.editor.info.dispatch_events') }}
-              </label>
-              <small class="text-muted-color">
-                {{ $t('system.queues.editor.info.dispatch_events_desc') }}
-              </small>
-            </div>
-          </div>
+          <CInputToggleCard
+            v-model="queue.meta.dispatch_events"
+            :label="$t('system.queues.editor.info.dispatch_events')"
+            :description="$t('system.queues.editor.info.dispatch_events_desc')"
+            class="self-start"
+          />
         </div>
       </Panel>
     </div>
@@ -105,7 +92,7 @@ import { useI18n } from 'vue-i18n'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputToggleCard } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -150,7 +137,6 @@ const resolver = ref(({ values }) => {
     errors.consumer = [{ message: t('general.label.required') }]
   }
 
-  // Validate poll_delay Go duration format (e.g. 1h, 5m, 1h30m, 90s)
   if (values.pollDelay && values.pollDelay.trim().length > 0) {
     const durationRegex = /^((\d+h)?(\d+m)?(\d+s)?)$/
     const match = values.pollDelay.trim().match(durationRegex)
@@ -165,12 +151,20 @@ const resolver = ref(({ values }) => {
 function newQueue() {
   return {
     queue: '',
-    consumer: 'human',
+    consumer: 'corteza',
     meta: {
-      handler: '',
       poll_delay: '',
       dispatch_events: false,
-      dispatch: { timeout: 0 },
+    },
+  }
+}
+
+function normalizeQueue(raw) {
+  return {
+    ...raw,
+    meta: {
+      poll_delay: raw.meta?.poll_delay || '',
+      dispatch_events: !!raw.meta?.dispatch_events,
     },
   }
 }
@@ -186,15 +180,7 @@ async function loadQueue() {
   loading.value = true
   try {
     const raw = await $SystemAPI.queuesRead({ queueID })
-    queue.value = {
-      ...raw,
-      meta: {
-        handler: raw.meta?.handler || '',
-        poll_delay: raw.meta?.poll_delay || '',
-        dispatch_events: !!raw.meta?.dispatch_events,
-        dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
-      },
-    }
+    queue.value = normalizeQueue(raw)
     initialQueue.value = cloneDeep(queue.value)
   } catch (e) {
     $toast.toastErrorHandler(t('notification.queue.fetch.error'))(e)
@@ -224,15 +210,7 @@ async function handleSubmit({ valid }) {
     if (isEdit.value) {
       payload.queueID = queue.value.queueID
       const raw = await $SystemAPI.queuesUpdate(payload)
-      queue.value = {
-        ...raw,
-        meta: {
-          handler: raw.meta?.handler || '',
-          poll_delay: raw.meta?.poll_delay || '',
-          dispatch_events: !!raw.meta?.dispatch_events,
-          dispatch: { timeout: raw.meta?.dispatch?.timeout ?? 0 },
-        },
-      }
+      queue.value = normalizeQueue(raw)
       initialQueue.value = cloneDeep(queue.value)
       $toast.toastSuccess(t('notification.queue.update.success'))
     } else {

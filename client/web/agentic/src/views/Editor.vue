@@ -646,7 +646,7 @@
                       v-for="(conv, idx) in conversations"
                       :key="idx"
                       type="button"
-                      class="group flex items-center gap-1.5 py-2 pl-3 pr-1 pb-1 text-sm border-b-2 border-r border-r-surface whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
+                      class="group flex items-center gap-1.5 py-2 pl-3 pr-1 border-b border-r border-r-surface whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
                       :class="
                         activeConvIndex === idx
                           ? 'border-b-primary text-primary font-medium'

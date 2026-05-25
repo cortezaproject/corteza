@@ -212,6 +212,8 @@ kind:
     tooltip:
       goToCurrentLocation: Go to current location
       useCurrentLocation: Use current location
+      zoomIn: Zoom in
+      zoomOut: Zoom out
       openMap: Open map
     geosearchInputPlaceholder: Enter address, place or postcode
 noPermission: No permission to read field value

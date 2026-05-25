@@ -715,29 +715,34 @@ data-sources:
           description: Highest allowed level of sensitivity for the data stored (as set on fields of the module that uses this connection)
 
     properties:
-      title: Data source and database properties
+      title: Documented data protection controls
+      intro: Informational only. These toggles and notes record what is set up on the underlying data source for documentation and audit purposes — they do not change how Human accesses or stores the data.
       form:
         data-at-rest-encryption:
           checkbox:
-            label: Encrypt data at rest enabled
+            label: Data at rest is encrypted
+            description: Declare that stored data on this data source is encrypted on disk (e.g. full-disk encryption, tablespace or volume-level encryption). Documentation only — does not enable encryption.
           notes:
             label: Notes on encryption
             description: Internal notes on data-at-rest encryption (disk encryption)
         data-at-rest-protection:
           checkbox:
-            label: Data at rest protection provided
+            label: Storage is physically protected
+            description: Declare that the underlying storage is physically and operationally protected (locked facility, restricted access, hardened hosting environment). Documentation only.
           notes:
             label: Notes on data at rest protection
             description: Internal notes on data-at-rest protection (physical protection)
         data-at-transit-encryption:
           checkbox:
-            label: Encrypt data at transit enabled
+            label: Data in transit is encrypted
+            description: Declare that connections to this data source are encrypted in transit (e.g. TLS/SSL on the wire between clients and the database). Documentation only — does not enable TLS.
           notes:
             label: Notes on data at transit encryption (network encryption)
             description: Internal notes on data-at-transit encryption (network encryption)
         data-restoration:
           checkbox:
-            label: Data at rest backup and restoration implemented
+            label: Backups and restore are in place
+            description: Declare that backups of this data source are taken regularly and that a tested restore procedure exists. Documentation only — does not schedule backups.
           notes:
             label: Notes on data restoration
             description: Internal notes on data-restoration
