@@ -326,6 +326,8 @@ func (r *Page) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "description", "Description":
@@ -361,6 +363,8 @@ func (r *Page) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "description", "Description":
@@ -401,6 +405,8 @@ func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "handle", "Handle":
@@ -435,6 +441,8 @@ func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "handle", "Handle":

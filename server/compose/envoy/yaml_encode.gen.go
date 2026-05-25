@@ -516,6 +516,10 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 	if err != nil {
 		return
 	}
+	auxCreatedByAgent, err := e.encodeRef(p, res.CreatedByAgent, "CreatedByAgent", node, tt)
+	if err != nil {
+		return
+	}
 	auxDeletedAt, err := e.encodeTimestampNil(p, res.DeletedAt)
 	if err != nil {
 		return
@@ -544,6 +548,7 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 		"children", res.Children,
 		"config", res.Config,
 		"createdAt", auxCreatedAt,
+		"createdByAgent", auxCreatedByAgent,
 		"deletedAt", auxDeletedAt,
 		"description", res.Description,
 		"handle", res.Handle,
@@ -610,6 +615,10 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 	if err != nil {
 		return
 	}
+	auxCreatedByAgent, err := e.encodeRef(p, res.CreatedByAgent, "CreatedByAgent", node, tt)
+	if err != nil {
+		return
+	}
 	auxDeletedAt, err := e.encodeTimestampNil(p, res.DeletedAt)
 	if err != nil {
 		return
@@ -640,6 +649,7 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 		"blocks", res.Blocks,
 		"config", res.Config,
 		"createdAt", auxCreatedAt,
+		"createdByAgent", auxCreatedByAgent,
 		"deletedAt", auxDeletedAt,
 		"handle", res.Handle,
 		"id", res.ID,

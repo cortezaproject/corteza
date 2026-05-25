@@ -39,6 +39,8 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
 	}
 
 	PageLayoutBlocks []PageLayoutBlock
@@ -155,6 +157,23 @@ type (
 func (m PageLayout) Clone() *PageLayout {
 	c := &m
 	return c
+}
+
+// Dict exposes page layout attributes for RBAC contextual role evaluation.
+func (p PageLayout) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             p.ID,
+		"pageLayoutID":   p.ID,
+		"namespaceID":    p.NamespaceID,
+		"pageID":         p.PageID,
+		"parentID":       p.ParentID,
+		"handle":         p.Handle,
+		"ownedBy":        p.OwnedBy,
+		"createdAt":      p.CreatedAt,
+		"createdByAgent": p.CreatedByAgent,
+		"updatedAt":      p.UpdatedAt,
+		"deletedAt":      p.DeletedAt,
+	}
 }
 
 func (p *PageLayout) decodeTranslations(tt locale.ResourceTranslationIndex) {

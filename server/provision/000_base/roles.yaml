@@ -78,6 +78,8 @@ roles:
           - corteza::compose:module
           - corteza::compose:module-field
           - corteza::compose:record
+          - corteza::compose:page
+          - corteza::compose:page-layout
 
   data-privacy-officer:
     name: Data Privacy Officer

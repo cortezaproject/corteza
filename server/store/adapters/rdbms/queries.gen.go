@@ -2836,6 +2836,7 @@ var (
 			"created_at",
 			"updated_at",
 			"deleted_at",
+			"created_by_agent",
 		).From(composePageTable)
 	}
 
@@ -2845,21 +2846,22 @@ var (
 	composePageInsertQuery = func(d goqu.DialectWrapper, res *composeType.Page) *goqu.InsertDataset {
 		return d.Insert(composePageTable).
 			Rows(goqu.Record{
-				"id":            res.ID,
-				"title":         res.Title,
-				"handle":        res.Handle,
-				"self_id":       res.SelfID,
-				"rel_module":    res.ModuleID,
-				"rel_namespace": res.NamespaceID,
-				"meta":          res.Meta,
-				"config":        res.Config,
-				"blocks":        res.Blocks,
-				"visible":       res.Visible,
-				"weight":        res.Weight,
-				"description":   res.Description,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"id":               res.ID,
+				"title":            res.Title,
+				"handle":           res.Handle,
+				"self_id":          res.SelfID,
+				"rel_module":       res.ModuleID,
+				"rel_namespace":    res.NamespaceID,
+				"meta":             res.Meta,
+				"config":           res.Config,
+				"blocks":           res.Blocks,
+				"visible":          res.Visible,
+				"weight":           res.Weight,
+				"description":      res.Description,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			})
 	}
 
@@ -2873,20 +2875,21 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"title":         res.Title,
-						"handle":        res.Handle,
-						"self_id":       res.SelfID,
-						"rel_module":    res.ModuleID,
-						"rel_namespace": res.NamespaceID,
-						"meta":          res.Meta,
-						"config":        res.Config,
-						"blocks":        res.Blocks,
-						"visible":       res.Visible,
-						"weight":        res.Weight,
-						"description":   res.Description,
-						"created_at":    res.CreatedAt,
-						"updated_at":    res.UpdatedAt,
-						"deleted_at":    res.DeletedAt,
+						"title":            res.Title,
+						"handle":           res.Handle,
+						"self_id":          res.SelfID,
+						"rel_module":       res.ModuleID,
+						"rel_namespace":    res.NamespaceID,
+						"meta":             res.Meta,
+						"config":           res.Config,
+						"blocks":           res.Blocks,
+						"visible":          res.Visible,
+						"weight":           res.Weight,
+						"description":      res.Description,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+						"created_by_agent": res.CreatedByAgent,
 					},
 				),
 			)
@@ -2898,20 +2901,21 @@ var (
 	composePageUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Page) *goqu.UpdateDataset {
 		return d.Update(composePageTable).
 			Set(goqu.Record{
-				"title":         res.Title,
-				"handle":        res.Handle,
-				"self_id":       res.SelfID,
-				"rel_module":    res.ModuleID,
-				"rel_namespace": res.NamespaceID,
-				"meta":          res.Meta,
-				"config":        res.Config,
-				"blocks":        res.Blocks,
-				"visible":       res.Visible,
-				"weight":        res.Weight,
-				"description":   res.Description,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"title":            res.Title,
+				"handle":           res.Handle,
+				"self_id":          res.SelfID,
+				"rel_module":       res.ModuleID,
+				"rel_namespace":    res.NamespaceID,
+				"meta":             res.Meta,
+				"config":           res.Config,
+				"blocks":           res.Blocks,
+				"visible":          res.Visible,
+				"weight":           res.Weight,
+				"description":      res.Description,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			}).
 			Where(composePagePrimaryKeys(res))
 	}
@@ -2962,6 +2966,7 @@ var (
 			"created_at",
 			"updated_at",
 			"deleted_at",
+			"created_by_agent",
 		).From(composePageLayoutTable)
 	}
 
@@ -2971,19 +2976,20 @@ var (
 	composePageLayoutInsertQuery = func(d goqu.DialectWrapper, res *composeType.PageLayout) *goqu.InsertDataset {
 		return d.Insert(composePageLayoutTable).
 			Rows(goqu.Record{
-				"id":            res.ID,
-				"handle":        res.Handle,
-				"page_id":       res.PageID,
-				"parent_id":     res.ParentID,
-				"rel_namespace": res.NamespaceID,
-				"weight":        res.Weight,
-				"meta":          res.Meta,
-				"config":        res.Config,
-				"blocks":        res.Blocks,
-				"owned_by":      res.OwnedBy,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"id":               res.ID,
+				"handle":           res.Handle,
+				"page_id":          res.PageID,
+				"parent_id":        res.ParentID,
+				"rel_namespace":    res.NamespaceID,
+				"weight":           res.Weight,
+				"meta":             res.Meta,
+				"config":           res.Config,
+				"blocks":           res.Blocks,
+				"owned_by":         res.OwnedBy,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			})
 	}
 
@@ -2997,18 +3003,19 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":        res.Handle,
-						"page_id":       res.PageID,
-						"parent_id":     res.ParentID,
-						"rel_namespace": res.NamespaceID,
-						"weight":        res.Weight,
-						"meta":          res.Meta,
-						"config":        res.Config,
-						"blocks":        res.Blocks,
-						"owned_by":      res.OwnedBy,
-						"created_at":    res.CreatedAt,
-						"updated_at":    res.UpdatedAt,
-						"deleted_at":    res.DeletedAt,
+						"handle":           res.Handle,
+						"page_id":          res.PageID,
+						"parent_id":        res.ParentID,
+						"rel_namespace":    res.NamespaceID,
+						"weight":           res.Weight,
+						"meta":             res.Meta,
+						"config":           res.Config,
+						"blocks":           res.Blocks,
+						"owned_by":         res.OwnedBy,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+						"created_by_agent": res.CreatedByAgent,
 					},
 				),
 			)
@@ -3020,18 +3027,19 @@ var (
 	composePageLayoutUpdateQuery = func(d goqu.DialectWrapper, res *composeType.PageLayout) *goqu.UpdateDataset {
 		return d.Update(composePageLayoutTable).
 			Set(goqu.Record{
-				"handle":        res.Handle,
-				"page_id":       res.PageID,
-				"parent_id":     res.ParentID,
-				"rel_namespace": res.NamespaceID,
-				"weight":        res.Weight,
-				"meta":          res.Meta,
-				"config":        res.Config,
-				"blocks":        res.Blocks,
-				"owned_by":      res.OwnedBy,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"handle":           res.Handle,
+				"page_id":          res.PageID,
+				"parent_id":        res.ParentID,
+				"rel_namespace":    res.NamespaceID,
+				"weight":           res.Weight,
+				"meta":             res.Meta,
+				"config":           res.Config,
+				"blocks":           res.Blocks,
+				"owned_by":         res.OwnedBy,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+				"created_by_agent": res.CreatedByAgent,
 			}).
 			Where(composePageLayoutPrimaryKeys(res))
 	}

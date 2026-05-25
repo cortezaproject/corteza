@@ -9,6 +9,7 @@ import (
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -156,9 +157,10 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	}
 
 	pg := &cmpTypes.Page{
-		NamespaceID: ns.ID,
-		Title:       title,
-		Visible:     parseBoolArg(args["visible"], true),
+		NamespaceID:    ns.ID,
+		Title:          title,
+		Visible:        parseBoolArg(args["visible"], true),
+		CreatedByAgent: a.GetAgentIDFromContext(ctx),
 	}
 
 	if v, ok := args["handle"].(string); ok && v != "" {

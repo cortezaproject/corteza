@@ -575,6 +575,12 @@ func PageToEnvoyNode(r *types.Page) (node *envoyx.Node, err error) {
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.CreatedByAgent > 0 {
+		refs["CreatedByAgent"] = envoyx.Ref{
+			ResourceType: "corteza::system:agent",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedByAgent),
+		}
+	}
 	if r.ModuleID > 0 {
 		refs["ModuleID"] = envoyx.Ref{
 			ResourceType: "corteza::compose:module",
@@ -698,6 +704,12 @@ func PageLayoutToEnvoyNode(r *types.PageLayout) (node *envoyx.Node, err error) {
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.CreatedByAgent > 0 {
+		refs["CreatedByAgent"] = envoyx.Ref{
+			ResourceType: "corteza::system:agent",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedByAgent),
+		}
+	}
 	if r.NamespaceID > 0 {
 		refs["NamespaceID"] = envoyx.Ref{
 			ResourceType: "corteza::compose:namespace",

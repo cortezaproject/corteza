@@ -410,38 +410,40 @@ type (
 
 	// auxComposePage is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposePage struct {
-		ID          uint64                 `db:"id"`
-		Title       string                 `db:"title"`
-		Handle      string                 `db:"handle"`
-		SelfID      uint64                 `db:"self_id"`
-		ModuleID    uint64                 `db:"module_id"`
-		NamespaceID uint64                 `db:"namespace_id"`
-		Meta        composeType.PageMeta   `db:"meta"`
-		Config      composeType.PageConfig `db:"config"`
-		Blocks      composeType.PageBlocks `db:"blocks"`
-		Visible     bool                   `db:"visible"`
-		Weight      int                    `db:"weight"`
-		Description string                 `db:"description"`
-		CreatedAt   time.Time              `db:"created_at"`
-		UpdatedAt   *time.Time             `db:"updated_at"`
-		DeletedAt   *time.Time             `db:"deleted_at"`
+		ID             uint64                 `db:"id"`
+		Title          string                 `db:"title"`
+		Handle         string                 `db:"handle"`
+		SelfID         uint64                 `db:"self_id"`
+		ModuleID       uint64                 `db:"module_id"`
+		NamespaceID    uint64                 `db:"namespace_id"`
+		Meta           composeType.PageMeta   `db:"meta"`
+		Config         composeType.PageConfig `db:"config"`
+		Blocks         composeType.PageBlocks `db:"blocks"`
+		Visible        bool                   `db:"visible"`
+		Weight         int                    `db:"weight"`
+		Description    string                 `db:"description"`
+		CreatedAt      time.Time              `db:"created_at"`
+		UpdatedAt      *time.Time             `db:"updated_at"`
+		DeletedAt      *time.Time             `db:"deleted_at"`
+		CreatedByAgent uint64                 `db:"created_by_agent"`
 	}
 
 	// auxComposePageLayout is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposePageLayout struct {
-		ID          uint64                       `db:"id"`
-		Handle      string                       `db:"handle"`
-		PageID      uint64                       `db:"page_id"`
-		ParentID    uint64                       `db:"parent_id"`
-		NamespaceID uint64                       `db:"namespace_id"`
-		Weight      int                          `db:"weight"`
-		Meta        composeType.PageLayoutMeta   `db:"meta"`
-		Config      composeType.PageLayoutConfig `db:"config"`
-		Blocks      composeType.PageLayoutBlocks `db:"blocks"`
-		OwnedBy     uint64                       `db:"owned_by"`
-		CreatedAt   time.Time                    `db:"created_at"`
-		UpdatedAt   *time.Time                   `db:"updated_at"`
-		DeletedAt   *time.Time                   `db:"deleted_at"`
+		ID             uint64                       `db:"id"`
+		Handle         string                       `db:"handle"`
+		PageID         uint64                       `db:"page_id"`
+		ParentID       uint64                       `db:"parent_id"`
+		NamespaceID    uint64                       `db:"namespace_id"`
+		Weight         int                          `db:"weight"`
+		Meta           composeType.PageLayoutMeta   `db:"meta"`
+		Config         composeType.PageLayoutConfig `db:"config"`
+		Blocks         composeType.PageLayoutBlocks `db:"blocks"`
+		OwnedBy        uint64                       `db:"owned_by"`
+		CreatedAt      time.Time                    `db:"created_at"`
+		UpdatedAt      *time.Time                   `db:"updated_at"`
+		DeletedAt      *time.Time                   `db:"deleted_at"`
+		CreatedByAgent uint64                       `db:"created_by_agent"`
 	}
 
 	// auxConfiguredConnection is an auxiliary structure used for transporting to/from RDBMS store
@@ -2313,6 +2315,7 @@ func (aux *auxComposePage) encode(res *composeType.Page) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2336,6 +2339,7 @@ func (aux auxComposePage) decode() (res *composeType.Page, _ error) {
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2359,6 +2363,7 @@ func (aux *auxComposePage) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 
@@ -2379,6 +2384,7 @@ func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2400,6 +2406,7 @@ func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) 
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2421,6 +2428,7 @@ func (aux *auxComposePageLayout) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 

@@ -44,6 +44,8 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
+
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
@@ -168,6 +170,22 @@ const (
 func (m Page) Clone() *Page {
 	c := &m
 	return c
+}
+
+// Dict exposes page attributes for RBAC contextual role evaluation.
+func (p Page) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             p.ID,
+		"pageID":         p.ID,
+		"selfID":         p.SelfID,
+		"namespaceID":    p.NamespaceID,
+		"moduleID":       p.ModuleID,
+		"handle":         p.Handle,
+		"createdAt":      p.CreatedAt,
+		"createdByAgent": p.CreatedByAgent,
+		"updatedAt":      p.UpdatedAt,
+		"deletedAt":      p.DeletedAt,
+	}
 }
 
 func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {

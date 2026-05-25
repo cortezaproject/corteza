@@ -133,6 +133,17 @@ allow:
       - delete
       - revisions.search
 
+    corteza::compose:page/*/*:
+      - read
+      - update
+      - delete
+      - export
+
+    corteza::compose:page-layout/*/*/*:
+      - read
+      - update
+      - delete
+
   low-code-admin:
     corteza::compose/:
       - grant
