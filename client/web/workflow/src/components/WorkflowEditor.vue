@@ -453,12 +453,14 @@
             :label="$t('editor.back')"
             severity="secondary"
             text
+            size="small"
             @click="dryRun.lookup = true"
           />
           <div class="flex-1" />
           <Button
             :label="dryRun.lookup ? $t('editor.load-and-configure') : $t('editor.run-workflow')"
             severity="success"
+            size="small"
             @click="dryRunOk"
           />
         </div>

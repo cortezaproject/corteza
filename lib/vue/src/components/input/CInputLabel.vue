@@ -37,6 +37,7 @@
       :style="{ width: '28rem' }"
     >
       <Form
+        ref="dialogFormRef"
         v-slot="$form"
         :resolver="dialogResolver"
         :initialValues="dialogInitialValues"
@@ -62,24 +63,25 @@
             </Message>
           </FormField>
         </div>
+      </Form>
 
-        <div class="flex items-center justify-end w-full gap-2 mt-4">
+      <template #footer>
+        <div class="flex justify-end gap-2">
           <Button
             :label="cancelBtnLabel"
             severity="secondary"
-            text
+            outlined
             size="small"
-            type="button"
             @click="dialogVisible = false"
           />
           <Button
             :label="saveBtnLabel"
             severity="primary"
             size="small"
-            type="submit"
+            @click="dialogFormRef?.submit?.()"
           />
         </div>
-      </Form>
+      </template>
     </Dialog>
   </div>
 </template>
@@ -131,6 +133,7 @@ const loading = ref(false)
 // Dialog state
 const dialogVisible = ref(false)
 const dialogForm = ref({ name: '' })
+const dialogFormRef = ref(null)
 
 let cancelCurrentRequest = null
 

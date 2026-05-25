@@ -430,13 +430,20 @@
           v-model="modal.data"
         />
         <template #footer>
-          <Button
-            :label="$t('general.label.cancel')"
-            severity="secondary"
-            text
-            @click="modal.open = false"
-          />
-          <Button :label="$t('general.label.save')" icon="pi pi-check" @click="applyModal" />
+          <div class="flex justify-end gap-2">
+            <Button
+              :label="$t('general.label.cancel')"
+              severity="secondary"
+              outlined
+              size="small"
+              @click="modal.open = false"
+            />
+            <Button
+              :label="$t('general.label.save')"
+              size="small"
+              @click="applyModal"
+            />
+          </div>
         </template>
       </Dialog>
     </div>

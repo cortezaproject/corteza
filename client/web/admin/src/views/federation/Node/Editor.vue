@@ -111,16 +111,17 @@
         </div>
         <div class="flex justify-end gap-2">
           <Button
-            :label="$t('general.label.copy')"
-            icon="pi pi-copy"
-            severity="secondary"
-            outlined
-            @click="copyURI"
-          />
-          <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
+            outlined
+            size="small"
             @click="uriDialogVisible = false"
+          />
+          <Button
+            :label="$t('general.label.copy')"
+            icon="pi pi-copy"
+            size="small"
+            @click="copyURI"
           />
         </div>
       </template>

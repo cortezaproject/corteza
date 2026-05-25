@@ -55,13 +55,6 @@
               placeholder="1h / 1m15s / 1h90s"
             />
           </CFormGroup>
-
-          <CInputToggleCard
-            v-model="queue.meta.dispatch_events"
-            :label="$t('system.queues.editor.info.dispatch_events')"
-            :description="$t('system.queues.editor.info.dispatch_events_desc')"
-            class="self-start"
-          />
         </div>
       </Panel>
     </div>
@@ -92,7 +85,7 @@ import { useI18n } from 'vue-i18n'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
-const { CInputDelete, CInputToggleCard } = components
+const { CInputDelete } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -154,7 +147,6 @@ function newQueue() {
     consumer: 'corteza',
     meta: {
       poll_delay: '',
-      dispatch_events: false,
     },
   }
 }
@@ -164,7 +156,6 @@ function normalizeQueue(raw) {
     ...raw,
     meta: {
       poll_delay: raw.meta?.poll_delay || '',
-      dispatch_events: !!raw.meta?.dispatch_events,
     },
   }
 }

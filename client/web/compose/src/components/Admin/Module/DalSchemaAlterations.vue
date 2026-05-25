@@ -71,13 +71,15 @@
         <Button
           :label="canResolveAlterations ? $t('general.label.cancel') : $t('general.label.close')"
           severity="secondary"
-          text
+          outlined
+          size="small"
           :disabled="processing"
           @click="showModal = false"
         />
         <Button
           v-if="canResolveAlterations"
           :label="$t('module.edit.schemaAlterations.resolveAuto')"
+          size="small"
           :loading="processing"
           @click="confirmResolve()"
         />

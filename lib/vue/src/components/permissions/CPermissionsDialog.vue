@@ -173,7 +173,6 @@
         />
         <Button
           :label="$t('permissions.ui.save')"
-          icon="pi pi-save"
           :disabled="!dirty || submitting"
           :loading="submitting"
           size="small"
@@ -218,12 +217,21 @@
     </div>
 
     <template #footer>
-      <Button
-        :label="$t('permissions.ui.add.save')"
-        :disabled="!addEvalEnabled"
-        size="small"
-        @click="onAddEvalColumn"
-      />
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('permissions.ui.cancel')"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="showAddEval = false"
+        />
+        <Button
+          :label="$t('permissions.ui.add.save')"
+          :disabled="!addEvalEnabled"
+          size="small"
+          @click="onAddEvalColumn"
+        />
+      </div>
     </template>
   </Dialog>
 </template>

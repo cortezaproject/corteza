@@ -223,18 +223,22 @@
         </div>
       </div>
       <template #footer>
-        <Button
-          :label="$t('general.label.cancel')"
-          severity="secondary"
-          text
-          @click="showSaveDialog = false"
-        />
-        <Button
-          :label="$t('general.label.save')"
-          severity="primary"
-          :disabled="!presetName.trim()"
-          @click="confirmSavePreset"
-        />
+        <div class="flex justify-end gap-2">
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="showSaveDialog = false"
+          />
+          <Button
+            :label="$t('general.label.save')"
+            severity="primary"
+            size="small"
+            :disabled="!presetName.trim()"
+            @click="confirmSavePreset"
+          />
+        </div>
       </template>
     </Dialog>
   </div>

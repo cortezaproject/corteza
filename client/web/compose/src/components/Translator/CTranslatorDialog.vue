@@ -33,10 +33,12 @@
           :label="$t('general.label.cancel')"
           severity="secondary"
           outlined
+          size="small"
           @click="translatorStore.close()"
         />
         <Button
           :label="$t('general.label.save')"
+          size="small"
           :loading="saving"
           :disabled="pendingChanges.length === 0"
           @click="handleSave"

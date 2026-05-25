@@ -69,23 +69,25 @@
       </div>
 
       <template #footer>
-        <div class="flex items-center w-full">
+        <div class="flex items-center w-full gap-2">
           <Button
             v-if="modal.index >= 0"
             :label="$t('general.label.delete')"
             severity="danger"
-            text
+            size="small"
             @click="confirmDeleteSnippet"
           />
           <div class="flex-1" />
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            text
+            outlined
+            size="small"
             @click="modal.open = false"
           />
           <Button
             :label="$t('general.label.save')"
+            size="small"
             :disabled="!modal.data.name || !modal.data.script"
             @click="saveSnippet"
           />

@@ -191,7 +191,6 @@
           <div class="flex items-center gap-2">
             <Button
               :label="$t('block.recordList.export.csv')"
-              icon="pi pi-file"
               severity="secondary"
               :disabled="!canExport"
               :loading="exporting === 'csv'"
@@ -199,7 +198,6 @@
             />
             <Button
               :label="$t('block.recordList.export.json')"
-              icon="pi pi-code"
               :disabled="!canExport"
               :loading="exporting === 'json'"
               @click="doExport('json')"

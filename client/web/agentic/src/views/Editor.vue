@@ -752,7 +752,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            text
+            outlined
             size="small"
             @click="toolDialogVisible = false"
           />

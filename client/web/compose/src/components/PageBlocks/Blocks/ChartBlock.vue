@@ -103,16 +103,20 @@
             :label="$t('general.label.reset')"
             severity="secondary"
             text
+            size="small"
             @click="resetLiveFilter"
           />
           <div class="flex gap-2">
             <Button
               :label="$t('general.label.cancel')"
               severity="secondary"
+              outlined
+              size="small"
               @click="showFilterModal = false"
             />
             <Button
               :label="$t('general.label.save')"
+              size="small"
               @click="applyLiveFilter"
             />
           </div>

@@ -125,14 +125,22 @@
     </CFormGroup>
 
     <template #footer>
-      <Button :label="$t('general.label.cancel')" severity="secondary" @click="closeApiKeyDialog" />
-      <Button
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="savingApiKey"
-        :disabled="!apiKey"
-        @click="handleUpdateApiKey"
-      />
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="closeApiKeyDialog"
+        />
+        <Button
+          :label="$t('general.label.save')"
+          size="small"
+          :loading="savingApiKey"
+          :disabled="!apiKey"
+          @click="handleUpdateApiKey"
+        />
+      </div>
     </template>
   </Dialog>
 </template>

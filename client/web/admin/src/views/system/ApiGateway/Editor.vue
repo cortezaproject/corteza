@@ -158,18 +158,24 @@
             {{ $t('system.apigw.editor.filters.enabled') }}
           </label>
         </div>
+      </div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-surface">
+      <template #footer>
+        <div class="flex justify-end gap-2">
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            size="small"
             outlined
+            size="small"
             @click="filterModalVisible = false"
           />
-          <Button :label="$t('general.label.save')" size="small" @click="onFilterModalSave" />
+          <Button
+            :label="$t('general.label.save')"
+            size="small"
+            @click="onFilterModalSave"
+          />
         </div>
-      </div>
+      </template>
     </Dialog>
 
     <CEditorActions :back-to="{ name: 'system.apiGateway' }">

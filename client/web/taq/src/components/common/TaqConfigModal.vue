@@ -66,17 +66,16 @@
       </CFormGroup>
     </div>
     <template #footer>
-      <div class="flex justify-end w-full h-full items-center gap-2">
+      <div class="flex justify-end gap-2">
         <Button
           :label="$t('list.button.cancel')"
-          text
-          size="small"
           severity="secondary"
+          outlined
+          size="small"
           @click="emit('update:visible', false)"
         />
         <Button
           :label="mode === 'create' ? $t('list.button.create') : $t('builder.save')"
-          :icon="mode === 'create' ? 'pi pi-check' : 'pi pi-save'"
           size="small"
           :disabled="!form.name.trim() || processing"
           :loading="processing"

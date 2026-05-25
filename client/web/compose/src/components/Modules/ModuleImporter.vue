@@ -68,8 +68,10 @@
             </label>
           </div>
         </div>
+      </div>
 
-        <div class="flex items-center justify-between pt-2">
+      <template v-if="!importing && step === 1" #footer>
+        <div class="flex items-center justify-between w-full">
           <Button
             :label="$t('general.label.back')"
             icon="pi pi-arrow-left"
@@ -86,7 +88,7 @@
             @click="onImport"
           />
         </div>
-      </div>
+      </template>
     </Dialog>
   </div>
 </template>

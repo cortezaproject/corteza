@@ -53,6 +53,7 @@
     @hide="newLabelName = ''"
   >
     <Form
+      ref="createFormRef"
       v-slot="$form"
       :resolver="createResolver"
       :initialValues="{ name: newLabelName }"
@@ -73,23 +74,24 @@
           fluid
         />
       </CFormGroup>
+    </Form>
 
-      <div class="flex items-center justify-end gap-2 mt-4">
+    <template #footer>
+      <div class="flex justify-end gap-2">
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          text
+          outlined
           size="small"
-          type="button"
           @click="showCreateDialog = false"
         />
         <Button
           :label="$t('general.label.save')"
           size="small"
-          type="submit"
+          @click="createFormRef?.submit?.()"
         />
       </div>
-    </Form>
+    </template>
   </Dialog>
 </template>
 
@@ -112,6 +114,7 @@ const $SystemAPI = inject('$SystemAPI')
 const resourceListRef = ref()
 const showCreateDialog = ref(false)
 const newLabelName = ref('')
+const createFormRef = ref(null)
 
 const fields = [
   {

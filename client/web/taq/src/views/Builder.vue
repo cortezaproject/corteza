@@ -416,17 +416,16 @@
       </div>
 
       <template #footer>
-        <div class="flex justify-end w-full h-full items-center gap-2">
+        <div class="flex justify-end gap-2">
           <Button
             :label="$t('general.label.cancel')"
-            text
-            size="small"
             severity="secondary"
+            outlined
+            size="small"
             @click="showUnsavedDialog = false"
           />
           <Button
             :label="$t('builder.saveAndRun')"
-            icon="pi pi-save"
             severity="success"
             size="small"
             @click="proceedRun(true)"

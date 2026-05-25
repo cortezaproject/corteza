@@ -258,11 +258,13 @@
           <Button
             :label="$t('general.cancel')"
             severity="secondary"
-            text
+            outlined
+            size="small"
             @click="resetExpression"
           />
           <Button
             :label="$t('general.save')"
+            size="small"
             @click="saveExpression"
           />
         </div>

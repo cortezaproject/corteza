@@ -555,8 +555,8 @@
         <div class="flex justify-end gap-2">
           <Button
             :label="$t('general.label.cancel')"
-            text
             severity="secondary"
+            outlined
             size="small"
             @click="cancelFieldPicker"
           />

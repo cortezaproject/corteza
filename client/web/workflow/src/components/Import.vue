@@ -32,18 +32,27 @@
             {{ $t('general.import.reassign-run-as') }}
           </small>
         </CFormGroup>
+      </div>
 
-        <div class="flex justify-end">
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            outlined
+            size="small"
+            :disabled="processing"
+            @click="showDialog = false"
+          />
           <Button
             :label="$t('general.import.label')"
-            icon="pi pi-download"
             size="small"
             :loading="processing"
             :disabled="!workflows.length || processing"
             @click="onImport"
           />
         </div>
-      </div>
+      </template>
     </Dialog>
   </div>
 </template>

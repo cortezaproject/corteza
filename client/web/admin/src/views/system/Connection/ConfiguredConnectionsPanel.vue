@@ -93,6 +93,7 @@
   >
     <Form
       v-if="configuredConnectionModal"
+      ref="configuredConnectionFormRef"
       v-slot="$modalForm"
       :resolver="configuredConnectionResolver"
       :initialValues="configuredConnectionInitialValues"
@@ -137,9 +138,11 @@
           <InputText :id="`param-${param.name}`" v-model="paramValues[param.name]" />
         </CFormGroup>
       </div>
+    </Form>
 
-      <div class="border-t border-surface p-3 flex gap-2 shrink-0">
-        <div v-if="activeConfiguredConnection.configurationID" class="flex">
+    <template #footer>
+      <div class="flex items-center gap-2 w-full">
+        <div v-if="activeConfiguredConnection.configurationID" class="flex items-center gap-2">
           <CInputDelete
             :label="$t('general.label.delete')"
             :message="$t('system.configuredConnections.list.deleteConfirm')"
@@ -151,49 +154,46 @@
             @confirm="handleConfiguredConnectionDeleteFromModal"
           />
 
-          <div class="flex">
-            <Divider layout="vertical" />
-            <Button
-              :label="$t('system.configuredConnections.editor.check')"
-              size="small"
-              severity="info"
-              outlined
-              :loading="checkingConfiguredConnection"
-              @click="handleConfiguredConnectionCheck"
-            />
-          </div>
+          <Divider layout="vertical" />
+          <Button
+            :label="$t('system.configuredConnections.editor.check')"
+            size="small"
+            severity="info"
+            outlined
+            :loading="checkingConfiguredConnection"
+            @click="handleConfiguredConnectionCheck"
+          />
 
-          <div v-if="activeConfiguredConnection.status !== 'active'" class="flex">
+          <template v-if="activeConfiguredConnection.status !== 'active'">
             <Divider layout="vertical" />
             <Button
               :label="$t('system.configuredConnections.editor.enable')"
-              icon="pi pi-check-circle"
               size="small"
               severity="success"
               outlined
               :loading="enablingConfiguredConnection"
               @click="handleConfiguredConnectionEnable"
             />
-          </div>
+          </template>
         </div>
 
         <div class="flex gap-2 ml-auto">
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            size="small"
             outlined
+            size="small"
             @click="configuredConnectionModal = false"
           />
           <Button
-            type="submit"
             :label="$t('general.label.save')"
             size="small"
             :loading="savingConfiguredConnection"
+            @click="configuredConnectionFormRef?.submit?.()"
           />
         </div>
       </div>
-    </Form>
+    </template>
   </Dialog>
 </template>
 
@@ -219,6 +219,7 @@ const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
 
 const configuredConnectionModal = ref(false)
+const configuredConnectionFormRef = ref(null)
 const savingConfiguredConnection = ref(false)
 const enablingConfiguredConnection = ref(false)
 const checkingConfiguredConnection = ref(false)

@@ -79,21 +79,25 @@
         placeholder="https://..."
         class="w-full"
       />
+    </div>
+    <template #footer>
       <div class="flex justify-end gap-2">
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
+          outlined
+          size="small"
           @click="pairDialogVisible = false"
         />
         <Button
           :label="$t('federation.nodes.pair.button')"
-          icon="pi pi-link"
+          size="small"
           :disabled="!pairURL"
           :loading="pairing"
           @click="handlePair"
         />
       </div>
-    </div>
+    </template>
   </Dialog>
 </template>
 

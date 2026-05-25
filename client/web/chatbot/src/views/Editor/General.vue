@@ -158,7 +158,17 @@ function confirmRegenerate() {
     message: t('chatbot.editor.widgetKey.regenerateConfirm'),
     header: t('chatbot.editor.widgetKey.regenerate'),
     icon: 'pi pi-exclamation-triangle',
-    acceptClass: 'p-button-warn',
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      outlined: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('chatbot.editor.widgetKey.regenerate'),
+      severity: 'warn',
+      size: 'small',
+    },
     accept: () => emit('regenerate-key'),
   })
 }

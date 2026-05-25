@@ -197,15 +197,17 @@
     </Tabs>
 
     <template #footer>
-      <div class="flex justify-end gap-2 px-4 py-3 border-t border-surface bg-surface">
+      <div class="flex justify-end gap-2">
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          text
+          outlined
+          size="small"
           @click="showModal = false"
         />
         <Button
           :label="$t('general.label.saveAndClose')"
+          size="small"
           @click="handleFederationSettingsSave"
           :loading="saving"
         />

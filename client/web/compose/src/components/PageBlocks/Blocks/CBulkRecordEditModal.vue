@@ -58,6 +58,7 @@
             :label="$t('general.label.reset')"
             severity="secondary"
             text
+            size="small"
             :disabled="processing"
             @click="onReset"
           />
@@ -65,12 +66,14 @@
             <Button
               :label="$t('general.label.cancel')"
               severity="secondary"
-              text
+              outlined
+              size="small"
               @click="$emit('update:visible', false)"
             />
             <Button
               :label="$t('general.label.save')"
               severity="primary"
+              size="small"
               :disabled="!fields.length || processing"
               :loading="processing"
               @click="handleBulkUpdate"

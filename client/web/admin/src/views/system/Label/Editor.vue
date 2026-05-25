@@ -143,11 +143,11 @@
         </CFormGroup>
       </div>
       <template #footer>
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex justify-end gap-2">
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            text
+            outlined
             size="small"
             @click="showNsDialog = false"
           />
@@ -179,11 +179,11 @@
         </CFormGroup>
       </div>
       <template #footer>
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex justify-end gap-2">
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            text
+            outlined
             size="small"
             @click="showAgentDialog = false"
           />
@@ -215,11 +215,11 @@
         </CFormGroup>
       </div>
       <template #footer>
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex justify-end gap-2">
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            text
+            outlined
             size="small"
             @click="showTaqDialog = false"
           />

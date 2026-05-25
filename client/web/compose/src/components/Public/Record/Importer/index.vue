@@ -203,7 +203,6 @@
         <div v-if="step === 1" class="flex items-center justify-between w-full">
           <Button
             :label="$t('general.label.back')"
-            icon="pi pi-arrow-left"
             severity="secondary"
             text
             size="small"
@@ -211,7 +210,6 @@
           />
           <Button
             :label="$t('general.label.import')"
-            icon="pi pi-download"
             size="small"
             :disabled="!canImport"
             @click="runImport"
@@ -221,6 +219,7 @@
           <Button
             :label="$t('general.label.close')"
             severity="secondary"
+            outlined
             size="small"
             @click="closeDialog"
           />

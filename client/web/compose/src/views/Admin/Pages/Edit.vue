@@ -522,16 +522,21 @@
     </template>
 
     <template #footer>
-      <Button
-        :label="$t('general.label.cancel')"
-        severity="secondary"
-        @click="layoutConfigVisible = false"
-      />
-      <Button
-        :label="$t('general.label.save')"
-        :disabled="!configLayout?.meta?.title"
-        @click="saveLayoutConfig"
-      />
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="layoutConfigVisible = false"
+        />
+        <Button
+          :label="$t('general.label.save')"
+          size="small"
+          :disabled="!configLayout?.meta?.title"
+          @click="saveLayoutConfig"
+        />
+      </div>
     </template>
   </Dialog>
 
@@ -613,6 +618,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
+            outlined
             size="small"
             @click="closeIconModal"
           />

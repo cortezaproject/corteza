@@ -8,22 +8,32 @@
   >
     <div class="flex flex-col gap-4 py-2">
       <p class="text-sm text-muted-color">{{ $t('system.roles.editor.clone.description') }}</p>
-      <div class="flex items-center gap-2">
-        <CInputRole
-          class="flex-1"
-          v-model="sourceRoleID"
-          :placeholder="$t('system.roles.editor.clone.placeholder')"
-          @select="onRoleSelect"
+      <CInputRole
+        class="w-full"
+        v-model="sourceRoleID"
+        :placeholder="$t('system.roles.editor.clone.placeholder')"
+        @select="onRoleSelect"
+      />
+    </div>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          outlined
+          size="small"
+          :disabled="cloning"
+          @click="$emit('update:visible', false)"
         />
         <Button
           :label="$t('system.roles.editor.clone.button')"
-          icon="pi pi-copy"
+          size="small"
           :disabled="!selectedRole || cloning"
           :loading="cloning"
           @click="handleClone"
         />
       </div>
-    </div>
+    </template>
   </Dialog>
 </template>
 

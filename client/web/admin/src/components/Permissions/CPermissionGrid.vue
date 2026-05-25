@@ -209,7 +209,21 @@
       </div>
 
       <template #footer>
-        <Button :label="$t('permissions.ui.add.save')" :disabled="!addEnabled" @click="onAdd" />
+        <div class="flex justify-end gap-2">
+          <Button
+            :label="$t('permissions.ui.cancel')"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="addDialogVisible = false"
+          />
+          <Button
+            :label="$t('permissions.ui.add.save')"
+            size="small"
+            :disabled="!addEnabled"
+            @click="onAdd"
+          />
+        </div>
       </template>
     </Dialog>
   </div>

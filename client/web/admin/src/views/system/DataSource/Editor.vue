@@ -387,6 +387,7 @@ async function handleSubmit({ valid }) {
 
     const payload = {
       handle: dataSource.value.handle,
+      type: dataSource.value.type,
       meta: dataSource.value.meta,
       config: dataSource.value.config,
     }
