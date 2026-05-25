@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { renderMarkdown } from '../../utils/renderMarkdown'
+import { renderMarkdown } from '@planetcrust/human-js'
 
 interface ChatMessage {
   role: 'user' | 'agent' | 'assistant' | string

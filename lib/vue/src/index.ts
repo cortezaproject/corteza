@@ -34,7 +34,6 @@ export { useRightSidebarResize } from './composables/useRightSidebarResize'
 export { useAgentRouteContextProvider } from './composables/useAgentRouteContextProvider'
 export { useUnsavedGuard } from './composables/useUnsavedGuard'
 export { resolveAppLogoUrl, appIconMap, defaultAppIcon } from './utils/appIcons'
-export { renderMarkdown } from './utils/renderMarkdown'
 export * as websocket from './libs/websocket'
 
 // Export filters

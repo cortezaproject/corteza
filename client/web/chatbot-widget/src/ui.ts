@@ -1,7 +1,7 @@
 import type { ChatbotConfig, StepStartPayload } from './types'
 import { Engine, type HandoffState, type Message } from './engine'
 import { applyStyling, baseCSS } from './styles'
-import { renderMarkdown } from './md'
+import { renderMarkdown } from '@planetcrust/human-js'
 
 const SVG_CLOSE =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M6 18L18 6"/></svg>'

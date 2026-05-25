@@ -308,7 +308,7 @@
 // fallbacks built in) so the component has zero coupling to vue-i18n or any
 // locale file. Consumers can pass an object built from their own `t()` to
 // localize, or omit the prop entirely to use defaults.
-import { renderMarkdown } from '../../utils/renderMarkdown'
+import { renderMarkdown } from '@planetcrust/human-js'
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 

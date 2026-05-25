@@ -329,7 +329,7 @@
 
 <script setup>
 import { ref, nextTick } from 'vue'
-import { renderMarkdown } from '@planetcrust/human-vue'
+import { renderMarkdown } from '@planetcrust/human-js'
 
 const props = defineProps({
   agent: { type: Object, required: true },
