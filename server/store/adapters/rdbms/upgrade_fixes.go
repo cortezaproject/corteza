@@ -36,6 +36,7 @@ import (
 var (
 	// all enabled fix function need to be listed here
 	fixesPre = []func(context.Context, *Store) error{
+		fix_2026_05_00_addCreatedByAgentToComposeResources,
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
 		fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL,
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
@@ -63,7 +64,6 @@ var (
 		fix_2026_04_00_addChatbotColumnToAgents,
 		fix_2026_05_00_addSourceOnConnections,
 		fix_2026_05_00_addStateOnChatbotSessions,
-		fix_2026_05_00_addCreatedByAgentToComposeResources,
 	}
 )
 

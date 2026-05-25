@@ -833,7 +833,7 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		if call.Name == "automation_workflow_exec" {
 			policyArgs["workflow"] = r.resolveWorkflowRef(ctx, fmt.Sprintf("%v", call.Args["workflow"]))
 		}
-		decision := policy.Evaluate(agent, call.Name, policyArgs)
+		decision := policy.Evaluate(ctx, agent, call.Name, policyArgs, r.agentOwnsComposeTarget)
 		policySpan := observability.AgentSpan{
 			ID:             sid(),
 			ParentID:       tc.SpanID,
@@ -1285,6 +1285,44 @@ func (r *runtime) resolveWorkflowRef(ctx context.Context, ref string) string {
 		return ref
 	}
 	return strconv.FormatUint(wf.ID, 10)
+}
+
+// agentOwnsComposeTarget returns true when the invoking agent created the
+// namespace or module referenced in args. Lets policy.Evaluate fall back
+// past the operator allow-list for agent-created resources (mirrors what
+// the agent-creator RBAC contextual role grants at the service layer).
+func (r *runtime) agentOwnsComposeTarget(ctx context.Context, args policy.ValueGetter) bool {
+	agentID := auth.GetAgentIDFromContext(ctx)
+	if agentID == 0 || r.nsModResolver == nil {
+		return false
+	}
+
+	parseID := func(key string) uint64 {
+		v, ok := args.Get(key)
+		if !ok {
+			return 0
+		}
+		s, _ := v.(string)
+		id, _ := strconv.ParseUint(s, 10, 64)
+		return id
+	}
+
+	nsID := parseID("namespaceID")
+	if nsID == 0 {
+		return false
+	}
+
+	if modID := parseID("moduleID"); modID != 0 {
+		if mod, err := r.nsModResolver.LookupModule(ctx, nsID, modID); err == nil && mod.CreatedByAgent == agentID {
+			return true
+		}
+	}
+
+	if ns, err := r.nsModResolver.LookupNamespace(ctx, nsID); err == nil && ns.CreatedByAgent == agentID {
+		return true
+	}
+
+	return false
 }
 
 func (r *runtime) hasDirectInvokeTrigger(ctx context.Context, a *autoTypes.NgAutomation) bool {
