@@ -7,10 +7,11 @@ import agentic from './agentic'
 import chatbot from './chatbot'
 import compose from './compose'
 import home from './home'
+import project from './project'
 import taq from './taq'
 import workflow from './workflow'
 
-export const sections = [home, agentic, workflow, taq, admin, compose, chatbot]
+export const sections = [home, agentic, workflow, taq, admin, compose, chatbot, project]
 
 // Flattened route list for the merged router.
 export const routes = sections.flatMap(section => section.routes)

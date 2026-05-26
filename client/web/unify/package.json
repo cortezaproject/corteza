@@ -40,6 +40,7 @@
     "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.48.2",
     "@vue-flow/node-resizer": "^1.4.0",
+    "d3-force": "^3.0.0",
     "dagre": "^0.8.5",
     "human-webapp-chatbot-widget": "workspace:*",
     "echarts": "^6.0.0",

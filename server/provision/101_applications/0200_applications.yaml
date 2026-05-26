@@ -9,7 +9,7 @@ applications:
       logo: applications/default-app.png
       url: home/
 
-  - name: Projects (Labels)
+  - name: Projects
     (envoy): { skipIf: '!missing' }
     enabled: true
     weight: 2
@@ -17,7 +17,7 @@ applications:
       listed: true
       icon: applications/projects.png
       logo: applications/projects.png
-      url: admin/system/labels
+      url: project/
 
   - name: Agentic
     (envoy): { skipIf: '!missing' }
