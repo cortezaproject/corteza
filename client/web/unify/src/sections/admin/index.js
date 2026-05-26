@@ -16,5 +16,8 @@ export default {
     meta: { ...(route.meta || {}), section: 'admin' },
   })),
   sidebar: AdminSidebar,
-  // Admin shows its sidebar on every route (no route sets meta.hideSidebar).
+  // Admin shows its sidebar on every route.
+  sidebarDisabledRoutes: [],
+  // Open the sidebar automatically when navigating into the admin section.
+  autoExpandSidebar: true,
 }
