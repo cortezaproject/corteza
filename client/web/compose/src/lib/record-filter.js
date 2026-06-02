@@ -278,7 +278,7 @@ export function queryToFilter(
     .filter(({ sql }) => sql)
 
   // Group consecutive ANDs together, then join with ORs for proper precedence
-  let recordListFilterSql = ''
+  const orSegments = []
   let andGroup = []
 
   for (let i = 0; i < groups.length; i++) {
@@ -287,18 +287,29 @@ export function queryToFilter(
     if (i === 0 || condition === 'AND') {
       andGroup.push(sql)
     } else {
-      // OR encountered - flush AND group
-      recordListFilterSql +=
-        (recordListFilterSql ? ' OR ' : '') +
-        (andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0])
+      // OR encountered - flush AND group as its own segment
+      orSegments.push(
+        andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0],
+      )
       andGroup = [sql]
     }
   }
   // Flush remaining
   if (andGroup.length) {
-    recordListFilterSql +=
-      (recordListFilterSql ? ' OR ' : '') +
-      (andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0])
+    orSegments.push(
+      andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0],
+    )
+  }
+
+  let recordListFilterSql = orSegments.join(' OR ')
+
+  // When there is a top-level OR (more than one segment), wrap the combined
+  // filter so it is grouped before being AND-joined with the prefilter/search
+  // query. Without this, SQL operator precedence (AND binds tighter than OR)
+  // lets the last OR branch escape the prefilter:
+  // `prefilter AND (a) OR (b)` => `(prefilter AND (a)) OR (b)`.
+  if (orSegments.length > 1) {
+    recordListFilterSql = `(${recordListFilterSql})`
   }
 
   return [prefilter, recordListFilterSql, searchQuery].filter(f => f).join(' AND ')

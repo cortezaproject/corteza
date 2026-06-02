@@ -1,0 +1,148 @@
+import { describe, it, expect } from 'vitest'
+import {
+  escapeQlString,
+  getFieldFilter,
+  getRecordListFilterSql,
+  queryToFilter,
+} from './record-filter'
+
+// Helper to build a single-field filter group as consumed by queryToFilter.
+// `groupCondition` controls how the group connects to the previous group.
+const group = (filter: any[], groupCondition?: string) => ({
+  filter,
+  groupCondition,
+})
+const field = (
+  name: string,
+  value: string,
+  { kind = 'String', operator = '=' }: { kind?: string; operator?: string } = {},
+) => ({ name, kind, value, operator })
+
+describe('lib/record-filter', () => {
+  describe('escapeQlString', () => {
+    it('escapes single quotes and backslashes', () => {
+      expect(escapeQlString("O'Brien")).toBe("O\\'Brien")
+      expect(escapeQlString('a\\b')).toBe('a\\\\b')
+    })
+
+    it('escapes LIKE wildcards only in like mode', () => {
+      expect(escapeQlString('50%_off', false)).toBe('50%_off')
+      expect(escapeQlString('50%_off', true)).toBe('50\\\\%\\\\_off')
+    })
+  })
+
+  describe('getFieldFilter', () => {
+    it('builds a simple equality for strings', () => {
+      expect(getFieldFilter('Name', 'String', 'bar', '=')).toBe("(Name = 'bar')")
+    })
+
+    it('includes IS NULL fallback for != so nulls are not silently excluded', () => {
+      expect(getFieldFilter('Name', 'String', 'bar', '!=')).toBe(
+        "((Name != 'bar') OR (Name IS NULL))",
+      )
+    })
+
+    it('flips operands for IN', () => {
+      expect(getFieldFilter('Name', 'String', 'bar', 'IN')).toBe("('bar' IN Name)")
+    })
+
+    it('builds LIKE with wildcards', () => {
+      expect(getFieldFilter('Name', 'String', 'foo', 'LIKE')).toBe(
+        "(Name LIKE '%foo%')",
+      )
+    })
+
+    it('treats empty value as a NULL check', () => {
+      expect(getFieldFilter('Name', 'String', '', '=')).toBe('(Name IS NULL)')
+      expect(getFieldFilter('Name', 'String', '', '!=')).toBe('(Name IS NOT NULL)')
+    })
+  })
+
+  describe('getRecordListFilterSql', () => {
+    it('returns empty string for an empty filter', () => {
+      expect(getRecordListFilterSql([])).toBe('')
+    })
+
+    it('wraps a single field condition', () => {
+      expect(getRecordListFilterSql([field('A', '1')])).toBe("((A = '1'))")
+    })
+
+    it('groups OR conditions within a field group', () => {
+      const sql = getRecordListFilterSql([
+        { ...field('A', '1'), condition: '' },
+        { ...field('B', '2'), condition: 'OR' },
+      ])
+      expect(sql).toBe("(((A = '1') OR (B = '2')))")
+    })
+  })
+
+  describe('queryToFilter', () => {
+    const PRE = "(LocalGroupID = '5')"
+
+    it('returns just the prefilter when no user filter or search is given', () => {
+      expect(queryToFilter('', PRE, [], [])).toBe(PRE)
+    })
+
+    it('AND-joins a single user filter group to the prefilter', () => {
+      expect(queryToFilter('', PRE, [], [group([field('A', '1')])])).toBe(
+        `${PRE} AND ((A = '1'))`,
+      )
+    })
+
+    // The regression this suite primarily guards: a top-level OR in the user
+    // filter must be parenthesised so the prefilter constrains BOTH branches.
+    // Before the fix the result was `PRE AND (a) OR (b)`, which SQL reads as
+    // `(PRE AND a) OR b`, letting branch `b` escape the prefilter entirely.
+    it('wraps a top-level OR so the prefilter applies to every branch', () => {
+      const out = queryToFilter('', PRE, [], [
+        group([field('A', '1')]),
+        group([field('B', '2')], 'OR'),
+      ])
+      expect(out).toBe(`${PRE} AND (((A = '1')) OR ((B = '2')))`)
+
+      // Semantic invariant: everything after the prefilter's AND is a single
+      // parenthesised expression, so no OR branch can sit outside the prefilter.
+      const tail = out.slice(`${PRE} AND `.length)
+      expect(tail.startsWith('(')).toBe(true)
+      expect(tail.endsWith(')')).toBe(true)
+    })
+
+    it('does not add a redundant outer wrap for pure AND groups', () => {
+      const out = queryToFilter('', PRE, [], [
+        group([field('A', '1')]),
+        group([field('B', '2')], 'AND'),
+      ])
+      expect(out).toBe(`${PRE} AND (((A = '1')) AND ((B = '2')))`)
+    })
+
+    it('handles mixed AND/OR with correct precedence grouping', () => {
+      const out = queryToFilter('', PRE, [], [
+        group([field('A', '1')]),
+        group([field('B', '2')], 'AND'),
+        group([field('C', '3')], 'OR'),
+      ])
+      expect(out).toBe(
+        `${PRE} AND ((((A = '1')) AND ((B = '2'))) OR ((C = '3')))`,
+      )
+    })
+
+    it('keeps the prefilter applied when an OR filter is combined with a search query', () => {
+      const fields = [{ name: 'A', kind: 'String' }]
+      const out = queryToFilter('foo', PRE, fields, [
+        group([field('A', '1')]),
+        group([field('B', '2')], 'OR'),
+      ])
+      expect(out).toBe(
+        `${PRE} AND (((A = '1')) OR ((B = '2'))) AND ((A LIKE '%foo%'))`,
+      )
+    })
+
+    it('works without a prefilter (OR still grouped on its own)', () => {
+      const out = queryToFilter('', '', [], [
+        group([field('A', '1')]),
+        group([field('B', '2')], 'OR'),
+      ])
+      expect(out).toBe("(((A = '1')) OR ((B = '2')))")
+    })
+  })
+})
