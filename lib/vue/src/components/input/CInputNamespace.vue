@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
 
 defineOptions({ inheritAttrs: false })
@@ -44,13 +44,21 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const store = useComposeResourceStore()
+// Store-first: prefer the app-wide shared namespace store (preloaded at boot,
+// no per-open refetch). Fall back to the lib resource store when the shared
+// store isn't provided (e.g. standalone/legacy usage).
+const sharedStore = inject('$namespaceStore', null)
+const fallbackStore = useComposeResourceStore()
 
-const options = ref([])
+const fallbackOptions = ref([])
 const selectedNamespace = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
+// Options come straight from the shared store's reactive (preloaded) set when
+// available; otherwise from the fallback store's search results.
+const options = computed(() => (sharedStore ? sharedStore.set : fallbackOptions.value))
+
+// Store cancel function for the fallback request
 let cancelCurrentRequest = null
 
 function getOptionLabel(namespace) {
@@ -58,28 +66,29 @@ function getOptionLabel(namespace) {
   return namespace.name || namespace.slug || namespace.namespaceID
 }
 
-async function fetchNamespaces() {
-  // Cancel previous request if pending
-  if (cancelCurrentRequest) {
-    cancelCurrentRequest()
-    cancelCurrentRequest = null
-  }
-
+async function ensureLoaded() {
   loading.value = true
   try {
-    const { response, cancel } = store.searchNamespaces({
+    if (sharedStore) {
+      // Cache-guarded — returns immediately if already loaded.
+      await sharedStore.load()
+      return
+    }
+    if (cancelCurrentRequest) {
+      cancelCurrentRequest()
+      cancelCurrentRequest = null
+    }
+    const { response, cancel } = fallbackStore.searchNamespaces({
       query: '',
       limit: 100,
       sort: 'name ASC',
     })
     cancelCurrentRequest = cancel
-
     const result = await response()
-    options.value = result.set || []
+    fallbackOptions.value = result.set || []
   } catch (e) {
-    // Ignore cancelled requests
-    if (e?.message !== 'canceled') {
-      options.value = []
+    if (e?.message !== 'canceled' && !sharedStore) {
+      fallbackOptions.value = []
     }
   } finally {
     loading.value = false
@@ -88,7 +97,7 @@ async function fetchNamespaces() {
 }
 
 function onShow() {
-  fetchNamespaces()
+  ensureLoaded()
 }
 
 function onSelect(value) {
@@ -99,22 +108,23 @@ function onSelect(value) {
 async function loadNamespaceById(namespaceID) {
   if (!namespaceID) return
 
-  // First check if already in options
   const existing = options.value.find(ns => ns.namespaceID === namespaceID)
   if (existing) {
     selectedNamespace.value = existing
     return
   }
 
-  // Resolve through store (cache-first)
+  // Resolve through the store (cache-first).
   loading.value = true
   try {
-    const namespace = await store.resolveNamespace(namespaceID)
+    const namespace = sharedStore
+      ? await sharedStore.findByID({ namespaceID })
+      : await fallbackStore.resolveNamespace(namespaceID)
     if (namespace) {
       selectedNamespace.value = namespace
-      // Add to options if not present
-      if (!options.value.find(ns => ns.namespaceID === namespaceID)) {
-        options.value = [...options.value, namespace]
+      // For the fallback store, keep its local option list in sync.
+      if (!sharedStore && !fallbackOptions.value.find(ns => ns.namespaceID === namespaceID)) {
+        fallbackOptions.value = [...fallbackOptions.value, namespace]
       }
     }
   } catch (_e) {
@@ -124,16 +134,20 @@ async function loadNamespaceById(namespaceID) {
   }
 }
 
-watch(() => props.modelValue, (newVal) => {
-  if (newVal && (!selectedNamespace.value || selectedNamespace.value.namespaceID !== newVal)) {
-    loadNamespaceById(newVal)
-  } else if (!newVal) {
-    selectedNamespace.value = null
-  }
-}, { immediate: true })
+watch(
+  () => props.modelValue,
+  newVal => {
+    if (newVal && (!selectedNamespace.value || selectedNamespace.value.namespaceID !== newVal)) {
+      loadNamespaceById(newVal)
+    } else if (!newVal) {
+      selectedNamespace.value = null
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
-  fetchNamespaces()
+  ensureLoaded()
 
   if (props.modelValue) {
     loadNamespaceById(props.modelValue)

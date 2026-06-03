@@ -115,10 +115,6 @@ HTTPServer: schema.#optionsGroup & {
 			defaultValue: "./webapp/public"
 			env:          "HTTP_WEBAPP_BASE_DIR"
 		}
-		webappList: {
-			defaultValue: "admin,compose,workflow,reporter,privacy,home,agentic,chatbot"
-			env:          "HTTP_WEBAPP_LIST"
-		}
 		sslTerminated: {
 			type:          "bool"
 			defaultGoExpr: "isSecure()"

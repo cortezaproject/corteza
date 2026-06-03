@@ -861,10 +861,9 @@ func initValuestore(opt *options.Options) {
 	vars["api.domain"] = apiHostname
 	vars["api.base-url"] = options.FullURL(opt.HTTPServer.BaseUrl, opt.HTTPServer.ApiBaseUrl)
 
-	// Web applications
+	// Web application (single unified app served at the root)
 	webappDomain := ""
 	webappBaseURL := ""
-	webappBaseURLWebapps := map[string]string{}
 
 	if opt.HTTPServer.WebappEnabled {
 		// When served from the server container, use server variables
@@ -875,19 +874,12 @@ func initValuestore(opt *options.Options) {
 		webappDomain = options.GuessWebappHostname()
 		webappBaseURL = options.FullWebappURL(opt.HTTPServer.BaseUrl, opt.HTTPServer.WebappBaseUrl)
 	}
-	// Web applications
-	for _, w := range strings.Split(opt.HTTPServer.WebappList, ",") {
-		webappBaseURLWebapps[w] = fmt.Sprintf("%s/%s", strings.TrimRight(webappBaseURL, "/"), strings.TrimSpace(w))
-	}
 
 	// Webapp related values -- domain, base url (for webapps), ...
-	// Splitting the two since the webapps can be served somewhere else on
+	// Splitting the two since the webapp can be served somewhere else on
 	// a completely different domain
 	vars["webapp.domain"] = webappDomain
 	vars["webapp.base-url"] = webappBaseURL
-	for k, v := range webappBaseURLWebapps {
-		vars[fmt.Sprintf("webapp.base-url.%s", k)] = v
-	}
 
 	for k, v := range humanEnvVars() {
 		vars[k] = v

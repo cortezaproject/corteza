@@ -32,6 +32,7 @@
           :target="btn.newTab ? '_blank' : '_self'"
           rel="noopener noreferrer"
           class="no-underline shrink-0"
+          @click="!btn.newTab && onAnchorClick($event, btn.url)"
         >
           <Button
             v-tooltip.bottom="btn.description || undefined"
@@ -49,7 +50,12 @@
     </div>
 
     <div class="topbar-right flex items-center gap-1 ml-2">
-      <a v-if="!settings?.hideHomeButton" :href="homeURL" class="no-underline">
+      <a
+        v-if="!settings?.hideHomeButton"
+        :href="homeURL"
+        class="no-underline"
+        @click="onAnchorClick($event, homeURL)"
+      >
         <Button
           v-tooltip.bottom="labels.home || 'Home'"
           icon="pi pi-home"
@@ -119,8 +125,11 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useInternalLink } from '../../composables/useInternalLink'
 import CNotificationButton from '../notifications/CNotificationButton.vue'
 import CAgentSidebarButton from '../agent/CAgentSidebarButton.vue'
+
+const { onAnchorClick } = useInternalLink()
 
 const sidebarExpanded = defineModel('sidebarExpanded', {
   type: Boolean,

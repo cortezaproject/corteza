@@ -1,4 +1,5 @@
 import { markRaw, type Component } from 'vue'
+import { resolveInternalPath } from '../../../utils/internalNav'
 import { pType, pVal } from '../utils'
 import alertCmp from './CPromptAlert.vue'
 import choiceCmp from './CPromptChoice.vue'
@@ -57,6 +58,13 @@ const definitions: Record<string, PromptDefinition> = {
       window.setTimeout(() => {
         if (openMode === 'newTab') {
           window.open(String(url), '_blank', 'noopener')
+          return
+        }
+        // Navigate client-side when the URL is an internal route of this app;
+        // otherwise do a full-page redirect (other app / external URL).
+        const internal = resolveInternalPath(this?.$router, String(url))
+        if (internal && this?.$router) {
+          this.$router.push(internal)
         } else {
           window.location.assign(String(url))
         }

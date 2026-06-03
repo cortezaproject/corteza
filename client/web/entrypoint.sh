@@ -41,12 +41,7 @@ else
     sed -i "s|{{BASE_PATH}}|$BASE_PATH|g" /etc/nginx/nginx.conf
   }
 
-  config './admin'
-  config './agentic'
-  config './compose'
-  config './taq'
-  config './home'
-  config './chatbot'
+  # Single unified webapp served at the root.
   config '.'
 
   nginx -g "daemon off;"

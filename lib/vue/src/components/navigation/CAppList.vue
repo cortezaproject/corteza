@@ -13,7 +13,7 @@
       target="_self"
       :draggable="canReorder"
       :class="[itemClass, { 'cursor-grab': canReorder, 'border-t-2 !border-t-primary': canReorder && variant === 'list' && dropTargetIndex === index }]"
-      @click="!app.enabled && $event.preventDefault()"
+      @click="onItemClick($event, app)"
       @dragstart="canReorder && onDragStart(index)"
       @dragover="canReorder && onDragOver($event, index)"
       @dragleave="canReorder && onDragLeave()"
@@ -68,6 +68,7 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { useInternalLink } from '../../composables/useInternalLink'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import { resolveAppLogoUrl } from '../../utils/appIcons'
 
@@ -92,6 +93,19 @@ const props = defineProps({
 
 const $SystemAPI = inject('$SystemAPI')
 const applicationsStore = useApplicationsStore()
+
+const { onAnchorClick } = useInternalLink()
+
+// Left-click on an app the current SPA hosts internally routes client-side
+// (no reload, no splash). Anything else (other app, external, modified click)
+// falls through to the anchor's native navigation, preserving prior behavior.
+const onItemClick = (event, app) => {
+  if (!app.enabled) {
+    event.preventDefault()
+    return
+  }
+  onAnchorClick(event, getAppUrl(app))
+}
 
 const apps = computed(() => applicationsStore.unifyOnly)
 const canReorder = computed(() => applicationsStore.apps.some(a => a.canUpdateApplication))

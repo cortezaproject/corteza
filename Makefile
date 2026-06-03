@@ -1,6 +1,6 @@
 .PHONY: dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
-WEB_APPS := admin agentic compose one taq home workflow chatbot
+WEB_APPS := unify
 
 codegen:
 	@echo "---Running codegen---"

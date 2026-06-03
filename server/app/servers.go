@@ -63,10 +63,9 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 		r.Route(options.CleanBase(ho.WebappBaseUrl), webapp.MakeWebappServer(app.Log, ho, app.Opt.Auth, app.Opt.Discovery, app.Opt.Sentry))
 
 		app.Log.Info(
-			"client web applications enabled",
+			"client web application enabled",
 			zap.String("baseUrl", options.CleanBase(ho.BaseUrl, ho.WebappBaseUrl)),
 			zap.String("baseDir", ho.WebappBaseDir),
-			zap.Strings("apps", strings.Split(ho.WebappList, ",")),
 		)
 	}()
 

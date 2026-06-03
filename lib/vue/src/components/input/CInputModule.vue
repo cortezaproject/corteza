@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
 
 defineOptions({ inheritAttrs: false })
@@ -76,15 +76,24 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const store = useComposeResourceStore()
+// Store-first: prefer the app-wide shared module store (multi-namespace cache;
+// modulesFor/loadFor are scoped to a namespace and don't disturb the active
+// one). Fall back to the lib resource store for standalone/legacy usage.
+const sharedStore = inject('$moduleStore', null)
+const fallbackStore = useComposeResourceStore()
 
-const options = ref([])
+const fallbackOptions = ref([])
 const selectedModule = ref(null)
 const selectedModules = ref([])
 const loading = ref(false)
 
-// Store cancel function for current request
 let cancelCurrentRequest = null
+
+// Options for THIS picker's namespace — from the shared store's per-namespace
+// cache when available, otherwise the fallback search results.
+const options = computed(() =>
+  sharedStore ? sharedStore.modulesFor(props.namespaceID) : fallbackOptions.value,
+)
 
 function getOptionLabel(module) {
   if (!module) return ''
@@ -93,31 +102,32 @@ function getOptionLabel(module) {
 
 async function fetchModules() {
   if (!props.namespaceID) {
-    options.value = []
+    if (!sharedStore) fallbackOptions.value = []
     return
-  }
-
-  // Cancel previous request if pending
-  if (cancelCurrentRequest) {
-    cancelCurrentRequest()
-    cancelCurrentRequest = null
   }
 
   loading.value = true
   try {
-    const { response, cancel } = store.searchModules(props.namespaceID, {
+    if (sharedStore) {
+      // Cache-guarded; returns immediately if this namespace is already loaded.
+      await sharedStore.loadFor(props.namespaceID)
+      return
+    }
+    if (cancelCurrentRequest) {
+      cancelCurrentRequest()
+      cancelCurrentRequest = null
+    }
+    const { response, cancel } = fallbackStore.searchModules(props.namespaceID, {
       query: '',
       limit: 100,
       sort: 'name ASC',
     })
     cancelCurrentRequest = cancel
-
     const result = await response()
-    options.value = result.set || []
+    fallbackOptions.value = result.set || []
   } catch (e) {
-    // Ignore cancelled requests
-    if (e?.message !== 'canceled') {
-      options.value = []
+    if (e?.message !== 'canceled' && !sharedStore) {
+      fallbackOptions.value = []
     }
   } finally {
     loading.value = false
@@ -138,26 +148,30 @@ function onSelect(value) {
   emit('update:modelValue', value?.moduleID || null)
 }
 
+async function resolveModule(moduleID) {
+  if (sharedStore) {
+    return sharedStore.findByID({ namespaceID: props.namespaceID, moduleID })
+  }
+  const mod = await fallbackStore.resolveModule(props.namespaceID, moduleID)
+  if (mod && !fallbackOptions.value.find(m => m.moduleID === mod.moduleID)) {
+    fallbackOptions.value = [...fallbackOptions.value, mod]
+  }
+  return mod
+}
+
 async function loadModuleById(moduleID) {
   if (!moduleID || !props.namespaceID) return
 
-  // First check if already in options
   const existing = options.value.find(m => m.moduleID === moduleID)
   if (existing) {
     selectedModule.value = existing
     return
   }
 
-  // Resolve through store (cache-first)
   loading.value = true
   try {
-    const module = await store.resolveModule(props.namespaceID, moduleID)
-    if (module) {
-      selectedModule.value = module
-      if (!options.value.find(m => m.moduleID === moduleID)) {
-        options.value = [...options.value, module]
-      }
-    }
+    const module = await resolveModule(moduleID)
+    if (module) selectedModule.value = module
   } catch (_e) {
     // Module not found or API error
   } finally {
@@ -177,17 +191,10 @@ async function loadModulesById(moduleIDs) {
 
   const resolved = []
   for (const id of moduleIDs) {
-    // Check in options first
-    let mod = options.value.find(m =>
-      m.moduleID === id || m.moduleID === String(id),
-    )
+    let mod = options.value.find(m => m.moduleID === id || m.moduleID === String(id))
     if (!mod) {
-      // Resolve through store
       try {
-        mod = await store.resolveModule(props.namespaceID, id)
-        if (mod && !options.value.find(m => m.moduleID === mod.moduleID)) {
-          options.value = [...options.value, mod]
-        }
+        mod = await resolveModule(id)
       } catch (_e) {
         // skip
       }
@@ -199,14 +206,13 @@ async function loadModulesById(moduleIDs) {
 
 // --- Watchers ---
 
-// Watch for namespace changes - clear selection and reload
 watch(
   () => props.namespaceID,
   (newVal, oldVal) => {
     if (oldVal && newVal !== oldVal) {
       selectedModule.value = null
       selectedModules.value = []
-      options.value = []
+      if (!sharedStore) fallbackOptions.value = []
       emit('update:modelValue', props.multiple ? [] : null)
     }
     if (newVal) {
@@ -250,7 +256,6 @@ function syncMultiSelection(ids) {
   selectedModules.value = options.value.filter(m =>
     ids.includes(m.moduleID) || ids.includes(String(m.moduleID)),
   )
-  // Resolve any missing modules
   const missing = ids.filter(id =>
     !selectedModules.value.find(m => m.moduleID === id || m.moduleID === String(id)),
   )

@@ -43,7 +43,6 @@ type (
 		WebappEnabled          bool   `env:"HTTP_WEBAPP_ENABLED"`
 		WebappBaseUrl          string `env:"HTTP_WEBAPP_BASE_URL"`
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
-		WebappList             string `env:"HTTP_WEBAPP_LIST"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
 		AssetsPath             string `env:"HTTP_SERVER_ASSETS_PATH"`
 		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
@@ -368,7 +367,6 @@ func HttpServer() (o *HttpServerOpt) {
 		ApiBaseUrl:             "/",
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "./webapp/public",
-		WebappList:             "admin,compose,workflow,reporter,privacy,home,agentic,chatbot",
 		SslTerminated:          isSecure(),
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",

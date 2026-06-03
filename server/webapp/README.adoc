@@ -50,5 +50,5 @@ make VERSION=2021.3.3
 To enable serving of webapps from the server, make sure `HTTP_WEBAPP_ENABLED` is set to `true`.
 This will prefix all API endpoints with `/api/`.
 
-See `HTTP_API_BASE_URL`, `HTTP_WEBAPP_ENABLED`, `HTTP_WEBAPP_BASE_URL`, `HTTP_WEBAPP_BASE_DIR`, `HTTP_WEBAPP_LIST` for
+See `HTTP_API_BASE_URL`, `HTTP_WEBAPP_ENABLED`, `HTTP_WEBAPP_BASE_URL`, `HTTP_WEBAPP_BASE_DIR` for
 details

@@ -45,20 +45,13 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 		apiBaseUrl          = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
 		webappSentryUrl     = sentryOpt.WebappDSN
 		discoveryApiBaseUrl = discoveryOpt.BaseUrl
-		apps                = strings.Split(httpSrvOpt.WebappList, ",")
-
-		appIndexHTMLs = make(map[string][]byte)
-
-		webBaseUrl string
-		err        error
 	)
 
-	// Preload index files for all apps
-	for _, app := range append(apps, "") {
-		appIndexHTMLs[app], err = modifyIndexHTML(app, httpSrvOpt.WebappBaseDir, httpSrvOpt.BaseUrl)
-		if err != nil {
-			log.Error("could not preload application index HTML", zap.Error(err))
-		}
+	// Single unified webapp served at the root. Preload its index once; any
+	// path that isn't a real asset falls through to it (client-side routing).
+	rootIndexHTML, err := modifyIndexHTML("", httpSrvOpt.WebappBaseDir, httpSrvOpt.BaseUrl)
+	if err != nil {
+		log.Error("could not preload application index HTML", zap.Error(err))
 	}
 
 	// Serves static files directly from FS
@@ -68,21 +61,7 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 			http.FileServer(http.Dir(httpSrvOpt.WebappBaseDir)),
 		)
 
-		for _, app := range apps {
-			webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl, app)
-			serveConfig(r, webappConfig{
-				appUrl:              webBaseUrl,
-				apiBaseUrl:          apiBaseUrl,
-				authBaseUrl:         authOpt.BaseURL,
-				webappBaseUrl:       httpSrvOpt.BaseUrl,
-				discoveryApiBaseUrl: discoveryApiBaseUrl,
-				sentryUrl:           webappSentryUrl,
-				settings:            service.CurrentSettings,
-			})
-			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fs))
-		}
-
-		webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl)
+		webBaseUrl := options.CleanBase(httpSrvOpt.WebappBaseUrl)
 		serveConfig(r, webappConfig{
 			appUrl:              webBaseUrl,
 			apiBaseUrl:          apiBaseUrl,
@@ -92,7 +71,7 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 			sentryUrl:           webappSentryUrl,
 			settings:            service.CurrentSettings,
 		})
-		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fs))
+		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, rootIndexHTML, fs))
 	}
 }
 
