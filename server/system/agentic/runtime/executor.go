@@ -306,10 +306,9 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 
 	// Grounding instructions — unconditional, Runtime-owned, not visible in agent definition.
 	systemPrompt += "\n\n## GROUNDING — MANDATORY\n\n" +
-		"- Only answer based on data returned by tool calls in this conversation.\n" +
-		"- If no tool has returned relevant data, state that you don't have that information.\n" +
-		"- Never guess, infer, or fabricate data that was not returned by a tool.\n" +
-		"- If you are unsure whether the data supports the answer, say so."
+		"- For questions about the user's platform data (records, modules, namespaces, pages): only answer based on what tool calls in this conversation have returned. Never guess or infer platform data.\n" +
+		"- For general knowledge questions, explanations, or anything not about the user's specific data: answer directly from your own knowledge. Do not call tools and do not say you lack information.\n" +
+		"- Never fabricate platform data that was not returned by a tool."
 
 	// Citation instructions — injected for user-facing agents only.
 	// System-invoked agents validate structured output programmatically.
@@ -393,7 +392,7 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 		systemPrompt += buildComposeContext(ctx, agent, r.nsModResolver)
 		systemPrompt += buildDiscoveryContext(ctx, agent, r.nsModResolver)
 	}
-	systemPrompt += "\n\n## BEFORE YOU RESPOND\n\nCheck: does the user's message require a tool call? If yes — make the tool call now. Do not say you cannot do it. Do not say you don't have the tools. Do not ask for permission. Call the tool."
+	systemPrompt += "\n\n## BEFORE YOU RESPOND\n\nIs the user asking for something to be done in the platform, or asking what exists in their data? If yes — call the relevant tool now. Is the user asking a general question or having a conversation? Answer directly from your own knowledge — no tool call needed."
 
 	// Canary token — unique per run, detect system prompt leakage
 	canaryToken := fmt.Sprintf("CT-%s", sid())
