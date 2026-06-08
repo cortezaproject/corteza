@@ -62,8 +62,8 @@ body {
   line-height: 1.125rem;
 }
 
-/* ===== Right sidebar / config drawer ===== */
-.right-sidebar {
+/* ===== Section-specific full-height config panels (taq, workflow) ===== */
+.config-drawer {
   position: fixed;
   top: var(--topbar-height, 60px);
   right: 0;
@@ -71,9 +71,6 @@ body {
   z-index: 20;
   background: var(--p-content-background);
   border-left: 1px solid var(--p-surface-border);
-}
-
-.config-drawer {
   overflow: hidden;
 }
 

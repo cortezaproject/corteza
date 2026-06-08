@@ -103,9 +103,9 @@ import {
   components,
   useFileUpload,
   resolveAppLogoUrl,
-  appIconMap,
   useUnsavedGuard,
 } from '@planetcrust/human-vue'
+import { appIconMap } from '@/utils/appIcons'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete, CInputToggleCard, CFileDropZone } = components
@@ -135,7 +135,7 @@ const logoError = computed(() => logoUploadError.value)
 
 const logoPreviewUrl = computed(() => {
   if (!application.value) return ''
-  return resolveAppLogoUrl(application.value, $SystemAPI.baseURL)
+  return resolveAppLogoUrl(application.value, $SystemAPI.baseURL, appIconMap)
 })
 
 const isCustomLogo = computed(() => {

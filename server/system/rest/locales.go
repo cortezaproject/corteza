@@ -90,11 +90,10 @@ func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, 
 		//	return
 		//}
 
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 		if err := locale.Global().EncodeExternal(w, r.Application, ll...); err != nil {
 			errors.ProperlyServeHTTP(w, req, err, true)
 		}
-
-		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	}, nil
 }
 

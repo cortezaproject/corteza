@@ -72,6 +72,8 @@ import { useInternalLink } from '../../composables/useInternalLink'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import { resolveAppLogoUrl } from '../../utils/appIcons'
 
+const $appIconMap = inject('$appIconMap', {})
+
 const props = defineProps({
   query: {
     type: String,
@@ -124,7 +126,7 @@ const isAppVisible = app => {
 const filteredApps = computed(() => apps.value.filter(isAppVisible))
 const areAppsVisible = computed(() => filteredApps.value.length > 0)
 
-const getAppLogoUrl = app => resolveAppLogoUrl(app, $SystemAPI.baseURL)
+const getAppLogoUrl = app => resolveAppLogoUrl(app, $SystemAPI.baseURL, $appIconMap)
 
 const getAppUrl = app => {
   const url = app.unify?.url || ''

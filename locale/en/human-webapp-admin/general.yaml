@@ -5,9 +5,6 @@ label:
   details: Details
   edit: Edit
   loadOlder: Load older
-  general:
-    yes: Yes
-    no: No
   template:
     single: Template
     plural: Templates

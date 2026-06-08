@@ -129,6 +129,7 @@ import { useModuleStore } from '@/sections/compose/stores/module'
 import { useNamespaceStore } from '@/sections/compose/stores/namespace'
 import { useRecordStore } from '@/sections/compose/stores/record'
 import { useUserStore } from '@/sections/compose/stores/user'
+import { appIconMap } from '@/utils/appIcons'
 
 const {
   CTopbar,
@@ -172,6 +173,7 @@ provide('$userStore', usersStore)
 provide('$recordStore', recordStore)
 provide('$namespaceStore', namespaceStore)
 provide('$moduleStore', moduleStore)
+provide('$appIconMap', appIconMap)
 
 const route = useRoute()
 

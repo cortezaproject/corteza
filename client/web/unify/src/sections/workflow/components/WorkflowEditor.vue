@@ -267,7 +267,7 @@
     >
       <div
         v-show="sidebar.show"
-        class="config-drawer right-sidebar shadow-xl z-20 flex rounded-border"
+        class="config-drawer shadow-xl z-20 flex rounded-border"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->

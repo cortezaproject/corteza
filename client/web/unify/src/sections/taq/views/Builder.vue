@@ -336,7 +336,7 @@
     >
       <div
         v-if="selectedNode && showReferencePanel"
-        class="right-sidebar"
+        class="config-drawer"
         :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '300px' }"
       >
         <ReferencePanel
@@ -360,7 +360,7 @@
     >
       <div
         v-if="selectedNode"
-        class="config-drawer right-sidebar flex"
+        class="config-drawer flex"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->
