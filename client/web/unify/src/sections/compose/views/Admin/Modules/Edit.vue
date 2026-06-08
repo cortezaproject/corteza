@@ -388,9 +388,9 @@
 </template>
 
 <script setup>
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { usePageStore } from '@/sections/compose/stores/page'
-import { usePageLayoutStore } from '@/sections/compose/stores/page-layout'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { usePageStore } from '@planetcrust/human-vue'
+import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
 import {
   components,

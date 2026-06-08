@@ -93,6 +93,7 @@ import {
   usePermissions,
   useRBACStore,
   useResourceList,
+  useModuleStore,
 } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -117,6 +118,7 @@ const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('compose/', 'grant'))
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const moduleStore = useModuleStore()
 
 const resourceListRef = ref()
 
@@ -232,12 +234,9 @@ function onConfirmDelete(module) {
 async function handleDelete(module) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $ComposeAPI.moduleDelete({
-      namespaceID: props.namespace.namespaceID,
-      moduleID: module.moduleID,
-    })
+    await moduleStore.delete({ namespaceID: props.namespace.namespaceID, moduleID: module.moduleID })
     $toast.toastSuccess(t('notification.module.deleted'))
-    filterList() // Refresh the list
+    filterList()
   } catch (e) {
     console.error('Failed to delete module:', e)
     $toast.toastErrorHandler(t('notification.module.deleteFailed'))(e)

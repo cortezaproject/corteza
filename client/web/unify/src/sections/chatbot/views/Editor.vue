@@ -104,7 +104,7 @@ import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useChatbotStore } from '@/sections/chatbot/stores/chatbot'
+import { useChatbotStore } from '@planetcrust/human-vue'
 
 import General from './Editor/General.vue'
 import Styling from './Editor/Styling.vue'

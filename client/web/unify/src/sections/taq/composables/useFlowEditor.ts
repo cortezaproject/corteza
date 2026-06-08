@@ -12,7 +12,7 @@ import { computed, inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import { useAutomationStore } from '@/sections/taq/stores/automation'
+import { useAutomationStore } from '@planetcrust/human-vue'
 import { applyDagreLayout, automationToVueFlow, type FlowNodeData } from '@/sections/taq/utils/taq-parser'
 
 const { NgAutomation } = automation

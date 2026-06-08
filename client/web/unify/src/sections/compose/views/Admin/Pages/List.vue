@@ -66,7 +66,7 @@ import { components } from '@planetcrust/human-vue'
 import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { usePageStore } from '@/sections/compose/stores/page'
+import { usePageStore } from '@planetcrust/human-vue'
 
 const { CInputSearch, CRouterLinkButton } = components
 const { t } = useI18n()
@@ -170,7 +170,7 @@ async function onNodeDrop(event) {
     expandedKeys.value = collectParentKeys(treeNodes.value)
 
     // Reload the flat page list so the sidebar reflects the new order
-    await pageStore.load({ namespaceID: props.namespace.namespaceID, force: true })
+    await pageStore.load({ namespaceID: props.namespace.namespaceID })
   } catch (e) {
     console.error('Failed to reorder pages:', e)
     $toast.toastErrorHandler(t('page.pageMoveFailed'))(e)

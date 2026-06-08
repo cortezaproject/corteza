@@ -644,8 +644,8 @@
 </template>
 
 <script setup>
-import { usePageStore } from '@/sections/compose/stores/page'
-import { usePageLayoutStore } from '@/sections/compose/stores/page-layout'
+import { usePageStore } from '@planetcrust/human-vue'
+import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { compose, NoID } from '@planetcrust/human-js'
 import { components, useFileUpload, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
@@ -1169,7 +1169,7 @@ async function saveLayouts() {
     try {
       await $ComposeAPI.pageLayoutReorder({ namespaceID, pageID, pageIDs })
       // Reload the store to reflect new order
-      await pageLayoutStore.load({ namespaceID, clear: true, force: true })
+      await pageLayoutStore.load({ namespaceID, clear: true })
     } catch (e) {
       console.error('Failed to reorder layouts:', e)
     }

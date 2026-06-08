@@ -265,8 +265,8 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch, ref } from 'vue'
-import { useComposeResourceStore } from '@planetcrust/human-vue'
+import { computed, inject, reactive, watch, ref } from 'vue'
+import { useModuleStore } from '@planetcrust/human-vue'
 import TaqIcon from '@/sections/taq/components/common/TaqIcon.vue'
 
 const STRUCT_FIELDS = {
@@ -372,7 +372,8 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'close'])
 
-const store = useComposeResourceStore()
+const $ComposeAPI = inject('$ComposeAPI')
+const moduleStore = useModuleStore()
 
 // Check if a reference item matches the currently active reference
 function isActive(scope, source) {
@@ -488,7 +489,7 @@ async function fetchFields(step, result) {
   if (result.types?.includes('ComposeRecord') && result.namespaceID && result.moduleID) {
     loadingFields[key] = true
     try {
-      const mod = await store.resolveModule(result.namespaceID, result.moduleID)
+      const mod = await moduleStore.findByID({ namespaceID: result.namespaceID, moduleID: result.moduleID })
       if (mod?.fields) {
         const moduleFields = mod.fields
           .filter(f => !f.isSystem)

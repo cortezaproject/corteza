@@ -379,7 +379,7 @@
 <script setup>
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useModuleStore } from '@/sections/compose/stores/module'
+import { useModuleStore } from '@planetcrust/human-vue'
 import ProgressBlock from '../Blocks/ProgressBlock.vue'
 
 const { t } = useI18n()

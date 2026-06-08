@@ -1,17 +1,9 @@
 import { system } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-
-type SystemAPI = {
-  notificationList: (_args: Record<string, unknown>) => Promise<any>;
-  notificationMarkAsRead: (_args: { notificationID: string }) => Promise<unknown>;
-  notificationMarkAsUnread: (_args: { notificationID: string }) => Promise<unknown>;
-  notificationMarkAllAsRead: () => Promise<unknown>;
-  notificationMarkAllAsUnread: () => Promise<unknown>;
-  notificationDelete: (_args: { notificationID: string }) => Promise<unknown>;
-}
+import { computed, inject, ref } from 'vue'
 
 export const useNotificationsStore = defineStore('notifications', () => {
+  const $SystemAPI = inject<any>('$SystemAPI')
   const notifications = ref<Array<system.Notification>>([])
   const pageCursor = ref<string | null>(null)
   const muted = ref(localStorage.getItem('notificationsMuted') === 'true')
@@ -32,8 +24,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
     ]
   }
 
-  async function fetchNotifications(api: SystemAPI, { unreadOnly = true } = {}) {
-    const response = await api.notificationList({
+  async function fetchNotifications({ unreadOnly = true } = {}) {
+    const response = await $SystemAPI.notificationList({
       limit: 25,
       sort: pageCursor.value ? '' : 'createdAt DESC, readAt DESC',
       read: unreadOnly ? 0 : 1,
@@ -53,22 +45,22 @@ export const useNotificationsStore = defineStore('notifications', () => {
     return notifications.value
   }
 
-  async function markAsRead(api: SystemAPI, notificationID: string) {
-    await api.notificationMarkAsRead({ notificationID })
+  async function markAsRead(notificationID: string) {
+    await $SystemAPI.notificationMarkAsRead({ notificationID })
     updateReadNotification({ notificationID })
   }
 
-  async function markAsUnread(api: SystemAPI, notificationID: string) {
-    await api.notificationMarkAsUnread({ notificationID })
+  async function markAsUnread(notificationID: string) {
+    await $SystemAPI.notificationMarkAsUnread({ notificationID })
     updateUnreadNotification({ notificationID })
   }
 
-  async function markAllAsRead(api: SystemAPI) {
+  async function markAllAsRead() {
     if (!notifications.value.length) {
       return
     }
 
-    await api.notificationMarkAllAsRead()
+    await $SystemAPI.notificationMarkAllAsRead()
     const now = new Date()
     notifications.value.forEach(notification => {
       if (!notification.readAt) {
@@ -77,19 +69,19 @@ export const useNotificationsStore = defineStore('notifications', () => {
     })
   }
 
-  async function markAllAsUnread(api: SystemAPI) {
+  async function markAllAsUnread() {
     if (!notifications.value.length) {
       return
     }
 
-    await api.notificationMarkAllAsUnread()
+    await $SystemAPI.notificationMarkAllAsUnread()
     notifications.value.forEach(notification => {
       notification.readAt = undefined
     })
   }
 
-  async function deleteNotification(api: SystemAPI, notificationID: string) {
-    await api.notificationDelete({ notificationID })
+  async function deleteNotification(notificationID: string) {
+    await $SystemAPI.notificationDelete({ notificationID })
     removeNotification({ notificationID })
   }
 

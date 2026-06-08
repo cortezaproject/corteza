@@ -46,8 +46,8 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useModuleStore } from '../../stores/useModuleStore'
 
 defineOptions({ inheritAttrs: false })
 
@@ -76,24 +76,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// Store-first: prefer the app-wide shared module store (multi-namespace cache;
-// modulesFor/loadFor are scoped to a namespace and don't disturb the active
-// one). Fall back to the lib resource store for standalone/legacy usage.
-const sharedStore = inject('$moduleStore', null)
-const fallbackStore = useComposeResourceStore()
-
-const fallbackOptions = ref([])
+const store = useModuleStore()
 const selectedModule = ref(null)
 const selectedModules = ref([])
 const loading = ref(false)
 
-let cancelCurrentRequest = null
-
-// Options for THIS picker's namespace — from the shared store's per-namespace
-// cache when available, otherwise the fallback search results.
-const options = computed(() =>
-  sharedStore ? sharedStore.modulesFor(props.namespaceID) : fallbackOptions.value,
-)
+const options = computed(() => store.modulesFor(props.namespaceID))
 
 function getOptionLabel(module) {
   if (!module) return ''
@@ -101,37 +89,15 @@ function getOptionLabel(module) {
 }
 
 async function fetchModules() {
-  if (!props.namespaceID) {
-    if (!sharedStore) fallbackOptions.value = []
-    return
-  }
+  if (!props.namespaceID) return
 
   loading.value = true
   try {
-    if (sharedStore) {
-      // Cache-guarded; returns immediately if this namespace is already loaded.
-      await sharedStore.loadFor(props.namespaceID)
-      return
-    }
-    if (cancelCurrentRequest) {
-      cancelCurrentRequest()
-      cancelCurrentRequest = null
-    }
-    const { response, cancel } = fallbackStore.searchModules(props.namespaceID, {
-      query: '',
-      limit: 100,
-      sort: 'name ASC',
-    })
-    cancelCurrentRequest = cancel
-    const result = await response()
-    fallbackOptions.value = result.set || []
-  } catch (e) {
-    if (e?.message !== 'canceled' && !sharedStore) {
-      fallbackOptions.value = []
-    }
+    await store.loadFor(props.namespaceID)
+  } catch {
+    // ignore
   } finally {
     loading.value = false
-    cancelCurrentRequest = null
   }
 }
 
@@ -148,17 +114,6 @@ function onSelect(value) {
   emit('update:modelValue', value?.moduleID || null)
 }
 
-async function resolveModule(moduleID) {
-  if (sharedStore) {
-    return sharedStore.findByID({ namespaceID: props.namespaceID, moduleID })
-  }
-  const mod = await fallbackStore.resolveModule(props.namespaceID, moduleID)
-  if (mod && !fallbackOptions.value.find(m => m.moduleID === mod.moduleID)) {
-    fallbackOptions.value = [...fallbackOptions.value, mod]
-  }
-  return mod
-}
-
 async function loadModuleById(moduleID) {
   if (!moduleID || !props.namespaceID) return
 
@@ -170,10 +125,12 @@ async function loadModuleById(moduleID) {
 
   loading.value = true
   try {
-    const module = await resolveModule(moduleID)
-    if (module) selectedModule.value = module
-  } catch (_e) {
-    // Module not found or API error
+    const module = await store.findByID({ namespaceID: props.namespaceID, moduleID })
+    if (module) {
+      selectedModule.value = store.set.find(m => m.moduleID === moduleID) || module
+    }
+  } catch {
+    // module not found
   } finally {
     loading.value = false
   }
@@ -194,14 +151,26 @@ async function loadModulesById(moduleIDs) {
     let mod = options.value.find(m => m.moduleID === id || m.moduleID === String(id))
     if (!mod) {
       try {
-        mod = await resolveModule(id)
-      } catch (_e) {
+        mod = await store.findByID({ namespaceID: props.namespaceID, moduleID: id })
+      } catch {
         // skip
       }
     }
     if (mod) resolved.push(mod)
   }
   selectedModules.value = resolved
+}
+
+function syncMultiSelection(ids) {
+  selectedModules.value = options.value.filter(m =>
+    ids.includes(m.moduleID) || ids.includes(String(m.moduleID)),
+  )
+  const missing = ids.filter(id =>
+    !selectedModules.value.find(m => m.moduleID === id || m.moduleID === String(id)),
+  )
+  if (missing.length) {
+    loadModulesById(missing)
+  }
 }
 
 // --- Watchers ---
@@ -212,7 +181,6 @@ watch(
     if (oldVal && newVal !== oldVal) {
       selectedModule.value = null
       selectedModules.value = []
-      if (!sharedStore) fallbackOptions.value = []
       emit('update:modelValue', props.multiple ? [] : null)
     }
     if (newVal) {
@@ -242,7 +210,6 @@ watch(
   { immediate: true },
 )
 
-// When options load, sync multi-selection
 watch(
   () => options.value.length,
   () => {
@@ -252,18 +219,6 @@ watch(
   },
 )
 
-function syncMultiSelection(ids) {
-  selectedModules.value = options.value.filter(m =>
-    ids.includes(m.moduleID) || ids.includes(String(m.moduleID)),
-  )
-  const missing = ids.filter(id =>
-    !selectedModules.value.find(m => m.moduleID === id || m.moduleID === String(id)),
-  )
-  if (missing.length) {
-    loadModulesById(missing)
-  }
-}
-
 onMounted(() => {
   if (props.namespaceID) {
     fetchModules()
@@ -272,12 +227,6 @@ onMounted(() => {
     loadModulesById(props.modelValue)
   } else if (!props.multiple && props.modelValue && props.namespaceID) {
     loadModuleById(props.modelValue)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (cancelCurrentRequest) {
-    cancelCurrentRequest()
   }
 })
 </script>

@@ -44,7 +44,7 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { useModuleStore } from '@/sections/compose/stores/module'
+import { useModuleStore } from '@planetcrust/human-vue'
 
 const props = defineProps({
   namespace: { type: Object, default: () => ({}) },

@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { useNamespaceStore } from '@/sections/compose/stores/namespace'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 import { computed, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

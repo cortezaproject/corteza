@@ -110,6 +110,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@planetcrust/human-js'
 import { components, filters, useUnsavedGuard } from '@planetcrust/human-vue'
+import { useAutomationStore } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
@@ -121,6 +122,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
+const automationStore = useAutomationStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -203,6 +205,7 @@ async function handleSubmit({ valid }) {
       const raw = await $AutomationAPI.ngAutomationUpdate(payload)
       taq.value = new automation.TAQ(raw)
       initialTaq.value = cloneDeep(taq.value)
+      automationStore.updateInList(taq.value)
       $toast.toastSuccess(t('notification.taq.update.success'))
     } else {
       payload.triggers = []
@@ -211,6 +214,7 @@ async function handleSubmit({ valid }) {
       const created = await $AutomationAPI.ngAutomationCreate(payload)
       taq.value = new automation.TAQ(created)
       initialTaq.value = cloneDeep(taq.value)
+      automationStore.updateInList(taq.value)
       $toast.toastSuccess(t('notification.taq.create.success'))
       markSaved()
       router.push({ name: 'automation.taq.edit', params: { automationID: created.automationID } })
@@ -228,6 +232,7 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $AutomationAPI.ngAutomationDelete({ automationID: taq.value.automationID })
+    automationStore.removeFromList(taq.value.automationID)
     $toast.toastSuccess(t('notification.taq.delete.success'))
     router.push({ name: 'automation.taq' })
   } catch (e) {

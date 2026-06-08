@@ -112,8 +112,8 @@
 
       <!-- Bottom bar: save + zoom -->
       <div
-        class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full transition-[padding-right] duration-300 ease-in-out"
-        :style="{ zIndex: 1, paddingRight: sidebar.show ? `${drawerWidth + 8}px` : undefined }"
+        class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full"
+        style="z-index: 1"
       >
         <Button
           v-if="changeDetected && canUpdateWorkflow"
@@ -267,7 +267,7 @@
     >
       <div
         v-show="sidebar.show"
-        class="config-drawer shadow-xl z-20 flex rounded-border"
+        class="right-sidebar flex"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->
@@ -506,7 +506,7 @@ import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
 import { getIcon } from '../lib/icon'
 import { NoID } from '@planetcrust/human-js'
-import { components } from '@planetcrust/human-vue'
+import { components, useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
 const { CInputDelete } = components
 
 import Configurator from './Configurator/index.vue'
@@ -570,8 +570,7 @@ const labelsStore = useLabelsStore()
 const activeToolbarTooltip = ref(null)
 const toolbarTooltipStyle = ref({ top: '0px', left: '0px' })
 
-const drawerWidth = ref(380)
-const isResizingDrawer = ref(false)
+const { drawerWidth, startDrawerResize } = useRightSidebarResize(380)
 
 const editor = ref(null)
 
@@ -585,6 +584,8 @@ const {
   project,
   onNodesInitialized,
 } = useVueFlow(vfId)
+
+const rightSidebarStore = useRightSidebarStore()
 
 const defaultEdgeOptions = { markerEnd: MarkerType.ArrowClosed }
 
@@ -870,7 +871,7 @@ const workflowLabelsDisplay = computed(() => {
       const nsID = label.split('/')[1]
       if (nsID && !namespaceIDs.includes(nsID)) {
         namespaceIDs.push(nsID)
-        labelsStore.resolveNamespace({ namespaceID: nsID, api: $ComposeAPI })
+        labelsStore.resolveNamespace({ namespaceID: nsID })
       }
     })
   }
@@ -886,10 +887,10 @@ const workflowLabelsDisplay = computed(() => {
       if (!nsID || !modID) return
       if (!namespaceIDs.includes(nsID)) {
         namespaceIDs.push(nsID)
-        labelsStore.resolveNamespace({ namespaceID: nsID, api: $ComposeAPI })
+        labelsStore.resolveNamespace({ namespaceID: nsID })
       }
       if (!modulesByNamespace[nsID]) modulesByNamespace[nsID] = []
-      labelsStore.resolveModule({ moduleID: modID, namespaceID: nsID, api: $ComposeAPI })
+      labelsStore.resolveModule({ moduleID: modID, namespaceID: nsID })
       const name = labelsStore.getModule(modID)
       modulesByNamespace[nsID].push({ id: modID, name: name || modID })
     })
@@ -1352,6 +1353,7 @@ function buildSidebarItem(node) {
 }
 
 function sidebarReopen(item, itemType) {
+  rightSidebarStore.open('workflow-config')
   if (!sidebar.value.show) {
     sidebar.value.item = item
     sidebar.value.itemType = itemType
@@ -1395,6 +1397,7 @@ function refreshSidebar() {
 }
 
 function sidebarClose() {
+  rightSidebarStore.close('workflow-config')
   sidebar.value.show = false
   setTimeout(() => {
     sidebar.value.showItem = false
@@ -1679,6 +1682,10 @@ watch(
   { deep: false },
 )
 
+watch(() => rightSidebarStore.isOpen('workflow-config'), isOpen => {
+  if (!isOpen && sidebar.value.show) sidebarClose()
+})
+
 /**
  * Relabel remaining out-edges of certain source kinds after deletion so their
  * labels match the semantic slot (position-dependent). Covers:
@@ -1753,24 +1760,6 @@ function showToolbarTooltip(event, item) {
   }
 }
 
-/* ─── Drawer resize ─── */
-function startDrawerResize() {
-  isResizingDrawer.value = true
-  document.addEventListener('mousemove', resizeDrawer)
-  document.addEventListener('mouseup', stopDrawerResize)
-}
-
-function resizeDrawer(e) {
-  if (!isResizingDrawer.value) return
-  const newWidth = window.innerWidth - e.clientX
-  drawerWidth.value = Math.max(280, Math.min(800, newWidth))
-}
-
-function stopDrawerResize() {
-  isResizingDrawer.value = false
-  document.removeEventListener('mousemove', resizeDrawer)
-  document.removeEventListener('mouseup', stopDrawerResize)
-}
 
 /* ─── Trigger path check ─── */
 function checkExistingTriggerPaths() {

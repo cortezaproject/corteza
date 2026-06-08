@@ -83,19 +83,19 @@ export class Workflow {
     }
 
     if (IsOf(w, 'scope')) {
-      this.scope = w.scope
+      this.scope = { ...w.scope }
     }
 
     if (IsOf(w, 'steps')) {
-      this.steps = w.steps
+      this.steps = JSON.parse(JSON.stringify(w.steps))
     }
 
     if (IsOf(w, 'paths')) {
-      this.paths = w.paths
+      this.paths = JSON.parse(JSON.stringify(w.paths))
     }
 
     if (IsOf(w, 'issues')) {
-      this.issues = w.issues
+      this.issues = [...w.issues]
     }
   }
 

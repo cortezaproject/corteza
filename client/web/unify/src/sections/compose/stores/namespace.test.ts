@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createTestPinia, createMockComposeAPI, makeNamespace } from '@planetcrust/human-test-utils'
-import { useNamespaceStore } from './namespace'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 
 describe('useNamespaceStore', () => {
   let api: ReturnType<typeof createMockComposeAPI>
@@ -23,34 +23,16 @@ describe('useNamespaceStore', () => {
       expect(store.set[0].namespaceID).toBe('100')
     })
 
-    it('skips API call when set already has more than 1 item', async () => {
+    it('always refetches on every call', async () => {
       const ns1 = makeNamespace({ namespaceID: '200' })
       const ns2 = makeNamespace({ namespaceID: '201' })
       api.namespaceList.mockResolvedValue({ set: [ns1, ns2], filter: {} })
 
       const store = useNamespaceStore()
       await store.load()
-      expect(api.namespaceList).toHaveBeenCalledTimes(1)
-
       await store.load()
-      expect(api.namespaceList).toHaveBeenCalledTimes(1)
-    })
-
-    it('force reloads when force=true', async () => {
-      const ns = makeNamespace({ namespaceID: '300' })
-      api.namespaceList.mockResolvedValue({ set: [ns, ns], filter: {} })
-
-      const store = useNamespaceStore()
-      await store.load()
-      await store.load({ force: true })
 
       expect(api.namespaceList).toHaveBeenCalledTimes(2)
-    })
-
-    it('throws when API not available', async () => {
-      createTestPinia({ '$ComposeAPI': null })
-      const store = useNamespaceStore()
-      await expect(store.load()).rejects.toThrow()
     })
   })
 
@@ -66,7 +48,7 @@ describe('useNamespaceStore', () => {
       expect(store.getByID('400')?.namespaceID).toBe('400')
     })
 
-    it('returns undefined for unknown ID', async () => {
+    it('returns undefined for unknown ID', () => {
       const store = useNamespaceStore()
       expect(store.getByID('9999')).toBeUndefined()
     })
@@ -94,6 +76,19 @@ describe('useNamespaceStore', () => {
 
       expect(api.namespaceRead).toHaveBeenCalledWith({ namespaceID: '600' })
       expect(result?.namespaceID).toBe('600')
+    })
+
+    it('returns an independent copy (not the frozen store item)', async () => {
+      const ns = makeNamespace({ namespaceID: '550', name: 'Original' })
+      api.namespaceList.mockResolvedValue({ set: [ns], filter: {} })
+
+      const store = useNamespaceStore()
+      await store.load()
+
+      const result = await store.findByID({ namespaceID: '550' })
+      result.name = 'Modified'
+
+      expect(store.getByID('550')?.name).toBe('Original')
     })
   })
 

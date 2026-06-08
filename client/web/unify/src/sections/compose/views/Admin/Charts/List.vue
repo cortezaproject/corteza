@@ -106,6 +106,7 @@ import {
   useRBACStore,
   useResourceList,
 } from '@planetcrust/human-vue'
+import { useChartStore } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -128,6 +129,7 @@ const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('compose/', 'grant'))
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const chartStore = useChartStore()
 
 const resourceListRef = ref()
 const showTypeSelector = ref(false)
@@ -255,10 +257,7 @@ function onConfirmDelete(chart) {
 async function handleDelete(chart) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $ComposeAPI.chartDelete({
-      namespaceID: props.namespace.namespaceID,
-      chartID: chart.chartID,
-    })
+    await chartStore.delete({ namespaceID: props.namespace.namespaceID, chartID: chart.chartID })
     $toast.toastSuccess(t('notification.chart.deleted'))
     filterList()
   } catch (e) {

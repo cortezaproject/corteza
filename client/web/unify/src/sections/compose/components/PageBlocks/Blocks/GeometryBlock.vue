@@ -29,8 +29,8 @@
 import { ref, computed, watch, inject, nextTick, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { usePageStore } from '@/sections/compose/stores/page'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
 

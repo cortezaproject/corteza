@@ -1,13 +1,7 @@
 import { automation } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { promptDefinitions } from '../components/prompts'
-
-type AutomationAPI = {
-  sessionListPrompts: () => Promise<any>;
-  sessionResumeState: (_args: Record<string, unknown>) => Promise<unknown>;
-  sessionCancel: (_args: Record<string, unknown>) => Promise<unknown>;
-}
 
 function onlyFresh(existing: Array<automation.Prompt>, fresh: Array<automation.Prompt>): Array<automation.Prompt> {
   const index = existing.map(({ stateID }) => stateID)
@@ -15,6 +9,8 @@ function onlyFresh(existing: Array<automation.Prompt>, fresh: Array<automation.P
 }
 
 export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
+  const $AutomationAPI = inject<any>('$AutomationAPI')
+
   const loading = ref(false)
   const prompts = ref<Array<automation.Prompt>>([])
   const active = ref<automation.Prompt | boolean>(false)
@@ -32,8 +28,8 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
     active.value = false
   }
 
-  async function update(api: AutomationAPI, webapp: string) {
-    const { set = [] } = await api.sessionListPrompts()
+  async function update(webapp: string) {
+    const { set = [] } = await $AutomationAPI.sessionListPrompts()
     if (!Array.isArray(set) || set.length === 0) {
       clearAll()
       return
@@ -50,10 +46,10 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
     appendPrompts([new automation.Prompt(prompt)], webapp)
   }
 
-  async function resume(api: AutomationAPI, prompt: automation.Prompt, input: automation.Vars) {
+  async function resume(prompt: automation.Prompt, input: automation.Vars) {
     loading.value = true
     try {
-      await api.sessionResumeState({
+      await $AutomationAPI.sessionResumeState({
         sessionID: prompt.sessionID,
         stateID: prompt.stateID,
         input,
@@ -64,10 +60,10 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
     }
   }
 
-  async function cancel(api: AutomationAPI, prompt: automation.Prompt) {
+  async function cancel(prompt: automation.Prompt) {
     loading.value = true
     try {
-      await api.sessionCancel({
+      await $AutomationAPI.sessionCancel({
         sessionID: prompt.sessionID,
         stateID: prompt.stateID,
       })

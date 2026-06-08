@@ -32,7 +32,7 @@
 <script setup>
 import { computed, provide } from 'vue'
 import { useRoute } from 'vue-router'
-import { useModuleStore } from '@/sections/compose/stores/module'
+import { useModuleStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 

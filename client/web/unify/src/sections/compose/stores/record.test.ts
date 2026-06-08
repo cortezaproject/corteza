@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createTestPinia } from '@planetcrust/human-test-utils'
-import { useRecordStore } from './record'
-import { useModuleStore } from './module'
+import { useRecordStore, useModuleStore } from '@planetcrust/human-vue'
 
 vi.mock('@planetcrust/human-js', () => ({
+  automation: {
+    Function: class MockFunction {
+      constructor(data: any) { Object.assign(this, data) }
+    },
+  },
   compose: {
     Record: class MockRecord {
       recordID: string
@@ -44,31 +48,30 @@ function makeAPI(overrides: Record<string, any> = {}) {
   }
 }
 
-function setup(api?: any) {
-  const provides: Record<string, any> = api ? { '$ComposeAPI': api } : {}
-  createTestPinia(provides)
+function setup() {
+  createTestPinia({})
   const moduleStore = useModuleStore()
   moduleStore.updateSet([MOD])
   return { store: useRecordStore(), moduleStore }
 }
 
 describe('useRecordStore', () => {
-  describe('list()', () => {
-    it('throws without $ComposeAPI', async () => {
-      createTestPinia({})
-      const store = useRecordStore()
-      await expect(store.list({ namespaceID: NS_ID, moduleID: MOD_ID })).rejects.toThrow('ComposeAPI not available')
-    })
+  beforeEach(() => {
+    createTestPinia({})
+  })
 
+  describe('list()', () => {
     it('throws when moduleID missing', async () => {
-      const { store } = setup(makeAPI())
-      await expect(store.list({ namespaceID: NS_ID } as any)).rejects.toThrow()
+      const api = makeAPI()
+      const { store } = setup()
+      await expect(store.list(api, { namespaceID: NS_ID } as any)).rejects.toThrow()
     })
 
     it('throws when module not in store', async () => {
-      createTestPinia({ '$ComposeAPI': makeAPI() })
+      const api = makeAPI()
+      createTestPinia({})
       const store = useRecordStore()
-      await expect(store.list({ namespaceID: NS_ID, moduleID: '99999' })).rejects.toThrow('Module 99999 not found')
+      await expect(store.list(api, { namespaceID: NS_ID, moduleID: '99999' })).rejects.toThrow('Module 99999 not found')
     })
 
     it('populates records cache and returns set', async () => {
@@ -81,8 +84,8 @@ describe('useRecordStore', () => {
           filter: { total: 2 },
         }),
       })
-      const { store } = setup(api)
-      const { set } = await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const { store } = setup()
+      const { set } = await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
 
       expect(set).toHaveLength(2)
       expect(store.getByID('30001')).toBeTruthy()
@@ -90,8 +93,9 @@ describe('useRecordStore', () => {
     })
 
     it('resets loading to false after fetch', async () => {
-      const { store } = setup(makeAPI())
-      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const api = makeAPI()
+      const { store } = setup()
+      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
       expect(store.loading).toBe(false)
     })
   })
@@ -104,11 +108,11 @@ describe('useRecordStore', () => {
           filter: {},
         }),
       })
-      const { store } = setup(api)
-      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const { store } = setup()
+      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
       api.recordRead.mockClear()
 
-      const rec = await store.findByID({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
+      const rec = await store.findByID(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
       expect(rec.recordID).toBe('30001')
       expect(api.recordRead).not.toHaveBeenCalled()
     })
@@ -117,9 +121,9 @@ describe('useRecordStore', () => {
       const api = makeAPI({
         recordRead: vi.fn().mockResolvedValue({ recordID: '99001', namespaceID: NS_ID, moduleID: MOD_ID }),
       })
-      const { store } = setup(api)
+      const { store } = setup()
 
-      const rec = await store.findByID({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' })
+      const rec = await store.findByID(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' })
       expect(api.recordRead).toHaveBeenCalledWith({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' })
       expect(rec.recordID).toBe('99001')
     })
@@ -132,18 +136,19 @@ describe('useRecordStore', () => {
         }),
         recordRead: vi.fn().mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
       })
-      const { store } = setup(api)
-      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const { store } = setup()
+      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
 
-      await store.findByID({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001', force: true })
+      await store.findByID(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001', force: true })
       expect(api.recordRead).toHaveBeenCalled()
     })
 
     it('throws when module not in store', async () => {
-      createTestPinia({ '$ComposeAPI': makeAPI() })
+      const api = makeAPI()
+      createTestPinia({})
       const store = useRecordStore()
       await expect(
-        store.findByID({ namespaceID: NS_ID, moduleID: '99999', recordID: '30001' }),
+        store.findByID(api, { namespaceID: NS_ID, moduleID: '99999', recordID: '30001' }),
       ).rejects.toThrow('Module 99999 not found')
     })
   })
@@ -162,8 +167,8 @@ describe('useRecordStore', () => {
           filter: {},
         }),
       })
-      const { store } = setup(api)
-      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const { store } = setup()
+      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
       expect(store.getByID('30001')).toBeTruthy()
     })
 
@@ -171,10 +176,10 @@ describe('useRecordStore', () => {
       const api = makeAPI({
         recordRead: vi.fn().mockResolvedValue({ recordID: 'lbl-1', namespaceID: NS_ID, moduleID: MOD_ID }),
       })
-      createTestPinia({ '$ComposeAPI': api })
+      createTestPinia({})
       const store = useRecordStore()
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lbl-1'] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lbl-1'] })
       expect(store.getByID('lbl-1')).toBeTruthy()
     })
   })
@@ -182,9 +187,9 @@ describe('useRecordStore', () => {
   describe('resolveRecordLabels()', () => {
     it('no-ops when empty recordIDs', async () => {
       const api = makeAPI()
-      createTestPinia({ '$ComposeAPI': api })
+      createTestPinia({})
       const store = useRecordStore()
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: [] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: [] })
       expect(api.recordRead).not.toHaveBeenCalled()
     })
 
@@ -195,11 +200,11 @@ describe('useRecordStore', () => {
           filter: {},
         }),
       })
-      const { store } = setup(api)
-      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const { store } = setup()
+      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
       api.recordRead.mockClear()
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['30001'] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['30001'] })
       expect(api.recordRead).not.toHaveBeenCalled()
     })
 
@@ -207,10 +212,10 @@ describe('useRecordStore', () => {
       const api = makeAPI({
         recordRead: vi.fn().mockResolvedValue({ recordID: 'lbl-42', namespaceID: NS_ID, moduleID: MOD_ID }),
       })
-      createTestPinia({ '$ComposeAPI': api })
+      createTestPinia({})
       const store = useRecordStore()
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lbl-42'] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lbl-42'] })
       expect(api.recordRead).toHaveBeenCalledWith({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: 'lbl-42' })
       expect(store.getByID('lbl-42')).toBeTruthy()
     })
@@ -219,12 +224,12 @@ describe('useRecordStore', () => {
       const api = makeAPI({
         recordRead: vi.fn().mockResolvedValue({ recordID: 'lc-1', namespaceID: NS_ID, moduleID: MOD_ID }),
       })
-      createTestPinia({ '$ComposeAPI': api })
+      createTestPinia({})
       const store = useRecordStore()
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lc-1'] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lc-1'] })
       api.recordRead.mockClear()
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lc-1'] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lc-1'] })
       expect(api.recordRead).not.toHaveBeenCalled()
     })
 
@@ -232,11 +237,11 @@ describe('useRecordStore', () => {
       const api = makeAPI({
         recordRead: vi.fn().mockRejectedValue(new Error('not found')),
       })
-      createTestPinia({ '$ComposeAPI': api })
+      createTestPinia({})
       const store = useRecordStore()
 
       await expect(
-        store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['bad-id'] }),
+        store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['bad-id'] }),
       ).resolves.toBeUndefined()
       expect(store.getByID('bad-id')).toBeNull()
     })
@@ -277,10 +282,10 @@ describe('useRecordStore', () => {
       const api = makeAPI({
         recordRead: vi.fn().mockResolvedValue({ recordID: 'clr-1', namespaceID: NS_ID, moduleID: MOD_ID }),
       })
-      createTestPinia({ '$ComposeAPI': api })
+      createTestPinia({})
       const store = useRecordStore()
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['clr-1'] })
+      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['clr-1'] })
       store.setNavigationIDs(['x', 'y'])
       expect(store.getByID('clr-1')).toBeTruthy()
 
@@ -301,11 +306,11 @@ describe('useRecordStore', () => {
         }),
         recordDelete: vi.fn().mockResolvedValue({}),
       })
-      const { store } = setup(api)
-      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      const { store } = setup()
+      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
       expect(store.getByID('30001')).toBeTruthy()
 
-      await store.delete({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
+      await store.delete(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
       expect(store.getByID('30001')).toBeNull()
     })
   })

@@ -6,10 +6,8 @@
 import ComposeHost from './ComposeHost.vue'
 import { composeRoutes } from './routes'
 import ComposeSidebar from './sidebar/ComposeSidebar.vue'
-import { useModuleStore } from './stores/module'
-import { useNamespaceStore } from './stores/namespace'
-import { usePageStore } from './stores/page'
-import { useRecordStore } from './stores/record'
+import { useModuleStore, useNamespaceStore, useRecordStore } from '@planetcrust/human-vue'
+import { usePageStore } from '@planetcrust/human-vue'
 import { useReminderStore } from './stores/reminder'
 import { useRightSidebarStore } from '@planetcrust/human-vue'
 

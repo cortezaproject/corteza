@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { useNamespaceStore } from '@/sections/compose/stores/namespace'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
 import { components, useFileUpload, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
@@ -300,13 +300,13 @@ async function loadNamespace() {
     // Find by slug or ID
     const found = namespaceStore.getByUrlPart(slug)
     if (found) {
-      namespace.value = new compose.Namespace({ ...found })
+      namespace.value = new compose.Namespace(found)
     } else {
       // Load from API
-      await namespaceStore.load({ force: true })
+      await namespaceStore.load()
       const ns = namespaceStore.getByUrlPart(slug)
       if (ns) {
-        namespace.value = new compose.Namespace({ ...ns })
+        namespace.value = new compose.Namespace(ns)
       } else {
         $toast.toastDanger(t('notification.namespace.loadFailed'))
         router.push({ name: 'namespace.list' })
@@ -343,8 +343,7 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.namespaceID = namespace.value.namespaceID
-      const updated = await namespaceStore.update(payload)
-      namespace.value = new compose.Namespace({ ...updated })
+      namespace.value = await namespaceStore.update(payload)
       initialNamespace.value = cloneDeep(namespace.value)
       $toast.toastSuccess(t('notification.namespace.saved'))
     } else {

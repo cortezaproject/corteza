@@ -150,6 +150,7 @@ import {
   useRBACStore,
   useResourceList,
 } from '@planetcrust/human-vue'
+import { useWorkflowStore } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
@@ -162,6 +163,7 @@ const canGrant = computed(() => rbac.can('automation/', 'grant'))
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
+const workflowStore = useWorkflowStore()
 
 const resourceListRef = ref()
 const filterMenu = ref()
@@ -245,6 +247,7 @@ async function handleDelete(item) {
   resourceListRef.value.hideActionsMenu()
   try {
     await $AutomationAPI.workflowDelete({ workflowID: item.workflowID })
+    workflowStore.removeFromList(item.workflowID)
     $toast.toastSuccess(t('notification.workflow.delete.success'))
     filterList()
   } catch (e) {

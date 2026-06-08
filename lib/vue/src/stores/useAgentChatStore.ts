@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 
 export const useAgentChatStore = defineStore('agentChat', () => {
+  const $SystemAPI = inject<any>('$SystemAPI')
   const availableAgents = ref<any[]>([])
   const activeAgentID = ref<string | null>(null)
   const conversations = ref<Record<string, any[]>>({})
@@ -119,11 +120,11 @@ export const useAgentChatStore = defineStore('agentChat', () => {
 
   // --- History (server-persisted) ---
 
-  async function loadHistory(agentID: string, systemAPI: any) {
-    if (!agentID || !systemAPI) return
+  async function loadHistory(agentID: string) {
+    if (!agentID) return
     historyLoading.value = { ...historyLoading.value, [agentID]: true }
     try {
-      const res = await systemAPI.aiConversationList({ agentID, deleted: 0, limit: 200 })
+      const res = await $SystemAPI.aiConversationList({ agentID, deleted: 0, limit: 200 })
       const set = (res?.set || []) as any[]
       // Newest first; backend may already sort, but we don't trust it.
       set.sort((a, b) => {
@@ -185,9 +186,9 @@ export const useAgentChatStore = defineStore('agentChat', () => {
   }
 
   // Soft-delete a conversation server-side, then prune locally.
-  async function deleteConversation(agentID: string, conversationID: string, systemAPI: any) {
-    if (!agentID || !conversationID || !systemAPI) return
-    await systemAPI.aiConversationDelete({ aiConversationID: conversationID })
+  async function deleteConversation(agentID: string, conversationID: string) {
+    if (!agentID || !conversationID) return
+    await $SystemAPI.aiConversationDelete({ aiConversationID: conversationID })
 
     // Remove from history list
     if (history.value[agentID]) {

@@ -189,7 +189,7 @@
 import { computed, inject, ref } from 'vue'
 import { components } from '@planetcrust/human-vue'
 import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
-import { useModuleStore } from '@/sections/compose/stores/module'
+import { useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
 
 const { CInputColorPicker, CInputToggleCard } = components

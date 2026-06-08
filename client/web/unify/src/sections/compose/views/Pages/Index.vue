@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { usePageStore } from '@/sections/compose/stores/page'
+import { usePageStore } from '@planetcrust/human-vue'
 import { NoID } from '@planetcrust/human-js'
 import { computed, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

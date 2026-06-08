@@ -15,21 +15,20 @@
 </template>
 
 <script setup>
-import { useWorkflowStore } from '../stores/workflow'
+import { useWorkflowStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
-import { computed, inject, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { CSidebarNav } = components
 const { t } = useI18n()
 
-const $AutomationAPI = inject('$AutomationAPI')
 const workflowStore = useWorkflowStore()
 
 // The shell does global setup only; each section fetches what its own nav needs.
 onMounted(() => {
   if (!workflowStore.list.length) {
-    workflowStore.fetchList($AutomationAPI)
+    workflowStore.fetchList()
   }
 })
 

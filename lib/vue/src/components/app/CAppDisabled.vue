@@ -8,7 +8,7 @@
       <p class="text-muted-color">
         {{ t('general.appDisabled.message') }}
       </p>
-      <a href="/" class="mt-2">
+      <a :href="homeURL" class="mt-2" @click="onAnchorClick($event, homeURL)">
         <Button
           :label="t('general.appDisabled.backToHome')"
           icon="pi pi-home"
@@ -21,7 +21,10 @@
 </template>
 
 <script setup>
+import { useInternalLink } from '../../composables/useInternalLink'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const { onAnchorClick } = useInternalLink()
+const homeURL = window.location.origin
 </script>

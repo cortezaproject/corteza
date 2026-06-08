@@ -122,13 +122,11 @@ import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } fro
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
-// Shared resource stores (defined in compose, used app-wide). Provided here so
-// every section + lib input reads ONE cache; core reference data is preloaded
-// once at boot, the long tail (records, per-namespace modules) is on-demand.
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { useNamespaceStore } from '@/sections/compose/stores/namespace'
-import { useRecordStore } from '@/sections/compose/stores/record'
-import { useUserStore } from '@/sections/compose/stores/user'
+import {
+  useModuleStore,
+  useNamespaceStore,
+  useUserStore,
+} from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 
 const {
@@ -152,9 +150,6 @@ const { t } = useI18n()
 
 const $Auth = inject('$Auth')
 const $Settings = inject('$Settings')
-const $SystemAPI = inject('$SystemAPI')
-const $AutomationAPI = inject('$AutomationAPI')
-const $ComposeAPI = inject('$ComposeAPI')
 const $eventBus = inject('$eventBus', null)
 
 const applicationsStore = useApplicationsStore()
@@ -163,16 +158,9 @@ const rightSidebarStore = useRightSidebarStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
 const rbacStore = useRBACStore()
 
-// Shared resource stores, provided app-wide (lib field inputs/viewers inject
-// these; compose views import them directly — same singletons either way).
 const usersStore = useUserStore()
 const namespaceStore = useNamespaceStore()
 const moduleStore = useModuleStore()
-const recordStore = useRecordStore()
-provide('$userStore', usersStore)
-provide('$recordStore', recordStore)
-provide('$namespaceStore', namespaceStore)
-provide('$moduleStore', moduleStore)
 provide('$appIconMap', appIconMap)
 
 const route = useRoute()
@@ -264,9 +252,9 @@ onMounted(async () => {
 
   const fetchPromise = Promise.all([
     applicationsStore.fetchApplications(),
-    notificationsStore.fetchNotifications($SystemAPI),
-    workflowPromptsStore.update($AutomationAPI, currentWebapp.value),
-    rbacStore.load([$SystemAPI, $AutomationAPI, $ComposeAPI]),
+    notificationsStore.fetchNotifications(),
+    workflowPromptsStore.update(currentWebapp.value),
+    rbacStore.load(),
     // Preload bounded reference data once; both are cache-guarded so they
     // won't refetch on later navigation. Records / per-namespace modules stay
     // on-demand and populate their shared store lazily.

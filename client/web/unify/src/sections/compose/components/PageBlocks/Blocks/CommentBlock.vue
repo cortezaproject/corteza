@@ -229,9 +229,9 @@
 <script setup>
 import { ref, computed, watch, inject, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { compose } from '@planetcrust/human-js'
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { useUserStore } from '@/sections/compose/stores/user'
-import { useRecordStore } from '@/sections/compose/stores/record'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { useUserStore } from '@planetcrust/human-vue'
+import { useRecordStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import CommentItem from './Comment/CommentItem.vue'
 import CommentReply from './Comment/CommentReply.vue'

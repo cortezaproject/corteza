@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 
 const resourcePrefix = 'corteza::'
 
@@ -14,6 +14,10 @@ interface APIClient {
 }
 
 export const useRBACStore = defineStore('rbac', () => {
+  const $SystemAPI = inject<APIClient>('$SystemAPI')
+  const $AutomationAPI = inject<APIClient | null>('$AutomationAPI', null)
+  const $ComposeAPI = inject<APIClient | null>('$ComposeAPI', null)
+
   const loaded = ref(false)
   const rules = ref<Rule[]>([])
 
@@ -24,7 +28,8 @@ export const useRBACStore = defineStore('rbac', () => {
     return rule?.allow ?? false
   }
 
-  async function load(apis: APIClient[]) {
+  async function load() {
+    const apis = [$SystemAPI, $AutomationAPI, $ComposeAPI].filter(Boolean) as APIClient[]
     loaded.value = false
     const results = await Promise.all(
       apis.map((api) => api.permissionsEffective({}).catch(() => [] as Rule[])),

@@ -25,7 +25,7 @@
 <script setup>
 import { computed, inject } from 'vue'
 import { useRoute } from 'vue-router'
-import { useNamespaceStore } from '@/sections/compose/stores/namespace'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 import { useReminderStore } from '@/sections/compose/stores/reminder'
 import ReminderEdit from './ReminderEdit.vue'
 import ReminderList from './ReminderList.vue'

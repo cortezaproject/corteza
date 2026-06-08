@@ -83,7 +83,6 @@ import { useNotificationsStore } from '../../stores/useNotificationsStore'
 import NotificationList from './NotificationList.vue'
 
 const notifications = useNotificationsStore()
-const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')
 const { t } = useI18n()
 
@@ -92,20 +91,12 @@ const loading = ref(false)
 const loadingMore = ref(false)
 
 async function loadNotifications() {
-  if (!$SystemAPI) {
-    return
-  }
-
-  await notifications.fetchNotifications($SystemAPI, {
+  await notifications.fetchNotifications({
     unreadOnly: activeTab.value === 'unread',
   })
 }
 
 async function loadMore() {
-  if (!$SystemAPI) {
-    return
-  }
-
   loadingMore.value = true
   try {
     await loadNotifications()
@@ -115,28 +106,16 @@ async function loadMore() {
 }
 
 async function handleMarkAsRead(notificationID) {
-  if (!$SystemAPI) {
-    return
-  }
-
-  await notifications.markAsRead($SystemAPI, String(notificationID))
+  await notifications.markAsRead(String(notificationID))
 }
 
 async function handleMarkAsUnread(notificationID) {
-  if (!$SystemAPI) {
-    return
-  }
-
-  await notifications.markAsUnread($SystemAPI, String(notificationID))
+  await notifications.markAsUnread(String(notificationID))
 }
 
 async function handleDelete(notificationID) {
-  if (!$SystemAPI) {
-    return
-  }
-
   try {
-    await notifications.deleteNotification($SystemAPI, String(notificationID))
+    await notifications.deleteNotification(String(notificationID))
     $toast?.toastSuccess?.(t('notifications.notificationDeleted'))
   } catch {
     $toast?.toastDanger?.(t('notifications.notificationDeletedError'))
@@ -144,12 +123,8 @@ async function handleDelete(notificationID) {
 }
 
 async function handleMarkAllAsRead() {
-  if (!$SystemAPI) {
-    return
-  }
-
   try {
-    await notifications.markAllAsRead($SystemAPI)
+    await notifications.markAllAsRead()
     $toast?.toastSuccess?.(t('notifications.allMarkedAsRead'))
   } catch {
     $toast?.toastDanger?.(t('notifications.markAllAsReadError'))

@@ -22,8 +22,8 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useChartStore } from '../../stores/useChartStore'
 
 defineOptions({ inheritAttrs: false })
 
@@ -48,14 +48,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const store = useComposeResourceStore()
-
-const options = ref([])
+const store = useChartStore()
 const selectedChart = ref(null)
 const loading = ref(false)
 
-// Store cancel function for current request
-let cancelCurrentRequest = null
+const options = computed(() => store.set)
 
 function getOptionLabel(chart) {
   if (!chart) return ''
@@ -63,41 +60,20 @@ function getOptionLabel(chart) {
 }
 
 async function fetchCharts() {
-  if (!props.namespaceID) {
-    options.value = []
-    return
-  }
-
-  // Cancel previous request if pending
-  if (cancelCurrentRequest) {
-    cancelCurrentRequest()
-    cancelCurrentRequest = null
-  }
+  if (!props.namespaceID) return
 
   loading.value = true
   try {
-    const { response, cancel } = store.searchCharts(props.namespaceID, {
-      query: '',
-      limit: 100,
-      sort: 'name ASC',
-    })
-    cancelCurrentRequest = cancel
-
-    const result = await response()
-    options.value = result.set || []
-  } catch (e) {
-    // Ignore cancelled requests
-    if (e?.message !== 'canceled') {
-      options.value = []
-    }
+    await store.loadFor(props.namespaceID)
+  } catch {
+    // ignore
   } finally {
     loading.value = false
-    cancelCurrentRequest = null
   }
 }
 
 function onShow() {
-  if (options.value.length === 0 && props.namespaceID) {
+  if (props.namespaceID) {
     fetchCharts()
   }
 }
@@ -110,37 +86,30 @@ function onSelect(value) {
 async function loadChartById(chartID) {
   if (!chartID || !props.namespaceID) return
 
-  // First check if already in options
-  const existing = options.value.find(m => m.chartID === chartID)
+  const existing = options.value.find(c => c.chartID === chartID)
   if (existing) {
     selectedChart.value = existing
     return
   }
 
-  // Resolve through store (cache-first)
   loading.value = true
   try {
-    const chart = await store.resolveChart(props.namespaceID, chartID)
+    const chart = await store.findByID({ namespaceID: props.namespaceID, chartID })
     if (chart) {
-      selectedChart.value = chart
-      if (!options.value.find(m => m.chartID === chartID)) {
-        options.value = [...options.value, chart]
-      }
+      selectedChart.value = store.set.find(c => c.chartID === chartID) || chart
     }
-  } catch (_e) {
-    // Chart not found or API error
+  } catch {
+    // chart not found
   } finally {
     loading.value = false
   }
 }
 
-// Watch for namespace changes - clear selection and reload
 watch(
   () => props.namespaceID,
   (newVal, oldVal) => {
     if (oldVal && newVal !== oldVal) {
       selectedChart.value = null
-      options.value = []
       emit('update:modelValue', null)
     }
     if (newVal) {
@@ -161,18 +130,22 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => options.value.length,
+  () => {
+    if (props.modelValue && options.value.length) {
+      const found = options.value.find(c => c.chartID === props.modelValue || c.chartID === String(props.modelValue))
+      if (found) selectedChart.value = found
+    }
+  },
+)
+
 onMounted(() => {
   if (props.namespaceID) {
     fetchCharts()
   }
   if (props.modelValue && props.namespaceID) {
     loadChartById(props.modelValue)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (cancelCurrentRequest) {
-    cancelCurrentRequest()
   }
 })
 </script>

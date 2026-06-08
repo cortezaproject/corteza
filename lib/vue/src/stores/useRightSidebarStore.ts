@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-const GLOBAL_PANELS = new Set(['notifications', 'agent', 'app-list'])
+const GLOBAL_PANELS = new Set(['notifications', 'agent'])
 
 export const useRightSidebarStore = defineStore('rightSidebar', () => {
   const activePanel = ref<string | null>(null)

@@ -85,6 +85,7 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useAgentStore } from '@planetcrust/human-vue'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters
@@ -94,6 +95,7 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const agentStore = useAgentStore()
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
 const canCreate = computed(() => rbac.can('system/', 'agent.create'))
@@ -227,9 +229,8 @@ function onConfirmDelete(agent) {
 async function handleDelete(agent) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $SystemAPI.agentDelete({
-      agentID: agent.agentID,
-    })
+    await $SystemAPI.agentDelete({ agentID: agent.agentID })
+    agentStore.removeFromList(agent.agentID)
     $toast.toastSuccess(t('notification.agent.deleted'))
     filterList()
   } catch (e) {
@@ -258,6 +259,7 @@ async function handleDuplicate(agent) {
     }
 
     const created = await $SystemAPI.agentCreate(copy)
+    agentStore.updateInList(created)
     $toast.toastSuccess(t('notification.agent.duplicated'))
 
     // Navigate to the new agent

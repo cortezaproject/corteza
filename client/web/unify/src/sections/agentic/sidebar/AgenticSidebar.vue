@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { useAgentStore } from '../stores/agent'
+import { useAgentStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -29,7 +29,7 @@ const agentStore = useAgentStore()
 // The shell does global setup only; each section fetches what its own nav needs.
 onMounted(() => {
   if (!agentStore.list.length) {
-    agentStore.fetchList($SystemAPI)
+    agentStore.fetchList()
   }
 })
 

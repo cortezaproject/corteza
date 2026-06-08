@@ -311,7 +311,7 @@ async function openHistory(event: MouseEvent) {
   historyPopover.value?.toggle(event)
   if (agentStore.activeAgentID) {
     // Refresh on each open — cheap and avoids stale views.
-    await agentStore.loadHistory(agentStore.activeAgentID, $SystemAPI)
+    await agentStore.loadHistory(agentStore.activeAgentID)
   }
 }
 
@@ -326,7 +326,6 @@ async function onDeleteHistory(conv: any) {
   await agentStore.deleteConversation(
     agentStore.activeAgentID,
     String(conv.aiConversationID),
-    $SystemAPI,
   )
 }
 
@@ -350,7 +349,7 @@ function formatHistoryDate(conv: any): string {
 }
 
 async function maybeResumeLatest(agentID: string) {
-  await agentStore.loadHistory(agentID, $SystemAPI)
+  await agentStore.loadHistory(agentID)
   const list = agentStore.getHistory(agentID)
   if (list.length === 0) return
   agentStore.openConversationFromHistory(agentID, list[0])
@@ -415,7 +414,7 @@ defineExpose({
   },
   reloadHistory: async () => {
     if (!agentStore.activeAgentID) return
-    await agentStore.loadHistory(agentStore.activeAgentID, $SystemAPI)
+    await agentStore.loadHistory(agentStore.activeAgentID)
   },
 })
 </script>

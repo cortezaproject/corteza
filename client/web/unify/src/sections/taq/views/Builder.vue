@@ -336,8 +336,8 @@
     >
       <div
         v-if="selectedNode && showReferencePanel"
-        class="config-drawer"
-        :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '300px' }"
+        class="right-sidebar"
+        :style="{ right: `calc(${drawerWidth}px + 1.75rem)`, width: '300px' }"
       >
         <ReferencePanel
           :upstream-results="upstreamResults"
@@ -360,7 +360,7 @@
     >
       <div
         v-if="selectedNode"
-        class="config-drawer flex"
+        class="right-sidebar flex"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->
@@ -457,12 +457,12 @@ import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
 import { useFlowEditor } from '@/sections/taq/composables/useFlowEditor'
-import { useAutomationStore } from '@/sections/taq/stores/automation'
+import { useAutomationStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 
 const { CToolbar, CInputUser } = components
 
-import { useConfirmDelete, useUnsavedGuard } from '@planetcrust/human-vue'
+import { useConfirmDelete, useRightSidebarResize, useRightSidebarStore, useUnsavedGuard } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -487,6 +487,7 @@ const store = useAutomationStore()
 const $AutomationAPI = inject('$AutomationAPI')
 const editor = useFlowEditor()
 const { confirmDelete } = useConfirmDelete()
+const rightSidebarStore = useRightSidebarStore()
 const { t } = useI18n()
 
 useUnsavedGuard({
@@ -525,9 +526,7 @@ onNodesInitialized(() => {
   }
 })
 
-// Drawer state
-const drawerWidth = ref(360)
-const isResizingDrawer = ref(false)
+const { drawerWidth, startDrawerResize } = useRightSidebarResize(360)
 
 // Node picker state
 const showAllPreviews = ref(false)
@@ -637,6 +636,16 @@ watch(
   },
 )
 
+// Sync with right sidebar store: open when node selected, close when another panel takes over
+watch(selectedNode, node => {
+  if (node) rightSidebarStore.open('taq-config')
+  else rightSidebarStore.close('taq-config')
+})
+
+watch(() => rightSidebarStore.isOpen('taq-config'), isOpen => {
+  if (!isOpen && selectedNode.value) clearSelection()
+})
+
 // Update edge highlighting when selection changes
 watch(
   () => getSelectedNodes.value,
@@ -738,24 +747,6 @@ function onRunConfirm(scope) {
   editor.exec(scope)
 }
 
-// Drawer resize handlers
-function startDrawerResize() {
-  isResizingDrawer.value = true
-  document.addEventListener('mousemove', resizeDrawer)
-  document.addEventListener('mouseup', stopDrawerResize)
-}
-
-function resizeDrawer(e) {
-  if (!isResizingDrawer.value) return
-  const newWidth = window.innerWidth - e.clientX
-  drawerWidth.value = Math.max(280, Math.min(800, newWidth))
-}
-
-function stopDrawerResize() {
-  isResizingDrawer.value = false
-  document.removeEventListener('mousemove', resizeDrawer)
-  document.removeEventListener('mouseup', stopDrawerResize)
-}
 
 // Center viewport on a node (preserving current zoom)
 import { getNodeCenterOffset } from '@/sections/taq/utils/flow-constants'
@@ -1074,7 +1065,7 @@ onMounted(() => {
   // The unified shell does global setup only — the builder loads its own
   // functions/triggers catalog (the old standalone App.vue used to do this).
   if (!store.catalogReady) {
-    store.loadCatalog($AutomationAPI)
+    store.loadCatalog()
   }
   window.addEventListener('keydown', onKeyDown)
 })

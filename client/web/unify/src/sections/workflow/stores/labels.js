@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { inject, reactive } from 'vue'
 
 export const useLabelsStore = defineStore('labels', () => {
+  const $ComposeAPI = inject('$ComposeAPI')
+
   const namespaces = reactive({})
   const modules = reactive({})
 
@@ -13,17 +15,15 @@ export const useLabelsStore = defineStore('labels', () => {
     return modules[moduleID]
   }
 
-  async function resolveNamespace({ namespaceID, api }) {
-    // Return cached value if available
+  async function resolveNamespace({ namespaceID }) {
     if (namespaces[namespaceID] !== undefined) {
       return namespaces[namespaceID]
     }
 
-    // Mark as loading to prevent duplicate requests
     namespaces[namespaceID] = null
 
     try {
-      const namespace = await api.namespaceRead({ namespaceID })
+      const namespace = await $ComposeAPI.namespaceRead({ namespaceID })
       const name = namespace.name || namespace.slug || namespaceID
       namespaces[namespaceID] = name
       return name
@@ -33,17 +33,15 @@ export const useLabelsStore = defineStore('labels', () => {
     }
   }
 
-  async function resolveModule({ moduleID, namespaceID, api }) {
-    // Return cached value if available
+  async function resolveModule({ moduleID, namespaceID }) {
     if (modules[moduleID] !== undefined) {
       return modules[moduleID]
     }
 
-    // Mark as loading to prevent duplicate requests
     modules[moduleID] = null
 
     try {
-      const module = await api.moduleRead({ namespaceID, moduleID })
+      const module = await $ComposeAPI.moduleRead({ namespaceID, moduleID })
       const name = module.name || module.handle || moduleID
       modules[moduleID] = name
       return name
@@ -53,19 +51,15 @@ export const useLabelsStore = defineStore('labels', () => {
     }
   }
 
-  async function resolveMultipleNamespaces({ namespaceIDs, api }) {
+  async function resolveMultipleNamespaces({ namespaceIDs }) {
     return Promise.all(
-      namespaceIDs.map(namespaceID =>
-        resolveNamespace({ namespaceID, api }),
-      ),
+      namespaceIDs.map(namespaceID => resolveNamespace({ namespaceID })),
     )
   }
 
-  async function resolveMultipleModules({ modules: modList, api }) {
+  async function resolveMultipleModules({ modules: modList }) {
     return Promise.all(
-      modList.map(({ moduleID, namespaceID }) =>
-        resolveModule({ moduleID, namespaceID, api }),
-      ),
+      modList.map(({ moduleID, namespaceID }) => resolveModule({ moduleID, namespaceID })),
     )
   }
 

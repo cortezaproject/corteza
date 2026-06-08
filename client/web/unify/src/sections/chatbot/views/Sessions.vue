@@ -28,7 +28,7 @@
 import { CChatbotInbox, makeChatbotInboxTranslations } from '@planetcrust/human-vue'
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useChatbotStore } from '@/sections/chatbot/stores/chatbot'
+import { useChatbotStore } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
 const $SystemAPI = inject('$SystemAPI')
@@ -43,7 +43,7 @@ const inboxTranslations = computed(() => makeChatbotInboxTranslations(t, 'chatbo
 
 onMounted(() => {
   if (!chatbotStore.list.length) {
-    void chatbotStore.fetchList($SystemAPI)
+    void chatbotStore.fetchList()
   }
 })
 </script>

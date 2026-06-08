@@ -9,9 +9,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useComposeResourceStore } from '@planetcrust/human-vue/src/stores/useComposeResourceStore'
+import { useModuleStore } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
 
@@ -20,7 +20,8 @@ const props = defineProps({
   namespaceID: { type: [String, Number], default: null },
 })
 
-const store = useComposeResourceStore()
+const $ComposeAPI = inject('$ComposeAPI')
+const moduleStore = useModuleStore()
 const notSet = t('builder.preview.notSet')
 const displayLabel = ref(notSet)
 
@@ -30,16 +31,8 @@ async function resolve(moduleID) {
     return
   }
 
-  // Check cache first
-  const cached = store.getModule(String(props.namespaceID), String(moduleID))
-  if (cached) {
-    displayLabel.value = cached.name || cached.handle || String(moduleID)
-    return
-  }
-
-  // Async resolve
   try {
-    const mod = await store.resolveModule(String(props.namespaceID), String(moduleID))
+    const mod = await moduleStore.findByID({ namespaceID: String(props.namespaceID), moduleID: String(moduleID) })
     displayLabel.value = mod?.name || mod?.handle || String(moduleID)
   } catch {
     displayLabel.value = String(moduleID)

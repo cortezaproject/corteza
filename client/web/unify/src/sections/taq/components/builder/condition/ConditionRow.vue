@@ -96,10 +96,11 @@ import { computed, inject, ref as vueRef, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../form/CReferenceChip.vue'
 import { CFieldEditor } from '@planetcrust/human-vue/src/components/field'
-import { useComposeResourceStore } from '@planetcrust/human-vue'
+import { useModuleStore } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
-const store = useComposeResourceStore()
+const $ComposeAPI = inject('$ComposeAPI')
+const moduleStore = useModuleStore()
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -235,7 +236,7 @@ watchEffect(async () => {
       const customFieldName = fieldPath.substring(7)
       if (topLevel.namespaceID && topLevel.moduleID) {
         try {
-          const mod = await store.resolveModule(topLevel.namespaceID, topLevel.moduleID)
+          const mod = await moduleStore.findByID({ namespaceID: topLevel.namespaceID, moduleID: topLevel.moduleID })
           const field = mod.fields?.find(f => f.name === customFieldName)
           if (field) {
             resolvedFieldDef.value = {

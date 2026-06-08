@@ -9,7 +9,16 @@
       ]"
       @click="navigateToRecord(rec)"
     >
-      {{ getRecordLabel(rec) }}{{ index !== resolvedRecords.length - 1 && !isNewlineDelimiter ? delimiter : '' }}
+      <CFieldViewer
+        v-if="rec.values && labelFieldDef"
+        :field="labelFieldDef"
+        :record="rec"
+        :namespace="namespace"
+        :disable-click="true"
+        :value-only="true"
+      />
+      <template v-else>{{ getRecordID(rec) }}</template>
+      {{ index !== resolvedRecords.length - 1 && !isNewlineDelimiter ? delimiter : '' }}
     </span>
   </div>
 </template>
@@ -17,6 +26,10 @@
 <script setup>
 import { computed, inject, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useRecordStore } from '../../../stores/useRecordStore'
+import { useModuleStore } from '../../../stores/useModuleStore'
+import { usePageStore } from '../../../stores/usePageStore'
+import CFieldViewer from '../CFieldViewer.vue'
 
 const props = defineProps({
   field: {
@@ -47,9 +60,10 @@ const props = defineProps({
 
 const router = useRouter()
 const route = useRoute()
-const $recordStore = inject('$recordStore', null)
+const recordStore = useRecordStore()
+const moduleStore = useModuleStore()
+const pageStore = usePageStore()
 const $recordRoutes = inject('$recordRoutes', null)
-const $pageStore = inject('$pageStore', null)
 
 const recordIDs = computed(() => {
   const v = props.field.isSystem
@@ -63,44 +77,28 @@ const recordIDs = computed(() => {
 
 const delimiter = computed(() => props.field.options?.multiDelimiter || ', ')
 const isNewlineDelimiter = computed(() => delimiter.value === '\n')
-const labelField = computed(() => props.field.options?.labelField || '')
+
+const labelFieldDef = computed(() => {
+  const moduleID = props.field.options?.moduleID
+  if (!moduleID) return null
+
+  const mod = moduleStore.getByID(moduleID)
+  if (!mod?.fields?.length) return null
+
+  const lf = props.field.options?.labelField
+  if (lf) {
+    const found = mod.fields.find(f => f.name === lf)
+    if (found) return found
+  }
+  return mod.fields[0] || null
+})
 
 function getRecordID(rec) {
   return rec?.recordID || ''
 }
 
-function getRecordLabel(rec) {
-  if (!rec) return ''
-
-  const lf = labelField.value
-
-  // compose.Record stores values as an object { fieldName: value }
-  if (rec.values && typeof rec.values === 'object' && !Array.isArray(rec.values)) {
-    if (lf && rec.values[lf]) return rec.values[lf]
-    const firstVal = Object.values(rec.values).find(v => v)
-    if (firstVal) return firstVal
-  }
-
-  // Raw API record stores values as array [{ name, value }]
-  if (Array.isArray(rec.values)) {
-    if (lf) {
-      const entry = rec.values.find(v => v.name === lf)
-      if (entry?.value) return entry.value
-    }
-    const first = rec.values.find(v => v.value)
-    if (first?.value) return first.value
-  }
-
-  return rec.recordID || ''
-}
-
 const resolvedRecords = computed(() => {
-  return recordIDs.value.map(id => {
-    if ($recordStore) {
-      return $recordStore.getByID(id) || { recordID: id }
-    }
-    return { recordID: id }
-  })
+  return recordIDs.value.map(id => recordStore.getByID(id) || { recordID: id })
 })
 
 function canNavigate(rec) {
@@ -120,9 +118,9 @@ function navigateToRecord(rec) {
     return
   }
 
-  // Find the record page for this module via injected page store
-  if ($pageStore && moduleID) {
-    const pages = $pageStore.set || []
+  // Find the record page for this module via page store
+  if (moduleID) {
+    const pages = pageStore.set || []
     const page = pages.find(p => p.moduleID === moduleID)
     if (page) {
       const displayOption = props.extraOptions?.recordSelectorDisplayOption || 'sameTab'
@@ -154,13 +152,13 @@ function navigateToRecord(rec) {
 watch(
   () => [recordIDs.value, props.field.options?.moduleID, props.namespace?.namespaceID],
   ([ids]) => {
-    if (!ids.length || !$recordStore) return
+    if (!ids.length) return
 
     const moduleID = props.field.options?.moduleID
     const namespaceID = props.namespace?.namespaceID
     if (!moduleID || !namespaceID) return
 
-    $recordStore.resolveRecordLabels({ namespaceID, moduleID, recordIDs: ids })
+    recordStore.resolveRecordLabels({ namespaceID, moduleID, recordIDs: ids })
   },
   { immediate: true },
 )
@@ -176,4 +174,3 @@ watch(
   text-decoration: underline;
 }
 </style>
-

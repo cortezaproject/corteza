@@ -64,8 +64,8 @@
 
 <script setup>
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { useRecordStore } from '@/sections/compose/stores/record'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { useRecordStore } from '@planetcrust/human-vue'
 import { compose, validator } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'

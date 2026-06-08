@@ -91,7 +91,7 @@ import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { components } from '@planetcrust/human-vue'
-import { useAutomationStore } from '@/sections/taq/stores/automation'
+import { useAutomationStore } from '@planetcrust/human-vue'
 
 const { CInputLabel, CInputUser } = components
 
@@ -168,7 +168,7 @@ async function handleSubmit() {
 
   try {
     if (props.mode === 'create') {
-      const created = await automationStore.create($AutomationAPI, {
+      const created = await automationStore.create({
         meta: {
           short: form.value.name.trim(),
           description: form.value.description.trim() || undefined,

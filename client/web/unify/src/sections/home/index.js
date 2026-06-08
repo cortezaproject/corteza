@@ -18,5 +18,6 @@ export default {
     hideAppSelector: true,
     hideAgentSidebar: true,
     hideNotifications: true,
+    hideHomeButton: true,
   },
 }

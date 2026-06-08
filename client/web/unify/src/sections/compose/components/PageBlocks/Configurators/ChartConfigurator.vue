@@ -70,8 +70,8 @@ import { computed, inject, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import CInputChart from '@planetcrust/human-vue/src/components/input/CInputChart.vue'
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { useComposeResourceStore } from '@planetcrust/human-vue'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { useChartStore } from '@planetcrust/human-vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -82,9 +82,10 @@ const props = defineProps({
 })
 
 const block = inject('blockDraft')
+const $ComposeAPI = inject('$ComposeAPI')
 
 const moduleStore = useModuleStore()
-const composeResourceStore = useComposeResourceStore()
+const chartStore = useChartStore()
 
 function updateOptions(key, value) {
   if (!block.value.options) block.value.options = {}
@@ -130,7 +131,7 @@ const selectedChart = ref(null)
 watch(() => block.value.options?.chartID, async (id) => {
   if (id && props.namespace?.namespaceID) {
     try {
-      selectedChart.value = await composeResourceStore.resolveChart(props.namespace.namespaceID, id)
+      selectedChart.value = await chartStore.findByID({ namespaceID: props.namespace.namespaceID, chartID: id })
     } catch {
       selectedChart.value = null
     }

@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { useChatbotStore } from '@/sections/chatbot/stores/chatbot'
+import { useChatbotStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -29,7 +29,7 @@ const chatbotStore = useChatbotStore()
 // The shell does global setup only; the section loads the list its nav renders.
 onMounted(() => {
   if (!chatbotStore.list.length) {
-    chatbotStore.fetchList($SystemAPI)
+    chatbotStore.fetchList()
   }
 })
 

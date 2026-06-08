@@ -33,9 +33,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useComposeResourceStore } from '@planetcrust/human-vue/src/stores/useComposeResourceStore'
+import { useModuleStore } from '@planetcrust/human-vue'
 import CViewReference from './CViewReference.vue'
 
 const { t } = useI18n()
@@ -49,7 +49,8 @@ const props = defineProps({
   nodes: { type: Array, default: () => [] },
 })
 
-const store = useComposeResourceStore()
+const $ComposeAPI = inject('$ComposeAPI')
+const moduleStore = useModuleStore()
 const fieldLabels = ref(new Map())
 
 /**
@@ -59,7 +60,7 @@ async function fetchFields() {
   if (!props.namespaceID || !props.moduleID) return
 
   try {
-    const mod = await store.resolveModule(String(props.namespaceID), String(props.moduleID))
+    const mod = await moduleStore.findByID({ namespaceID: String(props.namespaceID), moduleID: String(props.moduleID) })
     if (mod?.fields) {
       const map = new Map()
       for (const f of mod.fields) {

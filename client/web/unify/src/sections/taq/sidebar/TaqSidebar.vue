@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { useAutomationStore } from '@/sections/taq/stores/automation'
+import { useAutomationStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,7 +31,7 @@ const automationStore = useAutomationStore()
 // not here — this sidebar is a lazy PrimeVue Drawer and may not be mounted.)
 onMounted(() => {
   if (!automationStore.list.length) {
-    automationStore.fetchList($AutomationAPI)
+    automationStore.fetchList()
   }
 })
 

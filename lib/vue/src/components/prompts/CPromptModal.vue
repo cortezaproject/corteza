@@ -47,14 +47,13 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkflowPromptsStore } from '../../stores/useWorkflowPromptsStore'
 import definitions from './kinds'
 import { pVal } from './utils'
 
 const store = useWorkflowPromptsStore()
-const $AutomationAPI = inject('$AutomationAPI')
 const { t, te } = useI18n()
 const tF = (key, fallback) => te(key) ? t(key) : fallback
 
@@ -91,11 +90,11 @@ const current = computed(() => {
 const currentTitle = computed(() => current.value?.title || tF('prompt.title.list', 'Workflow prompts'))
 
 async function handleSubmit(input) {
-  if (!$AutomationAPI || !current.value) {
+  if (!current.value) {
     return
   }
 
-  await store.resume($AutomationAPI, current.value.prompt, input)
+  await store.resume(current.value.prompt, input)
 }
 
 function relativeTime(value) {

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
+import { createPinia, getActivePinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import type { Component, DefineComponent } from 'vue'
@@ -34,7 +34,7 @@ export function mountWithContext<T extends Component | DefineComponent>(
   ctx: TestContext = {},
   mountOptions: MountingOptions<any> = {},
 ) {
-  const pinia = createPinia()
+  const pinia = getActivePinia() ?? createPinia()
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [{ path: '/', component: { template: '<div/>' } }],

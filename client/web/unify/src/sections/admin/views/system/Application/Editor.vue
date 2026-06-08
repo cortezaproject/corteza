@@ -104,6 +104,7 @@ import {
   useFileUpload,
   resolveAppLogoUrl,
   useUnsavedGuard,
+  useApplicationsStore,
 } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 import { cloneDeep, isEqual } from 'lodash-es'
@@ -116,6 +117,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const applicationsStore = useApplicationsStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -177,7 +179,7 @@ async function loadApplication() {
 
   loading.value = true
   try {
-    const raw = await $SystemAPI.applicationRead({ applicationID })
+    const raw = await applicationsStore.findByID(applicationID)
     application.value = new system.Application(raw)
     initialApplication.value = cloneDeep(application.value)
   } catch (e) {
@@ -208,12 +210,12 @@ async function handleSubmit({ valid }) {
 
     if (isEdit.value) {
       payload.applicationID = application.value.applicationID
-      const raw = await $SystemAPI.applicationUpdate(payload)
+      const raw = await applicationsStore.update(payload)
       application.value = new system.Application(raw)
       initialApplication.value = cloneDeep(application.value)
       $toast.toastSuccess(t('notification.application.update.success'))
     } else {
-      const created = await $SystemAPI.applicationCreate(payload)
+      const created = await applicationsStore.create(payload)
       $toast.toastSuccess(t('notification.application.create.success'))
       markSaved()
       router.push({
@@ -236,7 +238,7 @@ async function handleSubmit({ valid }) {
 async function handleDelete() {
   deleting.value = true
   try {
-    await $SystemAPI.applicationDelete({ applicationID: application.value.applicationID })
+    await applicationsStore.delete(application.value.applicationID)
     $toast.toastSuccess(t('notification.application.delete.success'))
     router.push({ name: 'system.applications' })
   } catch (e) {

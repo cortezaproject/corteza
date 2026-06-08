@@ -22,8 +22,8 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useNamespaceStore } from '../../stores/useNamespaceStore'
 
 defineOptions({ inheritAttrs: false })
 
@@ -44,22 +44,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// Store-first: prefer the app-wide shared namespace store (preloaded at boot,
-// no per-open refetch). Fall back to the lib resource store when the shared
-// store isn't provided (e.g. standalone/legacy usage).
-const sharedStore = inject('$namespaceStore', null)
-const fallbackStore = useComposeResourceStore()
-
-const fallbackOptions = ref([])
+const store = useNamespaceStore()
 const selectedNamespace = ref(null)
 const loading = ref(false)
 
-// Options come straight from the shared store's reactive (preloaded) set when
-// available; otherwise from the fallback store's search results.
-const options = computed(() => (sharedStore ? sharedStore.set : fallbackOptions.value))
-
-// Store cancel function for the fallback request
-let cancelCurrentRequest = null
+const options = computed(() => store.set)
 
 function getOptionLabel(namespace) {
   if (!namespace) return ''
@@ -67,32 +56,14 @@ function getOptionLabel(namespace) {
 }
 
 async function ensureLoaded() {
+  if (store.set.length > 0) return
   loading.value = true
   try {
-    if (sharedStore) {
-      // Cache-guarded — returns immediately if already loaded.
-      await sharedStore.load()
-      return
-    }
-    if (cancelCurrentRequest) {
-      cancelCurrentRequest()
-      cancelCurrentRequest = null
-    }
-    const { response, cancel } = fallbackStore.searchNamespaces({
-      query: '',
-      limit: 100,
-      sort: 'name ASC',
-    })
-    cancelCurrentRequest = cancel
-    const result = await response()
-    fallbackOptions.value = result.set || []
-  } catch (e) {
-    if (e?.message !== 'canceled' && !sharedStore) {
-      fallbackOptions.value = []
-    }
+    await store.load()
+  } catch {
+    // ignore
   } finally {
     loading.value = false
-    cancelCurrentRequest = null
   }
 }
 
@@ -108,27 +79,20 @@ function onSelect(value) {
 async function loadNamespaceById(namespaceID) {
   if (!namespaceID) return
 
-  const existing = options.value.find(ns => ns.namespaceID === namespaceID)
+  const existing = store.set.find(ns => ns.namespaceID === namespaceID)
   if (existing) {
     selectedNamespace.value = existing
     return
   }
 
-  // Resolve through the store (cache-first).
   loading.value = true
   try {
-    const namespace = sharedStore
-      ? await sharedStore.findByID({ namespaceID })
-      : await fallbackStore.resolveNamespace(namespaceID)
+    const namespace = await store.findByID({ namespaceID })
     if (namespace) {
-      selectedNamespace.value = namespace
-      // For the fallback store, keep its local option list in sync.
-      if (!sharedStore && !fallbackOptions.value.find(ns => ns.namespaceID === namespaceID)) {
-        fallbackOptions.value = [...fallbackOptions.value, namespace]
-      }
+      selectedNamespace.value = store.set.find(ns => ns.namespaceID === namespaceID) || namespace
     }
-  } catch (_e) {
-    // Namespace not found or API error
+  } catch {
+    // namespace not found
   } finally {
     loading.value = false
   }
@@ -151,12 +115,6 @@ onMounted(() => {
 
   if (props.modelValue) {
     loadNamespaceById(props.modelValue)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (cancelCurrentRequest) {
-    cancelCurrentRequest()
   }
 })
 </script>

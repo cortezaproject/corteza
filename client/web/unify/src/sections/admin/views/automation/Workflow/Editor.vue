@@ -95,6 +95,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { useWorkflowStore } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete } = components
@@ -105,6 +106,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
+const workflowStore = useWorkflowStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -189,9 +191,11 @@ async function handleSubmit({ valid }) {
       const raw = await $AutomationAPI.workflowUpdate(payload)
       workflow.value = new automation.Workflow(raw)
       initialWorkflow.value = cloneDeep(workflow.value)
+      workflowStore.updateInList(workflow.value)
       $toast.toastSuccess(t('notification.workflow.update.success'))
     } else {
       const created = await $AutomationAPI.workflowCreate(payload)
+      workflowStore.updateInList(created)
       $toast.toastSuccess(t('notification.workflow.create.success'))
       markSaved()
       router.push({ name: 'automation.workflows.edit', params: { workflowID: created.workflowID } })
@@ -211,6 +215,7 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $AutomationAPI.workflowDelete({ workflowID: workflow.value.workflowID })
+    workflowStore.removeFromList(workflow.value.workflowID)
     $toast.toastSuccess(t('notification.workflow.delete.success'))
     router.push({ name: 'automation.workflows' })
   } catch (e) {

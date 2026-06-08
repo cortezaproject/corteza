@@ -230,8 +230,8 @@ import { compose, shared } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { chartConstructor } from '../../../lib/charts'
-import { useChartStore } from '../../../stores/chart'
-import { useModuleStore } from '../../../stores/module'
+import { useChartStore } from '@planetcrust/human-vue'
+import { useModuleStore } from '@planetcrust/human-vue'
 import ChartRenderer from '../../../components/Chart/ChartRenderer.vue'
 import ChartTranslator from '../../../components/Admin/Chart/ChartTranslator.vue'
 import * as Reports from '../../../components/Chart/Report/index.js'
@@ -410,7 +410,7 @@ async function fetchChart() {
     processing.value = true
 
     try {
-      const raw = await chartStore.findByID({ namespaceID, chartID: cID, force: true })
+      const raw = await chartStore.findByID({ namespaceID, chartID: cID })
       chart.value = chartConstructor(raw)
       initialChart.value = cloneDeep(toRaw(chart.value))
       editReportIndex.value = 0

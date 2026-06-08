@@ -29,11 +29,11 @@
 </template>
 
 <script setup>
-import { useChartStore } from '@/sections/compose/stores/chart'
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { useNamespaceStore } from '@/sections/compose/stores/namespace'
-import { usePageStore } from '@/sections/compose/stores/page'
-import { usePageLayoutStore } from '@/sections/compose/stores/page-layout'
+import { useChartStore } from '@planetcrust/human-vue'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { useNamespaceStore } from '@planetcrust/human-vue'
+import { usePageStore } from '@planetcrust/human-vue'
+import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { compose, NoID } from '@planetcrust/human-js'
 import { useMinDuration } from '@planetcrust/human-vue'
 import { inject, onMounted, provide, ref, watch } from 'vue'
@@ -79,7 +79,7 @@ async function loadNamespace() {
 
       if (!ns) {
         // Load all namespaces if not found
-        await namespaceStore.load({ force: true })
+        await namespaceStore.load()
         ns = namespaceStore.getByUrlPart(props.slug)
       }
 
@@ -136,22 +136,10 @@ async function prepareNamespace() {
   try {
     // Preload all namespace data in parallel
     await Promise.all([
-      moduleStore.load({
-        namespaceID: nsID,
-        force: true,
-      }),
-      pageStore.load({
-        namespaceID: nsID,
-        force: true,
-      }),
-      chartStore.load({
-        namespaceID: nsID,
-        force: true,
-      }),
-      pageLayoutStore.load({
-        namespaceID: nsID,
-        force: true,
-      }),
+      moduleStore.load({ namespaceID: nsID }),
+      pageStore.load({ namespaceID: nsID }),
+      chartStore.load({ namespaceID: nsID }),
+      pageLayoutStore.load({ namespaceID: nsID }),
     ])
   } catch (error) {
     console.error('Failed to prepare namespace context:', error)

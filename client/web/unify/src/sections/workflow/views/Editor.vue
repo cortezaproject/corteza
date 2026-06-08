@@ -27,7 +27,7 @@ import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
-import { useWorkflowStore } from '../stores/workflow'
+import { useWorkflowStore } from '@planetcrust/human-vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -7,7 +7,7 @@ import {
 import type { Edge, Node } from '@vue-flow/core'
 import dagre from 'dagre'
 
-import type { AutomationFunction, AutomationTrigger } from '@/sections/taq/stores/automation'
+import type { AutomationFunction, AutomationTrigger } from '@planetcrust/human-vue'
 import { getTriggerMeta, DEFAULT_TRIGGER_ICON } from '@/sections/taq/utils/flow-constants'
 
 type NgAutomation = automation.NgAutomation

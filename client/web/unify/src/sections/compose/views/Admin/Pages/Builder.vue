@@ -445,9 +445,9 @@ import { ref, computed, watch, inject, provide, markRaw, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'
-import { usePageStore } from '@/sections/compose/stores/page'
-import { usePageLayoutStore } from '@/sections/compose/stores/page-layout'
-import { useModuleStore } from '@/sections/compose/stores/module'
+import { usePageStore } from '@planetcrust/human-vue'
+import { usePageLayoutStore } from '@planetcrust/human-vue'
+import { useModuleStore } from '@planetcrust/human-vue'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 
 // Block configurators — lazy imported

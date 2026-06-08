@@ -73,7 +73,7 @@ import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../CReferenceChip.vue'
 import { CFieldEditor } from '@planetcrust/human-vue/src/components/field'
-import { components, useComposeResourceStore } from '@planetcrust/human-vue'
+import { components, useModuleStore } from '@planetcrust/human-vue'
 import { systemFields as moduleSystemFields } from '@planetcrust/human-js/src/compose/types/module'
 
 const { CInputDelete } = components
@@ -99,7 +99,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'toggleRowReference'])
 const { t } = useI18n()
-const store = useComposeResourceStore()
+const moduleStore = useModuleStore()
 const fields = ref([])
 const rows = ref([])
 const loading = ref(false)
@@ -220,7 +220,7 @@ async function fetchModuleFields() {
 
   loading.value = true
   try {
-    const mod = await store.resolveModule(props.namespaceID, props.moduleID)
+    const mod = await moduleStore.findByID({ namespaceID: props.namespaceID, moduleID: props.moduleID })
     if (!mod) {
       fields.value = []
       return

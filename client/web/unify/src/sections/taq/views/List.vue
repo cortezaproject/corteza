@@ -149,7 +149,7 @@ import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import TaqConfigModal from '../components/common/TaqConfigModal.vue'
-import { useAutomationStore } from '@/sections/taq/stores/automation'
+import { useAutomationStore } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
@@ -258,7 +258,7 @@ function onConfirmDelete(automation) {
 async function handleDelete(automation) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await automationStore.remove($AutomationAPI, automation.automationID)
+    await automationStore.remove(automation.automationID)
     $toast.toastSuccess(t('notification.automation.delete.success'))
     filterList()
   } catch (e) {

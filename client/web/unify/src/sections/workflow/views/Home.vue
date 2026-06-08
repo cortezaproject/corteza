@@ -200,7 +200,7 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { saveAs } from 'file-saver'
 import { useLabelsStore } from '../stores/labels'
-import { useWorkflowStore } from '../stores/workflow'
+import { useWorkflowStore } from '@planetcrust/human-vue'
 import Import from '../components/Import.vue'
 import Export from '../components/Export.vue'
 import NamespaceModuleSelector from '../components/NamespaceModuleSelector.vue'
@@ -321,10 +321,10 @@ watch(workflowList, workflows => {
   })
 
   if (namespaceIDs.size) {
-    labelsStore.resolveMultipleNamespaces({ namespaceIDs: [...namespaceIDs], api: $ComposeAPI })
+    labelsStore.resolveMultipleNamespaces({ namespaceIDs: [...namespaceIDs] })
   }
   if (modules.length) {
-    labelsStore.resolveMultipleModules({ modules, api: $ComposeAPI })
+    labelsStore.resolveMultipleModules({ modules })
   }
 })
 

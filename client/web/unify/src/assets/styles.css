@@ -63,17 +63,6 @@ body {
 }
 
 /* ===== Section-specific full-height config panels (taq, workflow) ===== */
-.config-drawer {
-  position: fixed;
-  top: var(--topbar-height, 60px);
-  right: 0;
-  bottom: 0;
-  z-index: 20;
-  background: var(--p-content-background);
-  border-left: 1px solid var(--p-surface-border);
-  overflow: hidden;
-}
-
 /* Toolbar icons */
 #toolbar > hr {
   margin: 0.5rem 0 0.5rem 0 !important;

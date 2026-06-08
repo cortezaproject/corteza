@@ -211,19 +211,19 @@ export class NgAutomation {
     }
 
     if (IsOf(t, 'triggers')) {
-      this.triggers = [...(t.triggers || [])]
+      this.triggers = JSON.parse(JSON.stringify(t.triggers || []))
     }
 
     if (IsOf(t, 'steps')) {
-      this.steps = [...(t.steps || [])]
+      this.steps = JSON.parse(JSON.stringify(t.steps || []))
     }
 
     if (IsOf(t, 'paths')) {
-      this.paths = [...(t.paths || [])]
+      this.paths = JSON.parse(JSON.stringify(t.paths || []))
     }
 
     if (IsOf(t, 'scope')) {
-      this.scope = t.scope ?? null
+      this.scope = t.scope ? { ...t.scope } : null
     }
 
     if (IsOf(t, 'issues')) {

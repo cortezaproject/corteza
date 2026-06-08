@@ -98,12 +98,13 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { inject } from 'vue'
 import { components } from '@planetcrust/human-vue'
-import { useModuleStore } from '@/sections/compose/stores/module'
+import { useModuleStore } from '@planetcrust/human-vue'
 
 const { CFileDropZone } = components
 
 const { t } = useI18n()
 const $toast = inject('$toast')
+const $ComposeAPI = inject('$ComposeAPI')
 const moduleStore = useModuleStore()
 
 const props = defineProps({

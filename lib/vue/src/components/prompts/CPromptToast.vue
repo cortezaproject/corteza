@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkflowPromptsStore } from '../../stores/useWorkflowPromptsStore'
 import definitions from './kinds'
@@ -46,7 +46,6 @@ const props = defineProps({
 const DEFAULT_TIMEOUT_SEC = 7
 
 const store = useWorkflowPromptsStore()
-const $AutomationAPI = inject('$AutomationAPI')
 const instance = getCurrentInstance()
 const { t, te } = useI18n()
 const tF = (key: string, fallback: string): string => te(key) ? t(key) : fallback
@@ -77,12 +76,12 @@ const toasts = computed(() => {
 })
 
 watch(withHandlers, async handlers => {
-  if (!handlers.length || !$AutomationAPI) {
+  if (!handlers.length) {
     return
   }
 
   const { handler, prompt } = handlers[0]
-  await store.resume($AutomationAPI, prompt, {})
+  await store.resume(prompt, {})
   await handler?.call(instance?.proxy, prompt.payload)
 })
 
@@ -125,19 +124,13 @@ function clearPassiveTimer(stateID: string) {
 
 async function removePassive(prompt) {
   passivePrompts.value = passivePrompts.value.filter(({ prompt: p }) => p.stateID !== prompt.stateID)
-  if ($AutomationAPI) {
-    await store.clear(prompt)
-  }
+  await store.clear(prompt)
 }
 
 async function resumePrompt(prompt, input) {
-  if (!$AutomationAPI) {
-    return
-  }
-
   const keep = !!input?.keep
   const payload = keep ? {} : input
-  await store.resume($AutomationAPI, prompt, payload)
+  await store.resume(prompt, payload)
 }
 
 async function handleHide(entry) {
@@ -147,8 +140,7 @@ async function handleHide(entry) {
     return
   }
 
-  if (!$AutomationAPI) return
-  await store.cancel($AutomationAPI, entry.prompt)
+  await store.cancel(entry.prompt)
 }
 
 onMounted(() => {

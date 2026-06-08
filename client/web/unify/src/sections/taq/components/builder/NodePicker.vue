@@ -81,7 +81,7 @@ import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TaqIcon from '../common/TaqIcon.vue'
-import { useAutomationStore } from '../../stores/automation'
+import { useAutomationStore } from '@planetcrust/human-vue'
 import {
   DEFAULT_ACTION_ICON,
   DEFAULT_TRIGGER_ICON,

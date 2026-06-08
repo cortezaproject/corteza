@@ -85,7 +85,7 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useChatbotStore } from '@/sections/chatbot/stores/chatbot'
+import { useChatbotStore } from '@planetcrust/human-vue'
 
 const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters

@@ -48,8 +48,8 @@
 </template>
 
 <script setup>
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { usePageStore } from '@/sections/compose/stores/page'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { usePageStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -152,6 +152,7 @@ import {
   usePermissions,
   useRBACStore,
   useResourceList,
+  useUserStore,
 } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -169,6 +170,7 @@ const canGrant = computed(() => rbac.can('system/', 'grant'))
 const canCreate = computed(() => rbac.can('system/', 'user.create'))
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const userStore = useUserStore()
 
 const resourceListRef = ref()
 
@@ -301,6 +303,7 @@ async function handleDelete(user) {
   resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.userDelete({ userID: user.userID })
+    userStore.removeUsers(user.userID)
     $toast.toastSuccess(t('notification.user.delete.success'))
     filterList()
   } catch (e) {
@@ -313,6 +316,7 @@ async function handleSuspend(user) {
   resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.userSuspend({ userID: user.userID })
+    userStore.storeUsers([{ ...user, suspended: true }])
     $toast.toastSuccess(t('notification.user.suspend.success'))
     filterList()
   } catch (e) {
@@ -325,6 +329,7 @@ async function handleUnsuspend(user) {
   resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.userUnsuspend({ userID: user.userID })
+    userStore.storeUsers([{ ...user, suspended: false }])
     $toast.toastSuccess(t('notification.user.unsuspend.success'))
     filterList()
   } catch (e) {

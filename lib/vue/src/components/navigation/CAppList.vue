@@ -11,13 +11,18 @@
       :key="app.applicationID"
       :href="app.enabled ? getAppUrl(app) : '#'"
       target="_self"
-      :draggable="canReorder"
-      :class="[itemClass, { 'cursor-grab': canReorder, 'border-t-2 !border-t-primary': canReorder && variant === 'list' && dropTargetIndex === index }]"
+      :draggable="canReorder && app.enabled"
+      :class="[itemClass, {
+        'cursor-grab': canReorder && app.enabled,
+        'cursor-not-allowed opacity-50': !app.enabled,
+        'border-t-2 !border-t-primary': canReorder && variant === 'list' && dropTargetIndex === index,
+        '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
+      }]"
       @click="onItemClick($event, app)"
-      @dragstart="canReorder && onDragStart(index)"
-      @dragover="canReorder && onDragOver($event, index)"
+      @dragstart="canReorder && app.enabled && onDragStart(index)"
+      @dragover="canReorder && app.enabled && onDragOver($event, index)"
       @dragleave="canReorder && onDragLeave()"
-      @drop.prevent="canReorder && onDrop(index)"
+      @drop.prevent="canReorder && app.enabled && onDrop(index)"
     >
       <!-- List variant -->
       <template v-if="variant === 'list'">
@@ -39,7 +44,7 @@
             body: { class: 'grow justify-center gap-0 py-1' },
             title: { class: 'text-center line-clamp-2 group-hover:line-clamp-none' },
           }"
-          :class="['group cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary transition-all duration-100 w-80 min-h-72 hover:h-full overflow-hidden', { 'ring-2 ring-primary ring-offset-2': canReorder && dropTargetIndex === index }]"
+          :class="['group w-80 min-h-72 overflow-hidden transition-all duration-100', app.enabled ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary' : 'cursor-not-allowed', { 'ring-2 ring-primary ring-offset-2': canReorder && dropTargetIndex === index }]"
         >
           <template #header>
             <img
@@ -68,6 +73,7 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useInternalLink } from '../../composables/useInternalLink'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import { resolveAppLogoUrl } from '../../utils/appIcons'
@@ -95,6 +101,15 @@ const props = defineProps({
 
 const $SystemAPI = inject('$SystemAPI')
 const applicationsStore = useApplicationsStore()
+const route = useRoute()
+
+const isActiveApp = app => {
+  const url = app.unify?.url
+  if (!url) return false
+  const base = '/' + url.toLowerCase().replace(/^\/|\/$/g, '')
+  const path = route.path.toLowerCase()
+  return path === base || path.startsWith(base + '/')
+}
 
 const { onAnchorClick } = useInternalLink()
 

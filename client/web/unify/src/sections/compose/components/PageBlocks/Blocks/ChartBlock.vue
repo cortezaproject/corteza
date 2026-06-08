@@ -133,7 +133,7 @@ import { compose } from '@planetcrust/human-js'
 import PageBlock from './PageBlock.vue'
 import ChartRenderer from '../../Chart/ChartRenderer.vue'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
-import { useChartStore } from '../../../stores/chart'
+import { useChartStore } from '@planetcrust/human-vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
 
 const { t } = useI18n()

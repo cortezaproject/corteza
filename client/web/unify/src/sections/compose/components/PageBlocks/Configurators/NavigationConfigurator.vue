@@ -235,7 +235,7 @@
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
-import { usePageStore } from '@/sections/compose/stores/page'
+import { usePageStore } from '@planetcrust/human-vue'
 
 const { CInputColorPicker, CInputToggleCard } = components
 

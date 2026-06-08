@@ -9,9 +9,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useComposeResourceStore } from '@planetcrust/human-vue/src/stores/useComposeResourceStore'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
 
@@ -19,7 +19,8 @@ const props = defineProps({
   modelValue: { type: [String, Number], default: null },
 })
 
-const store = useComposeResourceStore()
+const $ComposeAPI = inject('$ComposeAPI')
+const namespaceStore = useNamespaceStore()
 const notSet = t('builder.preview.notSet')
 const displayLabel = ref(notSet)
 
@@ -29,16 +30,8 @@ async function resolve(id) {
     return
   }
 
-  // Check cache first
-  const cached = store.getNamespace(String(id))
-  if (cached) {
-    displayLabel.value = cached.name || cached.slug || String(id)
-    return
-  }
-
-  // Async resolve
   try {
-    const ns = await store.resolveNamespace(String(id))
+    const ns = await namespaceStore.findByID({ namespaceID: String(id) })
     displayLabel.value = ns?.name || ns?.slug || String(id)
   } catch {
     displayLabel.value = String(id)

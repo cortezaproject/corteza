@@ -200,8 +200,8 @@ import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
 const { CFieldViewer, CFieldEditor } = components
-import { useModuleStore } from '@/sections/compose/stores/module'
-import { useRecordStore } from '@/sections/compose/stores/record'
+import { useModuleStore } from '@planetcrust/human-vue'
+import { useRecordStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 
 const props = defineProps({
@@ -223,6 +223,7 @@ const { t } = useI18n()
 const route = useRoute()
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
+const $ComposeAPI = inject('$ComposeAPI')
 const $SystemAPI = inject('$SystemAPI', null)
 const $auth = inject('$auth', {})
 const $toast = inject('$toast', null)

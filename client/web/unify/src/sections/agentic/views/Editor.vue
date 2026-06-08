@@ -789,9 +789,9 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, isEqual } from 'lodash-es'
 
-import { useAgentStore } from '../stores/agent'
+import { useAgentStore } from '@planetcrust/human-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useComposeResourceStore, useUnsavedGuard } from '@planetcrust/human-vue'
+import { useNamespaceStore, useModuleStore, useUnsavedGuard } from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
 
 // Components (not globally registered)
@@ -823,8 +823,10 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const $AutomationAPI = inject('$AutomationAPI')
+const $ComposeAPI = inject('$ComposeAPI')
 const agentStore = useAgentStore()
-const composeStore = useComposeResourceStore()
+const namespaceStore = useNamespaceStore()
+const moduleStore = useModuleStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -1394,8 +1396,8 @@ function resolveToolAllowResources() {
     if (!tool.allow) continue
     for (const rule of tool.allow) {
       if (rule.namespaceID && !resolvedNsNames.value[rule.namespaceID]) {
-        composeStore
-          .resolveNamespace(String(rule.namespaceID))
+        namespaceStore
+          .findByID({ namespaceID: String(rule.namespaceID) })
           .then(ns => {
             if (ns) {
               resolvedNsNames.value = {
@@ -1409,8 +1411,8 @@ function resolveToolAllowResources() {
       if (rule.namespaceID && rule.moduleIDs?.length) {
         for (const modID of rule.moduleIDs) {
           if (!resolvedModNames.value[modID]) {
-            composeStore
-              .resolveModule(String(rule.namespaceID), String(modID))
+            moduleStore
+              .findByID($ComposeAPI, { namespaceID: String(rule.namespaceID), moduleID: String(modID) })
               .then(mod => {
                 if (mod) {
                   resolvedModNames.value = {

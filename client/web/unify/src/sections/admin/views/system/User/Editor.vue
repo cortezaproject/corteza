@@ -143,7 +143,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useUnsavedGuard, useUserStore } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { useConfirm } from 'primevue/useconfirm'
 
@@ -162,9 +162,7 @@ const confirm = useConfirm()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const $Auth = inject('$Auth')
-// Shared user cache (provided app-wide) — keep it fresh after edits here so
-// other sections (record displays, user pickers) reflect changes immediately.
-const $userStore = inject('$userStore', null)
+const userStore = useUserStore()
 
 // State
 const loading = ref(false)
@@ -303,7 +301,7 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.userUpdate(payload)
       user.value = new system.User(raw)
       initialUser.value = cloneDeep(user.value)
-      $userStore?.storeUsers([user.value])
+      userStore.storeUsers([user.value])
 
       // Handle Password if provided
       if (passwords.value.password) {
@@ -336,7 +334,7 @@ async function handleSubmit({ valid }) {
       // preventing components like UserExternalAuth from fetching with an invalid ID
       // during the router transition.
       user.value = new system.User(created)
-      $userStore?.storeUsers([user.value])
+      userStore.storeUsers([user.value])
       $toast.toastSuccess(t('notification.user.create.success'))
       markSaved()
       router.push({
@@ -358,7 +356,7 @@ async function handleDelete() {
   deleting.value = true
   try {
     await $SystemAPI.userDelete({ userID: user.value.userID })
-    $userStore?.removeUsers(user.value.userID)
+    userStore.removeUsers(user.value.userID)
     $toast.toastSuccess(t('notification.user.delete.success'))
     router.push({ name: 'system.users' })
   } catch (e) {
@@ -375,6 +373,7 @@ async function handleSuspend() {
     await $SystemAPI.userSuspend({ userID: user.value.userID })
     const raw = await $SystemAPI.userRead({ userID: user.value.userID })
     user.value = new system.User(raw)
+    userStore.storeUsers([user.value])
     $toast.toastSuccess(t('notification.user.suspend.success'))
   } catch (e) {
     console.error('Failed to suspend user:', e)
@@ -413,6 +412,7 @@ async function handleUnsuspend() {
     await $SystemAPI.userUnsuspend({ userID: user.value.userID })
     const raw = await $SystemAPI.userRead({ userID: user.value.userID })
     user.value = new system.User(raw)
+    userStore.storeUsers([user.value])
     $toast.toastSuccess(t('notification.user.unsuspend.success'))
   } catch (e) {
     console.error('Failed to unsuspend user:', e)

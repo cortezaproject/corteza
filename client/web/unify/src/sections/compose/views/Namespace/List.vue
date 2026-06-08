@@ -219,7 +219,7 @@
 
 <script setup>
 import NamespaceImporter from '@/sections/compose/components/Namespaces/NamespaceImporter.vue'
-import { useNamespaceStore } from '@/sections/compose/stores/namespace'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 import {
   components,
   useConfirmDelete,
@@ -428,7 +428,7 @@ function onFailed(err) {
 }
 
 function refreshAll() {
-  namespaceStore.load({ force: true })
+  namespaceStore.load()
   filterList()
 }
 </script>

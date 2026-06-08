@@ -125,6 +125,7 @@ import {
   usePermissions,
   useRBACStore,
   useResourceList,
+  useApplicationsStore,
 } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
@@ -138,6 +139,7 @@ const canGrant = computed(() => rbac.can('system/', 'grant'))
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const applicationsStore = useApplicationsStore()
 
 const resourceListRef = ref()
 const filterMenu = ref()
@@ -215,7 +217,7 @@ function onConfirmDelete(item) {
 async function handleDelete(item) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $SystemAPI.applicationDelete({ applicationID: item.applicationID })
+    await applicationsStore.delete(item.applicationID)
     $toast.toastSuccess(t('notification.application.delete.success'))
     filterList()
   } catch (e) {

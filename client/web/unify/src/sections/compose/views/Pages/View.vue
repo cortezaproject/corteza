@@ -57,8 +57,8 @@
 <script setup>
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 import PageTranslator from '@/sections/compose/components/Admin/Page/PageTranslator.vue'
-import { usePageLayoutStore } from '@/sections/compose/stores/page-layout'
-import { usePageStore } from '@/sections/compose/stores/page'
+import { usePageLayoutStore } from '@planetcrust/human-vue'
+import { usePageStore } from '@planetcrust/human-vue'
 import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'

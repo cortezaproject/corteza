@@ -75,7 +75,7 @@ export class User {
     if (u?.roles) {
       this.roles = []
       if (AreStrings(u.roles)) {
-        this.roles = u.roles
+        this.roles = [...u.roles]
       }
     }
 
