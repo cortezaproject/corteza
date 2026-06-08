@@ -6,7 +6,7 @@
       severity="secondary"
       variant="text"
       rounded
-      @click="notifications.toggleVisibility()"
+      @click="rightSidebarStore.toggle('notifications')"
     />
     <Badge
       v-if="notifications.unreadCount > 0 && !notifications.muted"
@@ -20,6 +20,8 @@
 
 <script setup>
 import { useNotificationsStore } from '../../stores/useNotificationsStore'
+import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 
 const notifications = useNotificationsStore()
+const rightSidebarStore = useRightSidebarStore()
 </script>

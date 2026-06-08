@@ -1,4 +1,5 @@
 import { system, NoID } from '@planetcrust/human-js'
+import { useRightSidebarStore } from '@planetcrust/human-vue'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, toRef } from 'vue'
 
@@ -38,11 +39,11 @@ function reminderVersion (reminder) {
 export const useReminderStore = defineStore('compose-reminder', () => {
   const $SystemAPI = inject('$SystemAPI')
   const $Auth = inject('$Auth', inject('$auth', {}))
+  const rightSidebarStore = useRightSidebarStore()
 
   const state = reactive({
     reminders: [],
     toasts: [],
-    visible: false,
     editing: null,
     processing: false,
     shownVersions: new Map(),
@@ -189,14 +190,6 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     return reminders
   }
 
-  function setVisible (visible) {
-    state.visible = visible
-  }
-
-  function toggleVisibility () {
-    state.visible = !state.visible
-  }
-
   function clearEdit () {
     state.editing = null
   }
@@ -208,12 +201,12 @@ export const useReminderStore = defineStore('compose-reminder', () => {
       payload,
       remindAt,
     })
-    state.visible = true
+    rightSidebarStore.open('reminders')
   }
 
   function startEdit (reminder) {
     state.editing = normalizeReminder(reminder)
-    state.visible = true
+    rightSidebarStore.open('reminders')
   }
 
   async function saveReminder (reminder) {
@@ -233,7 +226,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
 
       await fetchReminders()
       state.editing = null
-      state.visible = true
+      rightSidebarStore.open('reminders')
     } finally {
       state.processing = false
     }
@@ -295,14 +288,11 @@ export const useReminderStore = defineStore('compose-reminder', () => {
   return {
     reminders: toRef(state, 'reminders'),
     toasts: toRef(state, 'toasts'),
-    visible: toRef(state, 'visible'),
     editing: toRef(state, 'editing'),
     processing: toRef(state, 'processing'),
     currentUserID,
     activeCount,
     fetchReminders,
-    setVisible,
-    toggleVisibility,
     clearEdit,
     startCreate,
     startEdit,

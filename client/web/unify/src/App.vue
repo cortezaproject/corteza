@@ -37,7 +37,7 @@
             darkTheme: $t('navigation.themes.labels.dark'),
           }"
           :custom-profile-items="customProfileItems"
-          @app-menu-click="appListVisible = true"
+          @app-menu-click="rightSidebarStore.open('app-list')"
         >
           <template
             v-if="
@@ -76,7 +76,6 @@
     </div>
 
     <CAppListSidebar
-      v-model:visible="appListVisible"
       :labels="{
         title: $t('navigation.appList.title'),
         search: $t('navigation.appList.search'),
@@ -115,6 +114,7 @@ import {
   useApplicationsStore,
   useNotificationsStore,
   useRBACStore,
+  useRightSidebarStore,
   useWorkflowPromptsStore,
   websocket,
 } from '@planetcrust/human-vue'
@@ -158,6 +158,7 @@ const $eventBus = inject('$eventBus', null)
 
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
+const rightSidebarStore = useRightSidebarStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
 const rbacStore = useRBACStore()
 
@@ -234,8 +235,14 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => route.meta.section,
+  (newSection, oldSection) => {
+    if (newSection !== oldSection) rightSidebarStore.closeSectionPanels()
+  },
+)
+
 // --- Shell state -------------------------------------------------------------
-const appListVisible = ref(false)
 const searchRef = ref(null)
 const loading = ref(true)
 let realtimeClient

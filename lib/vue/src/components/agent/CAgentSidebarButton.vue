@@ -6,7 +6,7 @@
       severity="secondary"
       variant="text"
       rounded
-      @click="agentStore.toggleVisibility()"
+      @click="rightSidebarStore.toggle('agent')"
     />
   </div>
 </template>
@@ -15,11 +15,13 @@
 import { inject, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAgentChatStore } from '../../stores/useAgentChatStore'
+import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 
 const { t } = useI18n()
 const tooltipText = computed(() => t('agent.sidebar.title'))
 
 const agentStore = useAgentChatStore()
+const rightSidebarStore = useRightSidebarStore()
 const $SystemAPI = inject<any>('$SystemAPI')
 const $Auth = inject<any>('$Auth')
 

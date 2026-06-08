@@ -35,33 +35,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, watch } from 'vue'
-import { useNotificationsStore } from '../../stores/useNotificationsStore'
+import { computed } from 'vue'
+import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import CNotificationsPanel from './CNotificationsPanel.vue'
 
-const notifications = useNotificationsStore()
-const $eventBus = inject('$eventBus', null)
+const rightSidebarStore = useRightSidebarStore()
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
-  get: () => notifications.visible,
-  set: value => notifications.setVisible(value),
-})
-
-const offSidebar = $eventBus?.on('right-sidebar:opened', name => {
-  if (name !== 'notifications') {
-    notifications.setVisible(false)
-  }
-})
-
-watch(isVisible, visible => {
-  if (visible) {
-    $eventBus?.emit('right-sidebar:opened', 'notifications')
-  }
-})
-
-onBeforeUnmount(() => {
-  offSidebar?.()
+  get: () => rightSidebarStore.isOpen('notifications'),
+  set: value => value ? rightSidebarStore.open('notifications') : rightSidebarStore.close('notifications'),
 })
 </script>

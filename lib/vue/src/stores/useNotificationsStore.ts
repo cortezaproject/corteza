@@ -13,7 +13,6 @@ type SystemAPI = {
 
 export const useNotificationsStore = defineStore('notifications', () => {
   const notifications = ref<Array<system.Notification>>([])
-  const visible = ref(false)
   const pageCursor = ref<string | null>(null)
   const muted = ref(localStorage.getItem('notificationsMuted') === 'true')
 
@@ -94,14 +93,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
     removeNotification({ notificationID })
   }
 
-  function toggleVisibility() {
-    visible.value = !visible.value
-  }
-
-  function setVisible(value: boolean) {
-    visible.value = value
-  }
-
   function setPageCursor(value: string | null) {
     pageCursor.value = value
   }
@@ -154,7 +145,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   return {
     notifications,
-    visible,
     pageCursor,
     muted,
     hasMorePages,
@@ -167,8 +157,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
     markAllAsRead,
     markAllAsUnread,
     deleteNotification,
-    toggleVisibility,
-    setVisible,
     setPageCursor,
     toggleMuted,
     addNotification,

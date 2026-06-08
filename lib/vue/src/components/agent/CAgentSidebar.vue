@@ -38,9 +38,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, watch, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAgentChatStore } from '../../stores/useAgentChatStore'
+import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import CAgentChat from './CAgentChat.vue'
 import { makeAgentChatTranslations } from './translations'
@@ -60,27 +61,11 @@ const { t } = useI18n()
 const translations = computed(() => makeAgentChatTranslations(t, 'agent.sidebar.'))
 
 const agentStore = useAgentChatStore()
-const $eventBus = inject<any>('$eventBus', null)
+const rightSidebarStore = useRightSidebarStore()
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
-  get: () => agentStore.visible,
-  set: value => agentStore.setVisible(value),
-})
-
-watch(isVisible, visible => {
-  if (visible) {
-    $eventBus?.emit('right-sidebar:opened', 'agent')
-  }
-})
-
-const offSidebar = $eventBus?.on('right-sidebar:opened', (name: string) => {
-  if (name !== 'agent') {
-    agentStore.setVisible(false)
-  }
-})
-
-onBeforeUnmount(() => {
-  offSidebar?.()
+  get: () => rightSidebarStore.isOpen('agent'),
+  set: value => value ? rightSidebarStore.open('agent') : rightSidebarStore.close('agent'),
 })
 </script>

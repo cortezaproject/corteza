@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useAgentChatStore = defineStore('agentChat', () => {
-  const visible = ref(false)
   const availableAgents = ref<any[]>([])
   const activeAgentID = ref<string | null>(null)
   const conversations = ref<Record<string, any[]>>({})
@@ -12,14 +11,6 @@ export const useAgentChatStore = defineStore('agentChat', () => {
   const history = ref<Record<string, any[]>>({})
   const historyLoading = ref<Record<string, boolean>>({})
   const historyLoadedAt = ref<Record<string, number>>({})
-
-  function toggleVisibility() {
-    visible.value = !visible.value
-  }
-
-  function setVisible(value: boolean) {
-    visible.value = value
-  }
 
   function setAvailableAgents(agents: any[]) {
     availableAgents.value = [...agents].sort((a, b) => {
@@ -217,7 +208,6 @@ export const useAgentChatStore = defineStore('agentChat', () => {
   }
 
   return {
-    visible,
     availableAgents,
     activeAgentID,
     conversations,
@@ -225,8 +215,6 @@ export const useAgentChatStore = defineStore('agentChat', () => {
     history,
     historyLoading,
     historyLoadedAt,
-    toggleVisibility,
-    setVisible,
     setAvailableAgents,
     setActiveAgentID,
     initConversation,

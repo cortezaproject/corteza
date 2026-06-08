@@ -11,6 +11,7 @@ import { useNamespaceStore } from './stores/namespace'
 import { usePageStore } from './stores/page'
 import { useRecordStore } from './stores/record'
 import { useReminderStore } from './stores/reminder'
+import { useRightSidebarStore } from '@planetcrust/human-vue'
 
 const PREFIX = '/compose'
 
@@ -89,7 +90,7 @@ function profileItems(t) {
     {
       label,
       icon: 'pi pi-clock',
-      command: () => reminderStore.toggleVisibility(),
+      command: () => useRightSidebarStore().toggle('reminders'),
     },
   ]
 }

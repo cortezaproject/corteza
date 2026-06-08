@@ -43,36 +43,25 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useReminderStore } from '@/sections/compose/stores/reminder'
 import ReminderManager from './ReminderManager.vue'
-import { useRightSidebarResize } from '@planetcrust/human-vue'
+import { useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
 
 const store = useReminderStore()
-const $eventBus = inject('$eventBus', null)
+const rightSidebarStore = useRightSidebarStore()
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
-  get: () => store.visible,
-  set: value => store.setVisible(value),
-})
-
-const offSidebar = $eventBus?.on('right-sidebar:opened', name => {
-  if (name !== 'reminders') {
-    store.setVisible(false)
-  }
+  get: () => rightSidebarStore.isOpen('reminders'),
+  set: value => value ? rightSidebarStore.open('reminders') : rightSidebarStore.close('reminders'),
 })
 
 watch(isVisible, async visible => {
   if (visible) {
-    $eventBus?.emit('right-sidebar:opened', 'reminders')
     await store.fetchReminders()
   } else {
     store.clearEdit()
   }
-})
-
-onBeforeUnmount(() => {
-  offSidebar?.()
 })
 </script>

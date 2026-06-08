@@ -8,7 +8,7 @@
     leave-to-class="translate-x-full"
   >
     <div
-      v-if="visible"
+      v-if="rightSidebarStore.isOpen('app-list')"
       class="right-sidebar flex"
       :style="{ width: `${drawerWidth}px` }"
     >
@@ -51,15 +51,11 @@
 </template>
 
 <script setup>
-import { inject, onBeforeUnmount, ref, watch } from 'vue'
+import { ref } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
 import CAppList from './CAppList.vue'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
-
-const visible = defineModel('visible', {
-  type: Boolean,
-  default: false,
-})
+import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 
 defineProps({
   labels: {
@@ -68,29 +64,12 @@ defineProps({
   },
 })
 
-const $eventBus = inject('$eventBus', null)
-
+const rightSidebarStore = useRightSidebarStore()
 const query = ref('')
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const close = () => {
-  visible.value = false
+  rightSidebarStore.close('app-list')
   query.value = ''
 }
-
-const offSidebar = $eventBus?.on('right-sidebar:opened', name => {
-  if (name !== 'app-list') {
-    close()
-  }
-})
-
-watch(visible, next => {
-  if (next) {
-    $eventBus?.emit('right-sidebar:opened', 'app-list')
-  }
-})
-
-onBeforeUnmount(() => {
-  offSidebar?.()
-})
 </script>
