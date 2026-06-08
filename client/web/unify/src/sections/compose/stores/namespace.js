@@ -39,7 +39,7 @@ export const useNamespaceStore = defineStore('namespace', () => {
     state.pending = true
 
     try {
-      const { set: namespaceSet } = await $ComposeAPI.namespaceList({})
+      const { set: namespaceSet = [] } = await $ComposeAPI.namespaceList({})
 
       if (namespaceSet && namespaceSet.length > 0) {
         updateSet(namespaceSet.map(n => new compose.Namespace(n)))

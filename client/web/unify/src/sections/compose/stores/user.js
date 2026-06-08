@@ -35,7 +35,7 @@ export const useUserStore = defineStore('user', () => {
     state.pending = true
 
     try {
-      const { set: userSet } = await $SystemAPI.userList(filter)
+      const { set: userSet = [] } = await $SystemAPI.userList(filter)
       updateSet(userSet)
       return userSet
     } catch (error) {
@@ -61,7 +61,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     try {
-      const { set: userSet } = await $SystemAPI.userList({ userID })
+      const { set: userSet = [] } = await $SystemAPI.userList({ userID })
       updateSet(userSet)
       return userSet
     } catch (error) {
@@ -99,7 +99,7 @@ export const useUserStore = defineStore('user', () => {
     state.pending = true
 
     try {
-      const { set: userSet } = await $SystemAPI.userList({ userID: filteredList })
+      const { set: userSet = [] } = await $SystemAPI.userList({ userID: filteredList })
       updateSet(userSet)
       return userSet
     } catch (error) {

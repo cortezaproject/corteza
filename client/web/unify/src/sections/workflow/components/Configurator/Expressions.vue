@@ -180,7 +180,7 @@ export default {
 
     async getTypes () {
       return this.$AutomationAPI.typeList()
-        .then(({ set }) => {
+        .then(({ set = [] }) => {
           this.fieldTypes = set
         })
         .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.fetch-types-failed'), detail: e?.message, life: 5000 }))

@@ -48,7 +48,7 @@ export const usePageStore = defineStore('page', () => {
     state.namespaceID = nsID
 
     try {
-      const { set: pageSet } = await $ComposeAPI.pageList({
+      const { set: pageSet = [] } = await $ComposeAPI.pageList({
         namespaceID: nsID,
         sort: 'weight ASC',
       })

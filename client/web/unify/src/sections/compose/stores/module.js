@@ -54,7 +54,7 @@ export const useModuleStore = defineStore('module', () => {
   }
 
   async function fetchInto(nsID) {
-    const { set: moduleSet } = await $ComposeAPI.moduleList({ namespaceID: nsID, sort: 'name ASC' })
+    const { set: moduleSet = [] } = await $ComposeAPI.moduleList({ namespaceID: nsID, sort: 'name ASC' })
     if (moduleSet && moduleSet.length > 0) {
       cacheModules(nsID, moduleSet.map(m => new compose.Module(m)))
     } else if (!state.byNamespace[nsID]) {

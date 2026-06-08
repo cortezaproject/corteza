@@ -2127,7 +2127,7 @@ function importJSON(workflows = []) {
 async function getFunctionTypes() {
   return $AutomationAPI
     .functionList()
-    .then(({ set }) => {
+    .then(({ set = [] }) => {
       functionTypes.value = [
         ...set,
         ...(components.promptDefinitions || []),
@@ -2169,7 +2169,7 @@ async function getFunctionTypes() {
 async function getEventTypes() {
   return $AutomationAPI
     .eventTypesList()
-    .then(({ set }) => {
+    .then(({ set = [] }) => {
       eventTypes.value = set
     })
     .catch(e =>

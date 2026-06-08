@@ -182,7 +182,7 @@ export default {
         this.$ComposeAPI.moduleList({
           namespaceID,
           ...this.module.filter,
-        }).then(({ set }) => set),
+        }).then(({ set = [] }) => set),
       )
 
       return Promise.all(promises).then(results => {

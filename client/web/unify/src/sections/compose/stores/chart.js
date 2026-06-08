@@ -48,7 +48,7 @@ export const useChartStore = defineStore('chart', () => {
     state.namespaceID = nsID
 
     try {
-      const { set: chartSet } = await $ComposeAPI.chartList({
+      const { set: chartSet = [] } = await $ComposeAPI.chartList({
         namespaceID: nsID,
         sort: 'name ASC',
       })

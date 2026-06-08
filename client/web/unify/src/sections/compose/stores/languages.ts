@@ -19,8 +19,8 @@ export const useLanguagesStore = defineStore('languages', () => {
     if (loaded.value || loading.value) return
     loading.value = true
     try {
-      const { set: langs } = await $SystemAPI.localeList()
-      set.value = langs || []
+      const { set: langs = [] } = await $SystemAPI.localeList()
+      set.value = langs
       loaded.value = true
     } finally {
       loading.value = false

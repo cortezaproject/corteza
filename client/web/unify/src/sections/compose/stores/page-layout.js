@@ -48,7 +48,7 @@ export const usePageLayoutStore = defineStore('pageLayout', () => {
     state.namespaceID = nsID
 
     try {
-      const { set: layoutSet } = await $ComposeAPI.pageLayoutListNamespace({
+      const { set: layoutSet = [] } = await $ComposeAPI.pageLayoutListNamespace({
         namespaceID: nsID,
         sort: 'weight ASC',
       })
@@ -113,7 +113,7 @@ export const usePageLayoutStore = defineStore('pageLayout', () => {
     state.pending = true
 
     try {
-      const { set: layoutSet } = await $ComposeAPI.pageLayoutList({
+      const { set: layoutSet = [] } = await $ComposeAPI.pageLayoutList({
         namespaceID,
         pageID,
         sort: 'weight ASC',

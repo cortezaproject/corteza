@@ -55,7 +55,7 @@ export default {
       loading(true)
 
       this.$AutomationAPI.workflowList({ query, subWorkflow: 2 })
-        .then(({ set }) => {
+        .then(({ set = [] }) => {
           this.workflowOptions = set.map(m => Object.freeze(m))
         })
         .catch(e => {

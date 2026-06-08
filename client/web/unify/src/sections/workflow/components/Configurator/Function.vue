@@ -517,7 +517,7 @@ export default {
 
     async getFunctionTypes () {
       return this.$AutomationAPI.functionList()
-        .then(({ set }) => {
+        .then(({ set = [] }) => {
           this.functions = set.filter(({ kind = '' }) => kind !== 'iterator').sort((a, b) => a.meta.short.localeCompare(b.meta.short))
         })
         .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.failed-fetch-functions'), detail: e?.message, life: 5000 }))
@@ -525,7 +525,7 @@ export default {
 
     async getTypes () {
       return this.$AutomationAPI.typeList()
-        .then(({ set }) => {
+        .then(({ set = [] }) => {
           this.fieldTypes = set
         })
         .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.fetch-types-failed'), detail: e?.message, life: 5000 }))

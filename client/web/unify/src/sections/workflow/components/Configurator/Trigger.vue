@@ -301,7 +301,7 @@ export default {
 
     async getEventTypes () {
       return this.$AutomationAPI.eventTypesList()
-        .then(({ set }) => {
+        .then(({ set = [] }) => {
           this.eventTypes = set
           const resourceTypes = new Set(set.map(({ resourceType }) => resourceType))
           this.resourceTypes = [...resourceTypes].map(resourceType => {
