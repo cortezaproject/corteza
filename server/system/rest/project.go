@@ -12,8 +12,9 @@ import (
 
 type (
 	Project struct {
-		svc projectService
-		ac  projectAccessController
+		svc      projectService
+		graphSvc projectGraphService
+		ac       projectAccessController
 	}
 
 	projectPayload struct {
@@ -55,6 +56,10 @@ type (
 		RemoveMember(ctx context.Context, projectID, userID uint64) error
 	}
 
+	projectGraphService interface {
+		Graph(ctx context.Context, projectID uint64) (*types.ProjectGraph, error)
+	}
+
 	projectAccessController interface {
 		CanGrant(context.Context) bool
 
@@ -67,8 +72,9 @@ type (
 
 func (Project) New() *Project {
 	return &Project{
-		svc: service.DefaultProject,
-		ac:  service.DefaultAccessControl,
+		svc:      service.DefaultProject,
+		graphSvc: service.DefaultProjectGraph,
+		ac:       service.DefaultAccessControl,
 	}
 }
 
@@ -166,6 +172,10 @@ func (ctrl *Project) UpdateMember(ctx context.Context, r *request.ProjectUpdateM
 
 func (ctrl *Project) RemoveMember(ctx context.Context, r *request.ProjectRemoveMember) (interface{}, error) {
 	return api.OK(), ctrl.svc.RemoveMember(ctx, r.ProjectID, r.UserID)
+}
+
+func (ctrl *Project) Graph(ctx context.Context, r *request.ProjectGraph) (interface{}, error) {
+	return ctrl.graphSvc.Graph(ctx, r.ProjectID)
 }
 
 func (ctrl *Project) makePayload(ctx context.Context, p *types.Project, err error) (*projectPayload, error) {

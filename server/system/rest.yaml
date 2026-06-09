@@ -4164,6 +4164,13 @@ endpoints:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
             - { type: uint64, name: userID, required: true, title: User ID }
+      - name: graph
+        method: GET
+        title: Get project resource graph
+        path: '/{projectID}/graph'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
 
   - title: Tenants
     path: '/tenants'

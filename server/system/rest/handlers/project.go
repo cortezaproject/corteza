@@ -29,6 +29,7 @@ type (
 		AddMember(context.Context, *request.ProjectAddMember) (interface{}, error)
 		UpdateMember(context.Context, *request.ProjectUpdateMember) (interface{}, error)
 		RemoveMember(context.Context, *request.ProjectRemoveMember) (interface{}, error)
+		Graph(context.Context, *request.ProjectGraph) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -43,6 +44,7 @@ type (
 		AddMember    func(http.ResponseWriter, *http.Request)
 		UpdateMember func(http.ResponseWriter, *http.Request)
 		RemoveMember func(http.ResponseWriter, *http.Request)
+		Graph        func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -208,6 +210,22 @@ func NewProject(h ProjectAPI) *Project {
 
 			api.Send(w, r, value)
 		},
+		Graph: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectGraph()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Graph(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -224,5 +242,6 @@ func (h Project) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Post("/projects/{projectID}/members", h.AddMember)
 		r.Put("/projects/{projectID}/members/{userID}", h.UpdateMember)
 		r.Delete("/projects/{projectID}/members/{userID}", h.RemoveMember)
+		r.Get("/projects/{projectID}/graph", h.Graph)
 	})
 }

@@ -221,6 +221,13 @@ type (
 		// User ID
 		UserID uint64 `json:",string"`
 	}
+
+	ProjectGraph struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+	}
 )
 
 // NewProjectList request
@@ -1123,6 +1130,41 @@ func (r *ProjectRemoveMember) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "userID")
 		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectGraph request
+func NewProjectGraph() *ProjectGraph {
+	return &ProjectGraph{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGraph) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGraph) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectGraph) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
