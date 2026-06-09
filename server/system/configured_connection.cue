@@ -8,6 +8,7 @@ configured_connection: {
 	model: {
 		attributes: {
 			id:           schema.IdField
+			tenant_id:  schema.TenantRefField
 			connection_id: {
 				sortable: true
 				goType:   "uint64"
@@ -51,6 +52,7 @@ configured_connection: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
 			connection_id: {goType: "uint64", ident: "connectionID", storeIdent: "rel_connection"}
 			status:       {goType: "[]string"}
 			query:        {goType: "string"}
@@ -62,6 +64,7 @@ configured_connection: {
 
 	features: {
 		labels: true
+		tenantScoped: true
 	}
 
 	envoy: {

@@ -7,11 +7,14 @@ import (
 attachment: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			owner_id:   {
 				storeIdent: "rel_owner",
 				ident: "ownerID"
@@ -53,6 +56,8 @@ attachment: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			kind: {}
 		}
 

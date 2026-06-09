@@ -7,6 +7,7 @@ import (
 session: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
@@ -15,6 +16,8 @@ session: {
 		ident: "automation_sessions"
  		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			workflow_id: {
 				sortable: true,
 				ident: "workflowID",
@@ -87,6 +90,8 @@ session: {
 	filter: {
 		struct: {
 			session_id: { goType: "[]string", storeIdent: "id", ident: "sessionID" }
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			completed: { schema.SortableTimestampNilField, storeIdent: "completed_at" }
 			created_by: { goType: "[]string" }
 			status: { goType: "[]uint" }

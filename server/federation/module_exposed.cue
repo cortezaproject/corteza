@@ -11,12 +11,15 @@ exposedModule: {
 
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		ident: "federation_module_exposed"
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			name: {
 				sortable: true
@@ -63,6 +66,8 @@ exposedModule: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			node_id:              { goType: "uint64", ident: "nodeID",             storeIdent: "rel_node" }
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID",    storeIdent: "rel_compose_module" }
 			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }

@@ -13,6 +13,7 @@ import (
 type (
 	ConfiguredConnection struct {
 		ID           uint64 `json:"configurationID,string"`
+		TenantID     uint64 `json:"tenantID,string,omitempty"`
 		ConnectionID uint64 `json:"connectionID,string"`
 
 		Name   string `json:"name"`

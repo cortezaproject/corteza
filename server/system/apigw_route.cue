@@ -7,11 +7,14 @@ import (
 apigw_route: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		attributes: {
 			id:       schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			endpoint: {
 				sortable: true
 				dal: {}
@@ -86,6 +89,8 @@ apigw_route: {
 	filter: {
 		struct: {
 			apigw_route_id: { goType: "[]uint64", ident: "apigwRouteID", storeIdent: "id" }
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			route: {goType: "string", storeIdent: "id"}
 			endpoint: {goType: "string"}
 			method: {goType: "string"}

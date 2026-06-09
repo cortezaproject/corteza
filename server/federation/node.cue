@@ -9,12 +9,14 @@ node: {
 		labels: false
 		paging: true
 		sorting: true
+		tenantScoped: true
 	}
 
 	model: {
 		ident: "federation_nodes"
 		attributes: {
       id: schema.IdField
+      tenant_id: schema.TenantRefField
       shared_node_id: {
       	sortable: true,
       	ident: "sharedNodeID",
@@ -63,6 +65,7 @@ node: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
 			name: { goType: "string" }
 			base_url: { goType: "string", ident: "baseURL" }
 			status: { goType: "string" }

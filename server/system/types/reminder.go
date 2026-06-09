@@ -10,6 +10,8 @@ import (
 type (
 	Reminder struct {
 		ID          uint64         `json:"reminderID,string"`
+		TenantID    uint64         `json:"tenantID,string,omitempty"`
+		ProjectID   uint64         `json:"projectID,string,omitempty"`
 		Resource    string         `json:"resource"`
 		Payload     types.JSONText `json:"payload"`
 		SnoozeCount uint           `json:"snoozeCount"`

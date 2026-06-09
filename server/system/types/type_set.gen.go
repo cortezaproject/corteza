@@ -150,6 +150,16 @@ type (
 	// This type is auto-generated.
 	PrivacyDalConnectionSet []*PrivacyDalConnection
 
+	// ProjectSet slice of Project
+	//
+	// This type is auto-generated.
+	ProjectSet []*Project
+
+	// ProjectMemberSet slice of ProjectMember
+	//
+	// This type is auto-generated.
+	ProjectMemberSet []*ProjectMember
+
 	// QueueSet slice of Queue
 	//
 	// This type is auto-generated.
@@ -194,6 +204,16 @@ type (
 	//
 	// This type is auto-generated.
 	TemplateSet []*Template
+
+	// TenantSet slice of Tenant
+	//
+	// This type is auto-generated.
+	TenantSet []*Tenant
+
+	// TenantMembershipSet slice of TenantMembership
+	//
+	// This type is auto-generated.
+	TenantMembershipSet []*TenantMembership
 
 	// UserSet slice of User
 	//
@@ -1670,6 +1690,118 @@ func (set PrivacyDalConnectionSet) IDs() (IDs []uint64) {
 	return
 }
 
+// Walk iterates through every slice item and calls w(Project) err
+//
+// This function is auto-generated.
+func (set ProjectSet) Walk(w func(*Project) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Project) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ProjectSet) Filter(f func(*Project) (bool, error)) (out ProjectSet, err error) {
+	var ok bool
+	out = ProjectSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ProjectSet) FindByID(ID uint64) *Project {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ProjectSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ProjectMember) err
+//
+// This function is auto-generated.
+func (set ProjectMemberSet) Walk(w func(*ProjectMember) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ProjectMember) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ProjectMemberSet) Filter(f func(*ProjectMember) (bool, error)) (out ProjectMemberSet, err error) {
+	var ok bool
+	out = ProjectMemberSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ProjectMemberSet) FindByID(ID uint64) *ProjectMember {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ProjectMemberSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
 // Walk iterates through every slice item and calls w(Queue) err
 //
 // This function is auto-generated.
@@ -2087,6 +2219,118 @@ func (set TemplateSet) FindByID(ID uint64) *Template {
 //
 // This function is auto-generated.
 func (set TemplateSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(Tenant) err
+//
+// This function is auto-generated.
+func (set TenantSet) Walk(w func(*Tenant) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Tenant) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set TenantSet) Filter(f func(*Tenant) (bool, error)) (out TenantSet, err error) {
+	var ok bool
+	out = TenantSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set TenantSet) FindByID(ID uint64) *Tenant {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set TenantSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(TenantMembership) err
+//
+// This function is auto-generated.
+func (set TenantMembershipSet) Walk(w func(*TenantMembership) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(TenantMembership) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set TenantMembershipSet) Filter(f func(*TenantMembership) (bool, error)) (out TenantMembershipSet, err error) {
+	var ok bool
+	out = TenantMembershipSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set TenantMembershipSet) FindByID(ID uint64) *TenantMembership {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set TenantMembershipSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

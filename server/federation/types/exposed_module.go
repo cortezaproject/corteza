@@ -9,6 +9,8 @@ import (
 type (
 	ExposedModule struct {
 		ID                 uint64         `json:"moduleID,string"`
+		TenantID           uint64         `json:"tenantID,string,omitempty"`
+		ProjectID          uint64         `json:"projectID,string,omitempty"`
 		NodeID             uint64         `json:"nodeID,string"`
 		ComposeModuleID    uint64         `json:"composeModuleID,string"`
 		ComposeNamespaceID uint64         `json:"composeNamespaceID,string"`

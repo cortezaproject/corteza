@@ -653,6 +653,66 @@ func ChatbotSessionHandoffRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for Tenant by calling TenantRbacResource fn
+//
+// RBAC resource is in the corteza::system:tenant/... format
+//
+// This function is auto-generated
+func (r Tenant) RbacResource() string {
+	return TenantRbacResource(r.ID)
+}
+
+// TenantRbacResource returns string representation of RBAC resource for Tenant
+//
+// RBAC resource is in the corteza::system:tenant/... format
+//
+// This function is auto-generated
+func TenantRbacResource(id uint64) string {
+	cpts := []interface{}{TenantResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(TenantRbacResourceTpl(), cpts...)
+
+}
+
+func TenantRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Project by calling ProjectRbacResource fn
+//
+// RBAC resource is in the corteza::system:project/... format
+//
+// This function is auto-generated
+func (r Project) RbacResource() string {
+	return ProjectRbacResource(r.ID)
+}
+
+// ProjectRbacResource returns string representation of RBAC resource for Project
+//
+// RBAC resource is in the corteza::system:project/... format
+//
+// This function is auto-generated
+func ProjectRbacResource(id uint64) string {
+	cpts := []interface{}{ProjectResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ProjectRbacResourceTpl(), cpts...)
+
+}
+
+func ProjectRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

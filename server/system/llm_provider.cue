@@ -8,6 +8,7 @@ llm_provider: {
 	model: {
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
 			handle: schema.HandleField
 			status: {
 				sortable: true
@@ -61,6 +62,7 @@ llm_provider: {
 	filter: {
 		struct: {
 			llm_provider_id: {goType: "[]uint64", ident: "llmProviderID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
 			handle: {goType: "string"}
 			status: {goType: "string"}
 			provider: {goType: "string"}
@@ -81,6 +83,7 @@ llm_provider: {
 
 	features: {
 		labels: false
+		tenantScoped: true
 	}
 
 	envoy: {

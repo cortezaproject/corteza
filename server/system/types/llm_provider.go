@@ -12,6 +12,7 @@ import (
 type (
 	LlmProvider struct {
 		ID           uint64 `json:"llmProviderID,string"`
+		TenantID     uint64 `json:"tenantID,string,omitempty"`
 		Handle       string `json:"handle"`
 		Status       string `json:"status"`
 		Provider     string `json:"provider"`
@@ -43,8 +44,8 @@ type (
 
 	LLMProviderGuardConfig struct {
 		Enabled    bool               `json:"enabled"`
-		Provider   string             `json:"provider"`              // "llama-guard"
-		Model      string             `json:"model"`                 // "llama-guard3:8b"
+		Provider   string             `json:"provider"` // "llama-guard"
+		Model      string             `json:"model"`    // "llama-guard3:8b"
 		Thresholds map[string]float64 `json:"thresholds,omitempty"`
 	}
 

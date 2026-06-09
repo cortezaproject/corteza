@@ -14,7 +14,9 @@ import (
 
 type (
 	ResourceTranslation struct {
-		ID uint64 `json:"translationID,string"`
+		ID        uint64 `json:"translationID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
 
 		Lang     Lang   `json:"lang"`
 		Resource string `json:"resource"`

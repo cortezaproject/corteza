@@ -5,11 +5,17 @@ import (
 )
 
 template: {
+	features: {
+		projectScoped: true
+	}
+
 	model: {
 		// length for the lang is now a bit shorter
 		// Reason for that is supported index length in MySQL
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			owner_id:   {
 				storeIdent: "rel_owner",
 				ident: "ownerID"
@@ -74,6 +80,8 @@ template: {
 	filter: {
 		struct: {
 			template_id: {goType: "[]uint64", ident: "templateID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
 			type: {goType: "string"}
 			owner_id: {goType: "uint64", storeIdent: "rel_owner", ident: "ownerID" }

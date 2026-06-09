@@ -147,6 +147,8 @@ var (
 	agentSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"status",
 			"revision",
@@ -170,21 +172,23 @@ var (
 	agentInsertQuery = func(d goqu.DialectWrapper, res *systemType.Agent) *goqu.InsertDataset {
 		return d.Insert(agentTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"handle":     res.Handle,
-				"status":     res.Status,
-				"revision":   res.Revision,
-				"meta":       res.Meta,
-				"behavior":   res.Behavior,
-				"execution":  res.Execution,
-				"access":     res.Access,
-				"invocation": res.Invocation,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"status":      res.Status,
+				"revision":    res.Revision,
+				"meta":        res.Meta,
+				"behavior":    res.Behavior,
+				"execution":   res.Execution,
+				"access":      res.Access,
+				"invocation":  res.Invocation,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -198,20 +202,22 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":     res.Handle,
-						"status":     res.Status,
-						"revision":   res.Revision,
-						"meta":       res.Meta,
-						"behavior":   res.Behavior,
-						"execution":  res.Execution,
-						"access":     res.Access,
-						"invocation": res.Invocation,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"handle":      res.Handle,
+						"status":      res.Status,
+						"revision":    res.Revision,
+						"meta":        res.Meta,
+						"behavior":    res.Behavior,
+						"execution":   res.Execution,
+						"access":      res.Access,
+						"invocation":  res.Invocation,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -223,20 +229,22 @@ var (
 	agentUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Agent) *goqu.UpdateDataset {
 		return d.Update(agentTable).
 			Set(goqu.Record{
-				"handle":     res.Handle,
-				"status":     res.Status,
-				"revision":   res.Revision,
-				"meta":       res.Meta,
-				"behavior":   res.Behavior,
-				"execution":  res.Execution,
-				"access":     res.Access,
-				"invocation": res.Invocation,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"status":      res.Status,
+				"revision":    res.Revision,
+				"meta":        res.Meta,
+				"behavior":    res.Behavior,
+				"execution":   res.Execution,
+				"access":      res.Access,
+				"invocation":  res.Invocation,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(agentPrimaryKeys(res))
 	}
@@ -275,6 +283,8 @@ var (
 	aiConversationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_agent",
 			"messages",
 			"token_count",
@@ -294,6 +304,8 @@ var (
 		return d.Insert(aiConversationTable).
 			Rows(goqu.Record{
 				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"rel_agent":   res.AgentID,
 				"messages":    res.Messages,
 				"token_count": res.TokenCount,
@@ -316,6 +328,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
 						"rel_agent":   res.AgentID,
 						"messages":    res.Messages,
 						"token_count": res.TokenCount,
@@ -336,6 +350,8 @@ var (
 	aiConversationUpdateQuery = func(d goqu.DialectWrapper, res *systemType.AiConversation) *goqu.UpdateDataset {
 		return d.Update(aiConversationTable).
 			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"rel_agent":   res.AgentID,
 				"messages":    res.Messages,
 				"token_count": res.TokenCount,
@@ -383,6 +399,8 @@ var (
 	apigwFilterSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_route",
 			"weight",
 			"kind",
@@ -404,19 +422,21 @@ var (
 	apigwFilterInsertQuery = func(d goqu.DialectWrapper, res *systemType.ApigwFilter) *goqu.InsertDataset {
 		return d.Insert(apigwFilterTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"rel_route":  res.Route,
-				"weight":     res.Weight,
-				"kind":       res.Kind,
-				"ref":        res.Ref,
-				"enabled":    res.Enabled,
-				"params":     res.Params,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"rel_route":   res.Route,
+				"weight":      res.Weight,
+				"kind":        res.Kind,
+				"ref":         res.Ref,
+				"enabled":     res.Enabled,
+				"params":      res.Params,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -430,18 +450,20 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"rel_route":  res.Route,
-						"weight":     res.Weight,
-						"kind":       res.Kind,
-						"ref":        res.Ref,
-						"enabled":    res.Enabled,
-						"params":     res.Params,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"rel_route":   res.Route,
+						"weight":      res.Weight,
+						"kind":        res.Kind,
+						"ref":         res.Ref,
+						"enabled":     res.Enabled,
+						"params":      res.Params,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -453,18 +475,20 @@ var (
 	apigwFilterUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ApigwFilter) *goqu.UpdateDataset {
 		return d.Update(apigwFilterTable).
 			Set(goqu.Record{
-				"rel_route":  res.Route,
-				"weight":     res.Weight,
-				"kind":       res.Kind,
-				"ref":        res.Ref,
-				"enabled":    res.Enabled,
-				"params":     res.Params,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"rel_route":   res.Route,
+				"weight":      res.Weight,
+				"kind":        res.Kind,
+				"ref":         res.Ref,
+				"enabled":     res.Enabled,
+				"params":      res.Params,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(apigwFilterPrimaryKeys(res))
 	}
@@ -503,6 +527,8 @@ var (
 	apigwRouteSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"endpoint",
 			"method",
 			"enabled",
@@ -523,18 +549,20 @@ var (
 	apigwRouteInsertQuery = func(d goqu.DialectWrapper, res *systemType.ApigwRoute) *goqu.InsertDataset {
 		return d.Insert(apigwRouteTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"endpoint":   res.Endpoint,
-				"method":     res.Method,
-				"enabled":    res.Enabled,
-				"meta":       res.Meta,
-				"rel_group":  res.Group,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"endpoint":    res.Endpoint,
+				"method":      res.Method,
+				"enabled":     res.Enabled,
+				"meta":        res.Meta,
+				"rel_group":   res.Group,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -548,17 +576,19 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"endpoint":   res.Endpoint,
-						"method":     res.Method,
-						"enabled":    res.Enabled,
-						"meta":       res.Meta,
-						"rel_group":  res.Group,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"endpoint":    res.Endpoint,
+						"method":      res.Method,
+						"enabled":     res.Enabled,
+						"meta":        res.Meta,
+						"rel_group":   res.Group,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -570,17 +600,19 @@ var (
 	apigwRouteUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ApigwRoute) *goqu.UpdateDataset {
 		return d.Update(apigwRouteTable).
 			Set(goqu.Record{
-				"endpoint":   res.Endpoint,
-				"method":     res.Method,
-				"enabled":    res.Enabled,
-				"meta":       res.Meta,
-				"rel_group":  res.Group,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"endpoint":    res.Endpoint,
+				"method":      res.Method,
+				"enabled":     res.Enabled,
+				"meta":        res.Meta,
+				"rel_group":   res.Group,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(apigwRoutePrimaryKeys(res))
 	}
@@ -619,6 +651,7 @@ var (
 	applicationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"name",
 			"enabled",
 			"weight",
@@ -637,6 +670,7 @@ var (
 		return d.Insert(applicationTable).
 			Rows(goqu.Record{
 				"id":         res.ID,
+				"rel_tenant": res.TenantID,
 				"name":       res.Name,
 				"enabled":    res.Enabled,
 				"weight":     res.Weight,
@@ -658,6 +692,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant": res.TenantID,
 						"name":       res.Name,
 						"enabled":    res.Enabled,
 						"weight":     res.Weight,
@@ -677,6 +712,7 @@ var (
 	applicationUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Application) *goqu.UpdateDataset {
 		return d.Update(applicationTable).
 			Set(goqu.Record{
+				"rel_tenant": res.TenantID,
 				"name":       res.Name,
 				"enabled":    res.Enabled,
 				"weight":     res.Weight,
@@ -723,6 +759,8 @@ var (
 	attachmentSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_owner",
 			"kind",
 			"url",
@@ -742,6 +780,8 @@ var (
 		return d.Insert(attachmentTable).
 			Rows(goqu.Record{
 				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"rel_owner":   res.OwnerID,
 				"kind":        res.Kind,
 				"url":         res.Url,
@@ -764,6 +804,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
 						"rel_owner":   res.OwnerID,
 						"kind":        res.Kind,
 						"url":         res.Url,
@@ -784,6 +826,8 @@ var (
 	attachmentUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Attachment) *goqu.UpdateDataset {
 		return d.Update(attachmentTable).
 			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"rel_owner":   res.OwnerID,
 				"kind":        res.Kind,
 				"url":         res.Url,
@@ -831,6 +875,7 @@ var (
 	authClientSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"handle",
 			"meta",
 			"secret",
@@ -859,6 +904,7 @@ var (
 		return d.Insert(authClientTable).
 			Rows(goqu.Record{
 				"id":           res.ID,
+				"rel_tenant":   res.TenantID,
 				"handle":       res.Handle,
 				"meta":         res.Meta,
 				"secret":       res.Secret,
@@ -890,6 +936,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":   res.TenantID,
 						"handle":       res.Handle,
 						"meta":         res.Meta,
 						"secret":       res.Secret,
@@ -919,6 +966,7 @@ var (
 	authClientUpdateQuery = func(d goqu.DialectWrapper, res *systemType.AuthClient) *goqu.UpdateDataset {
 		return d.Update(authClientTable).
 			Set(goqu.Record{
+				"rel_tenant":   res.TenantID,
 				"handle":       res.Handle,
 				"meta":         res.Meta,
 				"secret":       res.Secret,
@@ -1398,6 +1446,8 @@ var (
 	automationSessionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_workflow",
 			"status",
 			"event_type",
@@ -1421,6 +1471,8 @@ var (
 		return d.Insert(automationSessionTable).
 			Rows(goqu.Record{
 				"id":            res.ID,
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_workflow":  res.WorkflowID,
 				"status":        res.Status,
 				"event_type":    res.EventType,
@@ -1447,6 +1499,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":    res.TenantID,
+						"rel_project":   res.ProjectID,
 						"rel_workflow":  res.WorkflowID,
 						"status":        res.Status,
 						"event_type":    res.EventType,
@@ -1471,6 +1525,8 @@ var (
 	automationSessionUpdateQuery = func(d goqu.DialectWrapper, res *automationType.Session) *goqu.UpdateDataset {
 		return d.Update(automationSessionTable).
 			Set(goqu.Record{
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_workflow":  res.WorkflowID,
 				"status":        res.Status,
 				"event_type":    res.EventType,
@@ -1522,6 +1578,8 @@ var (
 	automationTriggerSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_workflow",
 			"rel_step",
 			"enabled",
@@ -1547,6 +1605,8 @@ var (
 		return d.Insert(automationTriggerTable).
 			Rows(goqu.Record{
 				"id":            res.ID,
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_workflow":  res.WorkflowID,
 				"rel_step":      res.StepID,
 				"enabled":       res.Enabled,
@@ -1575,6 +1635,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":    res.TenantID,
+						"rel_project":   res.ProjectID,
 						"rel_workflow":  res.WorkflowID,
 						"rel_step":      res.StepID,
 						"enabled":       res.Enabled,
@@ -1601,6 +1663,8 @@ var (
 	automationTriggerUpdateQuery = func(d goqu.DialectWrapper, res *automationType.Trigger) *goqu.UpdateDataset {
 		return d.Update(automationTriggerTable).
 			Set(goqu.Record{
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_workflow":  res.WorkflowID,
 				"rel_step":      res.StepID,
 				"enabled":       res.Enabled,
@@ -1654,6 +1718,8 @@ var (
 	automationWorkflowSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"meta",
 			"enabled",
@@ -1681,6 +1747,8 @@ var (
 		return d.Insert(automationWorkflowTable).
 			Rows(goqu.Record{
 				"id":            res.ID,
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"handle":        res.Handle,
 				"meta":          res.Meta,
 				"enabled":       res.Enabled,
@@ -1711,6 +1779,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":    res.TenantID,
+						"rel_project":   res.ProjectID,
 						"handle":        res.Handle,
 						"meta":          res.Meta,
 						"enabled":       res.Enabled,
@@ -1739,6 +1809,8 @@ var (
 	automationWorkflowUpdateQuery = func(d goqu.DialectWrapper, res *automationType.Workflow) *goqu.UpdateDataset {
 		return d.Update(automationWorkflowTable).
 			Set(goqu.Record{
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"handle":        res.Handle,
 				"meta":          res.Meta,
 				"enabled":       res.Enabled,
@@ -1794,6 +1866,8 @@ var (
 	chatbotSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"name",
 			"enabled",
@@ -1819,6 +1893,8 @@ var (
 		return d.Insert(chatbotTable).
 			Rows(goqu.Record{
 				"id":              res.ID,
+				"rel_tenant":      res.TenantID,
+				"rel_project":     res.ProjectID,
 				"handle":          res.Handle,
 				"name":            res.Name,
 				"enabled":         res.Enabled,
@@ -1847,6 +1923,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":      res.TenantID,
+						"rel_project":     res.ProjectID,
 						"handle":          res.Handle,
 						"name":            res.Name,
 						"enabled":         res.Enabled,
@@ -1873,6 +1951,8 @@ var (
 	chatbotUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Chatbot) *goqu.UpdateDataset {
 		return d.Update(chatbotTable).
 			Set(goqu.Record{
+				"rel_tenant":      res.TenantID,
+				"rel_project":     res.ProjectID,
 				"handle":          res.Handle,
 				"name":            res.Name,
 				"enabled":         res.Enabled,
@@ -1926,6 +2006,8 @@ var (
 	chatbotSessionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_chatbot",
 			"status",
 			"current_step",
@@ -1946,6 +2028,8 @@ var (
 		return d.Insert(chatbotSessionTable).
 			Rows(goqu.Record{
 				"id":           res.ID,
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"rel_chatbot":  res.ChatbotID,
 				"status":       res.Status,
 				"current_step": res.CurrentStep,
@@ -1969,6 +2053,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":   res.TenantID,
+						"rel_project":  res.ProjectID,
 						"rel_chatbot":  res.ChatbotID,
 						"status":       res.Status,
 						"current_step": res.CurrentStep,
@@ -1990,6 +2076,8 @@ var (
 	chatbotSessionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ChatbotSession) *goqu.UpdateDataset {
 		return d.Update(chatbotSessionTable).
 			Set(goqu.Record{
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"rel_chatbot":  res.ChatbotID,
 				"status":       res.Status,
 				"current_step": res.CurrentStep,
@@ -3078,6 +3166,7 @@ var (
 	configuredConnectionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"rel_connection",
 			"name",
 			"status",
@@ -3099,6 +3188,7 @@ var (
 		return d.Insert(configuredConnectionTable).
 			Rows(goqu.Record{
 				"id":             res.ID,
+				"rel_tenant":     res.TenantID,
 				"rel_connection": res.ConnectionID,
 				"name":           res.Name,
 				"status":         res.Status,
@@ -3123,6 +3213,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":     res.TenantID,
 						"rel_connection": res.ConnectionID,
 						"name":           res.Name,
 						"status":         res.Status,
@@ -3145,6 +3236,7 @@ var (
 	configuredConnectionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ConfiguredConnection) *goqu.UpdateDataset {
 		return d.Update(configuredConnectionTable).
 			Set(goqu.Record{
+				"rel_tenant":     res.TenantID,
 				"rel_connection": res.ConnectionID,
 				"name":           res.Name,
 				"status":         res.Status,
@@ -3690,6 +3782,7 @@ var (
 	dalSensitivityLevelSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"handle",
 			"level",
 			"meta",
@@ -3709,6 +3802,7 @@ var (
 		return d.Insert(dalSensitivityLevelTable).
 			Rows(goqu.Record{
 				"id":         res.ID,
+				"rel_tenant": res.TenantID,
 				"handle":     res.Handle,
 				"level":      res.Level,
 				"meta":       res.Meta,
@@ -3731,6 +3825,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant": res.TenantID,
 						"handle":     res.Handle,
 						"level":      res.Level,
 						"meta":       res.Meta,
@@ -3751,6 +3846,7 @@ var (
 	dalSensitivityLevelUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DalSensitivityLevel) *goqu.UpdateDataset {
 		return d.Update(dalSensitivityLevelTable).
 			Set(goqu.Record{
+				"rel_tenant": res.TenantID,
 				"handle":     res.Handle,
 				"level":      res.Level,
 				"meta":       res.Meta,
@@ -3798,6 +3894,8 @@ var (
 	dataPrivacyRequestSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"kind",
 			"status",
 			"payload",
@@ -3821,6 +3919,8 @@ var (
 		return d.Insert(dataPrivacyRequestTable).
 			Rows(goqu.Record{
 				"id":           res.ID,
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"kind":         res.Kind,
 				"status":       res.Status,
 				"payload":      res.Payload,
@@ -3847,6 +3947,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":   res.TenantID,
+						"rel_project":  res.ProjectID,
 						"kind":         res.Kind,
 						"status":       res.Status,
 						"payload":      res.Payload,
@@ -3871,6 +3973,8 @@ var (
 	dataPrivacyRequestUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequest) *goqu.UpdateDataset {
 		return d.Update(dataPrivacyRequestTable).
 			Set(goqu.Record{
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"kind":         res.Kind,
 				"status":       res.Status,
 				"payload":      res.Payload,
@@ -4026,6 +4130,8 @@ var (
 	federationExposedModuleSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"name",
 			"rel_node",
@@ -4048,6 +4154,8 @@ var (
 		return d.Insert(federationExposedModuleTable).
 			Rows(goqu.Record{
 				"id":                    res.ID,
+				"rel_tenant":            res.TenantID,
+				"rel_project":           res.ProjectID,
 				"handle":                res.Handle,
 				"name":                  res.Name,
 				"rel_node":              res.NodeID,
@@ -4073,6 +4181,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":            res.TenantID,
+						"rel_project":           res.ProjectID,
 						"handle":                res.Handle,
 						"name":                  res.Name,
 						"rel_node":              res.NodeID,
@@ -4096,6 +4206,8 @@ var (
 	federationExposedModuleUpdateQuery = func(d goqu.DialectWrapper, res *federationType.ExposedModule) *goqu.UpdateDataset {
 		return d.Update(federationExposedModuleTable).
 			Set(goqu.Record{
+				"rel_tenant":            res.TenantID,
+				"rel_project":           res.ProjectID,
 				"handle":                res.Handle,
 				"name":                  res.Name,
 				"rel_node":              res.NodeID,
@@ -4145,6 +4257,8 @@ var (
 	// This function is auto-generated
 	federationModuleMappingSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
+			"rel_tenant",
+			"rel_project",
 			"node_id",
 			"rel_federation_module",
 			"rel_compose_module",
@@ -4159,6 +4273,8 @@ var (
 	federationModuleMappingInsertQuery = func(d goqu.DialectWrapper, res *federationType.ModuleMapping) *goqu.InsertDataset {
 		return d.Insert(federationModuleMappingTable).
 			Rows(goqu.Record{
+				"rel_tenant":            res.TenantID,
+				"rel_project":           res.ProjectID,
 				"node_id":               res.NodeID,
 				"rel_federation_module": res.FederationModuleID,
 				"rel_compose_module":    res.ComposeModuleID,
@@ -4177,6 +4293,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":            res.TenantID,
+						"rel_project":           res.ProjectID,
 						"node_id":               res.NodeID,
 						"rel_federation_module": res.FederationModuleID,
 						"rel_compose_module":    res.ComposeModuleID,
@@ -4193,6 +4311,8 @@ var (
 	federationModuleMappingUpdateQuery = func(d goqu.DialectWrapper, res *federationType.ModuleMapping) *goqu.UpdateDataset {
 		return d.Update(federationModuleMappingTable).
 			Set(goqu.Record{
+				"rel_tenant":            res.TenantID,
+				"rel_project":           res.ProjectID,
 				"node_id":               res.NodeID,
 				"rel_federation_module": res.FederationModuleID,
 				"rel_compose_module":    res.ComposeModuleID,
@@ -4234,6 +4354,7 @@ var (
 	federationNodeSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"shared_node_id",
 			"name",
 			"base_url",
@@ -4257,6 +4378,7 @@ var (
 		return d.Insert(federationNodeTable).
 			Rows(goqu.Record{
 				"id":             res.ID,
+				"rel_tenant":     res.TenantID,
 				"shared_node_id": res.SharedNodeID,
 				"name":           res.Name,
 				"base_url":       res.BaseURL,
@@ -4283,6 +4405,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":     res.TenantID,
 						"shared_node_id": res.SharedNodeID,
 						"name":           res.Name,
 						"base_url":       res.BaseURL,
@@ -4307,6 +4430,7 @@ var (
 	federationNodeUpdateQuery = func(d goqu.DialectWrapper, res *federationType.Node) *goqu.UpdateDataset {
 		return d.Update(federationNodeTable).
 			Set(goqu.Record{
+				"rel_tenant":     res.TenantID,
 				"shared_node_id": res.SharedNodeID,
 				"name":           res.Name,
 				"base_url":       res.BaseURL,
@@ -4446,6 +4570,8 @@ var (
 	federationSharedModuleSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"rel_node",
 			"name",
@@ -4467,6 +4593,8 @@ var (
 		return d.Insert(federationSharedModuleTable).
 			Rows(goqu.Record{
 				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"handle":      res.Handle,
 				"rel_node":    res.NodeID,
 				"name":        res.Name,
@@ -4491,6 +4619,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
 						"handle":      res.Handle,
 						"rel_node":    res.NodeID,
 						"name":        res.Name,
@@ -4513,6 +4643,8 @@ var (
 	federationSharedModuleUpdateQuery = func(d goqu.DialectWrapper, res *federationType.SharedModule) *goqu.UpdateDataset {
 		return d.Update(federationSharedModuleTable).
 			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"handle":      res.Handle,
 				"rel_node":    res.NodeID,
 				"name":        res.Name,
@@ -4647,6 +4779,8 @@ var (
 	knowledgeBaseSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"title",
 			"description",
@@ -4667,6 +4801,8 @@ var (
 		return d.Insert(knowledgeBaseTable).
 			Rows(goqu.Record{
 				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"handle":      res.Handle,
 				"title":       res.Title,
 				"description": res.Description,
@@ -4690,6 +4826,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
 						"handle":      res.Handle,
 						"title":       res.Title,
 						"description": res.Description,
@@ -4711,6 +4849,8 @@ var (
 	knowledgeBaseUpdateQuery = func(d goqu.DialectWrapper, res *systemType.KnowledgeBase) *goqu.UpdateDataset {
 		return d.Update(knowledgeBaseTable).
 			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"handle":      res.Handle,
 				"title":       res.Title,
 				"description": res.Description,
@@ -4841,6 +4981,7 @@ var (
 	llmProviderSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"handle",
 			"status",
 			"provider",
@@ -4863,6 +5004,7 @@ var (
 		return d.Insert(llmProviderTable).
 			Rows(goqu.Record{
 				"id":             res.ID,
+				"rel_tenant":     res.TenantID,
 				"handle":         res.Handle,
 				"status":         res.Status,
 				"provider":       res.Provider,
@@ -4888,6 +5030,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":     res.TenantID,
 						"handle":         res.Handle,
 						"status":         res.Status,
 						"provider":       res.Provider,
@@ -4911,6 +5054,7 @@ var (
 	llmProviderUpdateQuery = func(d goqu.DialectWrapper, res *systemType.LlmProvider) *goqu.UpdateDataset {
 		return d.Update(llmProviderTable).
 			Set(goqu.Record{
+				"rel_tenant":     res.TenantID,
 				"handle":         res.Handle,
 				"status":         res.Status,
 				"provider":       res.Provider,
@@ -4961,6 +5105,8 @@ var (
 	notificationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"kind",
 			"config",
 			"recipient",
@@ -4978,15 +5124,17 @@ var (
 	notificationInsertQuery = func(d goqu.DialectWrapper, res *systemType.Notification) *goqu.InsertDataset {
 		return d.Insert(notificationTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"kind":       res.Kind,
-				"config":     res.Config,
-				"recipient":  res.Recipient,
-				"created_by": res.CreatedBy,
-				"read_at":    res.ReadAt,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"kind":        res.Kind,
+				"config":      res.Config,
+				"recipient":   res.Recipient,
+				"created_by":  res.CreatedBy,
+				"read_at":     res.ReadAt,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
 			})
 	}
 
@@ -5000,14 +5148,16 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"kind":       res.Kind,
-						"config":     res.Config,
-						"recipient":  res.Recipient,
-						"created_by": res.CreatedBy,
-						"read_at":    res.ReadAt,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"kind":        res.Kind,
+						"config":      res.Config,
+						"recipient":   res.Recipient,
+						"created_by":  res.CreatedBy,
+						"read_at":     res.ReadAt,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
 					},
 				),
 			)
@@ -5019,14 +5169,16 @@ var (
 	notificationUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Notification) *goqu.UpdateDataset {
 		return d.Update(notificationTable).
 			Set(goqu.Record{
-				"kind":       res.Kind,
-				"config":     res.Config,
-				"recipient":  res.Recipient,
-				"created_by": res.CreatedBy,
-				"read_at":    res.ReadAt,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"kind":        res.Kind,
+				"config":      res.Config,
+				"recipient":   res.Recipient,
+				"created_by":  res.CreatedBy,
+				"read_at":     res.ReadAt,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
 			}).
 			Where(notificationPrimaryKeys(res))
 	}
@@ -5054,6 +5206,226 @@ var (
 		}
 	}
 
+	// projectTable represents projects store table
+	//
+	// This value is auto-generated
+	projectTable = goqu.T("projects")
+
+	// projectSelectQuery assembles select query for fetching projects
+	//
+	// This function is auto-generated
+	projectSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_tenant",
+			"handle",
+			"status",
+			"config",
+			"meta",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(projectTable)
+	}
+
+	// projectInsertQuery assembles query inserting projects
+	//
+	// This function is auto-generated
+	projectInsertQuery = func(d goqu.DialectWrapper, res *systemType.Project) *goqu.InsertDataset {
+		return d.Insert(projectTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"rel_tenant": res.TenantID,
+				"handle":     res.Handle,
+				"status":     res.Status,
+				"config":     res.Config,
+				"meta":       res.Meta,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			})
+	}
+
+	// projectUpsertQuery assembles (insert+on-conflict) query for replacing projects
+	//
+	// This function is auto-generated
+	projectUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Project) *goqu.InsertDataset {
+		var target = `,id`
+
+		return projectInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_tenant": res.TenantID,
+						"handle":     res.Handle,
+						"status":     res.Status,
+						"config":     res.Config,
+						"meta":       res.Meta,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+						"created_by": res.CreatedBy,
+						"updated_by": res.UpdatedBy,
+						"deleted_by": res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// projectUpdateQuery assembles query for updating projects
+	//
+	// This function is auto-generated
+	projectUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Project) *goqu.UpdateDataset {
+		return d.Update(projectTable).
+			Set(goqu.Record{
+				"rel_tenant": res.TenantID,
+				"handle":     res.Handle,
+				"status":     res.Status,
+				"config":     res.Config,
+				"meta":       res.Meta,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			}).
+			Where(projectPrimaryKeys(res))
+	}
+
+	// projectDeleteQuery assembles delete query for removing projects
+	//
+	// This function is auto-generated
+	projectDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(projectTable).Where(ee...)
+	}
+
+	// projectDeleteQuery assembles delete query for removing projects
+	//
+	// This function is auto-generated
+	projectTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(projectTable)
+	}
+
+	// projectPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	projectPrimaryKeys = func(res *systemType.Project) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// projectMemberTable represents projectMembers store table
+	//
+	// This value is auto-generated
+	projectMemberTable = goqu.T("project_members")
+
+	// projectMemberSelectQuery assembles select query for fetching projectMembers
+	//
+	// This function is auto-generated
+	projectMemberSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_tenant",
+			"rel_project",
+			"rel_user",
+			"role_preset",
+			"rel_invited_by",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(projectMemberTable)
+	}
+
+	// projectMemberInsertQuery assembles query inserting projectMembers
+	//
+	// This function is auto-generated
+	projectMemberInsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectMember) *goqu.InsertDataset {
+		return d.Insert(projectMemberTable).
+			Rows(goqu.Record{
+				"id":             res.ID,
+				"rel_tenant":     res.TenantID,
+				"rel_project":    res.ProjectID,
+				"rel_user":       res.UserID,
+				"role_preset":    res.RolePreset,
+				"rel_invited_by": res.InvitedBy,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+			})
+	}
+
+	// projectMemberUpsertQuery assembles (insert+on-conflict) query for replacing projectMembers
+	//
+	// This function is auto-generated
+	projectMemberUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectMember) *goqu.InsertDataset {
+		var target = `,id`
+
+		return projectMemberInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_tenant":     res.TenantID,
+						"rel_project":    res.ProjectID,
+						"rel_user":       res.UserID,
+						"role_preset":    res.RolePreset,
+						"rel_invited_by": res.InvitedBy,
+						"created_at":     res.CreatedAt,
+						"updated_at":     res.UpdatedAt,
+						"deleted_at":     res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// projectMemberUpdateQuery assembles query for updating projectMembers
+	//
+	// This function is auto-generated
+	projectMemberUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ProjectMember) *goqu.UpdateDataset {
+		return d.Update(projectMemberTable).
+			Set(goqu.Record{
+				"rel_tenant":     res.TenantID,
+				"rel_project":    res.ProjectID,
+				"rel_user":       res.UserID,
+				"role_preset":    res.RolePreset,
+				"rel_invited_by": res.InvitedBy,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+			}).
+			Where(projectMemberPrimaryKeys(res))
+	}
+
+	// projectMemberDeleteQuery assembles delete query for removing projectMembers
+	//
+	// This function is auto-generated
+	projectMemberDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(projectMemberTable).Where(ee...)
+	}
+
+	// projectMemberDeleteQuery assembles delete query for removing projectMembers
+	//
+	// This function is auto-generated
+	projectMemberTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(projectMemberTable)
+	}
+
+	// projectMemberPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	projectMemberPrimaryKeys = func(res *systemType.ProjectMember) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// queueTable represents queues store table
 	//
 	// This value is auto-generated
@@ -5065,6 +5437,7 @@ var (
 	queueSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"consumer",
 			"queue",
 			"meta",
@@ -5084,6 +5457,7 @@ var (
 		return d.Insert(queueTable).
 			Rows(goqu.Record{
 				"id":         res.ID,
+				"rel_tenant": res.TenantID,
 				"consumer":   res.Consumer,
 				"queue":      res.Queue,
 				"meta":       res.Meta,
@@ -5106,6 +5480,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant": res.TenantID,
 						"consumer":   res.Consumer,
 						"queue":      res.Queue,
 						"meta":       res.Meta,
@@ -5126,6 +5501,7 @@ var (
 	queueUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Queue) *goqu.UpdateDataset {
 		return d.Update(queueTable).
 			Set(goqu.Record{
+				"rel_tenant": res.TenantID,
 				"consumer":   res.Consumer,
 				"queue":      res.Queue,
 				"meta":       res.Meta,
@@ -5343,6 +5719,8 @@ var (
 	reminderSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"resource",
 			"payload",
 			"snooze_count",
@@ -5365,6 +5743,8 @@ var (
 		return d.Insert(reminderTable).
 			Rows(goqu.Record{
 				"id":           res.ID,
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"resource":     res.Resource,
 				"payload":      res.Payload,
 				"snooze_count": res.SnoozeCount,
@@ -5390,6 +5770,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":   res.TenantID,
+						"rel_project":  res.ProjectID,
 						"resource":     res.Resource,
 						"payload":      res.Payload,
 						"snooze_count": res.SnoozeCount,
@@ -5413,6 +5795,8 @@ var (
 	reminderUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Reminder) *goqu.UpdateDataset {
 		return d.Update(reminderTable).
 			Set(goqu.Record{
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"resource":     res.Resource,
 				"payload":      res.Payload,
 				"snooze_count": res.SnoozeCount,
@@ -5463,6 +5847,8 @@ var (
 	reportSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"meta",
 			"scenarios",
@@ -5484,19 +5870,21 @@ var (
 	reportInsertQuery = func(d goqu.DialectWrapper, res *systemType.Report) *goqu.InsertDataset {
 		return d.Insert(reportTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"handle":     res.Handle,
-				"meta":       res.Meta,
-				"scenarios":  res.Scenarios,
-				"sources":    res.Sources,
-				"blocks":     res.Blocks,
-				"owned_by":   res.OwnedBy,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"scenarios":   res.Scenarios,
+				"sources":     res.Sources,
+				"blocks":      res.Blocks,
+				"owned_by":    res.OwnedBy,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -5510,18 +5898,20 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":     res.Handle,
-						"meta":       res.Meta,
-						"scenarios":  res.Scenarios,
-						"sources":    res.Sources,
-						"blocks":     res.Blocks,
-						"owned_by":   res.OwnedBy,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"handle":      res.Handle,
+						"meta":        res.Meta,
+						"scenarios":   res.Scenarios,
+						"sources":     res.Sources,
+						"blocks":      res.Blocks,
+						"owned_by":    res.OwnedBy,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -5533,18 +5923,20 @@ var (
 	reportUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Report) *goqu.UpdateDataset {
 		return d.Update(reportTable).
 			Set(goqu.Record{
-				"handle":     res.Handle,
-				"meta":       res.Meta,
-				"scenarios":  res.Scenarios,
-				"sources":    res.Sources,
-				"blocks":     res.Blocks,
-				"owned_by":   res.OwnedBy,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"scenarios":   res.Scenarios,
+				"sources":     res.Sources,
+				"blocks":      res.Blocks,
+				"owned_by":    res.OwnedBy,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(reportPrimaryKeys(res))
 	}
@@ -5675,6 +6067,8 @@ var (
 	resourceTranslationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"lang",
 			"resource",
 			"k",
@@ -5695,18 +6089,20 @@ var (
 	resourceTranslationInsertQuery = func(d goqu.DialectWrapper, res *systemType.ResourceTranslation) *goqu.InsertDataset {
 		return d.Insert(resourceTranslationTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"lang":       res.Lang,
-				"resource":   res.Resource,
-				"k":          res.K,
-				"message":    res.Message,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"owned_by":   res.OwnedBy,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"lang":        res.Lang,
+				"resource":    res.Resource,
+				"k":           res.K,
+				"message":     res.Message,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"owned_by":    res.OwnedBy,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -5720,17 +6116,19 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"lang":       res.Lang,
-						"resource":   res.Resource,
-						"k":          res.K,
-						"message":    res.Message,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"owned_by":   res.OwnedBy,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"lang":        res.Lang,
+						"resource":    res.Resource,
+						"k":           res.K,
+						"message":     res.Message,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"owned_by":    res.OwnedBy,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -5742,17 +6140,19 @@ var (
 	resourceTranslationUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ResourceTranslation) *goqu.UpdateDataset {
 		return d.Update(resourceTranslationTable).
 			Set(goqu.Record{
-				"lang":       res.Lang,
-				"resource":   res.Resource,
-				"k":          res.K,
-				"message":    res.Message,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"owned_by":   res.OwnedBy,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"lang":        res.Lang,
+				"resource":    res.Resource,
+				"k":           res.K,
+				"message":     res.Message,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"owned_by":    res.OwnedBy,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(resourceTranslationPrimaryKeys(res))
 	}
@@ -6051,6 +6451,8 @@ var (
 	templateSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_owner",
 			"handle",
 			"language",
@@ -6072,6 +6474,8 @@ var (
 		return d.Insert(templateTable).
 			Rows(goqu.Record{
 				"id":           res.ID,
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"rel_owner":    res.OwnerID,
 				"handle":       res.Handle,
 				"language":     res.Language,
@@ -6096,6 +6500,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":   res.TenantID,
+						"rel_project":  res.ProjectID,
 						"rel_owner":    res.OwnerID,
 						"handle":       res.Handle,
 						"language":     res.Language,
@@ -6118,6 +6524,8 @@ var (
 	templateUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Template) *goqu.UpdateDataset {
 		return d.Update(templateTable).
 			Set(goqu.Record{
+				"rel_tenant":   res.TenantID,
+				"rel_project":  res.ProjectID,
 				"rel_owner":    res.OwnerID,
 				"handle":       res.Handle,
 				"language":     res.Language,
@@ -6151,6 +6559,222 @@ var (
 	//
 	// This function is auto-generated
 	templatePrimaryKeys = func(res *systemType.Template) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// tenantTable represents tenants store table
+	//
+	// This value is auto-generated
+	tenantTable = goqu.T("tenants")
+
+	// tenantSelectQuery assembles select query for fetching tenants
+	//
+	// This function is auto-generated
+	tenantSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"status",
+			"config",
+			"meta",
+			"created_at",
+			"updated_at",
+			"suspended_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(tenantTable)
+	}
+
+	// tenantInsertQuery assembles query inserting tenants
+	//
+	// This function is auto-generated
+	tenantInsertQuery = func(d goqu.DialectWrapper, res *systemType.Tenant) *goqu.InsertDataset {
+		return d.Insert(tenantTable).
+			Rows(goqu.Record{
+				"id":           res.ID,
+				"handle":       res.Handle,
+				"status":       res.Status,
+				"config":       res.Config,
+				"meta":         res.Meta,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"suspended_at": res.SuspendedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			})
+	}
+
+	// tenantUpsertQuery assembles (insert+on-conflict) query for replacing tenants
+	//
+	// This function is auto-generated
+	tenantUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Tenant) *goqu.InsertDataset {
+		var target = `,id`
+
+		return tenantInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":       res.Handle,
+						"status":       res.Status,
+						"config":       res.Config,
+						"meta":         res.Meta,
+						"created_at":   res.CreatedAt,
+						"updated_at":   res.UpdatedAt,
+						"suspended_at": res.SuspendedAt,
+						"deleted_at":   res.DeletedAt,
+						"created_by":   res.CreatedBy,
+						"updated_by":   res.UpdatedBy,
+						"deleted_by":   res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// tenantUpdateQuery assembles query for updating tenants
+	//
+	// This function is auto-generated
+	tenantUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Tenant) *goqu.UpdateDataset {
+		return d.Update(tenantTable).
+			Set(goqu.Record{
+				"handle":       res.Handle,
+				"status":       res.Status,
+				"config":       res.Config,
+				"meta":         res.Meta,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"suspended_at": res.SuspendedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			}).
+			Where(tenantPrimaryKeys(res))
+	}
+
+	// tenantDeleteQuery assembles delete query for removing tenants
+	//
+	// This function is auto-generated
+	tenantDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(tenantTable).Where(ee...)
+	}
+
+	// tenantDeleteQuery assembles delete query for removing tenants
+	//
+	// This function is auto-generated
+	tenantTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(tenantTable)
+	}
+
+	// tenantPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	tenantPrimaryKeys = func(res *systemType.Tenant) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// tenantMembershipTable represents tenantMemberships store table
+	//
+	// This value is auto-generated
+	tenantMembershipTable = goqu.T("tenant_memberships")
+
+	// tenantMembershipSelectQuery assembles select query for fetching tenantMemberships
+	//
+	// This function is auto-generated
+	tenantMembershipSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_tenant",
+			"rel_user",
+			"role",
+			"status",
+			"rel_invited_by",
+			"created_at",
+			"updated_at",
+		).From(tenantMembershipTable)
+	}
+
+	// tenantMembershipInsertQuery assembles query inserting tenantMemberships
+	//
+	// This function is auto-generated
+	tenantMembershipInsertQuery = func(d goqu.DialectWrapper, res *systemType.TenantMembership) *goqu.InsertDataset {
+		return d.Insert(tenantMembershipTable).
+			Rows(goqu.Record{
+				"id":             res.ID,
+				"rel_tenant":     res.TenantID,
+				"rel_user":       res.UserID,
+				"role":           res.Role,
+				"status":         res.Status,
+				"rel_invited_by": res.InvitedBy,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+			})
+	}
+
+	// tenantMembershipUpsertQuery assembles (insert+on-conflict) query for replacing tenantMemberships
+	//
+	// This function is auto-generated
+	tenantMembershipUpsertQuery = func(d goqu.DialectWrapper, res *systemType.TenantMembership) *goqu.InsertDataset {
+		var target = `,id`
+
+		return tenantMembershipInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_tenant":     res.TenantID,
+						"rel_user":       res.UserID,
+						"role":           res.Role,
+						"status":         res.Status,
+						"rel_invited_by": res.InvitedBy,
+						"created_at":     res.CreatedAt,
+						"updated_at":     res.UpdatedAt,
+					},
+				),
+			)
+	}
+
+	// tenantMembershipUpdateQuery assembles query for updating tenantMemberships
+	//
+	// This function is auto-generated
+	tenantMembershipUpdateQuery = func(d goqu.DialectWrapper, res *systemType.TenantMembership) *goqu.UpdateDataset {
+		return d.Update(tenantMembershipTable).
+			Set(goqu.Record{
+				"rel_tenant":     res.TenantID,
+				"rel_user":       res.UserID,
+				"role":           res.Role,
+				"status":         res.Status,
+				"rel_invited_by": res.InvitedBy,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+			}).
+			Where(tenantMembershipPrimaryKeys(res))
+	}
+
+	// tenantMembershipDeleteQuery assembles delete query for removing tenantMemberships
+	//
+	// This function is auto-generated
+	tenantMembershipDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(tenantMembershipTable).Where(ee...)
+	}
+
+	// tenantMembershipDeleteQuery assembles delete query for removing tenantMemberships
+	//
+	// This function is auto-generated
+	tenantMembershipTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(tenantMembershipTable)
+	}
+
+	// tenantMembershipPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	tenantMembershipPrimaryKeys = func(res *systemType.TenantMembership) goqu.Ex {
 		return goqu.Ex{
 			"id": res.ID,
 		}
@@ -6287,6 +6911,7 @@ var (
 	userGroupSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
 			"handle",
 			"meta",
 			"config",
@@ -6304,6 +6929,7 @@ var (
 		return d.Insert(userGroupTable).
 			Rows(goqu.Record{
 				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
 				"handle":      res.Handle,
 				"meta":        res.Meta,
 				"config":      res.Config,
@@ -6324,6 +6950,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":  res.TenantID,
 						"handle":      res.Handle,
 						"meta":        res.Meta,
 						"config":      res.Config,
@@ -6342,6 +6969,7 @@ var (
 	userGroupUpdateQuery = func(d goqu.DialectWrapper, res *systemType.UserGroup) *goqu.UpdateDataset {
 		return d.Update(userGroupTable).
 			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
 				"handle":      res.Handle,
 				"meta":        res.Meta,
 				"config":      res.Config,

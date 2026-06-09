@@ -157,6 +157,8 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.ChatbotSessionRbacResource(0)),
 		rbac.NewResource(types.ChatbotSessionStepRbacResource(0)),
 		rbac.NewResource(types.ChatbotSessionHandoffRbacResource(0)),
+		rbac.NewResource(types.TenantRbacResource(0)),
+		rbac.NewResource(types.ProjectRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -567,6 +569,51 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.TenantResourceType,
+			"any":  types.TenantRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.TenantResourceType,
+			"any":  types.TenantRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.TenantResourceType,
+			"any":  types.TenantRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.TenantResourceType,
+			"any":  types.TenantRbacResource(0),
+			"op":   "suspend",
+		},
+		{
+			"type": types.TenantResourceType,
+			"any":  types.TenantRbacResource(0),
+			"op":   "members.manage",
+		},
+		{
+			"type": types.ProjectResourceType,
+			"any":  types.ProjectRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectResourceType,
+			"any":  types.ProjectRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectResourceType,
+			"any":  types.ProjectRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ProjectResourceType,
+			"any":  types.ProjectRbacResource(0),
+			"op":   "members.manage",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -830,6 +877,26 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "chatbot-session-handoffs.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "tenant.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "tenants.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "projects.search",
 		},
 	}
 
@@ -1483,6 +1550,69 @@ func (svc accessControl) CanDeleteChatbotSessionHandoff(ctx context.Context, r *
 	return svc.can(ctx, "delete", r)
 }
 
+// CanReadTenant checks if current user can read tenant
+//
+// This function is auto-generated
+func (svc accessControl) CanReadTenant(ctx context.Context, r *types.Tenant) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateTenant checks if current user can update tenant
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateTenant(ctx context.Context, r *types.Tenant) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteTenant checks if current user can delete tenant
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteTenant(ctx context.Context, r *types.Tenant) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanSuspendTenant checks if current user can suspend tenant
+//
+// This function is auto-generated
+func (svc accessControl) CanSuspendTenant(ctx context.Context, r *types.Tenant) bool {
+	return svc.can(ctx, "suspend", r)
+}
+
+// CanManageMembersOnTenant checks if current user can manage tenant members
+//
+// This function is auto-generated
+func (svc accessControl) CanManageMembersOnTenant(ctx context.Context, r *types.Tenant) bool {
+	return svc.can(ctx, "members.manage", r)
+}
+
+// CanReadProject checks if current user can read project
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProject(ctx context.Context, r *types.Project) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProject checks if current user can update project
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProject(ctx context.Context, r *types.Project) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProject checks if current user can delete project
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProject(ctx context.Context, r *types.Project) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanManageMembersOnProject checks if current user can manage project members
+//
+// This function is auto-generated
+func (svc accessControl) CanManageMembersOnProject(ctx context.Context, r *types.Project) bool {
+	return svc.can(ctx, "members.manage", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -1907,6 +2037,38 @@ func (svc accessControl) CanSearchChatbotSessionHandoffs(ctx context.Context) bo
 	return svc.can(ctx, "chatbot-session-handoffs.search", r)
 }
 
+// CanCreateTenant checks if current user can create tenants
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateTenant(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "tenant.create", r)
+}
+
+// CanSearchTenants checks if current user can list, search or filter tenants
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchTenants(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "tenants.search", r)
+}
+
+// CanCreateProject checks if current user can create projects
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProject(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project.create", r)
+}
+
+// CanSearchProjects checks if current user can list, search or filter projects
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjects(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "projects.search", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -1954,6 +2116,10 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacChatbotSessionStepResourceValidator(r, oo...)
 	case types.ChatbotSessionHandoffResourceType:
 		return rbacChatbotSessionHandoffResourceValidator(r, oo...)
+	case types.TenantResourceType:
+		return rbacTenantResourceValidator(r, oo...)
+	case types.ProjectResourceType:
+		return rbacProjectResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -2107,6 +2273,18 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadChatbotSessionHandoff(ctx, svc.store, ids[0])
+	case types.TenantResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.TenantRbacResource(ids[0])), nil
+		}
+
+		return loadTenant(ctx, svc.store, ids[0])
+	case types.ProjectResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectRbacResource(ids[0])), nil
+		}
+
+		return loadProject(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -2263,6 +2441,21 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.TenantResourceType:
+		return map[string]bool{
+			"read":           true,
+			"update":         true,
+			"delete":         true,
+			"suspend":        true,
+			"members.manage": true,
+		}
+	case types.ProjectResourceType:
+		return map[string]bool{
+			"read":           true,
+			"update":         true,
+			"delete":         true,
+			"members.manage": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                           true,
@@ -2318,6 +2511,10 @@ func rbacResourceOperations(r string) map[string]bool {
 			"chatbot-session-steps.search":    true,
 			"chatbot-session-handoff.create":  true,
 			"chatbot-session-handoffs.search": true,
+			"tenant.create":                   true,
+			"tenants.search":                  true,
+			"project.create":                  true,
+			"projects.search":                 true,
 		}
 	}
 
@@ -3259,6 +3456,96 @@ func rbacChatbotSessionHandoffResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for chatbotSessionHandoff resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacTenantResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacTenantResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.TenantResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for tenant resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.TenantResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for tenant resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for project resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for project resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

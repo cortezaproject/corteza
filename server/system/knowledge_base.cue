@@ -7,11 +7,14 @@ import (
 knowledge_base: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			title: {
 				goType: "string"
@@ -48,6 +51,8 @@ knowledge_base: {
 	filter: {
 		struct: {
 			knowledge_base_id: {goType: "[]uint64", ident: "knowledgeBaseID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

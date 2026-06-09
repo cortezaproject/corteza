@@ -360,6 +360,32 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
+	case "corteza::system:project":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:project-member":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-member",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
 	case "corteza::system:queue":
 		scope := Scope{}
 
@@ -473,6 +499,32 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 		out["Path.0"] = Ref{
 			ResourceType: "corteza::system:template",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:tenant":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:tenant",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:tenant-membership":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:tenant-membership",
 			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
 			Scope:        scope,
 		}

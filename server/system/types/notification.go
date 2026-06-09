@@ -12,7 +12,9 @@ type (
 	OpenModeType string
 
 	Notification struct {
-		ID uint64 `json:"notificationID,string"`
+		ID        uint64 `json:"notificationID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
 
 		Kind   NotificationKind   `json:"kind"`
 		Config NotificationConfig `json:"config"`

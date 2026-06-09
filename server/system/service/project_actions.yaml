@@ -1,0 +1,107 @@
+# List of loggable service actions
+
+resource: system:project
+service: project
+
+defaultActionSeverity: notice
+
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: project
+    type: "*types.Project"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Project"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Project"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.ProjectFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for projects"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{project}}"
+    severity: info
+
+  - action: create
+    log: "created {{project}}"
+
+  - action: update
+    log: "updated {{project}}"
+
+  - action: delete
+    log: "deleted {{project}}"
+
+  - action: undelete
+    log: "undeleted {{project}}"
+
+errors:
+  - error: notFound
+    message: "project not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    severity: warning
+
+  - error: invalidStatus
+    message: "invalid project status"
+    severity: warning
+
+  - error: staleData
+    message: "project was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project"
+    log: "failed to create a project; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project"
+    log: "failed to read {{project.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list projects"
+    log: "failed to search or list projects; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project"
+    log: "failed to update {{project.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project"
+    log: "failed to delete {{project.handle}}; insufficient permissions"
+
+  - error: notAllowedToManageMembers
+    message: "not allowed to manage members of this project"
+    log: "failed to manage members of {{project.handle}}; insufficient permissions"
+
+  - error: invalidRolePreset
+    message: "invalid project member role preset"
+    severity: warning
+
+  - error: memberNotFound
+    message: "project member not found"
+    severity: warning
+
+  - error: memberAlreadyExists
+    message: "user is already a member of this project"
+    severity: warning

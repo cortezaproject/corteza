@@ -7,6 +7,7 @@ import (
 notification: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
@@ -14,6 +15,8 @@ notification: {
 
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			kind: {
 				sortable: true
 				goType: "types.NotificationKind"
@@ -45,6 +48,8 @@ notification: {
 	filter: {
 		struct: {
 			notification_id: {goType: "[]uint64", ident: "notificationID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			kind: {goType: "[]types.NotificationKind"}
 			recipient: {goType: "uint64"}
 			read: {goType: "filter.State", storeIdent: "read_at"}

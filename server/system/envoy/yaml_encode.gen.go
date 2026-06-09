@@ -228,6 +228,7 @@ func (e YamlEncoder) encodeApplication(ctx context.Context, p envoyx.EncodeParam
 		"id", res.ID,
 		"name", res.Name,
 		"ownerID", auxOwnerID,
+		"tenantID", res.TenantID,
 		"unify", res.Unify,
 		"updatedAt", auxUpdatedAt,
 		"weight", res.Weight,
@@ -311,6 +312,8 @@ func (e YamlEncoder) encodeApigwRoute(ctx context.Context, p envoyx.EncodeParams
 		"id", res.ID,
 		"meta", res.Meta,
 		"method", res.Method,
+		"projectID", res.ProjectID,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
 	)
@@ -383,6 +386,7 @@ func (e YamlEncoder) encodeApigwFilter(ctx context.Context, p envoyx.EncodeParam
 	if err != nil {
 		return
 	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -401,8 +405,10 @@ func (e YamlEncoder) encodeApigwFilter(ctx context.Context, p envoyx.EncodeParam
 		"id", res.ID,
 		"kind", res.Kind,
 		"params", res.Params,
+		"projectID", res.ProjectID,
 		"ref", res.Ref,
 		"route", auxRoute,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
 		"weight", res.Weight,
@@ -504,6 +510,7 @@ func (e YamlEncoder) encodeAuthClient(ctx context.Context, p envoyx.EncodeParams
 		"scope", res.Scope,
 		"secret", res.Secret,
 		"security", auxSecurity,
+		"tenantID", res.TenantID,
 		"trusted", res.Trusted,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
@@ -583,6 +590,7 @@ func (e YamlEncoder) encodeQueue(ctx context.Context, p envoyx.EncodeParams, nod
 		"id", res.ID,
 		"meta", res.Meta,
 		"queue", res.Queue,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
 	)
@@ -665,8 +673,10 @@ func (e YamlEncoder) encodeReport(ctx context.Context, p envoyx.EncodeParams, no
 		"id", res.ID,
 		"meta", res.Meta,
 		"ownedBy", auxOwnedBy,
+		"projectID", res.ProjectID,
 		"scenarios", res.Scenarios,
 		"sources", res.Sources,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
 	)
@@ -806,7 +816,9 @@ func (e YamlEncoder) encodeTemplate(ctx context.Context, p envoyx.EncodeParams, 
 		"meta", res.Meta,
 		"ownerID", auxOwnerID,
 		"partial", res.Partial,
+		"projectID", res.ProjectID,
 		"template", res.Template,
+		"tenantID", res.TenantID,
 		"type", res.Type,
 		"updatedAt", auxUpdatedAt,
 	)
@@ -1033,6 +1045,7 @@ func (e YamlEncoder) encodeDalSensitivityLevel(ctx context.Context, p envoyx.Enc
 		"id", res.ID,
 		"level", res.Level,
 		"meta", res.Meta,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
 	)

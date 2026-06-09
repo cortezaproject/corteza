@@ -5,9 +5,14 @@ import (
 )
 
 user_group: {
+	features: {
+		tenantScoped: true
+	}
+
 	model: {
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
 			handle: schema.HandleField
 			meta: {
 				goType: "*types.UserGroupMeta"
@@ -46,6 +51,7 @@ user_group: {
 	filter: {
 		struct: {
 			user_group_id: {goType: "[]uint64", ident: "userGroupID", storeIdent: "id" }
+			tenant_id: schema.TenantFilterField
 			member_id: {goType: "uint64" }
 			handle: {goType: "string"}
 

@@ -17,9 +17,10 @@ type (
 	}
 
 	DalSensitivityLevel struct {
-		ID     uint64 `json:"sensitivityLevelID,string"`
-		Handle string `json:"handle"`
-		Level  int    `json:"level"`
+		ID       uint64 `json:"sensitivityLevelID,string"`
+		TenantID uint64 `json:"tenantID,string,omitempty"`
+		Handle   string `json:"handle"`
+		Level    int    `json:"level"`
 
 		Meta DalSensitivityLevelMeta `json:"meta"`
 

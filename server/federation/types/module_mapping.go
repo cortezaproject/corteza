@@ -6,6 +6,8 @@ import (
 
 type (
 	ModuleMapping struct {
+		TenantID           uint64                `json:"tenantID,string,omitempty"`
+		ProjectID          uint64                `json:"projectID,string,omitempty"`
 		NodeID             uint64                `json:"nodeID,string"`
 		FederationModuleID uint64                `json:"federationModuleID,string"`
 		ComposeModuleID    uint64                `json:"composeModuleID,string"`

@@ -13,7 +13,7 @@ import (
 	"github.com/modern-go/reflect2"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 {{- range $path, $alias :=  .imports }}
     {{ $alias }} {{ printf "%q" $path }}
@@ -41,6 +41,12 @@ var (
 // This function is auto-generated
 func (s *Store) Create{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
+		{{- if .features.tenantScoped }}
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScope{{ .expIdent }}(ctx, rr[i])
+		{{- end }}
+
 		if err = s.check{{ .expIdent }}Constraints(ctx, rr[i]); err != nil {
 			return
 		}
@@ -63,9 +69,16 @@ func (s *Store) Update{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 			return
 		}
 
+		{{- if .features.tenantScoped }}
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, {{ .ident }}UpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuard{{ .expIdent }}(ctx)...)); err != nil {
+			return
+		}
+		{{- else }}
 		if err = s.Exec(ctx, {{ .ident }}UpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
+		{{- end }}
 	}
 
 	return
@@ -114,9 +127,16 @@ func (s *Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 // This function is auto-generated
 func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
+		{{- if .features.tenantScoped }}
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{ {{ .ident }}PrimaryKeys(rr[i]) }, scopeGuard{{ .expIdent }}(ctx)...)...)); err != nil {
+			return
+		}
+		{{- else }}
 		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), {{ .ident }}PrimaryKeys(rr[i]))); err != nil {
 			return
 		}
+		{{- end }}
 	}
 
 	return nil
@@ -127,16 +147,34 @@ func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 //
 // This function is auto-generated
 func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error {
+	{{- if .features.tenantScoped }}
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
+	{{- range .api.deleteByPK.attributes }}
+		{{ printf "%q" .storeIdent }}: {{ .ident }},
+	{{- end }}
+	}}, scopeGuard{{ .expIdent }}(ctx)...)...))
+	{{- else }}
 	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 	{{- range .api.deleteByPK.attributes }}
 		{{ printf "%q" .storeIdent }}: {{ .ident }},
 	{{- end }}
 	}))
+	{{- end }}
 }
 {{ end }}
 
 // Truncate{{ .expIdentPlural }} Deletes all rows from the {{ .ident }} collection
 func (s *Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
+	{{- if .features.tenantScoped }}
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuard{{ .expIdent }}(ctx); len(guard) > 0 {
+		return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), guard...))
+	}
+	{{- end }}
 	return s.Exec(ctx, {{ .ident }}TruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -356,6 +394,47 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 }
 {{ end }}
 
+{{- if .features.tenantScoped }}
+// scopeGuard{{ .expIdent }} builds the tenancy WHERE conditions for {{ .expIdent }}
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuard{{ .expIdent }}(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	{{- if .features.projectScoped }}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	{{- end }}
+	return ee
+}
+
+// stampScope{{ .expIdent }} denormalises the request scope onto a {{ .expIdent }}
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScope{{ .expIdent }}(ctx context.Context, res *{{ .goType }}) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	{{- if .features.projectScoped }}
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+	{{- end }}
+}
+{{- end }}
+
 // Query{{ .expIdentPlural }} queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -395,6 +474,12 @@ func (s *Store) Query{{ .expIdentPlural }}(
 	}
 
 	expr = append(expr, tExpr...)
+
+	{{- if .features.tenantScoped }}
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuard{{ .expIdent }}(ctx)...)
+	{{- end }}
 
 	{{ if .features.paging }}
 	// paging feature is enabled
@@ -498,7 +583,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 		var (
 			rows *sql.Rows
 			aux = new({{ .auxIdent }})
-			lookup = {{ .ident }}SelectQuery(s.Dialect.GOQU()).Where(
+			lookupExpr = []goqu.Expression{
 				{{- range .args }}
 					{{- if .ignoreCase }}
 					s.Functions.LOWER(goqu.I({{ printf "%q" .storeIdent }})).Eq(strings.ToLower({{ .ident }})),
@@ -509,8 +594,16 @@ func (s *Store) Query{{ .expIdentPlural }}(
 				{{- range .nullConstraint }}
 					stateNilComparison(s.Dialect, {{ printf "%q" . }}, filter.StateExcluded),
 				{{- end }}
-			).Limit(1)
+			}
 		)
+
+		{{- if .tenantScoped }}
+		// tenancy scope guard: a valid ID from another tenant/project must not be
+		// resolvable (returns ErrNotFound below, no existence leak).
+		lookupExpr = append(lookupExpr, scopeGuard{{ .expIdent }}(ctx)...)
+		{{- end }}
+
+		lookup := {{ .ident }}SelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
 		rows, err = s.Query(ctx, lookup)
 		if err != nil {

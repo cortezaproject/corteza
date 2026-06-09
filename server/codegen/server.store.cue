@@ -69,6 +69,10 @@ _StoreResource: {
 			paging: res.features.paging
 			sorting: res.features.sorting
 			checkFn: res.features.checkFn
+
+			// tenancy scope guard; projectScoped implies tenantScoped
+			tenantScoped: res.features.tenantScoped || res.features.projectScoped
+			projectScoped: res.features.projectScoped
 		}
 
 		api: {
@@ -79,6 +83,8 @@ _StoreResource: {
 					"goType":        goType
 					"goFilterType":  goFilterType
 					"auxIdent":      auxIdent
+					"expIdent":      expIdent
+					"tenantScoped":  res.features.tenantScoped || res.features.projectScoped
 				}
 
 				if hasPrimaryKey {

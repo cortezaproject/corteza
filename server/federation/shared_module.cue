@@ -7,6 +7,7 @@ import (
 sharedModule: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	parents: [
@@ -17,6 +18,8 @@ sharedModule: {
 		ident: "federation_module_shared"
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			node_id: {
 				sortable: true,
@@ -62,6 +65,8 @@ sharedModule: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			node_id:  { goType: "uint64", ident: "nodeID", storeIdent: "rel_node" }
 			handle:   { goType: "string" }
 			name:     { goType: "string" }

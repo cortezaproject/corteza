@@ -20,11 +20,13 @@ type (
 	// Internal API interface
 	LabelAPI interface {
 		List(context.Context, *request.LabelList) (interface{}, error)
+		Delete(context.Context, *request.LabelDelete) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Label struct {
-		List func(http.ResponseWriter, *http.Request)
+		List   func(http.ResponseWriter, *http.Request)
+		Delete func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -46,6 +48,22 @@ func NewLabel(h LabelAPI) *Label {
 
 			api.Send(w, r, value)
 		},
+		Delete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewLabelDelete()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Delete(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -53,5 +71,6 @@ func (h Label) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/label/", h.List)
+		r.Delete("/label/{name}", h.Delete)
 	})
 }

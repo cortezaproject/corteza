@@ -7,11 +7,14 @@ import (
 apigw_filter: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			route:  {
 				sortable: true, goType: "uint64", storeIdent: "rel_route"
 				dal: { type: "Ref", refModelResType: "corteza::system:apigw-route" }
@@ -72,6 +75,8 @@ apigw_filter: {
 	filter: {
 		struct: {
 			apigw_filter_id: {goType: "[]uint64", ident: "apigwFilterID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			route_id: {goType: "uint64", ident: "routeID", storeIdent: "rel_route"}
 			deleted:  {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}

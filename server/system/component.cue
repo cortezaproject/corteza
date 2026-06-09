@@ -44,6 +44,10 @@ component: schema.#component & {
     "chatbot-session":                chatbot_session
     "chatbot-session-step":           chatbot_session_step
     "chatbot-session-handoff":        chatbot_session_handoff
+    "tenant":                         tenant
+    "tenant-membership":              tenant_membership
+    "project":                        project
+    "project-member":                 project_member
 	}
 
 	rbac: operations: {
@@ -124,5 +128,11 @@ component: schema.#component & {
 
 		"chatbot-session-handoff.create": description:  "Create chatbot session handoffs"
 		"chatbot-session-handoffs.search": description: "List, search or filter chatbot session handoffs"
+
+		"tenant.create": description:  "Create tenants"
+		"tenants.search": description: "List, search or filter tenants"
+
+		"project.create": description:  "Create projects"
+		"projects.search": description: "List, search or filter projects"
 	}
 }

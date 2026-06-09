@@ -65,6 +65,10 @@ func MountRoutes() func(r chi.Router) {
 
 			handlers.NewChatbotSession(ChatbotSession{}.New()).MountRoutes(r)
 
+			handlers.NewProject(Project{}.New()).MountRoutes(r)
+
+			handlers.NewTenant(Tenant{}.New()).MountRoutes(r)
+
 			// Admin-authed chatbot preview API. Mirrors /api/widget/v1 but
 			// uses an in-memory FIFO store of inline chatbot configs so
 			// drafts can be exercised without persisting.

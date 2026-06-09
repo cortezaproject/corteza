@@ -16,11 +16,13 @@ import (
 type (
 	// Workflow represents entire workflow definition
 	Workflow struct {
-		ID      uint64                           `json:"workflowID,string"`
-		Handle  string                           `json:"handle"`
-		Labels  map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Meta    *WorkflowMeta                    `json:"meta,omitempty"`
-		Enabled bool                             `json:"enabled"`
+		ID        uint64                           `json:"workflowID,string"`
+		TenantID  uint64                           `json:"tenantID,string,omitempty"`
+		ProjectID uint64                           `json:"projectID,string,omitempty"`
+		Handle    string                           `json:"handle"`
+		Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		Meta      *WorkflowMeta                    `json:"meta,omitempty"`
+		Enabled   bool                             `json:"enabled"`
 
 		Trace bool `json:"trace"`
 

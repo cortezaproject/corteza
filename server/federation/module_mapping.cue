@@ -1,5 +1,9 @@
 package federation
 
+import (
+	"github.com/crusttech/human/server/codegen/schema"
+)
+
 moduleMapping: {
 	parents: [
 		{handle: "node"},
@@ -7,11 +11,14 @@ moduleMapping: {
 
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		ident: "federation_module_mapping"
 		attributes: {
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			node_id: {
 				ident:   "nodeID"
 				unique:  true
@@ -60,6 +67,8 @@ moduleMapping: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID", storeIdent: "rel_compose_module" }
 			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }
 			federation_module_id: { goType: "uint64", ident: "federationModuleID", storeIdent: "rel_federation_module" }

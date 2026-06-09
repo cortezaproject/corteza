@@ -7,11 +7,14 @@ import (
 agent: {
 	features: {
 		labels: true
+		projectScoped: true
 	}
 
 	model: {
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			status: {
 				sortable: true,
@@ -82,6 +85,8 @@ agent: {
 	filter: {
 		struct: {
 			agent_id: {goType: "[]uint64", ident: "agentID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
 			status: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}

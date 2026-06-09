@@ -8,6 +8,9 @@ resource_translation: {
 	features: {
 		labels: false
 		checkFn: false
+		// project-scoped, but project_id may be 0 for tenant-wide translations;
+		// the store guard only constrains project when ProjectID != 0.
+		projectScoped: true
 	}
 
 	model: {
@@ -17,6 +20,8 @@ resource_translation: {
 		// Reason for that is supported index length in MySQL
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			lang: {
 		 		goType: "types.Lang"
 				dal: { type: "Text", length: 32 }
@@ -61,6 +66,8 @@ resource_translation: {
 
 	filter: {
 		struct: {
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			translation_id: {goType: "[]uint64", ident: "translationID" }
 			lang: {}
 			resource: {}

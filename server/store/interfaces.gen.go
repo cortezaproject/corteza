@@ -88,6 +88,8 @@ type (
 		Labels
 		LlmProviders
 		Notifications
+		Projects
+		ProjectMembers
 		Queues
 		QueueMessages
 		RbacRules
@@ -99,6 +101,8 @@ type (
 		RoleMembers
 		SettingValues
 		Templates
+		Tenants
+		TenantMemberships
 		Users
 		UserGroups
 	}
@@ -673,6 +677,32 @@ type (
 		LookupNotificationByID(ctx context.Context, id uint64) (*systemType.Notification, error)
 	}
 
+	Projects interface {
+		SearchProjects(ctx context.Context, f systemType.ProjectFilter) (systemType.ProjectSet, systemType.ProjectFilter, error)
+		CreateProject(ctx context.Context, rr ...*systemType.Project) error
+		UpdateProject(ctx context.Context, rr ...*systemType.Project) error
+		UpsertProject(ctx context.Context, rr ...*systemType.Project) error
+		DeleteProject(ctx context.Context, rr ...*systemType.Project) error
+
+		DeleteProjectByID(ctx context.Context, id uint64) error
+		TruncateProjects(ctx context.Context) error
+		LookupProjectByID(ctx context.Context, id uint64) (*systemType.Project, error)
+		LookupProjectByHandle(ctx context.Context, handle string) (*systemType.Project, error)
+	}
+
+	ProjectMembers interface {
+		SearchProjectMembers(ctx context.Context, f systemType.ProjectMemberFilter) (systemType.ProjectMemberSet, systemType.ProjectMemberFilter, error)
+		CreateProjectMember(ctx context.Context, rr ...*systemType.ProjectMember) error
+		UpdateProjectMember(ctx context.Context, rr ...*systemType.ProjectMember) error
+		UpsertProjectMember(ctx context.Context, rr ...*systemType.ProjectMember) error
+		DeleteProjectMember(ctx context.Context, rr ...*systemType.ProjectMember) error
+
+		DeleteProjectMemberByID(ctx context.Context, id uint64) error
+		TruncateProjectMembers(ctx context.Context) error
+		LookupProjectMemberByID(ctx context.Context, id uint64) (*systemType.ProjectMember, error)
+		LookupProjectMemberByProjectIDUserID(ctx context.Context, projectID uint64, userID uint64) (*systemType.ProjectMember, error)
+	}
+
 	Queues interface {
 		SearchQueues(ctx context.Context, f systemType.QueueFilter) (systemType.QueueSet, systemType.QueueFilter, error)
 		CreateQueue(ctx context.Context, rr ...*systemType.Queue) error
@@ -808,6 +838,33 @@ type (
 		TruncateTemplates(ctx context.Context) error
 		LookupTemplateByID(ctx context.Context, id uint64) (*systemType.Template, error)
 		LookupTemplateByHandle(ctx context.Context, handle string) (*systemType.Template, error)
+	}
+
+	Tenants interface {
+		SearchTenants(ctx context.Context, f systemType.TenantFilter) (systemType.TenantSet, systemType.TenantFilter, error)
+		CreateTenant(ctx context.Context, rr ...*systemType.Tenant) error
+		UpdateTenant(ctx context.Context, rr ...*systemType.Tenant) error
+		UpsertTenant(ctx context.Context, rr ...*systemType.Tenant) error
+		DeleteTenant(ctx context.Context, rr ...*systemType.Tenant) error
+
+		DeleteTenantByID(ctx context.Context, id uint64) error
+		TruncateTenants(ctx context.Context) error
+		LookupTenantByID(ctx context.Context, id uint64) (*systemType.Tenant, error)
+		LookupTenantByHandle(ctx context.Context, handle string) (*systemType.Tenant, error)
+	}
+
+	TenantMemberships interface {
+		SearchTenantMemberships(ctx context.Context, f systemType.TenantMembershipFilter) (systemType.TenantMembershipSet, systemType.TenantMembershipFilter, error)
+		CreateTenantMembership(ctx context.Context, rr ...*systemType.TenantMembership) error
+		UpdateTenantMembership(ctx context.Context, rr ...*systemType.TenantMembership) error
+		UpsertTenantMembership(ctx context.Context, rr ...*systemType.TenantMembership) error
+		DeleteTenantMembership(ctx context.Context, rr ...*systemType.TenantMembership) error
+
+		DeleteTenantMembershipByID(ctx context.Context, id uint64) error
+		TruncateTenantMemberships(ctx context.Context) error
+		LookupTenantMembershipByID(ctx context.Context, id uint64) (*systemType.TenantMembership, error)
+		LookupTenantMembershipByUserID(ctx context.Context, userID uint64) (*systemType.TenantMembership, error)
+		LookupTenantMembershipByTenantIDUserID(ctx context.Context, tenantID uint64, userID uint64) (*systemType.TenantMembership, error)
 	}
 
 	Users interface {
@@ -3688,6 +3745,138 @@ func LookupNotificationByID(ctx context.Context, s Notifications, id uint64) (*s
 	return s.LookupNotificationByID(ctx, id)
 }
 
+// SearchProjects returns all matching Projects from store
+//
+// This function is auto-generated
+func SearchProjects(ctx context.Context, s Projects, f systemType.ProjectFilter) (systemType.ProjectSet, systemType.ProjectFilter, error) {
+	return s.SearchProjects(ctx, f)
+}
+
+// CreateProject creates one or more Projects in store
+//
+// This function is auto-generated
+func CreateProject(ctx context.Context, s Projects, rr ...*systemType.Project) error {
+	return s.CreateProject(ctx, rr...)
+}
+
+// UpdateProject updates one or more (existing) Projects in store
+//
+// This function is auto-generated
+func UpdateProject(ctx context.Context, s Projects, rr ...*systemType.Project) error {
+	return s.UpdateProject(ctx, rr...)
+}
+
+// UpsertProject creates new or updates existing one or more Projects in store
+//
+// This function is auto-generated
+func UpsertProject(ctx context.Context, s Projects, rr ...*systemType.Project) error {
+	return s.UpsertProject(ctx, rr...)
+}
+
+// DeleteProject deletes one or more Projects from store
+//
+// This function is auto-generated
+func DeleteProject(ctx context.Context, s Projects, rr ...*systemType.Project) error {
+	return s.DeleteProject(ctx, rr...)
+}
+
+// DeleteProjectByID deletes one or more Projects from store
+//
+// This function is auto-generated
+func DeleteProjectByID(ctx context.Context, s Projects, id uint64) error {
+	return s.DeleteProjectByID(ctx, id)
+}
+
+// TruncateProjects Deletes all Projects from store
+//
+// This function is auto-generated
+func TruncateProjects(ctx context.Context, s Projects) error {
+	return s.TruncateProjects(ctx)
+}
+
+// LookupProjectByID searches for project by ID
+//
+// It also returns deleted projects.
+//
+// This function is auto-generated
+func LookupProjectByID(ctx context.Context, s Projects, id uint64) (*systemType.Project, error) {
+	return s.LookupProjectByID(ctx, id)
+}
+
+// LookupProjectByHandle searches for project by handle
+//
+// It returns only valid projects (not deleted)
+//
+// This function is auto-generated
+func LookupProjectByHandle(ctx context.Context, s Projects, handle string) (*systemType.Project, error) {
+	return s.LookupProjectByHandle(ctx, handle)
+}
+
+// SearchProjectMembers returns all matching ProjectMembers from store
+//
+// This function is auto-generated
+func SearchProjectMembers(ctx context.Context, s ProjectMembers, f systemType.ProjectMemberFilter) (systemType.ProjectMemberSet, systemType.ProjectMemberFilter, error) {
+	return s.SearchProjectMembers(ctx, f)
+}
+
+// CreateProjectMember creates one or more ProjectMembers in store
+//
+// This function is auto-generated
+func CreateProjectMember(ctx context.Context, s ProjectMembers, rr ...*systemType.ProjectMember) error {
+	return s.CreateProjectMember(ctx, rr...)
+}
+
+// UpdateProjectMember updates one or more (existing) ProjectMembers in store
+//
+// This function is auto-generated
+func UpdateProjectMember(ctx context.Context, s ProjectMembers, rr ...*systemType.ProjectMember) error {
+	return s.UpdateProjectMember(ctx, rr...)
+}
+
+// UpsertProjectMember creates new or updates existing one or more ProjectMembers in store
+//
+// This function is auto-generated
+func UpsertProjectMember(ctx context.Context, s ProjectMembers, rr ...*systemType.ProjectMember) error {
+	return s.UpsertProjectMember(ctx, rr...)
+}
+
+// DeleteProjectMember deletes one or more ProjectMembers from store
+//
+// This function is auto-generated
+func DeleteProjectMember(ctx context.Context, s ProjectMembers, rr ...*systemType.ProjectMember) error {
+	return s.DeleteProjectMember(ctx, rr...)
+}
+
+// DeleteProjectMemberByID deletes one or more ProjectMembers from store
+//
+// This function is auto-generated
+func DeleteProjectMemberByID(ctx context.Context, s ProjectMembers, id uint64) error {
+	return s.DeleteProjectMemberByID(ctx, id)
+}
+
+// TruncateProjectMembers Deletes all ProjectMembers from store
+//
+// This function is auto-generated
+func TruncateProjectMembers(ctx context.Context, s ProjectMembers) error {
+	return s.TruncateProjectMembers(ctx)
+}
+
+// LookupProjectMemberByID searches for project member by ID
+//
+// This function is auto-generated
+func LookupProjectMemberByID(ctx context.Context, s ProjectMembers, id uint64) (*systemType.ProjectMember, error) {
+	return s.LookupProjectMemberByID(ctx, id)
+}
+
+// LookupProjectMemberByProjectIDUserID searches for project member by project and user
+//
+// It returns only valid (not deleted) membership.
+//
+// This function is auto-generated
+func LookupProjectMemberByProjectIDUserID(ctx context.Context, s ProjectMembers, projectID uint64, userID uint64) (*systemType.ProjectMember, error) {
+	return s.LookupProjectMemberByProjectIDUserID(ctx, projectID, userID)
+}
+
 // SearchQueues returns all matching Queues from store
 //
 // This function is auto-generated
@@ -4352,6 +4541,145 @@ func LookupTemplateByID(ctx context.Context, s Templates, id uint64) (*systemTyp
 // This function is auto-generated
 func LookupTemplateByHandle(ctx context.Context, s Templates, handle string) (*systemType.Template, error) {
 	return s.LookupTemplateByHandle(ctx, handle)
+}
+
+// SearchTenants returns all matching Tenants from store
+//
+// This function is auto-generated
+func SearchTenants(ctx context.Context, s Tenants, f systemType.TenantFilter) (systemType.TenantSet, systemType.TenantFilter, error) {
+	return s.SearchTenants(ctx, f)
+}
+
+// CreateTenant creates one or more Tenants in store
+//
+// This function is auto-generated
+func CreateTenant(ctx context.Context, s Tenants, rr ...*systemType.Tenant) error {
+	return s.CreateTenant(ctx, rr...)
+}
+
+// UpdateTenant updates one or more (existing) Tenants in store
+//
+// This function is auto-generated
+func UpdateTenant(ctx context.Context, s Tenants, rr ...*systemType.Tenant) error {
+	return s.UpdateTenant(ctx, rr...)
+}
+
+// UpsertTenant creates new or updates existing one or more Tenants in store
+//
+// This function is auto-generated
+func UpsertTenant(ctx context.Context, s Tenants, rr ...*systemType.Tenant) error {
+	return s.UpsertTenant(ctx, rr...)
+}
+
+// DeleteTenant deletes one or more Tenants from store
+//
+// This function is auto-generated
+func DeleteTenant(ctx context.Context, s Tenants, rr ...*systemType.Tenant) error {
+	return s.DeleteTenant(ctx, rr...)
+}
+
+// DeleteTenantByID deletes one or more Tenants from store
+//
+// This function is auto-generated
+func DeleteTenantByID(ctx context.Context, s Tenants, id uint64) error {
+	return s.DeleteTenantByID(ctx, id)
+}
+
+// TruncateTenants Deletes all Tenants from store
+//
+// This function is auto-generated
+func TruncateTenants(ctx context.Context, s Tenants) error {
+	return s.TruncateTenants(ctx)
+}
+
+// LookupTenantByID searches for tenant by ID
+//
+// It also returns deleted tenants.
+//
+// This function is auto-generated
+func LookupTenantByID(ctx context.Context, s Tenants, id uint64) (*systemType.Tenant, error) {
+	return s.LookupTenantByID(ctx, id)
+}
+
+// LookupTenantByHandle searches for tenant by handle
+//
+// It returns only valid tenants (not deleted)
+//
+// This function is auto-generated
+func LookupTenantByHandle(ctx context.Context, s Tenants, handle string) (*systemType.Tenant, error) {
+	return s.LookupTenantByHandle(ctx, handle)
+}
+
+// SearchTenantMemberships returns all matching TenantMemberships from store
+//
+// This function is auto-generated
+func SearchTenantMemberships(ctx context.Context, s TenantMemberships, f systemType.TenantMembershipFilter) (systemType.TenantMembershipSet, systemType.TenantMembershipFilter, error) {
+	return s.SearchTenantMemberships(ctx, f)
+}
+
+// CreateTenantMembership creates one or more TenantMemberships in store
+//
+// This function is auto-generated
+func CreateTenantMembership(ctx context.Context, s TenantMemberships, rr ...*systemType.TenantMembership) error {
+	return s.CreateTenantMembership(ctx, rr...)
+}
+
+// UpdateTenantMembership updates one or more (existing) TenantMemberships in store
+//
+// This function is auto-generated
+func UpdateTenantMembership(ctx context.Context, s TenantMemberships, rr ...*systemType.TenantMembership) error {
+	return s.UpdateTenantMembership(ctx, rr...)
+}
+
+// UpsertTenantMembership creates new or updates existing one or more TenantMemberships in store
+//
+// This function is auto-generated
+func UpsertTenantMembership(ctx context.Context, s TenantMemberships, rr ...*systemType.TenantMembership) error {
+	return s.UpsertTenantMembership(ctx, rr...)
+}
+
+// DeleteTenantMembership deletes one or more TenantMemberships from store
+//
+// This function is auto-generated
+func DeleteTenantMembership(ctx context.Context, s TenantMemberships, rr ...*systemType.TenantMembership) error {
+	return s.DeleteTenantMembership(ctx, rr...)
+}
+
+// DeleteTenantMembershipByID deletes one or more TenantMemberships from store
+//
+// This function is auto-generated
+func DeleteTenantMembershipByID(ctx context.Context, s TenantMemberships, id uint64) error {
+	return s.DeleteTenantMembershipByID(ctx, id)
+}
+
+// TruncateTenantMemberships Deletes all TenantMemberships from store
+//
+// This function is auto-generated
+func TruncateTenantMemberships(ctx context.Context, s TenantMemberships) error {
+	return s.TruncateTenantMemberships(ctx)
+}
+
+// LookupTenantMembershipByID searches for tenant membership by ID
+//
+// This function is auto-generated
+func LookupTenantMembershipByID(ctx context.Context, s TenantMemberships, id uint64) (*systemType.TenantMembership, error) {
+	return s.LookupTenantMembershipByID(ctx, id)
+}
+
+// LookupTenantMembershipByUserID searches for tenant membership by user
+//
+// Hot path: called at token issuance to resolve tenantID.
+//
+// This function is auto-generated
+func LookupTenantMembershipByUserID(ctx context.Context, s TenantMemberships, userID uint64) (*systemType.TenantMembership, error) {
+	return s.LookupTenantMembershipByUserID(ctx, userID)
+}
+
+// LookupTenantMembershipByTenantIDUserID searches for tenant membership by tenant and user
+//
+// This function is auto-generated
+func LookupTenantMembershipByTenantIDUserID(ctx context.Context, s TenantMemberships, tenantID uint64, userID uint64) (*systemType.TenantMembership, error) {
+	return s.LookupTenantMembershipByTenantIDUserID(ctx, tenantID, userID)
 }
 
 // SearchUsers returns all matching Users from store

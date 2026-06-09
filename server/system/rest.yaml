@@ -1694,6 +1694,21 @@ endpoints:
               type: uint
               required: false
               title: Limit
+      - name: delete
+        method: DELETE
+        title: Delete label
+        path: '/label/{name}'
+        parameters:
+          path:
+            - name: name
+              type: string
+              required: true
+              title: Label name to delete
+          get:
+            - name: kind
+              type: string
+              required: false
+              title: Limit deletion to a specific resource kind
   - title: Permissions
     parameters: {}
     entrypoint: permissions
@@ -4003,3 +4018,333 @@ endpoints:
         parameters:
           path:
             - { type: string, name: sessionID, required: true, title: Session ID }
+
+  - title: Projects
+    path: '/projects'
+    entrypoint: project
+    authentication: []
+    imports:
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - time
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
+    apis:
+      - name: list
+        method: GET
+        title: List projects
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: string, name: handle, title: Search by handle }
+            - { type: string, name: status, title: Filter by status }
+            - {
+                type: uint,
+                name: deleted,
+                title: 'Exclude (0, default), include (1) or return only (2) deleted projects',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project
+        path: ''
+        parameters:
+          post:
+            - { type: string, name: handle, title: Project handle }
+            - { type: string, name: status, title: Project status }
+            - {
+                type: 'types.ProjectConfig',
+                name: config,
+                title: Project config,
+                parser: 'types.ParseProjectConfig',
+              }
+            - {
+                type: 'types.ProjectMeta',
+                name: meta,
+                title: Project meta,
+                parser: 'types.ParseProjectMeta',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+      - name: read
+        method: GET
+        title: Read project details
+        path: '/{projectID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: update
+        method: PUT
+        title: Update project details
+        path: '/{projectID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: string, name: handle, title: Project handle }
+            - { type: string, name: status, title: Project status }
+            - {
+                type: 'types.ProjectConfig',
+                name: config,
+                title: Project config,
+                parser: 'types.ParseProjectConfig',
+              }
+            - {
+                type: 'types.ProjectMeta',
+                name: meta,
+                title: Project meta,
+                parser: 'types.ParseProjectMeta',
+              }
+            - { type: '*time.Time', name: updatedAt, title: Last update (or creation) date }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+      - name: delete
+        method: DELETE
+        title: Remove project
+        path: '/{projectID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: undelete
+        method: POST
+        title: Undelete project
+        path: '/{projectID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: listMembers
+        method: GET
+        title: List project members
+        path: '/{projectID}/members'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: addMember
+        method: POST
+        title: Add project member
+        path: '/{projectID}/members'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: uint64, name: userID, required: true, title: User ID }
+            - { type: string, name: rolePreset, title: Role preset }
+      - name: updateMember
+        method: PUT
+        title: Update project member role
+        path: '/{projectID}/members/{userID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: userID, required: true, title: User ID }
+          post:
+            - { type: string, name: rolePreset, required: true, title: Role preset }
+      - name: removeMember
+        method: DELETE
+        title: Remove project member
+        path: '/{projectID}/members/{userID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: userID, required: true, title: User ID }
+
+  - title: Tenants
+    path: '/tenants'
+    entrypoint: tenant
+    authentication: []
+    imports:
+      - github.com/crusttech/human/server/pkg/label
+      - github.com/crusttech/human/server/system/types
+      - time
+      - labelTypes github.com/crusttech/human/server/pkg/label/types
+    apis:
+      - name: list
+        method: GET
+        title: List tenants
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: string, name: handle, title: Search by handle }
+            - { type: string, name: status, title: Filter by status }
+            - {
+                type: uint,
+                name: deleted,
+                title: 'Exclude (0, default), include (1) or return only (2) deleted tenants',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create tenant
+        path: ''
+        parameters:
+          post:
+            - { type: string, name: handle, title: Tenant handle }
+            - { type: string, name: status, title: Tenant status }
+            - {
+                type: 'types.TenantConfig',
+                name: config,
+                title: Tenant config,
+                parser: 'types.ParseTenantConfig',
+              }
+            - {
+                type: 'types.TenantMeta',
+                name: meta,
+                title: Tenant meta,
+                parser: 'types.ParseTenantMeta',
+              }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+      - name: read
+        method: GET
+        title: Read tenant details
+        path: '/{tenantID}'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: update
+        method: PUT
+        title: Update tenant details
+        path: '/{tenantID}'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+          post:
+            - { type: string, name: handle, title: Tenant handle }
+            - { type: string, name: status, title: Tenant status }
+            - {
+                type: 'types.TenantConfig',
+                name: config,
+                title: Tenant config,
+                parser: 'types.ParseTenantConfig',
+              }
+            - {
+                type: 'types.TenantMeta',
+                name: meta,
+                title: Tenant meta,
+                parser: 'types.ParseTenantMeta',
+              }
+            - { type: '*time.Time', name: updatedAt, title: Last update (or creation) date }
+            - {
+                type: 'map[string]labelTypes.LabelValue',
+                name: labels,
+                title: Labels,
+                parser: label.ParseStrings,
+              }
+      - name: delete
+        method: DELETE
+        title: Remove tenant
+        path: '/{tenantID}'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: undelete
+        method: POST
+        title: Undelete tenant
+        path: '/{tenantID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: suspend
+        method: POST
+        title: Suspend tenant
+        path: '/{tenantID}/suspend'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: activate
+        method: POST
+        title: Activate tenant
+        path: '/{tenantID}/activate'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: archive
+        method: POST
+        title: Archive tenant
+        path: '/{tenantID}/archive'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: listMembers
+        method: GET
+        title: List tenant members
+        path: '/{tenantID}/members'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+      - name: addMember
+        method: POST
+        title: Invite tenant member
+        path: '/{tenantID}/members'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+          post:
+            - { type: uint64, name: userID, required: true, title: User ID }
+            - { type: string, name: role, title: Member role }
+      - name: updateMember
+        method: PUT
+        title: Update tenant member
+        path: '/{tenantID}/members/{userID}'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+            - { type: uint64, name: userID, required: true, title: User ID }
+          post:
+            - { type: string, name: role, title: Member role }
+            - { type: string, name: status, title: Member status }
+      - name: removeMember
+        method: DELETE
+        title: Remove tenant member
+        path: '/{tenantID}/members/{userID}'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+            - { type: uint64, name: userID, required: true, title: User ID }
+      - name: suspendMember
+        method: POST
+        title: Suspend tenant member
+        path: '/{tenantID}/members/{userID}/suspend'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+            - { type: uint64, name: userID, required: true, title: User ID }
+      - name: activateMember
+        method: POST
+        title: Activate tenant member
+        path: '/{tenantID}/members/{userID}/activate'
+        parameters:
+          path:
+            - { type: uint64, name: tenantID, required: true, title: Tenant ID }
+            - { type: uint64, name: userID, required: true, title: User ID }

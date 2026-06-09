@@ -282,3 +282,29 @@ func SystemChatbotSessionHandoffRbacReferences(chatbotSessionHandoff string) (re
 
 	return
 }
+
+// SystemTenantRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemTenantRbacReferences(tenant string) (res *Ref, pp []*Ref, err error) {
+	if tenant != "*" {
+		res = &Ref{ResourceType: types.TenantResourceType, Identifiers: MakeIdentifiers(tenant)}
+	}
+
+	return
+}
+
+// SystemProjectRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectRbacReferences(project string) (res *Ref, pp []*Ref, err error) {
+	if project != "*" {
+		res = &Ref{ResourceType: types.ProjectResourceType, Identifiers: MakeIdentifiers(project)}
+	}
+
+	return
+}

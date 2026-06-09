@@ -7,11 +7,14 @@ import (
 chatbot: {
 	features: {
 		labels: true
+		projectScoped: true
 	}
 
 	model: {
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			name: {
 				sortable: true,
@@ -83,6 +86,8 @@ chatbot: {
 	filter: {
 		struct: {
 			chatbot_id: {goType: "[]uint64", ident: "chatbotID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
 			widget_key: {goType: "string", ident: "widgetKey", storeIdent: "widget_key"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}

@@ -12,6 +12,8 @@ import (
 type (
 	AiConversation struct {
 		ID         uint64                 `json:"aiConversationID,string"`
+		TenantID   uint64                 `json:"tenantID,string,omitempty"`
+		ProjectID  uint64                 `json:"projectID,string,omitempty"`
 		AgentID    uint64                 `json:"agentID,string"`
 		Messages   AiConversationMessages `json:"messages"`
 		TokenCount int                    `json:"tokenCount"`

@@ -12,6 +12,8 @@ import (
 type (
 	ChatbotSession struct {
 		ID          uint64              `json:"id,string"`
+		TenantID    uint64              `json:"tenantID,string,omitempty"`
+		ProjectID   uint64              `json:"projectID,string,omitempty"`
 		ChatbotID   uint64              `json:"chatbotID,string"`
 		Status      string              `json:"status"`
 		CurrentStep int                 `json:"currentStep"`

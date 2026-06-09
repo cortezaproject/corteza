@@ -12,10 +12,12 @@ import (
 
 type (
 	Chatbot struct {
-		ID      uint64 `json:"chatbotID,string"`
-		Handle  string `json:"handle"`
-		Name    string `json:"name"`
-		Enabled bool   `json:"enabled"`
+		ID        uint64 `json:"chatbotID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Handle    string `json:"handle"`
+		Name      string `json:"name"`
+		Enabled   bool   `json:"enabled"`
 
 		WidgetKey      string                `json:"widgetKey,omitempty"`
 		AllowedOrigins ChatbotAllowedOrigins `json:"allowedOrigins,omitempty"`

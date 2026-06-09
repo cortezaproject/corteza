@@ -196,6 +196,22 @@ var Session = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "WorkflowID", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
@@ -389,6 +405,22 @@ var Trigger = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "WorkflowID", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
@@ -545,6 +577,22 @@ var Workflow = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{

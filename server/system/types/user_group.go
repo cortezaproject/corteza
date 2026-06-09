@@ -9,19 +9,19 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
 	UserGroup struct {
-		ID     uint64 `json:"userGroupID,string"`
-		Handle string `json:"handle"`
+		ID       uint64 `json:"userGroupID,string"`
+		TenantID uint64 `json:"tenantID,string,omitempty"`
+		Handle   string `json:"handle"`
 
 		Config *UserGroupConfig `json:"config"`
 
 		IsRoot bool `json:"isRoot"`
 
-		Meta   *UserGroupMeta    `json:"meta"`
+		Meta   *UserGroupMeta                   `json:"meta"`
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		CreatedAt  time.Time  `json:"createdAt,omitempty"`
@@ -56,7 +56,7 @@ type (
 		Deleted  filter.State `json:"deleted"`
 		Archived filter.State `json:"archived"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can

@@ -9,15 +9,16 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
 	DocumentType string
 
 	Template struct {
-		ID     uint64 `json:"templateID,string"`
-		Handle string `json:"handle"`
+		ID        uint64 `json:"templateID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Handle    string `json:"handle"`
 		// Language specifies the language the template is written for; leave empty for default
 		Language string `json:"language"`
 
@@ -54,7 +55,7 @@ type (
 		OwnerID    uint64   `json:"ownerID,string"`
 		Partial    bool     `json:"partial"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can

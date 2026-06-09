@@ -43,5 +43,9 @@ const (
 	ChatbotSessionResourceType            = "corteza::system:chatbot-session"
 	ChatbotSessionStepResourceType        = "corteza::system:chatbot-session-step"
 	ChatbotSessionHandoffResourceType     = "corteza::system:chatbot-session-handoff"
+	TenantResourceType                    = "corteza::system:tenant"
+	TenantMembershipResourceType          = "corteza::system:tenant-membership"
+	ProjectResourceType                   = "corteza::system:project"
+	ProjectMemberResourceType             = "corteza::system:project-member"
 	ComponentResourceType                 = "corteza::system"
 )

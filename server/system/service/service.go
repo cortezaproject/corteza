@@ -21,6 +21,7 @@ import (
 	"github.com/crusttech/human/server/pkg/objstore/plain"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/pkg/valuestore"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
@@ -131,6 +132,9 @@ var (
 	DefaultChatbot              *chatbot
 	DefaultChatbotSession       *chatbotSession
 	DefaultChatbotPreview       *chatbotPreview
+	DefaultProject              *project
+	DefaultProjectResolver      scope.ProjectResolver
+	DefaultTenant               *tenant
 	DefaultAgenticRuntime       AgenticRunner
 	DefaultMCPRegistry          *agenticMcp.Registry
 	DefaultLlmService           *llm.Service
@@ -279,6 +283,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultKnowledgeBase = KnowledgeBase()
 	DefaultChatbot = Chatbot()
 	DefaultChatbotSession = ChatbotSession()
+	DefaultProject = Project()
+	DefaultProjectResolver = NewProjectResolver(DefaultStore)
+	DefaultTenant = Tenant()
 
 	DefaultLlmService, err = llm.New(s, DefaultAccessControl, c.Agentic.AnthropicApiVersion)
 	if err != nil {

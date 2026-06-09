@@ -2398,6 +2398,186 @@ func TestPrivacyDalConnectionSetIDs(t *testing.T) {
 	}
 }
 
+func TestProjectSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*Project) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*Project) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*Project) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*Project) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*Project) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(Project)
+	value[1] = new(Project)
+	value[2] = new(Project)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestProjectMemberSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectMemberSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*ProjectMember) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*ProjectMember) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectMemberSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectMemberSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*ProjectMember) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectMember) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*ProjectMember) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectMemberSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectMemberSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(ProjectMember)
+	value[1] = new(ProjectMember)
+	value[2] = new(ProjectMember)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestQueueSetWalk(t *testing.T) {
 	var (
 		value = make(QueueSet, 3)
@@ -3082,6 +3262,186 @@ func TestTemplateSetIDs(t *testing.T) {
 	value[0] = new(Template)
 	value[1] = new(Template)
 	value[2] = new(Template)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestTenantSetWalk(t *testing.T) {
+	var (
+		value = make(TenantSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*Tenant) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*Tenant) error { return fmt.Errorf("walk error") }))
+}
+
+func TestTenantSetFilter(t *testing.T) {
+	var (
+		value = make(TenantSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*Tenant) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*Tenant) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*Tenant) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestTenantSetIDs(t *testing.T) {
+	var (
+		value = make(TenantSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(Tenant)
+	value[1] = new(Tenant)
+	value[2] = new(Tenant)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestTenantMembershipSetWalk(t *testing.T) {
+	var (
+		value = make(TenantMembershipSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*TenantMembership) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*TenantMembership) error { return fmt.Errorf("walk error") }))
+}
+
+func TestTenantMembershipSetFilter(t *testing.T) {
+	var (
+		value = make(TenantMembershipSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*TenantMembership) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*TenantMembership) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*TenantMembership) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestTenantMembershipSetIDs(t *testing.T) {
+	var (
+		value = make(TenantMembershipSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(TenantMembership)
+	value[1] = new(TenantMembership)
+	value[2] = new(TenantMembership)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2

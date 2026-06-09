@@ -7,12 +7,15 @@ import (
 chatbot_session: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		ident: "chatbot_sessions"
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			chatbot_id: {
 				sortable: true,
 				goType: "uint64"
@@ -60,6 +63,8 @@ chatbot_session: {
 	filter: {
 		struct: {
 			chatbot_session_id: {goType: "[]uint64", ident: "chatbotSessionID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			chatbot_id: {goType: "uint64", ident: "chatbotID", storeIdent: "rel_chatbot"}
 			status: {goType: "[]string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}

@@ -5,10 +5,15 @@ import (
 )
 
 workflow: {
+	features: {
+		projectScoped: true
+	}
 	model: {
 		ident: "automation_workflows"
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			meta: {
 				goType: "*types.WorkflowMeta"
@@ -110,6 +115,8 @@ workflow: {
 	filter: {
 		struct: {
 			workflow_id: { goType: "[]string", ident: "workflowID", storeIdent: "id" }
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: { goType: "string" }
 			sub_workflow: { goType: "filter.State" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }

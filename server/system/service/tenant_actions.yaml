@@ -1,0 +1,128 @@
+# List of loggable service actions
+
+resource: system:tenant
+service: tenant
+
+defaultActionSeverity: notice
+
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: tenant
+    type: "*types.Tenant"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Tenant"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Tenant"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.TenantFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for tenants"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{tenant}}"
+    severity: info
+
+  - action: create
+    log: "created {{tenant}}"
+
+  - action: update
+    log: "updated {{tenant}}"
+
+  - action: delete
+    log: "deleted {{tenant}}"
+
+  - action: undelete
+    log: "undeleted {{tenant}}"
+
+  - action: suspend
+    log: "suspended {{tenant}}"
+
+  - action: activate
+    log: "activated {{tenant}}"
+
+  - action: archive
+    log: "archived {{tenant}}"
+
+errors:
+  - error: notFound
+    message: "tenant not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    severity: warning
+
+  - error: invalidStatus
+    message: "invalid tenant status"
+    severity: warning
+
+  - error: staleData
+    message: "tenant was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a tenant"
+    log: "failed to create a tenant; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this tenant"
+    log: "failed to read {{tenant.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list tenants"
+    log: "failed to search or list tenants; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this tenant"
+    log: "failed to update {{tenant.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this tenant"
+    log: "failed to delete {{tenant.handle}}; insufficient permissions"
+
+  - error: notAllowedToSuspend
+    message: "not allowed to suspend this tenant"
+    log: "failed to suspend {{tenant.handle}}; insufficient permissions"
+
+  - error: notAllowedToManageMembers
+    message: "not allowed to manage members of this tenant"
+    log: "failed to manage members of {{tenant.handle}}; insufficient permissions"
+
+  - error: invalidRole
+    message: "invalid tenant member role"
+    severity: warning
+
+  - error: invalidMemberStatus
+    message: "invalid tenant member status"
+    severity: warning
+
+  - error: memberNotFound
+    message: "tenant member not found"
+    severity: warning
+
+  - error: memberAlreadyExists
+    message: "user is already a member of this tenant"
+    severity: warning
+
+  - error: userAlreadyInTenant
+    message: "user already holds an active membership in another tenant"
+    severity: warning

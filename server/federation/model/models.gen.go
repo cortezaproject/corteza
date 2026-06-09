@@ -23,6 +23,22 @@ var ExposedModule = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -147,6 +163,22 @@ var ModuleMapping = &dal.Model{
 
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "NodeID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "node_id"},
@@ -211,6 +243,14 @@ var Node = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
 		},
 
 		&dal.Attribute{
@@ -388,6 +428,22 @@ var SharedModule = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{

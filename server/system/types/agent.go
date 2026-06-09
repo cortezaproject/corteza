@@ -14,10 +14,12 @@ import (
 
 type (
 	Agent struct {
-		ID       uint64 `json:"agentID,string"`
-		Handle   string `json:"handle"`
-		Status   string `json:"status"`
-		Revision int    `json:"revision"`
+		ID        uint64 `json:"agentID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Handle    string `json:"handle"`
+		Status    string `json:"status"`
+		Revision  int    `json:"revision"`
 
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 

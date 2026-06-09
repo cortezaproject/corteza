@@ -7,12 +7,15 @@ import (
 ai_conversation: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		ident: "ai_conversations"
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			agentID: {
 				sortable: true,
 				goType: "uint64"
@@ -51,6 +54,8 @@ ai_conversation: {
 	filter: {
 		struct: {
 			ai_conversation_id: {goType: "[]uint64", ident: "aiConversationID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			agent_id: {goType: "uint64", ident: "agentID", storeIdent: "rel_agent"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

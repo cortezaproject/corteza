@@ -65,6 +65,19 @@ import (
 
 		// support resource check function
 		checkFn:   bool | *true
+
+		// tenantScoped enables the store-layer scope guard for tenant isolation.
+		// When set, the resource must declare an attribute with
+		// storeIdent "rel_tenant"; every generated query/lookup appends
+		// `rel_tenant = <ctx tenant>` unless the request runs at system scope
+		// (tenant 0).
+		tenantScoped:   bool | *false
+
+		// projectScoped enables the project-level scope guard. Implies
+		// tenantScoped. The resource must declare attributes with storeIdent
+		// "rel_tenant" and "rel_project"; queries append both equality
+		// conditions from the request scope.
+		projectScoped:   bool | *false
 	}
 
 	// All parent resources

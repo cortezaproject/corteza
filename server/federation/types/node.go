@@ -15,9 +15,10 @@ var (
 
 type (
 	Node struct {
-		ID     uint64 `json:"nodeID,string"`
-		Name   string `json:"name"`
-		Status string `json:"status"`
+		ID       uint64 `json:"nodeID,string"`
+		TenantID uint64 `json:"tenantID,string,omitempty"`
+		Name     string `json:"name"`
+		Status   string `json:"status"`
 
 		// Base URL of the remote server
 		BaseURL string `json:"baseURL"`

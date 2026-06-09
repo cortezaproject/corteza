@@ -9,6 +9,8 @@ import (
 type (
 	SharedModule struct {
 		ID                         uint64         `json:"moduleID,string"`
+		TenantID                   uint64         `json:"tenantID,string,omitempty"`
+		ProjectID                  uint64         `json:"projectID,string,omitempty"`
 		NodeID                     uint64         `json:"nodeID,string"`
 		Handle                     string         `json:"handle"`
 		Name                       string         `json:"name"`

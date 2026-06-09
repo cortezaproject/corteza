@@ -146,6 +146,12 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("notification", func(t *testing.T) {
 		testNotifications(t, s)
 	})
+	t.Run("project", func(t *testing.T) {
+		testProjects(t, s)
+	})
+	t.Run("projectMember", func(t *testing.T) {
+		testProjectMembers(t, s)
+	})
 	t.Run("queue", func(t *testing.T) {
 		testQueues(t, s)
 	})
@@ -178,6 +184,12 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	})
 	t.Run("template", func(t *testing.T) {
 		testTemplates(t, s)
+	})
+	t.Run("tenant", func(t *testing.T) {
+		testTenants(t, s)
+	})
+	t.Run("tenantMembership", func(t *testing.T) {
+		testTenantMemberships(t, s)
 	})
 	t.Run("user", func(t *testing.T) {
 		testUsers(t, s)

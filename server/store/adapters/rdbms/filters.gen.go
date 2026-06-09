@@ -162,6 +162,12 @@ type (
 		// optional notification filter function called after the generated function
 		Notification func(*Store, systemType.NotificationFilter) ([]goqu.Expression, systemType.NotificationFilter, error)
 
+		// optional project filter function called after the generated function
+		Project func(*Store, systemType.ProjectFilter) ([]goqu.Expression, systemType.ProjectFilter, error)
+
+		// optional projectMember filter function called after the generated function
+		ProjectMember func(*Store, systemType.ProjectMemberFilter) ([]goqu.Expression, systemType.ProjectMemberFilter, error)
+
 		// optional queue filter function called after the generated function
 		Queue func(*Store, systemType.QueueFilter) ([]goqu.Expression, systemType.QueueFilter, error)
 
@@ -194,6 +200,12 @@ type (
 
 		// optional template filter function called after the generated function
 		Template func(*Store, systemType.TemplateFilter) ([]goqu.Expression, systemType.TemplateFilter, error)
+
+		// optional tenant filter function called after the generated function
+		Tenant func(*Store, systemType.TenantFilter) ([]goqu.Expression, systemType.TenantFilter, error)
+
+		// optional tenantMembership filter function called after the generated function
+		TenantMembership func(*Store, systemType.TenantMembershipFilter) ([]goqu.Expression, systemType.TenantMembershipFilter, error)
 
 		// optional user filter function called after the generated function
 		User func(*Store, systemType.UserFilter) ([]goqu.Expression, systemType.UserFilter, error)
@@ -1525,6 +1537,72 @@ func NotificationFilter(d drivers.Dialect, f systemType.NotificationFilter) (ee 
 	return ee, f, err
 }
 
+// ProjectFilter returns logical expressions
+//
+// This function is called from Store.QueryProjects() and can be extended
+// by setting Store.Filters.Project. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Expression, _ systemType.ProjectFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ProjectID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectMemberFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectMembers() and can be extended
+// by setting Store.Filters.ProjectMember. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectMemberFilter(d drivers.Dialect, f systemType.ProjectMemberFilter) (ee []goqu.Expression, _ systemType.ProjectMemberFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ProjectMemberID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ProjectMemberID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if f.UserID > 0 {
+		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	return ee, f, err
+}
+
 // QueueFilter returns logical expressions
 //
 // This function is called from Store.QueryQueues() and can be extended
@@ -1799,6 +1877,68 @@ func TemplateFilter(d drivers.Dialect, f systemType.TemplateFilter) (ee []goqu.E
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 			goqu.C("type").ILike("%"+f.Query+"%"),
 		))
+	}
+
+	return ee, f, err
+}
+
+// TenantFilter returns logical expressions
+//
+// This function is called from Store.QueryTenants() and can be extended
+// by setting Store.Filters.Tenant. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func TenantFilter(d drivers.Dialect, f systemType.TenantFilter) (ee []goqu.Expression, _ systemType.TenantFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.TenantID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.TenantID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// TenantMembershipFilter returns logical expressions
+//
+// This function is called from Store.QueryTenantMemberships() and can be extended
+// by setting Store.Filters.TenantMembership. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func TenantMembershipFilter(d drivers.Dialect, f systemType.TenantMembershipFilter) (ee []goqu.Expression, _ systemType.TenantMembershipFilter, err error) {
+
+	if len(f.TenantMembershipID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.TenantMembershipID))
+	}
+
+	if f.TenantID > 0 {
+		ee = append(ee, goqu.C("rel_tenant").Eq(f.TenantID))
+	}
+
+	if f.UserID > 0 {
+		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
 	return ee, f, err

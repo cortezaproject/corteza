@@ -56,3 +56,9 @@ types:
   ChatbotSession: {}
   ChatbotSessionStep: {}
   ChatbotSessionHandoff: {}
+  Project:
+    labelResourceType: project
+  ProjectMember: {}
+  Tenant:
+    labelResourceType: tenant
+  TenantMembership: {}

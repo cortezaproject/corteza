@@ -64,6 +64,7 @@ var (
 		fix_2026_04_00_addChatbotColumnToAgents,
 		fix_2026_05_00_addSourceOnConnections,
 		fix_2026_05_00_addStateOnChatbotSessions,
+		fix_2026_06_00_addTenancyScopeColumns,
 	}
 )
 

@@ -42,6 +42,8 @@ func (r *Node) GetValue(name string, pos uint) (any, error) {
 		return r.SharedNodeID, nil
 	case "status", "Status":
 		return r.Status, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy":
@@ -81,6 +83,8 @@ func (r *Node) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.SharedNodeID)
 	case "status", "Status":
 		return cast2.String(value, &r.Status)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":
@@ -165,6 +169,10 @@ func (r *ExposedModule) GetValue(name string, pos uint) (any, error) {
 		return r.Name, nil
 	case "nodeID", "NodeID":
 		return r.NodeID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy":
@@ -200,6 +208,10 @@ func (r *ExposedModule) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Name)
 	case "nodeID", "NodeID":
 		return cast2.Uint64(value, &r.NodeID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":
@@ -235,6 +247,10 @@ func (r *SharedModule) GetValue(name string, pos uint) (any, error) {
 		return r.Name, nil
 	case "nodeID", "NodeID":
 		return r.NodeID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy":
@@ -268,6 +284,10 @@ func (r *SharedModule) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Name)
 	case "nodeID", "NodeID":
 		return cast2.Uint64(value, &r.NodeID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":
@@ -296,6 +316,10 @@ func (r *ModuleMapping) GetValue(name string, pos uint) (any, error) {
 		return r.FederationModuleID, nil
 	case "nodeID", "NodeID":
 		return r.NodeID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 
 	}
 	return nil, nil
@@ -315,6 +339,10 @@ func (r *ModuleMapping) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.FederationModuleID)
 	case "nodeID", "NodeID":
 		return cast2.Uint64(value, &r.NodeID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 
 	}
 	return nil

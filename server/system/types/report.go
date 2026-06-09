@@ -16,9 +16,11 @@ import (
 
 type (
 	Report struct {
-		ID     uint64      `json:"reportID,string"`
-		Handle string      `json:"handle"`
-		Meta   *ReportMeta `json:"meta,omitempty"`
+		ID        uint64      `json:"reportID,string"`
+		TenantID  uint64      `json:"tenantID,string,omitempty"`
+		ProjectID uint64      `json:"projectID,string,omitempty"`
+		Handle    string      `json:"handle"`
+		Meta      *ReportMeta `json:"meta,omitempty"`
 
 		Scenarios ReportScenarioSet   `json:"scenarios,omitempty"`
 		Sources   ReportDataSourceSet `json:"sources"`

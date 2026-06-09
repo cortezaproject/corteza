@@ -13,12 +13,14 @@ import (
 
 type (
 	ApigwRoute struct {
-		ID       uint64         `json:"routeID,string"`
-		Endpoint string         `json:"endpoint"`
-		Method   string         `json:"method"`
-		Enabled  bool           `json:"enabled"`
-		Group    uint64         `json:"group,string"`
-		Meta     ApigwRouteMeta `json:"meta"`
+		ID        uint64         `json:"routeID,string"`
+		TenantID  uint64         `json:"tenantID,string,omitempty"`
+		ProjectID uint64         `json:"projectID,string,omitempty"`
+		Endpoint  string         `json:"endpoint"`
+		Method    string         `json:"method"`
+		Enabled   bool           `json:"enabled"`
+		Group     uint64         `json:"group,string"`
+		Meta      ApigwRouteMeta `json:"meta"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `

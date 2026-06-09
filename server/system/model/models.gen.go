@@ -23,6 +23,22 @@ var Agent = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -179,6 +195,22 @@ var AiConversation = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "AgentID", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
@@ -297,6 +329,22 @@ var ApigwFilter = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -428,6 +476,22 @@ var ApigwRoute = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Endpoint", Sortable: true,
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "endpoint"},
@@ -550,6 +614,14 @@ var Application = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
 			Ident: "Name", Sortable: true,
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "name"},
@@ -637,6 +709,22 @@ var Attachment = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -728,6 +816,14 @@ var AuthClient = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
 		},
 
 		&dal.Attribute{
@@ -1180,6 +1276,22 @@ var Chatbot = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -1349,6 +1461,22 @@ var ChatbotSession = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -1775,6 +1903,14 @@ var ConfiguredConnection = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
 		},
 
 		&dal.Attribute{
@@ -2468,6 +2604,14 @@ var DalSensitivityLevel = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -2570,6 +2714,22 @@ var DataPrivacyRequest = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -2812,6 +2972,22 @@ var KnowledgeBase = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -2931,6 +3107,14 @@ var LlmProvider = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
 		},
 
 		&dal.Attribute{
@@ -3066,6 +3250,22 @@ var Notification = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Kind", Sortable: true,
 			Type:  &dal.TypeText{Length: 32},
 			Store: &dal.CodecAlias{Ident: "kind"},
@@ -3168,6 +3368,238 @@ var Notification = &dal.Model{
 	},
 }
 
+var Project = &dal.Model{
+	Ident:        "projects",
+	ResourceType: types.ProjectResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Config",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "config"},
+		},
+
+		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "projects_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Handle",
+					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+			},
+		},
+	},
+}
+
+var ProjectMember = &dal.Model{
+	Ident:        "project_members",
+	ResourceType: types.ProjectMemberResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "UserID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "rel_user"},
+		},
+
+		&dal.Attribute{
+			Ident: "RolePreset",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "role_preset"},
+		},
+
+		&dal.Attribute{
+			Ident: "InvitedBy",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_invited_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "project_members_uniqueProjectUser",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ProjectID",
+				},
+
+				{
+					AttributeIdent: "UserID",
+				},
+			},
+		},
+	},
+}
+
 var Queue = &dal.Model{
 	Ident:        "queue_settings",
 	ResourceType: types.QueueResourceType,
@@ -3177,6 +3609,14 @@ var Queue = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
 		},
 
 		&dal.Attribute{
@@ -3335,6 +3775,22 @@ var Reminder = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Resource", Sortable: true,
 			Type:  &dal.TypeText{Length: 512},
 			Store: &dal.CodecAlias{Ident: "resource"},
@@ -3480,6 +3936,22 @@ var Report = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -3613,6 +4085,22 @@ var ResourceTranslation = &dal.Model{
 			Ident: "ID",
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -3940,6 +4428,22 @@ var Template = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "OwnerID",
 			Type: &dal.TypeRef{HasDefault: true,
 				DefaultValue: 0,
@@ -4041,6 +4545,250 @@ var Template = &dal.Model{
 
 				{
 					AttributeIdent: "Handle",
+				},
+			},
+		},
+	},
+}
+
+var Tenant = &dal.Model{
+	Ident:        "tenants",
+	ResourceType: types.TenantResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Config",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "config"},
+		},
+
+		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "SuspendedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "suspended_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "tenants_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Handle",
+					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+			},
+		},
+	},
+}
+
+var TenantMembership = &dal.Model{
+	Ident:        "tenant_memberships",
+	ResourceType: types.TenantMembershipResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "UserID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "rel_user"},
+		},
+
+		&dal.Attribute{
+			Ident: "Role",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "role"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "InvitedBy",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_invited_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "tenant_memberships_indexTenant",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "TenantID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "tenant_memberships_indexUser",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "UserID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "tenant_memberships_uniqueTenantUser",
+			Type:   "BTREE",
+			Unique: true,
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "TenantID",
+				},
+
+				{
+					AttributeIdent: "UserID",
 				},
 			},
 		},
@@ -4207,6 +4955,14 @@ var UserGroup = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -4297,6 +5053,8 @@ func init() {
 		KnowledgeBase,
 		LlmProvider,
 		Notification,
+		Project,
+		ProjectMember,
 		Queue,
 		QueueMessage,
 		Reminder,
@@ -4306,6 +5064,8 @@ func init() {
 		RoleMember,
 		SettingValue,
 		Template,
+		Tenant,
+		TenantMembership,
 		User,
 		UserGroup,
 	)

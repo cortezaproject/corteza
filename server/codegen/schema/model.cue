@@ -266,6 +266,33 @@ AttributeAgentRef: {
 	}
 }
 
+// TenantRefField denormalises the owning tenant onto a scoped resource.
+// Paired with features.tenantScoped, the store guard appends
+// `rel_tenant = <ctx tenant>` to every query/lookup.
+TenantRefField: {
+	ident: "tenantID"
+	expIdent: "TenantID"
+	goType: "uint64"
+	storeIdent: "rel_tenant"
+	dal: { type: "ID", default: 0 }
+}
+
+// ProjectRefField denormalises the owning project onto a project-scoped
+// resource. Paired with features.projectScoped.
+ProjectRefField: {
+	ident: "projectID"
+	expIdent: "ProjectID"
+	goType: "uint64"
+	storeIdent: "rel_project"
+	dal: { type: "ID", default: 0 }
+}
+
+// TenantFilterField / ProjectFilterField are the filter.struct counterparts of
+// the *RefField model attributes, so scoped resources reference the tenancy
+// filter fields the same way they reference the columns.
+TenantFilterField: { goType: "uint64", ident: "tenantID", storeIdent: "rel_tenant" }
+ProjectFilterField: { goType: "uint64", ident: "projectID", storeIdent: "rel_project" }
+
 SortableTimestampField: {
 	sortable: true
 	goType: "time.Time"

@@ -12,6 +12,8 @@ import (
 type (
 	Attachment struct {
 		ID         uint64         `json:"attachmentID,string"`
+		TenantID   uint64         `json:"tenantID,string,omitempty"`
+		ProjectID  uint64         `json:"projectID,string,omitempty"`
 		OwnerID    uint64         `json:"ownerID,string"`
 		Kind       string         `json:"-"`
 		Url        string         `json:"url,omitempty"`

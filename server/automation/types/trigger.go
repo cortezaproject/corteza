@@ -7,14 +7,16 @@ import (
 
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/sql"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
 	Trigger struct {
-		ID      uint64 `json:"triggerID,string"`
-		Enabled bool   `json:"enabled"`
+		ID        uint64 `json:"triggerID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Enabled   bool   `json:"enabled"`
 
 		WorkflowID uint64 `json:"workflowID,string"`
 		// Start workflow on this step. If 0, find first (only) orphan
@@ -34,7 +36,7 @@ type (
 		Input *expr.Vars `json:"input"`
 
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Meta   *TriggerMeta      `json:"meta,omitempty"`
+		Meta   *TriggerMeta                     `json:"meta,omitempty"`
 
 		OwnedBy   uint64     `json:"ownedBy,string"`
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -66,7 +68,7 @@ type (
 		Deleted  filter.State `json:"deleted"`
 		Disabled filter.State `json:"disabled"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can

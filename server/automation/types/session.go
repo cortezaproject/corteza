@@ -25,6 +25,8 @@ type (
 	// Instance of single workflow execution
 	Session struct {
 		ID         uint64 `json:"sessionID,string"`
+		TenantID   uint64 `json:"tenantID,string,omitempty"`
+		ProjectID  uint64 `json:"projectID,string,omitempty"`
 		WorkflowID uint64 `json:"workflowID,string"`
 
 		Status SessionStatus `json:"status,string"`

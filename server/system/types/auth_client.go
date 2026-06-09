@@ -10,12 +10,12 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
 	AuthClient struct {
-		ID uint64 `json:"authClientID,string"`
+		ID       uint64 `json:"authClientID,string"`
+		TenantID uint64 `json:"tenantID,string,omitempty"`
 
 		// Client's handle
 		Handle string `json:"handle"`
@@ -96,7 +96,7 @@ type (
 
 		Deleted filter.State `json:"deleted"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can

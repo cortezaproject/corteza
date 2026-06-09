@@ -13,7 +13,9 @@ import (
 
 type (
 	DataPrivacyRequest struct {
-		ID uint64 `json:"requestID,string"`
+		ID        uint64 `json:"requestID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
 
 		Kind   RequestKind   `json:"kind"`
 		Status RequestStatus `json:"status"`

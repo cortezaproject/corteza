@@ -9,21 +9,21 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
 	Application struct {
-		ID      uint64 `json:"applicationID,string"`
-		Name    string `json:"name"`
-		OwnerID uint64 `json:"ownerID"`
-		Enabled bool   `json:"enabled"`
-		Weight  int    `json:"weight"`
+		ID       uint64 `json:"applicationID,string"`
+		TenantID uint64 `json:"tenantID,string,omitempty"`
+		Name     string `json:"name"`
+		OwnerID  uint64 `json:"ownerID"`
+		Enabled  bool   `json:"enabled"`
+		Weight   int    `json:"weight"`
 
 		Unify *ApplicationUnify `json:"unify,omitempty"`
 
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Flags  []string          `json:"flags,omitempty"`
+		Flags  []string                         `json:"flags,omitempty"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -49,7 +49,7 @@ type (
 		Name          string   `json:"name"`
 		Query         string   `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		FlaggedIDs []uint64 `json:"-"`

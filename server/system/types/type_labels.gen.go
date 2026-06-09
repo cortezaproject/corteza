@@ -156,6 +156,30 @@ func (m Connection) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
+func (m *Project) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m Project) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (Project) LabelResourceKind() string {
+	return "project"
+}
+
+// GetLabels adds new label to label map
+func (m Project) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *Report) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
@@ -224,6 +248,30 @@ func (Template) LabelResourceKind() string {
 
 // GetLabels adds new label to label map
 func (m Template) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
+func (m *Tenant) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m Tenant) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (Tenant) LabelResourceKind() string {
+	return "tenant"
+}
+
+// GetLabels adds new label to label map
+func (m Tenant) LabelResourceID() uint64 {
 	return m.ID
 }
 

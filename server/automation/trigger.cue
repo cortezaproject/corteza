@@ -5,10 +5,15 @@ import (
 )
 
 trigger: {
+	features: {
+		projectScoped: true
+	}
 	model: {
 		ident: "automation_triggers"
 		attributes: {
 			id:  schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			workflow_id: {
 				sortable: true,
 				ident: "workflowID",
@@ -100,6 +105,8 @@ trigger: {
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 			trigger_id: { goType: "[]uint64", ident: "triggerID", storeIdent: "id" }
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			workflow_id: { goType: "[]uint64", ident: "workflowID", storeIdent: "rel_workflow" }
 			event_type: { goType: "string" }
 			resource_type: { goType: "string" }

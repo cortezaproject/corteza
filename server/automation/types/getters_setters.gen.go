@@ -36,8 +36,12 @@ func (r *Workflow) GetValue(name string, pos uint) (any, error) {
 		return r.KeepSessions, nil
 	case "ownedBy", "OwnedBy":
 		return r.OwnedBy, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "runAs", "RunAs":
 		return r.RunAs, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "trace", "Trace":
 		return r.Trace, nil
 	case "updatedAt", "UpdatedAt":
@@ -73,8 +77,12 @@ func (r *Workflow) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Int(value, &r.KeepSessions)
 	case "ownedBy", "OwnedBy":
 		return cast2.Uint64(value, &r.OwnedBy)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "runAs", "RunAs":
 		return cast2.Uint64(value, &r.RunAs)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "trace", "Trace":
 		return cast2.Bool(value, &r.Trace)
 	case "updatedAt", "UpdatedAt":
@@ -106,12 +114,16 @@ func (r *Session) GetValue(name string, pos uint) (any, error) {
 		return r.EventType, nil
 	case "id", "ID":
 		return r.ID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "purgeAt", "PurgeAt":
 		return r.PurgeAt, nil
 	case "resourceType", "ResourceType":
 		return r.ResourceType, nil
 	case "suspendedAt", "SuspendedAt":
 		return r.SuspendedAt, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "workflowID", "WorkflowID":
 		return r.WorkflowID, nil
 
@@ -137,12 +149,16 @@ func (r *Session) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.EventType)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "purgeAt", "PurgeAt":
 		return cast2.TimePtr(value, &r.PurgeAt)
 	case "resourceType", "ResourceType":
 		return cast2.String(value, &r.ResourceType)
 	case "suspendedAt", "SuspendedAt":
 		return cast2.TimePtr(value, &r.SuspendedAt)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "workflowID", "WorkflowID":
 		return cast2.Uint64(value, &r.WorkflowID)
 
@@ -174,10 +190,14 @@ func (r *Trigger) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "ownedBy", "OwnedBy":
 		return r.OwnedBy, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "resourceType", "ResourceType":
 		return r.ResourceType, nil
 	case "stepID", "StepID":
 		return r.StepID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy":
@@ -211,10 +231,14 @@ func (r *Trigger) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "ownedBy", "OwnedBy":
 		return cast2.Uint64(value, &r.OwnedBy)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "resourceType", "ResourceType":
 		return cast2.String(value, &r.ResourceType)
 	case "stepID", "StepID":
 		return cast2.Uint64(value, &r.StepID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":

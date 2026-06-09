@@ -7,12 +7,15 @@ import (
 data_privacy_request: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
 		omitGetterSetter: true
 		attributes: {
 			id: schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 
 			kind: {
 				goType: "types.RequestKind",
@@ -59,6 +62,8 @@ data_privacy_request: {
 	filter: {
 		struct: {
 			request_id: {goType: "[]uint64", ident: "requestID", storeIdent: "id" }
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			requested_by: {goType: "[]uint64", ident: "requestedBy" }
 			kind: {goType: "[]types.RequestKind"}
 			status: {goType: "[]types.RequestStatus"}

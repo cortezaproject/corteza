@@ -7,6 +7,7 @@ import (
 reminder: {
 	features: {
 		labels: false
+		projectScoped: true
 	}
 
 	model: {
@@ -14,6 +15,8 @@ reminder: {
 
 		attributes: {
 			id:     schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			resource: {
 				sortable: true
 				dal: { type: "Text", length: 512 }
@@ -51,6 +54,8 @@ reminder: {
 	filter: {
 		struct: {
 			reminder_id: {goType: "[]uint64", ident: "reminderID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			resource: {}
 			assigned_to: {goType: "uint64"}
 			scheduled_from: {goType: "uint64"}

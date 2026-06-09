@@ -54,6 +54,18 @@ type (
 		// Limit
 		Limit uint
 	}
+
+	LabelDelete struct {
+		// Name PATH parameter
+		//
+		// Label name to delete
+		Name string
+
+		// Kind GET parameter
+		//
+		// Limit deletion to a specific resource kind
+		Kind string
+	}
 )
 
 // NewLabelList request
@@ -127,6 +139,59 @@ func (r *LabelList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	return err
+}
+
+// NewLabelDelete request
+func NewLabelDelete() *LabelDelete {
+	return &LabelDelete{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LabelDelete) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"name": r.Name,
+		"kind": r.Kind,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LabelDelete) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LabelDelete) GetKind() string {
+	return r.Kind
+}
+
+// Fill processes request and fills internal variables
+func (r *LabelDelete) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["kind"]; ok && len(val) > 0 {
+			r.Kind, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "name")
+		r.Name, err = val, nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err

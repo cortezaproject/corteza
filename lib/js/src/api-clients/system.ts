@@ -89,9 +89,7 @@ export default class System {
 
   // Impersonate a user
   async authImpersonate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -109,7 +107,8 @@ export default class System {
   }
 
   authImpersonateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -128,15 +127,7 @@ export default class System {
 
   // List clients
   async authClientList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      deleted,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { handle, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -158,7 +149,8 @@ export default class System {
   }
 
   authClientListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -214,7 +206,8 @@ export default class System {
   }
 
   authClientCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -278,7 +271,8 @@ export default class System {
   }
 
   authClientUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -292,17 +286,13 @@ export default class System {
   }
 
   authClientUpdateEndpoint(a: KV): string {
-    const {
-      clientID,
-    } = a || {}
+    const { clientID } = a || {}
     return `/auth/clients/${clientID}`
   }
 
   // Read client details
   async authClientRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      clientID,
-    } = (a as KV) || {}
+    const { clientID } = (a as KV) || {}
     if (!clientID) {
       throw Error('field clientID is empty')
     }
@@ -320,7 +310,8 @@ export default class System {
   }
 
   authClientReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -334,17 +325,13 @@ export default class System {
   }
 
   authClientReadEndpoint(a: KV): string {
-    const {
-      clientID,
-    } = a || {}
+    const { clientID } = a || {}
     return `/auth/clients/${clientID}`
   }
 
   // Remove client
   async authClientDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      clientID,
-    } = (a as KV) || {}
+    const { clientID } = (a as KV) || {}
     if (!clientID) {
       throw Error('field clientID is empty')
     }
@@ -362,7 +349,8 @@ export default class System {
   }
 
   authClientDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -376,17 +364,13 @@ export default class System {
   }
 
   authClientDeleteEndpoint(a: KV): string {
-    const {
-      clientID,
-    } = a || {}
+    const { clientID } = a || {}
     return `/auth/clients/${clientID}`
   }
 
   // Undelete client
   async authClientUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      clientID,
-    } = (a as KV) || {}
+    const { clientID } = (a as KV) || {}
     if (!clientID) {
       throw Error('field clientID is empty')
     }
@@ -404,7 +388,8 @@ export default class System {
   }
 
   authClientUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -418,17 +403,13 @@ export default class System {
   }
 
   authClientUndeleteEndpoint(a: KV): string {
-    const {
-      clientID,
-    } = a || {}
+    const { clientID } = a || {}
     return `/auth/clients/${clientID}/undelete`
   }
 
   // Regenerate client&#x27;s secret
   async authClientRegenerateSecret(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      clientID,
-    } = (a as KV) || {}
+    const { clientID } = (a as KV) || {}
     if (!clientID) {
       throw Error('field clientID is empty')
     }
@@ -446,7 +427,8 @@ export default class System {
   }
 
   authClientRegenerateSecretCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -460,17 +442,13 @@ export default class System {
   }
 
   authClientRegenerateSecretEndpoint(a: KV): string {
-    const {
-      clientID,
-    } = a || {}
+    const { clientID } = a || {}
     return `/auth/clients/${clientID}/secret`
   }
 
   // Exposes client&#x27;s secret
   async authClientExposeSecret(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      clientID,
-    } = (a as KV) || {}
+    const { clientID } = (a as KV) || {}
     if (!clientID) {
       throw Error('field clientID is empty')
     }
@@ -488,7 +466,8 @@ export default class System {
   }
 
   authClientExposeSecretCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -502,18 +481,13 @@ export default class System {
   }
 
   authClientExposeSecretEndpoint(a: KV): string {
-    const {
-      clientID,
-    } = a || {}
+    const { clientID } = a || {}
     return `/auth/clients/${clientID}/secret`
   }
 
   // Evaluate expressions
   async expressionEvaluate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      variables,
-      expressions,
-    } = (a as KV) || {}
+    const { variables, expressions } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -529,7 +503,8 @@ export default class System {
   }
 
   expressionEvaluateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -548,9 +523,7 @@ export default class System {
 
   // List settings
   async settingsList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      prefix,
-    } = (a as KV) || {}
+    const { prefix } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -566,7 +539,8 @@ export default class System {
   }
 
   settingsListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -585,9 +559,7 @@ export default class System {
 
   // Update settings
   async settingsUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      values,
-    } = (a as KV) || {}
+    const { values } = (a as KV) || {}
     if (!values) {
       throw Error('field values is empty')
     }
@@ -605,7 +577,8 @@ export default class System {
   }
 
   settingsUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -624,10 +597,7 @@ export default class System {
 
   // Get a value for a key
   async settingsGet(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      key,
-      ownerID,
-    } = (a as KV) || {}
+    const { key, ownerID } = (a as KV) || {}
     if (!key) {
       throw Error('field key is empty')
     }
@@ -648,7 +618,8 @@ export default class System {
   }
 
   settingsGetCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -662,19 +633,13 @@ export default class System {
   }
 
   settingsGetEndpoint(a: KV): string {
-    const {
-      key,
-    } = a || {}
+    const { key } = a || {}
     return `/settings/${key}`
   }
 
   // Set value for specific setting
   async settingsSet(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      key,
-      upload,
-      ownerID,
-    } = (a as KV) || {}
+    const { key, upload, ownerID } = (a as KV) || {}
     if (!key) {
       throw Error('field key is empty')
     }
@@ -695,7 +660,8 @@ export default class System {
   }
 
   settingsSetCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -709,15 +675,12 @@ export default class System {
   }
 
   settingsSetEndpoint(a: KV): string {
-    const {
-      key,
-    } = a || {}
+    const { key } = a || {}
     return `/settings/${key}`
   }
 
   // Current compose settings
   async settingsCurrent(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -729,9 +692,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  settingsCurrentCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  settingsCurrentCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -787,7 +751,8 @@ export default class System {
   }
 
   roleListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -806,13 +771,7 @@ export default class System {
 
   // Update role details
   async roleCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      name,
-      handle,
-      members,
-      meta,
-      labels,
-    } = (a as KV) || {}
+    const { name, handle, members, meta, labels } = (a as KV) || {}
     if (!name) {
       throw Error('field name is empty')
     }
@@ -834,7 +793,8 @@ export default class System {
   }
 
   roleCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -853,15 +813,7 @@ export default class System {
 
   // Update role details
   async roleUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      name,
-      handle,
-      members,
-      meta,
-      labels,
-      updatedAt,
-    } = (a as KV) || {}
+    const { roleID, name, handle, members, meta, labels, updatedAt } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -886,7 +838,8 @@ export default class System {
   }
 
   roleUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -900,17 +853,13 @@ export default class System {
   }
 
   roleUpdateEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}`
   }
 
   // Read role details and memberships
   async roleRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -928,7 +877,8 @@ export default class System {
   }
 
   roleReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -942,17 +892,13 @@ export default class System {
   }
 
   roleReadEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}`
   }
 
   // Remove role
   async roleDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -970,7 +916,8 @@ export default class System {
   }
 
   roleDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -984,17 +931,13 @@ export default class System {
   }
 
   roleDeleteEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}`
   }
 
   // Archive role
   async roleArchive(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1012,7 +955,8 @@ export default class System {
   }
 
   roleArchiveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1026,17 +970,13 @@ export default class System {
   }
 
   roleArchiveEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/archive`
   }
 
   // Unarchive role
   async roleUnarchive(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1054,7 +994,8 @@ export default class System {
   }
 
   roleUnarchiveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1068,17 +1009,13 @@ export default class System {
   }
 
   roleUnarchiveEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/unarchive`
   }
 
   // Undelete role
   async roleUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1096,7 +1033,8 @@ export default class System {
   }
 
   roleUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1110,18 +1048,13 @@ export default class System {
   }
 
   roleUndeleteEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/undelete`
   }
 
   // Move role to different organisation
   async roleMove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      organisationID,
-    } = (a as KV) || {}
+    const { roleID, organisationID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1144,7 +1077,8 @@ export default class System {
   }
 
   roleMoveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1158,18 +1092,13 @@ export default class System {
   }
 
   roleMoveEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/move`
   }
 
   // Merge one role into another
   async roleMerge(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      destination,
-    } = (a as KV) || {}
+    const { roleID, destination } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1192,7 +1121,8 @@ export default class System {
   }
 
   roleMergeCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1206,17 +1136,13 @@ export default class System {
   }
 
   roleMergeEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/merge`
   }
 
   // Returns all role members
   async roleMemberList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1234,7 +1160,8 @@ export default class System {
   }
 
   roleMemberListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1248,18 +1175,13 @@ export default class System {
   }
 
   roleMemberListEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/members`
   }
 
   // Add user group to a user group
   async roleMemberAddGroup(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      userGroupID,
-    } = (a as KV) || {}
+    const { roleID, userGroupID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1270,7 +1192,8 @@ export default class System {
       ...extra,
       method: 'post',
       url: this.roleMemberAddGroupEndpoint({
-        roleID, userGroupID,
+        roleID,
+        userGroupID,
       }),
     }
 
@@ -1280,7 +1203,8 @@ export default class System {
   }
 
   roleMemberAddGroupCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1294,19 +1218,13 @@ export default class System {
   }
 
   roleMemberAddGroupEndpoint(a: KV): string {
-    const {
-      roleID,
-      userGroupID,
-    } = a || {}
+    const { roleID, userGroupID } = a || {}
     return `/roles/${roleID}/member-g/${userGroupID}`
   }
 
   // Add member to a role
   async roleMemberAdd(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      userID,
-    } = (a as KV) || {}
+    const { roleID, userID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1317,7 +1235,8 @@ export default class System {
       ...extra,
       method: 'post',
       url: this.roleMemberAddEndpoint({
-        roleID, userID,
+        roleID,
+        userID,
       }),
     }
 
@@ -1327,7 +1246,8 @@ export default class System {
   }
 
   roleMemberAddCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1341,19 +1261,13 @@ export default class System {
   }
 
   roleMemberAddEndpoint(a: KV): string {
-    const {
-      roleID,
-      userID,
-    } = a || {}
+    const { roleID, userID } = a || {}
     return `/roles/${roleID}/member/${userID}`
   }
 
   // Remove member from a role
   async roleMemberRemove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      userID,
-    } = (a as KV) || {}
+    const { roleID, userID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1364,7 +1278,8 @@ export default class System {
       ...extra,
       method: 'delete',
       url: this.roleMemberRemoveEndpoint({
-        roleID, userID,
+        roleID,
+        userID,
       }),
     }
 
@@ -1374,7 +1289,8 @@ export default class System {
   }
 
   roleMemberRemoveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1388,19 +1304,13 @@ export default class System {
   }
 
   roleMemberRemoveEndpoint(a: KV): string {
-    const {
-      roleID,
-      userID,
-    } = a || {}
+    const { roleID, userID } = a || {}
     return `/roles/${roleID}/member/${userID}`
   }
 
   // Remove user group from a role
   async roleMemberRemoveGroup(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      userGroupID,
-    } = (a as KV) || {}
+    const { roleID, userGroupID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1411,7 +1321,8 @@ export default class System {
       ...extra,
       method: 'delete',
       url: this.roleMemberRemoveGroupEndpoint({
-        roleID, userGroupID,
+        roleID,
+        userGroupID,
       }),
     }
 
@@ -1421,7 +1332,8 @@ export default class System {
   }
 
   roleMemberRemoveGroupCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1435,20 +1347,13 @@ export default class System {
   }
 
   roleMemberRemoveGroupEndpoint(a: KV): string {
-    const {
-      roleID,
-      userGroupID,
-    } = a || {}
+    const { roleID, userGroupID } = a || {}
     return `/roles/${roleID}/member-g/${userGroupID}`
   }
 
   // Fire system:role trigger
   async roleTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      script,
-      args,
-    } = (a as KV) || {}
+    const { roleID, script, args } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1472,7 +1377,8 @@ export default class System {
   }
 
   roleTriggerScriptCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1486,18 +1392,13 @@ export default class System {
   }
 
   roleTriggerScriptEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/trigger`
   }
 
   // Clone permission settings to a role
   async roleCloneRules(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      cloneToRoleID,
-    } = (a as KV) || {}
+    const { roleID, cloneToRoleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1521,7 +1422,8 @@ export default class System {
   }
 
   roleCloneRulesCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1535,9 +1437,7 @@ export default class System {
   }
 
   roleCloneRulesEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/roles/${roleID}/rules/clone`
   }
 
@@ -1579,7 +1479,8 @@ export default class System {
   }
 
   userGroupListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1598,13 +1499,7 @@ export default class System {
 
   // Update user groups details
   async userGroupCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      members,
-      config,
-      meta,
-      labels,
-    } = (a as KV) || {}
+    const { handle, members, config, meta, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -1623,7 +1518,8 @@ export default class System {
   }
 
   userGroupCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1642,15 +1538,7 @@ export default class System {
 
   // Update user group details
   async userGroupUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userGroupID,
-      handle,
-      members,
-      config,
-      meta,
-      labels,
-      updatedAt,
-    } = (a as KV) || {}
+    const { userGroupID, handle, members, config, meta, labels, updatedAt } = (a as KV) || {}
     if (!userGroupID) {
       throw Error('field userGroupID is empty')
     }
@@ -1675,7 +1563,8 @@ export default class System {
   }
 
   userGroupUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1689,17 +1578,13 @@ export default class System {
   }
 
   userGroupUpdateEndpoint(a: KV): string {
-    const {
-      userGroupID,
-    } = a || {}
+    const { userGroupID } = a || {}
     return `/user-groups/${userGroupID}`
   }
 
   // Read user group details and memberships
   async userGroupRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userGroupID,
-    } = (a as KV) || {}
+    const { userGroupID } = (a as KV) || {}
     if (!userGroupID) {
       throw Error('field userGroupID is empty')
     }
@@ -1717,7 +1602,8 @@ export default class System {
   }
 
   userGroupReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1731,17 +1617,13 @@ export default class System {
   }
 
   userGroupReadEndpoint(a: KV): string {
-    const {
-      userGroupID,
-    } = a || {}
+    const { userGroupID } = a || {}
     return `/user-groups/${userGroupID}`
   }
 
   // Remove user group
   async userGroupDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userGroupID,
-    } = (a as KV) || {}
+    const { userGroupID } = (a as KV) || {}
     if (!userGroupID) {
       throw Error('field userGroupID is empty')
     }
@@ -1759,7 +1641,8 @@ export default class System {
   }
 
   userGroupDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1773,17 +1656,13 @@ export default class System {
   }
 
   userGroupDeleteEndpoint(a: KV): string {
-    const {
-      userGroupID,
-    } = a || {}
+    const { userGroupID } = a || {}
     return `/user-groups/${userGroupID}`
   }
 
   // Undelete user group
   async userGroupUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userGroupID,
-    } = (a as KV) || {}
+    const { userGroupID } = (a as KV) || {}
     if (!userGroupID) {
       throw Error('field userGroupID is empty')
     }
@@ -1801,7 +1680,8 @@ export default class System {
   }
 
   userGroupUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1815,17 +1695,13 @@ export default class System {
   }
 
   userGroupUndeleteEndpoint(a: KV): string {
-    const {
-      userGroupID,
-    } = a || {}
+    const { userGroupID } = a || {}
     return `/user-groups/${userGroupID}/undelete`
   }
 
   // Returns all user group members
   async userGroupMemberList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userGroupID,
-    } = (a as KV) || {}
+    const { userGroupID } = (a as KV) || {}
     if (!userGroupID) {
       throw Error('field userGroupID is empty')
     }
@@ -1843,7 +1719,8 @@ export default class System {
   }
 
   userGroupMemberListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1857,18 +1734,13 @@ export default class System {
   }
 
   userGroupMemberListEndpoint(a: KV): string {
-    const {
-      userGroupID,
-    } = a || {}
+    const { userGroupID } = a || {}
     return `/user-groups/${userGroupID}/members`
   }
 
   // Add member to a user group
   async userGroupMemberAdd(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userGroupID,
-      userID,
-    } = (a as KV) || {}
+    const { userGroupID, userID } = (a as KV) || {}
     if (!userGroupID) {
       throw Error('field userGroupID is empty')
     }
@@ -1879,7 +1751,8 @@ export default class System {
       ...extra,
       method: 'post',
       url: this.userGroupMemberAddEndpoint({
-        userGroupID, userID,
+        userGroupID,
+        userID,
       }),
     }
 
@@ -1889,7 +1762,8 @@ export default class System {
   }
 
   userGroupMemberAddCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1903,10 +1777,7 @@ export default class System {
   }
 
   userGroupMemberAddEndpoint(a: KV): string {
-    const {
-      userGroupID,
-      userID,
-    } = a || {}
+    const { userGroupID, userID } = a || {}
     return `/user-groups/${userGroupID}/member/${userID}`
   }
 
@@ -1960,7 +1831,8 @@ export default class System {
   }
 
   userListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1979,15 +1851,7 @@ export default class System {
 
   // Create user
   async userCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      email,
-      name,
-      handle,
-      userGroupID,
-      kind,
-      labels,
-      meta,
-    } = (a as KV) || {}
+    const { email, name, handle, userGroupID, kind, labels, meta } = (a as KV) || {}
     if (!email) {
       throw Error('field email is empty')
     }
@@ -2014,7 +1878,8 @@ export default class System {
   }
 
   userCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2033,17 +1898,8 @@ export default class System {
 
   // Update user details
   async userUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-      email,
-      name,
-      handle,
-      userGroupID,
-      kind,
-      labels,
-      meta,
-      updatedAt,
-    } = (a as KV) || {}
+    const { userID, email, name, handle, userGroupID, kind, labels, meta, updatedAt } =
+      (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2076,7 +1932,8 @@ export default class System {
   }
 
   userUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2090,17 +1947,13 @@ export default class System {
   }
 
   userUpdateEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}`
   }
 
   // Patch user (experimental)
   async userPartialUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2118,7 +1971,8 @@ export default class System {
   }
 
   userPartialUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2132,17 +1986,13 @@ export default class System {
   }
 
   userPartialUpdateEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}`
   }
 
   // Read user details
   async userRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2160,7 +2010,8 @@ export default class System {
   }
 
   userReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2174,17 +2025,13 @@ export default class System {
   }
 
   userReadEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}`
   }
 
   // Remove user
   async userDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2202,7 +2049,8 @@ export default class System {
   }
 
   userDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2216,17 +2064,13 @@ export default class System {
   }
 
   userDeleteEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}`
   }
 
   // Suspend user
   async userSuspend(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2244,7 +2088,8 @@ export default class System {
   }
 
   userSuspendCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2258,17 +2103,13 @@ export default class System {
   }
 
   userSuspendEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/suspend`
   }
 
   // Unsuspend user
   async userUnsuspend(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2286,7 +2127,8 @@ export default class System {
   }
 
   userUnsuspendCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2300,17 +2142,13 @@ export default class System {
   }
 
   userUnsuspendEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/unsuspend`
   }
 
   // Undelete user
   async userUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2328,7 +2166,8 @@ export default class System {
   }
 
   userUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2342,18 +2181,13 @@ export default class System {
   }
 
   userUndeleteEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/undelete`
   }
 
   // Set&#x27;s or changes user&#x27;s password
   async userSetPassword(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-      password,
-    } = (a as KV) || {}
+    const { userID, password } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2373,7 +2207,8 @@ export default class System {
   }
 
   userSetPasswordCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2387,17 +2222,13 @@ export default class System {
   }
 
   userSetPasswordEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/password`
   }
 
   // Add member to a role
   async userMembershipList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2415,7 +2246,8 @@ export default class System {
   }
 
   userMembershipListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2429,18 +2261,13 @@ export default class System {
   }
 
   userMembershipListEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/membership`
   }
 
   // Add role to a user
   async userMembershipAdd(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      userID,
-    } = (a as KV) || {}
+    const { roleID, userID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -2451,7 +2278,8 @@ export default class System {
       ...extra,
       method: 'post',
       url: this.userMembershipAddEndpoint({
-        roleID, userID,
+        roleID,
+        userID,
       }),
     }
 
@@ -2461,7 +2289,8 @@ export default class System {
   }
 
   userMembershipAddCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2475,19 +2304,13 @@ export default class System {
   }
 
   userMembershipAddEndpoint(a: KV): string {
-    const {
-      roleID,
-      userID,
-    } = a || {}
+    const { roleID, userID } = a || {}
     return `/users/${userID}/membership/${roleID}`
   }
 
   // Remove role from a user
   async userMembershipRemove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      userID,
-    } = (a as KV) || {}
+    const { roleID, userID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -2498,7 +2321,8 @@ export default class System {
       ...extra,
       method: 'delete',
       url: this.userMembershipRemoveEndpoint({
-        roleID, userID,
+        roleID,
+        userID,
       }),
     }
 
@@ -2508,7 +2332,8 @@ export default class System {
   }
 
   userMembershipRemoveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2522,20 +2347,13 @@ export default class System {
   }
 
   userMembershipRemoveEndpoint(a: KV): string {
-    const {
-      roleID,
-      userID,
-    } = a || {}
+    const { roleID, userID } = a || {}
     return `/users/${userID}/membership/${roleID}`
   }
 
   // Fire system:user trigger
   async userTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-      script,
-      args,
-    } = (a as KV) || {}
+    const { userID, script, args } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2559,7 +2377,8 @@ export default class System {
   }
 
   userTriggerScriptCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2573,17 +2392,13 @@ export default class System {
   }
 
   userTriggerScriptEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/trigger`
   }
 
   // Remove all auth sessions of user
   async userSessionsRemove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2601,7 +2416,8 @@ export default class System {
   }
 
   userSessionsRemoveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2615,17 +2431,13 @@ export default class System {
   }
 
   userSessionsRemoveEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/sessions`
   }
 
   // List user&#x27;s credentials
   async userListCredentials(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2643,7 +2455,8 @@ export default class System {
   }
 
   userListCredentialsCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2657,18 +2470,13 @@ export default class System {
   }
 
   userListCredentialsEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/credentials`
   }
 
   // List user&#x27;s credentials
   async userDeleteCredentials(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-      credentialsID,
-    } = (a as KV) || {}
+    const { userID, credentialsID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2679,7 +2487,8 @@ export default class System {
       ...extra,
       method: 'delete',
       url: this.userDeleteCredentialsEndpoint({
-        userID, credentialsID,
+        userID,
+        credentialsID,
       }),
     }
 
@@ -2689,7 +2498,8 @@ export default class System {
   }
 
   userDeleteCredentialsCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2703,21 +2513,13 @@ export default class System {
   }
 
   userDeleteCredentialsEndpoint(a: KV): string {
-    const {
-      userID,
-      credentialsID,
-    } = a || {}
+    const { userID, credentialsID } = a || {}
     return `/users/${userID}/credentials/${credentialsID}`
   }
 
   // User&#x27;s profile avatar
   async userProfileAvatar(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-      upload,
-      width,
-      height,
-    } = (a as KV) || {}
+    const { userID, upload, width, height } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2739,7 +2541,8 @@ export default class System {
   }
 
   userProfileAvatarCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2753,19 +2556,13 @@ export default class System {
   }
 
   userProfileAvatarEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/avatar`
   }
 
   // User profile avatar initial
   async userProfileAvatarInitial(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-      avatarColor,
-      avatarBgColor,
-    } = (a as KV) || {}
+    const { userID, avatarColor, avatarBgColor } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2786,7 +2583,8 @@ export default class System {
   }
 
   userProfileAvatarInitialCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2800,17 +2598,13 @@ export default class System {
   }
 
   userProfileAvatarInitialEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/avatar-initial`
   }
 
   // delete user&#x27;s profile avatar
   async userDeleteAvatar(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      userID,
-    } = (a as KV) || {}
+    const { userID } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
     }
@@ -2828,7 +2622,8 @@ export default class System {
   }
 
   userDeleteAvatarCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2842,19 +2637,13 @@ export default class System {
   }
 
   userDeleteAvatarEndpoint(a: KV): string {
-    const {
-      userID,
-    } = a || {}
+    const { userID } = a || {}
     return `/users/${userID}/avatar`
   }
 
   // Export users
   async userExport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      filename,
-      inclRoleMembership,
-      inclRoles,
-    } = (a as KV) || {}
+    const { filename, inclRoleMembership, inclRoles } = (a as KV) || {}
     if (!filename) {
       throw Error('field filename is empty')
     }
@@ -2876,7 +2665,8 @@ export default class System {
   }
 
   userExportCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2890,17 +2680,13 @@ export default class System {
   }
 
   userExportEndpoint(a: KV): string {
-    const {
-      filename,
-    } = a || {}
+    const { filename } = a || {}
     return `/users/export/${filename}.zip`
   }
 
   // Import users
   async userImport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      upload,
-    } = (a as KV) || {}
+    const { upload } = (a as KV) || {}
     if (!upload) {
       throw Error('field upload is empty')
     }
@@ -2918,7 +2704,8 @@ export default class System {
   }
 
   userImportCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -2937,7 +2724,6 @@ export default class System {
 
   // Search drivers
   async dalDriverList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -2949,9 +2735,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  dalDriverListCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  dalDriverListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -2969,11 +2756,7 @@ export default class System {
 
   // Search sensitivity levels
   async dalSensitivityLevelList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sensitivityLevelID,
-      deleted,
-      incTotal,
-    } = (a as KV) || {}
+    const { sensitivityLevelID, deleted, incTotal } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -2991,7 +2774,8 @@ export default class System {
   }
 
   dalSensitivityLevelListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3010,11 +2794,7 @@ export default class System {
 
   // Create sensitivity level
   async dalSensitivityLevelCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      level,
-      meta,
-    } = (a as KV) || {}
+    const { handle, level, meta } = (a as KV) || {}
     if (!level) {
       throw Error('field level is empty')
     }
@@ -3037,7 +2817,8 @@ export default class System {
   }
 
   dalSensitivityLevelCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3056,13 +2837,7 @@ export default class System {
 
   // Update sensitivity details
   async dalSensitivityLevelUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sensitivityLevelID,
-      handle,
-      level,
-      meta,
-      updatedAt,
-    } = (a as KV) || {}
+    const { sensitivityLevelID, handle, level, meta, updatedAt } = (a as KV) || {}
     if (!sensitivityLevelID) {
       throw Error('field sensitivityLevelID is empty')
     }
@@ -3091,7 +2866,8 @@ export default class System {
   }
 
   dalSensitivityLevelUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3105,17 +2881,13 @@ export default class System {
   }
 
   dalSensitivityLevelUpdateEndpoint(a: KV): string {
-    const {
-      sensitivityLevelID,
-    } = a || {}
+    const { sensitivityLevelID } = a || {}
     return `/dal/sensitivity-levels/${sensitivityLevelID}`
   }
 
   // Read connection details
   async dalSensitivityLevelRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sensitivityLevelID,
-    } = (a as KV) || {}
+    const { sensitivityLevelID } = (a as KV) || {}
     if (!sensitivityLevelID) {
       throw Error('field sensitivityLevelID is empty')
     }
@@ -3133,7 +2905,8 @@ export default class System {
   }
 
   dalSensitivityLevelReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3147,17 +2920,13 @@ export default class System {
   }
 
   dalSensitivityLevelReadEndpoint(a: KV): string {
-    const {
-      sensitivityLevelID,
-    } = a || {}
+    const { sensitivityLevelID } = a || {}
     return `/dal/sensitivity-levels/${sensitivityLevelID}`
   }
 
   // Remove sensitivity level
   async dalSensitivityLevelDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sensitivityLevelID,
-    } = (a as KV) || {}
+    const { sensitivityLevelID } = (a as KV) || {}
     if (!sensitivityLevelID) {
       throw Error('field sensitivityLevelID is empty')
     }
@@ -3175,7 +2944,8 @@ export default class System {
   }
 
   dalSensitivityLevelDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3189,17 +2959,13 @@ export default class System {
   }
 
   dalSensitivityLevelDeleteEndpoint(a: KV): string {
-    const {
-      sensitivityLevelID,
-    } = a || {}
+    const { sensitivityLevelID } = a || {}
     return `/dal/sensitivity-levels/${sensitivityLevelID}`
   }
 
   // Undelete sensitivity level
   async dalSensitivityLevelUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sensitivityLevelID,
-    } = (a as KV) || {}
+    const { sensitivityLevelID } = (a as KV) || {}
     if (!sensitivityLevelID) {
       throw Error('field sensitivityLevelID is empty')
     }
@@ -3217,7 +2983,8 @@ export default class System {
   }
 
   dalSensitivityLevelUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3231,9 +2998,7 @@ export default class System {
   }
 
   dalSensitivityLevelUndeleteEndpoint(a: KV): string {
-    const {
-      sensitivityLevelID,
-    } = a || {}
+    const { sensitivityLevelID } = a || {}
     return `/dal/sensitivity-levels/${sensitivityLevelID}/undelete`
   }
 
@@ -3273,7 +3038,8 @@ export default class System {
   }
 
   dalSchemaAlterationListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3292,9 +3058,7 @@ export default class System {
 
   // Read alteration details
   async dalSchemaAlterationRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
+    const { alterationID } = (a as KV) || {}
     if (!alterationID) {
       throw Error('field alterationID is empty')
     }
@@ -3312,7 +3076,8 @@ export default class System {
   }
 
   dalSchemaAlterationReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3326,17 +3091,13 @@ export default class System {
   }
 
   dalSchemaAlterationReadEndpoint(a: KV): string {
-    const {
-      alterationID,
-    } = a || {}
+    const { alterationID } = a || {}
     return `/dal/schema/alterations/${alterationID}`
   }
 
   // Apply alterations
   async dalSchemaAlterationApply(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
+    const { alterationID } = (a as KV) || {}
     if (!alterationID) {
       throw Error('field alterationID is empty')
     }
@@ -3355,7 +3116,8 @@ export default class System {
   }
 
   dalSchemaAlterationApplyCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3374,9 +3136,7 @@ export default class System {
 
   // Dismiss alterations
   async dalSchemaAlterationDismiss(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
+    const { alterationID } = (a as KV) || {}
     if (!alterationID) {
       throw Error('field alterationID is empty')
     }
@@ -3395,7 +3155,8 @@ export default class System {
   }
 
   dalSchemaAlterationDismissCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3414,13 +3175,7 @@ export default class System {
 
   // Search connections (Directory)
   async dalConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      handle,
-      type,
-      deleted,
-      incTotal,
-    } = (a as KV) || {}
+    const { connectionID, handle, type, deleted, incTotal } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -3440,7 +3195,8 @@ export default class System {
   }
 
   dalConnectionListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3459,12 +3215,7 @@ export default class System {
 
   // Create connection
   async dalConnectionCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      type,
-      meta,
-      config,
-    } = (a as KV) || {}
+    const { handle, type, meta, config } = (a as KV) || {}
     if (!type) {
       throw Error('field type is empty')
     }
@@ -3491,7 +3242,8 @@ export default class System {
   }
 
   dalConnectionCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3510,14 +3262,7 @@ export default class System {
 
   // Update connection details
   async dalConnectionUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      handle,
-      type,
-      meta,
-      config,
-      updatedAt,
-    } = (a as KV) || {}
+    const { connectionID, handle, type, meta, config, updatedAt } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -3550,7 +3295,8 @@ export default class System {
   }
 
   dalConnectionUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3564,17 +3310,13 @@ export default class System {
   }
 
   dalConnectionUpdateEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/dal/connections/${connectionID}`
   }
 
   // Read connection details
   async dalConnectionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -3592,7 +3334,8 @@ export default class System {
   }
 
   dalConnectionReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3606,17 +3349,13 @@ export default class System {
   }
 
   dalConnectionReadEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/dal/connections/${connectionID}`
   }
 
   // Remove connection
   async dalConnectionDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -3634,7 +3373,8 @@ export default class System {
   }
 
   dalConnectionDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3648,17 +3388,13 @@ export default class System {
   }
 
   dalConnectionDeleteEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/dal/connections/${connectionID}`
   }
 
   // Undelete connection
   async dalConnectionUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -3676,7 +3412,8 @@ export default class System {
   }
 
   dalConnectionUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3690,26 +3427,14 @@ export default class System {
   }
 
   dalConnectionUndeleteEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/dal/connections/${connectionID}/undelete`
   }
 
   // List applications
   async applicationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      name,
-      query,
-      deleted,
-      labels,
-      flags,
-      incFlags,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { name, query, deleted, labels, flags, incFlags, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -3734,7 +3459,8 @@ export default class System {
   }
 
   applicationListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3753,14 +3479,7 @@ export default class System {
 
   // Create application
   async applicationCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      name,
-      enabled,
-      weight,
-      unify,
-      config,
-      labels,
-    } = (a as KV) || {}
+    const { name, enabled, weight, unify, config, labels } = (a as KV) || {}
     if (!name) {
       throw Error('field name is empty')
     }
@@ -3783,7 +3502,8 @@ export default class System {
   }
 
   applicationCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3802,16 +3522,8 @@ export default class System {
 
   // Update user details
   async applicationUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-      name,
-      enabled,
-      weight,
-      unify,
-      config,
-      labels,
-      updatedAt,
-    } = (a as KV) || {}
+    const { applicationID, name, enabled, weight, unify, config, labels, updatedAt } =
+      (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -3840,7 +3552,8 @@ export default class System {
   }
 
   applicationUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3854,17 +3567,13 @@ export default class System {
   }
 
   applicationUpdateEndpoint(a: KV): string {
-    const {
-      applicationID,
-    } = a || {}
+    const { applicationID } = a || {}
     return `/application/${applicationID}`
   }
 
   // Upload application assets
   async applicationUpload(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      upload,
-    } = (a as KV) || {}
+    const { upload } = (a as KV) || {}
     if (!upload) {
       throw Error('field upload is empty')
     }
@@ -3882,7 +3591,8 @@ export default class System {
   }
 
   applicationUploadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3901,11 +3611,7 @@ export default class System {
 
   // Flag application
   async applicationFlagCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-      flag,
-      ownedBy,
-    } = (a as KV) || {}
+    const { applicationID, flag, ownedBy } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -3916,7 +3622,9 @@ export default class System {
       ...extra,
       method: 'post',
       url: this.applicationFlagCreateEndpoint({
-        applicationID, flag, ownedBy,
+        applicationID,
+        flag,
+        ownedBy,
       }),
     }
 
@@ -3926,7 +3634,8 @@ export default class System {
   }
 
   applicationFlagCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3940,21 +3649,13 @@ export default class System {
   }
 
   applicationFlagCreateEndpoint(a: KV): string {
-    const {
-      applicationID,
-      flag,
-      ownedBy,
-    } = a || {}
+    const { applicationID, flag, ownedBy } = a || {}
     return `/application/${applicationID}/flag/${ownedBy}/${flag}`
   }
 
   // Unflag application
   async applicationFlagDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-      flag,
-      ownedBy,
-    } = (a as KV) || {}
+    const { applicationID, flag, ownedBy } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -3965,7 +3666,9 @@ export default class System {
       ...extra,
       method: 'delete',
       url: this.applicationFlagDeleteEndpoint({
-        applicationID, flag, ownedBy,
+        applicationID,
+        flag,
+        ownedBy,
       }),
     }
 
@@ -3975,7 +3678,8 @@ export default class System {
   }
 
   applicationFlagDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -3989,20 +3693,13 @@ export default class System {
   }
 
   applicationFlagDeleteEndpoint(a: KV): string {
-    const {
-      applicationID,
-      flag,
-      ownedBy,
-    } = a || {}
+    const { applicationID, flag, ownedBy } = a || {}
     return `/application/${applicationID}/flag/${ownedBy}/${flag}`
   }
 
   // Read application details
   async applicationRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-      incFlags,
-    } = (a as KV) || {}
+    const { applicationID, incFlags } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -4023,7 +3720,8 @@ export default class System {
   }
 
   applicationReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4037,17 +3735,13 @@ export default class System {
   }
 
   applicationReadEndpoint(a: KV): string {
-    const {
-      applicationID,
-    } = a || {}
+    const { applicationID } = a || {}
     return `/application/${applicationID}`
   }
 
   // Remove application
   async applicationDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-    } = (a as KV) || {}
+    const { applicationID } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -4065,7 +3759,8 @@ export default class System {
   }
 
   applicationDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4079,17 +3774,13 @@ export default class System {
   }
 
   applicationDeleteEndpoint(a: KV): string {
-    const {
-      applicationID,
-    } = a || {}
+    const { applicationID } = a || {}
     return `/application/${applicationID}`
   }
 
   // Undelete application
   async applicationUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-    } = (a as KV) || {}
+    const { applicationID } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -4107,7 +3798,8 @@ export default class System {
   }
 
   applicationUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4121,19 +3813,13 @@ export default class System {
   }
 
   applicationUndeleteEndpoint(a: KV): string {
-    const {
-      applicationID,
-    } = a || {}
+    const { applicationID } = a || {}
     return `/application/${applicationID}/undelete`
   }
 
   // Fire system:application trigger
   async applicationTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationID,
-      script,
-      args,
-    } = (a as KV) || {}
+    const { applicationID, script, args } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -4157,7 +3843,8 @@ export default class System {
   }
 
   applicationTriggerScriptCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4171,17 +3858,13 @@ export default class System {
   }
 
   applicationTriggerScriptEndpoint(a: KV): string {
-    const {
-      applicationID,
-    } = a || {}
+    const { applicationID } = a || {}
     return `/application/${applicationID}/trigger`
   }
 
   // Reorder applications
   async applicationReorder(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      applicationIDs,
-    } = (a as KV) || {}
+    const { applicationIDs } = (a as KV) || {}
     if (!applicationIDs) {
       throw Error('field applicationIDs is empty')
     }
@@ -4199,7 +3882,8 @@ export default class System {
   }
 
   applicationReorderCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4218,12 +3902,7 @@ export default class System {
 
   // List labels
   async labelList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      name,
-      value,
-      limit,
-    } = (a as KV) || {}
+    const { kind, name, value, limit } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4242,7 +3921,8 @@ export default class System {
   }
 
   labelListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4259,9 +3939,50 @@ export default class System {
     return '/label/'
   }
 
+  // Delete label
+  async labelDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { name, kind } = (a as KV) || {}
+    if (!name) {
+      throw Error('field name is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.labelDeleteEndpoint({
+        name,
+      }),
+    }
+    cfg.params = {
+      kind,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  labelDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.labelDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  labelDeleteEndpoint(a: KV): string {
+    const { name } = a || {}
+    return `/label/${name}`
+  }
+
   // Retrieve defined permissions
   async permissionsList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4273,9 +3994,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  permissionsListCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  permissionsListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -4293,9 +4015,7 @@ export default class System {
 
   // Effective rules for current user
   async permissionsEffective(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      resource,
-    } = (a as KV) || {}
+    const { resource } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4311,7 +4031,8 @@ export default class System {
   }
 
   permissionsEffectiveCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4330,11 +4051,7 @@ export default class System {
 
   // Evaluate rules for given user/role combo
   async permissionsTrace(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      resource,
-      userID,
-      roleID,
-    } = (a as KV) || {}
+    const { resource, userID, roleID } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4352,7 +4069,8 @@ export default class System {
   }
 
   permissionsTraceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4371,10 +4089,7 @@ export default class System {
 
   // Retrieve role permissions
   async permissionsRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      resource,
-    } = (a as KV) || {}
+    const { roleID, resource } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -4395,7 +4110,8 @@ export default class System {
   }
 
   permissionsReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4409,17 +4125,13 @@ export default class System {
   }
 
   permissionsReadEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Remove all defined role permissions
   async permissionsDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -4437,7 +4149,8 @@ export default class System {
   }
 
   permissionsDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4451,18 +4164,13 @@ export default class System {
   }
 
   permissionsDeleteEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Update permission settings
   async permissionsUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      rules,
-    } = (a as KV) || {}
+    const { roleID, rules } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -4485,7 +4193,8 @@ export default class System {
   }
 
   permissionsUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4499,9 +4208,7 @@ export default class System {
   }
 
   permissionsUpdateEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
@@ -4545,7 +4252,8 @@ export default class System {
   }
 
   reminderListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4564,12 +4272,7 @@ export default class System {
 
   // Add new reminder
   async reminderCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      resource,
-      assignedTo,
-      payload,
-      remindAt,
-    } = (a as KV) || {}
+    const { resource, assignedTo, payload, remindAt } = (a as KV) || {}
     if (!resource) {
       throw Error('field resource is empty')
     }
@@ -4596,7 +4299,8 @@ export default class System {
   }
 
   reminderCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4615,13 +4319,7 @@ export default class System {
 
   // Update reminder
   async reminderUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reminderID,
-      resource,
-      assignedTo,
-      payload,
-      remindAt,
-    } = (a as KV) || {}
+    const { reminderID, resource, assignedTo, payload, remindAt } = (a as KV) || {}
     if (!reminderID) {
       throw Error('field reminderID is empty')
     }
@@ -4653,7 +4351,8 @@ export default class System {
   }
 
   reminderUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4667,17 +4366,13 @@ export default class System {
   }
 
   reminderUpdateEndpoint(a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
+    const { reminderID } = a || {}
     return `/reminder/${reminderID}`
   }
 
   // Read reminder by ID
   async reminderRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reminderID,
-    } = (a as KV) || {}
+    const { reminderID } = (a as KV) || {}
     if (!reminderID) {
       throw Error('field reminderID is empty')
     }
@@ -4695,7 +4390,8 @@ export default class System {
   }
 
   reminderReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4709,17 +4405,13 @@ export default class System {
   }
 
   reminderReadEndpoint(a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
+    const { reminderID } = a || {}
     return `/reminder/${reminderID}`
   }
 
   // Delete reminder
   async reminderDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reminderID,
-    } = (a as KV) || {}
+    const { reminderID } = (a as KV) || {}
     if (!reminderID) {
       throw Error('field reminderID is empty')
     }
@@ -4737,7 +4429,8 @@ export default class System {
   }
 
   reminderDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4751,17 +4444,13 @@ export default class System {
   }
 
   reminderDeleteEndpoint(a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
+    const { reminderID } = a || {}
     return `/reminder/${reminderID}`
   }
 
   // Dismiss reminder
   async reminderDismiss(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reminderID,
-    } = (a as KV) || {}
+    const { reminderID } = (a as KV) || {}
     if (!reminderID) {
       throw Error('field reminderID is empty')
     }
@@ -4779,7 +4468,8 @@ export default class System {
   }
 
   reminderDismissCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4793,17 +4483,13 @@ export default class System {
   }
 
   reminderDismissEndpoint(a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
+    const { reminderID } = a || {}
     return `/reminder/${reminderID}/dismiss`
   }
 
   // Undismiss reminder
   async reminderUndismiss(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reminderID,
-    } = (a as KV) || {}
+    const { reminderID } = (a as KV) || {}
     if (!reminderID) {
       throw Error('field reminderID is empty')
     }
@@ -4821,7 +4507,8 @@ export default class System {
   }
 
   reminderUndismissCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4835,18 +4522,13 @@ export default class System {
   }
 
   reminderUndismissEndpoint(a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
+    const { reminderID } = a || {}
     return `/reminder/${reminderID}/undismiss`
   }
 
   // Snooze reminder
   async reminderSnooze(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reminderID,
-      remindAt,
-    } = (a as KV) || {}
+    const { reminderID, remindAt } = (a as KV) || {}
     if (!reminderID) {
       throw Error('field reminderID is empty')
     }
@@ -4869,7 +4551,8 @@ export default class System {
   }
 
   reminderSnoozeCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4883,23 +4566,13 @@ export default class System {
   }
 
   reminderSnoozeEndpoint(a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
+    const { reminderID } = a || {}
     return `/reminder/${reminderID}/snooze`
   }
 
   // List/read notifications
   async notificationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      notificationID,
-      kind,
-      read,
-      deleted,
-      limit,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { notificationID, kind, read, deleted, limit, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -4921,7 +4594,8 @@ export default class System {
   }
 
   notificationListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4940,11 +4614,7 @@ export default class System {
 
   // Add new notification
   async notificationCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      config,
-      recipient,
-    } = (a as KV) || {}
+    const { kind, config, recipient } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -4970,7 +4640,8 @@ export default class System {
   }
 
   notificationCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -4989,12 +4660,7 @@ export default class System {
 
   // Update notification
   async notificationUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      notificationID,
-      kind,
-      config,
-      recipient,
-    } = (a as KV) || {}
+    const { notificationID, kind, config, recipient } = (a as KV) || {}
     if (!notificationID) {
       throw Error('field notificationID is empty')
     }
@@ -5025,7 +4691,8 @@ export default class System {
   }
 
   notificationUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5039,17 +4706,13 @@ export default class System {
   }
 
   notificationUpdateEndpoint(a: KV): string {
-    const {
-      notificationID,
-    } = a || {}
+    const { notificationID } = a || {}
     return `/notification/${notificationID}`
   }
 
   // Read notification by ID
   async notificationRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      notificationID,
-    } = (a as KV) || {}
+    const { notificationID } = (a as KV) || {}
     if (!notificationID) {
       throw Error('field notificationID is empty')
     }
@@ -5067,7 +4730,8 @@ export default class System {
   }
 
   notificationReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5081,17 +4745,13 @@ export default class System {
   }
 
   notificationReadEndpoint(a: KV): string {
-    const {
-      notificationID,
-    } = a || {}
+    const { notificationID } = a || {}
     return `/notification/${notificationID}`
   }
 
   // Delete notification
   async notificationDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      notificationID,
-    } = (a as KV) || {}
+    const { notificationID } = (a as KV) || {}
     if (!notificationID) {
       throw Error('field notificationID is empty')
     }
@@ -5109,7 +4769,8 @@ export default class System {
   }
 
   notificationDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5123,17 +4784,13 @@ export default class System {
   }
 
   notificationDeleteEndpoint(a: KV): string {
-    const {
-      notificationID,
-    } = a || {}
+    const { notificationID } = a || {}
     return `/notification/${notificationID}`
   }
 
   // Mark notification as read
   async notificationMarkAsRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      notificationID,
-    } = (a as KV) || {}
+    const { notificationID } = (a as KV) || {}
     if (!notificationID) {
       throw Error('field notificationID is empty')
     }
@@ -5151,7 +4808,8 @@ export default class System {
   }
 
   notificationMarkAsReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5165,17 +4823,13 @@ export default class System {
   }
 
   notificationMarkAsReadEndpoint(a: KV): string {
-    const {
-      notificationID,
-    } = a || {}
+    const { notificationID } = a || {}
     return `/notification/${notificationID}/read`
   }
 
   // Mark notification as unread
   async notificationMarkAsUnread(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      notificationID,
-    } = (a as KV) || {}
+    const { notificationID } = (a as KV) || {}
     if (!notificationID) {
       throw Error('field notificationID is empty')
     }
@@ -5193,7 +4847,8 @@ export default class System {
   }
 
   notificationMarkAsUnreadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5207,15 +4862,12 @@ export default class System {
   }
 
   notificationMarkAsUnreadEndpoint(a: KV): string {
-    const {
-      notificationID,
-    } = a || {}
+    const { notificationID } = a || {}
     return `/notification/${notificationID}/unread`
   }
 
   // Mark all notifications as read for current user
   async notificationMarkAllAsRead(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'patch',
@@ -5227,9 +4879,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  notificationMarkAllAsReadCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  notificationMarkAllAsReadCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -5247,7 +4900,6 @@ export default class System {
 
   // Mark all notifications as unread for current user
   async notificationMarkAllAsUnread(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'patch',
@@ -5259,9 +4911,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  notificationMarkAllAsUnreadCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  notificationMarkAllAsUnreadCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -5279,12 +4932,7 @@ export default class System {
 
   // Attachment details
   async attachmentRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      attachmentID,
-      sign,
-      userID,
-    } = (a as KV) || {}
+    const { kind, attachmentID, sign, userID } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -5295,7 +4943,8 @@ export default class System {
       ...extra,
       method: 'get',
       url: this.attachmentReadEndpoint({
-        kind, attachmentID,
+        kind,
+        attachmentID,
       }),
     }
     cfg.params = {
@@ -5309,7 +4958,8 @@ export default class System {
   }
 
   attachmentReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5323,21 +4973,13 @@ export default class System {
   }
 
   attachmentReadEndpoint(a: KV): string {
-    const {
-      kind,
-      attachmentID,
-    } = a || {}
+    const { kind, attachmentID } = a || {}
     return `/attachment/${kind}/${attachmentID}`
   }
 
   // Delete attachment
   async attachmentDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      attachmentID,
-      sign,
-      userID,
-    } = (a as KV) || {}
+    const { kind, attachmentID, sign, userID } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -5348,7 +4990,8 @@ export default class System {
       ...extra,
       method: 'delete',
       url: this.attachmentDeleteEndpoint({
-        kind, attachmentID,
+        kind,
+        attachmentID,
       }),
     }
     cfg.params = {
@@ -5362,7 +5005,8 @@ export default class System {
   }
 
   attachmentDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5376,23 +5020,13 @@ export default class System {
   }
 
   attachmentDeleteEndpoint(a: KV): string {
-    const {
-      kind,
-      attachmentID,
-    } = a || {}
+    const { kind, attachmentID } = a || {}
     return `/attachment/${kind}/${attachmentID}`
   }
 
   // Serves attached file
   async attachmentOriginal(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      attachmentID,
-      name,
-      sign,
-      userID,
-      download,
-    } = (a as KV) || {}
+    const { kind, attachmentID, name, sign, userID, download } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -5406,7 +5040,9 @@ export default class System {
       ...extra,
       method: 'get',
       url: this.attachmentOriginalEndpoint({
-        kind, attachmentID, name,
+        kind,
+        attachmentID,
+        name,
       }),
     }
     cfg.params = {
@@ -5421,7 +5057,8 @@ export default class System {
   }
 
   attachmentOriginalCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5435,23 +5072,13 @@ export default class System {
   }
 
   attachmentOriginalEndpoint(a: KV): string {
-    const {
-      kind,
-      attachmentID,
-      name,
-    } = a || {}
+    const { kind, attachmentID, name } = a || {}
     return `/attachment/${kind}/${attachmentID}/original/${name}`
   }
 
   // Serves preview of an attached file
   async attachmentPreview(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      attachmentID,
-      ext,
-      sign,
-      userID,
-    } = (a as KV) || {}
+    const { kind, attachmentID, ext, sign, userID } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -5465,7 +5092,9 @@ export default class System {
       ...extra,
       method: 'get',
       url: this.attachmentPreviewEndpoint({
-        kind, attachmentID, ext,
+        kind,
+        attachmentID,
+        ext,
       }),
     }
     cfg.params = {
@@ -5479,7 +5108,8 @@ export default class System {
   }
 
   attachmentPreviewCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5493,11 +5123,7 @@ export default class System {
   }
 
   attachmentPreviewEndpoint(a: KV): string {
-    const {
-      kind,
-      attachmentID,
-      ext,
-    } = a || {}
+    const { kind, attachmentID, ext } = a || {}
     return `/attachment/${kind}/${attachmentID}/preview.${ext}`
   }
 
@@ -5541,7 +5167,8 @@ export default class System {
   }
 
   templateListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5560,16 +5187,7 @@ export default class System {
 
   // Create template
   async templateCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      language,
-      type,
-      partial,
-      meta,
-      template,
-      ownerID,
-      labels,
-    } = (a as KV) || {}
+    const { handle, language, type, partial, meta, template, ownerID, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -5591,7 +5209,8 @@ export default class System {
   }
 
   templateCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5610,9 +5229,7 @@ export default class System {
 
   // Read template
   async templateRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      templateID,
-    } = (a as KV) || {}
+    const { templateID } = (a as KV) || {}
     if (!templateID) {
       throw Error('field templateID is empty')
     }
@@ -5630,7 +5247,8 @@ export default class System {
   }
 
   templateReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5644,9 +5262,7 @@ export default class System {
   }
 
   templateReadEndpoint(a: KV): string {
-    const {
-      templateID,
-    } = a || {}
+    const { templateID } = a || {}
     return `/template/${templateID}`
   }
 
@@ -5691,7 +5307,8 @@ export default class System {
   }
 
   templateUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5705,17 +5322,13 @@ export default class System {
   }
 
   templateUpdateEndpoint(a: KV): string {
-    const {
-      templateID,
-    } = a || {}
+    const { templateID } = a || {}
     return `/template/${templateID}`
   }
 
   // Delete template
   async templateDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      templateID,
-    } = (a as KV) || {}
+    const { templateID } = (a as KV) || {}
     if (!templateID) {
       throw Error('field templateID is empty')
     }
@@ -5733,7 +5346,8 @@ export default class System {
   }
 
   templateDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5747,17 +5361,13 @@ export default class System {
   }
 
   templateDeleteEndpoint(a: KV): string {
-    const {
-      templateID,
-    } = a || {}
+    const { templateID } = a || {}
     return `/template/${templateID}`
   }
 
   // Undelete template
   async templateUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      templateID,
-    } = (a as KV) || {}
+    const { templateID } = (a as KV) || {}
     if (!templateID) {
       throw Error('field templateID is empty')
     }
@@ -5775,7 +5385,8 @@ export default class System {
   }
 
   templateUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5789,15 +5400,12 @@ export default class System {
   }
 
   templateUndeleteEndpoint(a: KV): string {
-    const {
-      templateID,
-    } = a || {}
+    const { templateID } = a || {}
     return `/template/${templateID}/undelete`
   }
 
   // Render drivers
   async templateRenderDrivers(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -5809,9 +5417,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  templateRenderDriversCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  templateRenderDriversCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -5829,13 +5438,7 @@ export default class System {
 
   // Render template
   async templateRender(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      templateID,
-      filename,
-      ext,
-      variables,
-      options,
-    } = (a as KV) || {}
+    const { templateID, filename, ext, variables, options } = (a as KV) || {}
     if (!templateID) {
       throw Error('field templateID is empty')
     }
@@ -5852,7 +5455,9 @@ export default class System {
       ...extra,
       method: 'post',
       url: this.templateRenderEndpoint({
-        templateID, filename, ext,
+        templateID,
+        filename,
+        ext,
       }),
     }
     cfg.data = {
@@ -5865,7 +5470,8 @@ export default class System {
   }
 
   templateRenderCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5879,26 +5485,13 @@ export default class System {
   }
 
   templateRenderEndpoint(a: KV): string {
-    const {
-      templateID,
-      filename,
-      ext,
-    } = a || {}
+    const { templateID, filename, ext } = a || {}
     return `/template/${templateID}/render/${filename}.${ext}`
   }
 
   // List reports
   async reportList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      query,
-      deleted,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { handle, query, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -5921,7 +5514,8 @@ export default class System {
   }
 
   reportListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5940,14 +5534,7 @@ export default class System {
 
   // Create report
   async reportCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      meta,
-      scenarios,
-      sources,
-      blocks,
-      labels,
-    } = (a as KV) || {}
+    const { handle, meta, scenarios, sources, blocks, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -5967,7 +5554,8 @@ export default class System {
   }
 
   reportCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -5986,16 +5574,8 @@ export default class System {
 
   // Update report
   async reportUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reportID,
-      handle,
-      meta,
-      scenarios,
-      sources,
-      blocks,
-      labels,
-      updatedAt,
-    } = (a as KV) || {}
+    const { reportID, handle, meta, scenarios, sources, blocks, labels, updatedAt } =
+      (a as KV) || {}
     if (!reportID) {
       throw Error('field reportID is empty')
     }
@@ -6021,7 +5601,8 @@ export default class System {
   }
 
   reportUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6035,17 +5616,13 @@ export default class System {
   }
 
   reportUpdateEndpoint(a: KV): string {
-    const {
-      reportID,
-    } = a || {}
+    const { reportID } = a || {}
     return `/reports/${reportID}`
   }
 
   // Read report details
   async reportRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reportID,
-    } = (a as KV) || {}
+    const { reportID } = (a as KV) || {}
     if (!reportID) {
       throw Error('field reportID is empty')
     }
@@ -6063,7 +5640,8 @@ export default class System {
   }
 
   reportReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6077,17 +5655,13 @@ export default class System {
   }
 
   reportReadEndpoint(a: KV): string {
-    const {
-      reportID,
-    } = a || {}
+    const { reportID } = a || {}
     return `/reports/${reportID}`
   }
 
   // Remove report
   async reportDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reportID,
-    } = (a as KV) || {}
+    const { reportID } = (a as KV) || {}
     if (!reportID) {
       throw Error('field reportID is empty')
     }
@@ -6105,7 +5679,8 @@ export default class System {
   }
 
   reportDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6119,17 +5694,13 @@ export default class System {
   }
 
   reportDeleteEndpoint(a: KV): string {
-    const {
-      reportID,
-    } = a || {}
+    const { reportID } = a || {}
     return `/reports/${reportID}`
   }
 
   // Undelete report
   async reportUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reportID,
-    } = (a as KV) || {}
+    const { reportID } = (a as KV) || {}
     if (!reportID) {
       throw Error('field reportID is empty')
     }
@@ -6147,7 +5718,8 @@ export default class System {
   }
 
   reportUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6161,19 +5733,13 @@ export default class System {
   }
 
   reportUndeleteEndpoint(a: KV): string {
-    const {
-      reportID,
-    } = a || {}
+    const { reportID } = a || {}
     return `/reports/${reportID}/undelete`
   }
 
   // Describe report
   async reportDescribe(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sources,
-      steps,
-      describe,
-    } = (a as KV) || {}
+    const { sources, steps, describe } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -6190,7 +5756,8 @@ export default class System {
   }
 
   reportDescribeCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6209,10 +5776,7 @@ export default class System {
 
   // Run report
   async reportRun(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      reportID,
-      frames,
-    } = (a as KV) || {}
+    const { reportID, frames } = (a as KV) || {}
     if (!reportID) {
       throw Error('field reportID is empty')
     }
@@ -6232,7 +5796,8 @@ export default class System {
   }
 
   reportRunCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6246,15 +5811,12 @@ export default class System {
   }
 
   reportRunEndpoint(a: KV): string {
-    const {
-      reportID,
-    } = a || {}
+    const { reportID } = a || {}
     return `/reports/${reportID}/run`
   }
 
   // List system statistics
   async statsList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -6266,9 +5828,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  statsListCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  statsListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -6314,7 +5877,8 @@ export default class System {
   }
 
   automationListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6333,16 +5897,14 @@ export default class System {
 
   // Serves client scripts bundle
   async automationBundle(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      bundle,
-      type,
-      ext,
-    } = (a as KV) || {}
+    const { bundle, type, ext } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.automationBundleEndpoint({
-        bundle, type, ext,
+        bundle,
+        type,
+        ext,
       }),
     }
 
@@ -6352,7 +5914,8 @@ export default class System {
   }
 
   automationBundleCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6366,20 +5929,13 @@ export default class System {
   }
 
   automationBundleEndpoint(a: KV): string {
-    const {
-      bundle,
-      type,
-      ext,
-    } = a || {}
+    const { bundle, type, ext } = a || {}
     return `/automation/${bundle}-${type}.${ext}`
   }
 
   // Triggers execution of a specific script on a system service level
   async automationTriggerScript(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      script,
-      args,
-    } = (a as KV) || {}
+    const { script, args } = (a as KV) || {}
     if (!script) {
       throw Error('field script is empty')
     }
@@ -6398,7 +5954,8 @@ export default class System {
   }
 
   automationTriggerScriptCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6417,16 +5974,7 @@ export default class System {
 
   // Action log events
   async actionlogList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      from,
-      to,
-      beforeActionID,
-      resource,
-      action,
-      actorID,
-      origin,
-      limit,
-    } = (a as KV) || {}
+    const { from, to, beforeActionID, resource, action, actorID, origin, limit } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -6449,7 +5997,8 @@ export default class System {
   }
 
   actionlogListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6468,14 +6017,7 @@ export default class System {
 
   // Messaging queues
   async queuesList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      query,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-      deleted,
-    } = (a as KV) || {}
+    const { query, limit, incTotal, pageCursor, sort, deleted } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -6496,7 +6038,8 @@ export default class System {
   }
 
   queuesListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6515,11 +6058,7 @@ export default class System {
 
   // Create messaging queue
   async queuesCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      queue,
-      consumer,
-      meta,
-    } = (a as KV) || {}
+    const { queue, consumer, meta } = (a as KV) || {}
     if (!queue) {
       throw Error('field queue is empty')
     }
@@ -6542,7 +6081,8 @@ export default class System {
   }
 
   queuesCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6561,9 +6101,7 @@ export default class System {
 
   // Messaging queue details
   async queuesRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      queueID,
-    } = (a as KV) || {}
+    const { queueID } = (a as KV) || {}
     if (!queueID) {
       throw Error('field queueID is empty')
     }
@@ -6581,7 +6119,8 @@ export default class System {
   }
 
   queuesReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6595,21 +6134,13 @@ export default class System {
   }
 
   queuesReadEndpoint(a: KV): string {
-    const {
-      queueID,
-    } = a || {}
+    const { queueID } = a || {}
     return `/queues/${queueID}`
   }
 
   // Update queue details
   async queuesUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      queueID,
-      queue,
-      consumer,
-      meta,
-      updatedAt,
-    } = (a as KV) || {}
+    const { queueID, queue, consumer, meta, updatedAt } = (a as KV) || {}
     if (!queueID) {
       throw Error('field queueID is empty')
     }
@@ -6638,7 +6169,8 @@ export default class System {
   }
 
   queuesUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6652,17 +6184,13 @@ export default class System {
   }
 
   queuesUpdateEndpoint(a: KV): string {
-    const {
-      queueID,
-    } = a || {}
+    const { queueID } = a || {}
     return `/queues/${queueID}`
   }
 
   // Messaging queue delete
   async queuesDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      queueID,
-    } = (a as KV) || {}
+    const { queueID } = (a as KV) || {}
     if (!queueID) {
       throw Error('field queueID is empty')
     }
@@ -6680,7 +6208,8 @@ export default class System {
   }
 
   queuesDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6694,17 +6223,13 @@ export default class System {
   }
 
   queuesDeleteEndpoint(a: KV): string {
-    const {
-      queueID,
-    } = a || {}
+    const { queueID } = a || {}
     return `/queues/${queueID}`
   }
 
   // Messaging queue undelete
   async queuesUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      queueID,
-    } = (a as KV) || {}
+    const { queueID } = (a as KV) || {}
     if (!queueID) {
       throw Error('field queueID is empty')
     }
@@ -6722,7 +6247,8 @@ export default class System {
   }
 
   queuesUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6736,25 +6262,14 @@ export default class System {
   }
 
   queuesUndeleteEndpoint(a: KV): string {
-    const {
-      queueID,
-    } = a || {}
+    const { queueID } = a || {}
     return `/queues/${queueID}/undelete`
   }
 
   // List routes
   async apigwRouteList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-      query,
-      deleted,
-      disabled,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { routeID, query, deleted, disabled, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -6778,7 +6293,8 @@ export default class System {
   }
 
   apigwRouteListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6797,13 +6313,7 @@ export default class System {
 
   // Create route
   async apigwRouteCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      endpoint,
-      method,
-      enabled,
-      group,
-      meta,
-    } = (a as KV) || {}
+    const { endpoint, method, enabled, group, meta } = (a as KV) || {}
     if (!endpoint) {
       throw Error('field endpoint is empty')
     }
@@ -6825,7 +6335,8 @@ export default class System {
   }
 
   apigwRouteCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6844,15 +6355,7 @@ export default class System {
 
   // Update route details
   async apigwRouteUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-      endpoint,
-      method,
-      enabled,
-      group,
-      meta,
-      updatedAt,
-    } = (a as KV) || {}
+    const { routeID, endpoint, method, enabled, group, meta, updatedAt } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -6880,7 +6383,8 @@ export default class System {
   }
 
   apigwRouteUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6894,17 +6398,13 @@ export default class System {
   }
 
   apigwRouteUpdateEndpoint(a: KV): string {
-    const {
-      routeID,
-    } = a || {}
+    const { routeID } = a || {}
     return `/apigw/route/${routeID}`
   }
 
   // Read route details
   async apigwRouteRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-    } = (a as KV) || {}
+    const { routeID } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -6922,7 +6422,8 @@ export default class System {
   }
 
   apigwRouteReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6936,17 +6437,13 @@ export default class System {
   }
 
   apigwRouteReadEndpoint(a: KV): string {
-    const {
-      routeID,
-    } = a || {}
+    const { routeID } = a || {}
     return `/apigw/route/${routeID}`
   }
 
   // Remove route
   async apigwRouteDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-    } = (a as KV) || {}
+    const { routeID } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -6964,7 +6461,8 @@ export default class System {
   }
 
   apigwRouteDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -6978,17 +6476,13 @@ export default class System {
   }
 
   apigwRouteDeleteEndpoint(a: KV): string {
-    const {
-      routeID,
-    } = a || {}
+    const { routeID } = a || {}
     return `/apigw/route/${routeID}`
   }
 
   // Undelete route
   async apigwRouteUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-    } = (a as KV) || {}
+    const { routeID } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -7006,7 +6500,8 @@ export default class System {
   }
 
   apigwRouteUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7020,22 +6515,13 @@ export default class System {
   }
 
   apigwRouteUndeleteEndpoint(a: KV): string {
-    const {
-      routeID,
-    } = a || {}
+    const { routeID } = a || {}
     return `/apigw/route/${routeID}/undelete`
   }
 
   // List filters
   async apigwFilterList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-      deleted,
-      disabled,
-      limit,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { routeID, deleted, disabled, limit, pageCursor, sort } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -7059,7 +6545,8 @@ export default class System {
   }
 
   apigwFilterListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7078,14 +6565,7 @@ export default class System {
 
   // Create filter
   async apigwFilterCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-      weight,
-      kind,
-      ref,
-      enabled,
-      params,
-    } = (a as KV) || {}
+    const { routeID, weight, kind, ref, enabled, params } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -7108,7 +6588,8 @@ export default class System {
   }
 
   apigwFilterCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7127,16 +6608,7 @@ export default class System {
 
   // Update filter details
   async apigwFilterUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      filterID,
-      routeID,
-      weight,
-      kind,
-      ref,
-      enabled,
-      params,
-      updatedAt,
-    } = (a as KV) || {}
+    const { filterID, routeID, weight, kind, ref, enabled, params, updatedAt } = (a as KV) || {}
     if (!filterID) {
       throw Error('field filterID is empty')
     }
@@ -7165,7 +6637,8 @@ export default class System {
   }
 
   apigwFilterUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7179,17 +6652,13 @@ export default class System {
   }
 
   apigwFilterUpdateEndpoint(a: KV): string {
-    const {
-      filterID,
-    } = a || {}
+    const { filterID } = a || {}
     return `/apigw/filter/${filterID}`
   }
 
   // Read filter details
   async apigwFilterRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      filterID,
-    } = (a as KV) || {}
+    const { filterID } = (a as KV) || {}
     if (!filterID) {
       throw Error('field filterID is empty')
     }
@@ -7207,7 +6676,8 @@ export default class System {
   }
 
   apigwFilterReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7221,17 +6691,13 @@ export default class System {
   }
 
   apigwFilterReadEndpoint(a: KV): string {
-    const {
-      filterID,
-    } = a || {}
+    const { filterID } = a || {}
     return `/apigw/filter/${filterID}`
   }
 
   // Remove filter
   async apigwFilterDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      filterID,
-    } = (a as KV) || {}
+    const { filterID } = (a as KV) || {}
     if (!filterID) {
       throw Error('field filterID is empty')
     }
@@ -7249,7 +6715,8 @@ export default class System {
   }
 
   apigwFilterDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7263,17 +6730,13 @@ export default class System {
   }
 
   apigwFilterDeleteEndpoint(a: KV): string {
-    const {
-      filterID,
-    } = a || {}
+    const { filterID } = a || {}
     return `/apigw/filter/${filterID}`
   }
 
   // Undelete filter
   async apigwFilterUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      filterID,
-    } = (a as KV) || {}
+    const { filterID } = (a as KV) || {}
     if (!filterID) {
       throw Error('field filterID is empty')
     }
@@ -7291,7 +6754,8 @@ export default class System {
   }
 
   apigwFilterUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7305,17 +6769,13 @@ export default class System {
   }
 
   apigwFilterUndeleteEndpoint(a: KV): string {
-    const {
-      filterID,
-    } = a || {}
+    const { filterID } = a || {}
     return `/apigw/filter/${filterID}/undelete`
   }
 
   // Filter definitions
   async apigwFilterDefFilter(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-    } = (a as KV) || {}
+    const { kind } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7331,7 +6791,8 @@ export default class System {
   }
 
   apigwFilterDefFilterCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7350,7 +6811,6 @@ export default class System {
 
   // Proxy auth definitions
   async apigwFilterDefProxyAuth(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7362,9 +6822,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  apigwFilterDefProxyAuthCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  apigwFilterDefProxyAuthCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -7382,12 +6843,7 @@ export default class System {
 
   // List aggregated list of routes
   async apigwProfilerAggregation(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      path,
-      before,
-      sort,
-      limit,
-    } = (a as KV) || {}
+    const { path, before, sort, limit } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7406,7 +6862,8 @@ export default class System {
   }
 
   apigwProfilerAggregationCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7425,13 +6882,7 @@ export default class System {
 
   // List hits per route
   async apigwProfilerRoute(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-      path,
-      before,
-      sort,
-      limit,
-    } = (a as KV) || {}
+    const { routeID, path, before, sort, limit } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -7455,7 +6906,8 @@ export default class System {
   }
 
   apigwProfilerRouteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7469,17 +6921,13 @@ export default class System {
   }
 
   apigwProfilerRouteEndpoint(a: KV): string {
-    const {
-      routeID,
-    } = a || {}
+    const { routeID } = a || {}
     return `/apigw/profiler/route/${routeID}`
   }
 
   // Hit details
   async apigwProfilerHit(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      hitID,
-    } = (a as KV) || {}
+    const { hitID } = (a as KV) || {}
     if (!hitID) {
       throw Error('field hitID is empty')
     }
@@ -7497,7 +6945,8 @@ export default class System {
   }
 
   apigwProfilerHitCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7511,15 +6960,12 @@ export default class System {
   }
 
   apigwProfilerHitEndpoint(a: KV): string {
-    const {
-      hitID,
-    } = a || {}
+    const { hitID } = a || {}
     return `/apigw/profiler/hit/${hitID}`
   }
 
   // Purge all profiler hits
   async apigwProfilerPurgeAll(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -7531,9 +6977,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  apigwProfilerPurgeAllCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  apigwProfilerPurgeAllCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -7551,9 +6998,7 @@ export default class System {
 
   // Purge route profiler hits
   async apigwProfilerPurge(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      routeID,
-    } = (a as KV) || {}
+    const { routeID } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
     }
@@ -7571,7 +7016,8 @@ export default class System {
   }
 
   apigwProfilerPurgeCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7585,24 +7031,14 @@ export default class System {
   }
 
   apigwProfilerPurgeEndpoint(a: KV): string {
-    const {
-      routeID,
-    } = a || {}
+    const { routeID } = a || {}
     return `/apigw/profiler/purge/${routeID}`
   }
 
   // List resources translations
   async localeListResource(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      lang,
-      resource,
-      resourceType,
-      ownerID,
-      deleted,
-      limit,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { lang, resource, resourceType, ownerID, deleted, limit, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7625,7 +7061,8 @@ export default class System {
   }
 
   localeListResourceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7644,14 +7081,7 @@ export default class System {
 
   // Create resource translation
   async localeCreateResource(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      lang,
-      resource,
-      key,
-      place,
-      message,
-      ownerID,
-    } = (a as KV) || {}
+    const { lang, resource, key, place, message, ownerID } = (a as KV) || {}
     if (!lang) {
       throw Error('field lang is empty')
     }
@@ -7683,7 +7113,8 @@ export default class System {
   }
 
   localeCreateResourceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7702,16 +7133,8 @@ export default class System {
 
   // Update resource translation
   async localeUpdateResource(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      translationID,
-      lang,
-      resource,
-      key,
-      place,
-      message,
-      ownerID,
-      updatedAt,
-    } = (a as KV) || {}
+    const { translationID, lang, resource, key, place, message, ownerID, updatedAt } =
+      (a as KV) || {}
     if (!translationID) {
       throw Error('field translationID is empty')
     }
@@ -7737,7 +7160,8 @@ export default class System {
   }
 
   localeUpdateResourceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7751,17 +7175,13 @@ export default class System {
   }
 
   localeUpdateResourceEndpoint(a: KV): string {
-    const {
-      translationID,
-    } = a || {}
+    const { translationID } = a || {}
     return `/locale/resource/${translationID}`
   }
 
   // Read resource translation details
   async localeReadResource(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      translationID,
-    } = (a as KV) || {}
+    const { translationID } = (a as KV) || {}
     if (!translationID) {
       throw Error('field translationID is empty')
     }
@@ -7779,7 +7199,8 @@ export default class System {
   }
 
   localeReadResourceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7793,17 +7214,13 @@ export default class System {
   }
 
   localeReadResourceEndpoint(a: KV): string {
-    const {
-      translationID,
-    } = a || {}
+    const { translationID } = a || {}
     return `/locale/resource/${translationID}`
   }
 
   // Remove resource translation
   async localeDeleteResource(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      translationID,
-    } = (a as KV) || {}
+    const { translationID } = (a as KV) || {}
     if (!translationID) {
       throw Error('field translationID is empty')
     }
@@ -7821,7 +7238,8 @@ export default class System {
   }
 
   localeDeleteResourceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7835,17 +7253,13 @@ export default class System {
   }
 
   localeDeleteResourceEndpoint(a: KV): string {
-    const {
-      translationID,
-    } = a || {}
+    const { translationID } = a || {}
     return `/locale/resource/${translationID}`
   }
 
   // Undelete resource translation
   async localeUndeleteResource(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      translationID,
-    } = (a as KV) || {}
+    const { translationID } = (a as KV) || {}
     if (!translationID) {
       throw Error('field translationID is empty')
     }
@@ -7863,7 +7277,8 @@ export default class System {
   }
 
   localeUndeleteResourceCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7877,15 +7292,12 @@ export default class System {
   }
 
   localeUndeleteResourceEndpoint(a: KV): string {
-    const {
-      translationID,
-    } = a || {}
+    const { translationID } = a || {}
     return `/locale/resource/${translationID}/undelete`
   }
 
   // List all available languages
   async localeList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7897,9 +7309,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  localeListCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  localeListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -7917,10 +7330,7 @@ export default class System {
 
   // List all available translation in a language for a specific webapp
   async localeGet(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      lang,
-      application,
-    } = (a as KV) || {}
+    const { lang, application } = (a as KV) || {}
     if (!lang) {
       throw Error('field lang is empty')
     }
@@ -7931,7 +7341,8 @@ export default class System {
       ...extra,
       method: 'get',
       url: this.localeGetEndpoint({
-        lang, application,
+        lang,
+        application,
       }),
     }
 
@@ -7941,7 +7352,8 @@ export default class System {
   }
 
   localeGetCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -7955,21 +7367,13 @@ export default class System {
   }
 
   localeGetEndpoint(a: KV): string {
-    const {
-      lang,
-      application,
-    } = a || {}
+    const { lang, application } = a || {}
     return `/locale/${lang}/${application}`
   }
 
   // List connections for data privacy
   async dataPrivacyConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      handle,
-      type,
-      deleted,
-    } = (a as KV) || {}
+    const { connectionID, handle, type, deleted } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7988,7 +7392,8 @@ export default class System {
   }
 
   dataPrivacyConnectionListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8007,15 +7412,7 @@ export default class System {
 
   // List data privacy requests
   async dataPrivacyRequestList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      requestedBy,
-      query,
-      kind,
-      status,
-      limit,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { requestedBy, query, kind, status, limit, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8037,7 +7434,8 @@ export default class System {
   }
 
   dataPrivacyRequestListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8056,10 +7454,7 @@ export default class System {
 
   // Create data privacy request
   async dataPrivacyRequestCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      kind,
-      payload,
-    } = (a as KV) || {}
+    const { kind, payload } = (a as KV) || {}
     if (!kind) {
       throw Error('field kind is empty')
     }
@@ -8078,7 +7473,8 @@ export default class System {
   }
 
   dataPrivacyRequestCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8097,9 +7493,7 @@ export default class System {
 
   // Get details about specific request
   async dataPrivacyRequestRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      requestID,
-    } = (a as KV) || {}
+    const { requestID } = (a as KV) || {}
     if (!requestID) {
       throw Error('field requestID is empty')
     }
@@ -8117,7 +7511,8 @@ export default class System {
   }
 
   dataPrivacyRequestReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8131,18 +7526,13 @@ export default class System {
   }
 
   dataPrivacyRequestReadEndpoint(a: KV): string {
-    const {
-      requestID,
-    } = a || {}
+    const { requestID } = a || {}
     return `/data-privacy/requests/${requestID}`
   }
 
   // Update data privacy request status
   async dataPrivacyRequestUpdateStatus(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      requestID,
-      status,
-    } = (a as KV) || {}
+    const { requestID, status } = (a as KV) || {}
     if (!requestID) {
       throw Error('field requestID is empty')
     }
@@ -8153,7 +7543,8 @@ export default class System {
       ...extra,
       method: 'patch',
       url: this.dataPrivacyRequestUpdateStatusEndpoint({
-        requestID, status,
+        requestID,
+        status,
       }),
     }
 
@@ -8163,7 +7554,8 @@ export default class System {
   }
 
   dataPrivacyRequestUpdateStatusCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8177,21 +7569,13 @@ export default class System {
   }
 
   dataPrivacyRequestUpdateStatusEndpoint(a: KV): string {
-    const {
-      requestID,
-      status,
-    } = a || {}
+    const { requestID, status } = a || {}
     return `/data-privacy/requests/${requestID}/status/${status}`
   }
 
   // List data privacy request comments
   async dataPrivacyRequestCommentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      requestID,
-      limit,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { requestID, limit, pageCursor, sort } = (a as KV) || {}
     if (!requestID) {
       throw Error('field requestID is empty')
     }
@@ -8214,7 +7598,8 @@ export default class System {
   }
 
   dataPrivacyRequestCommentListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8228,18 +7613,13 @@ export default class System {
   }
 
   dataPrivacyRequestCommentListEndpoint(a: KV): string {
-    const {
-      requestID,
-    } = a || {}
+    const { requestID } = a || {}
     return `/data-privacy/requests/${requestID}/comments/`
   }
 
   // Create data privacy request comment
   async dataPrivacyRequestCommentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      requestID,
-      comment,
-    } = (a as KV) || {}
+    const { requestID, comment } = (a as KV) || {}
     if (!requestID) {
       throw Error('field requestID is empty')
     }
@@ -8262,7 +7642,8 @@ export default class System {
   }
 
   dataPrivacyRequestCommentCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8276,26 +7657,14 @@ export default class System {
   }
 
   dataPrivacyRequestCommentCreateEndpoint(a: KV): string {
-    const {
-      requestID,
-    } = a || {}
+    const { requestID } = a || {}
     return `/data-privacy/requests/${requestID}/comments/`
   }
 
   // List connections
   async connectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      status,
-      query,
-      tags,
-      deleted,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { handle, status, query, tags, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8320,7 +7689,8 @@ export default class System {
   }
 
   connectionListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8339,15 +7709,8 @@ export default class System {
 
   // Create connection
   async connectionCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      meta,
-      service,
-      resources,
-      standardOperations,
-      operations,
-      labels,
-    } = (a as KV) || {}
+    const { handle, meta, service, resources, standardOperations, operations, labels } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -8368,7 +7731,8 @@ export default class System {
   }
 
   connectionCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8424,7 +7788,8 @@ export default class System {
   }
 
   connectionUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8438,17 +7803,13 @@ export default class System {
   }
 
   connectionUpdateEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/connections/${connectionID}`
   }
 
   // Read connection
   async connectionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8466,7 +7827,8 @@ export default class System {
   }
 
   connectionReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8480,17 +7842,13 @@ export default class System {
   }
 
   connectionReadEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/connections/${connectionID}`
   }
 
   // Delete connection
   async connectionDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8508,7 +7866,8 @@ export default class System {
   }
 
   connectionDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8522,17 +7881,13 @@ export default class System {
   }
 
   connectionDeleteEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/connections/${connectionID}`
   }
 
   // Undelete connection
   async connectionUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8550,7 +7905,8 @@ export default class System {
   }
 
   connectionUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8564,17 +7920,13 @@ export default class System {
   }
 
   connectionUndeleteEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/connections/${connectionID}/undelete`
   }
 
   // Enable connection (lock draft local connection to active)
   async connectionEnable(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8592,7 +7944,8 @@ export default class System {
   }
 
   connectionEnableCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8606,18 +7959,13 @@ export default class System {
   }
 
   connectionEnableEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/connections/${connectionID}/enable`
   }
 
   // Generate connection via builder agent
   async connectionGenerate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      prompt,
-      context,
-    } = (a as KV) || {}
+    const { prompt, context } = (a as KV) || {}
     if (!prompt) {
       throw Error('field prompt is empty')
     }
@@ -8636,7 +7984,8 @@ export default class System {
   }
 
   connectionGenerateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8655,12 +8004,7 @@ export default class System {
 
   // Configure a connection (create configured connection)
   async connectionConfigure(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      name,
-      config,
-      labels,
-    } = (a as KV) || {}
+    const { connectionID, name, config, labels } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8685,7 +8029,8 @@ export default class System {
   }
 
   connectionConfigureCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8699,21 +8044,13 @@ export default class System {
   }
 
   connectionConfigureEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/connections/${connectionID}/configure`
   }
 
   // Update connection configuration
   async connectionUpdateConfiguration(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      configuredConnectionID,
-      name,
-      config,
-      labels,
-    } = (a as KV) || {}
+    const { connectionID, configuredConnectionID, name, config, labels } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8727,7 +8064,8 @@ export default class System {
       ...extra,
       method: 'patch',
       url: this.connectionUpdateConfigurationEndpoint({
-        connectionID, configuredConnectionID,
+        connectionID,
+        configuredConnectionID,
       }),
     }
     cfg.data = {
@@ -8741,7 +8079,8 @@ export default class System {
   }
 
   connectionUpdateConfigurationCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8755,26 +8094,14 @@ export default class System {
   }
 
   connectionUpdateConfigurationEndpoint(a: KV): string {
-    const {
-      connectionID,
-      configuredConnectionID,
-    } = a || {}
+    const { connectionID, configuredConnectionID } = a || {}
     return `/connections/${connectionID}/configure/${configuredConnectionID}`
   }
 
   // List configured connections
   async configuredConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      status,
-      query,
-      deleted,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { connectionID, status, query, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8798,7 +8125,8 @@ export default class System {
   }
 
   configuredConnectionListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8817,9 +8145,7 @@ export default class System {
 
   // Read configured connection
   async configuredConnectionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8837,7 +8163,8 @@ export default class System {
   }
 
   configuredConnectionReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8851,17 +8178,13 @@ export default class System {
   }
 
   configuredConnectionReadEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/configured-connections/${connectionID}`
   }
 
   // Delete configured connection
   async configuredConnectionDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8879,7 +8202,8 @@ export default class System {
   }
 
   configuredConnectionDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8893,17 +8217,13 @@ export default class System {
   }
 
   configuredConnectionDeleteEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/configured-connections/${connectionID}`
   }
 
   // Enable configured connection (validate, provision, lock to active)
   async configuredConnectionEnable(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8921,7 +8241,8 @@ export default class System {
   }
 
   configuredConnectionEnableCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8935,17 +8256,13 @@ export default class System {
   }
 
   configuredConnectionEnableEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/configured-connections/${connectionID}/enable`
   }
 
   // Check configured connection health (connectivity, auth, probe)
   async configuredConnectionCheck(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-    } = (a as KV) || {}
+    const { connectionID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8963,7 +8280,8 @@ export default class System {
   }
 
   configuredConnectionCheckCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -8977,15 +8295,12 @@ export default class System {
   }
 
   configuredConnectionCheckEndpoint(a: KV): string {
-    const {
-      connectionID,
-    } = a || {}
+    const { connectionID } = a || {}
     return `/configured-connections/${connectionID}/check`
   }
 
   // List available MCP tools
   async mcpListTools(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8997,9 +8312,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  mcpListToolsCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  mcpListToolsCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -9017,15 +8333,8 @@ export default class System {
 
   // Check SMTP server configuration settings
   async smtpConfigurationCheckerCheck(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      host,
-      port,
-      recipients,
-      username,
-      password,
-      tlsInsecure,
-      tlsServerName,
-    } = (a as KV) || {}
+    const { host, port, recipients, username, password, tlsInsecure, tlsServerName } =
+      (a as KV) || {}
     if (!host) {
       throw Error('field host is empty')
     }
@@ -9049,7 +8358,8 @@ export default class System {
   }
 
   smtpConfigurationCheckerCheckCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9068,7 +8378,6 @@ export default class System {
 
   // Get TCL master list
   async agentTclMasterList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9080,9 +8389,10 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  agentTclMasterListCancellable(
-    extra: AxiosRequestConfig = {},
-  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+  agentTclMasterListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -9100,17 +8410,8 @@ export default class System {
 
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      query,
-      handle,
-      status,
-      deleted,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9134,7 +8435,8 @@ export default class System {
   }
 
   agentListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9153,16 +8455,8 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      status,
-      meta,
-      behavior,
-      execution,
-      access,
-      invocation,
-      labels,
-    } = (a as KV) || {}
+    const { handle, status, meta, behavior, execution, access, invocation, labels } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -9184,7 +8478,8 @@ export default class System {
   }
 
   agentCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9203,9 +8498,7 @@ export default class System {
 
   // Read agent details
   async agentRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      agentID,
-    } = (a as KV) || {}
+    const { agentID } = (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
     }
@@ -9223,7 +8516,8 @@ export default class System {
   }
 
   agentReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9237,9 +8531,7 @@ export default class System {
   }
 
   agentReadEndpoint(a: KV): string {
-    const {
-      agentID,
-    } = a || {}
+    const { agentID } = a || {}
     return `/agents/${agentID}`
   }
 
@@ -9284,7 +8576,8 @@ export default class System {
   }
 
   agentUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9298,17 +8591,13 @@ export default class System {
   }
 
   agentUpdateEndpoint(a: KV): string {
-    const {
-      agentID,
-    } = a || {}
+    const { agentID } = a || {}
     return `/agents/${agentID}`
   }
 
   // Delete agent
   async agentDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      agentID,
-    } = (a as KV) || {}
+    const { agentID } = (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
     }
@@ -9326,7 +8615,8 @@ export default class System {
   }
 
   agentDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9340,17 +8630,13 @@ export default class System {
   }
 
   agentDeleteEndpoint(a: KV): string {
-    const {
-      agentID,
-    } = a || {}
+    const { agentID } = a || {}
     return `/agents/${agentID}`
   }
 
   // Undelete agent
   async agentUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      agentID,
-    } = (a as KV) || {}
+    const { agentID } = (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
     }
@@ -9368,7 +8654,8 @@ export default class System {
   }
 
   agentUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9382,20 +8669,13 @@ export default class System {
   }
 
   agentUndeleteEndpoint(a: KV): string {
-    const {
-      agentID,
-    } = a || {}
+    const { agentID } = a || {}
     return `/agents/${agentID}/undelete`
   }
 
   // Execute agent
   async agentExec(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      agentID,
-      input,
-      conversationID,
-      context,
-    } = (a as KV) || {}
+    const { agentID, input, conversationID, context } = (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
     }
@@ -9420,7 +8700,8 @@ export default class System {
   }
 
   agentExecCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9434,18 +8715,13 @@ export default class System {
   }
 
   agentExecEndpoint(a: KV): string {
-    const {
-      agentID,
-    } = a || {}
+    const { agentID } = a || {}
     return `/agents/${agentID}/exec`
   }
 
   // List LLM providers
   async llmProviderList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      provider,
-      status,
-    } = (a as KV) || {}
+    const { provider, status } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9462,7 +8738,8 @@ export default class System {
   }
 
   llmProviderListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9481,14 +8758,7 @@ export default class System {
 
   // Create LLM provider
   async llmProviderCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      provider,
-      status,
-      apiKey,
-      meta,
-      config,
-    } = (a as KV) || {}
+    const { handle, provider, status, apiKey, meta, config } = (a as KV) || {}
     if (!provider) {
       throw Error('field provider is empty')
     }
@@ -9511,7 +8781,8 @@ export default class System {
   }
 
   llmProviderCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9530,9 +8801,7 @@ export default class System {
 
   // Read LLM provider
   async llmProviderRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      llmProviderID,
-    } = (a as KV) || {}
+    const { llmProviderID } = (a as KV) || {}
     if (!llmProviderID) {
       throw Error('field llmProviderID is empty')
     }
@@ -9550,7 +8819,8 @@ export default class System {
   }
 
   llmProviderReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9564,23 +8834,13 @@ export default class System {
   }
 
   llmProviderReadEndpoint(a: KV): string {
-    const {
-      llmProviderID,
-    } = a || {}
+    const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}`
   }
 
   // Update LLM provider
   async llmProviderUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      llmProviderID,
-      handle,
-      provider,
-      status,
-      apiKey,
-      meta,
-      config,
-    } = (a as KV) || {}
+    const { llmProviderID, handle, provider, status, apiKey, meta, config } = (a as KV) || {}
     if (!llmProviderID) {
       throw Error('field llmProviderID is empty')
     }
@@ -9605,7 +8865,8 @@ export default class System {
   }
 
   llmProviderUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9619,17 +8880,13 @@ export default class System {
   }
 
   llmProviderUpdateEndpoint(a: KV): string {
-    const {
-      llmProviderID,
-    } = a || {}
+    const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}`
   }
 
   // Delete LLM provider
   async llmProviderDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      llmProviderID,
-    } = (a as KV) || {}
+    const { llmProviderID } = (a as KV) || {}
     if (!llmProviderID) {
       throw Error('field llmProviderID is empty')
     }
@@ -9647,7 +8904,8 @@ export default class System {
   }
 
   llmProviderDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9661,17 +8919,13 @@ export default class System {
   }
 
   llmProviderDeleteEndpoint(a: KV): string {
-    const {
-      llmProviderID,
-    } = a || {}
+    const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}`
   }
 
   // List available models for an LLM provider
   async llmProviderModels(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      llmProviderID,
-    } = (a as KV) || {}
+    const { llmProviderID } = (a as KV) || {}
     if (!llmProviderID) {
       throw Error('field llmProviderID is empty')
     }
@@ -9689,7 +8943,8 @@ export default class System {
   }
 
   llmProviderModelsCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9703,17 +8958,13 @@ export default class System {
   }
 
   llmProviderModelsEndpoint(a: KV): string {
-    const {
-      llmProviderID,
-    } = a || {}
+    const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}/models`
   }
 
   // Validate LLM provider connection
   async llmProviderValidate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      llmProviderID,
-    } = (a as KV) || {}
+    const { llmProviderID } = (a as KV) || {}
     if (!llmProviderID) {
       throw Error('field llmProviderID is empty')
     }
@@ -9731,7 +8982,8 @@ export default class System {
   }
 
   llmProviderValidateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9745,23 +8997,13 @@ export default class System {
   }
 
   llmProviderValidateEndpoint(a: KV): string {
-    const {
-      llmProviderID,
-    } = a || {}
+    const { llmProviderID } = a || {}
     return `/llm-providers/${llmProviderID}/validate`
   }
 
   // List knowledge bases
   async knowledgeBaseList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      query,
-      handle,
-      deleted,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { query, handle, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9783,7 +9025,8 @@ export default class System {
   }
 
   knowledgeBaseListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9802,12 +9045,7 @@ export default class System {
 
   // Create knowledge base
   async knowledgeBaseCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      handle,
-      title,
-      description,
-      context,
-    } = (a as KV) || {}
+    const { handle, title, description, context } = (a as KV) || {}
     if (!title) {
       throw Error('field title is empty')
     }
@@ -9828,7 +9066,8 @@ export default class System {
   }
 
   knowledgeBaseCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9847,9 +9086,7 @@ export default class System {
 
   // Read knowledge base
   async knowledgeBaseRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      knowledgeBaseID,
-    } = (a as KV) || {}
+    const { knowledgeBaseID } = (a as KV) || {}
     if (!knowledgeBaseID) {
       throw Error('field knowledgeBaseID is empty')
     }
@@ -9867,7 +9104,8 @@ export default class System {
   }
 
   knowledgeBaseReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9881,22 +9119,13 @@ export default class System {
   }
 
   knowledgeBaseReadEndpoint(a: KV): string {
-    const {
-      knowledgeBaseID,
-    } = a || {}
+    const { knowledgeBaseID } = a || {}
     return `/knowledge-bases/${knowledgeBaseID}`
   }
 
   // Update knowledge base
   async knowledgeBaseUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      knowledgeBaseID,
-      handle,
-      title,
-      description,
-      context,
-      updatedAt,
-    } = (a as KV) || {}
+    const { knowledgeBaseID, handle, title, description, context, updatedAt } = (a as KV) || {}
     if (!knowledgeBaseID) {
       throw Error('field knowledgeBaseID is empty')
     }
@@ -9920,7 +9149,8 @@ export default class System {
   }
 
   knowledgeBaseUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9934,17 +9164,13 @@ export default class System {
   }
 
   knowledgeBaseUpdateEndpoint(a: KV): string {
-    const {
-      knowledgeBaseID,
-    } = a || {}
+    const { knowledgeBaseID } = a || {}
     return `/knowledge-bases/${knowledgeBaseID}`
   }
 
   // Delete knowledge base
   async knowledgeBaseDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      knowledgeBaseID,
-    } = (a as KV) || {}
+    const { knowledgeBaseID } = (a as KV) || {}
     if (!knowledgeBaseID) {
       throw Error('field knowledgeBaseID is empty')
     }
@@ -9962,7 +9188,8 @@ export default class System {
   }
 
   knowledgeBaseDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -9976,17 +9203,13 @@ export default class System {
   }
 
   knowledgeBaseDeleteEndpoint(a: KV): string {
-    const {
-      knowledgeBaseID,
-    } = a || {}
+    const { knowledgeBaseID } = a || {}
     return `/knowledge-bases/${knowledgeBaseID}`
   }
 
   // Undelete knowledge base
   async knowledgeBaseUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      knowledgeBaseID,
-    } = (a as KV) || {}
+    const { knowledgeBaseID } = (a as KV) || {}
     if (!knowledgeBaseID) {
       throw Error('field knowledgeBaseID is empty')
     }
@@ -10004,7 +9227,8 @@ export default class System {
   }
 
   knowledgeBaseUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10018,22 +9242,13 @@ export default class System {
   }
 
   knowledgeBaseUndeleteEndpoint(a: KV): string {
-    const {
-      knowledgeBaseID,
-    } = a || {}
+    const { knowledgeBaseID } = a || {}
     return `/knowledge-bases/${knowledgeBaseID}/undelete`
   }
 
   // List AI conversations
   async aiConversationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      agentID,
-      deleted,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { agentID, deleted, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -10054,7 +9269,8 @@ export default class System {
   }
 
   aiConversationListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10073,9 +9289,7 @@ export default class System {
 
   // Read AI conversation details
   async aiConversationRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      aiConversationID,
-    } = (a as KV) || {}
+    const { aiConversationID } = (a as KV) || {}
     if (!aiConversationID) {
       throw Error('field aiConversationID is empty')
     }
@@ -10093,7 +9307,8 @@ export default class System {
   }
 
   aiConversationReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10107,17 +9322,13 @@ export default class System {
   }
 
   aiConversationReadEndpoint(a: KV): string {
-    const {
-      aiConversationID,
-    } = a || {}
+    const { aiConversationID } = a || {}
     return `/ai-conversations/${aiConversationID}`
   }
 
   // Delete AI conversation
   async aiConversationDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      aiConversationID,
-    } = (a as KV) || {}
+    const { aiConversationID } = (a as KV) || {}
     if (!aiConversationID) {
       throw Error('field aiConversationID is empty')
     }
@@ -10135,7 +9346,8 @@ export default class System {
   }
 
   aiConversationDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10149,17 +9361,13 @@ export default class System {
   }
 
   aiConversationDeleteEndpoint(a: KV): string {
-    const {
-      aiConversationID,
-    } = a || {}
+    const { aiConversationID } = a || {}
     return `/ai-conversations/${aiConversationID}`
   }
 
   // Undelete AI conversation
   async aiConversationUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      aiConversationID,
-    } = (a as KV) || {}
+    const { aiConversationID } = (a as KV) || {}
     if (!aiConversationID) {
       throw Error('field aiConversationID is empty')
     }
@@ -10177,7 +9385,8 @@ export default class System {
   }
 
   aiConversationUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10191,18 +9400,13 @@ export default class System {
   }
 
   aiConversationUndeleteEndpoint(a: KV): string {
-    const {
-      aiConversationID,
-    } = a || {}
+    const { aiConversationID } = a || {}
     return `/ai-conversations/${aiConversationID}/undelete`
   }
 
   // Continue AI conversation
   async aiConversationContinue(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      aiConversationID,
-      input,
-    } = (a as KV) || {}
+    const { aiConversationID, input } = (a as KV) || {}
     if (!aiConversationID) {
       throw Error('field aiConversationID is empty')
     }
@@ -10225,7 +9429,8 @@ export default class System {
   }
 
   aiConversationContinueCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10239,24 +9444,13 @@ export default class System {
   }
 
   aiConversationContinueEndpoint(a: KV): string {
-    const {
-      aiConversationID,
-    } = a || {}
+    const { aiConversationID } = a || {}
     return `/ai-conversations/${aiConversationID}/continue`
   }
 
   // List chatbots
   async chatbotList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      query,
-      handle,
-      deleted,
-      labels,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { query, handle, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -10279,7 +9473,8 @@ export default class System {
   }
 
   chatbotListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10331,7 +9526,8 @@ export default class System {
   }
 
   chatbotCreateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10350,9 +9546,7 @@ export default class System {
 
   // Read chatbot details
   async chatbotRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      chatbotID,
-    } = (a as KV) || {}
+    const { chatbotID } = (a as KV) || {}
     if (!chatbotID) {
       throw Error('field chatbotID is empty')
     }
@@ -10370,7 +9564,8 @@ export default class System {
   }
 
   chatbotReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10384,9 +9579,7 @@ export default class System {
   }
 
   chatbotReadEndpoint(a: KV): string {
-    const {
-      chatbotID,
-    } = a || {}
+    const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}`
   }
 
@@ -10433,7 +9626,8 @@ export default class System {
   }
 
   chatbotUpdateCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10447,17 +9641,13 @@ export default class System {
   }
 
   chatbotUpdateEndpoint(a: KV): string {
-    const {
-      chatbotID,
-    } = a || {}
+    const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}`
   }
 
   // Delete chatbot
   async chatbotDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      chatbotID,
-    } = (a as KV) || {}
+    const { chatbotID } = (a as KV) || {}
     if (!chatbotID) {
       throw Error('field chatbotID is empty')
     }
@@ -10475,7 +9665,8 @@ export default class System {
   }
 
   chatbotDeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10489,17 +9680,13 @@ export default class System {
   }
 
   chatbotDeleteEndpoint(a: KV): string {
-    const {
-      chatbotID,
-    } = a || {}
+    const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}`
   }
 
   // Undelete chatbot
   async chatbotUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      chatbotID,
-    } = (a as KV) || {}
+    const { chatbotID } = (a as KV) || {}
     if (!chatbotID) {
       throw Error('field chatbotID is empty')
     }
@@ -10517,7 +9704,8 @@ export default class System {
   }
 
   chatbotUndeleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10531,17 +9719,13 @@ export default class System {
   }
 
   chatbotUndeleteEndpoint(a: KV): string {
-    const {
-      chatbotID,
-    } = a || {}
+    const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}/undelete`
   }
 
   // Regenerate chatbot widget key
   async chatbotRegenerateWidgetKey(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      chatbotID,
-    } = (a as KV) || {}
+    const { chatbotID } = (a as KV) || {}
     if (!chatbotID) {
       throw Error('field chatbotID is empty')
     }
@@ -10559,7 +9743,8 @@ export default class System {
   }
 
   chatbotRegenerateWidgetKeyCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10573,18 +9758,13 @@ export default class System {
   }
 
   chatbotRegenerateWidgetKeyEndpoint(a: KV): string {
-    const {
-      chatbotID,
-    } = a || {}
+    const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}/regenerate-key`
   }
 
   // Upload chatbot asset
   async chatbotUploadAsset(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      chatbotID,
-      upload,
-    } = (a as KV) || {}
+    const { chatbotID, upload } = (a as KV) || {}
     if (!chatbotID) {
       throw Error('field chatbotID is empty')
     }
@@ -10604,7 +9784,8 @@ export default class System {
   }
 
   chatbotUploadAssetCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10618,23 +9799,13 @@ export default class System {
   }
 
   chatbotUploadAssetEndpoint(a: KV): string {
-    const {
-      chatbotID,
-    } = a || {}
+    const { chatbotID } = a || {}
     return `/chatbots/${chatbotID}/upload-asset`
   }
 
   // List sessions (widget + preview, aggregated)
   async chatbotSessionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      chatbotID,
-      status,
-      source,
-      limit,
-      incTotal,
-      pageCursor,
-      sort,
-    } = (a as KV) || {}
+    const { chatbotID, status, source, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -10656,7 +9827,8 @@ export default class System {
   }
 
   chatbotSessionListCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10675,9 +9847,7 @@ export default class System {
 
   // Read session with steps
   async chatbotSessionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10695,7 +9865,8 @@ export default class System {
   }
 
   chatbotSessionReadCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10709,17 +9880,13 @@ export default class System {
   }
 
   chatbotSessionReadEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}`
   }
 
   // Force-advance session step (admin)
   async chatbotSessionAdvanceStep(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10737,7 +9904,8 @@ export default class System {
   }
 
   chatbotSessionAdvanceStepCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10751,17 +9919,13 @@ export default class System {
   }
 
   chatbotSessionAdvanceStepEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}/advance-step`
   }
 
   // Close session (admin)
   async chatbotSessionClose(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10779,7 +9943,8 @@ export default class System {
   }
 
   chatbotSessionCloseCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10793,18 +9958,13 @@ export default class System {
   }
 
   chatbotSessionCloseEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}/close`
   }
 
   // Accept pending handoff
   async chatbotSessionHandoffAccept(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-      operator,
-    } = (a as KV) || {}
+    const { sessionID, operator } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10824,7 +9984,8 @@ export default class System {
   }
 
   chatbotSessionHandoffAcceptCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10838,19 +9999,13 @@ export default class System {
   }
 
   chatbotSessionHandoffAcceptEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}/handoff-accept`
   }
 
   // Send operator message
   async chatbotSessionOperatorMessage(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-      message,
-      operator,
-    } = (a as KV) || {}
+    const { sessionID, message, operator } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10874,7 +10029,8 @@ export default class System {
   }
 
   chatbotSessionOperatorMessageCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10888,17 +10044,13 @@ export default class System {
   }
 
   chatbotSessionOperatorMessageEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}/operator-message`
   }
 
   // Complete handoff
   async chatbotSessionHandoffComplete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10916,7 +10068,8 @@ export default class System {
   }
 
   chatbotSessionHandoffCompleteCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10930,17 +10083,13 @@ export default class System {
   }
 
   chatbotSessionHandoffCompleteEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}/handoff-complete`
   }
 
   // SSE stream of session events
   async chatbotSessionStream(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -10958,7 +10107,8 @@ export default class System {
   }
 
   chatbotSessionStreamCancellable(
-    a: KV, extra: AxiosRequestConfig = {},
+    a: KV,
+    extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -10972,10 +10122,1058 @@ export default class System {
   }
 
   chatbotSessionStreamEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/chatbots/sessions/${sessionID}/stream`
   }
 
+  // List projects
+  async projectList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, handle, name, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      handle,
+      name,
+      status,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectListEndpoint(): string {
+    return '/projects/'
+  }
+
+  // Create project
+  async projectCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, name, status, config, meta, labels } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      name,
+      status,
+      config,
+      meta,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectCreateEndpoint(): string {
+    return '/projects'
+  }
+
+  // Read project details
+  async projectRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectReadEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReadEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}`
+  }
+
+  // Update project details
+  async projectUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, handle, name, status, config, meta, updatedAt, labels } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectUpdateEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      name,
+      status,
+      config,
+      meta,
+      updatedAt,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectUpdateEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}`
+  }
+
+  // Remove project
+  async projectDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectDeleteEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectDeleteEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}`
+  }
+
+  // Undelete project
+  async projectUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectUndeleteEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectUndeleteEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/undelete`
+  }
+
+  // List project members
+  async projectListMembers(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectListMembersEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectListMembersCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectListMembers(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectListMembersEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/members`
+  }
+
+  // Add project member
+  async projectAddMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, userID, rolePreset } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectAddMemberEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      userID,
+      rolePreset,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectAddMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectAddMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectAddMemberEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/members`
+  }
+
+  // Update project member role
+  async projectUpdateMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, userID, rolePreset } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    if (!rolePreset) {
+      throw Error('field rolePreset is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectUpdateMemberEndpoint({
+        projectID,
+        userID,
+      }),
+    }
+    cfg.data = {
+      rolePreset,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectUpdateMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectUpdateMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectUpdateMemberEndpoint(a: KV): string {
+    const { projectID, userID } = a || {}
+    return `/projects/${projectID}/members/${userID}`
+  }
+
+  // Remove project member
+  async projectRemoveMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, userID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectRemoveMemberEndpoint({
+        projectID,
+        userID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectRemoveMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectRemoveMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectRemoveMemberEndpoint(a: KV): string {
+    const { projectID, userID } = a || {}
+    return `/projects/${projectID}/members/${userID}`
+  }
+
+  // List tenants
+  async tenantList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, handle, name, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.tenantListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      handle,
+      name,
+      status,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantListEndpoint(): string {
+    return '/tenants/'
+  }
+
+  // Create tenant
+  async tenantCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, name, status, config, meta, labels } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      name,
+      status,
+      config,
+      meta,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantCreateEndpoint(): string {
+    return '/tenants'
+  }
+
+  // Read tenant details
+  async tenantRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.tenantReadEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantReadEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}`
+  }
+
+  // Update tenant details
+  async tenantUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID, handle, name, status, config, meta, updatedAt, labels } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.tenantUpdateEndpoint({
+        tenantID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      name,
+      status,
+      config,
+      meta,
+      updatedAt,
+      labels,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantUpdateEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}`
+  }
+
+  // Remove tenant
+  async tenantDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.tenantDeleteEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantDeleteEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}`
+  }
+
+  // Undelete tenant
+  async tenantUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantUndeleteEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantUndeleteEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}/undelete`
+  }
+
+  // Suspend tenant
+  async tenantSuspend(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantSuspendEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantSuspendCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantSuspend(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantSuspendEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}/suspend`
+  }
+
+  // Activate tenant
+  async tenantActivate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantActivateEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantActivateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantActivate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantActivateEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}/activate`
+  }
+
+  // Archive tenant
+  async tenantArchive(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantArchiveEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantArchiveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantArchive(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantArchiveEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}/archive`
+  }
+
+  // List tenant members
+  async tenantListMembers(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.tenantListMembersEndpoint({
+        tenantID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantListMembersCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantListMembers(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantListMembersEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}/members`
+  }
+
+  // Invite tenant member
+  async tenantAddMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID, userID, role } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantAddMemberEndpoint({
+        tenantID,
+      }),
+    }
+    cfg.data = {
+      userID,
+      role,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantAddMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantAddMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantAddMemberEndpoint(a: KV): string {
+    const { tenantID } = a || {}
+    return `/tenants/${tenantID}/members`
+  }
+
+  // Update tenant member
+  async tenantUpdateMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID, userID, role, status } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.tenantUpdateMemberEndpoint({
+        tenantID,
+        userID,
+      }),
+    }
+    cfg.data = {
+      role,
+      status,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantUpdateMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantUpdateMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantUpdateMemberEndpoint(a: KV): string {
+    const { tenantID, userID } = a || {}
+    return `/tenants/${tenantID}/members/${userID}`
+  }
+
+  // Remove tenant member
+  async tenantRemoveMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID, userID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.tenantRemoveMemberEndpoint({
+        tenantID,
+        userID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantRemoveMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantRemoveMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantRemoveMemberEndpoint(a: KV): string {
+    const { tenantID, userID } = a || {}
+    return `/tenants/${tenantID}/members/${userID}`
+  }
+
+  // Suspend tenant member
+  async tenantSuspendMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID, userID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantSuspendMemberEndpoint({
+        tenantID,
+        userID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantSuspendMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantSuspendMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantSuspendMemberEndpoint(a: KV): string {
+    const { tenantID, userID } = a || {}
+    return `/tenants/${tenantID}/members/${userID}/suspend`
+  }
+
+  // Activate tenant member
+  async tenantActivateMember(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { tenantID, userID } = (a as KV) || {}
+    if (!tenantID) {
+      throw Error('field tenantID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.tenantActivateMemberEndpoint({
+        tenantID,
+        userID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  tenantActivateMemberCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.tenantActivateMember(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  tenantActivateMemberEndpoint(a: KV): string {
+    const { tenantID, userID } = a || {}
+    return `/tenants/${tenantID}/members/${userID}/activate`
+  }
 }

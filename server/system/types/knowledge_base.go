@@ -13,8 +13,10 @@ import (
 
 type (
 	KnowledgeBase struct {
-		ID     uint64 `json:"knowledgeBaseID,string"`
-		Handle string `json:"handle"`
+		ID        uint64 `json:"knowledgeBaseID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Handle    string `json:"handle"`
 
 		Title       string `json:"title"`
 		Description string `json:"description,omitempty"`
