@@ -46,6 +46,7 @@ type (
 		IssuedAt     time.Time
 		ClientID     uint64
 		UserID       uint64
+		TenantID     uint64
 		Roles        []uint64
 		Scope        []string
 	}
@@ -210,6 +211,13 @@ func makeToken(req *TokenRequest) (_ jwt.Token, err error) {
 		return
 	}
 
+	// Tenant scope. System-level tokens carry no tenant (TenantID == 0).
+	if req.TenantID != 0 {
+		if err = token.Set("tenantID", toString(req.TenantID)); err != nil {
+			return
+		}
+	}
+
 	if err = token.Set("scope", strings.Join(req.Scope, " ")); err != nil {
 		return
 	}
@@ -235,6 +243,24 @@ func IdentityFromToken(token jwt.Token) *identity {
 		cast.ToUint64(token.Subject()),
 		payload.ParseUint64s(cast.ToStringSlice(roles))...,
 	)
+}
+
+// TenantFromToken reads the tenantID claim from the token.
+// Returns 0 when absent (system-level / unassigned token).
+//
+// Kept separate from IdentityFromToken on purpose: identity and scope are
+// distinct concerns.
+func TenantFromToken(token jwt.Token) uint64 {
+	if token == nil {
+		return 0
+	}
+
+	tid, ok := token.Get("tenantID")
+	if !ok {
+		return 0
+	}
+
+	return cast.ToUint64(tid)
 }
 
 // DefaultAccessTokenGenerator uses token generator from oauth2 lib
@@ -372,6 +398,17 @@ func WithScope(ss ...string) IssueOptFn {
 func WithAudience(aud string) IssueOptFn {
 	return func(t *TokenRequest) (err error) {
 		t.Audience = aud
+		return
+	}
+}
+
+// WithTenant stamps the tenant scope onto the token request.
+//
+// TODO(multi-tenancy): tenant resolution is mocked to 0 for now. Once
+// TenantMembership lands, resolve the user's tenant here before issuance.
+func WithTenant(tenantID uint64) IssueOptFn {
+	return func(t *TokenRequest) (err error) {
+		t.TenantID = tenantID
 		return
 	}
 }

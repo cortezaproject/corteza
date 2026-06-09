@@ -443,6 +443,10 @@ func (h *AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Au
 		},
 		auth.WithClientID(client.ID),
 		auth.WithScope(scope...),
+
+		// @todo mocked single tenant (ID 0). Replace with
+		// TenantMembership resolution for `user` once tenant scoping lands.
+		auth.WithTenant(0),
 	)
 
 	if err != nil {
