@@ -1,5 +1,12 @@
 <template>
-  <div class="max-w-3xl mx-auto flex flex-col gap-4">
+  <div class="flex flex-col gap-6">
+    <p class="text-sm text-muted-color leading-relaxed">
+      Project Members are human beings with roles to either build part or all of the project and its
+      AI systems, or manage project governance and make approvals at governance gates. Each role's
+      responsibilities form the accountability framework for the project and are set out as Role
+      Descriptions below.
+    </p>
+
     <CFormGroup
       label="Members"
       description="Assign people to a role. Each role carries fixed permissions; tab access (Build vs Governance) follows the approval flags."
@@ -15,7 +22,7 @@
         />
       </template>
 
-      <div class="rounded-lg border border-surface overflow-hidden">
+      <div class="rounded-lg border border-surface overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-emphasis text-muted-color text-xs uppercase tracking-wider">
@@ -25,6 +32,8 @@
               <th class="text-center font-medium px-3 py-2">Write</th>
               <th class="text-center font-medium px-3 py-2">Request approval</th>
               <th class="text-center font-medium px-3 py-2">Grant approval</th>
+              <th class="text-left font-medium px-3 py-2">Resources</th>
+              <th class="text-left font-medium px-3 py-2">Backup</th>
               <th class="px-3 py-2" />
             </tr>
           </thead>
@@ -39,6 +48,8 @@
               <td class="text-center px-3 py-2"><YesNo :on="row.preset.write" /></td>
               <td class="text-center px-3 py-2"><YesNo :on="row.preset.requestApproval" /></td>
               <td class="text-center px-3 py-2"><YesNo :on="row.preset.grantApproval" /></td>
+              <td class="px-3 py-2 text-muted-color">{{ row.preset.resources }}</td>
+              <td class="px-3 py-2 text-muted-color">{{ row.backup?.name || '—' }}</td>
               <td class="text-right px-3 py-2">
                 <Button
                   v-if="!disabled"
@@ -52,12 +63,25 @@
               </td>
             </tr>
             <tr v-if="!rows.length">
-              <td colspan="7" class="px-3 py-4 text-center text-muted-color italic">
+              <td colspan="9" class="px-3 py-4 text-center text-muted-color italic">
                 No members yet.
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </CFormGroup>
+
+    <!-- Role descriptions — the accountability framework (Article 17(m)). -->
+    <CFormGroup label="Role descriptions">
+      <div class="rounded-lg border border-surface divide-y divide-surface">
+        <div v-for="r in ROLE_PRESETS" :key="r.id" class="px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="font-medium">{{ r.label }}</span>
+            <span class="text-xs text-muted-color">{{ r.resources }}</span>
+          </div>
+          <p class="text-sm text-muted-color leading-relaxed mt-1">{{ r.description }}</p>
+        </div>
       </div>
     </CFormGroup>
 
@@ -131,6 +155,7 @@ const rows = computed(() =>
     id: m.id,
     preset: rolePreset(m.role),
     user: findUser(m.userId) || { name: m.userId, email: '' },
+    backup: m.backupUserId ? findUser(m.backupUserId) : null,
   })),
 )
 

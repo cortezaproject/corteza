@@ -45,7 +45,7 @@
 
     <!-- Group editor -->
     <div class="flex-1 min-w-0 overflow-auto p-6">
-      <div class="max-w-3xl mx-auto">
+      <div>
         <template v-if="selectedId === '__all__'">
           <div class="flex flex-col gap-3">
             <GroupCard

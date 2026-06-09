@@ -1,6 +1,6 @@
 <template>
   <div class="h-full overflow-auto p-6">
-    <div class="max-w-3xl mx-auto">
+    <div>
       <CFormGroup label="Connections">
         <template #actions>
           <Button

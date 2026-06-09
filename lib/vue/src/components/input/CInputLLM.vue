@@ -16,6 +16,10 @@
     <template #option="{ option }">
       {{ getOptionLabel(option) }}
     </template>
+    <!-- Let consumers add actions (e.g. "Add provider") inside the dropdown. -->
+    <template v-if="$slots.footer" #footer>
+      <slot name="footer" />
+    </template>
   </Select>
 </template>
 

@@ -3,9 +3,10 @@
     <span>{{ project?.name || 'Project' }}</span>
   </Teleport>
 
-  <div v-if="project" class="h-full flex gap-4 p-4 min-h-0">
+  <div v-if="project" class="h-full flex flex-col min-h-0">
+    <div class="flex-1 flex gap-4 p-4 min-h-0">
     <!-- Left: step nav -->
-    <div class="w-64 shrink-0 flex flex-col gap-2 min-h-0">
+    <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
       <StepNav
         class="flex-1 min-h-0"
         :steps="navSteps"
@@ -23,7 +24,7 @@
       <!-- Step header -->
       <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
         <div class="min-w-0">
-          <h2 class="text-lg font-medium truncate">{{ activeStep?.label }}</h2>
+          <h2 class="text-lg font-medium truncate">{{ activeStep?.title || activeStep?.label }}</h2>
           <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
         </div>
 
@@ -36,7 +37,7 @@
       <div ref="splitRef" class="flex-1 min-h-0 flex">
         <div
           class="min-h-0"
-          :class="isArchitecture || isDataModel || isConnections || isDataSensitivity ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
+          :class="isArchitecture || isDataModel || isConnections || isDataSensitivity || isResourceManagement ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
           :style="{ width: leftPct + '%' }"
         >
           <template v-if="isArchitecture">
@@ -59,6 +60,10 @@
           <template v-else-if="isDataSensitivity">
             <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
             <DataSensitivityStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
+          </template>
+          <template v-else-if="isResourceManagement">
+            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
+            <ResourceManagementStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
           </template>
           <template v-else>
             <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
@@ -93,31 +98,33 @@
           />
         </div>
       </div>
-
-      <WizardToolbar
-        v-if="showToolbar"
-        :status="status"
-        :can-write="canWrite"
-        :can-request="canRequest"
-        :can-grant="canGrant"
-        :mode="project.mode"
-        :reopened="isReopened"
-        :submit-disabled="isArchitecture && !architectureSaved"
-        :show-actions="!isMilestone"
-        :can-prev="canPrev"
-        :can-next="canNext"
-        :step-index="stepIndex"
-        :step-count="navSteps.length"
-        :next-is-gate="nextIsGate"
-        @save="onSave"
-        @approve="onApprove"
-        @request-changes="openReason('request-changes')"
-        @resubmit="onResubmit"
-        @reopen="openReason('reopen')"
-        @prev="onPrev"
-        @next="onNext"
-      />
     </div>
+    </div>
+
+    <WizardToolbar
+      v-if="showToolbar"
+      :status="status"
+      :can-write="canWrite"
+      :can-request="canRequest"
+      :can-grant="canGrant"
+      :mode="project.mode"
+      :reopened="isReopened"
+      :submit-disabled="isArchitecture && !architectureSaved"
+      :show-actions="!isMilestone"
+      :can-prev="canPrev"
+      :can-next="canNext"
+      :step-index="stepIndex"
+      :step-count="navSteps.length"
+      :next-is-gate="nextIsGate"
+      @save="onSave"
+      @approve="onApprove"
+      @request-changes="openReason('request-changes')"
+      @resubmit="onResubmit"
+      @reopen="openReason('reopen')"
+      @prev="onPrev"
+      @next="onNext"
+      @back="onBack"
+    />
 
     <LinkConfigDialog
       v-model="configOpen"
@@ -155,6 +162,7 @@ import DataSensitivityStep from '@/sections/project/components/wizard/steps/Data
 import LinkConfigDialog from '@/sections/project/components/group/LinkConfigDialog.vue'
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
+import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { STEPS, sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
@@ -258,7 +266,10 @@ const canGovern = computed(() => canRequest.value || canGrant.value)
 const effectiveTab = computed(() =>
   project.value?.mode === 'gated' && canGovern.value ? 'governance' : 'build',
 )
-const navSteps = computed(() => (project.value ? stepsForTab(effectiveTab.value) : []))
+const friaCtx = computed(() => ({ friaRequired: !!project.value?.friaRequired }))
+const navSteps = computed(() =>
+  project.value ? stepsForTab(effectiveTab.value, friaCtx.value) : [],
+)
 const showGates = computed(() => project.value?.mode === 'gated' && effectiveTab.value === 'governance')
 
 // --- Active step -----------------------------------------------------------
@@ -269,13 +280,16 @@ const activeKey = computed(() => {
   if (q && list.some(s => s.key === q)) return q
   return list[0].key
 })
-const activeStep = computed(() => STEPS.find(s => s.key === activeKey.value))
+const activeStep = computed(
+  () => navSteps.value.find(s => s.key === activeKey.value) || STEPS.find(s => s.key === activeKey.value),
+)
 const isSummary = computed(() => activeKey.value === 'summary')
 const isMembers = computed(() => activeKey.value === 'members')
 const isArchitecture = computed(() => activeKey.value === 'architecture')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
 const isDataSensitivity = computed(() => activeKey.value === 'data-sensitivity')
+const isResourceManagement = computed(() => activeKey.value === 'resource-management')
 // The current step's resource kind, emphasized in the live graph.
 const emphasizeKind = computed(() =>
   activeStep.value?.type === 'resource' ? activeStep.value.kind : null,
@@ -329,12 +343,16 @@ const statusSeverity = computed(
 )
 
 // --- Gate sections ---------------------------------------------------------
-const sectionList = sections()
-const sectionByGate = Object.fromEntries(sectionList.filter(s => s.gateKey).map(s => [s.gateKey, s]))
-const orderedGateKeys = sectionList.filter(s => s.gateKey).map(s => s.gateKey)
+// Built from the full governance pipeline minus any conditional steps that
+// don't apply to this project (e.g. FRIA when not required).
+const sectionList = computed(() => sections(stepsForTab('governance', friaCtx.value)))
+const sectionByGate = computed(() =>
+  Object.fromEntries(sectionList.value.filter(s => s.gateKey).map(s => [s.gateKey, s])),
+)
+const orderedGateKeys = computed(() => sectionList.value.filter(s => s.gateKey).map(s => s.gateKey))
 const gateStatuses = computed(() => {
   const out = {}
-  for (const sec of sectionList) {
+  for (const sec of sectionList.value) {
     if (!sec.gateKey) continue
     const sts = sec.steps.map(s => stepStatus(s.key))
     if (sts.some(s => s === 'changes-requested')) out[sec.gateKey] = 'changes-requested'
@@ -357,10 +375,9 @@ function stepSubmittable(key) {
 // gate has been approved.
 const gateLocked = computed(() => {
   const out = {}
-  for (let i = 0; i < orderedGateKeys.length; i++) {
-    out[orderedGateKeys[i]] = orderedGateKeys
-      .slice(0, i)
-      .some(k => gateStatuses.value[k] !== 'approved')
+  const keys = orderedGateKeys.value
+  for (let i = 0; i < keys.length; i++) {
+    out[keys[i]] = keys.slice(0, i).some(k => gateStatuses.value[k] !== 'approved')
   }
   return out
 })
@@ -384,6 +401,7 @@ const STEP_BLURB = {
   members: 'Assign people to roles. The approval flags decide who works in Build vs Governance.',
   architecture: 'Group the roles and resources that work together.',
   'data-model': 'Define the modules (data tables) and their fields. A Record field links one module to another.',
+  'resource-management': 'Whitelist the permitted AI providers, infrastructure and third-party connections, with continuity options.',
 }
 const headerHint = computed(() => {
   if (isMilestone.value) return activeStep.value?.description || ''
@@ -409,6 +427,11 @@ function goStep(key) {
   router.replace({ query: { ...route.query, step: key } })
 }
 
+// Leave the wizard and return to the project list.
+function onBack() {
+  router.push({ name: 'project.list' })
+}
+
 // --- Prev / Next stepper ---------------------------------------------------
 // Walk the role-visible step list (navSteps is already filtered by Build vs
 // Governance). The arrows disable at the ends.
@@ -424,7 +447,7 @@ const nextIsGate = computed(() => {
   const step = activeStep.value
   if (!step?.gate || !showGates.value || !canRequest.value) return false
   if (gateLocked.value[step.key]) return false
-  return sectionByGate[step.key]?.steps.some(s => stepSubmittable(s.key)) || false
+  return sectionByGate.value[step.key]?.steps.some(s => stepSubmittable(s.key)) || false
 })
 
 function onPrev() {
@@ -442,7 +465,7 @@ function onNext() {
 
 // --- Gate submission -------------------------------------------------------
 function onGateClick(gateKey) {
-  const sec = sectionByGate[gateKey]
+  const sec = sectionByGate.value[gateKey]
   if (!sec) return
   // Locked gates (previous gate not yet approved) can't be acted on.
   if (gateLocked.value[gateKey]) {

@@ -3,7 +3,7 @@
     :visible="visible"
     @update:visible="$emit('update:visible', $event)"
     modal
-    :header="step === 1 ? 'Start a new project' : 'Project details'"
+    :header="headerText"
     :style="{ width: '46rem' }"
     :pt="{ content: { class: '!pt-2' } }"
   >
@@ -47,7 +47,7 @@
     </template>
 
     <!-- Step 2 — details + (gated) team -->
-    <template v-else>
+    <template v-else-if="step === 2">
       <div class="flex flex-col gap-4 pt-1">
         <div class="flex items-center gap-2 text-sm text-muted-color">
           <Tag
@@ -73,24 +73,60 @@
       </div>
     </template>
 
+    <!-- Step 3 — Deployer categories (drive whether a FRIA is required) -->
+    <template v-else>
+      <div class="flex flex-col gap-4 pt-1">
+        <p class="text-sm text-muted-color">
+          Is your organisation one or more of the following three categories of Deployers?
+        </p>
+
+        <div
+          v-for="(q, i) in DEPLOYER_QUESTIONS"
+          :key="q.key"
+          class="flex items-start gap-4 rounded-lg border border-surface p-3"
+        >
+          <p class="text-sm flex-1 min-w-0">
+            <span class="font-medium mr-1">{{ i + 1 }}.</span>{{ q.label }}
+          </p>
+          <SelectButton
+            v-model="deployer[q.key]"
+            :options="YES_NO"
+            option-label="label"
+            option-value="value"
+            :allow-empty="false"
+            class="shrink-0"
+          />
+        </div>
+      </div>
+    </template>
+
     <template #footer>
       <div
         class="flex items-center gap-2 w-full"
-        :class="step === 2 ? 'justify-between' : 'justify-end'"
+        :class="step > 1 ? 'justify-between' : 'justify-end'"
       >
         <Button
-          v-if="step === 2"
+          v-if="step > 1"
           label="Back"
           icon="pi pi-arrow-left"
           severity="secondary"
           text
           size="small"
-          @click="step = 1"
+          @click="step = step - 1"
         />
         <div class="flex gap-2">
           <Button label="Cancel" severity="secondary" outlined size="small" @click="close" />
           <Button
             v-if="step === 2"
+            label="Next"
+            icon="pi pi-arrow-right"
+            icon-pos="right"
+            size="small"
+            :disabled="!canCreate"
+            @click="step = 3"
+          />
+          <Button
+            v-if="step === 3"
             label="Create project"
             size="small"
             :disabled="!canCreate"
@@ -104,7 +140,7 @@
 
 <script setup>
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -113,18 +149,51 @@ const emit = defineEmits(['update:visible', 'created'])
 
 const store = useProjectsStore()
 
+// AI Act Deployer categories. Answering "yes" to any makes a Fundamental
+// Rights Impact Assessment (FRIA) required for the project.
+const DEPLOYER_QUESTIONS = [
+  {
+    key: 'publicAuthorityAnnex3',
+    label:
+      'A public authority deploying high-risk AI systems in the areas listed in AI Act Annex 3, specifically biometrics, education and vocational training, employment, access to and enjoyment of essential private and public services, law enforcement, migration, asylum and border control management, administration of justice and democratic processes.',
+  },
+  {
+    key: 'privateEssentialServices',
+    label: 'A private entity providing essential public services.',
+  },
+  {
+    key: 'insuranceBanking',
+    label:
+      'An insurance or banking company using AI to price life and health insurance and evaluate the creditworthiness of natural persons.',
+  },
+]
+const YES_NO = [
+  { label: 'Yes', value: true },
+  { label: 'No', value: false },
+]
+
 const step = ref(1)
 const mode = ref('')
 const name = ref('')
 const description = ref('')
+const deployer = reactive(defaultDeployer())
+
+function defaultDeployer() {
+  return Object.fromEntries(DEPLOYER_QUESTIONS.map(q => [q.key, false]))
+}
 
 const canCreate = computed(() => !!name.value.trim())
+
+const headerText = computed(
+  () => ({ 1: 'Start a new project', 2: 'Project details', 3: 'Deployer categories' })[step.value],
+)
 
 function reset() {
   step.value = 1
   mode.value = ''
   name.value = ''
   description.value = ''
+  Object.assign(deployer, defaultDeployer())
 }
 
 watch(
@@ -149,6 +218,7 @@ function onCreate() {
     name: name.value,
     description: description.value,
     mode: mode.value,
+    deployer: { ...deployer },
   })
   emit('created', project)
   close()

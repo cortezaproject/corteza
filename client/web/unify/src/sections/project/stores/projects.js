@@ -30,8 +30,17 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // Create a fresh draft. The creator is automatically added as a Developer;
   // other members are configured in the Project Members step.
-  function create({ name, description = '', mode = 'free' } = {}) {
+  // `deployer` holds the three AI Act Deployer-category answers gathered at
+  // creation; any "yes" makes a Fundamental Rights Impact Assessment required.
+  function create({ name, description = '', mode = 'free', deployer = {} } = {}) {
     const now = new Date().toISOString()
+
+    const deployerCategories = {
+      publicAuthorityAnnex3: !!deployer.publicAuthorityAnnex3,
+      privateEssentialServices: !!deployer.privateEssentialServices,
+      insuranceBanking: !!deployer.insuranceBanking,
+    }
+    const friaRequired = Object.values(deployerCategories).some(Boolean)
 
     const project = {
       id: uniqueId(slugify(name)),
@@ -44,6 +53,8 @@ export const useProjectsStore = defineStore('projects', () => {
       versions: [],
       gatesApproved: 0,
       governance: {},
+      deployerCategories,
+      friaRequired,
       createdAt: now,
       updatedAt: now,
     }
@@ -290,6 +301,63 @@ export const useProjectsStore = defineStore('projects', () => {
     p.updatedAt = new Date().toISOString()
   }
 
+  // --- Resource Management ---------------------------------------------------
+  // project.resourceManagement = { ai, infra, connections[] }. The connections
+  // list is the whitelist/catalogue the later Connections step picks from.
+  // project.llmCatalog holds provider/model entries added from this project.
+
+  function ensureResourceManagement(p) {
+    if (!p.resourceManagement) {
+      p.resourceManagement = { ai: {}, infra: {}, connections: [] }
+    }
+    return p.resourceManagement
+  }
+
+  // Patch a sub-section ('ai' | 'infra') of the resource management form.
+  function updateResourceManagement(projectId, section, patch = {}) {
+    const p = projects.value.find(x => x.id === projectId)
+    if (!p) return
+    const rm = ensureResourceManagement(p)
+    rm[section] = { ...(rm[section] || {}), ...patch }
+    p.updatedAt = new Date().toISOString()
+  }
+
+  function addPermittedConnection(projectId, conn = {}) {
+    const p = projects.value.find(x => x.id === projectId)
+    if (!p) return null
+    const rm = ensureResourceManagement(p)
+    const id = localId('pconn')
+    rm.connections.push({
+      id,
+      name: conn.name || '',
+      connector: conn.connector || null,
+      actionIfUnavailable: conn.actionIfUnavailable || 'Deactivate',
+      replacement: conn.replacement || '',
+      type: conn.type || null,
+      description: conn.description || '',
+      isAiSystem: conn.isAiSystem || 'No',
+    })
+    p.updatedAt = new Date().toISOString()
+    return id
+  }
+
+  function updatePermittedConnection(projectId, connId, patch = {}) {
+    const p = projects.value.find(x => x.id === projectId)
+    const c = p?.resourceManagement?.connections?.find(x => x.id === connId)
+    if (!c) return
+    Object.assign(c, patch)
+    p.updatedAt = new Date().toISOString()
+  }
+
+  function removePermittedConnection(projectId, connId) {
+    const p = projects.value.find(x => x.id === projectId)
+    const list = p?.resourceManagement?.connections
+    if (!list) return
+    const i = list.findIndex(c => c.id === connId)
+    if (i !== -1) list.splice(i, 1)
+    p.updatedAt = new Date().toISOString()
+  }
+
   // --- Per-step governance ---------------------------------------------------
   // Each step's state lives at project.governance[stepKey] =
   //   { values, status: draft|submitted|approved|changes-requested, reviewNote }.
@@ -378,6 +446,10 @@ export const useProjectsStore = defineStore('projects', () => {
     addGroup,
     updateGroup,
     removeGroup,
+    updateResourceManagement,
+    addPermittedConnection,
+    updatePermittedConnection,
+    removePermittedConnection,
     saveStepForm,
     submitSection,
     transitionStep,

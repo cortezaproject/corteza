@@ -1,7 +1,17 @@
 <template>
   <div class="shrink-0 border-t border-surface bg-surface p-3 flex items-center gap-2">
-    <!-- Left spacer keeps the stepper centered while actions stay on the right. -->
-    <div class="flex-1" />
+    <!-- Left: back to the project list (balances the right-side actions and
+         keeps the stepper centered). -->
+    <div class="flex-1 flex items-center">
+      <Button
+        icon="pi pi-arrow-left"
+        label="Projects"
+        severity="secondary"
+        text
+        size="small"
+        @click="$emit('back')"
+      />
+    </div>
 
     <!-- Center: Previous / Next stepper -->
     <div class="flex items-center gap-2">
@@ -108,7 +118,7 @@ const props = defineProps({
   // When true, "Next" submits the current gate section instead of advancing.
   nextIsGate: { type: Boolean, default: false },
 })
-defineEmits(['save', 'approve', 'request-changes', 'resubmit', 'reopen', 'prev', 'next'])
+defineEmits(['save', 'approve', 'request-changes', 'resubmit', 'reopen', 'prev', 'next', 'back'])
 
 // Resubmit appears for a member who can request approval when a step is being
 // re-worked (changes requested, or a reopened-then-draft step).

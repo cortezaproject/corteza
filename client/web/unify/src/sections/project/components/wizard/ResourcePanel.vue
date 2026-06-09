@@ -5,27 +5,25 @@
       <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color mb-2">Resources</h3>
 
       <div
-        class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-3"
+        class="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2"
         :class="locked ? 'opacity-50 pointer-events-none select-none' : ''"
       >
         <div
           v-for="m in metrics"
           :key="m.key"
-          class="rounded-lg border border-surface p-3 flex flex-col gap-3"
+          class="rounded-lg border border-surface px-2.5 py-1.5 flex items-center gap-2 min-w-0"
         >
-          <div class="flex items-center gap-2 min-w-0">
-            <span
-              :class="[
-                'inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 shrink-0',
-                m.cfg.bg,
-                m.cfg.ring,
-              ]"
-            >
-              <i :class="[m.cfg.icon, m.cfg.text, 'text-sm']" />
-            </span>
-            <span class="text-xs text-muted-color whitespace-nowrap">{{ m.cfg.label }}</span>
-          </div>
-          <span class="text-lg font-semibold leading-none">{{ m.count }}</span>
+          <span
+            :class="[
+              'inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0',
+              m.cfg.bg,
+              m.cfg.ring,
+            ]"
+          >
+            <i :class="[m.cfg.icon, m.cfg.text, 'text-xs']" />
+          </span>
+          <span class="text-base font-semibold leading-none shrink-0">{{ m.count }}</span>
+          <span class="text-xs text-muted-color leading-tight min-w-0 break-words">{{ m.cfg.label }}</span>
         </div>
       </div>
     </div>

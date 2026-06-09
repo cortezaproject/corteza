@@ -1,6 +1,6 @@
 <template>
   <div class="h-full overflow-auto p-6">
-    <div class="max-w-3xl mx-auto flex flex-col gap-5">
+    <div class="flex flex-col gap-5">
       <!-- Summary: count of data points per classification -->
       <div class="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
         <div

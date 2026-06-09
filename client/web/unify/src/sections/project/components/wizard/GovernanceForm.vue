@@ -1,19 +1,14 @@
 <template>
   <div class="flex flex-col gap-6">
-    <Panel
-      v-for="section in schema"
-      :key="section.title"
-      :header="section.title"
-      toggleable
-      :collapsed="false"
-      class="shadow"
+    <div
+      v-for="(section, i) in schema"
+      :key="section.title || i"
     >
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4">
+      <div class="grid grid-cols-1 gap-x-6 gap-y-4">
         <CFormGroup
           v-for="field in section.fields"
           :key="field.key"
           :label="field.label"
-          :class="field.fullWidth ? 'xl:col-span-2' : ''"
         >
           <InputText
             v-if="field.type === 'text'"
@@ -70,7 +65,7 @@
           />
         </CFormGroup>
       </div>
-    </Panel>
+    </div>
   </div>
 </template>
 
