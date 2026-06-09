@@ -325,6 +325,15 @@ const positionedBlocks = computed(() => {
 
 const navigating = ref(null) // 'prev' | 'next' | null
 
+// Cancels the in-flight record load when we navigate to another record / leave.
+let recordLoadAbort = null
+function abortRecordLoad() {
+  if (recordLoadAbort) {
+    recordLoadAbort.abort()
+    recordLoadAbort = null
+  }
+}
+
 async function loadRecord(recordID) {
   if (!page.value || !recordID || recordID === '0') return
   const moduleID = page.value.moduleID
@@ -332,21 +341,28 @@ async function loadRecord(recordID) {
   const mod = moduleStore.getByID(moduleID)
   if (!mod) return
 
+  abortRecordLoad()
+  const ac = new AbortController()
+  recordLoadAbort = ac
+
   try {
     const loaded = await recordStore.findByID({
       namespaceID: mod.namespaceID,
       moduleID: mod.moduleID,
       recordID,
       force: true,
+      signal: ac.signal,
     })
     pristineRecord.value = loaded
     record.value = loaded
     serverErrors.value = {}
   } catch (e) {
+    if (ac.signal.aborted) return
     console.error('Failed to load record:', e)
     record.value = null
   } finally {
-    navigating.value = null
+    if (recordLoadAbort === ac) recordLoadAbort = null
+    if (!ac.signal.aborted) navigating.value = null
   }
 }
 
@@ -354,6 +370,10 @@ async function loadPage() {
   const pageID = props.inModal ? props.modalPageID : route.params.pageID
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
   if (!pageID) return
+
+  abortRecordLoad()
+  const ac = new AbortController()
+  recordLoadAbort = ac
 
   loading.value = true
   record.value = null
@@ -391,6 +411,7 @@ async function loadPage() {
                   namespaceID: mod.namespaceID,
                   moduleID: mod.moduleID,
                   recordID: route.query.cloneFromID,
+                  signal: ac.signal,
                 })
                 const newRec = new compose.Record(mod)
                 for (const field of mod.fields) {
@@ -400,6 +421,7 @@ async function loadPage() {
                 newRec.ownedBy = $auth?.user?.userID || undefined
                 record.value = newRec
               } catch (e) {
+                if (ac.signal.aborted) return
                 console.error('Failed to load source record for clone:', e)
                 record.value = new compose.Record(mod, { ownedBy: $auth?.user?.userID })
               }
@@ -427,11 +449,13 @@ async function loadPage() {
                 moduleID: mod.moduleID,
                 recordID,
                 force: true,
+                signal: ac.signal,
               })
               pristineRecord.value = loaded
               // In edit mode, start with a clone; mode watch will re-clone on later transitions
               record.value = mode.value === 'edit' ? loaded.clone() : loaded
             } catch (e) {
+              if (ac.signal.aborted) return
               console.error('Failed to load record:', e)
               record.value = null
             }
@@ -450,7 +474,11 @@ async function loadPage() {
       invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
     }
   } finally {
-    loading.value = false
+    // If this load was superseded/cancelled, leave state to the newer load.
+    if (!ac.signal.aborted) {
+      loading.value = false
+      if (recordLoadAbort === ac) recordLoadAbort = null
+    }
   }
 }
 
@@ -791,6 +819,7 @@ watch(
 const offRefetch = $eventBus?.on('refetch-records', () => loadPage())
 
 onBeforeUnmount(() => {
+  abortRecordLoad()
   offRefetch?.()
 })
 </script>

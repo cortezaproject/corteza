@@ -5,7 +5,9 @@ import { useRecordStore, useModuleStore } from '@planetcrust/human-vue'
 vi.mock('@planetcrust/human-js', () => ({
   automation: {
     Function: class MockFunction {
-      constructor(data: any) { Object.assign(this, data) }
+      constructor(data: any) {
+        Object.assign(this, data)
+      }
     },
   },
   compose: {
@@ -24,11 +26,15 @@ vi.mock('@planetcrust/human-js', () => ({
         this.ownedBy = data.ownedBy || ''
         this.meta = data.meta || {}
       }
-      serializeValues() { return [] }
+      serializeValues() {
+        return []
+      }
     },
     Module: class MockModule {
       moduleID: string
-      constructor(data: any) { Object.assign(this, data) }
+      constructor(data: any) {
+        Object.assign(this, data)
+      }
     },
   },
 }))
@@ -40,19 +46,30 @@ const MOD = { moduleID: MOD_ID, namespaceID: NS_ID, fields: [] }
 function makeAPI(overrides: Record<string, any> = {}) {
   return {
     recordList: vi.fn().mockResolvedValue({ set: [], filter: { total: 0 } }),
-    recordRead: vi.fn().mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
-    recordCreate: vi.fn().mockResolvedValue({ recordID: '30002', namespaceID: NS_ID, moduleID: MOD_ID }),
-    recordUpdate: vi.fn().mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
+    recordRead: vi
+      .fn()
+      .mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
+    recordCreate: vi
+      .fn()
+      .mockResolvedValue({ recordID: '30002', namespaceID: NS_ID, moduleID: MOD_ID }),
+    recordUpdate: vi
+      .fn()
+      .mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
     recordDelete: vi.fn().mockResolvedValue({}),
     ...overrides,
   }
 }
 
-function setup() {
-  createTestPinia({})
+function setup(api = makeAPI()) {
+  createTestPinia({ $ComposeAPI: api })
   const moduleStore = useModuleStore()
   moduleStore.updateSet([MOD])
-  return { store: useRecordStore(), moduleStore }
+  return { store: useRecordStore(), moduleStore, api }
+}
+
+function setupNoModule(api = makeAPI()) {
+  createTestPinia({ $ComposeAPI: api })
+  return { store: useRecordStore(), api }
 }
 
 describe('useRecordStore', () => {
@@ -62,30 +79,30 @@ describe('useRecordStore', () => {
 
   describe('list()', () => {
     it('throws when moduleID missing', async () => {
-      const api = makeAPI()
       const { store } = setup()
-      await expect(store.list(api, { namespaceID: NS_ID } as any)).rejects.toThrow()
+      await expect(store.list({ namespaceID: NS_ID } as any)).rejects.toThrow()
     })
 
     it('throws when module not in store', async () => {
-      const api = makeAPI()
-      createTestPinia({})
-      const store = useRecordStore()
-      await expect(store.list(api, { namespaceID: NS_ID, moduleID: '99999' })).rejects.toThrow('Module 99999 not found')
+      const { store } = setupNoModule()
+      await expect(store.list({ namespaceID: NS_ID, moduleID: '99999' })).rejects.toThrow(
+        'Module 99999 not found',
+      )
     })
 
     it('populates records cache and returns set', async () => {
-      const api = makeAPI({
-        recordList: vi.fn().mockResolvedValue({
-          set: [
-            { recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID },
-            { recordID: '30002', namespaceID: NS_ID, moduleID: MOD_ID },
-          ],
-          filter: { total: 2 },
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [
+              { recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID },
+              { recordID: '30002', namespaceID: NS_ID, moduleID: MOD_ID },
+            ],
+            filter: { total: 2 },
+          }),
         }),
-      })
-      const { store } = setup()
-      const { set } = await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      )
+      const { set } = await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
 
       expect(set).toHaveLength(2)
       expect(store.getByID('30001')).toBeTruthy()
@@ -93,185 +110,301 @@ describe('useRecordStore', () => {
     })
 
     it('resets loading to false after fetch', async () => {
-      const api = makeAPI()
       const { store } = setup()
-      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
       expect(store.loading).toBe(false)
     })
   })
 
   describe('findByID()', () => {
     it('returns cached record without API call', async () => {
-      const api = makeAPI({
-        recordList: vi.fn().mockResolvedValue({
-          set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
-          filter: {},
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
         }),
-      })
-      const { store } = setup()
-      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
       api.recordRead.mockClear()
 
-      const rec = await store.findByID(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
+      const rec = await store.findByID({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
       expect(rec.recordID).toBe('30001')
       expect(api.recordRead).not.toHaveBeenCalled()
     })
 
     it('fetches from API when not cached', async () => {
-      const api = makeAPI({
-        recordRead: vi.fn().mockResolvedValue({ recordID: '99001', namespaceID: NS_ID, moduleID: MOD_ID }),
-      })
-      const { store } = setup()
+      const { store, api } = setup(
+        makeAPI({
+          recordRead: vi
+            .fn()
+            .mockResolvedValue({ recordID: '99001', namespaceID: NS_ID, moduleID: MOD_ID }),
+        }),
+      )
 
-      const rec = await store.findByID(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' })
-      expect(api.recordRead).toHaveBeenCalledWith({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' })
+      const rec = await store.findByID({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' })
+      expect(api.recordRead).toHaveBeenCalledWith(
+        { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '99001' },
+        { signal: undefined },
+      )
       expect(rec.recordID).toBe('99001')
     })
 
-    it('force=true bypasses cache', async () => {
-      const api = makeAPI({
-        recordList: vi.fn().mockResolvedValue({
-          set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
-          filter: {},
+    it('force bypasses the cache and refetches', async () => {
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
+          recordRead: vi
+            .fn()
+            .mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
         }),
-        recordRead: vi.fn().mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
-      })
-      const { store } = setup()
-      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      api.recordRead.mockClear()
 
-      await store.findByID(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001', force: true })
-      expect(api.recordRead).toHaveBeenCalled()
+      await store.findByID({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001', force: true })
+      expect(api.recordRead).toHaveBeenCalledWith(
+        { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' },
+        { signal: undefined },
+      )
+    })
+
+    it('forwards an AbortSignal to recordRead for cancellation', async () => {
+      const { store, api } = setup(
+        makeAPI({
+          recordRead: vi
+            .fn()
+            .mockResolvedValue({ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }),
+        }),
+      )
+      const ac = new AbortController()
+
+      await store.findByID({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordID: '30001',
+        signal: ac.signal,
+      })
+      expect(api.recordRead).toHaveBeenCalledWith(
+        { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' },
+        { signal: ac.signal },
+      )
     })
 
     it('throws when module not in store', async () => {
-      const api = makeAPI()
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setupNoModule()
       await expect(
-        store.findByID(api, { namespaceID: NS_ID, moduleID: '99999', recordID: '30001' }),
+        store.findByID({ namespaceID: NS_ID, moduleID: '99999', recordID: '30001' }),
       ).rejects.toThrow('Module 99999 not found')
     })
   })
 
   describe('getByID()', () => {
     it('returns null when not in any cache', () => {
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setupNoModule()
       expect(store.getByID('unknown')).toBeNull()
     })
 
     it('returns record from records map', async () => {
-      const api = makeAPI({
-        recordList: vi.fn().mockResolvedValue({
-          set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
-          filter: {},
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
         }),
-      })
-      const { store } = setup()
-      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
       expect(store.getByID('30001')).toBeTruthy()
     })
 
     it('returns record from labelCache when not in records', async () => {
-      const api = makeAPI({
-        recordRead: vi.fn().mockResolvedValue({ recordID: 'lbl-1', namespaceID: NS_ID, moduleID: MOD_ID }),
-      })
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '40001', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
+        }),
+      )
 
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lbl-1'] })
-      expect(store.getByID('lbl-1')).toBeTruthy()
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40001'],
+      })
+      expect(store.getByID('40001')).toBeTruthy()
     })
   })
 
   describe('resolveRecordLabels()', () => {
     it('no-ops when empty recordIDs', async () => {
-      const api = makeAPI()
-      createTestPinia({})
-      const store = useRecordStore()
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: [] })
+      const { store, api } = setup()
+      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: [] })
+      expect(api.recordList).not.toHaveBeenCalled()
       expect(api.recordRead).not.toHaveBeenCalled()
     })
 
     it('skips IDs already in records cache', async () => {
-      const api = makeAPI({
-        recordList: vi.fn().mockResolvedValue({
-          set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
-          filter: {},
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
         }),
-      })
-      const { store } = setup()
-      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+      api.recordList.mockClear()
       api.recordRead.mockClear()
 
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['30001'] })
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['30001'],
+      })
+      expect(api.recordList).not.toHaveBeenCalled()
       expect(api.recordRead).not.toHaveBeenCalled()
     })
 
-    it('fetches missing IDs into labelCache', async () => {
-      const api = makeAPI({
-        recordRead: vi.fn().mockResolvedValue({ recordID: 'lbl-42', namespaceID: NS_ID, moduleID: MOD_ID }),
-      })
-      createTestPinia({})
-      const store = useRecordStore()
+    it('batches missing IDs into a single recordList call', async () => {
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [
+              { recordID: '40042', namespaceID: NS_ID, moduleID: MOD_ID },
+              { recordID: '40043', namespaceID: NS_ID, moduleID: MOD_ID },
+            ],
+            filter: {},
+          }),
+        }),
+      )
 
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lbl-42'] })
-      expect(api.recordRead).toHaveBeenCalledWith({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: 'lbl-42' })
-      expect(store.getByID('lbl-42')).toBeTruthy()
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40042', '40043'],
+      })
+
+      expect(api.recordList).toHaveBeenCalledTimes(1)
+      expect(api.recordList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          namespaceID: NS_ID,
+          moduleID: MOD_ID,
+          query: 'recordID = 40042 OR recordID = 40043',
+          incTotal: false,
+        }),
+      )
+      expect(api.recordRead).not.toHaveBeenCalled()
+      expect(store.getByID('40042')).toBeTruthy()
+      expect(store.getByID('40043')).toBeTruthy()
+    })
+
+    it('coalesces same-tick requests for the same ID into one call', async () => {
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '40044', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
+        }),
+      )
+
+      const p1 = store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40044'] })
+      const p2 = store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40044'] })
+      await Promise.all([p1, p2])
+
+      expect(api.recordList).toHaveBeenCalledTimes(1)
+      expect(store.getByID('40044')).toBeTruthy()
     })
 
     it('skips IDs already in labelCache on second call', async () => {
-      const api = makeAPI({
-        recordRead: vi.fn().mockResolvedValue({ recordID: 'lc-1', namespaceID: NS_ID, moduleID: MOD_ID }),
-      })
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '40045', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
+        }),
+      )
 
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lc-1'] })
-      api.recordRead.mockClear()
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['lc-1'] })
-      expect(api.recordRead).not.toHaveBeenCalled()
+      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40045'] })
+      api.recordList.mockClear()
+      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40045'] })
+      expect(api.recordList).not.toHaveBeenCalled()
     })
 
-    it('handles per-record API errors gracefully (no throw)', async () => {
-      const api = makeAPI({
-        recordRead: vi.fn().mockRejectedValue(new Error('not found')),
+    it('falls back to per-ID read for IDs the batch omits', async () => {
+      const { store, api } = setup(
+        makeAPI({
+          // Batch returns nothing for the requested ID...
+          recordList: vi.fn().mockResolvedValue({ set: [], filter: {} }),
+          // ...so it should be read individually.
+          recordRead: vi
+            .fn()
+            .mockResolvedValue({ recordID: '40046', namespaceID: NS_ID, moduleID: MOD_ID }),
+        }),
+      )
+
+      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40046'] })
+
+      expect(api.recordList).toHaveBeenCalled()
+      expect(api.recordRead).toHaveBeenCalledWith({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordID: '40046',
       })
-      createTestPinia({})
-      const store = useRecordStore()
+      expect(store.getByID('40046')).toBeTruthy()
+    })
+
+    it('handles batch + fallback failure gracefully (no throw)', async () => {
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockRejectedValue(new Error('boom')),
+          recordRead: vi.fn().mockRejectedValue(new Error('not found')),
+        }),
+      )
 
       await expect(
-        store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['bad-id'] }),
+        store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40047'] }),
       ).resolves.toBeUndefined()
+      expect(store.getByID('40047')).toBeNull()
+    })
+
+    it('ignores non-numeric IDs (cannot be batched safely)', async () => {
+      const { store, api } = setup()
+      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['bad-id'] })
+      expect(api.recordList).not.toHaveBeenCalled()
+      expect(api.recordRead).not.toHaveBeenCalled()
       expect(store.getByID('bad-id')).toBeNull()
     })
   })
 
   describe('setNavigationIDs() / getNextAndPrev()', () => {
     it('returns prev and next for middle item', () => {
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setupNoModule()
       store.setNavigationIDs(['a', 'b', 'c'])
       expect(store.getNextAndPrev('b')).toEqual({ prev: 'a', next: 'c' })
     })
 
     it('returns undefined prev for first item', () => {
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setupNoModule()
       store.setNavigationIDs(['a', 'b'])
       expect(store.getNextAndPrev('a').prev).toBeUndefined()
     })
 
     it('returns undefined next for last item', () => {
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setupNoModule()
       store.setNavigationIDs(['a', 'b'])
       expect(store.getNextAndPrev('b').next).toBeUndefined()
     })
 
     it('returns both undefined when ID not in list', () => {
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setupNoModule()
       store.setNavigationIDs(['a', 'b'])
       expect(store.getNextAndPrev('z')).toEqual({ prev: undefined, next: undefined })
     })
@@ -279,18 +412,25 @@ describe('useRecordStore', () => {
 
   describe('clearAll()', () => {
     it('clears both caches and resets state', async () => {
-      const api = makeAPI({
-        recordRead: vi.fn().mockResolvedValue({ recordID: 'clr-1', namespaceID: NS_ID, moduleID: MOD_ID }),
-      })
-      createTestPinia({})
-      const store = useRecordStore()
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '40050', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
+        }),
+      )
 
-      await store.resolveRecordLabels(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['clr-1'] })
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40050'],
+      })
       store.setNavigationIDs(['x', 'y'])
-      expect(store.getByID('clr-1')).toBeTruthy()
+      expect(store.getByID('40050')).toBeTruthy()
 
       store.clearAll()
-      expect(store.getByID('clr-1')).toBeNull()
+      expect(store.getByID('40050')).toBeNull()
       expect(store.loading).toBe(false)
       expect(store.pending).toBe(false)
       expect(store.paginationRecordIDs).toHaveLength(0)
@@ -299,18 +439,19 @@ describe('useRecordStore', () => {
 
   describe('delete()', () => {
     it('removes record from cache after successful delete', async () => {
-      const api = makeAPI({
-        recordList: vi.fn().mockResolvedValue({
-          set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
-          filter: {},
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({
+            set: [{ recordID: '30001', namespaceID: NS_ID, moduleID: MOD_ID }],
+            filter: {},
+          }),
+          recordDelete: vi.fn().mockResolvedValue({}),
         }),
-        recordDelete: vi.fn().mockResolvedValue({}),
-      })
-      const { store } = setup()
-      await store.list(api, { namespaceID: NS_ID, moduleID: MOD_ID })
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
       expect(store.getByID('30001')).toBeTruthy()
 
-      await store.delete(api, { namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
+      await store.delete({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: '30001' })
       expect(store.getByID('30001')).toBeNull()
     })
   })

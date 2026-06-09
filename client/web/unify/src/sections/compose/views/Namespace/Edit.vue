@@ -350,8 +350,12 @@ async function handleSubmit({ valid }) {
       const created = await namespaceStore.create(payload)
       $toast.toastSuccess(t('notification.namespace.saved'))
       markSaved()
+      // Land on the namespace's default 'pages' route: with no pages yet it
+      // renders the onboarding screen that guides the user to build their
+      // first module. Target the leaf route (not the named parent
+      // 'namespace.view') so Vue Router renders the empty-path child.
       router.push({
-        name: 'namespace.edit',
+        name: 'pages',
         params: { slug: created.slug || created.namespaceID },
       })
     }
@@ -401,7 +405,7 @@ async function handleDelete() {
 
 function visitNamespace() {
   router.push({
-    name: 'namespace.view',
+    name: 'pages',
     params: { slug: namespace.value.slug || namespace.value.namespaceID },
   })
 }

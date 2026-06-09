@@ -1096,13 +1096,17 @@ async function handleSubmit({ valid }) {
     } else {
       const created = await pageStore.create(payload)
 
-      // Auto-create a primary layout for the new page (matching Human)
-      await pageLayoutStore.create({
-        namespaceID: props.namespace.namespaceID,
-        pageID: created.pageID,
-        handle: 'primary',
-        meta: { title: created.title || payload.title },
-      })
+      // Auto-create a primary layout for the new page (matching Human).
+      // Use the PageLayout type so the default config (all record toolbar
+      // buttons enabled) is persisted instead of zero-value disabled buttons.
+      await pageLayoutStore.create(
+        new compose.PageLayout({
+          namespaceID: props.namespace.namespaceID,
+          pageID: created.pageID,
+          handle: 'primary',
+          meta: { title: created.title || payload.title },
+        }),
+      )
 
       $toast.toastSuccess(t('notification.page.created'))
       markSaved()
@@ -1206,13 +1210,17 @@ async function handleClone() {
       blockID: b.blockID,
       xywh: b.xywh,
     }))
-    await pageLayoutStore.create({
-      namespaceID: props.namespace.namespaceID,
-      pageID: created.pageID,
-      handle: 'primary',
-      meta: { title: created.title || payload.title },
-      blocks: layoutBlocks,
-    })
+    // Use the PageLayout type so the default config (all record toolbar
+    // buttons enabled) is persisted instead of zero-value disabled buttons.
+    await pageLayoutStore.create(
+      new compose.PageLayout({
+        namespaceID: props.namespace.namespaceID,
+        pageID: created.pageID,
+        handle: 'primary',
+        meta: { title: created.title || payload.title },
+        blocks: layoutBlocks,
+      }),
+    )
     $toast.toastSuccess(t('notification.page.created'))
     markSaved()
     router.push({

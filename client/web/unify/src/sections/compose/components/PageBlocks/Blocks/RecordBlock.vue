@@ -696,6 +696,7 @@ async function loadRecord() {
       namespaceID: props.namespace.namespaceID,
       moduleID: pageModule.value.moduleID,
       recordID,
+      force: true,
     })
   } catch (e) {
     console.error('Failed to load record for Record block:', e)

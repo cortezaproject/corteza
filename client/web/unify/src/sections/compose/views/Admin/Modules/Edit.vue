@@ -971,13 +971,18 @@ async function createDefaultLayout(page) {
       blockID: b.blockID,
       xywh: b.xywh,
     }))
-    await pageLayoutStore.create({
-      namespaceID: props.namespace.namespaceID,
-      pageID: page.pageID,
-      handle: 'primary',
-      meta: { title: page.title },
-      blocks: layoutBlocks,
-    })
+    // Use the PageLayout type so the default config (all record toolbar
+    // buttons enabled) is persisted. Passing a plain object omits config,
+    // and the backend stores zero-value buttons (all disabled).
+    await pageLayoutStore.create(
+      new compose.PageLayout({
+        namespaceID: props.namespace.namespaceID,
+        pageID: page.pageID,
+        handle: 'primary',
+        meta: { title: page.title },
+        blocks: layoutBlocks,
+      }),
+    )
   } catch (e) {
     console.error('Failed to create default page layout:', e)
   }

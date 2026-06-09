@@ -58,7 +58,7 @@
               v-for="namespace in sortedNamespaces"
               :key="namespace.namespaceID"
               :to="{
-                name: 'namespace.view',
+                name: 'pages',
                 params: { slug: namespace.slug || namespace.namespaceID },
               }"
               class="block relative group cursor-pointer hover:scale-105 hover:text-primary transition-all duration-100"
@@ -320,7 +320,7 @@ const {
 
 function handleRowClick({ data }) {
   router.push({
-    name: 'namespace.view',
+    name: 'pages',
     params: { slug: data.slug || data.namespaceID },
   })
 }

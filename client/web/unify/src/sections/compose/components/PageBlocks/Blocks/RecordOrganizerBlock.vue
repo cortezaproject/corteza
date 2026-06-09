@@ -32,10 +32,28 @@
           @click="handleRecordClick(record)"
         >
           <h6 v-if="labelFieldName" class="font-medium mb-1 text-color">
-            {{ getFieldValue(record, labelFieldName) || $t('block.record.preview.untitled') }}
+            <CFieldViewer
+              v-if="labelFieldDef"
+              :field="labelFieldDef"
+              :record="record"
+              :namespace="namespace"
+              :disable-click="true"
+              :value-only="true"
+            />
+            <template v-else>
+              {{ getFieldValue(record, labelFieldName) || $t('block.record.preview.untitled') }}
+            </template>
           </h6>
           <p v-if="descriptionFieldName" class="text-sm text-muted-color mb-0">
-            {{ getFieldValue(record, descriptionFieldName) }}
+            <CFieldViewer
+              v-if="descriptionFieldDef"
+              :field="descriptionFieldDef"
+              :record="record"
+              :namespace="namespace"
+              :disable-click="true"
+              :value-only="true"
+            />
+            <template v-else>{{ getFieldValue(record, descriptionFieldName) }}</template>
           </p>
         </div>
       </div>
@@ -46,8 +64,11 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { components, useRecordStore, useModuleStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
+
+const { CFieldViewer } = components
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -56,11 +77,12 @@ const props = defineProps({
   record: { type: Object, default: undefined },
 })
 
-const $ComposeAPI = inject('$ComposeAPI', null)
 const $auth = inject('$auth', {})
 const $eventBus = inject('$eventBus', null)
 const router = useRouter()
 const route = useRoute()
+const recordStore = useRecordStore()
+const moduleStore = useModuleStore()
 
 const loading = ref(false)
 const records = ref([])
@@ -71,6 +93,16 @@ const descriptionFieldName = computed(() => options.value.descriptionField || ''
 const isConfigured = computed(() => !!options.value.moduleID)
 const canAddRecord = computed(() => !!options.value.moduleID)
 
+const organizerModule = computed(() => moduleStore.getByID(options.value.moduleID))
+
+function fieldDef(fieldName) {
+  if (!fieldName) return null
+  return organizerModule.value?.fields?.find(f => f.name === fieldName) || null
+}
+
+const labelFieldDef = computed(() => fieldDef(labelFieldName.value))
+const descriptionFieldDef = computed(() => fieldDef(descriptionFieldName.value))
+
 function getFieldValue(record, fieldName) {
   if (!record || !fieldName) return ''
   const val = record.values?.[fieldName]
@@ -79,13 +111,17 @@ function getFieldValue(record, fieldName) {
 }
 
 async function pullRecords() {
-  if (!$ComposeAPI || !options.value.moduleID) return
+  if (!options.value.moduleID) return
 
   loading.value = true
 
   try {
     const { namespaceID } = props.namespace
     const { moduleID, positionField, filter: prefilter, groupField, group } = options.value
+
+    // The shared record store requires the module in the module store; ensure
+    // it's loaded before listing (organizer modules may differ from the page's).
+    await moduleStore.findByID({ namespaceID, moduleID })
 
     const filterParts = []
 
@@ -107,7 +143,7 @@ async function pullRecords() {
     const query = filterParts.join(' AND ')
     const sort = positionField || 'updatedAt'
 
-    const { set = [] } = await $ComposeAPI.recordList({ namespaceID, moduleID, query, sort })
+    const { set = [] } = await recordStore.list({ namespaceID, moduleID, query, sort })
     records.value = set
   } catch (e) {
     console.error('Failed to load records for organizer:', e)

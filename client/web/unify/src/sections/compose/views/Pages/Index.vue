@@ -6,15 +6,17 @@
 
       <div class="flex flex-col gap-3 items-center">
         <Button
-          :label="$t('onboarding.step.page.create')"
-          icon="pi pi-objects-column"
-          @click="goToPageAdmin"
-        />
-        <Button
+          v-if="namespace?.canCreateModule"
           :label="$t('onboarding.step.module.create')"
           icon="pi pi-database"
-          severity="secondary"
           @click="goToModuleAdmin"
+        />
+        <Button
+          v-if="namespace?.canCreatePage"
+          :label="$t('onboarding.step.page.create')"
+          icon="pi pi-objects-column"
+          severity="secondary"
+          @click="goToPageAdmin"
         />
       </div>
     </div>

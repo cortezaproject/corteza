@@ -1,42 +1,74 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mountWithContext } from '@planetcrust/human-test-utils'
+
+// The component reads from the pinia record/module stores directly (inject
+// pattern) and delegates label rendering to CFieldViewer. Mock the stores so we
+// can drive resolvedRecords / labelFieldDef, and stub CFieldViewer to surface
+// the value it would render.
+const getByID = vi.fn()
+const resolveRecordLabels = vi.fn().mockResolvedValue(undefined)
+const moduleGetByID = vi.fn()
+
+vi.mock('../../../stores/useRecordStore', () => ({
+  useRecordStore: () => ({ getByID, resolveRecordLabels }),
+}))
+vi.mock('../../../stores/useModuleStore', () => ({
+  useModuleStore: () => ({ getByID: moduleGetByID }),
+}))
+vi.mock('../../../stores/usePageStore', () => ({
+  usePageStore: () => ({ set: [] }),
+}))
+
 import CFieldRecordViewer from './CFieldRecordViewer.vue'
 
+const CFieldViewerStub = {
+  name: 'CFieldViewer',
+  props: ['field', 'record', 'namespace', 'disableClick', 'valueOnly'],
+  template: '<span class="cfv">{{ record.values[field.name] }}</span>',
+}
+
 function field(overrides: Record<string, unknown> = {}) {
-  return { name: 'ref', isMulti: false, isSystem: false, options: {}, ...overrides }
+  return { name: 'ref', isMulti: false, isSystem: false, options: { moduleID: 'm1' }, ...overrides }
 }
 
 function record(values: Record<string, unknown> = {}) {
   return { values }
 }
 
-function makeRecordStore(entries: Record<string, unknown>[] = []) {
-  const map = new Map(entries.map(r => [(r as any).recordID, r]))
-  return {
-    getByID: (id: string) => map.get(id) || null,
-    resolveRecordLabels: vi.fn().mockResolvedValue(undefined),
-  }
+function mountViewer(props: Record<string, unknown>) {
+  return mountWithContext(CFieldRecordViewer, { namespace: { namespaceID: 'ns1' } }, {
+    props: { namespace: { namespaceID: 'ns1' }, ...props },
+    global: { stubs: { CFieldViewer: CFieldViewerStub } },
+  })
 }
 
 describe('CFieldRecordViewer', () => {
-  describe('no recordStore', () => {
+  beforeEach(() => {
+    getByID.mockReset()
+    resolveRecordLabels.mockClear()
+    moduleGetByID.mockReset()
+    // Default module with two fields; first is the implicit label field.
+    moduleGetByID.mockReturnValue({ fields: [{ name: 'title' }, { name: 'email' }] })
+  })
+
+  describe('no resolved record', () => {
     it('renders empty when no value', () => {
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: null }, {
-        props: { field: field(), record: record() },
-      })
+      getByID.mockReturnValue(null)
+      const wrapper = mountViewer({ field: field(), record: record() })
       expect(wrapper.findAll('span')).toHaveLength(0)
     })
 
-    it('shows recordID as fallback when no store', () => {
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: null }, {
-        props: { field: field(), record: record({ ref: 'rec-abc' }) },
-      })
+    it('shows recordID as fallback when record not in store', () => {
+      getByID.mockReturnValue(null)
+      const wrapper = mountViewer({ field: field(), record: record({ ref: 'rec-abc' }) })
       expect(wrapper.find('span').text()).toBe('rec-abc')
     })
 
     it('renders multiple IDs as fallback', () => {
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: null }, {
-        props: { field: field({ isMulti: true }), record: record({ ref: ['r1', 'r2'] }) },
+      getByID.mockReturnValue(null)
+      const wrapper = mountViewer({
+        field: field({ isMulti: true }),
+        record: record({ ref: ['r1', 'r2'] }),
       })
       const spans = wrapper.findAll('span')
       expect(spans).toHaveLength(2)
@@ -45,117 +77,83 @@ describe('CFieldRecordViewer', () => {
     })
   })
 
-  describe('with recordStore — object values (compose.Record shape)', () => {
-    it('shows first field value from object values', () => {
-      const store = makeRecordStore([
-        { recordID: 'r1', values: { title: 'My Record', other: 'extra' } },
-      ])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: { field: field(), record: record({ ref: 'r1' }) },
-      })
-      expect(wrapper.find('span').text()).toBe('My Record')
+  describe('with resolved record', () => {
+    it('renders the implicit first field via CFieldViewer', () => {
+      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'My Record', email: 'a@test.com' } })
+      const wrapper = mountViewer({ field: field(), record: record({ ref: 'r1' }) })
+      expect(wrapper.find('.cfv').text()).toBe('My Record')
     })
 
-    it('uses labelField from field options (object values)', () => {
-      const store = makeRecordStore([
-        { recordID: 'r1', values: { name: 'Alice', email: 'alice@test.com' } },
-      ])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: {
-          field: field({ options: { labelField: 'email' } }),
-          record: record({ ref: 'r1' }),
-        },
+    it('uses labelField from field options', () => {
+      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'My Record', email: 'a@test.com' } })
+      const wrapper = mountViewer({
+        field: field({ options: { moduleID: 'm1', labelField: 'email' } }),
+        record: record({ ref: 'r1' }),
       })
-      expect(wrapper.find('span').text()).toBe('alice@test.com')
-    })
-  })
-
-  describe('with recordStore — array values (raw API shape)', () => {
-    it('shows first value from array values', () => {
-      const store = makeRecordStore([
-        { recordID: 'r2', values: [{ name: 'title', value: 'Raw Record' }] },
-      ])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: { field: field(), record: record({ ref: 'r2' }) },
-      })
-      expect(wrapper.find('span').text()).toBe('Raw Record')
+      expect(wrapper.find('.cfv').text()).toBe('a@test.com')
     })
 
-    it('uses labelField from field options (array values)', () => {
-      const store = makeRecordStore([
-        {
-          recordID: 'r3',
-          values: [
-            { name: 'name', value: 'Bob' },
-            { name: 'email', value: 'bob@test.com' },
-          ],
-        },
-      ])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: {
-          field: field({ options: { labelField: 'email' } }),
-          record: record({ ref: 'r3' }),
-        },
-      })
-      expect(wrapper.find('span').text()).toBe('bob@test.com')
+    it('falls back to recordID when module has no field definition', () => {
+      moduleGetByID.mockReturnValue(null)
+      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'My Record' } })
+      const wrapper = mountViewer({ field: field(), record: record({ ref: 'r1' }) })
+      expect(wrapper.find('span').text()).toBe('r1')
     })
   })
 
   describe('delimiter', () => {
     it('uses default ", " delimiter between multi values', () => {
-      const store = makeRecordStore([
-        { recordID: 'a', values: { title: 'Rec A' } },
-        { recordID: 'b', values: { title: 'Rec B' } },
-      ])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: {
-          field: field({ isMulti: true }),
-          record: record({ ref: ['a', 'b'] }),
-        },
+      getByID.mockImplementation((id: string) => ({ recordID: id, values: { title: id === 'a' ? 'Rec A' : 'Rec B' } }))
+      const wrapper = mountViewer({
+        field: field({ isMulti: true }),
+        record: record({ ref: ['a', 'b'] }),
       })
       expect(wrapper.text()).toContain('Rec A')
       expect(wrapper.text()).toContain('Rec B')
-      expect(wrapper.text()).toContain(', ')
+      expect(wrapper.text()).toContain(',')
     })
 
     it('uses custom delimiter from field options', () => {
-      const store = makeRecordStore([
-        { recordID: 'a', values: { title: 'X' } },
-        { recordID: 'b', values: { title: 'Y' } },
-      ])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: {
-          field: field({ isMulti: true, options: { multiDelimiter: ' | ' } }),
-          record: record({ ref: ['a', 'b'] }),
-        },
+      getByID.mockImplementation((id: string) => ({ recordID: id, values: { title: id } }))
+      const wrapper = mountViewer({
+        field: field({ isMulti: true, options: { moduleID: 'm1', multiDelimiter: ' | ' } }),
+        record: record({ ref: ['a', 'b'] }),
       })
-      expect(wrapper.text()).toContain(' | ')
+      expect(wrapper.text()).toContain('|')
     })
   })
 
   describe('disableClick', () => {
     it('does not add record-link class when disableClick is true', () => {
-      const store = makeRecordStore([{ recordID: 'r1', values: { title: 'T' } }])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: {
-          field: field(),
-          record: record({ ref: 'r1' }),
-          disableClick: true,
-        },
+      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'T' } })
+      const wrapper = mountViewer({
+        field: field(),
+        record: record({ ref: 'r1' }),
+        disableClick: true,
       })
       expect(wrapper.find('span').classes()).not.toContain('record-link')
     })
 
     it('adds record-link class when disableClick is false and record has ID', () => {
-      const store = makeRecordStore([{ recordID: 'r1', values: { title: 'T' } }])
-      const wrapper = mountWithContext(CFieldRecordViewer, { recordStore: store }, {
-        props: {
-          field: field(),
-          record: record({ ref: 'r1' }),
-          disableClick: false,
-        },
+      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'T' } })
+      const wrapper = mountViewer({
+        field: field(),
+        record: record({ ref: 'r1' }),
+        disableClick: false,
       })
       expect(wrapper.find('span').classes()).toContain('record-link')
+    })
+  })
+
+  describe('label resolution', () => {
+    it('asks the store to resolve missing labels on mount', () => {
+      getByID.mockReturnValue(null)
+      mountViewer({ field: field(), record: record({ ref: 'r9' }) })
+      expect(resolveRecordLabels).toHaveBeenCalledWith({
+        namespaceID: 'ns1',
+        moduleID: 'm1',
+        recordIDs: ['r9'],
+      })
     })
   })
 })
