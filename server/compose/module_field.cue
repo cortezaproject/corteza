@@ -20,6 +20,8 @@ moduleField: {
 					identifier: true
 				}
 			}
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			module_id: {
 			  ident: "moduleID",
 				goType: "uint64",
@@ -116,8 +118,10 @@ moduleField: {
 
 	filter: {
 		struct: {
-			module_id: { goType: "[]uint64", ident: "moduleID", storeIdent: "rel_module" }
-			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+			tenant_id:  schema.TenantFilterField
+			project_id: schema.ProjectFilterField
+			module_id:  { goType: "[]uint64", ident: "moduleID", storeIdent: "rel_module" }
+			deleted:    { goType: "filter.State", storeIdent: "deleted_at" }
 		}
 
 		byNilState: ["deleted"]
@@ -125,6 +129,7 @@ moduleField: {
 	}
 
 	features: {
+		projectScoped: true
 		labels: false
 		paging: false
 		sorting: false

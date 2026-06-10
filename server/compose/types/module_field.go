@@ -20,6 +20,8 @@ type (
 	// Modules - CRM module definitions
 	ModuleField struct {
 		ID          uint64 `json:"fieldID,string"`
+		TenantID    uint64 `json:"tenantID,string,omitempty"`
+		ProjectID   uint64 `json:"projectID,string,omitempty"`
 		NamespaceID uint64 `json:"namespaceID,string"`
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
@@ -131,9 +133,11 @@ type (
 	EncodingStrategyPlain struct{}
 
 	ModuleFieldFilter struct {
-		ModuleID []uint64
-		Deleted  filter.State
-		Limit    uint
+		TenantID  uint64
+		ProjectID uint64
+		ModuleID  []uint64
+		Deleted   filter.State
+		Limit     uint
 	}
 )
 

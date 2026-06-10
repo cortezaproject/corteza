@@ -14,8 +14,10 @@ import (
 
 type (
 	Role struct {
-		ID     uint64 `json:"roleID,string"`
-		Name   string `json:"name"`
+		ID        uint64 `json:"roleID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Name      string `json:"name"`
 		Handle string `json:"handle"`
 
 		Meta   *RoleMeta         `json:"meta"`
@@ -38,8 +40,10 @@ type (
 	}
 
 	RoleFilter struct {
-		RoleID      []string `json:"roleID"`
-		MemberID    uint64   `json:"memberID,string"`
+		RoleID    []string `json:"roleID"`
+		TenantID  uint64   `json:"tenantID,string,omitempty"`
+		ProjectID uint64   `json:"projectID,string,omitempty"`
+		MemberID  uint64   `json:"memberID,string"`
 		UserGroupID uint64   `json:"userGroupID,string"`
 
 		// @todo will migrate from MemberID/UserGroupID in a later releae
@@ -87,6 +91,8 @@ func (r *Role) Clone() *Role {
 
 	return &Role{
 		ID:         r.ID,
+		TenantID:   r.TenantID,
+		ProjectID:  r.ProjectID,
 		Name:       r.Name,
 		Handle:     r.Handle,
 		Meta:       r.Meta,

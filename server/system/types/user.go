@@ -15,8 +15,10 @@ import (
 
 type (
 	User struct {
-		ID       uint64   `json:"userID,string"`
-		Username string   `json:"username"`
+		ID        uint64   `json:"userID,string"`
+		TenantID  uint64   `json:"tenantID,string,omitempty"`
+		ProjectID uint64   `json:"projectID,string,omitempty"`
+		Username  string   `json:"username"`
 		Email    string   `json:"email"`
 		Name     string   `json:"name"`
 		Handle   string   `json:"handle"`
@@ -74,6 +76,8 @@ type (
 
 	UserFilter struct {
 		UserID      []string `json:"userID"`
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		RoleID      []string `json:"roleID"`
 		UserGroupID uint64   `json:"userGroupID,string"`
 		Query       string   `json:"query"`
@@ -151,6 +155,8 @@ func (u *User) Clone() *User {
 
 	return &User{
 		ID:             u.ID,
+		TenantID:       u.TenantID,
+		ProjectID:      u.ProjectID,
 		Username:       u.Username,
 		Email:          u.Email,
 		Name:           u.Name,

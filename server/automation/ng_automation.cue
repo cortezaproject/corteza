@@ -5,10 +5,16 @@ import (
 )
 
 ng_automation: {
+	features: {
+		projectScoped: true
+	}
+
 	model: {
 		attributes: {
-			id: schema.IdField
-			handle: schema.HandleField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
+			handle:     schema.HandleField
 			meta: {
 				goType: "*types.NgAutomationMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
@@ -92,7 +98,9 @@ ng_automation: {
 	filter: {
 		struct: {
 			automation_id: { goType: "[]string", ident: "automationID", storeIdent: "id" }
-			handle: { goType: "string" }
+			tenant_id:     schema.TenantFilterField
+			project_id:    schema.ProjectFilterField
+			handle:        { goType: "string" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 		}

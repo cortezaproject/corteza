@@ -5,6 +5,10 @@ import (
 )
 
 pageLayout: {
+	features: {
+		projectScoped: true
+	}
+
 	parents: [
 		{handle: "namespace"},
 		{handle: "page"},
@@ -17,7 +21,9 @@ pageLayout: {
 		defaultSetter: true
 
 		attributes: {
-			id: schema.IdField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			page_id: {
 				ident: "pageID",
@@ -100,7 +106,9 @@ pageLayout: {
 	filter: {
 		struct: {
 			page_layout_id: { goType: "[]uint64", ident: "pageLayoutID", storeIdent: "id" }
-			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
+			tenant_id:      schema.TenantFilterField
+			project_id:     schema.ProjectFilterField
+			namespace_id:   { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			page_id: { goType: "uint64", ident: "pageID", storeIdent: "page_id" }
 			parent_id: { goType: "uint64", ident: "parentID", storeIdent: "parent_id" }
 			default: { goType: "bool", ident: "default" }

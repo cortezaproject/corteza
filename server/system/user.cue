@@ -5,9 +5,15 @@ import (
 )
 
 user: {
+	features: {
+		projectScoped: true
+	}
+
 	model: {
 		attributes: {
-		  id:     schema.IdField
+		  id:         schema.IdField
+		  tenant_id:  schema.TenantRefField
+		  project_id: schema.ProjectRefField
 		  email: {
 		  	sortable: true,
 		  	unique: true,
@@ -96,7 +102,9 @@ user: {
 
 	filter: {
 		struct: {
-			user_id: {goType: "[]uint64", ident: "userID", storeIdent: "id"}
+			user_id:   {goType: "[]uint64", ident: "userID", storeIdent: "id"}
+			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			role_id: {goType: "[]uint64", ident: "roleID"}
 			user_group_id: {goType: "uint64", ident: "userGroupID"}
 			email: {goType: "string"}

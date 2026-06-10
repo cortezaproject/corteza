@@ -5,6 +5,10 @@ import (
 )
 
 chart: {
+	features: {
+		projectScoped: true
+	}
+
 	parents: [
 		{handle: "namespace"},
 	]
@@ -21,7 +25,9 @@ chart: {
 					}
 				}
 			}
-			handle: schema.HandleField
+			handle:     schema.HandleField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			namespace_id: {
 			  ident: "namespaceID",
 				goType: "uint64",
@@ -70,7 +76,9 @@ chart: {
 
 	filter: {
 		struct: {
-				chart_id: { goType: "[]uint64", ident: "chartID", storeIdent: "id" }
+				chart_id:     { goType: "[]uint64", ident: "chartID", storeIdent: "id" }
+				tenant_id:    schema.TenantFilterField
+				project_id:   schema.ProjectFilterField
 				namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 				handle: { goType: "string" }
 				name: { goType: "string" }

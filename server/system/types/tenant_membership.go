@@ -15,6 +15,7 @@ type (
 	TenantMembership struct {
 		ID        uint64             `json:"tenantMembershipID,string"`
 		TenantID  uint64             `json:"tenantID,string"`
+		ProjectID uint64             `json:"projectID,string,omitempty"`
 		UserID    uint64             `json:"userID,string"`
 		Role      TenantMemberRole   `json:"role"`
 		Status    TenantMemberStatus `json:"status"`
@@ -27,6 +28,7 @@ type (
 	TenantMembershipFilter struct {
 		TenantMembershipID []string           `json:"tenantMembershipID"`
 		TenantID           uint64             `json:"tenantID,string,omitempty"`
+		ProjectID          uint64             `json:"projectID,string,omitempty"`
 		UserID             uint64             `json:"userID,string,omitempty"`
 		Role               TenantMemberRole   `json:"role,omitempty"`
 		Status             TenantMemberStatus `json:"status,omitempty"`

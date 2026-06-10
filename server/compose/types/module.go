@@ -16,8 +16,10 @@ import (
 
 type (
 	Module struct {
-		ID     uint64 `json:"moduleID,string"`
-		Handle string `json:"handle"`
+		ID        uint64 `json:"moduleID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Handle    string `json:"handle"`
 
 		// collection of configurations for various subsystems that
 		// use this module and how it affects their behaviour
@@ -116,6 +118,8 @@ type (
 
 	ModuleFilter struct {
 		ModuleID    []string `json:"moduleID"`
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		NamespaceID uint64   `json:"namespaceID,string"`
 		Query       string   `json:"query"`
 		Handle      string   `json:"handle"`

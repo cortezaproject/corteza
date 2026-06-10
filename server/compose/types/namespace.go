@@ -12,8 +12,10 @@ import (
 
 type (
 	Namespace struct {
-		ID      uint64        `json:"namespaceID,string"`
-		Slug    string        `json:"slug"`
+		ID        uint64        `json:"namespaceID,string"`
+		TenantID  uint64        `json:"tenantID,string,omitempty"`
+		ProjectID uint64        `json:"projectID,string,omitempty"`
+		Slug      string        `json:"slug"`
 		Enabled bool          `json:"enabled"`
 		Meta    NamespaceMeta `json:"meta"`
 
@@ -33,6 +35,8 @@ type (
 
 	NamespaceFilter struct {
 		NamespaceID []string `json:"namespaceID"`
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 
 		Query string `json:"query"`
 		Slug  string `json:"slug"`

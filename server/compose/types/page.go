@@ -19,8 +19,10 @@ import (
 
 type (
 	Page struct {
-		ID     uint64 `json:"pageID,string"`
-		SelfID uint64 `json:"selfID,string"`
+		ID        uint64 `json:"pageID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		SelfID    uint64 `json:"selfID,string"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
@@ -132,6 +134,8 @@ type (
 	}
 
 	PageFilter struct {
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		NamespaceID uint64   `json:"namespaceID"`
 		PageID      []string `json:"pageID,string"`
 		ParentID    uint64   `json:"parentID,string,omitempty"`

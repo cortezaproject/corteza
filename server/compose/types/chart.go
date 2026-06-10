@@ -17,8 +17,10 @@ import (
 
 type (
 	Chart struct {
-		ID     uint64      `json:"chartID,string"`
-		Handle string      `json:"handle"`
+		ID        uint64      `json:"chartID,string"`
+		TenantID  uint64      `json:"tenantID,string,omitempty"`
+		ProjectID uint64      `json:"projectID,string,omitempty"`
+		Handle    string      `json:"handle"`
 		Name   string      `json:"name"`
 		Config ChartConfig `json:"config"`
 
@@ -54,6 +56,8 @@ type (
 	}
 
 	ChartFilter struct {
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		NamespaceID uint64   `json:"namespaceID,string"`
 		ChartID     []string `json:"chartID"`
 		Handle      string   `json:"handle"`

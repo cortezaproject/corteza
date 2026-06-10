@@ -5,6 +5,10 @@ import (
 )
 
 record: {
+	features: {
+		projectScoped: true
+	}
+
 	parents: [
 		{handle: "namespace"},
 		{handle: "module"},
@@ -17,7 +21,9 @@ record: {
 		defaultGetter: true
 
 		attributes: {
-			id: schema.IdField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			revision: {
 				goType: "int"
 				dal: { type: "Number", meta: { "rdbms:type": "integer" }, default: 0 }
@@ -87,7 +93,9 @@ record: {
 
 	filter: {
 		struct: {
-			module_id: { goType: "uint64" }
+			tenant_id:    schema.TenantFilterField
+			project_id:   schema.ProjectFilterField
+			module_id:    { goType: "uint64" }
 			namespace_id: { goType: "uint64" }
 			query: { goType: "string" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }

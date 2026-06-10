@@ -15,8 +15,10 @@ import (
 
 type (
 	NgAutomation struct {
-		ID     uint64                           `json:"automationID,string"`
-		Handle string                           `json:"handle"`
+		ID        uint64                           `json:"automationID,string"`
+		TenantID  uint64                           `json:"tenantID,string,omitempty"`
+		ProjectID uint64                           `json:"projectID,string,omitempty"`
+		Handle    string                           `json:"handle"`
 		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 		Meta   *NgAutomationMeta                `json:"meta,omitempty"`
 
@@ -43,6 +45,8 @@ type (
 
 	NgAutomationFilter struct {
 		AutomationID []string `json:"automationID"`
+		TenantID     uint64   `json:"tenantID,string,omitempty"`
+		ProjectID    uint64   `json:"projectID,string,omitempty"`
 
 		Handle string `json:"handle"`
 

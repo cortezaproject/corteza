@@ -19,6 +19,8 @@ import (
 type (
 	PageLayout struct {
 		ID          uint64 `json:"pageLayoutID,string"`
+		TenantID    uint64 `json:"tenantID,string,omitempty"`
+		ProjectID   uint64 `json:"projectID,string,omitempty"`
 		NamespaceID uint64 `json:"namespaceID,string"`
 		PageID      uint64 `json:"pageID,string"`
 		ParentID    uint64 `json:"parentID,string"`
@@ -130,6 +132,8 @@ type (
 
 	PageLayoutFilter struct {
 		PageLayoutID []string `json:"pageLayoutID"`
+		TenantID     uint64   `json:"tenantID,string,omitempty"`
+		ProjectID    uint64   `json:"projectID,string,omitempty"`
 		NamespaceID  uint64   `json:"namespaceID,string"`
 		PageID       uint64   `json:"pageID,string,omitempty"`
 		ParentID     uint64   `json:"ParentID,string,omitempty"`

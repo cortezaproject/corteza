@@ -5,10 +5,16 @@ import (
 )
 
 namespace: {
+	features: {
+		projectScoped: true
+	}
+
 	model: {
 		ident: "compose_namespace"
 		attributes: {
-			id: schema.IdField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			slug: {
 				sortable: true,
 				goType: "string"
@@ -50,6 +56,8 @@ namespace: {
 	filter: {
 		struct: {
 			namespace_id: { goType: "[]uint64", ident: "namespaceID", storeIdent: "id" }
+			tenant_id:    schema.TenantFilterField
+			project_id:   schema.ProjectFilterField
 			slug: { goType: "string" }
 			name: { goType: "string" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }

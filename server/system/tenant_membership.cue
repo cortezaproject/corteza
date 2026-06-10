@@ -11,8 +11,9 @@ tenant_membership: {
 
 	model: {
 		attributes: {
-			id:        schema.IdField
-			tenant_id: schema.TenantRefField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			user_id: {
 				ident:      "userID"
 				goType:     "uint64"
@@ -64,8 +65,9 @@ tenant_membership: {
 	filter: {
 		struct: {
 			tenant_membership_id: {goType: "[]uint64", ident: "tenantMembershipID", storeIdent: "id"}
-			tenant_id: schema.TenantFilterField
-			user_id: {goType: "uint64", ident: "userID", storeIdent: "rel_user"}
+			tenant_id:  schema.TenantFilterField
+			project_id: schema.ProjectFilterField
+			user_id:    {goType: "uint64", ident: "userID", storeIdent: "rel_user"}
 			role: {goType: "types.TenantMemberRole", storeIdent: "role"}
 			status: {goType: "types.TenantMemberStatus", storeIdent: "status"}
 		}

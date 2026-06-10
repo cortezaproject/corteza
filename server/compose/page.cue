@@ -5,6 +5,10 @@ import (
 )
 
 page: {
+	features: {
+		projectScoped: true
+	}
+
 	parents: [
 		{handle: "namespace"},
 	]
@@ -14,7 +18,9 @@ page: {
 
 		ident: "compose_page"
 		attributes: {
-			id: schema.IdField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			title: {
 				goType: "string",
 				sortable: true
@@ -125,7 +131,9 @@ page: {
 
 	filter: {
 		struct: {
-			page_id: { goType: "[]uint64", ident: "pageID", storeIdent: "id" }
+			page_id:      { goType: "[]uint64", ident: "pageID", storeIdent: "id" }
+			tenant_id:    schema.TenantFilterField
+			project_id:   schema.ProjectFilterField
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			parent_id: { goType: "uint64", ident: "parentID" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }

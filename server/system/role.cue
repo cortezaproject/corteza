@@ -5,9 +5,15 @@ import (
 )
 
 role: {
+	features: {
+		projectScoped: true
+	}
+
 	model: {
 		attributes: {
-			id: schema.IdField
+			id:         schema.IdField
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			name: {
 				sortable: true
 				dal: {}
@@ -33,8 +39,10 @@ role: {
 
 	filter: {
 		struct: {
-			role_id: {goType: "[]uint64", ident: "roleID", storeIdent: "id" }
-			member_id: {goType: "uint64" }
+			role_id:    {goType: "[]uint64", ident: "roleID", storeIdent: "id"}
+			tenant_id:  schema.TenantFilterField
+			project_id: schema.ProjectFilterField
+			member_id:  {goType: "uint64"}
 			user_group_id: {goType: "uint64" }
 			resource: {goType: "string" }
 			handle: {goType: "string"}

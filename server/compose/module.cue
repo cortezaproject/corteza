@@ -6,6 +6,10 @@ import (
 
 module: {
 	handle: "module"
+	features: {
+		projectScoped: true
+	}
+
 	parents: [
 		{handle: "namespace"},
 	]
@@ -20,6 +24,8 @@ module: {
 					}
 				}
 			}
+			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
@@ -78,7 +84,9 @@ module: {
 
 	filter: {
 		struct: {
-			module_id: { goType: "[]uint64", ident: "moduleID", storeIdent: "id" }
+			module_id:    { goType: "[]uint64", ident: "moduleID", storeIdent: "id" }
+			tenant_id:    schema.TenantFilterField
+			project_id:   schema.ProjectFilterField
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			handle: { goType: "string" }
 			name: { goType: "string" }
