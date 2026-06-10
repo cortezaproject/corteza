@@ -5322,6 +5322,185 @@ var (
 		}
 	}
 
+	// projectGroupTable represents projectGroups store table
+	//
+	// This value is auto-generated
+	projectGroupTable = goqu.T("project_groups")
+
+	// projectGroupSelectQuery assembles select query for fetching projectGroups
+	//
+	// This function is auto-generated
+	projectGroupSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_tenant",
+			"rel_project",
+			"handle",
+			"meta",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(projectGroupTable)
+	}
+
+	// projectGroupInsertQuery assembles query inserting projectGroups
+	//
+	// This function is auto-generated
+	projectGroupInsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectGroup) *goqu.InsertDataset {
+		return d.Insert(projectGroupTable).
+			Rows(goqu.Record{
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+			})
+	}
+
+	// projectGroupUpsertQuery assembles (insert+on-conflict) query for replacing projectGroups
+	//
+	// This function is auto-generated
+	projectGroupUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectGroup) *goqu.InsertDataset {
+		var target = `,id`
+
+		return projectGroupInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"handle":      res.Handle,
+						"meta":        res.Meta,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// projectGroupUpdateQuery assembles query for updating projectGroups
+	//
+	// This function is auto-generated
+	projectGroupUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ProjectGroup) *goqu.UpdateDataset {
+		return d.Update(projectGroupTable).
+			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+			}).
+			Where(projectGroupPrimaryKeys(res))
+	}
+
+	// projectGroupDeleteQuery assembles delete query for removing projectGroups
+	//
+	// This function is auto-generated
+	projectGroupDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(projectGroupTable).Where(ee...)
+	}
+
+	// projectGroupDeleteQuery assembles delete query for removing projectGroups
+	//
+	// This function is auto-generated
+	projectGroupTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(projectGroupTable)
+	}
+
+	// projectGroupPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	projectGroupPrimaryKeys = func(res *systemType.ProjectGroup) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// projectGroupEntryTable represents projectGroupEntrys store table
+	//
+	// This value is auto-generated
+	projectGroupEntryTable = goqu.T("project_group_entrys")
+
+	// projectGroupEntrySelectQuery assembles select query for fetching projectGroupEntrys
+	//
+	// This function is auto-generated
+	projectGroupEntrySelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"rel_project_group",
+			"resource_ref",
+			"created_at",
+		).From(projectGroupEntryTable)
+	}
+
+	// projectGroupEntryInsertQuery assembles query inserting projectGroupEntrys
+	//
+	// This function is auto-generated
+	projectGroupEntryInsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectGroupEntry) *goqu.InsertDataset {
+		return d.Insert(projectGroupEntryTable).
+			Rows(goqu.Record{
+				"rel_project_group": res.ProjectGroupID,
+				"resource_ref":      res.ResourceRef,
+				"created_at":        res.CreatedAt,
+			})
+	}
+
+	// projectGroupEntryUpsertQuery assembles (insert+on-conflict) query for replacing projectGroupEntrys
+	//
+	// This function is auto-generated
+	projectGroupEntryUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectGroupEntry) *goqu.InsertDataset {
+		var target = `,rel_project_group,resource_ref`
+
+		return projectGroupEntryInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"created_at": res.CreatedAt,
+					},
+				),
+			)
+	}
+
+	// projectGroupEntryUpdateQuery assembles query for updating projectGroupEntrys
+	//
+	// This function is auto-generated
+	projectGroupEntryUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ProjectGroupEntry) *goqu.UpdateDataset {
+		return d.Update(projectGroupEntryTable).
+			Set(goqu.Record{
+				"created_at": res.CreatedAt,
+			}).
+			Where(projectGroupEntryPrimaryKeys(res))
+	}
+
+	// projectGroupEntryDeleteQuery assembles delete query for removing projectGroupEntrys
+	//
+	// This function is auto-generated
+	projectGroupEntryDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(projectGroupEntryTable).Where(ee...)
+	}
+
+	// projectGroupEntryDeleteQuery assembles delete query for removing projectGroupEntrys
+	//
+	// This function is auto-generated
+	projectGroupEntryTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(projectGroupEntryTable)
+	}
+
+	// projectGroupEntryPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	projectGroupEntryPrimaryKeys = func(res *systemType.ProjectGroupEntry) goqu.Ex {
+		return goqu.Ex{
+			"rel_project_group": res.ProjectGroupID,
+			"resource_ref":      res.ResourceRef,
+		}
+	}
+
 	// projectMemberTable represents projectMembers store table
 	//
 	// This value is auto-generated

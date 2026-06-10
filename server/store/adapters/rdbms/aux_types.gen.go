@@ -764,6 +764,25 @@ type (
 		DeletedBy uint64                   `db:"deleted_by"`
 	}
 
+	// auxProjectGroup is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectGroup struct {
+		ID        uint64                      `db:"id"`
+		TenantID  uint64                      `db:"tenant_id"`
+		ProjectID uint64                      `db:"project_id"`
+		Handle    string                      `db:"handle"`
+		Meta      systemType.ProjectGroupMeta `db:"meta"`
+		CreatedAt time.Time                   `db:"created_at"`
+		UpdatedAt *time.Time                  `db:"updated_at"`
+		DeletedAt *time.Time                  `db:"deleted_at"`
+	}
+
+	// auxProjectGroupEntry is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectGroupEntry struct {
+		ProjectGroupID uint64    `db:"project_group_id"`
+		ResourceRef    string    `db:"resource_ref"`
+		CreatedAt      time.Time `db:"created_at"`
+	}
+
 	// auxProjectMember is an auxiliary structure used for transporting to/from RDBMS store
 	auxProjectMember struct {
 		ID         uint64                       `db:"id"`
@@ -3697,6 +3716,85 @@ func (aux *auxProject) scan(row scanner) error {
 		&aux.CreatedBy,
 		&aux.UpdatedBy,
 		&aux.DeletedBy,
+	)
+}
+
+// encodes ProjectGroup to auxProjectGroup
+//
+// This function is auto-generated
+func (aux *auxProjectGroup) encode(res *systemType.ProjectGroup) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Handle = res.Handle
+	aux.Meta = res.Meta
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes ProjectGroup from auxProjectGroup
+//
+// This function is auto-generated
+func (aux auxProjectGroup) decode() (res *systemType.ProjectGroup, _ error) {
+	res = new(systemType.ProjectGroup)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Handle = aux.Handle
+	res.Meta = aux.Meta
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxProjectGroup fields
+//
+// This function is auto-generated
+func (aux *auxProjectGroup) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Handle,
+		&aux.Meta,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+	)
+}
+
+// encodes ProjectGroupEntry to auxProjectGroupEntry
+//
+// This function is auto-generated
+func (aux *auxProjectGroupEntry) encode(res *systemType.ProjectGroupEntry) (_ error) {
+	aux.ProjectGroupID = res.ProjectGroupID
+	aux.ResourceRef = res.ResourceRef
+	aux.CreatedAt = res.CreatedAt
+	return
+}
+
+// decodes ProjectGroupEntry from auxProjectGroupEntry
+//
+// This function is auto-generated
+func (aux auxProjectGroupEntry) decode() (res *systemType.ProjectGroupEntry, _ error) {
+	res = new(systemType.ProjectGroupEntry)
+	res.ProjectGroupID = aux.ProjectGroupID
+	res.ResourceRef = aux.ResourceRef
+	res.CreatedAt = aux.CreatedAt
+	return
+}
+
+// scans row and fills auxProjectGroupEntry fields
+//
+// This function is auto-generated
+func (aux *auxProjectGroupEntry) scan(row scanner) error {
+	return row.Scan(
+		&aux.ProjectGroupID,
+		&aux.ResourceRef,
+		&aux.CreatedAt,
 	)
 }
 

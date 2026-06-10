@@ -47,5 +47,7 @@ const (
 	TenantMembershipResourceType          = "corteza::system:tenant-membership"
 	ProjectResourceType                   = "corteza::system:project"
 	ProjectMemberResourceType             = "corteza::system:project-member"
+	ProjectGroupResourceType              = "corteza::system:project-group"
+	ProjectGroupEntryResourceType         = "corteza::system:project-group-entry"
 	ComponentResourceType                 = "corteza::system"
 )

@@ -66,6 +66,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewChatbotSession(ChatbotSession{}.New()).MountRoutes(r)
 
 			handlers.NewProject(Project{}.New()).MountRoutes(r)
+			handlers.NewProjectGroup(ProjectGroup{}.New()).MountRoutes(r)
 
 			handlers.NewTenant(Tenant{}.New()).MountRoutes(r)
 

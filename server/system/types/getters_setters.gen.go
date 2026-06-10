@@ -2095,3 +2095,94 @@ func (r *ProjectMember) SetValue(name string, pos uint, value any) (err error) {
 	}
 	return nil
 }
+
+func (r ProjectGroup) GetID() uint64 { return r.ID }
+
+func (r *ProjectGroup) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+
+	}
+	return nil, nil
+}
+
+func (r *ProjectGroup) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ProjectGroup{}
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+
+	}
+	return nil
+}
+
+func (r ProjectGroupEntry) GetID() uint64 {
+	// The resource does not define an ID field
+	return 0
+}
+
+func (r *ProjectGroupEntry) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "projectGroupID", "ProjectGroupID":
+		return r.ProjectGroupID, nil
+	case "resourceRef", "ResourceRef":
+		return r.ResourceRef, nil
+
+	}
+	return nil, nil
+}
+
+func (r *ProjectGroupEntry) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ProjectGroupEntry{}
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "projectGroupID", "ProjectGroupID":
+		return cast2.Uint64(value, &r.ProjectGroupID)
+	case "resourceRef", "ResourceRef":
+		return cast2.String(value, &r.ResourceRef)
+
+	}
+	return nil
+}

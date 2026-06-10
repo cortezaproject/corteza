@@ -713,6 +713,36 @@ func ProjectRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for ProjectGroup by calling ProjectGroupRbacResource fn
+//
+// RBAC resource is in the corteza::system:project-group/... format
+//
+// This function is auto-generated
+func (r ProjectGroup) RbacResource() string {
+	return ProjectGroupRbacResource(r.ID)
+}
+
+// ProjectGroupRbacResource returns string representation of RBAC resource for ProjectGroup
+//
+// RBAC resource is in the corteza::system:project-group/... format
+//
+// This function is auto-generated
+func ProjectGroupRbacResource(id uint64) string {
+	cpts := []interface{}{ProjectGroupResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ProjectGroupRbacResourceTpl(), cpts...)
+
+}
+
+func ProjectGroupRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

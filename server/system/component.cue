@@ -48,6 +48,8 @@ component: schema.#component & {
     "tenant-membership":              tenant_membership
     "project":                        project
     "project-member":                 project_member
+    "project-group":                  project_group
+    "project-group-entry":            project_group_entry
 	}
 
 	rbac: operations: {
@@ -134,5 +136,8 @@ component: schema.#component & {
 
 		"project.create": description:  "Create projects"
 		"projects.search": description: "List, search or filter projects"
+
+		"project-group.create": description:  "Create project groups"
+		"project-groups.search": description: "List, search or filter project groups"
 	}
 }

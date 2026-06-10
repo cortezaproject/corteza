@@ -4172,6 +4172,99 @@ endpoints:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
 
+  - title: Project Groups
+    path: '/projects/{projectID}/groups'
+    entrypoint: projectGroup
+    authentication:
+      - Client ID
+      - Session ID
+    imports:
+      - time
+    apis:
+      - name: list
+        method: GET
+        title: List project groups
+        path: '/'
+        parameters:
+          path:
+            - type: uint64
+              name: projectID
+              required: true
+              title: Project ID
+          get:
+            - { type: string,     name: query,          title: Search query }
+            - { type: string,     name: handle,          title: Handle filter }
+            - { type: '[]string', name: projectGroupID,  title: Filter by group IDs }
+            - { type: uint,       name: deleted,         title: "Deleted filter (0=exclude 1=only 2=include)" }
+            - { type: uint,       name: limit,           title: Limit }
+            - { type: bool,       name: incTotal,        title: Include total count }
+            - { type: string,     name: pageCursor,      title: Page cursor }
+            - { type: string,     name: sort,            title: Sort }
+
+      - name: create
+        method: POST
+        title: Create project group
+        path: '/'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: string, name: handle,      required: true, title: Handle }
+            - { type: string, name: name,         title: Name }
+            - { type: string, name: description,  title: Description }
+
+      - name: read
+        method: GET
+        title: Read project group
+        path: '/{projectGroupID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID,      required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
+
+      - name: update
+        method: PUT
+        title: Update project group
+        path: '/{projectGroupID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID,      required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
+          post:
+            - { type: string,      name: handle,      title: Handle }
+            - { type: string,      name: name,         title: Name }
+            - { type: string,      name: description,  title: Description }
+            - { type: '*time.Time', name: updatedAt,   title: Last update timestamp }
+
+      - name: delete
+        method: DELETE
+        title: Delete project group
+        path: '/{projectGroupID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID,      required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
+
+      - name: entryAdd
+        method: POST
+        title: Add resource to group
+        path: '/{projectGroupID}/entries/{resourceRef}'
+        parameters:
+          path:
+            - { type: uint64,  name: projectID,      required: true, title: Project ID }
+            - { type: uint64,  name: projectGroupID,  required: true, title: Project Group ID }
+            - { type: string,  name: resourceRef,     required: true, title: Resource ref (corteza::component:type/ID) }
+
+      - name: entryRemove
+        method: DELETE
+        title: Remove resource from group
+        path: '/{projectGroupID}/entries/{resourceRef}'
+        parameters:
+          path:
+            - { type: uint64,  name: projectID,      required: true, title: Project ID }
+            - { type: uint64,  name: projectGroupID,  required: true, title: Project Group ID }
+            - { type: string,  name: resourceRef,     required: true, title: Resource ref (corteza::component:type/ID) }
+
   - title: Tenants
     path: '/tenants'
     entrypoint: tenant

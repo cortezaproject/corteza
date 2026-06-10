@@ -1,0 +1,88 @@
+# List of loggable service actions
+
+resource: system:project-group
+service: projectGroup
+
+defaultActionSeverity: notice
+
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectGroup
+    type: "*types.ProjectGroup"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.ProjectGroup"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.ProjectGroup"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.ProjectGroupFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project groups"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectGroup}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectGroup}}"
+
+  - action: update
+    log: "updated {{projectGroup}}"
+
+  - action: delete
+    log: "deleted {{projectGroup}}"
+
+errors:
+  - error: notFound
+    message: "project group not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    severity: warning
+
+  - error: staleData
+    message: "project group was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project group"
+    log: "failed to create a project group; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project group"
+    log: "failed to read {{projectGroup.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project groups"
+    log: "failed to search or list project groups; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project group"
+    log: "failed to update {{projectGroup.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project group"
+    log: "failed to delete {{projectGroup.handle}}; insufficient permissions"
+
+  - error: notAllowedToManageMembers
+    message: "not allowed to manage members of this project group"
+    log: "failed to manage members of {{projectGroup.handle}}; insufficient permissions"

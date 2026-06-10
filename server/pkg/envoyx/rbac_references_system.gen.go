@@ -308,3 +308,16 @@ func SystemProjectRbacReferences(project string) (res *Ref, pp []*Ref, err error
 
 	return
 }
+
+// SystemProjectGroupRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectGroupRbacReferences(projectGroup string) (res *Ref, pp []*Ref, err error) {
+	if projectGroup != "*" {
+		res = &Ref{ResourceType: types.ProjectGroupResourceType, Identifiers: MakeIdentifiers(projectGroup)}
+	}
+
+	return
+}

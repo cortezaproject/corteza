@@ -89,6 +89,8 @@ type (
 		LlmProviders
 		Notifications
 		Projects
+		ProjectGroups
+		ProjectGroupEntrys
 		ProjectMembers
 		Queues
 		QueueMessages
@@ -688,6 +690,31 @@ type (
 		TruncateProjects(ctx context.Context) error
 		LookupProjectByID(ctx context.Context, id uint64) (*systemType.Project, error)
 		LookupProjectByHandle(ctx context.Context, handle string) (*systemType.Project, error)
+	}
+
+	ProjectGroups interface {
+		SearchProjectGroups(ctx context.Context, f systemType.ProjectGroupFilter) (systemType.ProjectGroupSet, systemType.ProjectGroupFilter, error)
+		CreateProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
+		UpdateProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
+		UpsertProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
+		DeleteProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
+
+		DeleteProjectGroupByID(ctx context.Context, id uint64) error
+		TruncateProjectGroups(ctx context.Context) error
+		LookupProjectGroupByID(ctx context.Context, id uint64) (*systemType.ProjectGroup, error)
+		LookupProjectGroupByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.ProjectGroup, error)
+	}
+
+	ProjectGroupEntrys interface {
+		SearchProjectGroupEntrys(ctx context.Context, f systemType.ProjectGroupEntryFilter) (systemType.ProjectGroupEntrySet, systemType.ProjectGroupEntryFilter, error)
+		CreateProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
+		UpdateProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
+		UpsertProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
+		DeleteProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
+
+		DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, projectGroupID uint64, resourceRef string) error
+		TruncateProjectGroupEntrys(ctx context.Context) error
+		LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, projectGroupID uint64, resourceRef string) (*systemType.ProjectGroupEntry, error)
 	}
 
 	ProjectMembers interface {
@@ -3810,6 +3837,125 @@ func LookupProjectByID(ctx context.Context, s Projects, id uint64) (*systemType.
 // This function is auto-generated
 func LookupProjectByHandle(ctx context.Context, s Projects, handle string) (*systemType.Project, error) {
 	return s.LookupProjectByHandle(ctx, handle)
+}
+
+// SearchProjectGroups returns all matching ProjectGroups from store
+//
+// This function is auto-generated
+func SearchProjectGroups(ctx context.Context, s ProjectGroups, f systemType.ProjectGroupFilter) (systemType.ProjectGroupSet, systemType.ProjectGroupFilter, error) {
+	return s.SearchProjectGroups(ctx, f)
+}
+
+// CreateProjectGroup creates one or more ProjectGroups in store
+//
+// This function is auto-generated
+func CreateProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
+	return s.CreateProjectGroup(ctx, rr...)
+}
+
+// UpdateProjectGroup updates one or more (existing) ProjectGroups in store
+//
+// This function is auto-generated
+func UpdateProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
+	return s.UpdateProjectGroup(ctx, rr...)
+}
+
+// UpsertProjectGroup creates new or updates existing one or more ProjectGroups in store
+//
+// This function is auto-generated
+func UpsertProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
+	return s.UpsertProjectGroup(ctx, rr...)
+}
+
+// DeleteProjectGroup deletes one or more ProjectGroups from store
+//
+// This function is auto-generated
+func DeleteProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
+	return s.DeleteProjectGroup(ctx, rr...)
+}
+
+// DeleteProjectGroupByID deletes one or more ProjectGroups from store
+//
+// This function is auto-generated
+func DeleteProjectGroupByID(ctx context.Context, s ProjectGroups, id uint64) error {
+	return s.DeleteProjectGroupByID(ctx, id)
+}
+
+// TruncateProjectGroups Deletes all ProjectGroups from store
+//
+// This function is auto-generated
+func TruncateProjectGroups(ctx context.Context, s ProjectGroups) error {
+	return s.TruncateProjectGroups(ctx)
+}
+
+// LookupProjectGroupByID searches for project group by ID
+//
+// This function is auto-generated
+func LookupProjectGroupByID(ctx context.Context, s ProjectGroups, id uint64) (*systemType.ProjectGroup, error) {
+	return s.LookupProjectGroupByID(ctx, id)
+}
+
+// LookupProjectGroupByProjectIDHandle searches for project group by project and handle; returns only non-deleted
+//
+// This function is auto-generated
+func LookupProjectGroupByProjectIDHandle(ctx context.Context, s ProjectGroups, projectID uint64, handle string) (*systemType.ProjectGroup, error) {
+	return s.LookupProjectGroupByProjectIDHandle(ctx, projectID, handle)
+}
+
+// SearchProjectGroupEntrys returns all matching ProjectGroupEntrys from store
+//
+// This function is auto-generated
+func SearchProjectGroupEntrys(ctx context.Context, s ProjectGroupEntrys, f systemType.ProjectGroupEntryFilter) (systemType.ProjectGroupEntrySet, systemType.ProjectGroupEntryFilter, error) {
+	return s.SearchProjectGroupEntrys(ctx, f)
+}
+
+// CreateProjectGroupEntry creates one or more ProjectGroupEntrys in store
+//
+// This function is auto-generated
+func CreateProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
+	return s.CreateProjectGroupEntry(ctx, rr...)
+}
+
+// UpdateProjectGroupEntry updates one or more (existing) ProjectGroupEntrys in store
+//
+// This function is auto-generated
+func UpdateProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
+	return s.UpdateProjectGroupEntry(ctx, rr...)
+}
+
+// UpsertProjectGroupEntry creates new or updates existing one or more ProjectGroupEntrys in store
+//
+// This function is auto-generated
+func UpsertProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
+	return s.UpsertProjectGroupEntry(ctx, rr...)
+}
+
+// DeleteProjectGroupEntry deletes one or more ProjectGroupEntrys from store
+//
+// This function is auto-generated
+func DeleteProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
+	return s.DeleteProjectGroupEntry(ctx, rr...)
+}
+
+// DeleteProjectGroupEntryByID deletes one or more ProjectGroupEntrys from store
+//
+// This function is auto-generated
+func DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, s ProjectGroupEntrys, projectGroupID uint64, resourceRef string) error {
+	return s.DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx, projectGroupID, resourceRef)
+}
+
+// TruncateProjectGroupEntrys Deletes all ProjectGroupEntrys from store
+//
+// This function is auto-generated
+func TruncateProjectGroupEntrys(ctx context.Context, s ProjectGroupEntrys) error {
+	return s.TruncateProjectGroupEntrys(ctx)
+}
+
+// LookupProjectGroupEntryByProjectGroupIDResourceRef searches for group entry by group and resource ref
+//
+// This function is auto-generated
+func LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, s ProjectGroupEntrys, projectGroupID uint64, resourceRef string) (*systemType.ProjectGroupEntry, error) {
+	return s.LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx, projectGroupID, resourceRef)
 }
 
 // SearchProjectMembers returns all matching ProjectMembers from store

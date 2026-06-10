@@ -149,6 +149,12 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("project", func(t *testing.T) {
 		testProjects(t, s)
 	})
+	t.Run("projectGroup", func(t *testing.T) {
+		testProjectGroups(t, s)
+	})
+	t.Run("projectGroupEntry", func(t *testing.T) {
+		testProjectGroupEntrys(t, s)
+	})
 	t.Run("projectMember", func(t *testing.T) {
 		testProjectMembers(t, s)
 	})

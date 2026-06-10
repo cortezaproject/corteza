@@ -133,6 +133,7 @@ var (
 	DefaultChatbotSession       *chatbotSession
 	DefaultChatbotPreview       *chatbotPreview
 	DefaultProject              *project
+	DefaultProjectGroup         *projectGroup
 	DefaultProjectResolver      scope.ProjectResolver
 	DefaultTenant               *tenant
 	DefaultAgenticRuntime       AgenticRunner
@@ -284,6 +285,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultChatbot = Chatbot()
 	DefaultChatbotSession = ChatbotSession()
 	DefaultProject = Project()
+	DefaultProjectGroup = ProjectGroup()
 	DefaultProjectResolver = NewProjectResolver(DefaultStore)
 	DefaultTenant = Tenant()
 

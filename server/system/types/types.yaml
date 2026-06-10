@@ -59,6 +59,8 @@ types:
   Project:
     labelResourceType: project
   ProjectMember: {}
+  ProjectGroup: {}
+  ProjectGroupEntry: {}
   Tenant:
     labelResourceType: tenant
   TenantMembership: {}

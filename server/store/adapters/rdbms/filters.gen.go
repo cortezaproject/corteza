@@ -165,6 +165,12 @@ type (
 		// optional project filter function called after the generated function
 		Project func(*Store, systemType.ProjectFilter) ([]goqu.Expression, systemType.ProjectFilter, error)
 
+		// optional projectGroup filter function called after the generated function
+		ProjectGroup func(*Store, systemType.ProjectGroupFilter) ([]goqu.Expression, systemType.ProjectGroupFilter, error)
+
+		// optional projectGroupEntry filter function called after the generated function
+		ProjectGroupEntry func(*Store, systemType.ProjectGroupEntryFilter) ([]goqu.Expression, systemType.ProjectGroupEntryFilter, error)
+
 		// optional projectMember filter function called after the generated function
 		ProjectMember func(*Store, systemType.ProjectMemberFilter) ([]goqu.Expression, systemType.ProjectMemberFilter, error)
 
@@ -1566,6 +1572,60 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 		ee = append(ee, goqu.Or(
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectGroupFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectGroups() and can be extended
+// by setting Store.Filters.ProjectGroup. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectGroupFilter(d drivers.Dialect, f systemType.ProjectGroupFilter) (ee []goqu.Expression, _ systemType.ProjectGroupFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ProjectGroupID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ProjectGroupID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectGroupEntryFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectGroupEntrys() and can be extended
+// by setting Store.Filters.ProjectGroupEntry. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectGroupEntryFilter(d drivers.Dialect, f systemType.ProjectGroupEntryFilter) (ee []goqu.Expression, _ systemType.ProjectGroupEntryFilter, err error) {
+
+	if f.ProjectGroupID > 0 {
+		ee = append(ee, goqu.C("rel_project_group").Eq(f.ProjectGroupID))
+	}
+
+	if val := strings.TrimSpace(f.ResourceRef); len(val) > 0 {
+		ee = append(ee, goqu.C("resource_ref").Eq(f.ResourceRef))
 	}
 
 	return ee, f, err
