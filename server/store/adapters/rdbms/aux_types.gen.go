@@ -116,6 +116,7 @@ type (
 	auxApplication struct {
 		ID        uint64                       `db:"id"`
 		TenantID  uint64                       `db:"tenant_id"`
+		ProjectID uint64                       `db:"project_id"`
 		Name      string                       `db:"name"`
 		Enabled   bool                         `db:"enabled"`
 		Weight    int                          `db:"weight"`
@@ -146,6 +147,7 @@ type (
 	auxAuthClient struct {
 		ID          uint64                         `db:"id"`
 		TenantID    uint64                         `db:"tenant_id"`
+		ProjectID   uint64                         `db:"project_id"`
 		Handle      string                         `db:"handle"`
 		Meta        *systemType.AuthClientMeta     `db:"meta"`
 		Secret      string                         `db:"secret"`
@@ -472,6 +474,7 @@ type (
 	auxConfiguredConnection struct {
 		ID           uint64                                `db:"id"`
 		TenantID     uint64                                `db:"tenant_id"`
+		ProjectID    uint64                                `db:"project_id"`
 		ConnectionID uint64                                `db:"connection_id"`
 		Name         string                                `db:"name"`
 		Status       string                                `db:"status"`
@@ -561,6 +564,7 @@ type (
 	auxDalSensitivityLevel struct {
 		ID        uint64                             `db:"id"`
 		TenantID  uint64                             `db:"tenant_id"`
+		ProjectID uint64                             `db:"project_id"`
 		Handle    string                             `db:"handle"`
 		Level     int                                `db:"level"`
 		Meta      systemType.DalSensitivityLevelMeta `db:"meta"`
@@ -719,6 +723,7 @@ type (
 	auxLlmProvider struct {
 		ID           uint64                       `db:"id"`
 		TenantID     uint64                       `db:"tenant_id"`
+		ProjectID    uint64                       `db:"project_id"`
 		Handle       string                       `db:"handle"`
 		Status       string                       `db:"status"`
 		Provider     string                       `db:"provider"`
@@ -800,6 +805,7 @@ type (
 	auxQueue struct {
 		ID        uint64               `db:"id"`
 		TenantID  uint64               `db:"tenant_id"`
+		ProjectID uint64               `db:"project_id"`
 		Consumer  string               `db:"consumer"`
 		Queue     string               `db:"queue"`
 		Meta      systemType.QueueMeta `db:"meta"`
@@ -988,6 +994,7 @@ type (
 	auxUserGroup struct {
 		ID         uint64                      `db:"id"`
 		TenantID   uint64                      `db:"tenant_id"`
+		ProjectID  uint64                      `db:"project_id"`
 		Handle     string                      `db:"handle"`
 		Meta       *systemType.UserGroupMeta   `db:"meta"`
 		Config     *systemType.UserGroupConfig `db:"config"`
@@ -1329,6 +1336,7 @@ func (aux *auxApigwRoute) scan(row scanner) error {
 func (aux *auxApplication) encode(res *systemType.Application) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Name = res.Name
 	aux.Enabled = res.Enabled
 	aux.Weight = res.Weight
@@ -1347,6 +1355,7 @@ func (aux auxApplication) decode() (res *systemType.Application, _ error) {
 	res = new(systemType.Application)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Name = aux.Name
 	res.Enabled = aux.Enabled
 	res.Weight = aux.Weight
@@ -1365,6 +1374,7 @@ func (aux *auxApplication) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Name,
 		&aux.Enabled,
 		&aux.Weight,
@@ -1441,6 +1451,7 @@ func (aux *auxAttachment) scan(row scanner) error {
 func (aux *auxAuthClient) encode(res *systemType.AuthClient) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
 	aux.Secret = res.Secret
@@ -1469,6 +1480,7 @@ func (aux auxAuthClient) decode() (res *systemType.AuthClient, _ error) {
 	res = new(systemType.AuthClient)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
 	res.Secret = aux.Secret
@@ -1497,6 +1509,7 @@ func (aux *auxAuthClient) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Handle,
 		&aux.Meta,
 		&aux.Secret,
@@ -2628,6 +2641,7 @@ func (aux *auxComposePageLayout) scan(row scanner) error {
 func (aux *auxConfiguredConnection) encode(res *systemType.ConfiguredConnection) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.ConnectionID = res.ConnectionID
 	aux.Name = res.Name
 	aux.Status = res.Status
@@ -2649,6 +2663,7 @@ func (aux auxConfiguredConnection) decode() (res *systemType.ConfiguredConnectio
 	res = new(systemType.ConfiguredConnection)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.ConnectionID = aux.ConnectionID
 	res.Name = aux.Name
 	res.Status = aux.Status
@@ -2670,6 +2685,7 @@ func (aux *auxConfiguredConnection) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.ConnectionID,
 		&aux.Name,
 		&aux.Status,
@@ -2950,6 +2966,7 @@ func (aux *auxDalSchemaAlteration) scan(row scanner) error {
 func (aux *auxDalSensitivityLevel) encode(res *systemType.DalSensitivityLevel) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Handle = res.Handle
 	aux.Level = res.Level
 	aux.Meta = res.Meta
@@ -2969,6 +2986,7 @@ func (aux auxDalSensitivityLevel) decode() (res *systemType.DalSensitivityLevel,
 	res = new(systemType.DalSensitivityLevel)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Handle = aux.Handle
 	res.Level = aux.Level
 	res.Meta = aux.Meta
@@ -2988,6 +3006,7 @@ func (aux *auxDalSensitivityLevel) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Handle,
 		&aux.Level,
 		&aux.Meta,
@@ -3545,6 +3564,7 @@ func (aux *auxLabel) scan(row scanner) error {
 func (aux *auxLlmProvider) encode(res *systemType.LlmProvider) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Handle = res.Handle
 	aux.Status = res.Status
 	aux.Provider = res.Provider
@@ -3567,6 +3587,7 @@ func (aux auxLlmProvider) decode() (res *systemType.LlmProvider, _ error) {
 	res = new(systemType.LlmProvider)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Handle = aux.Handle
 	res.Status = aux.Status
 	res.Provider = aux.Provider
@@ -3589,6 +3610,7 @@ func (aux *auxLlmProvider) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Handle,
 		&aux.Status,
 		&aux.Provider,
@@ -3854,6 +3876,7 @@ func (aux *auxProjectMember) scan(row scanner) error {
 func (aux *auxQueue) encode(res *systemType.Queue) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Consumer = res.Consumer
 	aux.Queue = res.Queue
 	aux.Meta = res.Meta
@@ -3873,6 +3896,7 @@ func (aux auxQueue) decode() (res *systemType.Queue, _ error) {
 	res = new(systemType.Queue)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Consumer = aux.Consumer
 	res.Queue = aux.Queue
 	res.Meta = aux.Meta
@@ -3892,6 +3916,7 @@ func (aux *auxQueue) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Consumer,
 		&aux.Queue,
 		&aux.Meta,
@@ -4572,6 +4597,7 @@ func (aux *auxUser) scan(row scanner) error {
 func (aux *auxUserGroup) encode(res *systemType.UserGroup) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
 	aux.Config = res.Config
@@ -4589,6 +4615,7 @@ func (aux auxUserGroup) decode() (res *systemType.UserGroup, _ error) {
 	res = new(systemType.UserGroup)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
 	res.Config = aux.Config
@@ -4606,6 +4633,7 @@ func (aux *auxUserGroup) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Handle,
 		&aux.Meta,
 		&aux.Config,

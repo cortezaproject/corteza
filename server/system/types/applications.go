@@ -13,9 +13,10 @@ import (
 
 type (
 	Application struct {
-		ID       uint64 `json:"applicationID,string"`
-		TenantID uint64 `json:"tenantID,string,omitempty"`
-		Name     string `json:"name"`
+		ID        uint64 `json:"applicationID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Name      string `json:"name"`
 		OwnerID  uint64 `json:"ownerID"`
 		Enabled  bool   `json:"enabled"`
 		Weight   int    `json:"weight"`

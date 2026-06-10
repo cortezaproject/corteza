@@ -98,6 +98,8 @@ func (r *Application) GetValue(name string, pos uint) (any, error) {
 		return r.Name, nil
 	case "ownerID", "OwnerID":
 		return r.OwnerID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "tenantID", "TenantID":
 		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
@@ -127,6 +129,8 @@ func (r *Application) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Name)
 	case "ownerID", "OwnerID":
 		return cast2.Uint64(value, &r.OwnerID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "tenantID", "TenantID":
 		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
@@ -320,6 +324,8 @@ func (r *AuthClient) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "ownedBy", "OwnedBy":
 		return r.OwnedBy, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "redirectURI", "RedirectURI":
 		return r.RedirectURI, nil
 	case "scope", "Scope":
@@ -367,6 +373,8 @@ func (r *AuthClient) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "ownedBy", "OwnedBy":
 		return cast2.Uint64(value, &r.OwnedBy)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "redirectURI", "RedirectURI":
 		return cast2.String(value, &r.RedirectURI)
 	case "scope", "Scope":
@@ -470,6 +478,8 @@ func (r *Queue) GetValue(name string, pos uint) (any, error) {
 		return r.DeletedBy, nil
 	case "id", "ID":
 		return r.ID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "queue", "Queue":
 		return r.Queue, nil
 	case "tenantID", "TenantID":
@@ -501,6 +511,8 @@ func (r *Queue) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.DeletedBy)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "queue", "Queue":
 		return cast2.String(value, &r.Queue)
 	case "tenantID", "TenantID":
@@ -766,6 +778,8 @@ func (r *UserGroup) GetValue(name string, pos uint) (any, error) {
 		return r.Handle, nil
 	case "id", "ID":
 		return r.ID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "tenantID", "TenantID":
 		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
@@ -791,6 +805,8 @@ func (r *UserGroup) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Handle)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "tenantID", "TenantID":
 		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
@@ -1022,6 +1038,8 @@ func (r *DalSensitivityLevel) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "level", "Level":
 		return r.Level, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "tenantID", "TenantID":
 		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
@@ -1053,6 +1071,8 @@ func (r *DalSensitivityLevel) SetValue(name string, pos uint, value any) (err er
 		return cast2.Uint64(value, &r.ID)
 	case "level", "Level":
 		return cast2.Int(value, &r.Level)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "tenantID", "TenantID":
 		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
@@ -1250,6 +1270,8 @@ func (r *ConfiguredConnection) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "name", "Name":
 		return r.Name, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "status", "Status":
 		return r.Status, nil
 	case "tenantID", "TenantID":
@@ -1283,6 +1305,8 @@ func (r *ConfiguredConnection) SetValue(name string, pos uint, value any) (err e
 		return cast2.Uint64(value, &r.ID)
 	case "name", "Name":
 		return cast2.String(value, &r.Name)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "status", "Status":
 		return cast2.String(value, &r.Status)
 	case "tenantID", "TenantID":
@@ -1318,6 +1342,8 @@ func (r *LlmProvider) GetValue(name string, pos uint) (any, error) {
 		return r.Handle, nil
 	case "id", "ID":
 		return r.ID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "provider", "Provider":
 		return r.Provider, nil
 	case "status", "Status":
@@ -1353,6 +1379,8 @@ func (r *LlmProvider) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Handle)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "provider", "Provider":
 		return cast2.String(value, &r.Provider)
 	case "status", "Status":

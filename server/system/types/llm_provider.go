@@ -13,6 +13,7 @@ type (
 	LlmProvider struct {
 		ID           uint64 `json:"llmProviderID,string"`
 		TenantID     uint64 `json:"tenantID,string,omitempty"`
+		ProjectID    uint64 `json:"projectID,string,omitempty"`
 		Handle       string `json:"handle"`
 		Status       string `json:"status"`
 		Provider     string `json:"provider"`

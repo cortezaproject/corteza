@@ -9,6 +9,7 @@ application: {
 		attributes: {
 			id: schema.IdField
 			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			name: {
 				sortable: true
 				dal: {}
@@ -58,6 +59,7 @@ application: {
 	filter: {
 		struct: {
 			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			name: {goType: "string"}
 			// not sure about the type of flagged_ids
 			flagged_ids: {goType: "[]uint64"}
@@ -73,7 +75,7 @@ application: {
 
 	features: {
 		flags: true
-		tenantScoped: true
+		projectScoped: true
 	}
 
 	envoy: {

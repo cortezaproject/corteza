@@ -622,6 +622,14 @@ var Application = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Name", Sortable: true,
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "name"},
@@ -824,6 +832,14 @@ var AuthClient = &dal.Model{
 				DefaultValue: 0,
 			},
 			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -1914,6 +1930,14 @@ var ConfiguredConnection = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "ConnectionID", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
@@ -2612,6 +2636,14 @@ var DalSensitivityLevel = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Handle",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "handle"},
@@ -3115,6 +3147,14 @@ var LlmProvider = &dal.Model{
 				DefaultValue: 0,
 			},
 			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -3759,6 +3799,14 @@ var Queue = &dal.Model{
 				DefaultValue: 0,
 			},
 			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{
@@ -5102,6 +5150,14 @@ var UserGroup = &dal.Model{
 				DefaultValue: 0,
 			},
 			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
 		},
 
 		&dal.Attribute{

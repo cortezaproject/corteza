@@ -9,6 +9,7 @@ llm_provider: {
 		attributes: {
 			id:     schema.IdField
 			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			status: {
 				sortable: true
@@ -63,6 +64,7 @@ llm_provider: {
 		struct: {
 			llm_provider_id: {goType: "[]uint64", ident: "llmProviderID", storeIdent: "id"}
 			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
 			status: {goType: "string"}
 			provider: {goType: "string"}
@@ -83,7 +85,7 @@ llm_provider: {
 
 	features: {
 		labels: false
-		tenantScoped: true
+		projectScoped: true
 	}
 
 	envoy: {

@@ -9,6 +9,7 @@ dal_sensitivity_level: {
 		attributes: {
 			id:     schema.IdField
 			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			level: {
 				sortable: true,
@@ -39,6 +40,7 @@ dal_sensitivity_level: {
 		struct: {
 			dal_sensitivity_level_id: {goType: "[]uint64", ident: "dalSensitivityLevelID", storeIdent: "id"}
 			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: { goType: "string" }
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
@@ -59,7 +61,7 @@ dal_sensitivity_level: {
 
 	features: {
 		labels: false
-		tenantScoped: true
+		projectScoped: true
 	}
 
 	store: {

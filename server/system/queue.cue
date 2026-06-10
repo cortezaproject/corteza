@@ -7,7 +7,7 @@ import (
 queue: {
 	features: {
 		labels: false
-		tenantScoped: true
+		projectScoped: true
 	}
 
 	model: {
@@ -15,6 +15,7 @@ queue: {
 		attributes: {
 			id: schema.IdField
 			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			consumer: {
 				sortable: true,
 				goType: "string"
@@ -52,6 +53,7 @@ queue: {
 		struct: {
 			queue_id: {goType: "[]uint64", ident: "queueID", storeIdent: "id"}
 			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

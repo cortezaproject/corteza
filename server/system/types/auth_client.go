@@ -14,8 +14,9 @@ import (
 
 type (
 	AuthClient struct {
-		ID       uint64 `json:"authClientID,string"`
-		TenantID uint64 `json:"tenantID,string,omitempty"`
+		ID        uint64 `json:"authClientID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
 
 		// Client's handle
 		Handle string `json:"handle"`

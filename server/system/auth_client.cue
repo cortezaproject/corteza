@@ -6,12 +6,13 @@ import (
 
 auth_client: {
 	features: {
-		tenantScoped: true
+		projectScoped: true
 	}
 	model: {
 		attributes: {
 			id:     schema.IdField
 			tenant_id:  schema.TenantRefField
+			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			meta: {
 				goType: "*types.AuthClientMeta"
@@ -93,6 +94,7 @@ auth_client: {
 		struct: {
 			client_id: {goType: "[]uint64"}
 			tenant_id: schema.TenantFilterField
+			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

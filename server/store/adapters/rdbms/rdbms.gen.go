@@ -3369,6 +3369,9 @@ func scopeGuardApplication(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -3384,6 +3387,9 @@ func stampScopeApplication(ctx context.Context, res *systemType.Application) {
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryApplications queries the database, converts and checks each row and returns collected set
@@ -4584,6 +4590,9 @@ func scopeGuardAuthClient(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -4599,6 +4608,9 @@ func stampScopeAuthClient(ctx context.Context, res *systemType.AuthClient) {
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryAuthClients queries the database, converts and checks each row and returns collected set
@@ -15867,6 +15879,9 @@ func scopeGuardConfiguredConnection(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -15882,6 +15897,9 @@ func stampScopeConfiguredConnection(ctx context.Context, res *systemType.Configu
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryConfiguredConnections queries the database, converts and checks each row and returns collected set
@@ -18631,6 +18649,9 @@ func scopeGuardDalSensitivityLevel(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -18646,6 +18667,9 @@ func stampScopeDalSensitivityLevel(ctx context.Context, res *systemType.DalSensi
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryDalSensitivityLevels queries the database, converts and checks each row and returns collected set
@@ -24900,6 +24924,9 @@ func scopeGuardLlmProvider(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -24915,6 +24942,9 @@ func stampScopeLlmProvider(ctx context.Context, res *systemType.LlmProvider) {
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryLlmProviders queries the database, converts and checks each row and returns collected set
@@ -28577,6 +28607,9 @@ func scopeGuardQueue(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -28592,6 +28625,9 @@ func stampScopeQueue(ctx context.Context, res *systemType.Queue) {
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryQueues queries the database, converts and checks each row and returns collected set
@@ -36322,6 +36358,9 @@ func scopeGuardUserGroup(ctx context.Context) []goqu.Expression {
 	}
 
 	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
 	return ee
 }
 
@@ -36337,6 +36376,9 @@ func stampScopeUserGroup(ctx context.Context, res *systemType.UserGroup) {
 	}
 
 	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryUserGroups queries the database, converts and checks each row and returns collected set

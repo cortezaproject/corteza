@@ -13,9 +13,10 @@ import (
 
 type (
 	Queue struct {
-		ID       uint64    `json:"queueID,string"`
-		TenantID uint64    `json:"tenantID,string,omitempty"`
-		Consumer string    `json:"consumer"`
+		ID        uint64    `json:"queueID,string"`
+		TenantID  uint64    `json:"tenantID,string,omitempty"`
+		ProjectID uint64    `json:"projectID,string,omitempty"`
+		Consumer  string    `json:"consumer"`
 		Queue    string    `json:"queue"`
 		Meta     QueueMeta `json:"meta"`
 
