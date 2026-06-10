@@ -5,100 +5,53 @@
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
     <div class="flex-1 flex gap-4 p-4 min-h-0">
-    <!-- Left: step nav -->
-    <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
-      <StepNav
-        class="flex-1 min-h-0"
-        :steps="navSteps"
-        :active-key="activeKey"
-        :statuses="statuses"
-        :gate-statuses="gateStatuses"
-        :gate-locked="gateLocked"
-        :show-gates="showGates"
-        @select="goStep"
-        @gate-click="onGateClick"
-      />
-    </div>
-
-    <div class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden">
-      <!-- Step header -->
-      <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
-        <div class="min-w-0">
-          <h2 class="text-lg font-medium truncate">{{ activeStep?.title || activeStep?.label }}</h2>
-          <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
-        </div>
-
-        <div class="ml-auto flex items-center gap-3">
-          <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
-        </div>
+      <!-- Left: step nav -->
+      <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
+        <StepNav
+          class="flex-1 min-h-0"
+          :steps="navSteps"
+          :active-key="activeKey"
+          :statuses="statuses"
+          :gate-statuses="gateStatuses"
+          :gate-locked="gateLocked"
+          :show-gates="showGates"
+          @select="goStep"
+          @gate-click="onGateClick"
+        />
+        <p class="shrink-0 px-3 text-xs text-muted-color leading-relaxed">
+          The pipeline grows step by step — new steps appear here as they're
+          built out.
+        </p>
       </div>
 
-      <!-- Step content + dashboard -->
-      <div ref="splitRef" class="flex-1 min-h-0 flex">
+      <div class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden">
+        <!-- Step header -->
+        <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
+          <div class="min-w-0">
+            <h2 class="text-lg font-medium truncate">{{ activeStep?.title || activeStep?.label }}</h2>
+            <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
+          </div>
+
+          <div class="ml-auto flex items-center gap-3">
+            <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
+          </div>
+        </div>
+
+        <!-- Step content -->
         <div
-          class="min-h-0"
-          :class="isArchitecture || isDataModel || isConnections || isDataSensitivity || isResourceManagement ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
-          :style="{ width: leftPct + '%' }"
+          class="flex-1 min-h-0"
+          :class="isDataModel ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
         >
-          <template v-if="isArchitecture">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <ArchitectureStep
-              v-model="selectedGroupId"
-              :project="project"
-              :disabled="locked"
-              class="flex-1 min-h-0"
-            />
-          </template>
-          <template v-else-if="isDataModel">
+          <template v-if="isDataModel">
             <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
             <DataModelStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else-if="isConnections">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <ConnectionsStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else-if="isDataSensitivity">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <DataSensitivityStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else-if="isResourceManagement">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <ResourceManagementStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
           </template>
           <template v-else>
             <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
             <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
-            <MembersStep v-else-if="isMembers" :project="project" :disabled="locked" />
-            <div
-              v-else
-              class="h-full flex flex-col items-center justify-center gap-2 text-muted-color text-center"
-            >
-              <i :class="['text-3xl', placeholderIcon]" />
-              <p class="text-sm">This step isn't built yet.</p>
-            </div>
           </template>
         </div>
-
-        <!-- Drag handle -->
-        <div
-          class="shrink-0 w-1.5 bg-surface-200 dark:bg-surface-700 hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
-          :class="{ '!bg-primary': resizing }"
-          @pointerdown="startResize"
-        >
-          <span class="absolute inset-y-0 -left-1 -right-1" />
-          <span class="h-8 w-0.5 rounded-full bg-surface-400 dark:bg-surface-500 group-hover:bg-primary-contrast" :class="{ '!bg-primary-contrast': resizing }" />
-        </div>
-
-        <div class="overflow-hidden p-4 min-h-0 flex-1">
-          <ResourcePanel
-            :project="project"
-            :locked="status === 'submitted'"
-            :selected-group-id="isArchitecture ? selectedGroupId : '__all__'"
-            :emphasize-kind="emphasizeKind"
-          />
-        </div>
       </div>
-    </div>
     </div>
 
     <WizardToolbar
@@ -109,8 +62,7 @@
       :can-grant="canGrant"
       :mode="project.mode"
       :reopened="isReopened"
-      :submit-disabled="isArchitecture && !architectureSaved"
-      :show-actions="!isMilestone"
+      :show-actions="showStepActions"
       :can-prev="canPrev"
       :can-next="canNext"
       :step-index="stepIndex"
@@ -126,13 +78,10 @@
       @back="onBack"
     />
 
-    <LinkConfigDialog
+    <ModuleDialog
       v-model="configOpen"
       :project="project"
-      :resource-id="configId"
-      :new-kind="configNewKind"
-      :new-connector="configNewConnector"
-      :new-name="configNewName"
+      :module-id="configId"
       :readonly="locked"
     />
   </div>
@@ -151,23 +100,17 @@
 </template>
 
 <script setup>
-import ResourcePanel from '@/sections/project/components/wizard/ResourcePanel.vue'
+import ModuleDialog from '@/sections/project/components/datamodel/ModuleDialog.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
-import ArchitectureStep from '@/sections/project/components/wizard/steps/ArchitectureStep.vue'
-import ConnectionsStep from '@/sections/project/components/wizard/steps/ConnectionsStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
-import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
-import LinkConfigDialog from '@/sections/project/components/group/LinkConfigDialog.vue'
-import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
-import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { STEPS, sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
-import { CURRENT_USER_ID } from '@/sections/project/mock/users'
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { computed, provide, ref, watch } from 'vue'
@@ -176,86 +119,37 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 const store = useProjectsStore()
+const usersStore = useProjectUsersStore()
 const confirm = useConfirm()
 const toast = useToast()
 
 const project = computed(() => store.findById(route.params.projectId))
 
-// Group selected in the Architecture step; the resource graph follows it.
-const selectedGroupId = ref('__all__')
-
-// Link/permission dialog — provided to the whole wizard so both the Architecture
-// step's badges and the resource graph nodes can open it.
-const configOpen = ref(false)
-const configId = ref(null)
-const configNewKind = ref(null)
-const configNewConnector = ref(null)
-const configNewName = ref('')
-provide('configureResource', id => {
-  configId.value = id
-  configNewKind.value = null
-  configNewConnector.value = null
-  configNewName.value = ''
-  configOpen.value = true
-})
-// Open the dialog to create a brand-new resource (staged until Save). `opts`
-// may carry a default name and (for connections) the catalog connector id.
-provide('createResource', (kind, opts = {}) => {
-  configId.value = null
-  configNewKind.value = kind
-  configNewConnector.value = opts.connector || null
-  configNewName.value = opts.name || ''
-  configOpen.value = true
-})
-// Reset the dialog target when it closes, so the next open starts clean.
-watch(configOpen, open => {
-  if (!open) {
-    configId.value = null
-    configNewKind.value = null
-    configNewConnector.value = null
-    configNewName.value = ''
-  }
-})
-
-// Open a group from the graph: focus it on the Architecture step.
-provide('openGroup', groupId => {
-  selectedGroupId.value = groupId
-  goStep('architecture')
-})
-
-// --- Resizable split (form | resource graph) -------------------------------
-const splitRef = ref(null)
-const leftPct = ref(60) // matches the former 3fr / 2fr ratio
-const resizing = ref(false)
-const MIN_PCT = 25
-const MAX_PCT = 75
-
-const onResizeMove = e => {
-  const el = splitRef.value
-  if (!el) return
-  const rect = el.getBoundingClientRect()
-  const pct = ((e.clientX - rect.left) / rect.width) * 100
-  leftPct.value = Math.min(MAX_PCT, Math.max(MIN_PCT, pct))
-}
-
-const stopResize = () => {
-  resizing.value = false
-  window.removeEventListener('pointermove', onResizeMove)
-  window.removeEventListener('pointerup', stopResize)
-  document.body.style.userSelect = ''
-}
-
-const startResize = () => {
-  resizing.value = true
-  document.body.style.userSelect = 'none'
-  window.addEventListener('pointermove', onResizeMove)
-  window.addEventListener('pointerup', stopResize)
-}
+// Load the full project (members for capability resolution) + user directory.
+usersStore.load()
+watch(
+  () => route.params.projectId,
+  id => {
+    if (!id) return
+    store.fetchProject(id).catch(err => {
+      console.error('Failed to load project', err)
+      toast.add({
+        severity: 'error',
+        summary: 'Could not load project',
+        detail: err.message,
+        life: 4000,
+      })
+    })
+  },
+  { immediate: true },
+)
 
 // --- Current member & role -------------------------------------------------
 // Tab access follows the logged-in user's role: a member who can request OR
 // grant approval works in the Governance view; everyone else sees Build only.
-const currentMember = computed(() => (project.value?.members || []).find(m => m.userId === CURRENT_USER_ID))
+const currentMember = computed(() =>
+  (project.value?.members || []).find(m => m.userId === usersStore.currentUserID),
+)
 const currentRole = computed(() => rolePreset(currentMember.value?.role))
 const canWrite = computed(() => !!currentRole.value.write)
 const canRequest = computed(() => !!currentRole.value.requestApproval)
@@ -266,10 +160,7 @@ const canGovern = computed(() => canRequest.value || canGrant.value)
 const effectiveTab = computed(() =>
   project.value?.mode === 'gated' && canGovern.value ? 'governance' : 'build',
 )
-const friaCtx = computed(() => ({ friaRequired: !!project.value?.friaRequired }))
-const navSteps = computed(() =>
-  project.value ? stepsForTab(effectiveTab.value, friaCtx.value) : [],
-)
+const navSteps = computed(() => (project.value ? stepsForTab(effectiveTab.value) : []))
 const showGates = computed(() => project.value?.mode === 'gated' && effectiveTab.value === 'governance')
 
 // --- Active step -----------------------------------------------------------
@@ -284,20 +175,23 @@ const activeStep = computed(
   () => navSteps.value.find(s => s.key === activeKey.value) || STEPS.find(s => s.key === activeKey.value),
 )
 const isSummary = computed(() => activeKey.value === 'summary')
-const isMembers = computed(() => activeKey.value === 'members')
-const isArchitecture = computed(() => activeKey.value === 'architecture')
 const isDataModel = computed(() => activeKey.value === 'data-model')
-const isConnections = computed(() => activeKey.value === 'connections')
-const isDataSensitivity = computed(() => activeKey.value === 'data-sensitivity')
-const isResourceManagement = computed(() => activeKey.value === 'resource-management')
-// The current step's resource kind, emphasized in the live graph.
-const emphasizeKind = computed(() =>
-  activeStep.value?.type === 'resource' ? activeStep.value.kind : null,
-)
-const isMilestone = computed(() => activeStep.value?.type === 'milestone')
-const placeholderIcon = computed(
-  () => ({ preview: 'pi pi-eye', publish: 'pi pi-upload' })[activeKey.value] || 'pi pi-wrench',
-)
+
+// --- Module config dialog ----------------------------------------------------
+// Provided to the step components: open an existing module, or stage a new one.
+const configOpen = ref(false)
+const configId = ref(null)
+provide('configureResource', id => {
+  configId.value = id
+  configOpen.value = true
+})
+provide('createResource', () => {
+  configId.value = null
+  configOpen.value = true
+})
+watch(configOpen, open => {
+  if (!open) configId.value = null
+})
 
 // --- Per-step governance state --------------------------------------------
 const stepStatus = key => project.value?.governance?.[key]?.status || 'draft'
@@ -310,20 +204,11 @@ const isReopened = computed(() => status.value === 'draft' && !!reviewNote.value
 const locked = computed(
   () => !canWrite.value || status.value === 'submitted' || status.value === 'approved',
 )
-const showStatus = computed(
-  () => project.value?.mode === 'gated' && !!activeStep.value && !isMilestone.value,
-)
-// The toolbar always shows when a step is active so the Prev/Next stepper is
-// reachable everywhere — milestone steps just hide the per-step action buttons.
+const showStatus = computed(() => project.value?.mode === 'gated' && !!activeStep.value)
 const showToolbar = computed(() => !!activeStep.value)
-
-// The Technical Architecture step edits groups live in the store, so "saving"
-// snapshots the current groups. Only a saved (and unchanged-since) architecture
-// may be submitted for approval at its gate.
-const groupsSnapshot = computed(() => JSON.stringify(project.value?.groups || []))
-const architectureSaved = computed(
-  () => project.value?.governance?.architecture?.values?.snapshot === groupsSnapshot.value,
-)
+// Step-level Save/approval buttons apply to form steps; resource steps persist
+// each change immediately and only lock via their gate.
+const showStepActions = computed(() => activeStep.value?.type === 'form')
 
 const statuses = computed(() => {
   const out = {}
@@ -343,9 +228,7 @@ const statusSeverity = computed(
 )
 
 // --- Gate sections ---------------------------------------------------------
-// Built from the full governance pipeline minus any conditional steps that
-// don't apply to this project (e.g. FRIA when not required).
-const sectionList = computed(() => sections(stepsForTab('governance', friaCtx.value)))
+const sectionList = computed(() => sections(stepsForTab('governance')))
 const sectionByGate = computed(() =>
   Object.fromEntries(sectionList.value.filter(s => s.gateKey).map(s => [s.gateKey, s])),
 )
@@ -363,13 +246,8 @@ const gateStatuses = computed(() => {
   return out
 })
 
-// A step is submittable when it's editable (draft/changes-requested); the
-// architecture step additionally must be saved first.
-function stepSubmittable(key) {
-  if (!['draft', 'changes-requested'].includes(stepStatus(key))) return false
-  if (key === 'architecture') return architectureSaved.value
-  return true
-}
+// A step is submittable when it's editable (draft/changes-requested).
+const stepSubmittable = key => ['draft', 'changes-requested'].includes(stepStatus(key))
 
 // Gates unlock sequentially: a gate can only be requested once every earlier
 // gate has been approved.
@@ -398,13 +276,10 @@ function statusHint(draftText) {
 // Short per-step blurb shown in the header (so steps don't repeat it in-body).
 const STEP_BLURB = {
   summary: 'Fill in the form, then submit the section for approval at the gate.',
-  members: 'Assign people to roles. The approval flags decide who works in Build vs Governance.',
-  architecture: 'Group the roles and resources that work together.',
-  'data-model': 'Define the modules (data tables) and their fields. A Record field links one module to another.',
-  'resource-management': 'Whitelist the permitted AI providers, infrastructure and third-party connections, with continuity options.',
+  'data-model':
+    'Define the modules (data tables) and their fields. A Record field links one module to another. Changes save as you go.',
 }
 const headerHint = computed(() => {
-  if (isMilestone.value) return activeStep.value?.description || ''
   const blurb = STEP_BLURB[activeKey.value] || ''
   // In gated mode a governance status message takes precedence over the blurb.
   return project.value?.mode === 'gated' ? statusHint(blurb) : blurb
@@ -485,9 +360,13 @@ function onGateClick(gateKey) {
       icon: 'pi pi-lock',
       rejectProps: { label: 'Cancel', severity: 'secondary', text: true },
       acceptProps: { label: 'Request approval' },
-      accept: () => {
-        store.submitSection(project.value.id, sec.steps.map(s => s.key))
-        toast.add({ severity: 'success', summary: 'Requested approval', life: 2000 })
+      accept: async () => {
+        try {
+          await store.submitSection(project.value.id, sec.steps.map(s => s.key))
+          toast.add({ severity: 'success', summary: 'Requested approval', life: 2000 })
+        } catch (err) {
+          toast.add({ severity: 'error', summary: 'Request failed', detail: err.message, life: 4000 })
+        }
       },
     })
   } else {
@@ -496,18 +375,24 @@ function onGateClick(gateKey) {
 }
 
 // --- Per-step actions ------------------------------------------------------
+// Governance mutations persist via the API; report failures instead of
+// assuming success.
+async function governanceAction(fn, summary) {
+  try {
+    await fn()
+    toast.add({ severity: 'success', summary, life: 2000 })
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Action failed', detail: err.message, life: 4000 })
+  }
+}
 function onSave() {
-  const values = isArchitecture.value ? { snapshot: groupsSnapshot.value } : working.value
-  store.saveStepForm(project.value.id, activeKey.value, values)
-  toast.add({ severity: 'success', summary: 'Saved', life: 2000 })
+  governanceAction(() => store.saveStepForm(project.value.id, activeKey.value, working.value), 'Saved')
 }
 function onApprove() {
-  store.transitionStep(project.value.id, activeKey.value, 'approve')
-  toast.add({ severity: 'success', summary: 'Approved', life: 2000 })
+  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'approve'), 'Approved')
 }
 function onResubmit() {
-  store.transitionStep(project.value.id, activeKey.value, 'submit')
-  toast.add({ severity: 'success', summary: 'Resubmitted', life: 2000 })
+  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'submit'), 'Resubmitted')
 }
 
 // Reason dialog, shared by Request changes and Reopen.
@@ -530,15 +415,19 @@ const reasonText = computed(() =>
 function openReason(action) {
   reason.value = { visible: true, action, note: '' }
 }
-function confirmReason() {
+async function confirmReason() {
   const { action, note } = reason.value
   if (!note.trim()) return
-  store.transitionStep(project.value.id, activeKey.value, action, note.trim())
-  reason.value.visible = false
-  toast.add({
-    severity: 'info',
-    summary: action === 'reopen' ? 'Reopened' : 'Sent back for changes',
-    life: 2000,
-  })
+  try {
+    await store.transitionStep(project.value.id, activeKey.value, action, note.trim())
+    reason.value.visible = false
+    toast.add({
+      severity: 'info',
+      summary: action === 'reopen' ? 'Reopened' : 'Sent back for changes',
+      life: 2000,
+    })
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Action failed', detail: err.message, life: 4000 })
+  }
 }
 </script>

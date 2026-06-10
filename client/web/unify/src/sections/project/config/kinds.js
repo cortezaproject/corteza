@@ -99,8 +99,6 @@ const FALLBACK = {
 
 export const kindConfig = kind => KIND_CONFIG[kind] || FALLBACK
 
-// Resource kinds in pipeline order (one per resource-collection step). Charts
-// are a resource kind without their own step — surfaced right after Pages.
-export const RESOURCE_KINDS = STEPS.filter(s => s.type === 'resource').flatMap(s =>
-  s.kind === 'page' ? ['page', 'chart'] : [s.kind],
-)
+// Resource kinds in pipeline order (one per resource-collection step). Only
+// modules are backend-backed today; other kinds rejoin with their steps.
+export const RESOURCE_KINDS = STEPS.filter(s => s.type === 'resource').map(s => s.kind)

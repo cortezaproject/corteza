@@ -204,6 +204,8 @@ type (
 	// auxAutomationNgAutomation is an auxiliary structure used for transporting to/from RDBMS store
 	auxAutomationNgAutomation struct {
 		ID        uint64                                `db:"id"`
+		TenantID  uint64                                `db:"tenant_id"`
+		ProjectID uint64                                `db:"project_id"`
 		Handle    string                                `db:"handle"`
 		Meta      *automationType.NgAutomationMeta      `db:"meta"`
 		Enabled   bool                                  `db:"enabled"`
@@ -361,6 +363,8 @@ type (
 	// auxComposeAttachment is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeAttachment struct {
 		ID          uint64                     `db:"id"`
+		TenantID    uint64                     `db:"tenant_id"`
+		ProjectID   uint64                     `db:"project_id"`
 		NamespaceID uint64                     `db:"namespace_id"`
 		OwnerID     uint64                     `db:"owner_id"`
 		Kind        string                     `db:"kind"`
@@ -377,6 +381,8 @@ type (
 	auxComposeChart struct {
 		ID          uint64                  `db:"id"`
 		Handle      string                  `db:"handle"`
+		TenantID    uint64                  `db:"tenant_id"`
+		ProjectID   uint64                  `db:"project_id"`
 		NamespaceID uint64                  `db:"namespace_id"`
 		Name        string                  `db:"name"`
 		Config      composeType.ChartConfig `db:"config"`
@@ -388,6 +394,8 @@ type (
 	// auxComposeModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModule struct {
 		ID             uint64                   `db:"id"`
+		TenantID       uint64                   `db:"tenant_id"`
+		ProjectID      uint64                   `db:"project_id"`
 		NamespaceID    uint64                   `db:"namespace_id"`
 		Handle         string                   `db:"handle"`
 		Name           string                   `db:"name"`
@@ -402,6 +410,8 @@ type (
 	// auxComposeModuleField is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModuleField struct {
 		ID             uint64                         `db:"id"`
+		TenantID       uint64                         `db:"tenant_id"`
+		ProjectID      uint64                         `db:"project_id"`
 		ModuleID       uint64                         `db:"module_id"`
 		Place          int                            `db:"place"`
 		Kind           string                         `db:"kind"`
@@ -422,6 +432,8 @@ type (
 	// auxComposeNamespace is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeNamespace struct {
 		ID             uint64                    `db:"id"`
+		TenantID       uint64                    `db:"tenant_id"`
+		ProjectID      uint64                    `db:"project_id"`
 		Slug           string                    `db:"slug"`
 		Enabled        bool                      `db:"enabled"`
 		Meta           composeType.NamespaceMeta `db:"meta"`
@@ -435,6 +447,8 @@ type (
 	// auxComposePage is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposePage struct {
 		ID             uint64                 `db:"id"`
+		TenantID       uint64                 `db:"tenant_id"`
+		ProjectID      uint64                 `db:"project_id"`
 		Title          string                 `db:"title"`
 		Handle         string                 `db:"handle"`
 		SelfID         uint64                 `db:"self_id"`
@@ -455,6 +469,8 @@ type (
 	// auxComposePageLayout is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposePageLayout struct {
 		ID             uint64                       `db:"id"`
+		TenantID       uint64                       `db:"tenant_id"`
+		ProjectID      uint64                       `db:"project_id"`
 		Handle         string                       `db:"handle"`
 		PageID         uint64                       `db:"page_id"`
 		ParentID       uint64                       `db:"parent_id"`
@@ -755,18 +771,19 @@ type (
 
 	// auxProject is an auxiliary structure used for transporting to/from RDBMS store
 	auxProject struct {
-		ID        uint64                   `db:"id"`
-		TenantID  uint64                   `db:"tenant_id"`
-		Handle    string                   `db:"handle"`
-		Status    systemType.ProjectStatus `db:"status"`
-		Config    systemType.ProjectConfig `db:"config"`
-		Meta      systemType.ProjectMeta   `db:"meta"`
-		CreatedAt time.Time                `db:"created_at"`
-		UpdatedAt *time.Time               `db:"updated_at"`
-		DeletedAt *time.Time               `db:"deleted_at"`
-		CreatedBy uint64                   `db:"created_by"`
-		UpdatedBy uint64                   `db:"updated_by"`
-		DeletedBy uint64                   `db:"deleted_by"`
+		ID         uint64                       `db:"id"`
+		TenantID   uint64                       `db:"tenant_id"`
+		Handle     string                       `db:"handle"`
+		Status     systemType.ProjectStatus     `db:"status"`
+		Config     systemType.ProjectConfig     `db:"config"`
+		Meta       systemType.ProjectMeta       `db:"meta"`
+		Governance systemType.ProjectGovernance `db:"governance"`
+		CreatedAt  time.Time                    `db:"created_at"`
+		UpdatedAt  *time.Time                   `db:"updated_at"`
+		DeletedAt  *time.Time                   `db:"deleted_at"`
+		CreatedBy  uint64                       `db:"created_by"`
+		UpdatedBy  uint64                       `db:"updated_by"`
+		DeletedBy  uint64                       `db:"deleted_by"`
 	}
 
 	// auxProjectGroup is an auxiliary structure used for transporting to/from RDBMS store
@@ -903,6 +920,8 @@ type (
 	// auxRole is an auxiliary structure used for transporting to/from RDBMS store
 	auxRole struct {
 		ID         uint64               `db:"id"`
+		TenantID   uint64               `db:"tenant_id"`
+		ProjectID  uint64               `db:"project_id"`
 		Name       string               `db:"name"`
 		Handle     string               `db:"handle"`
 		Meta       *systemType.RoleMeta `db:"meta"`
@@ -965,6 +984,7 @@ type (
 	auxTenantMembership struct {
 		ID        uint64                        `db:"id"`
 		TenantID  uint64                        `db:"tenant_id"`
+		ProjectID uint64                        `db:"project_id"`
 		UserID    uint64                        `db:"user_id"`
 		Role      systemType.TenantMemberRole   `db:"role"`
 		Status    systemType.TenantMemberStatus `db:"status"`
@@ -976,6 +996,8 @@ type (
 	// auxUser is an auxiliary structure used for transporting to/from RDBMS store
 	auxUser struct {
 		ID             uint64               `db:"id"`
+		TenantID       uint64               `db:"tenant_id"`
+		ProjectID      uint64               `db:"project_id"`
 		Email          string               `db:"email"`
 		EmailConfirmed bool                 `db:"email_confirmed"`
 		UserGroupID    uint64               `db:"user_group_id"`
@@ -1668,6 +1690,8 @@ func (aux *auxAuthSession) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxAutomationNgAutomation) encode(res *automationType.NgAutomation) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
 	aux.Enabled = res.Enabled
@@ -1693,6 +1717,8 @@ func (aux *auxAutomationNgAutomation) encode(res *automationType.NgAutomation) (
 func (aux auxAutomationNgAutomation) decode() (res *automationType.NgAutomation, _ error) {
 	res = new(automationType.NgAutomation)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
 	res.Enabled = aux.Enabled
@@ -1718,6 +1744,8 @@ func (aux auxAutomationNgAutomation) decode() (res *automationType.NgAutomation,
 func (aux *auxAutomationNgAutomation) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Handle,
 		&aux.Meta,
 		&aux.Enabled,
@@ -2227,6 +2255,8 @@ func (aux *auxChatbotSessionStep) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxComposeAttachment) encode(res *composeType.Attachment) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.NamespaceID = res.NamespaceID
 	aux.OwnerID = res.OwnerID
 	aux.Kind = res.Kind
@@ -2246,6 +2276,8 @@ func (aux *auxComposeAttachment) encode(res *composeType.Attachment) (_ error) {
 func (aux auxComposeAttachment) decode() (res *composeType.Attachment, _ error) {
 	res = new(composeType.Attachment)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.NamespaceID = aux.NamespaceID
 	res.OwnerID = aux.OwnerID
 	res.Kind = aux.Kind
@@ -2265,6 +2297,8 @@ func (aux auxComposeAttachment) decode() (res *composeType.Attachment, _ error) 
 func (aux *auxComposeAttachment) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.NamespaceID,
 		&aux.OwnerID,
 		&aux.Kind,
@@ -2284,6 +2318,8 @@ func (aux *auxComposeAttachment) scan(row scanner) error {
 func (aux *auxComposeChart) encode(res *composeType.Chart) (_ error) {
 	aux.ID = res.ID
 	aux.Handle = res.Handle
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.NamespaceID = res.NamespaceID
 	aux.Name = res.Name
 	aux.Config = res.Config
@@ -2300,6 +2336,8 @@ func (aux auxComposeChart) decode() (res *composeType.Chart, _ error) {
 	res = new(composeType.Chart)
 	res.ID = aux.ID
 	res.Handle = aux.Handle
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.NamespaceID = aux.NamespaceID
 	res.Name = aux.Name
 	res.Config = aux.Config
@@ -2316,6 +2354,8 @@ func (aux *auxComposeChart) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.NamespaceID,
 		&aux.Name,
 		&aux.Config,
@@ -2330,6 +2370,8 @@ func (aux *auxComposeChart) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxComposeModule) encode(res *composeType.Module) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.NamespaceID = res.NamespaceID
 	aux.Handle = res.Handle
 	aux.Name = res.Name
@@ -2348,6 +2390,8 @@ func (aux *auxComposeModule) encode(res *composeType.Module) (_ error) {
 func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 	res = new(composeType.Module)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.NamespaceID = aux.NamespaceID
 	res.Handle = aux.Handle
 	res.Name = aux.Name
@@ -2366,6 +2410,8 @@ func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 func (aux *auxComposeModule) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.NamespaceID,
 		&aux.Handle,
 		&aux.Name,
@@ -2383,6 +2429,8 @@ func (aux *auxComposeModule) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxComposeModuleField) encode(res *composeType.ModuleField) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.ModuleID = res.ModuleID
 	aux.Place = res.Place
 	aux.Kind = res.Kind
@@ -2407,6 +2455,8 @@ func (aux *auxComposeModuleField) encode(res *composeType.ModuleField) (_ error)
 func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error) {
 	res = new(composeType.ModuleField)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.ModuleID = aux.ModuleID
 	res.Place = aux.Place
 	res.Kind = aux.Kind
@@ -2431,6 +2481,8 @@ func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error
 func (aux *auxComposeModuleField) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.ModuleID,
 		&aux.Place,
 		&aux.Kind,
@@ -2454,6 +2506,8 @@ func (aux *auxComposeModuleField) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxComposeNamespace) encode(res *composeType.Namespace) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Slug = res.Slug
 	aux.Enabled = res.Enabled
 	aux.Meta = res.Meta
@@ -2471,6 +2525,8 @@ func (aux *auxComposeNamespace) encode(res *composeType.Namespace) (_ error) {
 func (aux auxComposeNamespace) decode() (res *composeType.Namespace, _ error) {
 	res = new(composeType.Namespace)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Slug = aux.Slug
 	res.Enabled = aux.Enabled
 	res.Meta = aux.Meta
@@ -2488,6 +2544,8 @@ func (aux auxComposeNamespace) decode() (res *composeType.Namespace, _ error) {
 func (aux *auxComposeNamespace) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Slug,
 		&aux.Enabled,
 		&aux.Meta,
@@ -2504,6 +2562,8 @@ func (aux *auxComposeNamespace) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxComposePage) encode(res *composeType.Page) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Title = res.Title
 	aux.Handle = res.Handle
 	aux.SelfID = res.SelfID
@@ -2528,6 +2588,8 @@ func (aux *auxComposePage) encode(res *composeType.Page) (_ error) {
 func (aux auxComposePage) decode() (res *composeType.Page, _ error) {
 	res = new(composeType.Page)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Title = aux.Title
 	res.Handle = aux.Handle
 	res.SelfID = aux.SelfID
@@ -2552,6 +2614,8 @@ func (aux auxComposePage) decode() (res *composeType.Page, _ error) {
 func (aux *auxComposePage) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Title,
 		&aux.Handle,
 		&aux.SelfID,
@@ -2575,6 +2639,8 @@ func (aux *auxComposePage) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Handle = res.Handle
 	aux.PageID = res.PageID
 	aux.ParentID = res.ParentID
@@ -2597,6 +2663,8 @@ func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
 func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) {
 	res = new(composeType.PageLayout)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Handle = aux.Handle
 	res.PageID = aux.PageID
 	res.ParentID = aux.ParentID
@@ -2619,6 +2687,8 @@ func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) 
 func (aux *auxComposePageLayout) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Handle,
 		&aux.PageID,
 		&aux.ParentID,
@@ -3692,6 +3762,7 @@ func (aux *auxProject) encode(res *systemType.Project) (_ error) {
 	aux.Status = res.Status
 	aux.Config = res.Config
 	aux.Meta = res.Meta
+	aux.Governance = res.Governance
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -3712,6 +3783,7 @@ func (aux auxProject) decode() (res *systemType.Project, _ error) {
 	res.Status = aux.Status
 	res.Config = aux.Config
 	res.Meta = aux.Meta
+	res.Governance = aux.Governance
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -3732,6 +3804,7 @@ func (aux *auxProject) scan(row scanner) error {
 		&aux.Status,
 		&aux.Config,
 		&aux.Meta,
+		&aux.Governance,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
@@ -4249,6 +4322,8 @@ func (aux *auxResourceTranslation) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxRole) encode(res *systemType.Role) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Name = res.Name
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
@@ -4265,6 +4340,8 @@ func (aux *auxRole) encode(res *systemType.Role) (_ error) {
 func (aux auxRole) decode() (res *systemType.Role, _ error) {
 	res = new(systemType.Role)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Name = aux.Name
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
@@ -4281,6 +4358,8 @@ func (aux auxRole) decode() (res *systemType.Role, _ error) {
 func (aux *auxRole) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Name,
 		&aux.Handle,
 		&aux.Meta,
@@ -4488,6 +4567,7 @@ func (aux *auxTenant) scan(row scanner) error {
 func (aux *auxTenantMembership) encode(res *systemType.TenantMembership) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.UserID = res.UserID
 	aux.Role = res.Role
 	aux.Status = res.Status
@@ -4504,6 +4584,7 @@ func (aux auxTenantMembership) decode() (res *systemType.TenantMembership, _ err
 	res = new(systemType.TenantMembership)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.UserID = aux.UserID
 	res.Role = aux.Role
 	res.Status = aux.Status
@@ -4520,6 +4601,7 @@ func (aux *auxTenantMembership) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.UserID,
 		&aux.Role,
 		&aux.Status,
@@ -4534,6 +4616,8 @@ func (aux *auxTenantMembership) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxUser) encode(res *systemType.User) (_ error) {
 	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
 	aux.Email = res.Email
 	aux.EmailConfirmed = res.EmailConfirmed
 	aux.UserGroupID = res.UserGroupID
@@ -4555,6 +4639,8 @@ func (aux *auxUser) encode(res *systemType.User) (_ error) {
 func (aux auxUser) decode() (res *systemType.User, _ error) {
 	res = new(systemType.User)
 	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
 	res.Email = aux.Email
 	res.EmailConfirmed = aux.EmailConfirmed
 	res.UserGroupID = aux.UserGroupID
@@ -4576,6 +4662,8 @@ func (aux auxUser) decode() (res *systemType.User, _ error) {
 func (aux *auxUser) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
 		&aux.Email,
 		&aux.EmailConfirmed,
 		&aux.UserGroupID,

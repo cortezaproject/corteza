@@ -24,6 +24,8 @@ const { CSidebarNav } = components
 const store = useProjectsStore()
 const { projects } = storeToRefs(store)
 
+store.load()
+
 // A published project opens its read-only overview; a draft opens the wizard.
 // Mirrors ProjectList's row navigation.
 const routeFor = p => ({

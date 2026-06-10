@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -71,4 +72,8 @@ func (ctrl Label) List(ctx context.Context, r *request.LabelList) (interface{}, 
 		Filter: f,
 		Set:    unique,
 	}, nil
+}
+
+func (ctrl Label) Delete(ctx context.Context, r *request.LabelDelete) (interface{}, error) {
+	return api.OK(), ctrl.label.Delete(ctx, r.Name, r.Kind)
 }

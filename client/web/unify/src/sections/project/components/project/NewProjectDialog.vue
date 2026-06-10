@@ -117,7 +117,7 @@
         <div class="flex gap-2">
           <Button label="Cancel" severity="secondary" outlined size="small" @click="close" />
           <Button
-            v-if="step === 2"
+            v-if="step === 2 && mode === 'gated'"
             label="Next"
             icon="pi pi-arrow-right"
             icon-pos="right"
@@ -126,10 +126,11 @@
             @click="step = 3"
           />
           <Button
-            v-if="step === 3"
+            v-if="isLastStep"
             label="Create project"
             size="small"
             :disabled="!canCreate"
+            :loading="creating"
             @click="onCreate"
           />
         </div>
@@ -140,6 +141,7 @@
 
 <script setup>
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { useToast } from 'primevue/usetoast'
 import { computed, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -148,6 +150,7 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'created'])
 
 const store = useProjectsStore()
+const toast = useToast()
 
 // AI Act Deployer categories. Answering "yes" to any makes a Fundamental
 // Rights Impact Assessment (FRIA) required for the project.
@@ -184,6 +187,12 @@ function defaultDeployer() {
 
 const canCreate = computed(() => !!name.value.trim())
 
+// The deployer-category step (step 3) is AI Act governance metadata — only
+// gated projects collect it; free builds create straight from the details.
+const isLastStep = computed(
+  () => step.value === 3 || (step.value === 2 && mode.value === 'free'),
+)
+
 const headerText = computed(
   () => ({ 1: 'Start a new project', 2: 'Project details', 3: 'Deployer categories' })[step.value],
 )
@@ -212,15 +221,30 @@ function close() {
   emit('update:visible', false)
 }
 
-function onCreate() {
-  if (!canCreate.value) return
-  const project = store.create({
-    name: name.value,
-    description: description.value,
-    mode: mode.value,
-    deployer: { ...deployer },
-  })
-  emit('created', project)
-  close()
+const creating = ref(false)
+
+async function onCreate() {
+  if (!canCreate.value || creating.value) return
+  creating.value = true
+  try {
+    const project = await store.create({
+      name: name.value,
+      description: description.value,
+      mode: mode.value,
+      deployer: { ...deployer },
+    })
+    emit('created', project)
+    close()
+  } catch (err) {
+    // Dialog stays open so nothing typed is lost.
+    toast.add({
+      severity: 'error',
+      summary: 'Could not create project',
+      detail: err.message,
+      life: 4000,
+    })
+  } finally {
+    creating.value = false
+  }
 }
 </script>

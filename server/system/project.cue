@@ -34,6 +34,12 @@ project: {
 				omitSetter: true
 				omitGetter: true
 			}
+			governance: {
+				goType: "types.ProjectGovernance"
+				dal: {type: "JSON", defaultEmptyObject: true}
+				omitSetter: true
+				omitGetter: true
+			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField

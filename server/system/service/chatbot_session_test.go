@@ -46,7 +46,7 @@ func TestStartStep(t *testing.T) {
 
 	t.Run("creates a step in active state", func(t *testing.T) {
 		scenario := &types.ChatbotScenario{ID: "intro", Type: "form"}
-		step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0, nil)
+		step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0)
 		assert.NoError(t, err)
 		assert.NotNil(t, step)
 		assert.Equal(t, "active", step.Status)
@@ -60,9 +60,9 @@ func TestStartStep(t *testing.T) {
 
 	t.Run("reuses an existing step row", func(t *testing.T) {
 		scenario := &types.ChatbotScenario{ID: "intro2", Type: "form"}
-		s1, err := svc.StartStep(ctx, sessionID, scenario, convID, 1, nil)
+		s1, err := svc.StartStep(ctx, sessionID, scenario, convID, 1)
 		assert.NoError(t, err)
-		s2, err := svc.StartStep(ctx, sessionID, scenario, convID, 1, nil)
+		s2, err := svc.StartStep(ctx, sessionID, scenario, convID, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, s1.ID, s2.ID)
 	})
@@ -77,7 +77,7 @@ func TestStartStep(t *testing.T) {
 				},
 			},
 		}
-		step, err := svc.StartStep(ctx, sessionID, scenario, convID, 2, nil)
+		step, err := svc.StartStep(ctx, sessionID, scenario, convID, 2)
 		assert.Error(t, err)
 		assert.NotNil(t, step)
 		assert.Equal(t, "failed", step.Status)
@@ -90,10 +90,10 @@ func TestFinalizeStep(t *testing.T) {
 	convID := nextID()
 
 	scenario := &types.ChatbotScenario{ID: "x", Type: "conversation"}
-	step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0, nil)
+	step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0)
 	require.NoError(t, err)
 
-	require.NoError(t, svc.FinalizeStep(ctx, step.ID, scenario, nil))
+	require.NoError(t, svc.FinalizeStep(ctx, step.ID, sessionID, scenario))
 
 	stored, err := store.LookupChatbotSessionStepByID(ctx, s, step.ID)
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestHandoffLifecycle(t *testing.T) {
 	convID := nextID()
 
 	scenario := &types.ChatbotScenario{ID: "conv", Type: "conversation"}
-	step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0, nil)
+	step, err := svc.StartStep(ctx, sessionID, scenario, convID, 0)
 	require.NoError(t, err)
 
 	h, err := svc.RequestHandoff(ctx, sessionID, step.ID)

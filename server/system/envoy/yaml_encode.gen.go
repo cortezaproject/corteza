@@ -746,6 +746,8 @@ func (e YamlEncoder) encodeRole(ctx context.Context, p envoyx.EncodeParams, node
 		"id", res.ID,
 		"meta", res.Meta,
 		"name", res.Name,
+		"projectID", res.ProjectID,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 	)
 	if err != nil {
@@ -875,6 +877,7 @@ func (e YamlEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, node
 	if err != nil {
 		return
 	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -894,7 +897,9 @@ func (e YamlEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, node
 		"kind", res.Kind,
 		"meta", res.Meta,
 		"name", res.Name,
+		"projectID", res.ProjectID,
 		"suspendedAt", auxSuspendedAt,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"userGroupID", auxUserGroupID,
 		"username", res.Username,

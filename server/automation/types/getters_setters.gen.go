@@ -274,8 +274,12 @@ func (r *NgAutomation) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "ownedBy", "OwnedBy":
 		return r.OwnedBy, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "runAs", "RunAs":
 		return r.RunAs, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy":
@@ -307,8 +311,12 @@ func (r *NgAutomation) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "ownedBy", "OwnedBy":
 		return cast2.Uint64(value, &r.OwnedBy)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "runAs", "RunAs":
 		return cast2.Uint64(value, &r.RunAs)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":

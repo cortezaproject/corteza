@@ -18,6 +18,7 @@ type (
 	}
 	LabelService interface {
 		List(ctx context.Context, filter types.LabelFilter) (types.LabelSet, types.LabelFilter, error)
+		Delete(ctx context.Context, name, kind string) error
 	}
 )
 
@@ -35,6 +36,25 @@ func (svc labelSvc) List(ctx context.Context, f types.LabelFilter) (set types.La
 
 	set, err = svc.filterActiveResources(ctx, set)
 	return set, outF, err
+}
+
+// Delete removes every label entry with the given name, optionally restricted
+// to a single resource kind. The route is auth-protected; like List, no
+// per-resource access control is applied (labels are cross-resource metadata).
+func (svc labelSvc) Delete(ctx context.Context, name, kind string) error {
+	if name == "" {
+		return nil
+	}
+
+	set, _, err := store.SearchLabels(ctx, svc.store, types.LabelFilter{Name: name, Kind: kind})
+	if err != nil {
+		return err
+	}
+	if len(set) == 0 {
+		return nil
+	}
+
+	return store.DeleteLabel(ctx, svc.store, set...)
 }
 
 // filterActiveResources removes label entries whose resource has been deleted.

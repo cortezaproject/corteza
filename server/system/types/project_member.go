@@ -61,6 +61,12 @@ const (
 	ProjectRoleDeveloper       ProjectMemberRole = "developer"
 	ProjectRoleJuniorDeveloper ProjectMemberRole = "junior-developer"
 	ProjectRoleMember          ProjectMemberRole = "member"
+	// ProjectRoleExecutiveAuthority reads the whole project and signs off at
+	// the first governance gate; it never edits.
+	ProjectRoleExecutiveAuthority ProjectMemberRole = "executive-authority"
+	// ProjectRoleInfrastructureAdministrator maintains platform infrastructure;
+	// it carries no project-content access at all.
+	ProjectRoleInfrastructureAdministrator ProjectMemberRole = "infrastructure-administrator"
 )
 
 // Valid reports whether r is one of the known presets.
@@ -70,7 +76,9 @@ func (r ProjectMemberRole) Valid() bool {
 		ProjectRoleSecurityOwner,
 		ProjectRoleDeveloper,
 		ProjectRoleJuniorDeveloper,
-		ProjectRoleMember:
+		ProjectRoleMember,
+		ProjectRoleExecutiveAuthority,
+		ProjectRoleInfrastructureAdministrator:
 		return true
 	}
 	return false
@@ -78,12 +86,14 @@ func (r ProjectMemberRole) Valid() bool {
 
 // Capabilities resolves the runtime capabilities for the preset.
 //
-//	preset            read write request grant
-//	governance-owner   ✓    ✓     ✓      ✓
-//	security-owner     ✓    ✓     ✓      ✓
-//	developer          ✓    ✓     ✓      ✗
-//	junior-developer   ✓    ✓     ✗      ✗
-//	member (fallback)  ✓    ✗     ✗      ✗
+//	preset                 read write request grant
+//	governance-owner        ✓    ✓     ✓      ✓
+//	security-owner          ✓    ✓     ✓      ✓
+//	developer               ✓    ✓     ✓      ✗
+//	junior-developer        ✓    ✓     ✗      ✗
+//	executive-authority     ✓    ✗     ✗      ✓
+//	infrastructure-admin.   ✗    ✗     ✗      ✗
+//	member (fallback)       ✓    ✗     ✗      ✗
 //
 // Unknown presets fall back to member.
 func (r ProjectMemberRole) Capabilities() ProjectCapabilities {
@@ -94,6 +104,10 @@ func (r ProjectMemberRole) Capabilities() ProjectCapabilities {
 		return ProjectCapabilities{CanRead: true, CanWrite: true, CanRequestApproval: true}
 	case ProjectRoleJuniorDeveloper:
 		return ProjectCapabilities{CanRead: true, CanWrite: true}
+	case ProjectRoleExecutiveAuthority:
+		return ProjectCapabilities{CanRead: true, CanGrantApproval: true}
+	case ProjectRoleInfrastructureAdministrator:
+		return ProjectCapabilities{}
 	default: // member + unknown
 		return ProjectCapabilities{CanRead: true}
 	}

@@ -6092,6 +6092,9 @@ func (s *Store) checkAuthSessionConstraints(ctx context.Context, res *systemType
 // This function is auto-generated
 func (s *Store) CreateAutomationNgAutomation(ctx context.Context, rr ...*automationType.NgAutomation) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeAutomationNgAutomation(ctx, rr[i])
 
 		if err = s.checkAutomationNgAutomationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -6113,7 +6116,8 @@ func (s *Store) UpdateAutomationNgAutomation(ctx context.Context, rr ...*automat
 		if err = s.checkAutomationNgAutomationConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, automationNgAutomationUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, automationNgAutomationUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardAutomationNgAutomation(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -6164,7 +6168,8 @@ func (s *Store) UpsertAutomationNgAutomation(ctx context.Context, rr ...*automat
 // This function is auto-generated
 func (s *Store) DeleteAutomationNgAutomation(ctx context.Context, rr ...*automationType.NgAutomation) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, automationNgAutomationDeleteQuery(s.Dialect.GOQU(), automationNgAutomationPrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, automationNgAutomationDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{automationNgAutomationPrimaryKeys(rr[i])}, scopeGuardAutomationNgAutomation(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -6176,13 +6181,21 @@ func (s *Store) DeleteAutomationNgAutomation(ctx context.Context, rr ...*automat
 //
 // This function is auto-generated
 func (s *Store) DeleteAutomationNgAutomationByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, automationNgAutomationDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, automationNgAutomationDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardAutomationNgAutomation(ctx)...)...))
 }
 
 // TruncateAutomationNgAutomations Deletes all rows from the automationNgAutomation collection
 func (s *Store) TruncateAutomationNgAutomations(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardAutomationNgAutomation(ctx); len(guard) > 0 {
+		return s.Exec(ctx, automationNgAutomationDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, automationNgAutomationTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -6383,6 +6396,41 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 	return set, prev, next, nil
 }
 
+// scopeGuardAutomationNgAutomation builds the tenancy WHERE conditions for AutomationNgAutomation
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardAutomationNgAutomation(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeAutomationNgAutomation denormalises the request scope onto a AutomationNgAutomation
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeAutomationNgAutomation(ctx context.Context, res *automationType.NgAutomation) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryAutomationNgAutomations queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -6420,6 +6468,9 @@ func (s *Store) QueryAutomationNgAutomations(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardAutomationNgAutomation(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -6513,6 +6564,9 @@ func (s *Store) LookupAutomationNgAutomationByID(ctx context.Context, id uint64)
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardAutomationNgAutomation(ctx)...)
 
 	lookup := automationNgAutomationSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -6558,6 +6612,9 @@ func (s *Store) LookupAutomationNgAutomationByHandle(ctx context.Context, handle
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardAutomationNgAutomation(ctx)...)
 
 	lookup := automationNgAutomationSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -11376,6 +11433,9 @@ func (s *Store) checkChatbotSessionStepConstraints(ctx context.Context, res *sys
 // This function is auto-generated
 func (s *Store) CreateComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposeAttachment(ctx, rr[i])
 
 		if err = s.checkComposeAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11397,7 +11457,8 @@ func (s *Store) UpdateComposeAttachment(ctx context.Context, rr ...*composeType.
 		if err = s.checkComposeAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composeAttachmentUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composeAttachmentUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposeAttachment(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -11448,7 +11509,8 @@ func (s *Store) UpsertComposeAttachment(ctx context.Context, rr ...*composeType.
 // This function is auto-generated
 func (s *Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), composeAttachmentPrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composeAttachmentPrimaryKeys(rr[i])}, scopeGuardComposeAttachment(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -11460,13 +11522,21 @@ func (s *Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeAttachmentByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposeAttachment(ctx)...)...))
 }
 
 // TruncateComposeAttachments Deletes all rows from the composeAttachment collection
 func (s *Store) TruncateComposeAttachments(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposeAttachment(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composeAttachmentTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -11667,6 +11737,41 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 	return set, prev, next, nil
 }
 
+// scopeGuardComposeAttachment builds the tenancy WHERE conditions for ComposeAttachment
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposeAttachment(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposeAttachment denormalises the request scope onto a ComposeAttachment
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposeAttachment(ctx context.Context, res *composeType.Attachment) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryComposeAttachments queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -11704,6 +11809,9 @@ func (s *Store) QueryComposeAttachments(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposeAttachment(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -11795,6 +11903,9 @@ func (s *Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (_ *
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeAttachment(ctx)...)
 
 	lookup := composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -11934,6 +12045,9 @@ func (s *Store) checkComposeAttachmentConstraints(ctx context.Context, res *comp
 // This function is auto-generated
 func (s *Store) CreateComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposeChart(ctx, rr[i])
 
 		if err = s.checkComposeChartConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11955,7 +12069,8 @@ func (s *Store) UpdateComposeChart(ctx context.Context, rr ...*composeType.Chart
 		if err = s.checkComposeChartConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composeChartUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composeChartUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposeChart(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -12006,7 +12121,8 @@ func (s *Store) UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart
 // This function is auto-generated
 func (s *Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), composeChartPrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composeChartPrimaryKeys(rr[i])}, scopeGuardComposeChart(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -12018,13 +12134,21 @@ func (s *Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeChartByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposeChart(ctx)...)...))
 }
 
 // TruncateComposeCharts Deletes all rows from the composeChart collection
 func (s *Store) TruncateComposeCharts(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposeChart(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composeChartTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -12225,6 +12349,41 @@ func (s *Store) fetchFullPageOfComposeCharts(
 	return set, prev, next, nil
 }
 
+// scopeGuardComposeChart builds the tenancy WHERE conditions for ComposeChart
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposeChart(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposeChart denormalises the request scope onto a ComposeChart
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposeChart(ctx context.Context, res *composeType.Chart) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryComposeCharts queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -12262,6 +12421,9 @@ func (s *Store) QueryComposeCharts(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposeChart(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -12355,6 +12517,9 @@ func (s *Store) LookupComposeChartByID(ctx context.Context, id uint64) (_ *compo
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeChart(ctx)...)
 
 	lookup := composeChartSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -12399,6 +12564,9 @@ func (s *Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, names
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeChart(ctx)...)
 
 	lookup := composeChartSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -12535,6 +12703,9 @@ func (s *Store) checkComposeChartConstraints(ctx context.Context, res *composeTy
 // This function is auto-generated
 func (s *Store) CreateComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposeModule(ctx, rr[i])
 
 		if err = s.checkComposeModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12556,7 +12727,8 @@ func (s *Store) UpdateComposeModule(ctx context.Context, rr ...*composeType.Modu
 		if err = s.checkComposeModuleConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composeModuleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composeModuleUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposeModule(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -12607,7 +12779,8 @@ func (s *Store) UpsertComposeModule(ctx context.Context, rr ...*composeType.Modu
 // This function is auto-generated
 func (s *Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), composeModulePrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composeModulePrimaryKeys(rr[i])}, scopeGuardComposeModule(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -12619,13 +12792,21 @@ func (s *Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Modu
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeModuleByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposeModule(ctx)...)...))
 }
 
 // TruncateComposeModules Deletes all rows from the composeModule collection
 func (s *Store) TruncateComposeModules(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposeModule(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composeModuleTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -12826,6 +13007,41 @@ func (s *Store) fetchFullPageOfComposeModules(
 	return set, prev, next, nil
 }
 
+// scopeGuardComposeModule builds the tenancy WHERE conditions for ComposeModule
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposeModule(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposeModule denormalises the request scope onto a ComposeModule
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposeModule(ctx context.Context, res *composeType.Module) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryComposeModules queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -12863,6 +13079,9 @@ func (s *Store) QueryComposeModules(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposeModule(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -12956,6 +13175,9 @@ func (s *Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, name
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeModule(ctx)...)
 
 	lookup := composeModuleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -13000,6 +13222,9 @@ func (s *Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namesp
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeModule(ctx)...)
 
 	lookup := composeModuleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -13044,6 +13269,9 @@ func (s *Store) LookupComposeModuleByID(ctx context.Context, id uint64) (_ *comp
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeModule(ctx)...)
 
 	lookup := composeModuleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -13212,6 +13440,9 @@ func (s *Store) checkComposeModuleConstraints(ctx context.Context, res *composeT
 // This function is auto-generated
 func (s *Store) CreateComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposeModuleField(ctx, rr[i])
 
 		if err = s.checkComposeModuleFieldConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13233,7 +13464,8 @@ func (s *Store) UpdateComposeModuleField(ctx context.Context, rr ...*composeType
 		if err = s.checkComposeModuleFieldConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composeModuleFieldUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composeModuleFieldUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposeModuleField(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -13284,7 +13516,8 @@ func (s *Store) UpsertComposeModuleField(ctx context.Context, rr ...*composeType
 // This function is auto-generated
 func (s *Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), composeModuleFieldPrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composeModuleFieldPrimaryKeys(rr[i])}, scopeGuardComposeModuleField(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -13296,13 +13529,21 @@ func (s *Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeModuleFieldByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposeModuleField(ctx)...)...))
 }
 
 // TruncateComposeModuleFields Deletes all rows from the composeModuleField collection
 func (s *Store) TruncateComposeModuleFields(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposeModuleField(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composeModuleFieldTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -13317,6 +13558,41 @@ func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.Mod
 	}
 
 	return set, f, nil
+}
+
+// scopeGuardComposeModuleField builds the tenancy WHERE conditions for ComposeModuleField
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposeModuleField(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposeModuleField denormalises the request scope onto a ComposeModuleField
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposeModuleField(ctx context.Context, res *composeType.ModuleField) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
 }
 
 // QueryComposeModuleFields queries the database, converts and checks each row and returns collected set
@@ -13352,6 +13628,9 @@ func (s *Store) QueryComposeModuleFields(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposeModuleField(ctx)...)
 
 	query := composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
@@ -13416,6 +13695,9 @@ func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modu
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeModuleField(ctx)...)
 
 	lookup := composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -13458,6 +13740,9 @@ func (s *Store) LookupComposeModuleFieldByID(ctx context.Context, id uint64) (_ 
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeModuleField(ctx)...)
 
 	lookup := composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -13631,6 +13916,9 @@ func (s *Store) checkComposeModuleFieldConstraints(ctx context.Context, res *com
 // This function is auto-generated
 func (s *Store) CreateComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposeNamespace(ctx, rr[i])
 
 		if err = s.checkComposeNamespaceConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13652,7 +13940,8 @@ func (s *Store) UpdateComposeNamespace(ctx context.Context, rr ...*composeType.N
 		if err = s.checkComposeNamespaceConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composeNamespaceUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composeNamespaceUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposeNamespace(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -13703,7 +13992,8 @@ func (s *Store) UpsertComposeNamespace(ctx context.Context, rr ...*composeType.N
 // This function is auto-generated
 func (s *Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), composeNamespacePrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composeNamespacePrimaryKeys(rr[i])}, scopeGuardComposeNamespace(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -13715,13 +14005,21 @@ func (s *Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.N
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeNamespaceByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposeNamespace(ctx)...)...))
 }
 
 // TruncateComposeNamespaces Deletes all rows from the composeNamespace collection
 func (s *Store) TruncateComposeNamespaces(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposeNamespace(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composeNamespaceTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -13922,6 +14220,41 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 	return set, prev, next, nil
 }
 
+// scopeGuardComposeNamespace builds the tenancy WHERE conditions for ComposeNamespace
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposeNamespace(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposeNamespace denormalises the request scope onto a ComposeNamespace
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposeNamespace(ctx context.Context, res *composeType.Namespace) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryComposeNamespaces queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -13959,6 +14292,9 @@ func (s *Store) QueryComposeNamespaces(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposeNamespace(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -14051,6 +14387,9 @@ func (s *Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeNamespace(ctx)...)
 
 	lookup := composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -14095,6 +14434,9 @@ func (s *Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (_ *c
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposeNamespace(ctx)...)
 
 	lookup := composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -14257,6 +14599,9 @@ func (s *Store) checkComposeNamespaceConstraints(ctx context.Context, res *compo
 // This function is auto-generated
 func (s *Store) CreateComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposePage(ctx, rr[i])
 
 		if err = s.checkComposePageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14278,7 +14623,8 @@ func (s *Store) UpdateComposePage(ctx context.Context, rr ...*composeType.Page) 
 		if err = s.checkComposePageConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composePageUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composePageUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposePage(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -14329,7 +14675,8 @@ func (s *Store) UpsertComposePage(ctx context.Context, rr ...*composeType.Page) 
 // This function is auto-generated
 func (s *Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), composePagePrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composePagePrimaryKeys(rr[i])}, scopeGuardComposePage(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -14341,13 +14688,21 @@ func (s *Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) 
 //
 // This function is auto-generated
 func (s *Store) DeleteComposePageByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposePage(ctx)...)...))
 }
 
 // TruncateComposePages Deletes all rows from the composePage collection
 func (s *Store) TruncateComposePages(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposePage(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composePageTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -14548,6 +14903,41 @@ func (s *Store) fetchFullPageOfComposePages(
 	return set, prev, next, nil
 }
 
+// scopeGuardComposePage builds the tenancy WHERE conditions for ComposePage
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposePage(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposePage denormalises the request scope onto a ComposePage
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposePage(ctx context.Context, res *composeType.Page) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryComposePages queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -14585,6 +14975,9 @@ func (s *Store) QueryComposePages(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposePage(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -14678,6 +15071,9 @@ func (s *Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namesp
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposePage(ctx)...)
 
 	lookup := composePageSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -14722,6 +15118,9 @@ func (s *Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, name
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposePage(ctx)...)
 
 	lookup := composePageSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -14766,6 +15165,9 @@ func (s *Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *compos
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposePage(ctx)...)
 
 	lookup := composePageSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -14909,6 +15311,9 @@ func (s *Store) checkComposePageConstraints(ctx context.Context, res *composeTyp
 // This function is auto-generated
 func (s *Store) CreateComposePageLayout(ctx context.Context, rr ...*composeType.PageLayout) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeComposePageLayout(ctx, rr[i])
 
 		if err = s.checkComposePageLayoutConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14930,7 +15335,8 @@ func (s *Store) UpdateComposePageLayout(ctx context.Context, rr ...*composeType.
 		if err = s.checkComposePageLayoutConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, composePageLayoutUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, composePageLayoutUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardComposePageLayout(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -14981,7 +15387,8 @@ func (s *Store) UpsertComposePageLayout(ctx context.Context, rr ...*composeType.
 // This function is auto-generated
 func (s *Store) DeleteComposePageLayout(ctx context.Context, rr ...*composeType.PageLayout) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composePageLayoutDeleteQuery(s.Dialect.GOQU(), composePageLayoutPrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, composePageLayoutDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{composePageLayoutPrimaryKeys(rr[i])}, scopeGuardComposePageLayout(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -14993,13 +15400,21 @@ func (s *Store) DeleteComposePageLayout(ctx context.Context, rr ...*composeType.
 //
 // This function is auto-generated
 func (s *Store) DeleteComposePageLayoutByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composePageLayoutDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, composePageLayoutDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardComposePageLayout(ctx)...)...))
 }
 
 // TruncateComposePageLayouts Deletes all rows from the composePageLayout collection
 func (s *Store) TruncateComposePageLayouts(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardComposePageLayout(ctx); len(guard) > 0 {
+		return s.Exec(ctx, composePageLayoutDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, composePageLayoutTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -15200,6 +15615,41 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 	return set, prev, next, nil
 }
 
+// scopeGuardComposePageLayout builds the tenancy WHERE conditions for ComposePageLayout
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardComposePageLayout(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeComposePageLayout denormalises the request scope onto a ComposePageLayout
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeComposePageLayout(ctx context.Context, res *composeType.PageLayout) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryComposePageLayouts queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -15237,6 +15687,9 @@ func (s *Store) QueryComposePageLayouts(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardComposePageLayout(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -15330,6 +15783,9 @@ func (s *Store) LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, 
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposePageLayout(ctx)...)
 
 	lookup := composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -15375,6 +15831,9 @@ func (s *Store) LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx context.Con
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposePageLayout(ctx)...)
 
 	lookup := composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -15419,6 +15878,9 @@ func (s *Store) LookupComposePageLayoutByID(ctx context.Context, id uint64) (_ *
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardComposePageLayout(ctx)...)
 
 	lookup := composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -31908,6 +32370,9 @@ func (s *Store) checkResourceTranslationConstraints(ctx context.Context, res *sy
 // This function is auto-generated
 func (s *Store) CreateRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeRole(ctx, rr[i])
 
 		if err = s.checkRoleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -31929,7 +32394,8 @@ func (s *Store) UpdateRole(ctx context.Context, rr ...*systemType.Role) (err err
 		if err = s.checkRoleConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, roleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, roleUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardRole(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -31980,7 +32446,8 @@ func (s *Store) UpsertRole(ctx context.Context, rr ...*systemType.Role) (err err
 // This function is auto-generated
 func (s *Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), rolePrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{rolePrimaryKeys(rr[i])}, scopeGuardRole(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -31992,13 +32459,21 @@ func (s *Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err err
 //
 // This function is auto-generated
 func (s *Store) DeleteRoleByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardRole(ctx)...)...))
 }
 
 // TruncateRoles Deletes all rows from the role collection
 func (s *Store) TruncateRoles(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardRole(ctx); len(guard) > 0 {
+		return s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, roleTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -32199,6 +32674,41 @@ func (s *Store) fetchFullPageOfRoles(
 	return set, prev, next, nil
 }
 
+// scopeGuardRole builds the tenancy WHERE conditions for Role
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardRole(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeRole denormalises the request scope onto a Role
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeRole(ctx context.Context, res *systemType.Role) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryRoles queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -32236,6 +32746,9 @@ func (s *Store) QueryRoles(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardRole(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -32329,6 +32842,9 @@ func (s *Store) LookupRoleByID(ctx context.Context, id uint64) (_ *systemType.Ro
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardRole(ctx)...)
 
 	lookup := roleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -32374,6 +32890,9 @@ func (s *Store) LookupRoleByHandle(ctx context.Context, handle string) (_ *syste
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardRole(ctx)...)
 
 	lookup := roleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -32419,6 +32938,9 @@ func (s *Store) LookupRoleByName(ctx context.Context, name string) (_ *systemTyp
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardRole(ctx)...)
 
 	lookup := roleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -35254,6 +35776,9 @@ func (s *Store) checkTenantMembershipConstraints(ctx context.Context, res *syste
 // This function is auto-generated
 func (s *Store) CreateUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
+		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
+		// the new row so the read guard can resolve it. No-op at system scope.
+		stampScopeUser(ctx, rr[i])
 
 		if err = s.checkUserConstraints(ctx, rr[i]); err != nil {
 			return
@@ -35275,7 +35800,8 @@ func (s *Store) UpdateUser(ctx context.Context, rr ...*systemType.User) (err err
 		if err = s.checkUserConstraints(ctx, rr[i]); err != nil {
 			return
 		}
-		if err = s.Exec(ctx, userUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+		// tenancy scope guard: cannot update a row outside the caller's scope.
+		if err = s.Exec(ctx, userUpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuardUser(ctx)...)); err != nil {
 			return
 		}
 	}
@@ -35326,7 +35852,8 @@ func (s *Store) UpsertUser(ctx context.Context, rr ...*systemType.User) (err err
 // This function is auto-generated
 func (s *Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), userPrimaryKeys(rr[i]))); err != nil {
+		// tenancy scope guard: cannot delete a row outside the caller's scope.
+		if err = s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{userPrimaryKeys(rr[i])}, scopeGuardUser(ctx)...)...)); err != nil {
 			return
 		}
 	}
@@ -35338,13 +35865,21 @@ func (s *Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err err
 //
 // This function is auto-generated
 func (s *Store) DeleteUserByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+	// tenancy scope guard: an ID from another tenant/project must not be deletable.
+	return s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 		"id": id,
-	}))
+	}}, scopeGuardUser(ctx)...)...))
 }
 
 // TruncateUsers Deletes all rows from the user collection
 func (s *Store) TruncateUsers(ctx context.Context) error {
+	// tenancy scope guard: under a tenant/project scope, truncate must only
+	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
+	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
+	// keeps the fast unconditional TRUNCATE.
+	if guard := scopeGuardUser(ctx); len(guard) > 0 {
+		return s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), guard...))
+	}
 	return s.Exec(ctx, userTruncateQuery(s.Dialect.GOQU()))
 }
 
@@ -35545,6 +36080,41 @@ func (s *Store) fetchFullPageOfUsers(
 	return set, prev, next, nil
 }
 
+// scopeGuardUser builds the tenancy WHERE conditions for User
+// from the scope carried in ctx.
+//
+// System-scope requests (tenant 0) produce no conditions, leaving the query
+// unrestricted. This function is auto-generated.
+func scopeGuardUser(ctx context.Context) []goqu.Expression {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return nil
+	}
+
+	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	if sc.ProjectID != 0 {
+		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
+	}
+	return ee
+}
+
+// stampScopeUser denormalises the request scope onto a User
+// before insert so the read guard can later resolve the row.
+//
+// System scope (tenant 0) leaves the row untouched. This function is
+// auto-generated.
+func stampScopeUser(ctx context.Context, res *systemType.User) {
+	sc := scope.GetScopeFromContext(ctx)
+	if sc.TenantID == 0 {
+		return
+	}
+
+	res.TenantID = sc.TenantID
+	if sc.ProjectID != 0 {
+		res.ProjectID = sc.ProjectID
+	}
+}
+
 // QueryUsers queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -35582,6 +36152,9 @@ func (s *Store) QueryUsers(
 	}
 
 	expr = append(expr, tExpr...)
+	// tenancy scope guard: restrict to the caller's tenant/project unless the
+	// request runs at system scope (tenant 0).
+	expr = append(expr, scopeGuardUser(ctx)...)
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
@@ -35675,6 +36248,9 @@ func (s *Store) LookupUserByID(ctx context.Context, id uint64) (_ *systemType.Us
 			goqu.I("id").Eq(id),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardUser(ctx)...)
 
 	lookup := userSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -35720,6 +36296,9 @@ func (s *Store) LookupUserByEmail(ctx context.Context, email string) (_ *systemT
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardUser(ctx)...)
 
 	lookup := userSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -35765,6 +36344,9 @@ func (s *Store) LookupUserByHandle(ctx context.Context, handle string) (_ *syste
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardUser(ctx)...)
 
 	lookup := userSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 
@@ -35810,6 +36392,9 @@ func (s *Store) LookupUserByUsername(ctx context.Context, username string) (_ *s
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
 	)
+	// tenancy scope guard: a valid ID from another tenant/project must not be
+	// resolvable (returns ErrNotFound below, no existence leak).
+	lookupExpr = append(lookupExpr, scopeGuardUser(ctx)...)
 
 	lookup := userSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
 

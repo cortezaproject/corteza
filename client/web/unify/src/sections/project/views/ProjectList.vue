@@ -48,11 +48,6 @@
         <Tag :value="capitalize(data.status)" :severity="statusSeverity(data.status)" />
       </template>
 
-      <template #body-version="{ data }">
-        <span v-if="store.currentVersion(data)" class="font-medium">v{{ store.currentVersion(data).number }}</span>
-        <span v-else class="text-muted-color">—</span>
-      </template>
-
       <template #body-progress="{ data }">
         <div v-if="showProgress(data)" class="flex items-center gap-2">
           <ProgressBar
@@ -98,6 +93,8 @@ const confirm = useConfirm()
 const toast = useToast()
 const { projects } = storeToRefs(store)
 
+store.load()
+
 const resourceListRef = ref()
 const newDialogVisible = ref(false)
 const renameVisible = ref(false)
@@ -118,7 +115,6 @@ const fields = [
   { key: 'name', sortable: true, header: 'Name' },
   { key: 'mode', sortable: true, header: 'Mode' },
   { key: 'status', sortable: true, header: 'Status' },
-  { key: 'version', sortable: false, header: 'Version' },
   { key: 'progress', sortable: false, header: 'Build progress' },
   {
     key: 'updatedAt',
@@ -188,8 +184,23 @@ const onCreated = project => {
   router.push({ name: 'project.wizard', params: { projectId: project.id } })
 }
 
+// Run a store mutation and report the outcome — success toast only when the
+// call actually went through, error toast with the API message otherwise.
+async function apiCall(fn, success) {
+  try {
+    await fn()
+    if (success) toast.add({ severity: 'success', life: 2500, ...success })
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Action failed', detail: err.message, life: 4000 })
+  }
+}
+
 const onRename = name => {
-  if (renameTarget.value) store.updateProject(renameTarget.value.id, { name })
+  if (!renameTarget.value) return
+  apiCall(() => store.updateProject(renameTarget.value.id, { name }), {
+    summary: 'Project renamed',
+    detail: name,
+  })
 }
 
 // Per-row actions
@@ -203,7 +214,11 @@ const openRename = project => {
 
 const toggleArchive = project => {
   closeMenu()
-  store.updateProject(project.id, { status: project.status === 'archived' ? 'draft' : 'archived' })
+  const archive = project.status !== 'archived'
+  apiCall(
+    () => store.updateProject(project.id, { status: archive ? 'archived' : 'draft' }),
+    { summary: archive ? 'Project archived' : 'Project unarchived', detail: project.name },
+  )
 }
 
 const confirmDelete = project => {
@@ -214,10 +229,11 @@ const confirmDelete = project => {
     icon: 'pi pi-exclamation-triangle',
     rejectProps: { label: 'Cancel', severity: 'secondary', text: true },
     acceptProps: { label: 'Delete', severity: 'danger' },
-    accept: () => {
-      store.removeProject(project.id)
-      toast.add({ severity: 'success', summary: 'Project deleted', detail: project.name, life: 2500 })
-    },
+    accept: () =>
+      apiCall(() => store.removeProject(project.id), {
+        summary: 'Project deleted',
+        detail: project.name,
+      }),
   })
 }
 

@@ -20,7 +20,7 @@
           :hide-remove="disabled"
           remove-label="Remove module"
           @select="m => configureResource?.(m.id)"
-          @remove="m => store.removeResource(project.id, m.id)"
+          @remove="removeModule"
         >
         <template #default="{ item }">
           <div class="flex items-center gap-3 min-w-0">
@@ -45,6 +45,7 @@
 <script setup>
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { useToast } from 'primevue/usetoast'
 import { computed, inject } from 'vue'
 
 const props = defineProps({
@@ -53,6 +54,7 @@ const props = defineProps({
 })
 
 const store = useProjectsStore()
+const toast = useToast()
 const configureResource = inject('configureResource', null)
 const createResource = inject('createResource', null)
 
@@ -62,5 +64,14 @@ const modules = computed(() => (props.project.resources || []).filter(r => r.kin
 const fieldSummary = m => {
   const n = (m.fields || []).length
   return n === 1 ? '1 field' : `${n} fields`
+}
+
+async function removeModule(m) {
+  try {
+    await store.removeResource(props.project.id, m.id)
+    toast.add({ severity: 'success', summary: 'Module removed', detail: m.name, life: 2500 })
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Could not remove module', detail: err.message, life: 4000 })
+  }
 }
 </script>

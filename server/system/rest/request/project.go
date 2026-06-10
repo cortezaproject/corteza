@@ -228,6 +228,45 @@ type (
 		// Project ID
 		ProjectID uint64 `json:",string"`
 	}
+
+	ProjectGovernanceSave struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
+		// StepKey PATH parameter
+		//
+		// Governance step key
+		StepKey string
+
+		// Values POST parameter
+		//
+		// Step form values
+		Values map[string]interface{}
+	}
+
+	ProjectGovernanceTransition struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
+		// StepKey PATH parameter
+		//
+		// Governance step key
+		StepKey string
+
+		// Action POST parameter
+		//
+		// Transition action: submit, approve, request-changes, reopen or recall
+		Action string
+
+		// Note POST parameter
+		//
+		// Review note (request-changes/reopen)
+		Note string
+	}
 )
 
 // NewProjectList request
@@ -1165,6 +1204,226 @@ func (r *ProjectGraph) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "projectID")
 		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectGovernanceSave request
+func NewProjectGovernanceSave() *ProjectGovernanceSave {
+	return &ProjectGovernanceSave{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceSave) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+		"stepKey":   r.StepKey,
+		"values":    r.Values,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceSave) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceSave) GetStepKey() string {
+	return r.StepKey
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceSave) GetValues() map[string]interface{} {
+	return r.Values
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectGovernanceSave) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["values[]"]; ok {
+				r.Values, err = parseMapStringInterface(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["values"]; ok {
+				r.Values, err = parseMapStringInterface(val)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["values[]"]; ok {
+			r.Values, err = parseMapStringInterface(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["values"]; ok {
+			r.Values, err = parseMapStringInterface(val)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "stepKey")
+		r.StepKey, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectGovernanceTransition request
+func NewProjectGovernanceTransition() *ProjectGovernanceTransition {
+	return &ProjectGovernanceTransition{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceTransition) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+		"stepKey":   r.StepKey,
+		"action":    r.Action,
+		"note":      r.Note,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceTransition) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceTransition) GetStepKey() string {
+	return r.StepKey
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceTransition) GetAction() string {
+	return r.Action
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGovernanceTransition) GetNote() string {
+	return r.Note
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectGovernanceTransition) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["action"]; ok && len(val) > 0 {
+				r.Action, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["note"]; ok && len(val) > 0 {
+				r.Note, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["action"]; ok && len(val) > 0 {
+			r.Action, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["note"]; ok && len(val) > 0 {
+			r.Note, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "stepKey")
+		r.StepKey, err = val, nil
 		if err != nil {
 			return err
 		}

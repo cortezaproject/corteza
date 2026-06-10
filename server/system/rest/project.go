@@ -54,6 +54,9 @@ type (
 		AddMember(ctx context.Context, m *types.ProjectMember) (*types.ProjectMember, error)
 		UpdateMember(ctx context.Context, m *types.ProjectMember) (*types.ProjectMember, error)
 		RemoveMember(ctx context.Context, projectID, userID uint64) error
+
+		SaveGovernanceStep(ctx context.Context, projectID uint64, stepKey string, values map[string]any) (*types.Project, error)
+		TransitionGovernanceStep(ctx context.Context, projectID uint64, stepKey string, action types.ProjectGovernanceAction, note string) (*types.Project, error)
 	}
 
 	projectGraphService interface {
@@ -176,6 +179,16 @@ func (ctrl *Project) RemoveMember(ctx context.Context, r *request.ProjectRemoveM
 
 func (ctrl *Project) Graph(ctx context.Context, r *request.ProjectGraph) (interface{}, error) {
 	return ctrl.graphSvc.Graph(ctx, r.ProjectID)
+}
+
+func (ctrl *Project) GovernanceSave(ctx context.Context, r *request.ProjectGovernanceSave) (interface{}, error) {
+	p, err := ctrl.svc.SaveGovernanceStep(ctx, r.ProjectID, r.StepKey, r.Values)
+	return ctrl.makePayload(ctx, p, err)
+}
+
+func (ctrl *Project) GovernanceTransition(ctx context.Context, r *request.ProjectGovernanceTransition) (interface{}, error) {
+	p, err := ctrl.svc.TransitionGovernanceStep(ctx, r.ProjectID, r.StepKey, types.ProjectGovernanceAction(r.Action), r.Note)
+	return ctrl.makePayload(ctx, p, err)
 }
 
 func (ctrl *Project) makePayload(ctx context.Context, p *types.Project, err error) (*projectPayload, error) {

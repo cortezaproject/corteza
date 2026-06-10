@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	automationModel "github.com/crusttech/human/server/automation/model"
+	composeModel "github.com/crusttech/human/server/compose/model"
 	federationModel "github.com/crusttech/human/server/federation/model"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -37,16 +38,22 @@ func scopedTables() []scopedTable {
 		// rel_tenant column, so it carries no scope guard here).
 		{systemModel.Project, false},
 		{systemModel.ProjectMember, true},
-		{systemModel.TenantMembership, false},
+		{systemModel.TenantMembership, true},
 
-		// system — tenant-scoped
-		{systemModel.Application, false},
-		{systemModel.AuthClient, false},
-		{systemModel.LlmProvider, false},
-		{systemModel.DalSensitivityLevel, false},
-		{systemModel.Queue, false},
-		{systemModel.ConfiguredConnection, false},
-		{systemModel.UserGroup, false},
+		// system — identity resources gained a project reference too.
+		{systemModel.User, true},
+		{systemModel.Role, true},
+
+		// system — flipped from tenant- to project-scoped when these resources
+		// gained a project reference; their tables predate rel_project and need
+		// the column backfilled.
+		{systemModel.Application, true},
+		{systemModel.AuthClient, true},
+		{systemModel.LlmProvider, true},
+		{systemModel.DalSensitivityLevel, true},
+		{systemModel.Queue, true},
+		{systemModel.ConfiguredConnection, true},
+		{systemModel.UserGroup, true},
 		{systemModel.ResourceTranslation, true},
 
 		// system — project-scoped
@@ -68,6 +75,18 @@ func scopedTables() []scopedTable {
 		{automationModel.Workflow, true},
 		{automationModel.Trigger, true},
 		{automationModel.Session, true},
+		{automationModel.NgAutomation, true},
+
+		// compose — project-scoped; these tables predate tenancy entirely, so
+		// both rel_tenant and rel_project get backfilled here.
+		{composeModel.Attachment, true},
+		{composeModel.Chart, true},
+		{composeModel.Module, true},
+		{composeModel.ModuleField, true},
+		{composeModel.Namespace, true},
+		{composeModel.Page, true},
+		{composeModel.PageLayout, true},
+		{composeModel.Record, true},
 
 		// federation
 		{federationModel.Node, false},

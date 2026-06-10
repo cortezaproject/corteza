@@ -332,6 +332,44 @@ func ProjectActionUndelete(props ...*projectActionProps) *projectAction {
 	return a
 }
 
+// ProjectActionGovernanceSave returns "system:project.governanceSave" action
+//
+// This function is auto-generated.
+func ProjectActionGovernanceSave(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "governanceSave",
+		log:       "saved governance step on {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionGovernanceTransition returns "system:project.governanceTransition" action
+//
+// This function is auto-generated.
+func ProjectActionGovernanceTransition(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "governanceTransition",
+		log:       "transitioned governance step on {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
@@ -852,6 +890,136 @@ func ProjectErrMemberAlreadyExists(mm ...*projectActionProps) *errors.Error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "project.errors.memberAlreadyExists"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrInvalidMode returns "system:project.invalidMode" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrInvalidMode(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid project build mode", nil),
+
+		errors.Meta("type", "invalidMode"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.invalidMode"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrNotAllowedToEditGovernance returns "system:project.notAllowedToEditGovernance" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrNotAllowedToEditGovernance(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to edit governance state of this project", nil),
+
+		errors.Meta("type", "notAllowedToEditGovernance"),
+		errors.Meta("resource", "system:project"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(projectLogMetaKey{}, "failed to edit governance of {{project.handle}}; insufficient capabilities"),
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToEditGovernance"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrGovernanceStepLocked returns "system:project.governanceStepLocked" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrGovernanceStepLocked(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("governance step is locked; it was submitted or approved", nil),
+
+		errors.Meta("type", "governanceStepLocked"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.governanceStepLocked"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrInvalidGovernanceTransition returns "system:project.invalidGovernanceTransition" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrInvalidGovernanceTransition(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid governance step transition", nil),
+
+		errors.Meta("type", "invalidGovernanceTransition"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.invalidGovernanceTransition"),
 
 		errors.StackSkip(1),
 	)

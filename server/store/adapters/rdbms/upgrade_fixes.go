@@ -36,7 +36,15 @@ import (
 var (
 	// all enabled fix function need to be listed here
 	fixesPre = []func(context.Context, *Store) error{
+		// Scope columns must exist before any fix below queries a scoped table:
+		// the generated queries unconditionally select rel_tenant/rel_project,
+		// so e.g. migrateOldComposeRecordValues would fail on a pre-tenancy DB.
+		// No-ops on fresh databases (tables don't exist yet; they're created
+		// from the models, columns included).
+		fix_2026_06_00_addTenancyScopeColumns,
+		fix_2026_06_00_addGovernanceOnProjects,
 		fix_2026_05_00_addCreatedByAgentToComposeResources,
+
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
 		fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL,
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
@@ -64,9 +72,26 @@ var (
 		fix_2026_04_00_addChatbotColumnToAgents,
 		fix_2026_05_00_addSourceOnConnections,
 		fix_2026_05_00_addStateOnChatbotSessions,
+		// Re-run the scope migration after createTablesFromModels: tables that
+		// didn't exist during the pre phase (fresh or partially-old databases)
+		// are covered here; existing columns make it a no-op.
 		fix_2026_06_00_addTenancyScopeColumns,
 	}
 )
+
+// fix_2026_06_00_addGovernanceOnProjects adds the JSON `governance` column
+// (per-step build/approval workflow state) to projects created before the
+// column landed in the model.
+func fix_2026_06_00_addGovernanceOnProjects(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"projects",
+		&dal.Attribute{
+			Ident: "Governance",
+			Type:  &dal.TypeJSON{DefaultValue: "{}"},
+			Store: &dal.CodecAlias{Ident: "governance"},
+		},
+	)
+}
 
 // fix_2026_05_00_addStateOnChatbotSessions backfills the JSON `state` column
 // introduced alongside the unified chatbot session model. Default is `[]`

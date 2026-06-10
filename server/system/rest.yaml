@@ -4171,6 +4171,37 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: governanceSave
+        method: PUT
+        title: Save governance step form values
+        path: '/{projectID}/governance/{stepKey}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: string, name: stepKey, required: true, title: Governance step key }
+          post:
+            - {
+                type: 'map[string]interface{}',
+                name: values,
+                parser: parseMapStringInterface,
+                title: Step form values,
+              }
+      - name: governanceTransition
+        method: POST
+        title: Transition governance step status
+        path: '/{projectID}/governance/{stepKey}/transition'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: string, name: stepKey, required: true, title: Governance step key }
+          post:
+            - {
+                type: string,
+                name: action,
+                required: true,
+                title: 'Transition action: submit, approve, request-changes, reopen or recall',
+              }
+            - { type: string, name: note, title: Review note (request-changes/reopen) }
 
   - title: Project Groups
     path: '/projects/{projectID}/groups'

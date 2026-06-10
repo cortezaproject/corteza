@@ -693,6 +693,10 @@ func (r *Role) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "name", "Name":
 		return r.Name, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 
@@ -718,6 +722,10 @@ func (r *Role) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "name", "Name":
 		return cast2.String(value, &r.Name)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 
@@ -910,8 +918,12 @@ func (r *User) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "name", "Name":
 		return r.Name, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "suspendedAt", "SuspendedAt":
 		return r.SuspendedAt, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "userGroupID", "UserGroupID":
@@ -943,8 +955,12 @@ func (r *User) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "name", "Name":
 		return cast2.String(value, &r.Name)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "suspendedAt", "SuspendedAt":
 		return cast2.TimePtr(value, &r.SuspendedAt)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "userGroupID", "UserGroupID":
@@ -1974,6 +1990,8 @@ func (r *TenantMembership) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "invitedBy", "InvitedBy":
 		return r.InvitedBy, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "tenantID", "TenantID":
 		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
@@ -1997,6 +2015,8 @@ func (r *TenantMembership) SetValue(name string, pos uint, value any) (err error
 		return cast2.Uint64(value, &r.ID)
 	case "invitedBy", "InvitedBy":
 		return cast2.Uint64(value, &r.InvitedBy)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "tenantID", "TenantID":
 		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":

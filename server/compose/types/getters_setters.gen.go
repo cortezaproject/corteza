@@ -34,6 +34,10 @@ func (r *Attachment) GetValue(name string, pos uint) (any, error) {
 		return r.OwnerID, nil
 	case "previewUrl", "PreviewUrl":
 		return r.PreviewUrl, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "url", "Url":
@@ -65,6 +69,10 @@ func (r *Attachment) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.OwnerID)
 	case "previewUrl", "PreviewUrl":
 		return cast2.String(value, &r.PreviewUrl)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "url", "Url":
@@ -94,6 +102,10 @@ func (r *Chart) GetValue(name string, pos uint) (any, error) {
 		return r.Name, nil
 	case "namespaceID", "NamespaceID":
 		return r.NamespaceID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 
@@ -119,6 +131,10 @@ func (r *Chart) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Name)
 	case "namespaceID", "NamespaceID":
 		return cast2.Uint64(value, &r.NamespaceID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 
@@ -151,6 +167,10 @@ func (r *Module) GetValue(name string, pos uint) (any, error) {
 		return r.Name, nil
 	case "namespaceID", "NamespaceID":
 		return r.NamespaceID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 
@@ -178,6 +198,10 @@ func (r *Module) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Name)
 	case "namespaceID", "NamespaceID":
 		return cast2.Uint64(value, &r.NamespaceID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 
@@ -213,8 +237,12 @@ func (r *ModuleField) GetValue(name string, pos uint) (any, error) {
 		return r.Name, nil
 	case "place", "Place":
 		return r.Place, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "required", "Required":
 		return r.Required, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 
@@ -248,8 +276,12 @@ func (r *ModuleField) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Name)
 	case "place", "Place":
 		return cast2.Int(value, &r.Place)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "required", "Required":
 		return cast2.Bool(value, &r.Required)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 
@@ -280,8 +312,12 @@ func (r *Namespace) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "name", "Name":
 		return r.Name, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "slug", "Slug":
 		return r.Slug, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 
@@ -307,8 +343,12 @@ func (r *Namespace) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "name", "Name":
 		return cast2.String(value, &r.Name)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "slug", "Slug":
 		return cast2.String(value, &r.Slug)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 
@@ -340,8 +380,12 @@ func (r *Page) GetValue(name string, pos uint) (any, error) {
 		return r.ModuleID, nil
 	case "namespaceID", "NamespaceID":
 		return r.NamespaceID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "selfID", "SelfID":
 		return r.SelfID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "title", "Title":
 		return r.Title, nil
 	case "updatedAt", "UpdatedAt":
@@ -377,8 +421,12 @@ func (r *Page) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ModuleID)
 	case "namespaceID", "NamespaceID":
 		return cast2.Uint64(value, &r.NamespaceID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "selfID", "SelfID":
 		return cast2.Uint64(value, &r.SelfID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "title", "Title":
 		return cast2.String(value, &r.Title)
 	case "updatedAt", "UpdatedAt":
@@ -421,6 +469,10 @@ func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
 		return r.PageID, nil
 	case "parentID", "ParentID":
 		return r.ParentID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "weight", "Weight":
@@ -457,6 +509,10 @@ func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.PageID)
 	case "parentID", "ParentID":
 		return cast2.Uint64(value, &r.ParentID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "weight", "Weight":
@@ -497,8 +553,12 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 		return r.NamespaceID, nil
 	case "ownedBy", "OwnedBy", "owned_by":
 		return r.OwnedBy, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
 	case "revision", "Revision":
 		return r.Revision, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy", "updated_by":
@@ -537,8 +597,12 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.NamespaceID)
 	case "ownedBy", "OwnedBy", "owned_by":
 		return cast2.Uint64(value, &r.OwnedBy)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
 	case "revision", "Revision":
 		return cast2.Int(value, &r.Revision)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy", "updated_by":

@@ -7663,8 +7663,19 @@ export default class System {
 
   // List connections
   async connectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, query, tags, deleted, labels, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      handle,
+      status,
+      query,
+      tags,
+      source,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -7675,6 +7686,7 @@ export default class System {
       status,
       query,
       tags,
+      source,
       deleted,
       labels,
       limit,
@@ -8002,9 +8014,47 @@ export default class System {
     return '/connections/generate'
   }
 
+  // Import a catalog connection
+  async connectionImport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { catalogID } = (a as KV) || {}
+    if (!catalogID) {
+      throw Error('field catalogID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionImportEndpoint(),
+    }
+    cfg.data = {
+      catalogID,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionImportCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionImport(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionImportEndpoint(): string {
+    return '/connections/import'
+  }
+
   // Configure a connection (create configured connection)
   async connectionConfigure(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, name, config, labels } = (a as KV) || {}
+    const { connectionID, catalogID, name, config, labels } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8019,6 +8069,7 @@ export default class System {
       }),
     }
     cfg.data = {
+      catalogID,
       name,
       config,
       labels,
@@ -10128,7 +10179,7 @@ export default class System {
 
   // List projects
   async projectList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, name, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
       (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -10138,7 +10189,6 @@ export default class System {
     cfg.params = {
       query,
       handle,
-      name,
       status,
       deleted,
       labels,
@@ -10174,7 +10224,7 @@ export default class System {
 
   // Create project
   async projectCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, name, status, config, meta, labels } = (a as KV) || {}
+    const { handle, status, config, meta, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -10182,7 +10232,6 @@ export default class System {
     }
     cfg.data = {
       handle,
-      name,
       status,
       config,
       meta,
@@ -10253,7 +10302,7 @@ export default class System {
 
   // Update project details
   async projectUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, handle, name, status, config, meta, updatedAt, labels } = (a as KV) || {}
+    const { projectID, handle, status, config, meta, updatedAt, labels } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
@@ -10266,7 +10315,6 @@ export default class System {
     }
     cfg.data = {
       handle,
-      name,
       status,
       config,
       meta,
@@ -10551,9 +10599,466 @@ export default class System {
     return `/projects/${projectID}/members/${userID}`
   }
 
+  // Get project resource graph
+  async projectGraph(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectGraphEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGraphCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGraph(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGraphEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/graph`
+  }
+
+  // Save governance step form values
+  async projectGovernanceSave(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, stepKey, values } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!stepKey) {
+      throw Error('field stepKey is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectGovernanceSaveEndpoint({
+        projectID,
+        stepKey,
+      }),
+    }
+    cfg.data = {
+      values,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGovernanceSaveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGovernanceSave(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGovernanceSaveEndpoint(a: KV): string {
+    const { projectID, stepKey } = a || {}
+    return `/projects/${projectID}/governance/${stepKey}`
+  }
+
+  // Transition governance step status
+  async projectGovernanceTransition(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, stepKey, action, note } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!stepKey) {
+      throw Error('field stepKey is empty')
+    }
+    if (!action) {
+      throw Error('field action is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectGovernanceTransitionEndpoint({
+        projectID,
+        stepKey,
+      }),
+    }
+    cfg.data = {
+      action,
+      note,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGovernanceTransitionCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGovernanceTransition(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGovernanceTransitionEndpoint(a: KV): string {
+    const { projectID, stepKey } = a || {}
+    return `/projects/${projectID}/governance/${stepKey}/transition`
+  }
+
+  // List project groups
+  async projectGroupList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, query, handle, projectGroupID, deleted, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectGroupListEndpoint({
+        projectID,
+      }),
+    }
+    cfg.params = {
+      query,
+      handle,
+      projectGroupID,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupListEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/groups/`
+  }
+
+  // Create project group
+  async projectGroupCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, handle, name, description } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!handle) {
+      throw Error('field handle is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectGroupCreateEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      name,
+      description,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupCreateEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/groups/`
+  }
+
+  // Read project group
+  async projectGroupRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectGroupID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectGroupID) {
+      throw Error('field projectGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectGroupReadEndpoint({
+        projectID,
+        projectGroupID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupReadEndpoint(a: KV): string {
+    const { projectID, projectGroupID } = a || {}
+    return `/projects/${projectID}/groups/${projectGroupID}`
+  }
+
+  // Update project group
+  async projectGroupUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectGroupID, handle, name, description, updatedAt } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectGroupID) {
+      throw Error('field projectGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectGroupUpdateEndpoint({
+        projectID,
+        projectGroupID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      name,
+      description,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupUpdateEndpoint(a: KV): string {
+    const { projectID, projectGroupID } = a || {}
+    return `/projects/${projectID}/groups/${projectGroupID}`
+  }
+
+  // Delete project group
+  async projectGroupDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectGroupID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectGroupID) {
+      throw Error('field projectGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectGroupDeleteEndpoint({
+        projectID,
+        projectGroupID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupDeleteEndpoint(a: KV): string {
+    const { projectID, projectGroupID } = a || {}
+    return `/projects/${projectID}/groups/${projectGroupID}`
+  }
+
+  // Add resource to group
+  async projectGroupEntryAdd(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectGroupID, resourceRef } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectGroupID) {
+      throw Error('field projectGroupID is empty')
+    }
+    if (!resourceRef) {
+      throw Error('field resourceRef is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectGroupEntryAddEndpoint({
+        projectID,
+        projectGroupID,
+        resourceRef,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupEntryAddCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupEntryAdd(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupEntryAddEndpoint(a: KV): string {
+    const { projectID, projectGroupID, resourceRef } = a || {}
+    return `/projects/${projectID}/groups/${projectGroupID}/entries/${resourceRef}`
+  }
+
+  // Remove resource from group
+  async projectGroupEntryRemove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectGroupID, resourceRef } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectGroupID) {
+      throw Error('field projectGroupID is empty')
+    }
+    if (!resourceRef) {
+      throw Error('field resourceRef is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectGroupEntryRemoveEndpoint({
+        projectID,
+        projectGroupID,
+        resourceRef,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGroupEntryRemoveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGroupEntryRemove(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGroupEntryRemoveEndpoint(a: KV): string {
+    const { projectID, projectGroupID, resourceRef } = a || {}
+    return `/projects/${projectID}/groups/${projectGroupID}/entries/${resourceRef}`
+  }
+
   // List tenants
   async tenantList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, name, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
       (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -10563,7 +11068,6 @@ export default class System {
     cfg.params = {
       query,
       handle,
-      name,
       status,
       deleted,
       labels,
@@ -10599,7 +11103,7 @@ export default class System {
 
   // Create tenant
   async tenantCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, name, status, config, meta, labels } = (a as KV) || {}
+    const { handle, status, config, meta, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -10607,7 +11111,6 @@ export default class System {
     }
     cfg.data = {
       handle,
-      name,
       status,
       config,
       meta,
@@ -10678,7 +11181,7 @@ export default class System {
 
   // Update tenant details
   async tenantUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { tenantID, handle, name, status, config, meta, updatedAt, labels } = (a as KV) || {}
+    const { tenantID, handle, status, config, meta, updatedAt, labels } = (a as KV) || {}
     if (!tenantID) {
       throw Error('field tenantID is empty')
     }
@@ -10691,7 +11194,6 @@ export default class System {
     }
     cfg.data = {
       handle,
-      name,
       status,
       config,
       meta,

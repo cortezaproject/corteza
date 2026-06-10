@@ -2,9 +2,13 @@
 
 WEB_APPS := unify
 
+# Server codegen first (cue models/stores + rest.yaml request/handlers), then
+# the lib/js API clients, so the clients are generated from the final rest.yaml.
 codegen:
-	@echo "---Running codegen---"
-	@(cd $(CURDIR)/lib && make codegen) || (echo "Failed to run codegen"; exit 1)
+	@echo "---Running server codegen---"
+	@(cd $(CURDIR)/server && make codegen codegen-legacy) || (echo "Failed to run server codegen"; exit 1)
+	@echo "---Running lib codegen---"
+	@(cd $(CURDIR)/lib && make codegen) || (echo "Failed to run lib codegen"; exit 1)
 
 dev:
 	@echo "---Installing dependencies---"

@@ -48,7 +48,9 @@ func (r *projectResolver) Resolve(ctx context.Context, tenantID, userID uint64, 
 
 	// Suspended / archived projects are inaccessible. Do not leak status — same
 	// shape as a missing project.
-	if p.Status != types.ProjectStatusActive {
+	switch p.Status {
+	case types.ProjectStatusDraft, types.ProjectStatusActive, types.ProjectStatusPublished:
+	default:
 		return 0, scope.Capabilities{}, errNoProjectAccess()
 	}
 

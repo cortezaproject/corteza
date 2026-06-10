@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"strconv"
+	"time"
 
+	composeTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -116,11 +119,22 @@ func (svc *project) Create(ctx context.Context, new *types.Project) (p *types.Pr
 		}
 
 		if new.Status == "" {
-			new.Status = types.ProjectStatusActive
+			new.Status = types.ProjectStatusDraft
 		}
 		if err = validateProjectStatus(new.Status); err != nil {
 			return err
 		}
+
+		if new.Config.Mode == "" {
+			new.Config.Mode = types.ProjectModeFree
+		}
+		if !new.Config.Mode.Valid() {
+			return ProjectErrInvalidMode()
+		}
+
+		// FRIA requirement is derived from the deployer answers once, at
+		// creation, so the pipeline shape doesn't silently change later.
+		new.Config.FriaRequired = friaRequired(new.Config.DeployerCategories)
 
 		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return err
@@ -130,12 +144,65 @@ func (svc *project) Create(ctx context.Context, new *types.Project) (p *types.Pr
 		new.CreatedAt = *now()
 		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.CreateProject(ctx, svc.store, new); err != nil {
+		// Project-scoped compose resources (modules, pages, charts) live in a
+		// namespace created alongside the project. Projects are referenced by
+		// ID; handle and slug stay empty unless a client explicitly sets one.
+		// The scope refs are stamped explicitly: the request context carries
+		// no project scope yet at creation time.
+		ns := &composeTypes.Namespace{
+			ID:        nextID(),
+			TenantID:  new.TenantID,
+			ProjectID: new.ID,
+			Slug:      new.Handle,
+			Name:      new.Meta.Short,
+			Enabled:   true,
+			CreatedAt: *now(),
+		}
+		if ns.Name == "" {
+			ns.Name = "project-" + strconv.FormatUint(new.ID, 10)
+		}
+		new.Config.NamespaceID = ns.ID
+
+		err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+			// Slug uniqueness only matters when one is actually set; empty
+			// slugs are allowed to repeat (partial unique index).
+			if ns.Slug != "" {
+				if existing, e := store.LookupComposeNamespaceBySlug(ctx, s, ns.Slug); e == nil && existing != nil {
+					return ProjectErrHandleNotUnique()
+				} else if e != nil && !errors.IsNotFound(e) {
+					return e
+				}
+			}
+
+			if err = store.CreateComposeNamespace(ctx, s, ns); err != nil {
+				return err
+			}
+
+			return store.CreateProject(ctx, s, new)
+		})
+		if err != nil {
 			return
 		}
 
 		if err = label.Create(ctx, svc.store, new); err != nil {
 			return
+		}
+
+		// The creator becomes the first member: in gated mode they drive the
+		// pipeline as a developer.
+		creator := &types.ProjectMember{
+			ID:         nextID(),
+			ProjectID:  new.ID,
+			TenantID:   new.TenantID,
+			UserID:     new.CreatedBy,
+			RolePreset: types.ProjectRoleDeveloper,
+			InvitedBy:  new.CreatedBy,
+			CreatedAt:  *now(),
+		}
+		if creator.UserID != 0 {
+			if err = store.CreateProjectMember(ctx, svc.store, creator); err != nil {
+				return
+			}
 		}
 
 		p = new
@@ -188,6 +255,15 @@ func (svc *project) Update(ctx context.Context, upd *types.Project) (p *types.Pr
 		upd.DeletedAt = existing.DeletedAt
 		upd.TenantID = existing.TenantID
 
+		// Mode and namespace binding are immutable; FRIA derivation is fixed at
+		// creation. Governance state only changes through the dedicated
+		// governance operations.
+		upd.Config.Mode = existing.Config.Mode
+		upd.Config.NamespaceID = existing.Config.NamespaceID
+		upd.Config.DeployerCategories = existing.Config.DeployerCategories
+		upd.Config.FriaRequired = existing.Config.FriaRequired
+		upd.Governance = existing.Governance
+
 		if err = store.UpdateProject(ctx, svc.store, upd); err != nil {
 			return
 		}
@@ -220,14 +296,37 @@ func (svc *project) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		p.DeletedAt = now()
 		p.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-		if err = store.UpdateProject(ctx, svc.store, p); err != nil {
-			return
-		}
 
-		return nil
+		// The project's namespace follows its lifecycle — leaving it active
+		// would squat the slug and block future creations.
+		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+			if err := store.UpdateProject(ctx, s, p); err != nil {
+				return err
+			}
+			return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, p.DeletedAt)
+		})
 	}()
 
 	return svc.recordAction(ctx, paProps, ProjectActionDelete, err)
+}
+
+// setNamespaceDeleted stamps (or clears) DeletedAt on the project's compose
+// namespace. A missing namespace is not an error — older projects may predate
+// the auto-created namespace.
+func (svc *project) setNamespaceDeleted(ctx context.Context, s store.Storer, namespaceID uint64, deletedAt *time.Time) error {
+	if namespaceID == 0 {
+		return nil
+	}
+
+	ns, err := store.LookupComposeNamespaceByID(ctx, s, namespaceID)
+	if errors.IsNotFound(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	ns.DeletedAt = deletedAt
+	return store.UpdateComposeNamespace(ctx, s, ns)
 }
 
 func (svc *project) UndeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -247,11 +346,13 @@ func (svc *project) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		p.DeletedAt = nil
 		p.DeletedBy = 0
-		if err = store.UpdateProject(ctx, svc.store, p); err != nil {
-			return
-		}
 
-		return nil
+		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+			if err := store.UpdateProject(ctx, s, p); err != nil {
+				return err
+			}
+			return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, nil)
+		})
 	}()
 
 	return svc.recordAction(ctx, paProps, ProjectActionUndelete, err)
@@ -449,10 +550,20 @@ func (svc *project) uniqueCheck(ctx context.Context, p *types.Project) error {
 
 func validateProjectStatus(s types.ProjectStatus) error {
 	switch s {
-	case types.ProjectStatusActive, types.ProjectStatusArchived, types.ProjectStatusSuspended:
+	case types.ProjectStatusDraft,
+		types.ProjectStatusActive,
+		types.ProjectStatusPublished,
+		types.ProjectStatusArchived,
+		types.ProjectStatusSuspended:
 		return nil
 	}
 	return ProjectErrInvalidStatus()
+}
+
+// friaRequired: any positive deployer-category answer makes a Fundamental
+// Rights Impact Assessment step mandatory (EU AI Act Art. 27).
+func friaRequired(d types.ProjectDeployerCategories) bool {
+	return d.PublicAuthorityAnnex3 || d.PrivateEssentialServices || d.InsuranceBanking
 }
 
 func toLabeledProjects(set types.ProjectSet) []label.LabeledResource {

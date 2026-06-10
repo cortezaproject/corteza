@@ -27,7 +27,7 @@ type (
 		Undelete(context.Context, *request.ConnectionUndelete) (interface{}, error)
 		Enable(context.Context, *request.ConnectionEnable) (interface{}, error)
 		Generate(context.Context, *request.ConnectionGenerate) (interface{}, error)
-  	Import(context.Context, *request.ConnectionImport) (interface{}, error)
+		Import(context.Context, *request.ConnectionImport) (interface{}, error)
 		Configure(context.Context, *request.ConnectionConfigure) (interface{}, error)
 		UpdateConfiguration(context.Context, *request.ConnectionUpdateConfiguration) (interface{}, error)
 	}

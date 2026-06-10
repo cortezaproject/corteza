@@ -1318,6 +1318,8 @@ var (
 	automationNgAutomationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"meta",
 			"enabled",
@@ -1343,23 +1345,25 @@ var (
 	automationNgAutomationInsertQuery = func(d goqu.DialectWrapper, res *automationType.NgAutomation) *goqu.InsertDataset {
 		return d.Insert(automationNgAutomationTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"handle":     res.Handle,
-				"meta":       res.Meta,
-				"enabled":    res.Enabled,
-				"scope":      res.Scope,
-				"triggers":   res.Triggers,
-				"steps":      res.Steps,
-				"paths":      res.Paths,
-				"issues":     res.Issues,
-				"run_as":     res.RunAs,
-				"owned_by":   res.OwnedBy,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"enabled":     res.Enabled,
+				"scope":       res.Scope,
+				"triggers":    res.Triggers,
+				"steps":       res.Steps,
+				"paths":       res.Paths,
+				"issues":      res.Issues,
+				"run_as":      res.RunAs,
+				"owned_by":    res.OwnedBy,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -1373,22 +1377,24 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":     res.Handle,
-						"meta":       res.Meta,
-						"enabled":    res.Enabled,
-						"scope":      res.Scope,
-						"triggers":   res.Triggers,
-						"steps":      res.Steps,
-						"paths":      res.Paths,
-						"issues":     res.Issues,
-						"run_as":     res.RunAs,
-						"owned_by":   res.OwnedBy,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"handle":      res.Handle,
+						"meta":        res.Meta,
+						"enabled":     res.Enabled,
+						"scope":       res.Scope,
+						"triggers":    res.Triggers,
+						"steps":       res.Steps,
+						"paths":       res.Paths,
+						"issues":      res.Issues,
+						"run_as":      res.RunAs,
+						"owned_by":    res.OwnedBy,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -1400,22 +1406,24 @@ var (
 	automationNgAutomationUpdateQuery = func(d goqu.DialectWrapper, res *automationType.NgAutomation) *goqu.UpdateDataset {
 		return d.Update(automationNgAutomationTable).
 			Set(goqu.Record{
-				"handle":     res.Handle,
-				"meta":       res.Meta,
-				"enabled":    res.Enabled,
-				"scope":      res.Scope,
-				"triggers":   res.Triggers,
-				"steps":      res.Steps,
-				"paths":      res.Paths,
-				"issues":     res.Issues,
-				"run_as":     res.RunAs,
-				"owned_by":   res.OwnedBy,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"enabled":     res.Enabled,
+				"scope":       res.Scope,
+				"triggers":    res.Triggers,
+				"steps":       res.Steps,
+				"paths":       res.Paths,
+				"issues":      res.Issues,
+				"run_as":      res.RunAs,
+				"owned_by":    res.OwnedBy,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(automationNgAutomationPrimaryKeys(res))
 	}
@@ -2362,6 +2370,8 @@ var (
 	composeAttachmentSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_namespace",
 			"rel_owner",
 			"kind",
@@ -2382,6 +2392,8 @@ var (
 		return d.Insert(composeAttachmentTable).
 			Rows(goqu.Record{
 				"id":            res.ID,
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_namespace": res.NamespaceID,
 				"rel_owner":     res.OwnerID,
 				"kind":          res.Kind,
@@ -2405,6 +2417,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":    res.TenantID,
+						"rel_project":   res.ProjectID,
 						"rel_namespace": res.NamespaceID,
 						"rel_owner":     res.OwnerID,
 						"kind":          res.Kind,
@@ -2426,6 +2440,8 @@ var (
 	composeAttachmentUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Attachment) *goqu.UpdateDataset {
 		return d.Update(composeAttachmentTable).
 			Set(goqu.Record{
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_namespace": res.NamespaceID,
 				"rel_owner":     res.OwnerID,
 				"kind":          res.Kind,
@@ -2475,6 +2491,8 @@ var (
 		return d.Select(
 			"id",
 			"handle",
+			"rel_tenant",
+			"rel_project",
 			"rel_namespace",
 			"name",
 			"config",
@@ -2492,6 +2510,8 @@ var (
 			Rows(goqu.Record{
 				"id":            res.ID,
 				"handle":        res.Handle,
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_namespace": res.NamespaceID,
 				"name":          res.Name,
 				"config":        res.Config,
@@ -2512,6 +2532,8 @@ var (
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
 						"handle":        res.Handle,
+						"rel_tenant":    res.TenantID,
+						"rel_project":   res.ProjectID,
 						"rel_namespace": res.NamespaceID,
 						"name":          res.Name,
 						"config":        res.Config,
@@ -2530,6 +2552,8 @@ var (
 		return d.Update(composeChartTable).
 			Set(goqu.Record{
 				"handle":        res.Handle,
+				"rel_tenant":    res.TenantID,
+				"rel_project":   res.ProjectID,
 				"rel_namespace": res.NamespaceID,
 				"name":          res.Name,
 				"config":        res.Config,
@@ -2574,6 +2598,8 @@ var (
 	composeModuleSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_namespace",
 			"handle",
 			"name",
@@ -2593,6 +2619,8 @@ var (
 		return d.Insert(composeModuleTable).
 			Rows(goqu.Record{
 				"id":               res.ID,
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"rel_namespace":    res.NamespaceID,
 				"handle":           res.Handle,
 				"name":             res.Name,
@@ -2615,6 +2643,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":       res.TenantID,
+						"rel_project":      res.ProjectID,
 						"rel_namespace":    res.NamespaceID,
 						"handle":           res.Handle,
 						"name":             res.Name,
@@ -2635,6 +2665,8 @@ var (
 	composeModuleUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Module) *goqu.UpdateDataset {
 		return d.Update(composeModuleTable).
 			Set(goqu.Record{
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"rel_namespace":    res.NamespaceID,
 				"handle":           res.Handle,
 				"name":             res.Name,
@@ -2682,6 +2714,8 @@ var (
 	composeModuleFieldSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"rel_module",
 			"place",
 			"kind",
@@ -2707,6 +2741,8 @@ var (
 		return d.Insert(composeModuleFieldTable).
 			Rows(goqu.Record{
 				"id":               res.ID,
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"rel_module":       res.ModuleID,
 				"place":            res.Place,
 				"kind":             res.Kind,
@@ -2735,6 +2771,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":       res.TenantID,
+						"rel_project":      res.ProjectID,
 						"rel_module":       res.ModuleID,
 						"place":            res.Place,
 						"kind":             res.Kind,
@@ -2761,6 +2799,8 @@ var (
 	composeModuleFieldUpdateQuery = func(d goqu.DialectWrapper, res *composeType.ModuleField) *goqu.UpdateDataset {
 		return d.Update(composeModuleFieldTable).
 			Set(goqu.Record{
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"rel_module":       res.ModuleID,
 				"place":            res.Place,
 				"kind":             res.Kind,
@@ -2814,6 +2854,8 @@ var (
 	composeNamespaceSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"slug",
 			"enabled",
 			"meta",
@@ -2832,6 +2874,8 @@ var (
 		return d.Insert(composeNamespaceTable).
 			Rows(goqu.Record{
 				"id":               res.ID,
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"slug":             res.Slug,
 				"enabled":          res.Enabled,
 				"meta":             res.Meta,
@@ -2853,6 +2897,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":       res.TenantID,
+						"rel_project":      res.ProjectID,
 						"slug":             res.Slug,
 						"enabled":          res.Enabled,
 						"meta":             res.Meta,
@@ -2872,6 +2918,8 @@ var (
 	composeNamespaceUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Namespace) *goqu.UpdateDataset {
 		return d.Update(composeNamespaceTable).
 			Set(goqu.Record{
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"slug":             res.Slug,
 				"enabled":          res.Enabled,
 				"meta":             res.Meta,
@@ -2918,6 +2966,8 @@ var (
 	composePageSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"title",
 			"handle",
 			"self_id",
@@ -2943,6 +2993,8 @@ var (
 		return d.Insert(composePageTable).
 			Rows(goqu.Record{
 				"id":               res.ID,
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"title":            res.Title,
 				"handle":           res.Handle,
 				"self_id":          res.SelfID,
@@ -2971,6 +3023,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":       res.TenantID,
+						"rel_project":      res.ProjectID,
 						"title":            res.Title,
 						"handle":           res.Handle,
 						"self_id":          res.SelfID,
@@ -2997,6 +3051,8 @@ var (
 	composePageUpdateQuery = func(d goqu.DialectWrapper, res *composeType.Page) *goqu.UpdateDataset {
 		return d.Update(composePageTable).
 			Set(goqu.Record{
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"title":            res.Title,
 				"handle":           res.Handle,
 				"self_id":          res.SelfID,
@@ -3050,6 +3106,8 @@ var (
 	composePageLayoutSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"handle",
 			"page_id",
 			"parent_id",
@@ -3073,6 +3131,8 @@ var (
 		return d.Insert(composePageLayoutTable).
 			Rows(goqu.Record{
 				"id":               res.ID,
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"handle":           res.Handle,
 				"page_id":          res.PageID,
 				"parent_id":        res.ParentID,
@@ -3099,6 +3159,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":       res.TenantID,
+						"rel_project":      res.ProjectID,
 						"handle":           res.Handle,
 						"page_id":          res.PageID,
 						"parent_id":        res.ParentID,
@@ -3123,6 +3185,8 @@ var (
 	composePageLayoutUpdateQuery = func(d goqu.DialectWrapper, res *composeType.PageLayout) *goqu.UpdateDataset {
 		return d.Update(composePageLayoutTable).
 			Set(goqu.Record{
+				"rel_tenant":       res.TenantID,
+				"rel_project":      res.ProjectID,
 				"handle":           res.Handle,
 				"page_id":          res.PageID,
 				"parent_id":        res.ParentID,
@@ -5242,6 +5306,7 @@ var (
 			"status",
 			"config",
 			"meta",
+			"governance",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -5263,6 +5328,7 @@ var (
 				"status":     res.Status,
 				"config":     res.Config,
 				"meta":       res.Meta,
+				"governance": res.Governance,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -5287,6 +5353,7 @@ var (
 						"status":     res.Status,
 						"config":     res.Config,
 						"meta":       res.Meta,
+						"governance": res.Governance,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
 						"deleted_at": res.DeletedAt,
@@ -5309,6 +5376,7 @@ var (
 				"status":     res.Status,
 				"config":     res.Config,
 				"meta":       res.Meta,
+				"governance": res.Governance,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -6394,6 +6462,8 @@ var (
 	roleSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"name",
 			"handle",
 			"meta",
@@ -6411,6 +6481,8 @@ var (
 		return d.Insert(roleTable).
 			Rows(goqu.Record{
 				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"name":        res.Name,
 				"handle":      res.Handle,
 				"meta":        res.Meta,
@@ -6431,6 +6503,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
 						"name":        res.Name,
 						"handle":      res.Handle,
 						"meta":        res.Meta,
@@ -6449,6 +6523,8 @@ var (
 	roleUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Role) *goqu.UpdateDataset {
 		return d.Update(roleTable).
 			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
 				"name":        res.Name,
 				"handle":      res.Handle,
 				"meta":        res.Meta,
@@ -6895,6 +6971,7 @@ var (
 		return d.Select(
 			"id",
 			"rel_tenant",
+			"rel_project",
 			"rel_user",
 			"role",
 			"status",
@@ -6912,6 +6989,7 @@ var (
 			Rows(goqu.Record{
 				"id":             res.ID,
 				"rel_tenant":     res.TenantID,
+				"rel_project":    res.ProjectID,
 				"rel_user":       res.UserID,
 				"role":           res.Role,
 				"status":         res.Status,
@@ -6932,6 +7010,7 @@ var (
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
 						"rel_tenant":     res.TenantID,
+						"rel_project":    res.ProjectID,
 						"rel_user":       res.UserID,
 						"role":           res.Role,
 						"status":         res.Status,
@@ -6950,6 +7029,7 @@ var (
 		return d.Update(tenantMembershipTable).
 			Set(goqu.Record{
 				"rel_tenant":     res.TenantID,
+				"rel_project":    res.ProjectID,
 				"rel_user":       res.UserID,
 				"role":           res.Role,
 				"status":         res.Status,
@@ -6994,6 +7074,8 @@ var (
 	userSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_tenant",
+			"rel_project",
 			"email",
 			"email_confirmed",
 			"rel_user_group",
@@ -7016,6 +7098,8 @@ var (
 		return d.Insert(userTable).
 			Rows(goqu.Record{
 				"id":              res.ID,
+				"rel_tenant":      res.TenantID,
+				"rel_project":     res.ProjectID,
 				"email":           res.Email,
 				"email_confirmed": res.EmailConfirmed,
 				"rel_user_group":  res.UserGroupID,
@@ -7041,6 +7125,8 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_tenant":      res.TenantID,
+						"rel_project":     res.ProjectID,
 						"email":           res.Email,
 						"email_confirmed": res.EmailConfirmed,
 						"rel_user_group":  res.UserGroupID,
@@ -7064,6 +7150,8 @@ var (
 	userUpdateQuery = func(d goqu.DialectWrapper, res *systemType.User) *goqu.UpdateDataset {
 		return d.Update(userTable).
 			Set(goqu.Record{
+				"rel_tenant":      res.TenantID,
+				"rel_project":     res.ProjectID,
 				"email":           res.Email,
 				"email_confirmed": res.EmailConfirmed,
 				"rel_user_group":  res.UserGroupID,

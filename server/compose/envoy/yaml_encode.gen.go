@@ -174,6 +174,7 @@ func (e YamlEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, nod
 	if err != nil {
 		return
 	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -187,6 +188,8 @@ func (e YamlEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, nod
 		"chartID", res.ID,
 		"name", res.Name,
 		"namespaceID", auxNamespaceID,
+		"projectID", res.ProjectID,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 	)
 	if err != nil {
@@ -244,6 +247,7 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	if err != nil {
 		return
 	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -259,6 +263,8 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 		"meta", res.Meta,
 		"name", res.Name,
 		"namespaceID", auxNamespaceID,
+		"projectID", res.ProjectID,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 	)
 	if err != nil {
@@ -368,7 +374,9 @@ func (e YamlEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodeParam
 		"name", res.Name,
 		"options", auxOptions,
 		"place", res.Place,
+		"projectID", res.ProjectID,
 		"required", res.Required,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 	)
 	if err != nil {
@@ -434,7 +442,9 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 		"id", res.ID,
 		"meta", res.Meta,
 		"name", res.Name,
+		"projectID", res.ProjectID,
 		"slug", res.Slug,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 	)
 	if err != nil {
@@ -533,6 +543,7 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 	if err != nil {
 		return
 	}
+
 	auxSelfID, err := e.encodeRef(p, res.SelfID, "SelfID", node, tt)
 	if err != nil {
 		return
@@ -556,7 +567,9 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 		"meta", res.Meta,
 		"moduleID", auxModuleID,
 		"namespaceID", auxNamespaceID,
+		"projectID", res.ProjectID,
 		"selfID", auxSelfID,
+		"tenantID", res.TenantID,
 		"title", res.Title,
 		"updatedAt", auxUpdatedAt,
 		"visible", res.Visible,
@@ -640,6 +653,7 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 	if err != nil {
 		return
 	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -658,6 +672,8 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 		"ownedBy", auxOwnedBy,
 		"pageID", auxPageID,
 		"parentID", auxParentID,
+		"projectID", res.ProjectID,
+		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,
 		"weight", res.Weight,
 	)
