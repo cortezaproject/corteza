@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -15,16 +16,24 @@ var toolAliases = map[string]string{
 }
 
 type (
+	OwnershipFallback func(ctx context.Context, args ValueGetter) bool
+
 	ValueGetter interface {
 		Get(key string) (any, bool)
 		Keys() []string
 	}
-	
+
 	ValueSetter interface {
 		Set(key string, val any)
 	}
 
 	MapValues map[string]any
+
+	Decision struct {
+		Allowed       bool
+		Reason        string
+		SanitizedArgs map[string]any
+	}
 )
 
 func (m MapValues) Get(key string) (any, bool) { v, ok := m[key]; return v, ok }
@@ -37,13 +46,7 @@ func (m MapValues) Keys() []string {
 	return keys
 }
 
-type Decision struct {
-	Allowed       bool
-	Reason        string
-	SanitizedArgs map[string]any
-}
-
-func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
+func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGetter, ownsTarget OwnershipFallback) Decision {
 	if tool == "automation_workflow_exec" {
 		ref, _ := args.Get("workflow")
 		if findWorkflow(agent, fmt.Sprintf("%v", ref)) == nil {
@@ -96,6 +99,9 @@ func Evaluate(agent *types.Agent, tool string, args ValueGetter) Decision {
 	}
 
 	if d := checkAllow(entry.Allow, buildResource(tool, args)); !d.Allowed {
+		if ownsTarget != nil && ownsTarget(ctx, args) {
+			return allowedDecision(agent, entry, args)
+		}
 		return d
 	}
 
@@ -242,16 +248,4 @@ func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
 	}
 
 	return Decision{Allowed: false, Reason: "resource not in allow-list"}
-}
-
-func matchResource(pattern, actual []string) bool {
-	for i, p := range pattern {
-		if i >= len(actual) {
-			return false
-		}
-		if p != "*" && p != actual[i] {
-			return false
-		}
-	}
-	return true
 }

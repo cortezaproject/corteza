@@ -154,9 +154,10 @@ func (h *namespaceHandler) create(ctx context.Context, req mcp.CallToolRequest) 
 	enabled := parseBoolArg(args["enabled"], true)
 
 	ns, err := cmpService.DefaultNamespace.Create(ctx, &cmpTypes.Namespace{
-		Name:    name,
-		Slug:    slug,
-		Enabled: enabled,
+		Name:           name,
+		Slug:           slug,
+		Enabled:        enabled,
+		CreatedByAgent: a.GetAgentIDFromContext(ctx),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("namespace creation failed: %w", err)

@@ -139,6 +139,8 @@ func (r *Module) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "handle", "Handle":
@@ -164,6 +166,8 @@ func (r *Module) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "handle", "Handle":
@@ -191,6 +195,8 @@ func (r *ModuleField) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "id", "ID":
@@ -224,6 +230,8 @@ func (r *ModuleField) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "id", "ID":
@@ -262,6 +270,8 @@ func (r *Namespace) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "enabled", "Enabled":
@@ -287,6 +297,8 @@ func (r *Namespace) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "enabled", "Enabled":
@@ -314,6 +326,8 @@ func (r *Page) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "description", "Description":
@@ -349,6 +363,8 @@ func (r *Page) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "description", "Description":
@@ -389,6 +405,8 @@ func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdByAgent", "CreatedByAgent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "handle", "Handle":
@@ -423,6 +441,8 @@ func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdByAgent", "CreatedByAgent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "handle", "Handle":
@@ -461,6 +481,8 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 		return r.CreatedAt, nil
 	case "createdBy", "CreatedBy", "created_by":
 		return r.CreatedBy, nil
+	case "createdByAgent", "CreatedByAgent", "created_by_agent":
+		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "deletedBy", "DeletedBy", "deleted_by":
@@ -499,6 +521,8 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Time(value, &r.CreatedAt)
 	case "createdBy", "CreatedBy", "created_by":
 		return cast2.Uint64(value, &r.CreatedBy)
+	case "createdByAgent", "CreatedByAgent", "created_by_agent":
+		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "deletedBy", "DeletedBy", "deleted_by":

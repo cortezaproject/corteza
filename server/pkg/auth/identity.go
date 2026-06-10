@@ -9,7 +9,14 @@ import (
 type (
 	identity struct {
 		id       uint64
+		agentID  uint64
 		memberOf []uint64
+	}
+
+	// AgentIdentifiable is implemented by identities that were established
+	// for an agent invocation. It carries the agent's ID alongside the user.
+	AgentIdentifiable interface {
+		AgentID() uint64
 	}
 )
 
@@ -28,8 +35,23 @@ func Authenticated(id uint64, rr ...uint64) *identity {
 	}
 }
 
+// IdentityWithAgent returns a copy of the given identity tagged with the
+// agent ID. Used by the agentic runtime so resources created during an
+// agent invocation can be attributed back to the agent.
+func IdentityWithAgent(i Identifiable, agentID uint64) *identity {
+	return &identity{
+		id:       i.Identity(),
+		agentID:  agentID,
+		memberOf: i.Roles(),
+	}
+}
+
 func (i identity) Identity() uint64 {
 	return i.id
+}
+
+func (i identity) AgentID() uint64 {
+	return i.agentID
 }
 
 func (i identity) Roles() []uint64 {

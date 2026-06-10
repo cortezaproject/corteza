@@ -362,6 +362,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 				f.ModuleID = new.ID
 				f.NamespaceID = new.NamespaceID
 				f.CreatedAt = *now()
+				f.CreatedByAgent = new.CreatedByAgent
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
 
@@ -923,6 +924,7 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		} else {
 			f.ID = nextID()
 			f.CreatedAt = *now()
+			f.CreatedByAgent = new.CreatedByAgent
 
 			if err = store.CreateComposeModuleField(ctx, s, f); err != nil {
 				return err

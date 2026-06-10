@@ -101,6 +101,7 @@ moduleField: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+			created_by_agent: schema.AttributeAgentRef
 		}
 
 		indexes: {

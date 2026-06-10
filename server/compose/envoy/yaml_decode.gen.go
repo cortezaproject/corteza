@@ -624,6 +624,25 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 
 		switch strings.ToLower(k.Value) {
 
+		case "createdbyagent":
+			// Handle references
+			err = y7s.DecodeScalar(n, "createdByAgent", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["CreatedByAgent"] = envoyx.Ref{
+				ResourceType: "corteza::system:agent",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
 		case "handle":
 			// Handle identifiers
 			err = y7s.DecodeScalar(n, "handle", &auxNodeValue)
@@ -949,6 +968,25 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 		_ = auxNodeValue
 
 		switch strings.ToLower(k.Value) {
+
+		case "createdbyagent":
+			// Handle references
+			err = y7s.DecodeScalar(n, "createdByAgent", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["CreatedByAgent"] = envoyx.Ref{
+				ResourceType: "corteza::system:agent",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
 
 		case "defaultvalue":
 
@@ -1305,6 +1343,25 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 		_ = auxNodeValue
 
 		switch strings.ToLower(k.Value) {
+
+		case "createdbyagent":
+			// Handle references
+			err = y7s.DecodeScalar(n, "createdByAgent", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["CreatedByAgent"] = envoyx.Ref{
+				ResourceType: "corteza::system:agent",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
 
 		case "id":
 			// Handle identifiers
@@ -1710,6 +1767,25 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 
 			break
 
+		case "createdbyagent":
+			// Handle references
+			err = y7s.DecodeScalar(n, "createdByAgent", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["CreatedByAgent"] = envoyx.Ref{
+				ResourceType: "corteza::system:agent",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
 		case "handle":
 			// Handle identifiers
 			err = y7s.DecodeScalar(n, "handle", &auxNodeValue)
@@ -2084,6 +2160,25 @@ func (d *auxYamlDoc) unmarshalPageLayoutNode(dctx documentContext, n *yaml.Node,
 		_ = auxNodeValue
 
 		switch strings.ToLower(k.Value) {
+
+		case "createdbyagent":
+			// Handle references
+			err = y7s.DecodeScalar(n, "createdByAgent", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["CreatedByAgent"] = envoyx.Ref{
+				ResourceType: "corteza::system:agent",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
 
 		case "handle":
 			// Handle identifiers

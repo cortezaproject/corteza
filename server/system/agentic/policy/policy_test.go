@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"context"
 	"testing"
 
 	"github.com/crusttech/human/server/system/types"
@@ -8,9 +9,11 @@ import (
 )
 
 func TestEvaluate(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("denied when tool not in allow-list", func(t *testing.T) {
 		agent := &types.Agent{}
-		d := Evaluate(agent, "compose_record_lookup", MapValues(nil))
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues(nil), nil)
 		assert.False(t, d.Allowed)
 		assert.Contains(t, d.Reason, "not in the agent's allow-list")
 	})
@@ -23,7 +26,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"})
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"}, nil)
 		assert.True(t, d.Allowed)
 		assert.Equal(t, "123", d.SanitizedArgs["recordID"])
 	})
@@ -36,7 +39,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"})
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"}, nil)
 		assert.False(t, d.Allowed)
 	})
 
@@ -51,7 +54,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1"}, nil)
 		assert.True(t, d.Allowed)
 		assert.Equal(t, "1", d.SanitizedArgs["namespaceID"])
 	})
@@ -67,7 +70,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1"}, nil)
 		assert.Equal(t, "1", d.SanitizedArgs["namespaceID"])
 	})
 
@@ -85,7 +88,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1"}, nil)
 		assert.Equal(t, "mod1", d.SanitizedArgs["moduleID"])
 	})
 
@@ -103,7 +106,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_lookup", MapValues{"namespaceID": "1"})
+		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1"}, nil)
 		assert.True(t, d.Allowed)
 		assert.Equal(t, "forced-value", d.SanitizedArgs["someField"])
 	})
@@ -119,7 +122,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_record_create", MapValues{"namespaceID": "999", "moduleID": "200"})
+		d := Evaluate(ctx, agent, "compose_record_create", MapValues{"namespaceID": "999", "moduleID": "200"}, nil)
 		assert.False(t, d.Allowed)
 	})
 
@@ -134,7 +137,7 @@ func TestEvaluate(t *testing.T) {
 				},
 			},
 		}
-		d := Evaluate(agent, "compose_module_lookup", MapValues{"namespaceID": "100", "moduleID": "999"})
+		d := Evaluate(ctx, agent, "compose_module_lookup", MapValues{"namespaceID": "100", "moduleID": "999"}, nil)
 		assert.True(t, d.Allowed)
 	})
 
@@ -150,7 +153,7 @@ func TestEvaluate(t *testing.T) {
 			},
 		}
 		// No namespaceID resolved — wildcard is denied when allow entries are present
-		d := Evaluate(agent, "compose_namespace_lookup", MapValues{})
+		d := Evaluate(ctx, agent, "compose_namespace_lookup", MapValues{}, nil)
 		assert.False(t, d.Allowed)
 	})
 
@@ -160,7 +163,7 @@ func TestEvaluate(t *testing.T) {
 				TAQs: []types.AgentAccessTAQ{{ID: 111}},
 			},
 		}
-		d := Evaluate(agent, "automation_999", MapValues{})
+		d := Evaluate(ctx, agent, "automation_999", MapValues{}, nil)
 		assert.False(t, d.Allowed)
 	})
 
@@ -170,8 +173,20 @@ func TestEvaluate(t *testing.T) {
 				TAQs: []types.AgentAccessTAQ{{ID: 111}},
 			},
 		}
-		d := Evaluate(agent, "automation_111", MapValues{})
+		d := Evaluate(ctx, agent, "automation_111", MapValues{}, nil)
+		assert.True(t, d.Allowed)
+	})
+
+	t.Run("ownsTarget fallback overrides allow-list miss", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{
+					{Name: "compose_module_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 100}}},
+				},
+			},
+		}
+		owns := func(_ context.Context, _ ValueGetter) bool { return true }
+		d := Evaluate(ctx, agent, "compose_module_lookup", MapValues{"namespaceID": "999", "moduleID": "1"}, owns)
 		assert.True(t, d.Allowed)
 	})
 }
-

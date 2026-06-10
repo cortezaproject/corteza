@@ -94,6 +94,56 @@ allow:
       - update
       - delete
 
+  # Agents automatically retain full access to resources they created.
+  # Membership is contextual (see the agent-creator role), so these grants
+  # only apply to namespaces, modules and records whose createdByAgent
+  # matches the invoking agent.
+  agent-creator:
+    corteza::compose:namespace/*:
+      - read
+      - update
+      - delete
+      - manage
+      - export
+      - modules.export
+      - charts.export
+      - pages.export
+      - page.create
+      - pages.search
+      - module.create
+      - modules.search
+      - chart.create
+      - charts.search
+
+    corteza::compose:module/*/*:
+      - read
+      - update
+      - delete
+      - export
+      - record.create
+      - records.search
+
+    corteza::compose:module-field/*/*/*:
+      - record.value.read
+      - record.value.update
+
+    corteza::compose:record/*/*/*:
+      - read
+      - update
+      - delete
+      - revisions.search
+
+    corteza::compose:page/*/*:
+      - read
+      - update
+      - delete
+      - export
+
+    corteza::compose:page-layout/*/*/*:
+      - read
+      - update
+      - delete
+
   low-code-admin:
     corteza::compose/:
       - grant

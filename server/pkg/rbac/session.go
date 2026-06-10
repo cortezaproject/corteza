@@ -12,6 +12,9 @@ type (
 		// Identity of the subject
 		Identity() uint64
 
+		// AgentID of the invoking agent, when the session belongs to an agent invocation
+		AgentID() uint64
+
 		// Roles returns all subject's roles for the session
 		Roles() []uint64
 
@@ -23,6 +26,9 @@ type (
 		// identity
 		id uint64
 
+		// invoking agent, when set
+		agentID uint64
+
 		// roles
 		rr []uint64
 
@@ -32,6 +38,7 @@ type (
 )
 
 func (s session) Identity() uint64         { return s.id }
+func (s session) AgentID() uint64          { return s.agentID }
 func (s session) Roles() []uint64          { return s.rr }
 func (s session) Context() context.Context { return s.ctx }
 
@@ -50,9 +57,15 @@ func ParamsToSession(ctx context.Context, user uint64, roles ...uint64) *session
 }
 
 func NewSession(ctx context.Context, i auth.Identifiable) *session {
-	return &session{
+	s := &session{
 		id:  i.Identity(),
 		rr:  i.Roles(),
 		ctx: ctx,
 	}
+
+	if ai, ok := i.(auth.AgentIdentifiable); ok {
+		s.agentID = ai.AgentID()
+	}
+
+	return s
 }

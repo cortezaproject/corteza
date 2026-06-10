@@ -65,6 +65,22 @@ roles:
           - corteza::system:authClient
           - corteza::automation:workflow
 
+  agent-creator:
+    name: Agent Creator
+    meta:
+      description: |-
+        Automatically assigned to the agent that created the resource.
+        Applicable to compose namespaces, modules, module fields and records.
+      context:
+        expr: agentID != 0 && resource.createdByAgent == agentID
+        resourceType:
+          - corteza::compose:namespace
+          - corteza::compose:module
+          - corteza::compose:module-field
+          - corteza::compose:record
+          - corteza::compose:page
+          - corteza::compose:page-layout
+
   data-privacy-officer:
     name: Data Privacy Officer
     meta:

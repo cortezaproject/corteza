@@ -294,6 +294,19 @@ var Module = &dal.Model{
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "deleted_at"},
 		},
+
+		&dal.Attribute{
+			Ident: "CreatedByAgent",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:agent",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by_agent"},
+		},
 	},
 
 	Indexes: dal.IndexSet{
@@ -447,6 +460,19 @@ var ModuleField = &dal.Model{
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "deleted_at"},
 		},
+
+		&dal.Attribute{
+			Ident: "CreatedByAgent",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:agent",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by_agent"},
+		},
 	},
 
 	Indexes: dal.IndexSet{
@@ -546,6 +572,19 @@ var Namespace = &dal.Model{
 			Ident: "DeletedAt", Sortable: true,
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedByAgent",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:agent",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by_agent"},
 		},
 	},
 
@@ -697,6 +736,19 @@ var Page = &dal.Model{
 			Ident: "DeletedAt", Sortable: true,
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedByAgent",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:agent",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by_agent"},
 		},
 	},
 
@@ -878,6 +930,19 @@ var PageLayout = &dal.Model{
 			Ident: "DeletedAt", Sortable: true,
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedByAgent",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:agent",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by_agent"},
 		},
 	},
 
@@ -1077,6 +1142,19 @@ var Record = &dal.Model{
 				},
 			},
 			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedByAgent",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:agent",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by_agent"},
 		},
 	},
 

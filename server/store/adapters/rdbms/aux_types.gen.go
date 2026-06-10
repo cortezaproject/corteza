@@ -363,82 +363,87 @@ type (
 
 	// auxComposeModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModule struct {
-		ID          uint64                   `db:"id"`
-		NamespaceID uint64                   `db:"namespace_id"`
-		Handle      string                   `db:"handle"`
-		Name        string                   `db:"name"`
-		Meta        rawJson                  `db:"meta"`
-		Config      composeType.ModuleConfig `db:"config"`
-		CreatedAt   time.Time                `db:"created_at"`
-		UpdatedAt   *time.Time               `db:"updated_at"`
-		DeletedAt   *time.Time               `db:"deleted_at"`
+		ID             uint64                   `db:"id"`
+		NamespaceID    uint64                   `db:"namespace_id"`
+		Handle         string                   `db:"handle"`
+		Name           string                   `db:"name"`
+		Meta           rawJson                  `db:"meta"`
+		Config         composeType.ModuleConfig `db:"config"`
+		CreatedAt      time.Time                `db:"created_at"`
+		UpdatedAt      *time.Time               `db:"updated_at"`
+		DeletedAt      *time.Time               `db:"deleted_at"`
+		CreatedByAgent uint64                   `db:"created_by_agent"`
 	}
 
 	// auxComposeModuleField is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModuleField struct {
-		ID           uint64                         `db:"id"`
-		ModuleID     uint64                         `db:"module_id"`
-		Place        int                            `db:"place"`
-		Kind         string                         `db:"kind"`
-		Options      composeType.ModuleFieldOptions `db:"options"`
-		Name         string                         `db:"name"`
-		Label        string                         `db:"label"`
-		Config       composeType.ModuleFieldConfig  `db:"config"`
-		Required     bool                           `db:"required"`
-		Multi        bool                           `db:"multi"`
-		DefaultValue composeType.RecordValueSet     `db:"default_value"`
-		Expressions  composeType.ModuleFieldExpr    `db:"expressions"`
-		CreatedAt    time.Time                      `db:"created_at"`
-		UpdatedAt    *time.Time                     `db:"updated_at"`
-		DeletedAt    *time.Time                     `db:"deleted_at"`
+		ID             uint64                         `db:"id"`
+		ModuleID       uint64                         `db:"module_id"`
+		Place          int                            `db:"place"`
+		Kind           string                         `db:"kind"`
+		Options        composeType.ModuleFieldOptions `db:"options"`
+		Name           string                         `db:"name"`
+		Label          string                         `db:"label"`
+		Config         composeType.ModuleFieldConfig  `db:"config"`
+		Required       bool                           `db:"required"`
+		Multi          bool                           `db:"multi"`
+		DefaultValue   composeType.RecordValueSet     `db:"default_value"`
+		Expressions    composeType.ModuleFieldExpr    `db:"expressions"`
+		CreatedAt      time.Time                      `db:"created_at"`
+		UpdatedAt      *time.Time                     `db:"updated_at"`
+		DeletedAt      *time.Time                     `db:"deleted_at"`
+		CreatedByAgent uint64                         `db:"created_by_agent"`
 	}
 
 	// auxComposeNamespace is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeNamespace struct {
-		ID        uint64                    `db:"id"`
-		Slug      string                    `db:"slug"`
-		Enabled   bool                      `db:"enabled"`
-		Meta      composeType.NamespaceMeta `db:"meta"`
-		Name      string                    `db:"name"`
-		CreatedAt time.Time                 `db:"created_at"`
-		UpdatedAt *time.Time                `db:"updated_at"`
-		DeletedAt *time.Time                `db:"deleted_at"`
+		ID             uint64                    `db:"id"`
+		Slug           string                    `db:"slug"`
+		Enabled        bool                      `db:"enabled"`
+		Meta           composeType.NamespaceMeta `db:"meta"`
+		Name           string                    `db:"name"`
+		CreatedAt      time.Time                 `db:"created_at"`
+		UpdatedAt      *time.Time                `db:"updated_at"`
+		DeletedAt      *time.Time                `db:"deleted_at"`
+		CreatedByAgent uint64                    `db:"created_by_agent"`
 	}
 
 	// auxComposePage is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposePage struct {
-		ID          uint64                 `db:"id"`
-		Title       string                 `db:"title"`
-		Handle      string                 `db:"handle"`
-		SelfID      uint64                 `db:"self_id"`
-		ModuleID    uint64                 `db:"module_id"`
-		NamespaceID uint64                 `db:"namespace_id"`
-		Meta        composeType.PageMeta   `db:"meta"`
-		Config      composeType.PageConfig `db:"config"`
-		Blocks      composeType.PageBlocks `db:"blocks"`
-		Visible     bool                   `db:"visible"`
-		Weight      int                    `db:"weight"`
-		Description string                 `db:"description"`
-		CreatedAt   time.Time              `db:"created_at"`
-		UpdatedAt   *time.Time             `db:"updated_at"`
-		DeletedAt   *time.Time             `db:"deleted_at"`
+		ID             uint64                 `db:"id"`
+		Title          string                 `db:"title"`
+		Handle         string                 `db:"handle"`
+		SelfID         uint64                 `db:"self_id"`
+		ModuleID       uint64                 `db:"module_id"`
+		NamespaceID    uint64                 `db:"namespace_id"`
+		Meta           composeType.PageMeta   `db:"meta"`
+		Config         composeType.PageConfig `db:"config"`
+		Blocks         composeType.PageBlocks `db:"blocks"`
+		Visible        bool                   `db:"visible"`
+		Weight         int                    `db:"weight"`
+		Description    string                 `db:"description"`
+		CreatedAt      time.Time              `db:"created_at"`
+		UpdatedAt      *time.Time             `db:"updated_at"`
+		DeletedAt      *time.Time             `db:"deleted_at"`
+		CreatedByAgent uint64                 `db:"created_by_agent"`
 	}
 
 	// auxComposePageLayout is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposePageLayout struct {
-		ID          uint64                       `db:"id"`
-		Handle      string                       `db:"handle"`
-		PageID      uint64                       `db:"page_id"`
-		ParentID    uint64                       `db:"parent_id"`
-		NamespaceID uint64                       `db:"namespace_id"`
-		Weight      int                          `db:"weight"`
-		Meta        composeType.PageLayoutMeta   `db:"meta"`
-		Config      composeType.PageLayoutConfig `db:"config"`
-		Blocks      composeType.PageLayoutBlocks `db:"blocks"`
-		OwnedBy     uint64                       `db:"owned_by"`
-		CreatedAt   time.Time                    `db:"created_at"`
-		UpdatedAt   *time.Time                   `db:"updated_at"`
-		DeletedAt   *time.Time                   `db:"deleted_at"`
+		ID             uint64                       `db:"id"`
+		Handle         string                       `db:"handle"`
+		PageID         uint64                       `db:"page_id"`
+		ParentID       uint64                       `db:"parent_id"`
+		NamespaceID    uint64                       `db:"namespace_id"`
+		Weight         int                          `db:"weight"`
+		Meta           composeType.PageLayoutMeta   `db:"meta"`
+		Config         composeType.PageLayoutConfig `db:"config"`
+		Blocks         composeType.PageLayoutBlocks `db:"blocks"`
+		OwnedBy        uint64                       `db:"owned_by"`
+		CreatedAt      time.Time                    `db:"created_at"`
+		UpdatedAt      *time.Time                   `db:"updated_at"`
+		DeletedAt      *time.Time                   `db:"deleted_at"`
+		CreatedByAgent uint64                       `db:"created_by_agent"`
 	}
 
 	// auxConfiguredConnection is an auxiliary structure used for transporting to/from RDBMS store
@@ -2130,6 +2135,7 @@ func (aux *auxComposeModule) encode(res *composeType.Module) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2147,6 +2153,7 @@ func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2164,6 +2171,7 @@ func (aux *auxComposeModule) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 
@@ -2186,6 +2194,7 @@ func (aux *auxComposeModuleField) encode(res *composeType.ModuleField) (_ error)
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2209,6 +2218,7 @@ func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2232,6 +2242,7 @@ func (aux *auxComposeModuleField) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 
@@ -2247,6 +2258,7 @@ func (aux *auxComposeNamespace) encode(res *composeType.Namespace) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2263,6 +2275,7 @@ func (aux auxComposeNamespace) decode() (res *composeType.Namespace, _ error) {
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2279,6 +2292,7 @@ func (aux *auxComposeNamespace) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 
@@ -2301,6 +2315,7 @@ func (aux *auxComposePage) encode(res *composeType.Page) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2324,6 +2339,7 @@ func (aux auxComposePage) decode() (res *composeType.Page, _ error) {
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2347,6 +2363,7 @@ func (aux *auxComposePage) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 
@@ -2367,6 +2384,7 @@ func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
 
@@ -2388,6 +2406,7 @@ func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) 
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
 
@@ -2409,6 +2428,7 @@ func (aux *auxComposePageLayout) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedByAgent,
 	)
 }
 

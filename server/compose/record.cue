@@ -66,6 +66,9 @@ record: {
 			deleted_by: schema.AttributeUserRef & {
 				identAlias: ["deletedBy", "DeletedBy", "deleted_by"]
 			}
+			created_by_agent: schema.AttributeAgentRef & {
+				identAlias: ["createdByAgent", "CreatedByAgent", "created_by_agent"]
+			}
 		}
 
 		indexes: {

@@ -36,6 +36,7 @@ import (
 var (
 	// all enabled fix function need to be listed here
 	fixesPre = []func(context.Context, *Store) error{
+		fix_2026_05_00_addCreatedByAgentToComposeResources,
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
 		fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL,
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
@@ -97,6 +98,15 @@ func fix_2026_05_00_addSourceOnConnections(ctx context.Context, s *Store) (err e
 		"connections",
 		&dal.Attribute{Ident: "source", Type: &dal.TypeText{Length: 1024, HasDefault: true, DefaultValue: ""}},
 	)
+}
+
+func fix_2026_05_00_addCreatedByAgentToComposeResources(ctx context.Context, s *Store) (err error) {
+	for _, m := range []*dal.Model{model.Namespace, model.Module, model.ModuleField, model.Record, model.Page, model.PageLayout} {
+		if err = addColumn(ctx, s, m.Ident, m.Attributes.FindByIdent("CreatedByAgent")); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Context, s *Store) (err error) {
