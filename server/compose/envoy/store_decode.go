@@ -10,6 +10,7 @@ import (
 	"github.com/crusttech/human/server/pkg/envoyx"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/resourceref"
 	"github.com/crusttech/human/server/store"
 	"github.com/spf13/cast"
 )
@@ -121,71 +122,39 @@ func (d StoreDecoder) extendedModuleDecoder(ctx context.Context, s store.Storer,
 }
 
 func decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Ref) {
-	refs = make(map[string]envoyx.Ref, len(c.Config.Reports))
-
-	for i, r := range c.Config.Reports {
-		if r.ModuleID == 0 {
-			continue
-		}
-
-		refs[fmt.Sprintf("Config.Reports.%d.ModuleID", i)] = envoyx.Ref{
-			ResourceType: types.ModuleResourceType,
-			Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
-		}
-	}
-
-	return
+	return toEnvoyRefs(c.ResourceRefs())
 }
 
 func decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
-	refs = make(map[string]envoyx.Ref, 1)
+	refs = toEnvoyRefs(c.ResourceRefs())
 
 	refs["NamespaceID"] = envoyx.Ref{
 		ResourceType: types.NamespaceResourceType,
 		Identifiers:  envoyx.MakeIdentifiers(c.NamespaceID),
 	}
 
-	id := c.Options.UInt64("moduleID")
-	if id == 0 {
-		return
-	}
-
-	refs["Options.ModuleID"] = envoyx.Ref{
-		ResourceType: types.ModuleResourceType,
-		Identifiers:  envoyx.MakeIdentifiers(id),
-	}
-
 	return
 }
 
 func decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
-	refs = make(map[string]envoyx.Ref, len(p.Blocks)/2)
+	// only block refs; the page's own ModuleID ref is added by the generated decoder
+	return toEnvoyRefs(p.Blocks.ResourceRefs())
+}
 
-	for index, b := range p.Blocks {
-		switch b.Kind {
-		case "RecordList":
-			refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(b, index))
+// toEnvoyRefs maps shared resourceref extractor output to envoy references,
+// keyed by the location of the reference within the resource
+func toEnvoyRefs(rr []resourceref.Ref) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref, len(rr))
 
-		case "Automation":
-			refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(b, index))
+	for _, r := range rr {
+		var ident any = r.Ident
+		if r.ID > 0 {
+			ident = r.ID
+		}
 
-		case "RecordOrganizer":
-			refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(b, index))
-
-		case "Chart":
-			refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(b, index))
-
-		case "Calendar":
-			refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(b, index))
-
-		case "Metric":
-			refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(b, index))
-
-		case "Comment":
-			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
-
-		case "Progress":
-			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b, index))
+		refs[r.Path] = envoyx.Ref{
+			ResourceType: r.Kind,
+			Identifiers:  envoyx.MakeIdentifiers(ident),
 		}
 	}
 
