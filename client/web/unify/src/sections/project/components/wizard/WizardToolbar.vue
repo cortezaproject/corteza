@@ -8,23 +8,25 @@
         label="Projects"
         severity="secondary"
         text
-        size="small"
         @click="$emit('back')"
       />
     </div>
 
-    <!-- Center: Previous / Next stepper -->
-    <div class="flex items-center gap-2">
+    <!-- Center: Previous / Next stepper. Equal side columns keep the counter
+         at the true center even when the button labels differ in width
+         ("Previous" vs "Next" / "Request approval"). -->
+    <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
       <Button
         icon="pi pi-chevron-left"
         label="Previous"
         severity="secondary"
         text
         size="small"
+        class="justify-self-end"
         :disabled="!canPrev"
         @click="$emit('prev')"
       />
-      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap">{{ stepIndex }} / {{ stepCount }}</span>
+      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap text-center">{{ stepIndex }} / {{ stepCount }}</span>
       <Button
         :title="nextIsGate ? 'Submit this section for approval' : undefined"
         :label="nextIsGate ? 'Request approval' : 'Next'"
@@ -33,6 +35,7 @@
         severity="secondary"
         text
         size="small"
+        class="justify-self-start"
         :disabled="!nextIsGate && !canNext"
         @click="$emit('next')"
       />
@@ -43,7 +46,7 @@
       <template v-if="showActions">
         <!-- Free mode: just save, no approval -->
         <template v-if="mode !== 'gated'">
-          <Button label="Save" icon="pi pi-save" @click="$emit('save')" />
+          <Button v-if="showSave" label="Save" icon="pi pi-save" @click="$emit('save')" />
         </template>
 
         <!-- Approved: anyone who works in governance can reopen -->
@@ -72,7 +75,7 @@
         <!-- Editable (draft / changes-requested): writers save, requesters submit -->
         <template v-else-if="status === 'draft' || status === 'changes-requested'">
           <Button
-            v-if="canWrite"
+            v-if="canWrite && showSave"
             label="Save"
             icon="pi pi-save"
             :severity="showResubmit ? 'secondary' : undefined"
@@ -111,6 +114,9 @@ const props = defineProps({
   // Whether the per-step action buttons (Save/Approve/etc.) are shown; false on
   // milestone steps, which only get the stepper.
   showActions: { type: Boolean, default: true },
+  // Whether the Save button is shown among the actions; false on steps that
+  // persist each change immediately but still carry the approval flow.
+  showSave: { type: Boolean, default: true },
   canPrev: { type: Boolean, default: false },
   canNext: { type: Boolean, default: false },
   stepIndex: { type: Number, default: 1 },

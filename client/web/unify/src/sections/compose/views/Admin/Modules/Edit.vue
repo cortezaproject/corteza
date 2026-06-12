@@ -285,7 +285,7 @@
                     <div
                       v-for="f in systemFieldsForDisplay"
                       :key="f.name"
-                      class="border border-surface rounded-border p-3 bg-highlight text-muted-color"
+                      class="border-t border-surface p-3 bg-highlight text-muted-color"
                       v-tooltip.left="$t('module.edit.systemField')"
                     >
                       <div :style="gridStyle" class="grid gap-2 items-center">

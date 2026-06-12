@@ -1,0 +1,276 @@
+<template>
+  <div class="w-full h-full flex flex-col gap-3">
+    <!-- Header: what you're looking at + refresh -->
+    <div class="shrink-0 flex items-center gap-2">
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color">Resources</h3>
+      <Button
+        icon="pi pi-refresh"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        class="ml-auto !w-7 !h-7"
+        :loading="loading"
+        title="Reload from the backend"
+        @click="reload"
+      />
+    </div>
+
+    <!-- Metric cards — the whole-system overview, one card per resource kind,
+         counted from the backend graph payload. Cards size to their label. -->
+    <div class="shrink-0 flex flex-wrap gap-2">
+      <div
+        v-for="m in metrics"
+        :key="m.kind"
+        class="rounded-lg border border-surface px-2.5 py-1.5 flex items-center gap-2 whitespace-nowrap"
+      >
+        <span
+          class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
+          :class="[m.cfg.bg, m.cfg.ring]"
+        >
+          <i :class="[m.cfg.icon, m.cfg.text, 'text-xs']" />
+        </span>
+        <span class="text-base font-semibold leading-none">{{ m.count }}</span>
+        <span class="text-xs text-muted-color leading-none">{{ m.cfg.label }}</span>
+      </div>
+    </div>
+
+    <!-- Relationship graph -->
+    <div class="flex-1 min-h-0 rounded-lg border border-surface overflow-hidden bg-emphasis relative">
+      <v-chart
+        v-if="visibleNodes.length"
+        :option="option"
+        autoresize
+        class="w-full h-full"
+        @click="onClick"
+      />
+      <div v-else class="absolute inset-0 grid place-items-center text-center px-6 text-muted-color">
+        <div>
+          <i class="pi pi-sitemap text-4xl mb-2" />
+          <p class="text-sm">
+            Resources appear here as you create them; references between them
+            are drawn from their configuration (e.g. Record fields).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { OVERVIEW_KINDS, kindConfig } from '@/sections/project/config/kinds'
+import { useProjectsStore } from '@/sections/project/stores/projects'
+import { kindIconDataUri } from '@/sections/project/utils/kindIcons'
+import { GraphChart } from 'echarts/charts'
+import { TooltipComponent } from 'echarts/components'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { useToast } from 'primevue/usetoast'
+import { computed, inject, ref, watch } from 'vue'
+import VChart from 'vue-echarts'
+
+use([CanvasRenderer, GraphChart, TooltipComponent])
+
+const props = defineProps({
+  project: { type: Object, default: null },
+  // Dimmed while the current section awaits approval.
+  locked: { type: Boolean, default: false },
+  // Narrow the graph to one resource kind (the current step's kind); the
+  // metrics strip always shows the whole-system overview. Null = everything.
+  filterKind: { type: String, default: null },
+})
+
+const store = useProjectsStore()
+const toast = useToast()
+
+// Clicking a module node opens its config dialog (provided by the wizard);
+// other kinds get their own editors as their steps land.
+const configureResource = inject('configureResource', null)
+const onClick = params => {
+  if (params.dataType !== 'node' || props.locked) return
+  if (params.data.kind === 'module') configureResource?.(params.data.id)
+}
+
+// --- Data: the backend graph is the single source of truth ------------------
+const graph = ref({ nodes: [], edges: [] })
+const loading = ref(false)
+// A reload requested mid-fetch runs once more after it — back-to-back saves
+// coalesce instead of losing the trailing refetch.
+let pending = false
+
+async function reload() {
+  if (!props.project?.id) return
+  if (loading.value) {
+    pending = true
+    return
+  }
+  loading.value = true
+  try {
+    graph.value = await store.graph(props.project.id)
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: 'Could not load resource graph',
+      detail: err.message,
+      life: 4000,
+    })
+  } finally {
+    loading.value = false
+    if (pending) {
+      pending = false
+      reload()
+    }
+  }
+}
+
+// Refetch after every persisting mutation (the store bumps graphVersion) —
+// the backend re-derives the relations from the saved state.
+watch(
+  [() => props.project?.id, () => store.graphVersion],
+  ([id]) => {
+    if (id) reload()
+    else graph.value = { nodes: [], edges: [] }
+  },
+  { immediate: true },
+)
+
+// --- Derived metrics (straight from the payload) ----------------------------
+// One card per kind across the whole system, PoC-style; kinds without
+// backend-backed steps simply count 0 until they land.
+const metrics = computed(() => {
+  const counts = {}
+  for (const n of graph.value.nodes) counts[n.kind] = (counts[n.kind] || 0) + 1
+  return OVERVIEW_KINDS.map(kind => ({ kind, cfg: kindConfig(kind), count: counts[kind] || 0 }))
+})
+
+// The graph pane narrows to the current step's kind; edges stay only between
+// visible nodes.
+const visibleNodes = computed(() =>
+  props.filterKind ? graph.value.nodes.filter(n => n.kind === props.filterKind) : graph.value.nodes,
+)
+const visibleEdges = computed(() => {
+  const ids = new Set(visibleNodes.value.map(n => n.id))
+  return graph.value.edges.filter(e => ids.has(e.source) && ids.has(e.target))
+})
+
+// --- Rendering ----------------------------------------------------------------
+
+// Human wording for the backend's edge reasons.
+const EDGE_REASONS = {
+  'module-field-ref': 'Record-field reference',
+}
+
+const nameById = computed(() => new Map(graph.value.nodes.map(n => [n.id, n.name])))
+
+const degreeMap = computed(() => {
+  const m = new Map()
+  for (const e of visibleEdges.value) {
+    m.set(e.source, (m.get(e.source) || 0) + 1)
+    m.set(e.target, (m.get(e.target) || 0) + 1)
+  }
+  return m
+})
+
+const option = computed(() => {
+  const dark = document.documentElement.classList.contains('dark')
+  const labelColor = dark ? '#cbd5e1' : '#334155'
+
+  const data = visibleNodes.value.map(n => {
+    const size = 34 + Math.min(20, (degreeMap.value.get(n.id) || 0) * 3)
+    return {
+      id: n.id,
+      name: n.name,
+      symbol: kindIconDataUri(n.kind),
+      symbolSize: [size, size],
+      symbolKeepAspect: true,
+      label: { show: true, position: 'right', fontSize: 11, color: labelColor },
+      // Carried for the tooltip only.
+      kind: n.kind,
+    }
+  })
+
+  // Fan out parallel edges so multiple references between the same pair stay visible.
+  const pairCounts = new Map()
+  const pairIndex = new Map()
+  for (const e of visibleEdges.value) {
+    const key = [e.source, e.target].sort().join('|')
+    pairCounts.set(key, (pairCounts.get(key) || 0) + 1)
+  }
+  const links = visibleEdges.value.map(e => {
+    const key = [e.source, e.target].sort().join('|')
+    const total = pairCounts.get(key) || 1
+    const i = pairIndex.get(key) || 0
+    pairIndex.set(key, i + 1)
+    return {
+      source: e.source,
+      target: e.target,
+      reason: e.reason,
+      lineStyle: {
+        color: '#94a3b8',
+        width: 1.5,
+        opacity: 0.6,
+        curveness: total === 1 ? 0.16 : -0.45 + (0.9 * (i + 0.5)) / total,
+      },
+    }
+  })
+
+  return {
+    tooltip: {
+      trigger: 'item',
+      enterable: false,
+      backgroundColor: 'transparent',
+      borderColor: 'transparent',
+      padding: 0,
+      extraCssText:
+        'background: var(--p-content-background) !important;' +
+        'color: var(--p-content-color) !important;' +
+        'border: 1px solid var(--p-content-border-color) !important;' +
+        'border-radius: 6px;' +
+        'padding: 8px 10px;' +
+        'max-width: 320px;' +
+        'box-shadow: 0 10px 24px rgba(15,23,42,0.15);',
+      formatter: params => {
+        if (params.dataType === 'node') {
+          const deg = degreeMap.value.get(params.data.id) || 0
+          const kindLabel = kindConfig(params.data.kind).label.replace(/s$/, '')
+          const lines = [
+            `<b>${params.data.name}</b>`,
+            `${kindLabel} · ${deg} ${deg === 1 ? 'reference' : 'references'}`,
+          ]
+          return lines.join('<br/>')
+        }
+        if (params.dataType === 'edge') {
+          const from = nameById.value.get(params.data.source) || params.data.source
+          const to = nameById.value.get(params.data.target) || params.data.target
+          const reason = EDGE_REASONS[params.data.reason] || params.data.reason || ''
+          return `<b>${from}</b> → <b>${to}</b>${reason ? `<br/>${reason}` : ''}`
+        }
+        return ''
+      },
+    },
+    animationDuration: 600,
+    animationEasingUpdate: 'cubicOut',
+    series: [
+      {
+        type: 'graph',
+        layout: 'force',
+        roam: true,
+        draggable: true,
+        emphasis: { focus: 'adjacency', label: { fontWeight: 'bold' } },
+        force: {
+          repulsion: 650,
+          edgeLength: [140, 240],
+          gravity: 0.05,
+          friction: 0.6,
+          layoutAnimation: true,
+        },
+        data,
+        edges: links,
+        // Record references are directed: referencing module → referenced module.
+        edgeSymbol: ['none', 'arrow'],
+        edgeSymbolSize: [0, 7],
+      },
+    ],
+  }
+})
+</script>

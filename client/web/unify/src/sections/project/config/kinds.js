@@ -102,3 +102,18 @@ export const kindConfig = kind => KIND_CONFIG[kind] || FALLBACK
 // Resource kinds in pipeline order (one per resource-collection step). Only
 // modules are backend-backed today; other kinds rejoin with their steps.
 export const RESOURCE_KINDS = STEPS.filter(s => s.type === 'resource').map(s => s.kind)
+
+// Full system overview, in the conceptual pipeline's order. The resource
+// metrics strip always shows every kind — it's an overview of the whole
+// system, not just the steps built so far.
+export const OVERVIEW_KINDS = [
+  'module',
+  'connection',
+  'automation',
+  'agent',
+  'chatbot',
+  'page',
+  'chart',
+  'role',
+  'user',
+]

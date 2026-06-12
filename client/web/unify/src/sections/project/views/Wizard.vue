@@ -18,10 +18,6 @@
           @select="goStep"
           @gate-click="onGateClick"
         />
-        <p class="shrink-0 px-3 text-xs text-muted-color leading-relaxed">
-          The pipeline grows step by step — new steps appear here as they're
-          built out.
-        </p>
       </div>
 
       <div class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden">
@@ -37,19 +33,43 @@
           </div>
         </div>
 
-        <!-- Step content -->
-        <div
-          class="flex-1 min-h-0"
-          :class="isDataModel ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
-        >
-          <template v-if="isDataModel">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <DataModelStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else>
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
-            <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
-          </template>
+        <!-- Step content + live resource panel -->
+        <div ref="splitRef" class="flex-1 min-h-0 flex">
+          <div
+            class="min-h-0"
+            :class="isDataModel ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
+            :style="{ width: leftPct + '%' }"
+          >
+            <template v-if="isDataModel">
+              <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
+              <DataModelStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
+            </template>
+            <template v-else>
+              <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
+              <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
+              <ResourceManagementStep v-else-if="isResourceMgmt" v-model="working" :disabled="locked" />
+              <MembersStep v-else-if="isMembers" :project="project" :disabled="membersLocked" />
+              <DataSensitivityStep v-else-if="isSensitivity" :project="project" :disabled="locked" />
+            </template>
+          </div>
+
+          <!-- Drag handle -->
+          <div
+            class="shrink-0 w-1.5 bg-surface-200 dark:bg-surface-700 hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
+            :class="{ '!bg-primary': resizing }"
+            @pointerdown="startResize"
+          >
+            <span class="absolute inset-y-0 -left-1 -right-1" />
+            <span class="h-8 w-0.5 rounded-full bg-surface-400 dark:bg-surface-500 group-hover:bg-primary-contrast" :class="{ '!bg-primary-contrast': resizing }" />
+          </div>
+
+          <div class="overflow-hidden p-4 min-h-0 flex-1">
+            <ResourceGraph
+              :project="project"
+              :locked="status === 'submitted'"
+              :filter-kind="stepKind"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -63,6 +83,7 @@
       :mode="project.mode"
       :reopened="isReopened"
       :show-actions="showStepActions"
+      :show-save="showStepSave"
       :can-prev="canPrev"
       :can-next="canNext"
       :step-index="stepIndex"
@@ -101,12 +122,17 @@
 
 <script setup>
 import ModuleDialog from '@/sections/project/components/datamodel/ModuleDialog.vue'
+import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
+import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
+import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
+import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { STEPS, sections, stepsForTab } from '@/sections/project/config/pipeline'
+import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
 import { useProjectsStore } from '@/sections/project/stores/projects'
@@ -175,7 +201,15 @@ const activeStep = computed(
   () => navSteps.value.find(s => s.key === activeKey.value) || STEPS.find(s => s.key === activeKey.value),
 )
 const isSummary = computed(() => activeKey.value === 'summary')
+const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
+const isMembers = computed(() => activeKey.value === 'members')
 const isDataModel = computed(() => activeKey.value === 'data-model')
+const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
+// On a resource step the graph narrows to that step's kind; form steps show
+// the whole-system overview.
+const stepKind = computed(() =>
+  activeStep.value?.type === 'resource' ? activeStep.value.kind : null,
+)
 
 // --- Module config dialog ----------------------------------------------------
 // Provided to the step components: open an existing module, or stage a new one.
@@ -193,6 +227,35 @@ watch(configOpen, open => {
   if (!open) configId.value = null
 })
 
+// --- Resizable split (step | resource graph) ---------------------------------
+const splitRef = ref(null)
+const leftPct = ref(60)
+const resizing = ref(false)
+const MIN_PCT = 25
+const MAX_PCT = 75
+
+const onResizeMove = e => {
+  const el = splitRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const pct = ((e.clientX - rect.left) / rect.width) * 100
+  leftPct.value = Math.min(MAX_PCT, Math.max(MIN_PCT, pct))
+}
+
+const stopResize = () => {
+  resizing.value = false
+  window.removeEventListener('pointermove', onResizeMove)
+  window.removeEventListener('pointerup', stopResize)
+  document.body.style.userSelect = ''
+}
+
+const startResize = () => {
+  resizing.value = true
+  document.body.style.userSelect = 'none'
+  window.addEventListener('pointermove', onResizeMove)
+  window.addEventListener('pointerup', stopResize)
+}
+
 // --- Per-step governance state --------------------------------------------
 const stepStatus = key => project.value?.governance?.[key]?.status || 'draft'
 const status = computed(() => stepStatus(activeKey.value))
@@ -204,11 +267,23 @@ const isReopened = computed(() => status.value === 'draft' && !!reviewNote.value
 const locked = computed(
   () => !canWrite.value || status.value === 'submitted' || status.value === 'approved',
 )
+// Member management is RBAC-checked (project members.manage), not the role
+// preset's write flag; the gate lock still applies once the section is sent.
+const membersLocked = computed(
+  () =>
+    !project.value?.canManageMembers ||
+    status.value === 'submitted' ||
+    status.value === 'approved',
+)
 const showStatus = computed(() => project.value?.mode === 'gated' && !!activeStep.value)
 const showToolbar = computed(() => !!activeStep.value)
-// Step-level Save/approval buttons apply to form steps; resource steps persist
-// each change immediately and only lock via their gate.
-const showStepActions = computed(() => activeStep.value?.type === 'form')
+// Step-level approval buttons apply to form, members and sensitivity steps;
+// resource steps persist each change immediately and only lock via their gate.
+// Save only makes sense on form steps (members/sensitivity persist immediately).
+const showStepActions = computed(() =>
+  ['form', 'members', 'sensitivity'].includes(activeStep.value?.type),
+)
+const showStepSave = computed(() => activeStep.value?.type === 'form')
 
 const statuses = computed(() => {
   const out = {}
@@ -276,8 +351,13 @@ function statusHint(draftText) {
 // Short per-step blurb shown in the header (so steps don't repeat it in-body).
 const STEP_BLURB = {
   summary: 'Fill in the form, then submit the section for approval at the gate.',
+  'resource-management':
+    'Declare the permitted AI providers, infrastructure and third-party connections, then save. Later steps choose from these.',
+  members: 'Assign people to project roles. Changes save as you go; the section locks at the gate.',
   'data-model':
     'Define the modules (data tables) and their fields. A Record field links one module to another. Changes save as you go.',
+  'data-sensitivity':
+    'Classify each field by its data sensitivity level. Changes save as you go; the section locks at the gate.',
 }
 const headerHint = computed(() => {
   const blurb = STEP_BLURB[activeKey.value] || ''
@@ -288,13 +368,16 @@ const headerHint = computed(() => {
 // --- Working copy of the active form step's values -------------------------
 const working = ref({})
 function loadWorking() {
-  if (!isSummary.value) {
+  const saved = project.value?.governance?.[activeKey.value]?.values || {}
+  if (isSummary.value) {
+    const vals = { ...summaryDefaults(), ...saved }
+    if (!vals.systemName) vals.systemName = project.value?.name || ''
+    working.value = vals
+  } else if (isResourceMgmt.value) {
+    working.value = resourceManagementValues(saved)
+  } else {
     working.value = {}
-    return
   }
-  const vals = { ...summaryDefaults(), ...(project.value?.governance?.summary?.values || {}) }
-  if (!vals.systemName) vals.systemName = project.value?.name || ''
-  working.value = vals
 }
 watch([activeKey, project], loadWorking, { immediate: true })
 

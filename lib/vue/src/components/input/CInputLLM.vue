@@ -7,6 +7,7 @@
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
+    :size="size"
     class="w-full"
     filter
     fluid
@@ -38,6 +39,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  size: {
+    type: String,
+    default: null,
   },
 })
 

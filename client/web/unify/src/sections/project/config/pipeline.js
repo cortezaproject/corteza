@@ -3,13 +3,16 @@
 // persistence and approval flow are fully backend-backed belong here. The full
 // conceptual pipeline lives in the PoC copy (../project-poc).
 //
-// Project Summary temporarily carries Gate 1: conceptually the gate closes
-// after Summary + Resource Management + Members, so it moves onto the Members
-// step once that lands. Free mode skips the governance steps entirely and
+// Project Members carries Gate 1, closing the section: Summary + Resource
+// Management + Members. Data Sensitivity carries Gate 2, closing the Data Model
+// + Data Sensitivity section. Free mode skips the governance steps entirely and
 // starts at the Data Model.
 export const STEPS = [
-  { key: 'summary', label: 'Project Summary', type: 'form', gatedOnly: true, gate: true },
+  { key: 'summary', label: 'Project Summary', type: 'form', gatedOnly: true, gate: false },
+  { key: 'resource-management', label: 'Resource Management', type: 'form', gatedOnly: true, gate: false },
+  { key: 'members', label: 'Project Members', type: 'members', gatedOnly: true, gate: true },
   { key: 'data-model', label: 'Data Model', type: 'resource', kind: 'module', gatedOnly: false, gate: false },
+  { key: 'data-sensitivity', label: 'Data Sensitivity', type: 'sensitivity', gatedOnly: true, gate: true },
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future

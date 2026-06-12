@@ -23,8 +23,8 @@
         <li v-for="item in QMS_ARTICLE_17" :key="item.label" class="px-5 py-4">
           <p class="text-sm leading-relaxed">{{ item.body }}</p>
           <ul v-if="item.points?.length" class="mt-2.5 flex flex-col gap-2">
-            <li v-for="(p, i) in item.points" :key="i" class="flex gap-2 text-sm text-muted-color leading-relaxed">
-              <i class="pi pi-check-circle text-xs text-primary mt-1 shrink-0" />
+            <li v-for="(p, i) in item.points" :key="i" class="flex gap-2.5 text-sm text-muted-color leading-relaxed">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary/60 mt-[0.45rem] shrink-0" />
               <span>
                 {{ pointText(p) }}
                 <a

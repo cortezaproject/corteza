@@ -9,6 +9,7 @@
           v-for="field in section.fields"
           :key="field.key"
           :label="field.label"
+          :description="field.description"
         >
           <InputText
             v-if="field.type === 'text'"

@@ -8,6 +8,7 @@
     :placeholder="placeholder"
     :disabled="disabled || !llmProviderID || llmProviderID === '0'"
     :loading="loading"
+    :size="size"
     class="w-full"
     filter
     :filter-fields="['label', 'id']"
@@ -38,6 +39,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  size: {
+    type: String,
+    default: null,
   },
 })
 

@@ -1,11 +1,13 @@
 import { sections, stepsForTab } from '@/sections/project/config/pipeline'
+import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
+import { fieldName } from '@/sections/project/utils/fields'
 import { defineStore } from 'pinia'
 import { computed, inject, ref } from 'vue'
 
 // API-backed projects store. Everything here persists on the backend; the
 // store grows alongside the pipeline, one verified step at a time. Current
-// surface: project CRUD, members (read-only, for capability resolution), the
-// per-step governance workflow, and modules (real compose modules in the
+// surface: project CRUD, members (role-preset CRUD + capability resolution),
+// the per-step governance workflow, and modules (real compose modules in the
 // project's namespace).
 export const useProjectsStore = defineStore('projects', () => {
   const $SystemAPI = inject('$SystemAPI')
@@ -16,6 +18,13 @@ export const useProjectsStore = defineStore('projects', () => {
   let loading = null
 
   const findById = computed(() => id => projects.value.find(p => p.id === String(id)))
+
+  // Bumped after every persisting mutation; the resource graph watches it and
+  // refetches, so the panel always reflects what the backend just derived.
+  const graphVersion = ref(0)
+  const touch = () => {
+    graphVersion.value++
+  }
 
   // --- payload mapping --------------------------------------------------------
 
@@ -61,12 +70,17 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // Merge a fresh backend payload into the cached project (or insert it).
+  // Always returns the reactive instance from the array (never the raw object
+  // that was pushed) so later mutations on it are seen by watchers.
   function absorb(raw) {
     const prev = projects.value.find(p => p.id === String(raw.projectID))
     const next = unmarshalProject(raw, prev || {})
-    if (prev) Object.assign(prev, next)
-    else projects.value.push(next)
-    return prev || next
+    if (prev) {
+      Object.assign(prev, next)
+      return prev
+    }
+    projects.value.push(next)
+    return projects.value[projects.value.length - 1]
   }
 
   const unmarshalMember = m => ({
@@ -81,33 +95,59 @@ export const useProjectsStore = defineStore('projects', () => {
   const localId = prefix =>
     `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 
-  // Compose field names must be handles; the human label carries the FE name.
-  const fieldName = label =>
-    (label || 'field')
-      .trim()
-      .replace(/[^a-zA-Z0-9_]+/g, '_')
-      .replace(/^([0-9])/, 'f$1')
-      .replace(/(^_+|_+$)/g, '') || 'field'
-
   // Sensitivity levels: FE works with handles, compose stores level IDs.
-  const sensitivityLevels = ref([]) // [{ id, handle }]
+  // The standard scheme (config/sensitivity.js) is real DAL sensitivity-level
+  // resources; if any are missing we create them on demand so field
+  // classification persists (see ensureStandardLevels).
+  const sensitivityLevels = ref([]) // [{ id, handle, level }]
   let sensitivityLoading = null
   async function loadSensitivityLevels() {
     if (sensitivityLevels.value.length) return
     if (sensitivityLoading) return sensitivityLoading
-    sensitivityLoading = $SystemAPI
-      .dalSensitivityLevelList({})
-      .then(({ set = [] } = {}) => {
+    sensitivityLoading = (async () => {
+      try {
+        const { set = [] } = await $SystemAPI.dalSensitivityLevelList({})
         sensitivityLevels.value = set.map(l => ({
           id: String(l.sensitivityLevelID),
           handle: l.handle,
+          level: l.level,
         }))
-      })
-      .catch(err => console.error('Failed to load sensitivity levels', err))
-      .finally(() => {
+        await ensureStandardLevels()
+      } catch (err) {
+        console.error('Failed to load sensitivity levels', err)
+      } finally {
         sensitivityLoading = null
-      })
+      }
+    })()
     return sensitivityLoading
+  }
+
+  // Create any standard levels that don't exist yet. The backend requires a
+  // non-empty meta.name and a unique `level` int (it doubles as the rank), so
+  // missing levels get appended with the next free ascending ints, in scheme
+  // order. Best-effort and per-level: creating needs the manage grant, so a
+  // failure just leaves that level absent rather than breaking the load.
+  async function ensureStandardLevels() {
+    const have = new Set(sensitivityLevels.value.map(l => l.handle))
+    const missing = SENSITIVITY_LEVELS.filter(s => !have.has(s.id))
+    if (!missing.length) return
+    let nextLevel = sensitivityLevels.value.reduce((m, l) => Math.max(m, l.level || 0), 0) + 1
+    for (const s of missing) {
+      try {
+        const raw = await $SystemAPI.dalSensitivityLevelCreate({
+          handle: s.id,
+          level: nextLevel++,
+          meta: { name: s.label, description: '' },
+        })
+        sensitivityLevels.value.push({
+          id: String(raw.sensitivityLevelID),
+          handle: raw.handle,
+          level: raw.level,
+        })
+      } catch (err) {
+        console.error(`Failed to create sensitivity level "${s.id}"`, err)
+      }
+    }
   }
   const sensitivityID = handle =>
     sensitivityLevels.value.find(l => l.handle === handle)?.id || undefined
@@ -118,17 +158,39 @@ export const useProjectsStore = defineStore('projects', () => {
     id: String(m.moduleID),
     kind: 'module',
     name: m.name || m.handle,
-    sensitivity: sensitivityHandle(m.config?.privacy?.sensitivityLevelID),
+    description: m.meta?.description || '',
+    // Modules carry no sensitivity level — only their fields are classified.
     fields: (m.fields || []).map(f => ({
       id: String(f.fieldID),
       name: f.label || f.name,
       type: f.kind,
       required: !!f.isRequired,
+      multi: !!f.isMulti,
       targetModuleId: f.kind === 'Record' ? String(f.options?.moduleID || '') || null : null,
+      labelField: f.kind === 'Record' ? f.options?.labelField || null : null,
+      // Select options arrive as [{ value, text }] (or bare strings).
+      selectOptions:
+        f.kind === 'Select'
+          ? (f.options?.options || []).map(o => (typeof o === 'string' ? o : o.value))
+          : [],
       sensitivity: sensitivityHandle(f.config?.privacy?.sensitivityLevelID),
     })),
     _raw: m,
   })
+
+  // Kind-specific field options for the compose payload.
+  const fieldOptions = f => {
+    if (f.type === 'Record' && f.targetModuleId) {
+      return {
+        moduleID: f.targetModuleId,
+        ...(f.labelField ? { labelField: f.labelField } : {}),
+      }
+    }
+    if (f.type === 'Select' && f.selectOptions?.length) {
+      return { options: f.selectOptions.map(s => ({ value: s, text: s })) }
+    }
+    return {}
+  }
 
   const marshalFields = (fields = []) =>
     fields.map((f, i) => ({
@@ -137,7 +199,8 @@ export const useProjectsStore = defineStore('projects', () => {
       kind: f.type || 'String',
       place: i,
       isRequired: !!f.required,
-      options: f.type === 'Record' && f.targetModuleId ? { moduleID: f.targetModuleId } : {},
+      isMulti: !!f.multi,
+      options: fieldOptions(f),
       config: f.sensitivity
         ? { privacy: { sensitivityLevelID: sensitivityID(f.sensitivity) } }
         : {},
@@ -151,17 +214,14 @@ export const useProjectsStore = defineStore('projects', () => {
       name: mod.name,
       handle: raw.handle,
       fields: marshalFields(mod.fields),
-      meta: raw.meta || {},
-      config: {
-        ...(raw.config || {}),
-        privacy: {
-          ...(raw.config?.privacy || {}),
-          sensitivityLevelID: mod.sensitivity ? sensitivityID(mod.sensitivity) : undefined,
-        },
-      },
+      meta: { ...(raw.meta || {}), description: mod.description || '' },
+      // Module config is passed through untouched — modules carry no
+      // sensitivity level (only fields are classified, via marshalFields).
+      config: { ...(raw.config || {}) },
       updatedAt: raw.updatedAt,
     })
     Object.assign(mod, unmarshalModule(updated))
+    touch()
   }
 
   // --- loading -----------------------------------------------------------------
@@ -235,6 +295,7 @@ export const useProjectsStore = defineStore('projects', () => {
       meta: { ...p._raw.meta, short: p.name, description: p.description },
       updatedAt: p._raw.updatedAt,
     })
+    touch()
     return absorb(raw)
   }
 
@@ -253,6 +314,44 @@ export const useProjectsStore = defineStore('projects', () => {
     if (i !== -1) projects.value.splice(i, 1)
   }
 
+  // --- members --------------------------------------------------------------
+  // Memberships are keyed by user (one record per user per project); the role
+  // is a fixed named preset and capabilities come back derived from it.
+  // Mutations are RBAC-checked server-side (project members.manage).
+
+  async function addMember(projectId, { userId, role } = {}) {
+    const p = findById.value(projectId)
+    if (!p) return
+    const raw = await $SystemAPI.projectAddMember({
+      projectID: p.id,
+      userID: userId,
+      rolePreset: role,
+    })
+    p.members.push(unmarshalMember(raw))
+    touch()
+  }
+
+  async function updateMember(projectId, userId, role) {
+    const p = findById.value(projectId)
+    if (!p) return
+    const raw = await $SystemAPI.projectUpdateMember({
+      projectID: p.id,
+      userID: userId,
+      rolePreset: role,
+    })
+    const m = p.members.find(x => x.userId === String(userId))
+    if (m) Object.assign(m, unmarshalMember(raw))
+    touch()
+  }
+
+  async function removeMember(projectId, userId) {
+    const p = findById.value(projectId)
+    if (!p) return
+    await $SystemAPI.projectRemoveMember({ projectID: p.id, userID: userId })
+    p.members = p.members.filter(m => m.userId !== String(userId))
+    touch()
+  }
+
   // --- resources (modules) -------------------------------------------------------
   // All wizard resources are real compose modules in the project namespace.
 
@@ -269,6 +368,7 @@ export const useProjectsStore = defineStore('projects', () => {
     })
     const mod = unmarshalModule(raw)
     p.resources.push(mod)
+    touch()
     return mod.id
   }
 
@@ -284,6 +384,7 @@ export const useProjectsStore = defineStore('projects', () => {
     for (const o of p.resources) {
       for (const f of o.fields || []) if (f.targetModuleId === resourceId) f.targetModuleId = null
     }
+    touch()
   }
 
   async function updateResource(projectId, resourceId, patch = {}) {
@@ -291,7 +392,7 @@ export const useProjectsStore = defineStore('projects', () => {
     const r = p?.resources?.find(x => x.id === resourceId)
     if (!r) return
     if (typeof patch.name === 'string') r.name = patch.name
-    if (typeof patch.sensitivity === 'string') r.sensitivity = patch.sensitivity
+    if (typeof patch.description === 'string') r.description = patch.description
     await pushModule(p, r)
   }
 
@@ -321,7 +422,10 @@ export const useProjectsStore = defineStore('projects', () => {
       name: f.name || '',
       type: f.type || 'String',
       required: !!f.required,
+      multi: !!f.multi,
       targetModuleId: f.type === 'Record' ? f.targetModuleId || null : null,
+      labelField: f.type === 'Record' ? f.labelField || null : null,
+      selectOptions: f.type === 'Select' ? f.selectOptions || [] : [],
       sensitivity: f.sensitivity || null,
     }))
     await pushModule(findById.value(projectId), m)
@@ -340,6 +444,7 @@ export const useProjectsStore = defineStore('projects', () => {
       values: { ...values },
     })
     absorb(raw)
+    touch()
   }
 
   // State machine (server-side): submit (draft|changes-requested → submitted),
@@ -355,6 +460,7 @@ export const useProjectsStore = defineStore('projects', () => {
       note,
     })
     absorb(raw)
+    touch()
   }
 
   // Submit a whole gate section: every editable step (draft/changes-requested)
@@ -370,15 +476,39 @@ export const useProjectsStore = defineStore('projects', () => {
     }
   }
 
+  // --- resource graph ------------------------------------------------------------
+  // The graph is composed entirely by the backend from the project's real
+  // resources (/projects/{id}/graph). This is a faithful pass-through — no
+  // client-derived nodes or edges are ever merged in.
+  async function graph(projectId) {
+    const g = await $SystemAPI.projectGraph({ projectID: projectId })
+    return {
+      nodes: (g?.nodes || []).map(n => ({
+        id: String(n.id),
+        kind: n.kind,
+        name: n.name,
+      })),
+      edges: (g?.edges || []).map(e => ({
+        source: String(e.sourceID),
+        target: String(e.targetID),
+        reason: e.reason,
+      })),
+    }
+  }
+
   return {
     projects,
     loaded,
+    graphVersion,
     load,
     fetchProject,
     findById,
     create,
     updateProject,
     removeProject,
+    addMember,
+    updateMember,
+    removeMember,
     addResource,
     removeResource,
     updateResource,
@@ -387,5 +517,6 @@ export const useProjectsStore = defineStore('projects', () => {
     saveStepForm,
     submitSection,
     transitionStep,
+    graph,
   }
 })

@@ -7,12 +7,14 @@
       {{ emptyMessage }}
     </div>
 
-    <div v-else class="flex flex-col gap-3 min-w-max">
-      <!-- Column headers -->
+    <!-- Bounded table: header bar + divided rows inside a single border. -->
+    <div v-else class="flex flex-col min-w-max rounded-border border border-surface overflow-hidden">
+      <!-- Column headers (the `cform-list-header` class is a stable hook for
+           consumers that restyle the list). -->
       <div
         v-if="hasHeaders && (items.length || $slots.footer)"
         :style="gridStyle"
-        class="grid gap-2 pt-3 px-4"
+        class="cform-list-header grid gap-2 py-2 px-3 bg-emphasis border-b border-surface"
       >
         <span v-if="draggable" class="w-10" />
         <span
@@ -21,7 +23,8 @@
           class="text-sm font-semibold text-muted-color uppercase"
           :class="col.headerClass"
         >
-          <span v-if="col.label">{{ col.label }}</span>
+          <!-- Same required marker as CFormGroup labels -->
+          <span v-if="col.label">{{ col.label }}<span v-if="col.required" class="text-red-500">*</span></span>
           <i
             v-if="col.tooltip"
             v-tooltip.top="col.tooltip"
@@ -37,7 +40,7 @@
         :key="index"
         :draggable="draggable"
         :class="[
-          'border border-surface rounded-border p-3 flex flex-col gap-2 shadow-sm hover:bg-emphasis transition-colors',
+          'border-t border-surface first:border-t-0 p-3 flex flex-col gap-2 hover:bg-emphasis transition-colors',
           draggable && dropTargetIndex === index && draggedIndex !== index
             ? '!border-t-2 !border-t-primary'
             : '',

@@ -1,5 +1,6 @@
-// Data sensitivity / classification levels. In real Corteza these are
-// configurable Sensitivity Levels; for the POC we use a standard scheme.
+// Data sensitivity / classification levels. These are the standard scheme the
+// store seeds as real DAL sensitivity-level resources when missing (see
+// ensureStandardLevels in stores/projects.js); `id` is the resource handle.
 
 export const SENSITIVITY_LEVELS = [
   { id: 'public', label: 'Public', severity: 'secondary' },
