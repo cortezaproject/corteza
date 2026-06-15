@@ -1,0 +1,197 @@
+scripts:
+  list:
+    columns:
+      name: Name
+      updatedAt: Last update
+    filter:
+      absoluteTime: Show absolute time
+      incScriptsWithErrors: Errors ({count})
+      incScriptsWithIterator: Iterator ({count})
+      incScriptsWithSecurity: Security ({count})
+      incScriptsWithTriggers: Triggers ({count})
+      searchQuery: Search query
+    flags:
+      iterator: Iterator
+      security: Security
+      triggers: Triggers
+    labelMissing: <label missing>
+    title: Corredor Scripts
+sessions:
+  editor:
+    info:
+      cancel: Cancel session
+      completedAt: Completed at
+      createdAt: Created at
+      createdBy: Created by - ID
+      createdByUserName: Created by - Name
+      delete: Delete
+      deletedAt: Deleted at
+      error: Error
+      eventType: Event type
+      id: ID
+      openWorkflow: Open workflow
+      resourceType: Resource type
+      status: Status
+      suspendedAt: Suspended at
+      title: Basic information
+      workflowID: WorkflowID
+    title: Session
+  list:
+    columns:
+      actions: ''
+      createdAt: Created At
+      eventType: Event type
+      sessionID: SessionID
+      state: State
+      status: Status
+      workflowID: WorkflowID
+    filterForm:
+      all:
+        label: All
+      canceled:
+        label: Canceled
+      completed:
+        label: Completed
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      failed:
+        label: Failed
+      inProgress:
+        label: completed sessions
+      inclusive:
+        label: Including
+      prompted:
+        label: Prompted
+      query:
+        placeholder: Filter sessions
+      sessions:
+        label: sessions
+      started:
+        label: Started
+      suspended:
+        label: Suspended
+    loading: Loading sessions
+    single: session
+    tabs:
+      taq: TAQ
+      workflow: Workflows
+    taqColumns:
+      automationID: Automation ID
+      duration: Duration
+      executionID: Execution ID
+      startedAt: Started At
+    taqStatus:
+      cancelled: Cancelled
+      completed: Completed
+      created: Created
+      failed: Failed
+      paused: Paused
+      running: Running
+    title: Sessions
+taq:
+  editor:
+    info:
+      delete: Delete
+      description: Description
+      enabled: Enabled
+      handle: Handle
+      invalidHandle: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Name
+      openBuilder: Open in Builder
+      title: Basic information
+    meta:
+      createdAt: Created at
+      id: ID
+      title: Details
+      updatedAt: Updated at
+    title:
+      create: Create TAQ
+      edit: Edit TAQ
+  list:
+    columns:
+      createdAt: Created
+      enabled: Enabled
+      handle: Handle
+      name: Name
+    filterForm:
+      deleted:
+        label: Deleted TAQs
+      disabled:
+        label: Disabled TAQs
+      excluded:
+        label: Without deleted
+      exclusive:
+        label: Only deleted
+      inclusive:
+        label: Including deleted
+      query:
+        placeholder: Filter TAQs by name
+    new: New TAQ
+    title: TAQ
+workflows:
+  editor:
+    info:
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      description: Description
+      enabled: Enabled
+      handle: Handle
+      id: ID
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Name
+      openBuilder: Open builder
+      title: Basic information
+      trace: Trace
+      traceHint: Enable trace logging for debugging
+      undelete: Undelete
+      updatedAt: Updated at
+    new: New Workflow
+    permissions: Permissions
+    title:
+      create: Create workflow
+      edit: Edit workflow
+    triggers:
+      and: and
+      columns:
+        constraints: Constraints
+        eventType: Event
+        resourceType: Resource
+      empty: No triggers configured
+      title: Triggers
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      enabled: Enabled
+      handle: Handle
+      name: Name
+      state: State
+    delete: Delete
+    export: Export
+    filterForm:
+      deleted:
+        label: Deleted workflows
+      disabled:
+        label: Disabled workflows
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter workflows list
+        placeholder: Filter workflows by name
+    loading: Loading workflows
+    new: New Workflow
+    permissions: Permissions
+    rows:
+      filters:
+        deleted: Deleted
+    title: Workflows
+    undelete: Undelete
+    yaml: YAML

@@ -1,0 +1,17 @@
+activeDraft: This is a draft - record has not yet been saved
+allDeleted: All drafts have been deleted
+applyDraft: Apply Draft to Record
+deleteAllDrafts: Delete all drafts
+deleteDraft: Delete Draft
+deleteError: Error deleting draft
+deleted: Draft has been deleted
+empty: No drafts found
+newestFirst: Newest first
+oldestFirst: Oldest first
+openRecord: Open Record
+plural: Drafts
+saveAsNewDraft: Duplicate Draft
+saved: Draft has been saved
+single: Draft
+title: Drafts
+viewRecord: View Record

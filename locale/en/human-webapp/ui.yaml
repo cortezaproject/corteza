@@ -1,0 +1,104 @@
+navGroup:
+  label: User interface
+settings:
+  editor:
+    human-studio:
+      branding:
+        title: Branding
+      colorPicker: Choose a color
+      custom-css: Custom CSS
+      iconLogo:
+        title: Icon logo
+        uploader:
+          instructions: Click or drop icon logo image here to upload
+          uploading: Uploading icon logo
+      installSassDocs: docs here
+      label:
+        default: Default
+      mainLogo:
+        title: Main logo
+        uploader:
+          instructions: Click or drop main logo here to upload
+          uploading: Uploading main logo
+      sassNotInstalled: No dart-sass binaries were detected. For guidance on how to set it up, refer to
+      tabs:
+        dark: Dark
+        general: General
+        light: Light
+      theme:
+        variables:
+          body-bg:
+            description: Background color of the application
+            label: Body background
+          danger:
+            description: Error notification color
+            label: Danger
+          primary:
+            description: Primary action buttons, links
+            label: Primary
+          sidebar-bg:
+            description: Background color of the sidebar
+            label: Sidebar background
+          success:
+            description: Success notification color
+            label: Success
+          topbar-bg:
+            description: Background color of the topbar
+            label: Topbar background
+          warning:
+            description: Warning notification color
+            label: Warning
+      title: Theming
+    location:
+      geosearch:
+        apiKey:
+          label: API Key
+          placeholder: Enter your API key
+        provider:
+          description: Select the provider to use for location search in maps
+          label: Provider
+        title: Geosearch
+      title: Location
+    navigation:
+      title: Navigation
+    theming:
+      title: Theming
+    title: User Interface Settings
+    topbar:
+      app-selector:
+        hide: Hide menu
+      drafts:
+        hide: Hide drafts
+      general: General
+      help:
+        hide: Hide help
+        hide-documentation-link: Hide documentation link
+        hide-feedback-link: Hide feedback link
+        hide-forum-link: Hide forum link
+        title: Help
+      links:
+        handle: Name
+        invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+        new-tab: New tab
+        title: Custom links
+        url: URL
+      notifications:
+        hide: Hide notifications
+      page-buttons:
+        button-description-placeholder: Optional description shown as a tooltip on the button
+        description: Buttons displayed next to the page title when the current URL contains the match pattern
+        label: Label
+        new-tab: New tab
+        title: Page buttons
+        url: URL
+        url-match: URL match
+        url-match-description: Button is shown when the page URL contains this text (e.g. /builder, /compose)
+      profile:
+        hide: Hide profile
+        hide-change-password-link: Hide change password link
+        hide-profile-link: Hide profile link
+        hide-theme-selector: Hide theme selector
+        title: Profile
+      search:
+        hide: Hide search
+      title: Topbar

@@ -10,7 +10,8 @@ export default {
       path: '/agentic',
       name: 'agentic',
       component: () => import('./views/Home.vue'),
-      meta: { section: 'agentic' },
+      // List (root) view keeps the sidebar collapsed, like the legacy app.
+      meta: { section: 'agentic', hideSidebar: true },
     },
     {
       path: '/agentic/create',
@@ -26,6 +27,4 @@ export default {
     },
   ],
   sidebar: AgenticSidebar,
-  // The list (root) view keeps the sidebar collapsed, like the legacy app.
-  sidebarDisabledRoutes: ['agentic'],
 }

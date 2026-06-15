@@ -1,0 +1,20 @@
+adminPanel: Admin panel
+chart: Charts
+charts: Charts
+editNamespace: Edit namespace
+manageNamespaces: Manage namespaces
+module: Modules
+modules: Modules
+namespaceSelector:
+  label: Namespace
+  manage: Manage
+  placeholder: Select a namespace
+  viewAll: View all
+noResults: No results
+page: Pages
+pages: Pages
+pickNamespace: Select a namespace
+publicPages: Public pages
+searchPlaceholder:
+  admin: Search resources...
+  public: Search pages...

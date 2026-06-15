@@ -1,0 +1,31 @@
+configuration: Configuration
+delay:
+  duration:
+    label: Duration
+    placeholder: e.g. "5m", "1h30m"
+description:
+  label: Description
+  placeholder: Describe what this workflow does
+edge: Edge
+general:
+  label: General
+handle:
+  invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+  label: Handle
+  placeholder: handle (a - z, 0 - 9, underscore, dash)
+labels:
+  label: Labels
+name:
+  label: Name
+  placeholder: Workflow name
+run-as:
+  description: When not explicitly set, workflow will be executed by user that invoked it
+  label: Run as
+  placeholder: User that will execute the workflow
+sub-workflow:
+  description: Subworkflows can't have enabled triggers
+  label: Subworkflow
+target: Target
+tooltip:
+  configure-step: Configure step
+  run-workflow: Run workflow

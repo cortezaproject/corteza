@@ -10,6 +10,8 @@ export const composeRoutes = [
           path: '/namespaces',
           name: 'namespace.list',
           component: () => import('./views/Namespace/List.vue'),
+          // Namespace chooser screens keep the sidebar collapsed.
+          meta: { hideSidebar: true },
         },
         {
           path: '/namespaces/manage',
@@ -19,11 +21,13 @@ export const composeRoutes = [
           path: '/namespaces/create',
           name: 'namespace.create',
           component: () => import('./views/Namespace/Edit.vue'),
+          meta: { hideSidebar: true },
         },
         {
           path: '/namespaces/edit/:slug',
           name: 'namespace.edit',
           component: () => import('./views/Namespace/Edit.vue'),
+          meta: { hideSidebar: true },
         },
         {
           path: '/namespace/:slug',

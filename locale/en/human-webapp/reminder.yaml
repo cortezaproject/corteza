@@ -1,0 +1,22 @@
+add: Add a reminder
+delete: Delete reminder
+dismiss: Dismiss
+dismissed: Dismissed
+dismissedAt: Dismissed at
+edit:
+  assigneeLabel: Assignee
+  assigneePlaceholder: Myself (default)
+  label: Edit reminder
+  notesLabel: Notes
+  notesPlaceholder: Notes
+  remindAtLabel: Remind me at
+  remindAtNone: Never
+  titleLabel: Title
+  titlePlaceholder: Title
+listLabel: Reminders
+recordPageLink: View record
+routesTo: Label for page link
+snooze:
+  count: Snooze count
+  label: Snooze
+undismiss: Undismiss

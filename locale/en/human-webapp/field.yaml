@@ -1,0 +1,322 @@
+available-items: Available fields
+constraints:
+  caseSensitive: Case sensitive
+  description: Use unique value constraints for this field
+  equal: Equal
+  fuzzyMatch: Fuzzy match
+  ignoreCase: Ignore case
+  label: Unique value constraints
+  multiValues: Multi-field values
+  none: None
+  oneOf: One of
+  soundsLike: Sounds like
+  tooltip:
+    performance: Using unique value constraints will impact performance
+  totalFieldConstraintCount: The field is used in {total} other unique value constraint. See "unique values" tab on module editor.
+  valueModifiers: Value modifiers
+defaultFieldValue: Default field value
+defaultValue: Default value
+general:
+  label:
+    zoom: Zoom
+kind:
+  bool:
+    checkedValueLabel: Value when checked
+    checkedValuePlaceholder: 'Yes'
+    label: Checkbox (Y/N)
+    toggleType: Display as switch
+    toggleTypeLabel: Checkbox Type
+    uncheckedValueLabel: Value when unchecked
+    uncheckedValuePlaceholder: 'No'
+  dateTime:
+    constraints:
+      label: Allowed values
+      options:
+        all: All values
+        futureValuesOnly: Future Values Only
+        pastValuesOnly: Past Values Only
+    label: Date and time
+    outputFormat: Output format
+    outputFormatFootnote: See {0} for formatting options
+    relative:
+      daysAgo: '{n} days ago'
+      fewSecondsAgo: a few seconds ago
+      hoursAgo: '{n} hours ago'
+      inDays: in {n} days
+      inFewSeconds: in a few seconds
+      inHours: in {n} hours
+      inMinutes: in {n} minutes
+      minutesAgo: '{n} minutes ago'
+    relativeOutput: 'Output Relative value (eg: 3 days ago, 15 minutes ago)'
+    type:
+      label: Value Type
+      options:
+        date: Date
+        dateTime: Date & Time
+        time: Time
+    warning:
+      futureValuesOnly: Only dates in the future will be saved
+      pastValuesOnly: Only dates in the past will be saved
+  email:
+    label: Email
+    preventToLink: Don't turn email into a link
+  file:
+    label: File
+    view:
+      background: Background color
+      borderRadius: Border radius
+      clickToView: Click to view file
+      colorPicker: Choose a color
+      description: 'Add unit after value to set it. For example: 50px or 50%'
+      enableDownload: Enable download
+      gallery: Gallery of images
+      grid: Grid
+      height: Height
+      list: List
+      margin: Margin
+      maxHeight: Max height
+      maxSizeLabel: Maximum file size (MB)
+      maxWidth: Max width
+      mimetypesFootnote: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
+      mimetypesLabel: File type allow list
+      modeFootnote: How files are represented in page blocks
+      modeLabel: View mode
+      previewStyle: Preview style
+      px: px
+      showName: Hide file name
+      single: Single image
+      unitType: Unit type
+      webcam:
+        enable:
+          footnote: Use the webcam to capture a picture and upload it
+          label: Enable Webcam Capture
+      width: Width
+  geometry:
+    clickToPlaceMarker: Click to place/remove a marker
+    geosearchInputPlaceholder: Enter address, place or postcode
+    hideCurrentLocationButton: Hide current location button
+    hideCurrentLocationButtonDescription: Hide the button that recenters the map on the user's location
+    hideGeoSearch: Hide location search
+    hideGeoSearchDescription: Hide the address search bar shown above the map
+    initialZoomAndPosition: Set initial map zoom and position
+    label: Location
+    latitude: Latitude
+    lockBounds: Lock bounds
+    lockBoundsDescription: Restrict panning to the current map viewport
+    longitude: Longitude
+    prefillWithCurrentLocation: Prefill with current location
+    prefillWithCurrentLocationDescription: Automatically fill new records with the user's current location
+    startingView: Starting view
+    tooltip:
+      goToCurrentLocation: Go to current location
+      openMap: Open map
+      useCurrentLocation: Use current location
+      zoomIn: Zoom in
+      zoomOut: Zoom out
+  number:
+    displayType:
+      label: Display type
+      number: Number
+      progress: Progress bar
+    exampleFormat: Format
+    exampleInput: Input
+    exampleResult: Result
+    examplesLabel: Format examples
+    formatLabel: Custom format
+    formatPlaceholder: Format
+    label: Number
+    liveExample: Live example
+    precisionLabel: Scale
+    precisionTooltip: Number of decimal places
+    prefixLabel: Prefix
+    prefixPlaceholder: Prefix
+    presetFormats:
+      description:
+        accounting: Negative numbers are transformed into positive and added in brackets and the value 0 is substituted by a dash
+        custom: ''
+      label: Format
+      options:
+        accounting: Accounting
+        custom: Custom
+    progress:
+      animated: Animated
+      maximumValue: Maximum value
+      minimumValue: Minimum value
+      show:
+        progress: Show progress
+        relative: Show relative
+        value: Show value
+      showRelative: Show relative
+      thresholds:
+        description: Set which variant to show if value is equal or larger than the threshold
+        label: Thresholds
+      variants:
+        danger: Danger
+        dark: Dark
+        default: Default variant
+        info: Info
+        light: Light
+        primary: Primary
+        secondary: Secondary
+        success: Success
+        warning: Warning
+    step:
+      description: Set the step size for the number field
+      label: Step
+    suffixLabel: Suffix
+    suffixPlaceholder: Suffix
+  record:
+    currentUnnamedModule: (Current unnamed module)
+    fieldFromModuleField: Label field from related module field
+    label: Record
+    moduleField: Label field
+    moduleLabel: Module
+    modulePlaceholder: Select a module
+    pickField: Pick field
+    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    prefilterLabel: Prefilter records
+    prefilterPlaceholder: field1 = 1 AND field2 = 232
+    queryFieldsLabel: Query fields on search
+    queryFieldsPlaceholder: If no fields are picked the Label field will be used
+    selectModuleFirst: Select a module first
+    selectNamespaceFirst: Select a namespace first
+    suggestionPlaceholder: Start typing to search for records
+    tooltip:
+      addRecord: Add a record
+      moduleField: Selecting a record field will impact performance
+    variantField: Variant field
+  select:
+    allow-duplicates: Allow duplicates
+    displayType:
+      badge: Badge
+      label: Display value as
+      text: Text
+    label: Select
+    optionAdd: Add
+    optionNotSelected: No option selected
+    optionRemove: Remove
+    optionType:
+      checkbox: Checkbox Group
+      default: Single input
+      each: Input for each value
+      label: Select type
+      multiple: Multiple select
+      radio: Radio Group
+    options:
+      label: Label
+      style:
+        backgroundColor: Background color
+        textColor: Text color
+      value: Value
+    optionsLabel: Options to select from
+    placeholder: Select an option by clicking here
+    showAsBadge: Show as badge
+  string:
+    label: String
+    multiLine: Multi line
+    richText: Use Rich Text Editor
+  url:
+    example: 'Example URL: https://example.com'
+    label: URL
+    preventToLink: Don't turn Url into a link
+    sshOnly: Only allow SSL (https) Url
+    trimHash: Trim '#' from the Url
+    trimQuestionMark: Trim '?' from the Url
+    trimToDomain: Trim Url down to domain only
+  user:
+    label: User
+    na: N/A
+    presetWithCurrentUser: Preset with current user
+    roles:
+      label: User roles
+      placeholder: Filter by user roles
+    suggestionPlaceholder: Start typing to search for users by email or name
+label:
+  multi: Multi value
+  required: Required
+no-items-found: No items found
+noPermission: No permission to read field value
+not-configurable: Cannot change settings that affect data storage
+options:
+  description:
+    label:
+      default: Description
+      edit: Description edit
+      view: Description view
+    placeholder:
+      default: Description text...
+      edit: Description when editing record field...
+      view: Description when viewing record field...
+    same: Show same description on view and edit
+  hint:
+    label:
+      default: Hint
+      edit: Hint edit
+      view: Hint view
+    placeholder:
+      default: Hint text...
+      edit: Hint when editing record field...
+      view: Hint when viewing record field...
+    same: Show same hint on view and edit
+  multiDelimiter:
+    comma: Separated by a comma
+    custom: A custom delimiter
+    customLabel: Or use a custom delimiter
+    customPlaceholder: Enter a custom delimiter
+    label: Multiple value delimiter
+    newline: Each value in a new line
+privacy:
+  sensitivity-level:
+    label: Sensitivity level
+    placeholder: Select a sensitivity level
+  usage-disclosure:
+    label: Sensitive field usage disclosure (visible on data-privacy console)
+required-field: This field is required
+sanitizers:
+  description: Trim spaces from text or do other kinds of value manipulation before validation
+  expression:
+    placeholder: trim(value)
+  label: Value sanitization
+selectAll: Select all
+selected-items: Selected fields
+selector:
+  available: Available fields
+  search: Type here to search among module fields
+  selectAll: Select all
+  selected: Selected fields
+  systemField: (system field)
+  unselectAll: Unselect all
+system:
+  ID: Record ID
+  createdAt: Created at
+  createdBy: Created by
+  deletedAt: Deleted at
+  deletedBy: Deleted by
+  id: Record ID
+  meta: Meta data
+  moduleID: Module ID
+  namespaceID: Namespace ID
+  ownedBy: Owned by
+  recordID: Record ID
+  revision: Record revision
+  updatedAt: Updated at
+  updatedBy: Updated by
+translate:
+  boolLabels: Translate labels
+  label: Translate field
+  selectOptions: Translate options
+unselectAll: Unselect all
+validators:
+  description: Set of expressions and error pairs that test validity of the input value
+  disableBuiltIn: Disable built-in validators
+  error:
+    placeholder: Text displayed when expression is true
+    tooltip: Warning text
+  expression:
+    placeholder: value == ""
+    tooltip: Expression
+  label: Value validation
+valueExpr:
+  description: Insert a formula or expression that calculates numeric values or combines and manipulates text values
+  label: Field value expression
+  placeholder: ((floor(numField1) + numField2) / 10) + 0.5

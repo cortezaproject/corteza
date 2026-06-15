@@ -1,0 +1,702 @@
+agent:
+  created: Agent created
+  deleteFailed: Failed to delete agent
+  deleted: Agent deleted
+  duplicateFailed: Failed to duplicate agent
+  duplicated: Agent duplicated
+  execFailed: Agent execution failed
+  loadFailed: Failed to load agent
+  restoreFailed: Failed to restore agent
+  restored: Agent restored
+  saveFailed: Failed to save agent
+  saved: Agent saved
+application:
+  assetsUpload:
+    error: Application assets upload failed
+  create:
+    error: Application create failed
+    success: Application created
+  delete:
+    error: Application delete failed
+    success: Application deleted
+  fetch:
+    error: Application fetch failed
+  undelete:
+    error: Application restore failed
+    success: Application restored
+  update:
+    error: Application update failed
+    success: Application updated
+authclient:
+  create:
+    error: Auth Client create failed
+    success: Auth Client created
+  delete:
+    error: Auth Client delete failed
+    success: Auth Client deleted
+  fetch:
+    error: Auth Client fetch failed
+  undelete:
+    error: Auth Client restore failed
+    success: Auth Client restored
+  update:
+    error: Auth Client update failed
+    success: Auth Client updated
+automation:
+  delete:
+    error: Failed to delete automation
+    success: Automation deleted successfully
+  scriptFailed: Could not execute automation
+chart:
+  colorScheme:
+    create:
+      failed: Failed to create color scheme
+      success: Color scheme created
+    delete:
+      failed: Failed to delete color scheme
+      success: Color scheme deleted
+    fetch:
+      failed: Failed to fetch custom color schemes
+    update:
+      failed: Failed to update color scheme
+      success: Color scheme updated
+  createFailed: Could not create a chart
+  created: Chart created
+  deleteFailed: Could not delete this chart
+  deleted: Chart deleted
+  invalidConfig:
+    missingDimensionsField: Dimensions field not defined
+    missingDimensionsModifier: Dimensions modifier not defined
+    missingDimensionsSteps: Dimensions steps are not defined
+    missingMetricsAggregate: Metrics aggregate not defined
+    missingMetricsField: Metrics field not defined
+    missingMetricsType: Metrics chart type not defined
+    missingModuleID: Module not defined
+    missingReports: Reports not defined
+  loadFailed: Could not load chart
+  optionsBuildFailed: Could not build chart options
+  unsupportedRenderer: Unsupported renderer
+  updateFailed: Could not update this chart
+  updated: Chart updated
+chatbot:
+  created: Chatbot created
+  deleteFailed: Failed to delete chatbot
+  deleted: Chatbot deleted
+  duplicateFailed: Failed to duplicate chatbot
+  duplicated: Chatbot duplicated
+  loadFailed: Failed to load chatbot
+  restoreFailed: Failed to restore chatbot
+  restored: Chatbot restored
+  saveFailed: Failed to save chatbot
+  saved: Chatbot saved
+color:
+  RGBA:
+    invalid: Invalid RGBA color format
+configure-triggers: Make sure all trigger steps are properly configured
+connection:
+  create:
+    error: Connection create failed
+    success: Connection created
+  delete:
+    error: Connection delete failed
+    success: Connection deleted
+  enable:
+    error: Connection enable failed
+    success: Connection enabled
+  fetch:
+    error: Connection fetch failed
+  read-failed: Failed to read connection
+  undelete:
+    error: Connection restore failed
+    success: Connection restored
+  update:
+    error: Connection update failed
+    success: Connection updated
+data-source:
+  create:
+    error: Data source create failed
+    success: Data source created
+  delete:
+    error: Data source delete failed
+    success: Data source deleted
+  fetch:
+    error: Data source fetch failed
+  undelete:
+    error: Data source restore failed
+    success: Data source restored
+  update:
+    error: Data source update failed
+    success: Data source updated
+delete:
+  confirm: Are you sure you want to delete this workflow?
+  failed: Failed to delete workflow
+  success: Workflow deleted
+delete-confirmation: Are you sure you want to delete this?
+error: ' - ERROR: '
+evaluate:
+  failed: Failed to evaluate expression
+event-type-fetch-failed: Failed to fetch event types
+event-type-not-found: Event type not found
+failed-fetch-functions: Failed to fetch functions
+failed-fetch-triggers: Failed to fetch triggers
+failed-fetch-workflow: Failed to fetch workflow
+failed-fetch-workflows: Failed to fetch workflows
+failed-load-file: Failed to load file
+failed-save: Save failed
+failed-test: Test failed
+federation:
+  create:
+    error: Node create failed
+    success: Node created
+  delete:
+    error: Node delete failed
+    success: Node deleted
+  email:
+    error: Failed to send email
+    success: Email sent
+  fetch:
+    error: Node fetch failed
+  handshake:
+    error: Handshake failed
+    success: Handshake complete paired
+  pair:
+    error: Failed to pair node
+    success: Node paired
+  undelete:
+    error: Node restore failed
+    success: Node restored
+  update:
+    error: Node update failed
+    success: Node updated
+  url:
+    error: Generated URL fetch failed
+fetch-types-failed: Failed to fetch types
+field:
+  missingRequired: Missing value on required field
+  unknownFieldKind: 'Error: Unknown field kind "{kind}", no viewer component found.'
+  unsupportedKind: Unsupported field kind {kind}
+field-datetime:
+  valueNotFuture: Past value on future only field
+  valueNotPast: Future value on past only field
+field-geometry:
+  geolocationErrors:
+    errorOccurred: An error occurred while getting user location
+    locationSearchFailed: Location search failed
+    notSupported: Geolocation is not supported by this browser
+    permissionDenied: User denied the request for geolocation
+    positionUnavailable: Location information is unavailable
+    timeout: The request to get user location timed out
+    unknownError: An unknown error occurred
+gateway:
+  create:
+    error: Route create failed
+    success: Route created
+  delete:
+    error: Route delete failed
+    success: Route deleted
+  fetch:
+    error: Route fetch failed
+  filter:
+    create:
+      success: Filter created
+    delete:
+      error: Filter delete failed
+      success: Filter deleted
+    fetch:
+      error: Filter fetch failed
+    save:
+      error: Filters save failed
+    update:
+      error: Filters update failed
+      success: Filters updated
+  profiler:
+    fetch:
+      error: Requests fetch failed
+    purge:
+      error: Requests purge failed
+      success: Requests purged
+  undelete:
+    error: Route restore failed
+    success: Route restored
+  update:
+    error: Route update failed
+    success: Route updated
+general:
+  composeAccessNotAllowed: Not allowed to access Compose
+  error: Error
+  import:
+    failed: Import failed
+    readingError: Error reading file
+    successful: Import successful
+    typeMissmatch: 'Import error: trying to import object of type "{type1}" into a list of objects of type "{type2}"'
+  info: Notice
+  success: Success
+  warning: Warning
+import:
+  failed-import: Failed to import
+  imported-workflows: Workflows imported
+  skipped-workflows: Skipped workflows
+import-failed: Import failed
+imported-workflow: Workflow imported
+initial-scope-load-failed: Failed to load initial scope
+label:
+  create:
+    error: Label create failed
+    success: Label created
+  delete:
+    error: Label delete failed
+    success: Label deleted
+  fetch:
+    error: Label fetch failed
+  update:
+    error: Label update failed
+    success: Label updated
+list:
+  disable:
+    failed: Failed to disable workflow
+    success: Workflow disabled
+  enable:
+    failed: Failed to enable workflow
+    success: Workflow enabled
+  load:
+    error: Failed to load resource list
+llmProvider:
+  apiKeyUpdate:
+    error: API key update failed
+    success: API key updated successfully
+  create:
+    error: LLM Provider create failed
+    success: LLM Provider created
+  delete:
+    error: LLM Provider delete failed
+    success: LLM Provider deleted
+  fetch:
+    error: LLM Provider fetch failed
+  update:
+    error: LLM Provider update failed
+    success: LLM Provider updated
+  validate:
+    error: LLM Provider validation failed
+    success: LLM Provider connection is valid
+module:
+  columns:
+    saveFailed: Could not save columns
+    saved: Columns saved
+  createFailed: Could not create module
+  created: Module created
+  deleteFailed: Could not delete this module
+  deleted: Module deleted
+  loadFailed: Could not load module
+  recordPage:
+    createFailed: Could not create module record page
+  saveFailed: Could not save this module
+  saved: Module saved
+  schemaAlterations:
+    dismiss:
+      error: Could not dismiss alteration
+      success: Alteration dismissed
+    load:
+      error: Could not fetch alterations
+    resolve:
+      error: Could not resolve alteration(s)
+      success: Alteration(s) resolved
+namespace:
+  application:
+    createFailed: Could not create namespace application
+    fetchFailed: Could not fetch namespace application
+    saveFailed: Could not save namespace application
+  assetUploadFailed: Could not upload attached assets
+  cloneFailed: Could not clone this namespace
+  cloned: Namespace cloned
+  createFailed: Could not create namespace
+  deleteFailed: Could not delete this namespace
+  deleted: Namespace deleted
+  disabled: Namespace disabled - redirecting
+  importFailed: Namespace failed to import
+  imported: Namespace imported
+  loadFailed: Could not load namespace
+  saveFailed: Could not save this namespace
+  saved: Namespace saved
+notAllowed: Not allowed to access Admin Area. Redirecting
+page:
+  block:
+    calendar:
+      eventFetchFailed: Could not fetch  list of events
+  blockWaiting: There is a page block awaiting
+  cloneFailed: Could not clone this page
+  cloneSuccess: Block has been cloned to the bottom of the page
+  copyFailed: Could not copy page block {reason}
+  copySuccess: Block has been copied successfully
+  createFailed: Could not create a page
+  created: Page created
+  deleteFailed: Could not delete this page
+  deleted: Page deleted
+  duplicateFailed: Could not duplicate block
+  iconDeleteFailed: Could not delete selected icon
+  iconDeleteSuccess: Icon deleted
+  iconFetchFailed: Could not fetch list of icons
+  invalidBlock: Not a valid page block
+  listFailed: Could not load page list
+  loadFailed: Could not load page
+  noPages: No pages found
+  notFound: Page not found
+  page-layout:
+    clone:
+      failed: Failed to clone layout
+      success: Layout cloned and selected
+    delete:
+      failed: Failed to delete layout
+      success: Layout deleted
+    listFailed: Could not load page layouts
+    notFound:
+      edit: No page layout found
+      view: No page layout found
+    save:
+      failed: Failed to save layout
+      success: Layout saved
+    saveAsCopy:
+      failed: Failed to save layout as copy
+      success: Layout saved as copy
+  pasteSuccess: Block has been pasted to the bottom of the page
+  requiredFields:
+    missing: Some required module fields are not present in any Record block
+  saveFailed: Could not save this page
+  saveFailedRequired: Could not save this page, all required module fields must be present
+  saved: Page saved
+permissions:
+  clone:
+    error: Permissions clone failed
+    notAvailable: Clone API is not available on this server version
+    success: Permissions cloned
+  fetch:
+    error: Permissions fetch failed
+  role:
+    error: Failed to add role
+  update:
+    error: Permissions update failed
+    success: Permissions updated
+queue:
+  create:
+    error: Queue create failed
+    success: Queue created
+  delete:
+    error: Queue delete failed
+    success: Queue deleted
+  fetch:
+    error: Queue fetch failed
+  undelete:
+    error: Queue restore failed
+    success: Queue restored
+  update:
+    error: Queue update failed
+    success: Queue updated
+record:
+  bulkRecordUpdateFailed: Failed to bulk update records
+  bulkRecordUpdateSuccess: Successfully updated selected records
+  countFailed: Failed to fetch number of avaiable records
+  createFailed: Could not create record
+  createSuccess: Record created
+  deleteBulkFailed: Could not delete selected records
+  deleteBulkRecordUpdateFailed: Could not update selected records
+  deleteBulkSuccess: Successfully deleted selected records
+  deleteFailed: Could not delete record
+  deleteSuccess: Record deleted
+  fieldConditions:
+    failed: Failed to evaluate record block conditional fields
+  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
+  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  listLoadFailed: Could not load record list
+  loadFailed: Could not load record
+  moduleMismatch: Module incompatible, module mismatch
+  moduleNotDefined: Record module not defined
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
+  requiredFields:
+    failed: Failed to evaluate record page layout required fields
+  restoreBulkFailed: Could not restore selected records
+  restoreBulkSuccess: Successfully restored selected records
+  restoreFailed: Could not restore record
+  restoreSuccess: Record restored
+  staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?
+  unexpectedInput: Unexpected input for values property, should be an array with name-value object pairs
+  unexpectedValue: Unexpected value for record module ({type})
+  updateFailed: Could not update record
+  updateSuccess: Record updated
+  uploadFailed: Could not upload file
+  validationErrors: 'check error messages on field(s): {fields}'
+  validationWarnings: 'Check warning messages on field(s): {fields}'
+record-list:
+  corrupted-configured-fields: Corrupted configured columns
+  corrupted-filter: Corrupted filter
+  corrupted-summaries: Corrupted summaries
+  incorrect-filter-structure: Incorrect structure of filter {filterID}
+report:
+  fetchFailed: Failed to fetch report
+  listFetchFailed: Failed to fetch reports
+  runFailed: Failed to run report
+resolve-issues: Resolve issues to test workflow
+role:
+  archive:
+    error: Role archive failed
+    success: Role archived
+  clone:
+    error: Clone failed
+    notAvailable: Clone API is not available on this server version
+    success: Clone successful
+  create:
+    error: Role create failed
+    success: Role created
+  delete:
+    error: Role delete failed
+    success: Role deleted
+  fetch:
+    error: Role fetch failed
+  members:
+    error: Role members fetch failed
+  membershipUpdate:
+    error: Membership update failed
+    success: Membership updated
+  unarchive:
+    error: Role unarchive failed
+    success: Role unarchived
+  undelete:
+    error: Role restore failed
+    success: Role restored
+  update:
+    error: Role update failed
+    success: Role updated
+save-workflow: Save workflow first to test it
+sensitivity-level:
+  fetch-failed: Failed to fetch sensitivity levels
+sensitivityLevel:
+  create:
+    error: Sensitivity level create failed
+    success: Sensitivity level created
+  delete:
+    error: Sensitivity level delete failed
+    success: Sensitivity level deleted
+  fetch:
+    error: Sensitivity level fetch failed
+    success: Sensitivity level fetched
+  undelete:
+    error: Sensitivity level restore failed
+    success: Sensitivity level restored
+  update:
+    error: Sensitivity level update failed
+    success: Sensitivity level updated
+session:
+  cancel:
+    error: Session cancel failed
+    success: Session canceled
+  fetch:
+    error: Session fetch failed
+  trigger:
+    error: Trigger fetch failed
+settings:
+  code-snippet:
+    delete:
+      error: Code snippet delete failed
+      success: Code snippet deleted, refresh the page to see the changes
+    fetch:
+      error: Code snippets fetch failed
+    update:
+      error: Code snippets update failed
+      success: Code snippets updated, refresh the page to see the changes
+  compose:
+    fetch:
+      error: Compose settings fetch failed
+    update:
+      error: Compose settings update failed
+      success: Compose settings updated
+  fetch:
+    error: Settings fetch failed
+  location:
+    fetch:
+      error: Location settings fetch failed
+    update:
+      error: Location settings update failed
+      success: Location settings updated
+  navigation:
+    fetch:
+      error: Navigation settings fetch failed
+    update:
+      error: Navigation settings update failed
+      success: Navigation settings updated
+  system:
+    apigw:
+      error: Integration gateway settings update failed
+      success: Integration gateway settings saved
+    auth:
+      error: Auth settings update failed
+      success: Auth settings updated
+    bgScreen:
+      style:
+        error: Auth background styles update failed
+        success: Auth background styles updated
+    external:
+      error: External settings update failed
+      success: External settings updated
+    fetch:
+      error: System settings fetch failed
+    smtpCheck:
+      error: SMTP configuration check failed
+      success: SMTP configuration check  passed
+  theming:
+    fetch:
+      error: Theming settings fetch failed
+    update:
+      error: Theming settings update failed
+      success: Theming settings updated
+  ui:
+    fetch:
+      error: UI settings fetch failed
+    update:
+      error: UI settings update failed
+      success: UI settings updated
+  update:
+    error: Settings update failed
+    success: Settings updated
+started-test: Workflow test started
+taq:
+  create:
+    error: TAQ create failed
+    success: TAQ created
+  delete:
+    error: TAQ delete failed
+    success: TAQ deleted
+  fetch:
+    error: TAQ fetch failed
+  update:
+    error: TAQ update failed
+    success: TAQ updated
+template:
+  create:
+    error: Template create failed
+    success: Template created
+  delete:
+    error: Template delete failed
+    success: Template deleted
+  driver:
+    error: Template render drivers fetch failed
+  fetch:
+    error: Template fetch failed
+  fetchPartials:
+    error: Partial templates fetch failed
+  preview:
+    error: Template preview fetch failed
+  undelete:
+    error: Template restore failed
+    success: Template restored
+  update:
+    error: Template update failed
+    success: Template updated
+test-completed: Test completed
+test-in-progress: Test in progress
+trace-unavailable: Trace not available
+translations:
+  loadFailed: Failed to load translations
+  saveFailed: Could not save translations
+  saved: Translations saved
+trigger-paths-changed: Trigger paths changed
+undelete:
+  failed: Failed to restore workflow
+  success: Workflow restored
+update:
+  failed: Failed to update workflow
+  success: Workflow updated
+user:
+  avatar:
+    remove:
+      error: Avatar remove failed
+      success: Avatar removed
+    upload:
+      error: Avatar upload failed
+      success: Avatar uploaded
+  avatarDelete:
+    error: Avatar delete failed
+    success: Avatar deleted
+  avatarSettings:
+    error: Avatar settings update failed
+    success: Avatar settings updated
+  avatarUpload:
+    error: Avatar upload failed
+    success: Avatar updated
+  create:
+    error: User create failed
+    success: User created
+  credentials:
+    fetch:
+      error: Credentials fetch failed
+    remove:
+      error: Credentials remove failed
+      success: Credentials removed
+  delete:
+    error: User delete failed
+    success: User deleted
+  external-auth-providers:
+    error: External auth providers fetch failed
+    success: External auth providers updated
+  fetch:
+    error: User fetch failed
+  import:
+    success: Users imported successfully
+  membershipUpdate:
+    error: Membership update failed
+    success: Membership updated
+  passwordChange:
+    error: Password change failed
+    success: Password changed
+  roles:
+    error: Role fetch failed
+  sessionsRevoke:
+    error: Session revoke failed
+    success: Sessions revoked
+  suspend:
+    error: User suspension failed
+    success: User suspended
+  undelete:
+    error: User restore failed
+    success: User restored
+  unsuspend:
+    error: User suspension failed
+    success: User unsuspended
+  update:
+    error: User update failed
+    success: User updated
+userGroup:
+  create:
+    error: User group create failed
+    success: User group created
+  delete:
+    error: User group delete failed
+    success: User group deleted
+  fetch:
+    error: User group fetch failed
+  membershipUpdate:
+    error: User group membership update failed
+    success: User group membership updated
+  roles:
+    error: User group roles fetch failed
+  undelete:
+    error: User group restore failed
+    success: User group restored
+  update:
+    error: User group update failed
+    success: User group updated
+workflow:
+  create:
+    error: Workflow create failed
+    success: Workflow created
+  delete:
+    error: Workflow delete failed
+    success: Workflow deleted
+  fetch:
+    error: Workflow fetch failed
+  trigger:
+    error: Trigger fetch failed
+  undelete:
+    error: Workflow restore failed
+    success: Workflow restored
+  update:
+    error: Workflow update failed
+    success: Workflow updated
+workflow-test-completed: Workflow test completed

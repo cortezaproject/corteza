@@ -1,0 +1,104 @@
+adminPanel: Admin panel
+agents: Agents
+appList:
+  noApps: No applications available
+  noResults: No applications found
+  search: Search...
+  title: Menu
+appMenu: Menu
+automation:
+  group: Automation
+  items:
+    permissions: Permissions
+    scripts: Corredor Scripts
+    sessions: Sessions
+    taq: TAQ
+    workflows: Workflows
+automations: Automations
+chart: Charts
+chatbots: Chatbots
+compose:
+  group: Compose
+  items:
+    automation: Automation
+    permissions: Permissions
+    settings: Settings
+configuration: Configuration
+dashboard: Dashboard
+editPage: Edit Page
+extendSession:
+  labels:
+    extend: Extend Session
+    warning: You will be logged out in { countdownTime } seconds
+federation:
+  group: Federation
+  items:
+    nodes: Nodes
+    permissions: Permissions
+help:
+  buyHuman: Buy
+  documentation: Documentation
+  feedback: Send feedback
+  forum: Help
+  manageSubscription: Manage Subscription
+  packageDetails: Package Details
+  version: 'Version:'
+home: Home
+module: Modules
+more: More
+namespace: Namespaces
+noPageTitle: No page title
+page: Pages
+publicPages: Public pages
+search:
+  clearHistory: Clear
+  label: Search
+  noResults: No results found
+  notFoundNamespace: Namespace not found
+  notFoundPage: Page not found
+  numberOfResults: '{count} records'
+  openInNewTab: Open in new tab
+  placeholder: Search for records
+  recentSearches: Recent Searches
+  recordRedirectError: Error navigating to record
+sessions: Sessions
+system:
+  group: System
+  items:
+    actionlog: Action log
+    apigw: Integration Gateway
+    applications: Applications
+    authclients: Auth Clients
+    code-snippets: Code Snippets
+    connections: Connections
+    data-sources: Data Sources
+    email: Email settings
+    labels: Labels
+    llm-providers: LLM Providers
+    permissions: Permissions
+    queues: Messaging Queues
+    roles: Roles
+    sensitivityLevel: Sensitivity Levels
+    settings: Auth Settings
+    stats: Stats
+    templates: Templates
+    usergroups: User Groups
+    users: Users
+themes:
+  labels:
+    dark: Dark
+    light: Light
+ui:
+  group: User interface
+  items:
+    location: Location
+    navigation: Navigation
+    theming: Theming
+userSettings:
+  changePassword: Change password
+  logout: Logout
+  profile: Profile
+  reminders: Reminders
+  theme: Theme
+viewPage: View Page
+workflows: Workflows

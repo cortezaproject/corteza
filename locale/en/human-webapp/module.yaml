@@ -1,0 +1,279 @@
+allRecords:
+  columns:
+    description: The columns picked won't be saved after you refresh the page
+    title: Configure columns
+  create:
+    title: Create record for module "{name}"
+  edit:
+    title: Edit record for module "{name}"
+  label: All records
+  list:
+    title: All records for module "{name}"
+  tooltip:
+    configureColumns: Selecting a large number of fields or displaying record/user fields will impact performance
+  view:
+    title: View record for module "{name}"
+block:
+  record:
+    loadFailed: Could not load record
+    recordDeleted: This record was deleted
+createLabel: New Module
+edit:
+  config:
+    dal:
+      connection:
+        description: Changing the connection will reset the sensitivity level configuration on the module and fields, if the sensitivity level is incompatible with the new connection
+        label: Database connection
+        placeholder: Select a database connection
+      connections:
+        fetch-failed: Could not fetch available connections
+      encoding-strategy:
+        ident:
+          placeholder: Field or database table column name
+        strategies:
+          alias:
+            label: Alias
+          json:
+            label: JSON
+          plain:
+            label: Column
+        unavailable: unavailable
+      ident:
+        description: 'Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {module} for module handle and {namespace} for namespace handle'
+        label: Collection or database table name
+        placeholder: compose_record
+      module-fields:
+        description: 'Configure how record fields are stored and read from the database.
+
+          Default behaviour is to encode values into JSON and store them in a single field.
+
+          Alternatively you can use columns with the same name as the field name (Column)
+
+          or use an Alias and store the value directly in the column.
+
+          '
+        label: Module field mapping and encoding
+      system-fields:
+        description: 'System fields are used to store metadata about the record.
+
+          Configure to skip or store them into a column with the same name (Column),
+
+          a different column (Alias) or encode them into JSON.
+
+          '
+        grouptypes:
+          all: All
+          extras: Extras
+          partition: Partition
+          timestamps: Timestamps
+          userReference: User reference
+        label: System field mapping and encoding
+      title: Data store
+    privacy:
+      sensitivity-level:
+        description: Highest allowed level of sensitivity for fields on this module, changing this value will reset the sensitivity level of fields if they are incompatible.
+        label: Highest allowed sensitivity level
+        placeholder: Select a sensitivity level
+      sensitivity-levels:
+        fetch-failed: Could not fetch sensitivity levels
+      title: Privacy
+      usage-disclosure:
+        label: Sensitive data usage disclosure (visible on data-privacy console)
+    record-revisions:
+      enabled: Enable record revisions
+      ident:
+        description: 'Name of the database table or collection where revisions records can be accessed and stored. Supports partitioning placeholders: {module} for module handle and {namespace} for namespace handle'
+        label: Identifier
+        placeholder: compose_record_revisions
+      title: Record Revisions
+    uniqueValues:
+      add: Add
+      addNewConstraint: Add new constraint
+      caseSensitive: Case sensitive
+      duplicationDetection: Duplication detection
+      equal: Equal
+      field: Field
+      fuzzyMatch: Fuzzy match
+      ignoreCase: Ignore case
+      multiValues: Multi-field values
+      none: None
+      oneOf: One of
+      preventRecordsSave: Prevent record saving if duplicate values are found
+      searchFields: Add field(s) to constraint
+      soundsLike: Sounds like
+      title: Unique values
+      tooltip:
+        performance: Using duplication detection will impact performance
+      type: Type
+      uniqueValueConstraint: 'Unique value constraint #{index}'
+      valueModifiers: Value modifiers
+      warningLabel: Warning or error message toast when constraint matches
+      warningMessage: Warning or error message toast when constraint matches
+    validation:
+      record-duplication:
+        non-strict-fields:
+          description: Record will be saved and user will be presented with a warning when a duplicate value is detected in the selected fields in any existing record of this module
+          label: Soft duplicate value validation
+        strict-fields:
+          description: Record will not be saved when a duplicate value is detected in the selected fields in any existing record of this module
+          label: Strict duplicate value validation
+        title: Record duplication detection
+      title: Validation
+  create: Create module
+  createRecord: Create record
+  deleteConfirm: Are you sure you want to delete this module? This action cannot be undone.
+  discoverySettings:
+    description: Selected fields will be exposed via the Discovery API if the user has correct permissions.
+    placeholder: Select a field
+    private: Private
+    protected: Protected
+    public: Public
+    title: Discovery settings
+  edit: Edit module
+  federationSettings:
+    downstream:
+      allFields: All Fields
+      description: 'Match federated fields with existing ones:'
+      title: Map
+    error:
+      fetch:
+        data: Error fetching server data
+        exposed: Error fetching exposed module info
+        mmap: Error fetching module mapping info
+        node: Error fetching nodes info
+        shared: Error fetching shared module info
+      persist:
+        exposed: Error persisting exposed module info
+        mmap: Error persisting module mapping info
+        shared: Error persisting shared module info
+    general:
+      receive: Receive new records from another organization (downstream)
+      send: Send new records to the federated network (upstream)
+      title: General
+    noNodes: No federated servers available
+    noPermission: No permission to manage exposed module
+    pickModule: Pick a federated module
+    pickModuleField: Pick a module field
+    pickServer: Pick a federated server
+    specificTitle: Federation Settings ({handle})
+    title: Federation Settings
+    upstream:
+      allFields: All Fields
+      copyFrom: Copy settings from
+      description: Select the fields you want to share with the selected network
+      title: Expose
+  fieldPermissions: Field permissions
+  fields:
+    columns:
+      multi:
+        label: Multi
+      name:
+        label: Name
+      required:
+        label: Required
+      title:
+        label: Title
+      type:
+        label: Type
+    deleteConfirm: Are you sure you want to remove this field?
+    duplicateName: Duplicate field name
+    empty: No fields yet. Click "Add new field" to add one.
+    label: Fields
+  issues:
+    label: Issues ({count})
+    noIssues: No configuration issues detected
+    tab: Issues
+    title: Configuration Issues
+  manageRecordFields: Manage record fields
+  moduleFieldSettings: Module field settings
+  moduleInfo: Module info
+  newField: Add new field
+  recordPermissions: Record permissions
+  reorderFields: Reorder fields
+  schemaAlterations:
+    columns:
+      alteration: Alteration
+      change: Change
+      status: Status
+    confirmDismiss: Are you sure you want to dismiss this schema alteration?
+    confirmResolve: Are you sure you want to apply this schema alteration?
+    dismiss: Dismiss
+    noAlterations: No schema alterations need to be resolved
+    notification:
+      dismiss:
+        error: Failed to dismiss schema alteration
+        success: Schema alteration dismissed successfully
+      load:
+        error: Failed to load schema alterations
+      resolve:
+        error: Failed to resolve schema alteration
+        success: Schema alteration resolved successfully
+    params:
+      attribute:
+        add: Add column {ident} encoded as {storeType} of type {attrType}
+        delete: Delete column {ident} encoded as {storeType}
+        reEncode: Changing encoding of column {ident} to {toType}
+        reType: Changing type of column {ident} to {toType}
+      model:
+        add: Add schema for model {ident}
+        delete: Delete schema for model {ident}
+    resolve: Resolve
+    resolveAuto: Resolve automatically
+    resolved: Resolved
+    title: Schema alterations
+    unknownType: Unknown alteration type
+    waitingFor: Waiting for {id}
+  specificFieldSettings: Field settings ({name})
+  steps:
+    recordList: Page with record list
+    recordPage: Record page
+  systemField: System field (read-only)
+  systemFields: System fields
+  tooltip:
+    attributes: Select if the field can hold multiple values, if it's required field or if contains sensitive data
+    name: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dashes. Must end with letter or number.
+    private: Sensitive data
+    required: Required field
+    title: The name displayed in form input / data lists
+federated: Federated
+fieldPermissions: Field Permissions
+forModule:
+  recordPage: '{name} - Record Page'
+general:
+  fields: Module fields
+  label:
+    attributes: Attributes
+    handle: Handle
+    name: Module Name
+    permissions: Permissions
+    saveAndClose: Save and close
+    title: Title
+    type: Type
+  placeholder:
+    handle: Unique identifier (a - z, 0 - 9, underscore, dash)
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+    name: Name (e.g. "Leads")
+    sample: Sample
+import: Module import
+list:
+  columns:
+    changedAt: Last change
+    handle: Handle
+    name: Name
+  delete: Delete
+navigation:
+  module: Modules
+noModule: No modules
+noModuleFilter: No module matches your search
+recordListPage:
+  create: Create record list page
+  edit: Edit record list page
+recordPage:
+  create: Create record page
+  edit: Edit record page
+recordPermissions: Record Permissions
+related-pages: Related Pages
+searchPlaceholder: Search modules in this namespace
+title: List of Modules
+tooltip:
+  permissions: Module permissions

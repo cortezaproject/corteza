@@ -1,0 +1,286 @@
+colorLabel: '{count} colors'
+colorScheme:
+  custom:
+    add: Add color scheme
+    edit: Edit color scheme
+    modal:
+      colors:
+        label: Colors
+      name:
+        label: Name
+  label: Color scheme
+  pickAColor: Pick a color
+  placeholder: Pick a color scheme
+configure:
+  reportsLabel: Reports
+createLabel: New Chart
+edit:
+  additionalConfig:
+    legend:
+      align:
+        center: Center
+        label: Align
+        left: Left
+        right: Right
+      label: Legend
+      options:
+        label: Options
+      orientation:
+        horizontal: Horizontal
+        label: Orientation
+        vertical: Vertical
+      position:
+        bottom: Bottom
+        customize: Default position
+        left: Left
+        right: Right
+        top: Top
+      scrollable: Scrollable
+      show: Show legend
+      valueRange: Values can be set as pixels 20 or as percentages 20%
+    offset:
+      default: Default offset
+      label: Offset
+      position:
+        bottom: Bottom
+        left: Left
+        right: Right
+        top: Top
+      valueRange: Values can be set as pixels 20 or as percentages 20%
+    tooltip:
+      formatting:
+        description: '{a} - metrics label, {b} - dimension value, {c} - metric value, {d} - metric value percentage'
+        disclaimer: Adding a value to the formatting field will disable the fields number format, prefix, and suffix and vice versa
+        label: Custom formatting
+        placeholder: '{a}<br />{b} : {c} ({d}%)'
+      label: Tooltip
+      labelNextToChart: Show labels next to chart
+  animation:
+    enabled: Animation enabled
+    label: Animation
+  dimension:
+    calculateLabelCount: Calculate how many labels can be shown
+    defaultValueFootnote: Use this value for missing dimension values
+    defaultValueLabel: Default value
+    fieldLabel: Field
+    fieldPlaceholder: Select a dimension field
+    function:
+      auto: Auto
+      date: Date
+      label: Function
+      month: Month
+      none: No grouping
+      placeholder: Select dimension modifier (bucket size)
+      quarter: Quarter
+      week: Week
+      year: Year
+    gaugeSteps: Steps
+    label: Dimensions
+    options:
+      label: Options
+    optionsPicker:
+      availableItems: Available options
+      noItemsFound: No options found
+      searchPlaceholder: Type here to search among select options
+      selectAllItems: Select all
+      selectedItems: Selected options
+      unselectAllItems: Unselect all
+    rotate:
+      description: Labels can be rotated from -90 to 90 degrees.
+      label: Rotate labels
+    skipMissingValues: Skip missing values
+    timeLabels: Time labels
+  filter:
+    customize: Customize filter
+    footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    label: Filter
+    noFilter: Select a filter
+    placeholder: field1 = 1 AND field2 = 232
+    preset: Preset filters
+    recordsCreatedLastMonth: Records created last month
+    recordsCreatedLastQuarter: Records created last quarter
+    recordsCreatedLastYear: Records created last year
+    recordsCreatedThisMonth: Records created this month
+    recordsCreatedThisQuarter: Records created this quarter
+    recordsCreatedThisYear: Records created this year
+  formatting:
+    format:
+      label: Format
+      placeholder: '0.00'
+    prefix:
+      label: Prefix
+      placeholder: '#'
+    presetFormats:
+      description:
+        accounting: Negative numbers are transformed into positive and added in brackets and the value 0 is substituted by a dash
+        custom: ''
+      label: Format
+      options:
+        accounting: Accounting number
+        custom: Custom
+    suffix:
+      label: Suffix
+      placeholder: $
+  loadData: Load data
+  metric:
+    add: Add metric
+    angle:
+      end: End angle
+      start: Start angle
+    cumulative: Cumulative
+    fieldLabel: Field
+    fieldPlaceholder: Select metric field
+    fillArea: Fill area below the line
+    fixTooltips: Always show labels
+    function:
+      avg: AVG
+      label: Function
+      max: MAX
+      min: MIN
+      placeholder: Select metric aggregate function
+      std: STD
+      sum: SUM
+    fx:
+      description: n - current dataset value, m - previous dataset value
+      label: Post processing function
+    gaugeColor: Color
+    label: Metric
+    labelColor: Label color
+    labelLabel: Label
+    labelPlaceholder: Total
+    legend:
+      bottom: Bottom
+      left: Left
+      positionPlaceholder: Legend position
+      right: Right
+      top: Top
+    lineStyle:
+      default: Default
+      label: Line style
+      smooth: Smooth
+      step: Step
+    lineTension:
+      curvy: Big curvatures
+      label: Line tension
+      medium: Medium curvatures
+      placeholder: Line tension
+      slight: Small curvatures
+      straight: Straight lines
+    options:
+      label: Options
+    output:
+      bar: Bar
+      doughnut: Doughnut
+      label: Chart type
+      line: Line
+      pie: Pie
+      placeholder: Select metric output
+      scatter: Scatter
+    radar:
+      shape:
+        circle: Circle
+        label: Radar shape
+        polygon: Polygon
+    relative: Show relative value
+    relativePrecision: 'Precision:'
+    rose: Rose
+    stack:
+      description: Metrics with same value will be stacked
+      label: Stack
+    symbol:
+      arrow: Arrow
+      circle: Circle
+      diamond: Diamond
+      label: Symbol
+      pin: Pin
+      rect: Rectangle
+      roundRect: Rounded Rectangle
+      triangle: Triangle
+    title: Metrics
+  module:
+    label: Module
+    placeholder: Pick a module
+    title: Data Source
+  title: Chart builder
+  toolbox:
+    label: Tools
+    saveAsImage:
+      label: Show "Save as Image" button
+    timeline:
+      label: Timeline
+      options:
+        none: None
+        x: X-Axis
+        xy: Both
+        y: Y-Axis
+  unconfiguredReport: Unconfigured report
+  yAxis:
+    axisOnRight: Place axis on the right side
+    axisScaleFromZero: Always begin axis scale at zero
+    horizontal:
+      label: Horizontal
+    label: Y-axis
+    labelLabel: Axis label
+    labelPosition:
+      bottom: End
+      center: Center
+      label: Label position
+      top: Start
+    logarithmicScale: Logarithmic scale
+    maxLabel: Max value
+    maxPlaceholder: Maximum value
+    minLabel: Min value
+    minPlaceholder: Minimum value
+    options:
+      label: Options
+    rotate:
+      description: Labels can be rotated from -90 to 90 degrees
+      label: Rotate labels
+filter:
+  modal:
+    filterPreview:
+      label: Filter preview
+    liveFilter:
+      label: Live filter
+      placeholder: Select a predefined filter
+    options:
+      and: Combine with AND
+      label: Combine option
+      or: Combine with OR
+      overwrite: Overwrite original filter
+    originalFilter:
+      label: Original filter
+    title: Chart filter
+general:
+  label:
+    add: Add
+    count: Count
+    permissions: Permissions
+    title: Label
+  placeholder:
+    handle: Unique identifier (a - z, 0 - 9, underscore, dash)
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+    name: Name (e.g. "Sales by month")
+  value: Value
+generalSettings: General settings
+handle: Handle
+import: 'Import chart(s):'
+list:
+  columns:
+    changedAt: Last change
+    handle: Handle
+    name: Name
+  delete: Delete this chart?
+name: Chart name
+navigation:
+  chart: Charts
+newLabel: 'Create a new chart:'
+notification:
+  deleteFailed: Could not delete this chart
+  deleted: Chart deleted
+  loadFailed: Could not load chart
+  saveFailed: Could not save this chart
+  saved: Chart saved
+searchPlaceholder: Search charts in this namespace
+title: List of Charts
+undefined: undefined

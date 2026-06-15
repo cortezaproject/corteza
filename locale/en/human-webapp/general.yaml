@@ -1,0 +1,331 @@
+appDisabled:
+  backToHome: Back to Home
+  message: Please contact your system administrator for more information.
+  title: Application Disabled
+cancel: Cancel
+clear: Clear
+columns:
+  changedAt: Last change
+  enabled: Enabled
+  name: Name
+  steps: Steps
+confirm:
+  delete: Are you sure you want to delete this resource?
+deleted: Deleted
+description: Description
+disable: Disable
+disabled: Disabled
+edit-workflow: Edit Workflow
+editor:
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
+enable: Enable
+enabled: Enabled
+error: Error
+error-expression: Error message (expression)
+export: Export
+extendSession:
+  labels:
+    extend: Extend Session
+    warning: You will be logged out in { countdownTime } seconds
+field:
+  kind:
+    user:
+      suggestionPlaceholder: Start typing to search for users by email or name
+  selectAll: Select all
+  tooltip:
+    permissions: Field permissions
+  unselectAll: Unselect all
+fieldKinds:
+  Bool:
+    label: Checkbox (Y/N)
+  DateTime:
+    label: Date and time
+  Email:
+    label: Email input
+  File:
+    label: File upload
+  Geometry:
+    label: Location
+  Number:
+    label: Number input
+  Record:
+    label: Record selector
+  Select:
+    label: Select / dropdown
+  String:
+    label: Text input (string)
+  Url:
+    label: URL input
+  User:
+    label: User selector
+filter:
+  apply: Apply Filter
+  label: Filter
+  module:
+    label: Module
+    placeholder: Select module(s)
+    template: '{namespace} - Modules'
+  namespace:
+    label: Namespace
+    placeholder: Select namespace(s)
+  title: Filter Workflows
+general: General
+handle: Handle
+import:
+  json: Import JSON
+  label: Import
+  no-workflows-in-file: No workflows found in this file.
+  reassign-run-as: 'NOTE: the Run as workflow property won''t be imported and should be reassigned'
+  upload-files: Browse or drop files to upload...
+including: Including
+label:
+  actions: Actions
+  active: Active
+  add: Add
+  add-with-plus: + Add
+  addAll: Add all
+  addNew: Add new
+  addValue: Add new value
+  all: All
+  any: Any
+  app-name:
+    chart:
+      create: Create Chart
+      edit: Edit Chart - {label}
+      list: Charts - {label}
+    module:
+      create: Create Module
+      edit: Edit Module - {label}
+      list: Modules - {label}
+    namespace:
+      create: Create Namespace
+      edit: Edit Namespace - {label}
+      list: Namespaces
+      view: Namespace
+    page:
+      builder: PageBuilder - {label}
+      edit: Edit Page - {label}
+      list: Pages - {label}
+      record: Record - {label}
+  application:
+    plural: Applications
+    single: Application
+  apply: Apply
+  ascending: Ascending
+  attachmentFileInfo: '(File size: {0}, uploaded {1})'
+  attributes: Attributes
+  auth-client:
+    plural: Auth Clients
+    single: Auth Client
+  back: Back
+  backWithoutSave: Back (without saving changes)
+  block: Block
+  browse: Browse
+  buttons: Buttons
+  cancel: Cancel
+  chart:
+    plural: Charts
+    single: Chart
+  clear: Clear
+  clone: Clone
+  close: Close
+  connection:
+    plural: Connections
+    single: Connection
+  copied: Copied
+  copy: Copy
+  create: Create
+  createRecordFromDraft: Create Record from Draft
+  data-source:
+    plural: Data Sources
+    single: Data Source
+  default: Default
+  delete: Delete
+  descending: Descending
+  description: Description
+  details: Details
+  disabled: Disabled
+  discard: Discard
+  dismiss: Dismiss
+  download: Download
+  dropFiles: Click or drop files here to upload
+  edit: Edit
+  enabled: Enabled
+  examples: Examples
+  experimental: Experimental
+  export: Export
+  field: Field
+  fileTypeNotAllowed: File type not allowed
+  general: General
+  handle: Handle
+  here: here
+  home: Home
+  hours: hours
+  import: Import
+  importPlaceholder: Upload files to import
+  label: Label
+  loadMore: Load more
+  loadOlder: Load older
+  loading: Loading...
+  makeDefault: Make default
+  module:
+    plural: Modules
+    single: Module
+  moduleName: Module name
+  multi: Multi
+  name: Name
+  namespace:
+    plural: Namespaces
+    single: Namespace
+  newRecord: New Record
+  next: Next
+  'no': 'No'
+  noHandle: No handle
+  noResults: No results found
+  none: None
+  now: Now
+  ok: Ok
+  openMap: Open Map
+  or: Or
+  page:
+    plural: Pages
+    single: Page
+  pageBuilder: Page builder
+  pageLayout: Page layout
+  permissions: Permissions
+  plus-add: + Add
+  privacy: Privacy
+  private: Private
+  processing: Processing...
+  queue:
+    plural: Messaging Queues
+    single: Messaging Queue
+  record: Record
+  recordPage: Record page
+  refresh: Refresh
+  remove: Remove
+  removeAll: Remove all
+  removeDefault: Remove default
+  requests: Requests
+  required: Required
+  reset: Reset
+  resolve: Resolve
+  restore: Restore
+  role:
+    plural: Roles
+    single: Role
+  route:
+    plural: Routes
+    single: Route
+  routes: Routes
+  save: Save
+  saveAndClose: Save and close
+  saveAs: Save as
+  saveAsCopy: Save as copy
+  search: Search
+  seconds: seconds
+  selectOption: Select an option
+  sensitive: Sensitive
+  sensitivity-level:
+    plural: Sensitivity Levels
+    single: Sensitivity Level
+  session:
+    plural: Sessions
+    single: Session
+  status: Status
+  submit: Submit
+  template:
+    plural: Templates
+    single: Template
+  timeHour: '{t}h'
+  timeMinute: '{t}min'
+  title: Title
+  today: Today
+  type: Type
+  undelete: Undelete
+  unsavedChanges: Unsaved Changes
+  updatedAt: Updated at
+  uploading: Uploading
+  urlPlaceholder: https://example.tld
+  user:
+    plural: Users
+    single: User
+  user-group:
+    plural: User Groups
+    single: User Group
+  validation: Validation
+  view: View
+  workflow:
+    plural: Workflows
+    single: Workflow
+  'yes': 'Yes'
+loading: Loading
+name: Name
+navigation:
+  chart: Charts
+  module: Modules
+  namespace: Namespaces
+  page: Pages
+  pageLayout: Page Layouts
+new-workflow: New Workflow
+none: None
+notFound: Not found
+notification:
+  formErrors: Please review and correct the highlighted errors.
+now: Now
+offset: Offset
+offset-expression: Offset (expression)
+only: Only
+permissions: Permissions
+placeholder:
+  handle: handle (a - z, 0 - 9, underscore, dash)
+  sample: Sample
+recordNavigation:
+  next: Next record
+  prev: Previous record
+reset: Reset
+resourceList:
+  noItems: No items to show
+  notFound: Not found
+  pagination:
+    next: Next
+    prev: Previous
+    recordsPerPage: Per Page
+    showing: '{from} - {to} of {count} {data}'
+    single: No {data} | One {data} | {count} {data}
+save: Save
+searchPlaceholder: Search workflows
+subworkflow: Subworkflow
+subworkflows: Subworkflows
+themes:
+  labels:
+    dark: Dark
+    light: Light
+today: Today
+tooltip:
+  dragAndDrop: Drag and drop to change order
+  permissions: Workflow permissions
+undelete: Undelete
+variants:
+  danger: Danger
+  dark: Dark
+  info: Info
+  light: Light
+  primary: Primary
+  secondary: Secondary
+  success: Success
+  warning: Warning
+webcam:
+  buttons:
+    cancel: Cancel
+    capture: Capture photo
+    confirm: Upload photo
+  errors:
+    camera: Unable to access the camera. Please make sure you have granted camera permissions.
+  title: Webcam
+  tooltip: Open webcam to capture photo
+without: Without
+workflow:
+  plural: Workflows
+  single: Workflow
+workflow-list: List of Workflows

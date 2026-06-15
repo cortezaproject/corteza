@@ -204,8 +204,9 @@ const isMobile = ref(window.innerWidth < 1024)
 
 const sidebarDisabled = computed(() => {
   if (!hasSidebar.value) return true
-  const disabled = activeSection.value?.sidebarDisabledRoutes || []
-  return disabled.includes(route.name?.toString() || '')
+  // Routes opt out of the sidebar via `meta: { hideSidebar: true }` (refactor-
+  // safe — the flag travels with the route, so renames can't silently break it).
+  return !!route.meta.hideSidebar
 })
 
 const contentMargin = computed(() =>
@@ -261,7 +262,9 @@ onMounted(async () => {
     namespaceStore.load(),
     usersStore.load({ limit: 500 }),
   ])
-  const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
+  // Brief splash floor so the logo doesn't flash-and-vanish on fast loads,
+  // without forcing a long wait when data is ready sooner.
+  const delayPromise = new Promise(resolve => setTimeout(resolve, 1000))
 
   Promise.all([fetchPromise, delayPromise]).finally(() => {
     loading.value = false
@@ -274,30 +277,14 @@ onMounted(async () => {
       // Re-broadcast every realtime message so active sections can react to
       // their own types (e.g. compose handles 'reminder').
       $eventBus?.emit('realtime', msg)
+      // Notification.* types are owned by the notifications store.
+      if (notificationsStore.handleRealtime(msg)) return
       switch (msg['@type']) {
         case 'workflowSessionPrompt':
           workflowPromptsStore.newPrompt(msg['@value'], currentWebapp.value)
           break
         case 'workflowSessionResumed':
           workflowPromptsStore.clear(msg['@value'])
-          break
-        case 'notification':
-          notificationsStore.addNotification(msg['@value'])
-          break
-        case 'notification.read':
-          notificationsStore.updateReadNotification(msg['@value'])
-          break
-        case 'notification.unread':
-          notificationsStore.updateUnreadNotification(msg['@value'])
-          break
-        case 'notification.read.all':
-          notificationsStore.updateAllReadNotifications(msg['@value'])
-          break
-        case 'notification.unread.all':
-          notificationsStore.updateAllUnreadNotifications(msg['@value'])
-          break
-        case 'notification.delete':
-          notificationsStore.removeNotification(msg['@value'])
           break
       }
     },

@@ -1,0 +1,1499 @@
+actionlog:
+  list:
+    columns:
+      action: Action
+      actor: User
+      description: Description
+      requestOrigin: Origin
+      resource: Resource
+      severity: Severity
+      timestamp: Timestamp
+    details:
+      action: Action
+      actor: User
+      actorID: User ID
+      actorIPAddr: Actor/User
+      description: Description
+      error: Error
+      header: Details
+      headerAdditional: Additional information
+      id: ID
+      meta: Meta
+      requestID: Request ID
+      requestOrigin: Request Origin
+      resource: Resource
+      severity: Severity
+      timestamp: Timestamp
+    filter:
+      action: Action
+      actor: User
+      choose-date: Choose a date
+      from: Starting from
+      no-time: No time selected
+      origin: Origin
+      resource: Resource
+      search: Search
+      to: Ending at
+      today: Today
+    loadOlder: Load older actions
+    loading: Loading actions
+    severity:
+      alert: Alert
+      critical: Critical
+      debug: Debug
+      emergency: Emergency
+      error: Error
+      info: Info
+      notice: Notice
+      warning: Warning
+    title: Action log
+apigw:
+  editor:
+    delete: Delete
+    filters:
+      add: Add
+      addFilter: Add filter
+      addHeader: Add header
+      create: New Filter
+      disabled: Disabled
+      edit: Edit Filter
+      enabled: Enabled
+      filterListEmpty: Filter list is empty!
+      help:
+        expression:
+          example: Example == "match string" && match(SecondParam, "^foo\\s.*$")
+          link: Documentation
+      httpStatus:
+        '300': 300 - Multiple Choices
+        '301': 301 - Moved Permanently
+        '302': 302 - Found
+        '303': 303 - See Other
+        '304': 304 - Not Modified
+        '307': 307 - Temporary Redirect
+        '308': 308 - Permanent Redirect
+        none: No Status
+      kind: Kind
+      labels:
+        expr: Expression
+        header: Headers
+        input: Input
+        jsfunc: Function
+        location: URL
+        name: Name
+        status: HTTP Status
+        value: Value
+        workflow: Workflow
+      list:
+        actions: Actions
+        active: Active
+        filters: Filters
+        noFilters: No filters
+        remove: Remove
+        status: Status
+      modal:
+        ok: Save & Close
+        title: Query parameters verifier
+      noParams: This filter has no configurable parameters.
+      params: Params
+      placeholders:
+        workflow: Select a workflow
+      resourcePlural: filters
+      resourceSingle: filter
+      searchPlaceholder: Search filters
+      step_title:
+        postfilter: Postfiltering
+        prefilter: Prefiltering
+        processer: Processing
+      title: Filter list
+      weight: Weight
+    info:
+      async: Async
+      asyncDescription: Acknowledge incoming requests immediately and process them in the background.
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      description: Description
+      enabled: Enabled
+      enabledDescription: When disabled, this route will not respond to incoming requests.
+      endpoint: Endpoint
+      group: Group
+      id: ID
+      method: Method
+      title: Basic information
+      tooltip: Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"
+      undelete: Undelete
+      updatedAt: Updated at
+      validation:
+        invalidCharacters: Endpoint contains invalid characters
+        minLength: Endpoint must contain at least one character
+        slash: Endpoint must begin with a slash "/"
+    new: New Route
+    permissions: Permissions
+    profiler: Profiler
+    tabs:
+      filters: Filters
+      route: Route
+    title:
+      create: New Route
+      edit: Edit route
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      enabled: Enabled
+      endpoint: Endpoint
+      group: Group
+      method: Method
+      state: State
+    delete: Delete
+    export: Export
+    filterForm:
+      deleted:
+        label: Deleted routes
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      handle:
+        placeholder: Filter endpoints by path
+      inclusive:
+        label: Including
+      query:
+        label: Filter route list
+        placeholder: Filter routes by name
+    loading: Loading routes
+    new: New Route
+    permissions: Permissions
+    profiler: Profiler
+    rows:
+      filters:
+        deleted: Deleted
+    title: Routes
+    undelete: Undelete
+    yaml: YAML
+  profiler:
+    columns:
+      actions: ''
+      content_length: Content Length
+      count: Count
+      http_method: Method
+      http_status_code: Status Code
+      path: Route
+      sizeAvg: Size (avg)
+      sizeMax: Size (max)
+      sizeMin: Size (min)
+      size_avg: Size (avg)
+      size_max: Size (max)
+      size_min: Size (min)
+      timeAvg: Time (avg)
+      timeMax: Time (max)
+      timeMin: Time (min)
+      time_avg: Time (avg)
+      time_duration: Duration
+      time_finish: Finish time
+      time_max: Time (max)
+      time_min: Time (min)
+      time_start: Start time
+    description:
+      globalDisabled: Showing only registered routes with profiler prefilter
+      globalEnabled: Showing routes for all incoming requests
+    hit:
+      body:
+        label: Body
+      columns:
+        hitID: Hit ID
+        status: Status
+        time: Time
+      general:
+        URL: Request URL
+        duration: Duration
+        end: End
+        headers: Request Headers
+        id: Request ID
+        label: General
+        method: Request Method
+        openRoute: Open Route
+        remoteAddress: Remote Address
+        route: Request Route
+        start: Start
+        statusCode: Status Code
+      headers:
+        label: Headers
+      request: Request
+      response: Response
+      title: Request Details
+    label: Profiler
+    purge:
+      all: Purge requests for all routes
+      this: Purge requests for this route
+    purgeAll: Purge all
+    refreshingIn: Refreshing in {seconds}s
+    title: Integration Gateway Profiler
+  settings:
+    profiler:
+      enabled: Enabled
+      global: Enabled globally
+      label: Profiler
+    proxy:
+      follow: Follow redirects
+      label: Proxy
+    title: Settings
+  title: Integration Gateway
+applications:
+  editor:
+    info:
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      enabled: Enabled
+      enabledDescription: When disabled, users cannot access this application and it will not appear in the app selector
+      id: ID
+      name: Name
+      title: Basic information
+      undelete: Undelete
+      updatedAt: Updated at
+      weight: Weight
+    new: New Application
+    permissions: Permissions
+    title:
+      create: Create application
+      edit: Edit application
+    unify:
+      config:
+        description: Application configuration (JSON)
+        label: Configuration
+      listed: Listed
+      listedDescription: When listed, this application will be visible in the app selector for users to access
+      logo:
+        description: Logo used in the application selector
+        label: Logo
+        placeholder: Choose a logo or drop it here...
+        reset: Reset
+      name:
+        description: Name used in the application selector
+        label: Name
+      pinned: Pinned
+      title: App selector
+      url:
+        description: Application URL
+        label: URL
+  list:
+    columns:
+      actions: ''
+      appListName: App selector name
+      createdAt: Created
+      enabled: Enabled
+      name: Name
+      state: State
+    delete: Delete
+    export: Export
+    filterForm:
+      deleted:
+        label: Deleted applications
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter applications list
+        placeholder: Filter applications by name
+    loading: Loading applications
+    new: New Application
+    permissions: Permissions
+    rows:
+      filters:
+        deleted: Deleted
+    title: Applications
+    undelete: Undelete
+    yaml: YAML
+authclients:
+  editor:
+    info:
+      accessToken: Access token
+      add: Add
+      addRedirectURI: Add redirect URI
+      api: Allow client access to Human API on behalf of user
+      cUrl: Example cURL
+      choose-date: Choose a date
+      createdAt: Created at
+      createdBy: Created by
+      curl: cURL
+      delete: Delete
+      deletedAt: Deleted at
+      discovery: Allow client access to Discovery API on behalf of user
+      enabled:
+        description: When disabled, the client cannot be used to authenticate users
+        disabledFootnote: Unable to disable the default client
+        label: Enabled
+      expiresAt: Expires at
+      expiresAtDescription: If not defined the client has no expiration date
+      generateAccessToken: Test generate token
+      grant:
+        authorization_code: Will be used to authenticate users (grant type = authorization_code)
+        client_credentials: Will be used to authenticate machines (grant type = client_credentials)
+        password: Will be used to authenticate users (grant type = password)
+      handle:
+        disabledFootnote: Unable to change the handle of the default auth client
+        invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+        label: Handle
+        placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+      name: Name
+      no-time: No time selected
+      openid: Allow client to use OIDC and verify the user's identity
+      profile: Allow client access to user's profile
+      redirectURI: Redirect URI's
+      redirectURIPlaceholder: https://...
+      regenerateSecret: Regenerate secret
+      remove: Remove
+      scope: Scope
+      secret: Secret
+      security:
+        defaultUserGroup:
+          label: Default user group for new users
+          placeholder: Select user group
+        forcedRoles:
+          description: Roles from this list will be always added to security context when user authorizes this client
+          label: Forced roles
+        impersonateUser:
+          description: When authenticating with client credentials, act in the name of the impersonated user
+          label: Impersonate user
+          placeholder: Select user
+        noRoles: No roles assigned
+        permittedRoles:
+          description: Only roles in this list will be added into security context when user authorizes this client
+          label: Permitted roles
+        prohibitedRoles:
+          description: Roles from this list will be removed from security context when user authorizes this client
+          label: Prohibited roles
+        selectRole: Select role
+        userGroup:
+          label: User group
+          placeholder: Select user group
+      title: Basic information
+      tooltip:
+        copy-access-token: Copy access token
+        copy-cURL: Copy cURL
+        hide-client-secret: Hide client secret
+        regenerate-secret: Regenerate secret
+        reset-value: Reset value
+        show-client-secret: Show client secret
+      trusted:
+        description: When client is trusted users do not see authorization step
+        label: Trusted
+      undelete: Undelete
+      unnamed: Unnamed role
+      updatedAt: Updated at
+      uri: URI
+      validFrom: Valid from
+      validFromDescription: If not defined the client is valid until expiration
+      validGrant: Valid grant type
+    new: New Auth Client
+    permissions: Permissions
+    tabs:
+      basic: Basic Information
+      developer: Developer
+      security: Security
+    title:
+      create: Create client
+      edit: Edit client
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      enabled: Enabled
+      handle: Handle
+      meta:
+        name: Name
+      state: State
+      validGrant: Grant type
+    delete: Delete
+    filterForm:
+      deleted:
+        label: Deleted clients
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter clients list
+        placeholder: Filter clients
+    loading: Loading clients
+    new: New Auth Client
+    permissions: Permissions
+    rows:
+      filters:
+        deleted: Deleted
+    title: Auth Clients
+    undelete: Undelete
+    yaml: YAML
+code-snippets:
+  editor:
+    code-snippets:
+      add: Add Code Snippet
+      empty: No snippets yet
+      enabled: Enabled
+      form:
+        code:
+          description: Add external script or code snippet. The script must include a valid <script> tag to function.
+          label: Code
+        name:
+          label: Name
+        title: Add Code Snippet
+      new: New Code Snippet
+      table-headers:
+        enabled: Enabled
+        name: Name
+        script: Code
+    title: Code Snippets
+configuredConnections:
+  editor:
+    check: Check Connection
+    checkResult:
+      auth: Authentication
+      connectivity: Connectivity
+      error: Failed to check connection
+      probe: Probe
+      success: All checks passed
+    enable: Enable
+    info:
+      config: Configuration
+      labels: Labels
+      name: Name
+      status: Status
+    title:
+      create: Connection
+      edit: Connection
+  list:
+    columns:
+      labels: Labels
+      name: Name
+      status: Status
+      updatedAt: Changed at
+    createLabel: New Configured Connection
+    deleteConfirm: Are you sure you want to delete this configured connection?
+    resourcePlural: configured connections
+    resourceSingle: configured connection
+    searchPlaceholder: Filter configured connections by name
+    title: Configured Connections
+connections:
+  configurePage:
+    noConfigured: No configured connections yet.
+    title: Configure connection
+  editor:
+    configuration: Configuration
+    configurations:
+      invalidJSON: Invalid JSON
+      operations: Operations
+      resources: Resources
+      standardOperations: Standard Operations
+      title: Advanced Configurations
+    configuredTab: Configured Connections
+    createdAt: Created at
+    delete: Delete
+    deleteConfirm: Are you sure you want to delete this connection?
+    deletedAt: Deleted at
+    enable: Enable
+    enableConfirm:
+      accept: Enable
+      header: Enable connection?
+      message: Enabling marks this connection as Active so it can be used to create configured instances. This is one-way — once enabled, the connection is locked and can no longer be edited. Make sure the definition is correct before proceeding.
+    general: General
+    info:
+      description: Description
+      handle: Handle
+      invalid-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Name
+      placeholder-handle: simplified_connection_name
+      status: Status
+      title: Basic settings
+    manageConfigured: Manage configured connections
+    service:
+      authMethod: Authentication Method
+      baseURL: Base URL
+      contentType: Content Type
+      protocol: Protocol
+      title: Service Configuration
+    statusValues:
+      active: Active
+      draft: Draft
+      error: Error
+      inactive: Inactive
+      pending: Pending
+    title:
+      create: New connection
+      edit: Edit connection
+    undelete: Undelete
+    updatedAt: Updated at
+  list:
+    columns:
+      name: Name
+      source: Source
+      status: Status
+    createCustom: Create custom connection
+    createLabel: New Connection
+    deleteConfirm: Are you sure you want to delete this connection?
+    filterForm:
+      deleted:
+        label: Deleted connections
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+    resourcePlural: connections
+    resourceSingle: connection
+    searchPlaceholder: Filter connections by handle or name
+    sourceValues:
+      catalog: Library
+      local: Custom
+    title: Connections
+data-sources:
+  editor:
+    basic:
+      form:
+        handle:
+          invalid-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+          label: Handle
+          placeholder: simplified_data_source_name
+        location-geometry:
+          description: Coordinates of the location where the data is stored
+          label: Location coordinates
+        location-name:
+          description: Name of the city, country, continent, etc.
+          label: Location name
+          placeholder: Name of the location where the data is stored
+        name:
+          description: ''
+          label: Name
+          placeholder: Data lake
+        ownership:
+          description: Name of the company or person who owns the data
+          label: Ownership
+          placeholder: ACME ltd.
+        sensitivity-level:
+          description: Highest allowed level of sensitivity for the data stored (as set on fields of the module that uses this connection)
+          label: Highest allowed sensitivity level
+          placeholder: Select a sensitivity level
+      title: Basic settings
+    dal:
+      connectivity-issues: Data source issues
+      form:
+        model-ident:
+          description: 'Identifier can contain placeholders like {{module}} (replaced with module handle) and/or {{namespace}} (replace with namespace handle).
+
+            When set it is used as a default for modules without configure ident.
+
+            '
+          label: Default table or container name
+          placeholder: compose_record
+        params:
+          description: 'Data source parameters, e.g.: {"dsn": "postgres://user:pass@host:port/dbname"}'
+          label: Data source parameters
+          placeholder: postgres://user:pass@host:port/dbname
+        type:
+          description: Type of the data source and parameter, e.g. corteza::dal:connection:dsn
+          label: Data source and parameter type
+          placeholder: corteza::dal:connection:dsn
+      no-access-warning: No permissions to manage data access layer configuration and data source parameters for this data source
+      title: Data access layer configuration and data source parameters
+    delete: Delete
+    privacy:
+      sensitivityLevelID:
+        hint: Select the highest allowed sensitivity level for this data source
+    properties:
+      form:
+        data-at-rest-encryption:
+          checkbox:
+            description: Declare that stored data on this data source is encrypted on disk (e.g. full-disk encryption, tablespace or volume-level encryption). Documentation only — does not enable encryption.
+            label: Data at rest is encrypted
+          notes:
+            description: Internal notes on data-at-rest encryption (disk encryption)
+            label: Notes on encryption
+        data-at-rest-protection:
+          checkbox:
+            description: Declare that the underlying storage is physically and operationally protected (locked facility, restricted access, hardened hosting environment). Documentation only.
+            label: Storage is physically protected
+          notes:
+            description: Internal notes on data-at-rest protection (physical protection)
+            label: Notes on data at rest protection
+        data-at-transit-encryption:
+          checkbox:
+            description: Declare that connections to this data source are encrypted in transit (e.g. TLS/SSL on the wire between clients and the database). Documentation only — does not enable TLS.
+            label: Data in transit is encrypted
+          notes:
+            description: Internal notes on data-at-transit encryption (network encryption)
+            label: Notes on data at transit encryption (network encryption)
+        data-restoration:
+          checkbox:
+            description: Declare that backups of this data source are taken regularly and that a tested restore procedure exists. Documentation only — does not schedule backups.
+            label: Backups and restore are in place
+          notes:
+            description: Internal notes on data-restoration
+            label: Notes on data restoration
+      intro: Informational only. These toggles and notes record what is set up on the underlying data source for documentation and audit purposes — they do not change how Human accesses or stores the data.
+      title: Documented data protection controls
+    tabs:
+      basic: Basic Settings
+      dal-config: DAL Configuration
+      privacy: Privacy
+    title:
+      create: New data source
+      edit: Edit data source
+  list:
+    add-button: New Data Source
+    columns:
+      actions: ''
+      createdAt: Created
+      handle: Handle
+      location: Location
+      name: Name
+      ownership: Ownership
+      type: Type
+    delete: Delete
+    filterForm:
+      deleted:
+        label: Deleted Data Sources
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        placeholder: Filter data sources by name
+    loading: Loading Data Sources
+    title: Data Sources
+    undelete: Undelete
+  primary:
+    handle: Handle
+    location: Location
+    name: Name
+    ownership: Ownership
+    sensitivity-level: Sensitivity level
+    title: Primary data source
+email:
+  editor:
+    server:
+      from:
+        description: Default sender address (FROM header) used when sending emails.
+        label: Sender address
+      host:
+        description: Server name and port. Ports are usually 25 (insecure), 465 or 587 (secure).
+        label: Server
+      password:
+        description: Optional, authentication credentials for your email server.
+        label: Password
+      testSmtpConfigs:
+        button: Test SMTP Server
+      title: SMTP Server
+      tlsInsecure:
+        description: Suppress error if the system can not verify the TLS certificate used by SMTP server.
+        label: Allow use of invalid certificates
+      tlsServerName:
+        description: Optional, If SMTP server uses a different value than used for the server name.
+        label: TLS Server name
+      user:
+        description: Optional, authentication credentials for your email server.
+        label: User
+    title: Email settings
+labels:
+  create:
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+    namePlaceholder: Enter label name...
+  editor:
+    agents:
+      columns:
+        name: Name
+      create: New Agent
+      createDialog: Create Agent
+      empty: No agents with this label
+      nameLabel: Name
+      namePlaceholder: Agent name...
+      title: Agents
+    automations:
+      columns:
+        enabled: Status
+        name: Name
+      create: New Automation
+      createDialog: Create Automation
+      empty: No automations with this label
+      nameLabel: Name
+      namePlaceholder: Automation name...
+      title: TAQ Automations
+    info:
+      name: Label Name
+      title: Label Information
+    namespaces:
+      columns:
+        enabled: Status
+        name: Name
+      create: New Namespace
+      createDialog: Create Namespace
+      empty: No namespaces with this label
+      nameLabel: Name
+      namePlaceholder: Namespace name...
+      slugLabel: Slug
+      slugPlaceholder: slug
+      title: Namespaces
+    openNewTab: Open in new tab
+    title: Label Details
+    toast:
+      createError: Failed to create resource
+      created: Resource created successfully
+      deleteError: Failed to delete resource
+      deleted: Resource deleted successfully
+  list:
+    columns:
+      name: Name
+      resources: Resources
+    createLabel: New Label
+    filterForm:
+      query:
+        placeholder: Filter labels by name
+    resourceSingle: label
+    title: Labels
+llmProviders:
+  editor:
+    config:
+      maxTokens: Max Tokens
+      maxTokensHelp: Maximum number of tokens to generate per request
+      model: Default Model
+      modelHelp: Default model to use when not specified by the agent
+      promptURL: Prompt URL
+      promptURLHelp: Base URL for the provider's API endpoint
+      temperature: Temperature
+      temperatureHelp: Controls randomness. Lower values produce more focused outputs
+      timeout: Timeout
+      timeoutHelp: Maximum time to wait for a response (e.g. 30s, 1m)
+    info:
+      apiKey: API Key
+      delete: Delete
+      description: Description
+      handle: Handle
+      handle.invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      provider: Provider
+      providerOther: Other (Custom URL)
+      short: Name
+      status: Status
+      statusOptions:
+        active: Active
+        inactive: Inactive
+        unauthorized: Unauthorized
+      updateKey: Update API Key
+    tabs:
+      basic: Basic Information
+      config: Default Configuration
+    title:
+      create: New LLM Provider
+      edit: Edit LLM Provider
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      handle: Handle
+      meta:
+        short: Name
+      provider: Provider
+      status: Status
+    filterForm:
+      deleted:
+        label: Deleted providers
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        placeholder: Filter LLM providers
+    new: New LLM Provider
+    title: LLM Providers
+queues:
+  editor:
+    delete: Delete
+    info:
+      consumer: Consumer
+      consumerOptions:
+        eventbus: Event Bus
+        human: Human
+        redis: Redis
+        store: Store
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      dispatchTimeout: Dispatch timeout
+      handler: Handler
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Queue name
+      poll_delay: Polling changes delay
+      poll_delay_empty: 'Poll delay will not be used; to enable, use duration format (ie: 1h / 1m15s / 1h90s)'
+      poll_delay_invalid: Invalid duration format. Use Go duration format (e.g. 1h, 5m, 30s, 1h30m)
+      poll_delay_set: Poll delay will be used; if empty, it will not be used.
+      title: Basic information
+      undelete: Undelete
+      updatedAt: Updated at
+    new: New Queue
+    title:
+      create: Add a queue
+      edit: Edit queue
+      new: Add a queue
+  list:
+    columns:
+      actions: ''
+      consumer: Consumer
+      createdAt: Created At
+      createdBy: Created by
+      queue: Queue
+      state: State
+    delete: Delete
+    export: Export
+    filterForm:
+      deleted:
+        label: Deleted queues
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      handle:
+        label: Filter queues list
+        placeholder: Filter queues by name
+      inclusive:
+        label: Including
+    loading: Loading messaging queues
+    new: New Queue
+    rows:
+      filters:
+        deleted: Deleted
+    title: Messaging queues
+    undelete: Undelete
+roles:
+  editor:
+    clone:
+      button: Clone
+      description: This will clone all the permissions of the current role and apply them to the selected role.
+      placeholder: Select role
+      selected: Selected role
+      title: Clone permissions
+    info:
+      archive: Archive
+      archiveConfirm: Are you sure you want to archive this role?
+      archivedAt: Archived at
+      context:
+        description: Contextual roles grant permissions only when the runtime expression matches the selected resource types, instead of being assigned to specific members.
+        expression-label: Expression
+        label: Contextual role
+        resource-types-label: Resource type
+        title: Context
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      description: Description
+      handle: Handle
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Role name
+      placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+      title: Basic information
+      unarchive: Unarchive
+      unarchiveConfirm: Are you sure you want to unarchive this role?
+      undelete: Undelete
+      updatedAt: Updated at
+    members:
+      empty: No members in this role
+      placeholder: Search and add users...
+      remove: Remove member
+      title: Role members
+    new: New Role
+    permissions: Permissions
+    title:
+      create: Create role
+      edit: Edit role
+  list:
+    archive: Archive
+    columns:
+      actions: ''
+      createdAt: Created
+      enabled: Enabled
+      handle: Handle
+      name: Name
+      state: State
+    delete: Delete
+    filterForm:
+      archived:
+        label: Archived roles
+      deleted:
+        label: Deleted roles
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter roles list
+        placeholder: Filter roles by name
+    loading: Loading roles
+    new: New Role
+    permissions: Permissions
+    rows:
+      filters:
+        archived: Archived
+        deleted: Deleted
+    title: Roles
+    unarchive: Unarchive
+    undelete: Undelete
+    yaml: YAML
+sensitivityLevel:
+  editor:
+    info:
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      description: Description
+      handle:
+        invalid-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+        label: Handle
+        placeholder: handle (a - z, 0 - 9, underscore, dash)
+      level:
+        hint: Higher values indicate more sensitive data
+        label: Level {level}
+      name: Name
+      title: Basic Information
+      undelete: Undelete
+      updatedAt: Updated at
+    new: New Sensitivity Level
+    title:
+      create: Create sensitivity level
+      edit: Edit sensitivity level
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      handle: Handle
+      level: Level
+      meta.name: Name
+      name: Name
+      state: State
+    delete: Delete
+    filterForm:
+      deleted:
+        label: Deleted sensitivity levels
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        placeholder: Filter sensitivity levels by name
+    loading: Loading sensitivity levels
+    new: New Sensitivity Level
+    rows:
+      filters:
+        deleted: Deleted
+    title: Sensitivity Levels
+    undelete: Undelete
+settings:
+  editor:
+    auth:
+      auto-logout:
+        enabled:
+          description: Automatically log out users after a certain period of inactivity
+          label: Enabled
+        timeout:
+          description: The period of inactivity in seconds before a user is logged out
+          label: Timeout
+        title: Auto logout
+      internal:
+        enabled: Internal authentication enabled
+        password-constraints:
+          ignored-security: The system is configured to ignore password security constraints which are insecure on production deployments. If this is a production deployment, please contact your administrator to update the system configuration (the AUTH_PASSWORD_SECURITY .env variable).
+          min-length: Minimum length
+          min-length-description: Must be at least 8 characters
+          min-lower-case-description: The password must include the specified number of lower case characters (disabled if set to 0)
+          min-lower-case-length: Minimum number of lower case characters
+          min-num-count: Minimum number of digits
+          min-num-count-description: The password must include the specified number of digits (disabled if set to 0)
+          min-special-count: Minimum number of special characters
+          min-special-count-description: The password must include the specified number of special characters (disabled if set to 0)
+          min-upper-case-description: The password must include the specified number of upper case characters (disabled if set to 0)
+          min-upper-case-length: Minimum number of upper case characters
+          title: Password constraints
+        password-reset:
+          enabled: Password reset enabled
+        profile-avatar:
+          enabled: Profile avatar enabled
+        send-user-invite-email:
+          description: When enabled, this configuration sends an invite email to a newly created user via the CLI
+          enabled: Send invite email on user creation
+          expires:
+            description: How long will the invite token be valid before it expires
+            label: Valid for
+          title: Invite email
+        signup:
+          email-confirmation-required: Signup email confirmation required
+          enabled: Signup enabled
+          split-credentials-check:
+            description: 'Split login into two steps: collect the email input first and show the input for the password on the 2nd screen. Automatically forward user to external identity provider when user does not have his password set and there is only one IdP present'
+            label: Enable split-credentials check
+        title: Internal
+      mail:
+        from-address: Sender's address
+        from-name: Sender's name
+        title: Authentication email sender mail
+        validate-email: Please enter valid email address
+      mfa:
+        TOTP:
+          enabled: Enable TOTP (time-based one-time password via mobile app)
+          enforced: Require all users to use TOTP
+          issuer:
+            description: Issuer name will be sent to authenticator app when user configures it
+            label: Issuer
+        emailOTP:
+          enabled: Enable email OTP (one-time password sent to email)
+          enforced: Require all users to use email OTP
+          expires:
+            description: How long will password be valid before it expires
+            label: Valid for
+        title: Multi-factor authentication
+      title: Authentication
+      url: URL
+    bgScreen:
+      image:
+        editor:
+          label: Custom CSS
+        uploader:
+          label: Background image
+      title: Auth background screen
+    discovery:
+      description: Enable Discovery API so indexed resources can be searched
+      enabled: Enable discovery
+      resources:
+        automation-workflows: Automation workflows
+        compose-charts: Compose charts
+        compose-modules: Compose modules
+        compose-namespaces: Compose namespaces
+        compose-pages: Compose pages
+        compose-records: Compose records
+        label: Indexable resources
+        system-applications: System applications
+        system-roles: System roles
+        system-templates: System templates
+        system-users: System users
+      title: Discovery
+    external:
+      enabled: Enable external authentication
+      oidc:
+        add: Add an OIDC provider
+        clientKey: Client key
+        clientSecret: Secret
+        enabled: Enabled
+        handle: Handle
+        issuer: OIDC Issuer URL
+        issuerHint: Where to find the /.well-known/openid-configuration (without the /.well-known/openid-configuration part)
+        scope: Scope
+        scopeHint: Use space delimited string
+        scopePlaceholder: List out supported OAuth scope values
+        title: OpenID Connect
+      saml:
+        cert:
+          private: Private key
+          public: Public key
+        certificate: Certificate
+        desc:
+          cert:
+            private: Content will be minimized
+            public: Content will be minimized
+          idp:
+            ident-handle: Name of the IdP field used for filling user handle or nickname
+            ident-identifier: Name of the IdP field used for filling and matching user email
+            ident-name: Name of the IdP field used for filling user full name
+            url: Location of IdP metadata
+          name: IdP name used on the login screen (Login with <name>)
+          requests:
+            binding: The type of HTTP binding to use on AuthNRequest, defaults to HTTP Redirect (GET)
+            sign-method: Method to use on signed requests
+            sign-requests: Sign AuthNRequest and assertion
+        enabled: Enabled
+        idp:
+          ident-handle: Handle field
+          ident-identifier: Identifier field
+          ident-name: Name field
+          title: Identity provider
+          url: URL
+        name: Name
+        requests:
+          binding: Binding
+          binding-post: HTTP POST
+          binding-redirect: HTTP Redirect
+          sign-method: Signature method
+          sign-requests: Sign requests
+          title: Requests
+        title: SAML
+      security:
+        forced-roles:
+          description: Roles from this list will be always added to security context when authenticates with this provider
+          label: Forced roles
+        permitted-roles:
+          description: Only roles in this list will be added into security context when authenticates with this provider
+          label: Permitted roles
+        prohibited-roles:
+          description: Roles from this list will be removed from security context when authenticates with this provider
+          label: Prohibited roles
+        title: Security
+      standard:
+        apiAccess: Api access
+        clientKey: Client key
+        clientSecret: Secret
+        enabled: Enabled
+      table:
+        header:
+          enabled: Enabled
+          info: Issuer, client ID
+          provider: Provider
+      title: External Authentication Providers
+    federation:
+      description: Enable federation nodes and sharing resources with other instances
+      enabled: Enable federation
+      title: Federation
+    title: System settings
+templates:
+  editor:
+    content:
+      editor:
+        unsupported: Unsupported editor
+      partial: Partial template
+      preview:
+        description: Configure preview variables and options (JSON). Variables are passed to the template, options control render settings.
+        error: Failed to render preview.
+        html: Preview HTML
+        invalidJSON: Preview data contains invalid JSON.
+        noDrivers: No render drivers available on the server.
+        partialNotice: Partial templates cannot be previewed directly. They must be included in another template.
+        pdf: Preview PDF
+        saveFirst: Please save the template before previewing.
+        title: Preview output
+      title: Template content
+      toolbox:
+        copied: Copied to clipboard
+        noPartials: No partial templates found.
+        partials: Partials
+        samples:
+          defaultHTML: Default HTML
+          label: Samples
+        snippets:
+          funcCall: Call a function
+          interpolate: Interpolate value
+          iterator: Iterate over a set
+          label: Snippets
+        title: Toolbox
+    info:
+      contentType:
+        text_html: HTML
+        text_pdf: PDF
+        text_plain: Plain text
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      handle: Handle
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      language: Language
+      meta:
+        description: Description
+        short: Short name
+      partial: Partial template
+      partialDescription: Partial templates may be used inside other templates such as headers and footers. Partial templates may not be used on their own.
+      placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+      title: Basic information
+      type: Template type
+      undelete: Undelete
+      updatedAt: Updated at
+    new: New Template
+    permissions: Permissions
+    tabs:
+      basic: Basic Information
+      content: Content
+      preview: Preview
+    title:
+      create: Create template
+      edit: Edit template
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      handle: Handle
+      language: Language
+      meta:
+        short: Short name
+      state: State
+      type: Template type
+    delete: Delete
+    export: Export
+    filterForm:
+      deleted:
+        label: Deleted templates
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      handle:
+        label: Filter templates list
+        placeholder: Filter templates by handle
+      inclusive:
+        label: Including
+    loading: Loading templates
+    new: New Template
+    permissions: Permissions
+    rows:
+      filters:
+        deleted: Deleted
+    title: Templates
+    undelete: Undelete
+    yaml: YAML
+user-groups:
+  editor:
+    info:
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deletedAt: Deleted at
+      handle: Handle
+      id: ID
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      meta:
+        description: Description
+        short: Name
+      parents:
+        empty: No parent user groups yet.
+        name:
+          label: Relationship name
+          placeholder: Enter name for the relationship
+        parent:
+          label: Parent user group
+          placeholder: Select parent user group
+        title: This user group reports to
+      placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+      title: Basic information
+      undelete: Undelete
+      updatedAt: Updated at
+    members:
+      addError: Failed to add member
+      empty: No members assigned to this user group yet.
+      fetchError: Failed to load members
+      placeholder: Select a user to add
+      removeError: Failed to remove member
+      title: User Group Members
+    new: New User Group
+    permissions: Permissions
+    roles:
+      add: Add
+      addError: Failed to add role
+      count: roles
+      empty: No roles assigned to this user group yet.
+      fetchError: Failed to load roles
+      placeholder: Select a role to add
+      remove: Remove
+      removeError: Failed to remove role
+      title: Role Membership
+      unnamed: Unnamed role
+    title:
+      create: Create user group
+      edit: Edit user group
+  export:
+    buttonLabel: Export
+    export: Export
+    title: Export user groups
+  import:
+    buttonLabel: Import
+    title: Import user groups
+    uploadFilePlaceholder: Click or drop files here to import
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      handle: Handle
+      meta:
+        short: Name
+    delete: Delete
+    export: Export
+    filterForm:
+      archived:
+        label: Archived user groups
+      deleted:
+        label: Deleted user groups
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter user groups list
+        placeholder: Filter user groups by handle
+    loading: Loading user groups
+    new: New User Group
+    permissions: Permissions
+    rows:
+      filters:
+        deleted: Deleted
+    title: User Groups
+    undelete: Undelete
+users:
+  editor:
+    avatar:
+      bgColor: Background color
+      color: Text color
+      colorPicker: Choose a color
+      hasAvatar: Current avatar
+      initial:
+        backgroundColor: Background color
+        color: Text color
+      noAvatar: No avatar
+      preview: Preview
+      remove: Remove avatar
+      title: Avatar
+      upload: Upload avatar
+      uploader:
+        instructions: Upload avatar
+        uploading: Uploading user avatar
+    external-auth-providers:
+      label: Label
+      title: Manage external auth providers
+      type: Type
+    externalAuth:
+      empty: No external authenticators found
+      remove: Remove
+      title: External authentication
+    info:
+      confirmEmail: Confirm email address
+      createdAt: Created at
+      createdBy: Created by
+      delete: Delete
+      deleteConfirm: Are you sure you want to delete this user?
+      deletedAt: Deleted at
+      email: Email
+      handle: Handle
+      id: ID
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      name: Full name
+      placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+      revokeAllSession: Revoke all active sessions
+      suspend: Suspend
+      suspendConfirm: Are you sure you want to suspend this user?
+      suspendedAt: Suspended at
+      title: Basic information
+      undelete: Undelete
+      unsuspend: Unsuspend
+      unsuspendConfirm: Are you sure you want to unsuspend this user?
+      updatedAt: Updated at
+      userGroup:
+        label: User group
+        placeholder: User group
+    mfa:
+      TOTP:
+        description: Time-based one-time password via mobile app
+        disabled:
+          text: User did not configure TOTP protection
+        enabled:
+          text: User configured TOTP protection auth mobile app
+        label: TOTP (Authenticator App)
+        remove:
+          label: Remove
+      emailOTP:
+        description: User will receive an email with the security code on each login
+        disable:
+          label: Disable
+        disabled:
+          text: 'Email OTP protection is disabled for this user
+
+            Email with the security code on each login will not be sent'
+        enable:
+          label: Enable
+        enabled:
+          text: 'Email OTP protection is enabled for this user
+
+            User will receive email with the security code on each login'
+        label: Email OTP
+      title: Multi-factor authentication
+    new: New User
+    password:
+      confirm: Confirm password
+      length: The passwords must be at least {length} characters long!
+      missmatch: The passwords must match
+      new: New password
+      removePassword: Remove password
+      title: Password
+    permissions: Permissions
+    roles:
+      add: Add
+      count: roles
+      empty: No roles assigned to this user yet.
+      placeholder: Select a role to add
+      remove: Remove
+      title: Role membership
+      unnamed: Unnamed role
+    security:
+      title: Security
+    title:
+      create: Create user
+      edit: Edit user
+  export:
+    buttonLabel: Export
+    export: Export
+    inclRoleMembership: Include role membership
+    inclRoles: Include roles
+    membershipRequiredLabel: Roles can only be exported when role membership is selected
+    title: Export users
+  import:
+    buttonLabel: Import
+    title: Import users
+    uploadFilePlaceholder: Click or drop files here to import
+  list:
+    columns:
+      actions: ''
+      createdAt: Created
+      email: Email
+      enabled: Enabled
+      handle: Handle
+      name: Name
+      state: State
+    delete: Delete
+    export: Export
+    filterForm:
+      deleted:
+        label: Deleted users
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+      query:
+        label: Filter users list
+        placeholder: Filter users by name, email
+      suspended:
+        label: Suspended users
+    loading: Loading users
+    new: New User
+    permissions: Permissions
+    revokeActiveSession: Revoke Session
+    rows:
+      filters:
+        deleted: Deleted
+        suspended: Suspended
+    single: user
+    suspend: Suspend
+    title: Users
+    undelete: Undelete
+    unsuspend: Unsuspend
+    yaml: YAML

@@ -1,0 +1,183 @@
+block:
+  general:
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+    label:
+      cancel: Cancel
+      noHandle: No handle
+      pageBuilder: Page builder
+      saveAndClose: Save and close
+    placeholder:
+      handle: Unique identifier (a - z, 0 - 9, underscore, dash)
+      sample: Sample
+    title: Add new block
+build:
+  addBlock: Add block
+  layout:
+    delete: Delete layout
+    deleteConfirm: Are you sure you want to delete this layout?
+  saveAsCopy: Save as copy
+  selectBlockTitle: Select type of the new block
+changeBlock: Change existing block
+copyOf: Copy of {title}
+createLabel: New Page
+customTitle: Use custom title
+delete:
+  cascade: Delete sub-pages
+  rebase: Update parent of sub-pages
+edit:
+  create: Create page
+  deleteConfirm: Are you sure you want to delete this page?
+  edit: Edit page
+  noParent: No parent (top-level)
+  notifications:
+    description: Toast a confirmation when a record is saved on this page.
+    enabled: Show record save notifications
+  otherOptions: Other options
+  pageBuilder: Page builder
+  pageDescription: Page description
+  pageInfo: Page information
+  parentPage: Parent page
+  settings: Settings
+  viewPage: View page
+  visible: Is page visible
+  visibleDescription: Show this page in the namespace navigation.
+icon:
+  configure: Configure page icon
+  delete: Delete selected icon
+  list: Uploaded icons
+  noIcon: No icon
+  page: Page icon
+  upload: Upload icon
+import: 'Import page(s):'
+instructions: Drag and drop pages to adjust the order and hierarchy
+invalid: Invalid configuration
+label:
+  cancel: Cancel
+  createPage: Create page
+  delete: Delete Block
+  description: Description
+  handle: Handle
+  pageBuilder: Page builder
+  permissions: Permissions
+  saveAndClose: Save and close
+  title: Title
+loading: Loading
+moduleEdit: Edit module
+navigation:
+  editModule: Edit module
+  page: Pages
+  viewPage: View Page
+noBlock: No block added yet
+noLayouts: No layouts yet
+noPages: No pages
+notVisible: Hidden
+page-layout:
+  add: Add layout
+  condition:
+    description:
+      non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}'
+      record-page: 'You can use {0}, {1}, {2}, {3} inside the expression, for example: {4} or {5}'
+    label: Condition
+    placeholder: When will the layout be shown
+  configure: Configure layout - "{title}"
+  general: General
+  handle: Handle
+  layouts: Layouts
+  recordToolbar:
+    actions:
+      add: Add action
+      buttonLabel: Label
+      empty: No actions defined yet. Click "Add" to create one.
+      kind:
+        label: Type
+        toLayout: Redirect to layout
+        toURL: Redirect to URL
+      label: Actions
+      openIn:
+        label: Open in
+        newTab: New tab
+        sameTab: Same tab
+      placement:
+        center: Center
+        end: End
+        label: Placement
+        start: Start
+      toLayout:
+        label: Redirect to layout
+        placeholder: No layout selected
+      toURL:
+        label: Redirect to URL
+        placeholder: No URL specified
+      variant: Variant
+      visible: Visible
+    buttons:
+      label: Buttons
+      showBack: Show "Back" button
+      showClone: Show "Save as copy" button
+      showDelete: Show "Delete" button
+      showEdit: Show "Edit" button
+      showNew: Show "Add new" button
+      showSave: Show "Save" button
+    label: Record toolbar
+  requiredFields:
+    condition: Condition
+    conditionPlaceholder: If no condition is set, the field will be required
+    description: Define fields that should be required based on a condition
+    field: Field
+    help: You can use {0}, {1}, {2} inside the expression to define when a field should be required
+    label: Required fields
+    selectPlaceholder: Select a field
+  roles:
+    label: Roles
+    placeholder: Pick roles that the layout will be shown to
+  title: Title
+  titleExpressionPlaceholder: Title expression
+  tooltip:
+    builder: Open layout in builder
+    configure: Configure layout
+    handle: Optional. Unique identifier for this layout (alphanumerics, dash, underscore, dot)
+    performance:
+      condition: Using visibility conditions will impact performance
+      requiredFields: Using required fields will impact performance
+    title: Display title shown for this layout
+  useTitle: Use layout title
+  useTitleDescription: Use a custom title (with record value expressions) instead of the default record page title
+  visibility: Visibility
+pageMoveFailed: Could not move this page
+placeholder:
+  title: Page title (e.g. "Leads")
+public:
+  record:
+    create:
+      title: '{name} - Creating Record'
+    edit:
+      title: '{name} - Editing Record'
+    toolbar:
+      deleteConfirm: Are you sure you want to delete this record? This action cannot be undone.
+    view:
+      title: '{name} - Viewing Record'
+referencedBlock: This block is used in other layouts
+reordered: Page reordered
+searchPlaceholder: Search pages...
+showSubPages: Expand sub-pages in the sidebar
+showSubPagesDescription: When this page is opened, show its child pages in the navigation.
+title: List of Pages
+tooltip:
+  clone:
+    block: Clone block
+  copy:
+    block: Copy block
+  delete:
+    block: Delete block
+  drag:
+    block: Drag to move block
+  edit:
+    block: Edit block
+    page: Edit page
+  preview-link: Preview link
+  saveAsCopy: Cannot duplicate record page
+  view: View page
+url:
+  label: Or add URL to icon
+view: View
+visible: Visible

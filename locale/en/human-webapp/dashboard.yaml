@@ -1,0 +1,19 @@
+charts:
+  monthly:
+    cumulative: Cumulative Total
+    title: Monthly Overview
+stats:
+  applications: Applications
+  namespaces: Namespaces
+  roles: Roles
+  users: Users
+  workflows: Workflows
+status:
+  active: Active
+  archived: Archived
+  deleted: Deleted
+  disabled: Disabled
+  enabled: Enabled
+  suspended: Suspended
+  total: Total
+title: Dashboard

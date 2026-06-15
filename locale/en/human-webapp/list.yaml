@@ -1,0 +1,44 @@
+active: Active
+button:
+  cancel: Cancel
+  create: Create
+columns:
+  enabled: Enabled
+  name: Name
+  updatedAt: Last update
+delete: Delete
+dialog:
+  create:
+    createError: Failed to create TAQ. Please try again.
+    description: Description
+    descriptionPlaceholder: What does this automation do?
+    header: Create New TAQ
+    labels: Labels
+    labelsCreateNew: Create new
+    labelsDialogCreate: Create Label
+    labelsDialogEdit: Edit Label
+    labelsName: Name
+    labelsPlaceholder: Select label to add...
+    labelsValue: Value
+    labelsValueHelp: Optional value for this label
+    name: TAQ Name
+    namePlaceholder: Enter TAQ name...
+    nameRequired: Name is required
+disabled: Disabled
+filterForm:
+  deleted:
+    label: Deleted automations
+  disabled:
+    label: Disabled automations
+  excluded:
+    label: Without
+  exclusive:
+    label: Only
+  inclusive:
+    label: Including
+  query:
+    placeholder: Filter automations
+new: New TAQ
+title: TAQ Automations
+undelete: Undelete
+untitled: Untitled TAQ

@@ -1,0 +1,9 @@
+apps:
+  empty: No applications
+  noResults: No applications found
+assistant:
+  noAgents: No assistant agents are configured for your account.
+column:
+  apps: Menu
+  assistant: Assistant
+  notifications: Notifications

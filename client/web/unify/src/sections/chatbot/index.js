@@ -32,5 +32,4 @@ export default {
     },
   ],
   sidebar: ChatbotSidebar,
-  sidebarDisabledRoutes: [],
 }

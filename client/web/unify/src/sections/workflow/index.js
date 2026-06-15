@@ -16,7 +16,8 @@ export default {
       path: '/workflow/list',
       name: 'workflow.list',
       component: () => import('./views/Home.vue'),
-      meta: { section: 'workflow' },
+      // List view keeps the sidebar collapsed, like the legacy app.
+      meta: { section: 'workflow', hideSidebar: true },
     },
     {
       path: '/workflow/new',
@@ -32,6 +33,4 @@ export default {
     },
   ],
   sidebar: WorkflowSidebar,
-  // List view keeps the sidebar collapsed, like the legacy app.
-  sidebarDisabledRoutes: ['workflow', 'workflow.list'],
 }

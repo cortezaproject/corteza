@@ -1,0 +1,268 @@
+editor:
+  embed:
+    copied: Embed snippet copied
+    copy: Copy snippet
+    help: Paste this script tag into any page where you want the chatbot widget to appear.
+    label: Embed snippet
+  enabled:
+    help: Turn the embeddable widget on or off
+    label: Enable chatbot
+  handle:
+    help: Unique handle (letters, digits, dashes)
+    label: Handle
+  handoff:
+    automation:
+      onAccepted:
+        help: Automation triggered when an operator picks up the handoff.
+        label: When operator accepts
+      onRequested:
+        help: Automation triggered when the visitor asks for a human.
+        label: When handoff requested
+      placeholder: Select automation
+    enabled:
+      help: Show the "Talk to human" button in the widget on conversation steps.
+      label: Enable handoff
+    sectionTitle: Handoff
+  name:
+    help: A short, human-readable name for this chatbot
+    label: Name
+  origins:
+    add: Add origin
+    empty: No allowed origins set. Add one above.
+    help: Only these origins can load the widget. Use * to allow all.
+  panels:
+    general: General
+    handoff: Handoff (preview)
+    origins: Allowed origins
+    scenarios: Journey
+    styling: Styling
+  preview:
+    description: Live preview of the widget as it would appear in the bottom-right corner of an embedding page.
+    requestFailed: 'Error: {reason}'
+    requestFailedReason: request failed
+    selectAgentHint: Select an agent on the active conversation step to preview it.
+    show: Show preview
+    title: Live preview
+  scenarios:
+    add: Add step
+    agent:
+      create: Create new agent
+      help: The agent must have System Invocation enabled and a Service Account configured.
+      label: Agent
+      open: Open agent
+      placeholder: Select an agent
+    automation:
+      after: After automation
+      afterHelp: Runs after the step completes. Errors are logged only.
+      before: Before automation
+      beforeHelp: Runs before the step executes. Blocks on failure.
+      placeholder: Select automation
+    consent:
+      acceptLabel:
+        help: Defaults to "Accept" when left empty.
+        label: Accept button label
+        placeholder: Accept
+      body:
+        help: Text shown to the visitor before they accept or reject. Supports links to external documents.
+        label: Body
+        placeholder: e.g. Read our terms of service before continuing…
+      rejectLabel:
+        help: Defaults to "Reject" when left empty. Rejecting ends the session.
+        label: Reject button label
+        placeholder: Reject
+    conversation:
+      initialPrompt: Initial prompt (optional)
+      placeholder: Input placeholder
+      placeholderHelp: Hint text shown inside the visitor's message input when it is empty.
+      typingIndicator: Show typing indicator
+      typingIndicatorDescription: Show an animated indicator while the agent is generating a reply.
+    description: A journey is a chain of steps the visitor moves through. Each step is one type — a static message, a form, or the live conversation.
+    empty: No steps yet. Add one to get started.
+    form:
+      empty: No fields yet. Add one above.
+      fieldLabel: Field label
+      fieldName: Field name
+      fieldRequired: Required
+      fieldType: Type
+      fieldTypes:
+        email: Email
+        number: Number
+        text: Text
+        textarea: Multi-line text
+      fields: Fields
+      submitLabel: Submit button label
+    handle: Handle
+    handleDuplicate: Another step already uses this handle.
+    list: Steps
+    name: Name
+    selectHint: Select a step to edit
+    static:
+      autoAdvance: Auto-advance delay (ms)
+      isMarkdown: Render as Markdown
+      isMarkdownDescription: Render replies as Markdown — bold, lists, code blocks, and links.
+      message: Message
+    stepName: Step {n}
+    type: Type
+    types:
+      consent: Consent
+      conversation: Conversation
+      form: Form
+      static_message: Static message
+    unnamed: (unnamed)
+  sessionTTL:
+    help: Duration, e.g. 2h, 24h
+    label: Session TTL
+  styling:
+    button:
+      color:
+        help: Launcher button background.
+        label: Button color
+      colorText:
+        help: Icon and label on the button.
+        label: Button text color
+      icon:
+        help: Shown on the floating button. Upload a custom image or use the default.
+        label: Icon
+        placeholder: Drop image or click to upload
+        visible: Visible
+      label:
+        help: Text displayed inline on the launcher button next to the icon.
+        label: Button label
+      position:
+        bottomCenter: Bottom center
+        bottomLeft: Bottom left
+        bottomRight: Bottom right
+        help: Where the launcher button appears on the page.
+        label: Button position
+        leftMiddle: Left middle
+        rightMiddle: Right middle
+        topCenter: Top center
+        topLeft: Top left
+        topRight: Top right
+      shape:
+        circle: Circle
+        help: Circle or rounded square.
+        label: Button shape
+        square: Square
+      size:
+        help: Button diameter.
+        label: Button size
+      startOpen:
+        help: Show the chat panel expanded on first load instead of collapsed behind the launcher.
+        label: Start open
+    buttonTitle: Button
+    color:
+      agentBubble: Agent message
+      background: Background
+      header: Header background
+      headerText: Header text
+      text: Text
+      userBubble: User message
+    colorHelp:
+      agentBubble: Message background.
+      background: Panel background.
+      text: Agent and body text.
+      userBubble: Message background.
+    colors: Colors
+    fontFamily:
+      help: Leave empty to match host page.
+      label: Font family
+    fontSize:
+      base: Text size
+      heading: Heading size
+    fontSizeHelp:
+      base: Message and body text.
+      heading: Header title.
+    logo:
+      help: Shown in the chat header.
+      label: Logo
+      placeholder: Drop image or click to upload
+    title:
+      help: Header text of the chat panel.
+      label: Title
+    typography: Typography
+    uploadNeedsSave: Save the chatbot first, then upload images.
+  tabs:
+    config: Config
+    sessions: Sessions
+  titleCreate: Create chatbot
+  titleEdit: Edit chatbot
+  widgetKey:
+    copied: Widget key copied
+    copy: Copy widget key
+    help: Use this key in the embed snippet. Regenerating invalidates all open sessions.
+    label: Widget key
+    notGenerated: Not generated yet — save the chatbot first
+    regenerate: Regenerate widget key
+    regenerateConfirm: This invalidates all active chat sessions. Continue?
+    regenerateFailed: Failed to regenerate widget key
+    regenerated: Widget key regenerated
+inbox:
+  accept: Accept
+  adminActions: Admin actions
+  adminAdvanceStep: Force advance step
+  adminCloseSession: Force close session
+  aliasHint: Shown to visitors next to your messages. Leave empty to use your account name.
+  aliasLabel: Display name
+  aliasReset: Reset
+  aliasSave: Save
+  authorAgent: Agent
+  authorUser: User
+  cancel: Cancel
+  changeAlias: Change display name
+  composerDisabled: Accept the handoff to reply
+  composerPlaceholder: Reply as operator…
+  confirmAcceptHeader: Accept handoff
+  confirmAcceptMessage: Take over this conversation as the operator? The visitor will see your replies in real time.
+  confirmAdvanceStepHeader: Force advance step
+  confirmAdvanceStepMessage: Skip the current step and move the visitor to the next one in the journey? This bypasses any pending input on the current step.
+  confirmCloseSessionHeader: Force close session
+  confirmCloseSessionMessage: End this session immediately? The visitor's widget will receive a close event. This cannot be undone.
+  confirmResolveHeader: Resolve handoff
+  confirmResolveMessage: End the handoff and let the AI resume at the same step? You can still view the conversation history later.
+  draftChatbot: Draft chatbot
+  empty: No pending handoffs
+  emptyNoChatbots: No chatbots selected.
+  filterApply: Apply
+  filterChatbot: Chatbot
+  filterEmptyFiltered: No sessions match the current filter
+  filterReset: Reset
+  filterSource: Source
+  filterSourceLive: Live
+  filterSourcePreview: Preview
+  filterStatus: Status
+  filterTitle: Filter sessions
+  inbox: Inbox
+  operator: Operator
+  replyingAs: Replying as {name}
+  resolve: Resolve
+  sectionActive: Active
+  sectionClosed: Closed
+  sectionHandoffActive: In progress
+  sectionHandoffRequested: Awaiting operator
+  selectHint: Select a session to take over
+  sourcePreview: Preview
+  statusActive: Active
+  statusClosed: Closed
+  statusHandoffActive: In progress
+  statusHandoffRequested: Requested
+list:
+  actions:
+    duplicate: Duplicate
+    undelete: Restore
+  columns:
+    enabled: Status
+    handle: Handle
+    name: Name
+    updatedAt: Updated
+  create: Create chatbot
+  delete: Are you sure you want to delete this chatbot?
+  duplicateNameSuffix: '{name} (Copy)'
+  enabled:
+    'off': Disabled
+    'on': Enabled
+  searchPlaceholder: Search chatbots
+  title: Chatbots
+  unnamed: (unnamed)
+sessions:
+  title: Sessions

@@ -135,6 +135,33 @@ export const useNotificationsStore = defineStore('notifications', () => {
     notifications.value = notifications.value.filter(n => String(n.notificationID) !== String(notification.notificationID))
   }
 
+  // Applies a realtime websocket message if it is a notification.* type.
+  // Returns true when handled so callers can skip their own dispatch.
+  function handleRealtime(msg: { '@type'?: string; '@value'?: any }): boolean {
+    switch (msg['@type']) {
+      case 'notification':
+        addNotification(msg['@value'])
+        return true
+      case 'notification.read':
+        updateReadNotification(msg['@value'])
+        return true
+      case 'notification.unread':
+        updateUnreadNotification(msg['@value'])
+        return true
+      case 'notification.read.all':
+        updateAllReadNotifications(msg['@value'])
+        return true
+      case 'notification.unread.all':
+        updateAllUnreadNotifications(msg['@value'])
+        return true
+      case 'notification.delete':
+        removeNotification(msg['@value'])
+        return true
+      default:
+        return false
+    }
+  }
+
   return {
     notifications,
     pageCursor,
@@ -157,5 +184,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
     updateAllReadNotifications,
     updateAllUnreadNotifications,
     removeNotification,
+    handleRealtime,
   }
 })

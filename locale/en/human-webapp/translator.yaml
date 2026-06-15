@@ -1,0 +1,27 @@
+add-language: Add language
+button:
+  label: Translate
+  tooltip: Manage translations
+key: Key
+languages: 'Languages:'
+missing: No translation
+missing-translation: Missing translation
+resources:
+  chart:
+    title: 'Chart: {handle}'
+  module:
+    field:
+      boolLabels: 'Bool labels: {name}'
+      selectOptions: 'Select options: {name}'
+      title: 'Field: {name}'
+    title: 'Module: {handle}'
+  namespace:
+    title: 'Namespace: {name}'
+  page:
+    block:
+      title: 'Block: {title}'
+    layout:
+      title: 'Layout: {handle}'
+    title: 'Page: {handle}'
+save-changes: Save
+title: Translations

@@ -10,7 +10,8 @@ export default {
       path: '/taq',
       name: 'taq',
       component: () => import('./views/List.vue'),
-      meta: { section: 'taq' },
+      // List view keeps the sidebar collapsed, like the legacy app.
+      meta: { section: 'taq', hideSidebar: true },
     },
     {
       path: '/taq/builder',
@@ -26,6 +27,4 @@ export default {
     },
   ],
   sidebar: TaqSidebar,
-  // List view keeps the sidebar collapsed, like the legacy app.
-  sidebarDisabledRoutes: ['taq'],
 }

@@ -1,0 +1,91 @@
+application:
+  label: Enable on application list
+clickOpen: Click to open
+clone: Clone namespace
+cloneSuffix: copy
+cloneWarning:
+  wfInclusion: Workflows and other automation are not cloned. Use the workflow editor interface to clone the ones you need.
+configure: Configure namespace
+create: Create namespace
+deleteConfirm: Are you sure you want to delete this namespace? This action cannot be undone.
+description:
+  label: Namespace description
+  placeholder: Enter namespace description
+disabled: Namespace is disabled
+edit: Edit namespace
+enabled:
+  label: Enable namespace
+export: Export
+icon:
+  label: Icon
+  placeholder: Choose an image for namespace icon or drop it here...
+import:
+  back: Back
+  buttonLabel: Import
+  import: Import
+  invalidFileFormat: File must be a .zip archive.
+  invalidResponse: Server response is missing a session ID.
+  slug:
+    label: Short name
+  title: Import namespace
+  uploadFileLabel: Upload the file you want to import (.zip format)
+  uploadFilePlaceholder: Click or drop file here to upload (.zip format)
+label:
+  permissions: Permissions
+labels:
+  createNew: Create new
+  dialogCreate: Create Label
+  label: Labels
+  name: Name
+  placeholder: Select label to add...
+logo:
+  label: Logo
+  placeholder: Choose an image for namespace logo or drop it here...
+  preview: Preview
+  reset: Reset
+  show: Show logo
+  upload: Click or drop logo image here to upload
+manage:
+  delete:
+    confirm: Are you sure you want to delete this namespace?
+    error: Failed to delete namespace
+    success: Namespace deleted successfully
+  disabled: Disabled
+  list-view: Back to namespace list
+  table:
+    columns:
+      changedAt: Last change
+      enabled: Enabled
+      name: Name
+      slug: Short name
+  title: Manage namespaces
+  toolbar:
+    buttons:
+      create: New Namespace
+      permissions: Permissions
+manage-view:
+  label: Manage namespaces
+name:
+  label: Full namespace name
+  placeholder: Enter namespace name
+noResults: No namespaces found
+searchPlaceholder: Search namespaces
+setPermissions: Set namespace permissions
+sidebar:
+  configure: Namespace pages
+  hide: Hide sidebar on namespace public pages
+slug:
+  description: The short name will be used in the URL
+  invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+  label: Short name
+  placeholder: Enter a short name for the namespace
+subtitle:
+  label: Subtitle
+  placeholder: Enter namespace subtitle
+title: Namespaces
+tooltip:
+  translations: Namespace translations
+view-mode:
+  cards: Cards
+  list: List
+visit: View namespace

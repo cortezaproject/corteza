@@ -1,0 +1,1357 @@
+agentChat:
+  chatTab: Chat {id}
+  clearAllChats: Clear All Chats
+  config:
+    allowedAgents: Allowed agents
+    allowedAgentsHint: The viewer can pick among these agents. Leave empty to expose none.
+    allowedAgentsPlaceholder: Select agents to expose...
+    autoResume: Resume most recent conversation on load
+    autoResumeHint: The latest past conversation for the active agent is loaded into the first tab.
+    defaultAgent: Default agent
+    defaultAgentHint: Preselected when the page loads.
+    defaultAgentPlaceholder: First allowed agent
+  description: Embed an agent conversation on the page. Context (record, namespace, page) is passed to the agent automatically.
+  empty: How can I help you today?
+  history:
+    button: History
+    deleteTooltip: Delete conversation
+    empty: No previous conversations
+    loading: Loading…
+    untitled: New conversation
+  label: Agent Chat
+  newChat: New Chat
+  noAgents: No agent configured
+  placeholder: Message...
+  thinking: Thinking...
+  title: Agent Chat
+automation:
+  addPlaceholderLabel: Add placeholder (dummy button)
+  availableScriptsAndWorkflow: Available automations ({count})
+  badge:
+    script: script
+    workflow: workflow
+  buttonLabel: Label
+  buttonResourceType: Resource type
+  buttonStep: Step
+  buttonVariant: Variant
+  buttonWorkflow: Workflow
+  configuredButtons: Configured buttons
+  dummyButtonLabel: Dummy
+  editButton: Edit
+  editTitle:
+    script: Edit automation script button
+    workflow: Edit workflow button
+  executionFailed: Automation execution failed
+  executionSuccess: Automation executed successfully
+  label: Automation
+  noDescription: No description
+  noLabel: Unlabeled
+  noScript: There is no script, workflow, or TAQ configured for this button
+  noScripts: There are no compatible automations for this block
+  pickStep: Pick a step
+  pickWorkflow: Pick a workflow
+  removeAll: Remove all
+  searchPlaceholder: Filter available automations by name or description
+  stepID: 'Starting step ID: {stepID}'
+  tabs:
+    scripts: Scripts
+    taqs: TAQs
+    workflows: Workflows
+  variants:
+    danger: Danger
+    dark: Dark
+    info: Info
+    light: Light
+    primary: Primary
+    secondary: Secondary
+    success: Success
+    warning: Warning
+calendar:
+  addEventsSource: Add events source
+  calendarHeader: Calendar header
+  colorLabel: Event color
+  colorPicker: Choose a color
+  eventSource: Event source
+  feedLabel: Configure events source
+  feedPlaceholder: Select an event source
+  hideHeader: Hide calendar header
+  hideNavigation: Hide prev/next button
+  hideTitle: Hide title text
+  hideToday: Hide today button
+  label: Calendar
+  recordFeed:
+    eventAllDay: Show as all-day-events
+    eventEndFieldLabel: Event end
+    eventEndFieldPlaceholder: Event will last 1 hour
+    eventStartFieldLabel: Event start
+    eventStartFieldPlaceholder: Field with event start date
+    moduleLabel: Module
+    modulePlaceholder: Select a module
+    optionLabel: Records
+    prefilterLabel: Prefilter events
+    prefilterPlaceholder: field1 = 1 AND field2 = 232
+    resourceType: Resource type
+    resourceTypeRecord: Record
+    resourceTypeReminder: Reminder
+    systemField:
+      createdAt: Created at
+      deletedAt: Deleted at
+      updatedAt: Updated at
+    titleLabel: Event title
+    titlePlaceholder: Field used as event title
+  reminderFeed:
+    optionLabel: Reminders
+  source:
+    label: Source
+  today: Today
+  view:
+    dayGridMonth: Month
+    default: Default view
+    enabled: Enabled views
+    footnote: Make sure default is one of the available views
+    listMonth: Agenda
+    onEventClick: On event click
+    openInModal: Open record in a modal
+    openInNewTab: Open record in a new tab
+    openInSameTab: Open record in the same tab
+    timeGridDay: Day
+    timeGridWeek: Week
+  viewLabel: Calendar
+chart:
+  add: New Chart
+  addFunnel: Funnel chart
+  addGauge: Gauge chart
+  addGeneric: Generic chart
+  addRadar: Radar chart
+  columns:
+    changedAt: Last change
+    handle: Handle
+    name: Name
+  configure:
+    label: Configure chart
+    reportLabel: Report {l}
+    reportsLabel: Reports
+  createFailed: Could not create a chart
+  delete: Delete
+  display: Chart to display inside this block
+  drillDown:
+    blockID: Record list block
+    blockIDFootnote: Select a record list block to display the drill down data
+    blockIDPlaceholder: Select a record list block
+    configureColumns: Choose the default fields
+    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected, the drill down data will be shown in a modal.
+    enabled: Enable drill down
+    fields: Fields
+    label: Drill down
+    openInModal: Open in modal
+  edit:
+    dimension:
+      function:
+        date: DATE
+        label: Function
+        month: MONTH
+        none: (no grouping / buckets)
+        placeholder: Select dimension modifier (bucket size)
+        quarter: QUARTER
+        week: WEEK
+        year: YEAR
+    label: Edit chart
+  enableLiveFilter: Enable live filter
+  filter:
+    modal:
+      filterPreview:
+        label: Filter Preview
+      liveFilter:
+        label: Live filter
+        placeholder: Select a filter
+      options:
+        and: Join filters with AND
+        label: Filter options
+        or: Join filters with OR
+        overwrite: Overwrite original filter
+      originalFilter:
+        label: Original filter
+      title: Chart Filter
+  label: Chart
+  noChart: No chart selected
+  openChartList: Open chart list
+  openInBuilder: Open in chart builder
+  pick: Pick a chart
+  preview:
+    chartId: Chart preview (ID {0})
+  searchPlaceholder: Type here to search all charts in this namespace
+chatbotInbox:
+  accept: Accept
+  adminActions: Admin actions
+  adminAdvanceStep: Force advance step
+  adminCloseSession: Force close session
+  aliasHint: Shown to visitors next to your messages. Leave empty to use your account name.
+  aliasLabel: Display name
+  aliasReset: Reset
+  aliasSave: Save
+  authorAgent: Agent
+  authorUser: User
+  cancel: Cancel
+  changeAlias: Change display name
+  composerDisabled: Accept the handoff to reply
+  composerPlaceholder: Reply as operator…
+  config:
+    autoOpen: Auto-open the most recent pending session
+    chatbots: Chatbots
+    chatbotsHint: Sessions from these chatbots show up in the inbox.
+    chatbotsPlaceholder: Select chatbots to monitor
+    refresh: Refresh interval (seconds)
+    refreshHint: How often the list polls for new pending handoffs.
+    showFilter: Show filter
+    status: Status filter
+  confirmAcceptHeader: Accept handoff
+  confirmAcceptMessage: Take over this conversation as the operator? The visitor will see your replies in real time.
+  confirmAdvanceStepHeader: Force advance step
+  confirmAdvanceStepMessage: Skip the current step and move the visitor to the next one in the journey? This bypasses any pending input on the current step.
+  confirmCloseSessionHeader: Force close session
+  confirmCloseSessionMessage: End this session immediately? The visitor's widget will receive a close event. This cannot be undone.
+  confirmResolveHeader: Resolve handoff
+  confirmResolveMessage: End the handoff and let the AI resume at the same step? You can still view the conversation history later.
+  draftChatbot: Draft chatbot
+  empty: No pending handoffs
+  emptyNoChatbots: No chatbots selected. Pick at least one in the block configurator.
+  filterApply: Apply
+  filterChatbot: Chatbot
+  filterEmptyFiltered: No sessions match the current filter
+  filterReset: Reset
+  filterSource: Source
+  filterSourceLive: Live
+  filterSourcePreview: Preview
+  filterStatus: Status
+  filterTitle: Filter sessions
+  inbox: Inbox
+  label: Chatbot
+  operator: Operator
+  replyingAs: Replying as {name}
+  resolve: Resolve
+  sectionActive: Active
+  sectionClosed: Closed
+  sectionHandoffActive: In progress
+  sectionHandoffRequested: Awaiting operator
+  selectHint: Select a session to take over
+  sourcePreview: Preview
+  statusActive: Active
+  statusClosed: Closed
+  statusHandoffActive: In progress
+  statusHandoffRequested: Requested
+comment:
+  attachment:
+    file: File
+  attachmentField:
+    footnote: Field used to store comment attachments
+    label: Attachment field
+  content:
+    placeholder: Write your message here...
+  contentField:
+    footnote: Field value will be used as record content
+    label: Content field
+  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
+  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  label: Comments
+  load:
+    newer: Load newer comments
+    older: Load older comments
+  module:
+    placeholder: Select a module
+  noComments: No comments yet
+  reactionsField:
+    footnote: Field used to store comment reactions
+    label: Reactions field
+  referenceField:
+    footnote: Field that links comments with the parent record
+    label: Reference field
+  replyField:
+    footnote: Field value will be used as record reply
+    label: Reply field
+  replyModalTitle: Original comment
+  replyingTo: Replying to
+  sortDirection:
+    asc: Newest first
+    desc: Oldest first
+    footnote: Sort comments by when they were created
+    label: Sort direction
+  submit: Submit
+  title:
+    placeholder: Title
+  titleField:
+    footnote: Field value will be used as record title
+    label: Title field
+  today: Today
+  tooltip:
+    attach: Attach file
+    edit: Edit
+    react: React
+    reply: Reply
+  yesterday: Yesterday
+content:
+  interpolationFootnote: 'Available variables (evaluated when present):'
+  label: Content
+  ok: Ok
+  placeholder: Write your content here...
+  urlPlaceholder: https://example.tld
+field:
+  noPermission: No permission to read field value
+  selector:
+    available: Available fields
+    systemField: (system field)
+file:
+  label: File
+  preview:
+    label: File block
+  view:
+    backgroundColor: Background color
+    borderRadius: Border radius
+    clickToView: Click to view file
+    description: Configure how file previews are displayed
+    enableDownload: Enable file download
+    gallery: Gallery
+    height: Height
+    list: List
+    margin: Margin
+    maxHeight: Max height
+    maxWidth: Max width
+    modeFootnote: Choose how files are displayed
+    modeLabel: View mode
+    previewStyle: Preview style
+    showName: Show file name
+    width: Width
+general:
+  border:
+    show: Show border
+  customCSSClass:
+    description: Used to reference the block in Custom CSS (.custom-class)
+    invalid-state: Can contain only letters, numbers, underscores and dashes. Must end with letter or number. Use spaces to separate multiple classes
+    label: Custom CSS Class
+    placeholder: custom-class-1   custom-class-2
+  customID:
+    description: Used to reference the block in Custom CSS (#customID). Must be unique on the page.
+    invalid-state: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dashes. Must end with letter or number
+    label: Custom ID
+    placeholder: customID
+  descriptionLabel: Description
+  descriptionPlaceholder: Block description
+  fields: Fields
+  headerStyle: Block header style (color)
+  hidden:
+    label: Hidden
+  label:
+    add: Add
+    and: And
+    back: Back
+    cancel: Cancel
+    edit: Edit
+    general: General
+    import: Import
+    magnify: Magnify block
+    next: Next
+    noHandle: (no handle)
+    none: None
+    ok: Ok
+    permissions: Permissions
+    refresh: Refresh block
+    remove: Remove
+    save: Save
+    search: Search
+  magnifyLabel: Block Magnification
+  magnifyOptions:
+    disabled: Disabled
+    fullscreen: Fullscreen
+    modal: Modal
+  module: Module
+  noConfiguration: Block not configured correctly
+  refresh:
+    auto: Auto refresh
+    description: Setting value to 5 seconds or more enables auto-refresh
+    label: Refresh
+    rate: seconds
+    show: Show refresh button
+  refreshRate: Refresh rate
+  refreshRateFootnote: Set the refresh interval in seconds
+  showRefresh: Show refresh button
+  style:
+    danger: Danger variant
+    default: Dark variant
+    primary: Primary variant
+    secondary: Secondary variant
+    success: Success variant
+    warning: Warning variant
+  title: Add new block
+  titleLabel: Title
+  titlePlaceholder: Block title
+  tooltip:
+    dragAndDrop: Drag and drop to change order
+    translations: Field translations
+  visibility:
+    condition:
+      description:
+        non-record-page: 'You can use {0}, {1} inside  the expression, for example: {2} or {3}'
+        record-page: 'You can use {0}, {1}, {2}, {3} inside  the expression, for example: {4} or {5}'
+      label: Condition
+      placeholder: When will the block be shown
+    label: Visibility
+    roles:
+      label: Roles
+      placeholder: Pick roles that the block will be shown to
+    tooltip:
+      performance:
+        condition: Using visibility conditions will impact performance
+  wrap: Display block as a card
+geometry:
+  addFeed: Add feed
+  addSource: Add source
+  bounds:
+    boundsLabel: Bounds
+    lockBounds: Lock bounds
+    lowerRight: Bounds lower right
+    topLeft: Bounds top left
+  boundsMaxLat: Max latitude
+  boundsMaxLng: Max longitude
+  boundsMinLat: Min latitude
+  boundsMinLng: Min longitude
+  center: Center
+  centerLabel: Center
+  centerLat: Latitude
+  centerLng: Longitude
+  displayMarker: Display marker
+  displayOption:
+    label: On marker click
+    modal: Open in a modal
+    newTab: Open in a new tab
+    sameTab: Open in the same tab
+  displayPolygon: Display polygon
+  feed: Feed
+  feedColor: Marker color
+  feedGeometryField: Location field
+  feedLabel: Configure Sources
+  feedModule: Module
+  feedModulePlaceholder: (No module)
+  feedPrefilter: Prefilter sources
+  feedPrefilterPlaceholder: field1 = 1 AND field2 = 232
+  feedTitleField: Title field
+  feeds: Feeds
+  hideGeoSearch: Hide location search
+  hideGeoSearchDescription: Hide the address search bar shown above the map
+  label: Map
+  lock: Lock
+  lockBounds: Lock bounds
+  lockBoundsDescription: Restrict panning to the current map viewport
+  mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
+  mapSettings: Map settings
+  onMarkerClick: On marker click
+  openInModal: Open in a modal
+  openInNewTab: Open in a new tab
+  openInSameTab: Open in the same tab
+  recordFeed:
+    colorLabel: Marker color
+    colorPicker: Choose a color
+    displayMarker: Display marker
+    displayPolygon: Display polygon
+    geometryFieldLabel: Location field*
+    geometryFieldPlaceholder: Location field
+    moduleLabel: Module*
+    modulePlaceholder: (No module)
+    optionLabel: Records
+    prefilterLabel: Prefilter sources
+    titleLabel: Title
+    titlePlaceholder: Title
+  source:
+    label: Source
+  startingView: Starting view
+  tooltip:
+    goToCurrentLocation: Go to current location
+  viewLabel: Map
+  zoom: Zoom
+  zoom-config:
+    zoomLabel: Zoom
+    zoomMaxLabel: Zoom max
+    zoomMinLabel: Zoom min
+    zoomStartingLabel: Zoom Starting
+  zoomMax: Zoom max
+  zoomMin: Zoom min
+  zoomStarting: Zoom starting
+iframe:
+  label: IFrame
+  noInput: No URL provided for iframe
+  pickURLField: Pick an URL field
+  srcDesc: Used as a fallback when set in combination with record field.
+  srcFieldDesc: Only available on record pages and on modules with existing "url" field kind
+  srcFieldLabel: Field (URL) from record to use for the iframe
+  srcLabel: URL to show in the iframe
+metric:
+  add: + Add
+  comparison:
+    customFilter: Custom comparison filter
+    enabled: Enable change indicator
+    label: Change Indicator
+    period: Comparison period
+    periodDay: Day
+    periodMonth: Month
+    periodQuarter: Quarter
+    periodWeek: Week
+    periodYear: Year
+  defaultMetricLabel: Unnamed metric
+  drillDown:
+    blockID: Record list block
+    blockIDFootnote: Select a record list block to display the drill down data
+    blockIDPlaceholder: Select a record list block
+    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected, the drill down data will be shown in a modal.
+    enabled: Enable drill down
+    label: Drill down
+    openInModal: Open in modal
+  edit:
+    bucketLabel: Bucket size
+    bucketPlaceholder: Select a bucket size
+    dateFormat: Date format
+    dimensionFieldLabel: Field
+    dimensionFieldPlaceholder: Dimension field
+    dimensionLabel: Dimension
+    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    filterLabel: Filter
+    labelLabel: Label
+    labelPlaceholder: Label
+    metricAggregateLabel: Aggregation operation
+    metricFieldLabel: Field
+    metricFieldPlaceholder: Dimension field
+    metricFieldSelect: Select field
+    metricLabel: Metric
+    metricSelectAggregate: Select aggregation operation
+    moduleLabel: Module
+    modulePlaceholder: Pick a module
+    numberFormat: Number format
+    operationAvg: Avg
+    operationLabel: Aggregation operation
+    operationMax: Max
+    operationMin: Min
+    operationPlaceholder: Aggregation operation
+    operationStd: Std
+    operationSum: Sum
+    prefixLabel: Prefix
+    refreshData: Refresh data
+    suffixLabel: Suffix
+    tabTitle: Metric
+    transformFootnote: Variables like {0}, {1}, {2} and {3} are evaluated (when available). Make sure to wrap the variables with quotes ("")
+    transformFunctionDescription: v - current value; label - current value's label
+    transformFunctionLabel: Transform value
+  editStyle:
+    backgroundColor: Background color
+    color: Text color
+    colorPicker: Choose a color
+    default: Default
+    fontSize: Font size in pixels
+    labelLabel: Label style
+    resetToDefault: Reset to default
+    valueLabel: Value style
+  label: Metric
+  metricDrillDown: Metric drill down
+navigation:
+  None: None
+  add: Add navigation item
+  addDropdown: Add dropdown item
+  alignment: Alignment
+  appearance: Appearance
+  background: Background
+  backgroundColor: Background color
+  bottom: Bottom
+  center: Center
+  chart: Charts
+  color: Color
+  colorPicker: Choose a color
+  composePage: Compose page
+  danger: Danger
+  defaultLayout: Default Layout
+  delimiter: Delimiter
+  delimiterDescription: Render this dropdown entry as a non-clickable visual divider between other entries instead of a link.
+  disabled: Disabled
+  displayOptions: Display options
+  displaySubPages: Display sub-pages
+  displaySubPagesDescription: When this navigation item points to a page, also show that page's sub-pages nested under it.
+  drop: Dropdown position
+  dropdown: Dropdown
+  dropdownItems: Dropdown items
+  enabled: Enabled
+  fieldLabel: Label
+  info: Info
+  justify: Justify
+  label: Navigation
+  left: Left
+  multi: Multiline
+  navigationItems: Navigation items
+  newItem: New item
+  newTab: New tab
+  noNavigationItems: No navigation item configured
+  none: None
+  openIn: Open in
+  pageLayout: Page Layout
+  pills: Pills
+  preview:
+    about: about
+    dropdown: dropdown
+    home: Home
+    label: Label
+    preview: Preview
+  primary: Primary
+  right: Right
+  sameTab: Same tab
+  secondary: Secondary
+  selectBackground: Select background
+  selectOpenInType: Select open in type
+  selectPage: Select page
+  small: Small
+  success: Success
+  tabs: Tabs
+  target: Open in
+  text: Text
+  textColor: Text color
+  textSection: Text
+  top: Top
+  type: Type
+  unnamedLayout: Unnamed Layout
+  url: URL
+  warning: Warning
+noConfiguration: Block not configured correctly
+progress:
+  add: + Add
+  aggregate:
+    label: Aggregation operation
+    select: Select aggregation operation
+  animated: Animated
+  count: Count
+  default-variant: Default variant
+  display-options: Display options
+  fetch-failed: Failed to fetch progress bar report
+  field:
+    label: Field
+    select: Select field
+  label: Progress bar
+  maxValue:
+    fixed: Fixed maximum value
+    label: Maximum value
+  minValue:
+    fixed: Fixed minimum value
+    label: Minimum value
+  module:
+    label: Module
+    select: Select module
+  operation:
+    avg: Avg
+    count: Count
+    max: Max
+    min: Min
+    sum: Sum
+  preview: Live example
+  show:
+    progress: Show progress
+    relative: Show relative
+    value: Show value
+  source:
+    module:
+      description: Aggregate field across records
+      label: From module
+    static:
+      description: Use a fixed number
+      label: Static value
+  striped: Striped
+  tab:
+    label: Progress
+  threshold:
+    label: Threshold
+    variant: Set which variant to show if value is equal or larger than the threshold
+  thresholds:
+    column:
+      value: At percentage
+      variant: Variant
+    empty: No thresholds configured
+    label: Thresholds
+  value:
+    default:
+      description: This value will be used if metric is not configured
+      label: Default value
+    fieldPlaceholder: Select field
+    filterPlaceholder: field1 = 1 AND field2 = 232
+    fixed: Fixed value
+    label: Value
+    max: Maximum value
+    min: Minimum value
+    operationPlaceholder: Select operation
+    useModule: Use module data
+  variant:
+    danger: Danger
+    dark: Dark
+    default: Dark
+    info: Info
+    label: Variant
+    light: Light
+    primary: Primary
+    secondary: Secondary
+    success: Success
+    warning: Warning
+record:
+  addRecordDisplayOption: Add record display option
+  clearConditionalFieldsOnHide: Clear all conditional fields when hidden
+  confirmDelete: Are you sure you want to delete this record?
+  deleteFailed: Could not delete record
+  deleteRecord: Delete record
+  fieldConditions:
+    action: + Add
+    clearAllOnHide: Clear hidden conditional fields
+    clearAllOnHideDescription: When enabled, all conditional fields will be cleared when they become hidden, overriding individual field settings
+    clearOnHide: Clear On Hide
+    clearOnHideTooltip: Automatically clear this field's value when it becomes hidden
+    condition: Condition
+    description: Configure conditions to show or hide fields based on values
+    field: Field
+    label: Conditional fields
+    placeholder: When should this field be displayed?
+    selectPlaceholder: Select field
+    tooltip:
+      performance: Using conditional fields will impact performance
+  fieldsLayoutMode:
+    default: Default
+    label: Fields layout mode
+    noWrap: No wrap
+    wrap: Wrap
+  horizontalFormLayout: Horizontal layout
+  horizontalFormLayoutDescription: Display field labels and values side-by-side instead of stacked vertically.
+  inlineCopy:
+    button:
+      title: Copy value
+    description: Show a copy icon next to each field so users can copy the value to the clipboard with one click.
+    enabled: Inline copy
+    error: Failed to copy value
+    errorSummary: Error
+    label: Inline Copy
+    success: Value copied to clipboard
+  inlineEdit:
+    button:
+      title: Edit value
+    description: Show a pencil icon next to each field so users can edit values inline without entering full edit mode.
+    enabled: Inline editing
+    label: Inline Editing
+    modal:
+      title: Update record values
+    saveError: Failed to save
+    saveErrorSummary: Error
+  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
+  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  label: Record
+  listLoadFailed: Could not load record list
+  moduleMismatch: Module incompatible, module mismatch
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
+  noModule: No module configured for this block
+  noRecord: No record available
+  openFullPage: Open full page
+  openInModal: Open record in a modal
+  openInNewTab: Open record in a new tab
+  openInSameTab: Open record in the same tab
+  preview:
+    blockNoRecord: Cannot render this block without a record
+    fieldsFromModule: Single record block, displaying fields ({0}) from module {1}
+    untitled: Untitled
+  recordDeleted: This record was deleted
+  recordDisplay:
+    label: Record display
+  recordSelectorAddRecordDisplayOption: When adding a record via record selector
+  recordSelectorCanAddRecord: Add via record selector
+  recordSelectorCanAddRecordDescription: Allow users to create a new related record directly from this block's record selector dropdown.
+  recordSelectorDisplayOption: When clicking on record field value
+  recordSelectorDisplayOptions: When clicking on record field value
+  referenceField: Reference record field
+  referenceFieldPlaceholder: Select reference record field
+  referenceRecordField: Reference record
+  referenceRecordFieldDescription: Used to show record details of reference record. Multi value record selector fields are not available
+  referenceRecordFieldPlaceholder: Select reference record field
+  showAddRecordButton: Show add record button
+recordList:
+  addRecord: New Record
+  bulkRecord:
+    field:
+      add: Add a field to update
+      addAnother: Add another field to update
+      remove: Remove field
+    reset: Reset
+    title: Update selected records
+  cancelSelection: Cancel
+  configureFields: Configure Fields
+  customFilter: Custom filter
+  drillDown:
+    filter:
+      label: Drill down filter
+  editFields: Editable module fields
+  enableRecordPageNavigation: Users will be able to navigate to previous/next record
+  export:
+    all: Export all records
+    allow: Show export button
+    allowDescription: Display an 'Export' button so users can download the current list (e.g. CSV).
+    csv: CSV Export
+    datePresetUndefined: Unknown date preset
+    dateRange: Select date range
+    filter:
+      createdAt: Record created
+      custom: Custom
+      footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+      from: From
+      label: Record filter
+      lastMonth: Last month
+      lastWeek: Last week
+      placeholder: field1 = 1 AND field2 = 232
+      thisMonth: This month
+      thisWeek: This week
+      to: To
+      today: Today
+      updatedAt: Record updated
+    inRange: Date range
+    includeQuery: Filter by search query
+    json: JSON Export
+    limitations: 'CSV export limitation: only the first value in the multi value fields will be exported'
+    multiValueDelimiter:
+      comma:
+        label: value 1,value 2,...,value n
+      commaArray:
+        label: '[value 1,value 2,...,value n]'
+      label: Multi value delimiter
+      pipe:
+        label: value 1|value 2|...|value n
+      pipeArray:
+        label: '[value 1|value 2|...|value n]'
+      semicolon:
+        label: value 1;value 2;...;value n
+      semicolonArray:
+        label: '[value 1;value 2;...;value n]'
+    query:
+      label: Search query
+      placeholder: Search...
+    rangeBy: Set range by
+    recordCount: '{count} records ready for export'
+    resolveRefs: Include record selector values
+    resolveRefsNote: When include record selector values is checked, all record fields include the record label next to the identifier.
+    selectFields: 'Select fields you want to export:'
+    selection: Selected records
+    specifyTimezone: Export to timezone
+    timezonePlaceholder: Select timezone
+  federated: Federated
+  fields: Module fields
+  filter:
+    addField: Add new filter field
+    addFilterToPreset: Save as preset
+    byValue: Filter records based on field value
+    conditions:
+      and: AND
+      or: OR
+    deletedRecords: Deleted records
+    field: Filter field
+    fieldPlaceholder: Pick a field
+    fieldValue: Field value
+    fieldValuePlaceholder: Input field filter
+    filters:
+      active: 'Active filters:'
+      label: Filters
+    including: Including
+    label: Filter
+    name:
+      label: Name
+      placeholder: Filter name
+    nil: 'NULL'
+    note: 'Note: If Field value is undefined, the filter will look for records where that field value is undefined.'
+    only: Only
+    operatorLabels:
+      between: is between
+      equal: is equal
+      greaterThan: is greater than
+      in: contains
+      is: is
+      lessThan: is less than
+      like: is like
+      notBetween: is not between
+      notEqual: is not equal
+      notIn: does not contain
+      notLike: not like
+    operators:
+      between: Between
+      contains: Contains
+      equal: Equal
+      greaterThan: Greater than
+      lessThan: Less than
+      like: Like
+      notBetween: Not between
+      notContains: Not contains
+      notEqual: Not equal
+      notLike: Not Like
+    presets: Filter presets
+    reset: Reset Filter
+    role:
+      label: Role(s)
+      placeholder: Select role(s) that will be able to use preset
+    title: Record list filter
+    update: Update filter
+    where: Where
+    without: Without
+  filterByValue: Filter by value
+  filterPresets:
+    filterName: Filter name
+    saveFilterAsPreset: Save filter as preset
+  hideConfigureFieldsButton: Show configure fields button
+  hideConfigureFieldsButtonDescription: Display a 'Configure fields' button so end users can pick which columns are visible.
+  hideRecordCloneButton: Hide clone record button
+  hideRecordDeleteButton: Hide delete record button
+  hideRecordEditButton: Hide edit record button
+  hideRecordPermissionsButton: Hide record permissions button
+  hideRecordReminderButton: Hide record reminder button
+  hideRecordViewButton: Hide view record button
+  import:
+    dropzoneFileAdded: '{name} was uploaded and is ready for import ({count} record)'
+    dropzoneLabel: Click or drop file here to upload (.csv or JSON)
+    failed: 'Something went wrong during the import. Please try again: {failReason}'
+    fileColumns: File columns
+    hasRequiredFileFields: This module has required file upload fields
+    idFieldDescription: Records with matching ID's will be updated.
+    importing: Importing records
+    matchFields: Match imported columns with existing ones
+    moduleFields: Module fields
+    multiValueDelimiter:
+      comma:
+        label: value 1,value 2,...,value n
+      commaArray:
+        label: '[value 1,value 2,...,value n]'
+      label: Multi value delimiter
+      pipe:
+        label: value 1|value 2|...|value n
+      pipeArray:
+        label: '[value 1|value 2|...|value n]'
+      semicolon:
+        label: value 1;value 2;...;value n
+      semicolonArray:
+        label: '[value 1;value 2;...;value n]'
+    onError: If any record fails to import
+    onErrorFail: Cancel import
+    onErrorSkip: Skip record
+    pickModuleField: Pick a module field
+    report:
+      count: Number of records
+      detectedErrors: Detected errors
+      error: Error
+      failedEntries: Failed source entries
+      failedEntriesLine: Entry
+      failedEntriesLines: Entries from to (inclusive)
+      failedRecords: Failed records
+      finishedAt: Finished At
+      importedRecords: Imported records
+      startedAt: Started At
+      title: Record import error report
+      totalRecords: Total records
+    success: Import successful
+    to: Import to {modulename}
+    uploadFile: Upload the file you want to import (.csv or JSON format)
+  inlineEdit:
+    button:
+      title: Edit value
+    enabled: Inline value editing enabled
+    fields:
+      configure:
+        tooltip: Configure the fields for inline editing
+    modal:
+      title: Update record values
+  inlineValueFilter:
+    enabled: Enable inline value filtering
+  label: Record list
+  moduleFieldsFootnote: If no fields are selected, the default fields will be shown
+  moduleFootnote: Modules without a {0} can only be used in a record list as an inline editor
+  modulePlaceholder: Select a module
+  noModule: No module selected
+  noRecords: There are no records matching your request
+  pagination:
+    next: Next
+    prev: Previous
+    recordsPerPage: Per page
+    selectLabel: Select an option
+    showing: '{from} - {to} of {count} records'
+  positionField:
+    footnote: Records will be sorted based on this field
+    label: Record sort field
+    placeholder: Field that will hold the record position
+  prefilter:
+    toggleInputType: Toggle input type
+  preview:
+    addRecordButton: Add record button
+    bePaged: '{0} be paged.'
+    isDisabled: '{0} is disabled.'
+    isEnabled: '{0} is enabled.'
+    isHidden: '{0} is hidden.'
+    isShown: '{0} is shown'
+    moduleNotSelected: Block with table of records, module not selected.
+    recordFromModule: 'Showing records from {0} module with columns: {1}'
+    recordsPerPage: '{0} records are shown per page.'
+    resultsCan: Results can
+    resultsCant: Results can not
+    resultsPrefiltered: 'Results are prefiltered:'
+    searchInput: Search inputbox
+    sorting: Sorting
+    tableHeader: Table header
+    usersSearchThrough: Users search through the records
+    usersSee: Users see {0}
+    withPresortedRecords: with presorted ({0}) record
+  record:
+    addRecordDisplayOption: On add record click
+    addRecordOptions: On add record click
+    advancedDisplay: Advanced display
+    ascending: Ascending
+    bulkRecordEditEnabled: Bulk edit
+    bulkRecordEditEnabledDescription: Allow updating multiple selected records at once via a bulk-edit dialog.
+    buttons: Record buttons
+    configureSearchableFields: Select fields that will be used for search
+    configureWrappedFields: Select fields that will be wrapped
+    createInModal: Create record in a modal
+    createInNewTab: Create record in a new tab
+    createInSameTab: Create record in the same tab
+    descending: Descending
+    doNothing: Do nothing
+    draggable: Can drag & drop records to order them
+    editMode: Open records in edit mode by default
+    enableBulkRecordEdit: Enable bulk record edit
+    enableFilterPresets: Filter presets
+    enableFilterPresetsDescription: Allow saving filters as named presets; presets can be scoped to specific roles.
+    enableRecordPageNavigation: Previous and next record navigation
+    enableRecordPageNavigationDescription: On a record's detail page, show previous/next arrows to navigate between records from this list.
+    enableRecordPageNavigationHint: Enabling next/previous navigation may impact performance on large record sets
+    enableSummaries: Summaries
+    enableSummariesDescription: Allow configuring per-column summary metrics (sum, average, count, …) shown under the list.
+    filterHide: Show filter button
+    filterHideDescription: Display a filter button so users can build ad-hoc filters on the list.
+    filterPresets: Filter presets
+    fullPageNavigation: Full page navigation
+    fullPageNavigationDescription: Show full numbered pagination (1, 2, 3 … last) instead of just previous/next buttons.
+    fullPageNavigationHint: Full page navigation may impact performance on very large record sets
+    generalLabel: General Settings
+    hideAddButton: Show add record button
+    hideAddButtonDescription: Display the 'Add Record' button in the list toolbar.
+    hideCloneButton: Hide clone button
+    hideDeleteButton: Hide delete button
+    hideEditButton: Hide edit button
+    hideExportButton: Users will be able to export records
+    hideImportButton: Show import button
+    hideImportButtonDescription: Display an 'Import' button so users can upload records from a file.
+    hidePaging: Show pagination
+    hidePagingDescription: Display pagination controls below the list.
+    hidePermissionsButton: Hide permissions button
+    hideReminderButton: Hide reminder button
+    hideViewButton: Hide view button
+    inlineEditFields: Inline editable fields
+    inlineEditLabel: Inline editing
+    inlineEditor: Inline Options
+    inlineEditorAllow: Editable
+    inlineEditorAllowDescription: Records in the list can be edited.
+    inlineRecordCopyEnabled: Inline value copy
+    inlineRecordCopyEnabledDescription: Show a copy icon on hover for each cell so users can copy the value to the clipboard with one click.
+    inlineRecordEditAllowAddField: Allow adding new fields
+    inlineRecordEditAllowAddFieldDescription: When inline-editing a row, also allow adding values to fields that aren't currently shown as columns.
+    inlineRecordEditEnabled: Inline cell editing
+    inlineRecordEditEnabledDescription: Show a pencil icon on hover for each cell so users can edit a single value inline without entering row-edit mode.
+    inlineValueFiltering: Inline value filtering
+    inlineValueFilteringDescription: Show a filter icon on hover for each cell so users can filter the list by that value with one click.
+    moreOptions: More Options
+    noPermission: No permission to read record
+    openInModal: Open record in a modal
+    openInNewTab: Open record in a new tab
+    openInSameTab: Open record in the same tab
+    openRecordInEditMode: Open in edit mode
+    openRecordInEditModeDescription: Clicking a record opens it directly in edit mode instead of view mode.
+    pagingLabel: Paging
+    pagingOptions: Paging Options
+    perPage: Records per page
+    perPageHint: Displaying a large amount of records per page will impact performance, especially with record/user fields
+    prefilterCommand: Prefilter
+    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    prefilterHideSearch: Show search bar
+    prefilterHideSearchDescription: Display a search bar above the list so users can search records by configured searchable fields.
+    prefilterLabel: Filtering
+    prefilterPlaceholder: field1 = 1 AND field2 = 232
+    preset: Preset
+    presetFilter: Preset filter
+    presetName: Preset name
+    presetRoles: Roles
+    presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported
+    presortHideSort: Sortable columns
+    presortHideSortDescription: Allow users to sort the list by clicking column headers.
+    presortInputLabel: Presort
+    presortLabel: Sorting
+    presortPlaceholder: field1 DESC, field2 ASC
+    presortToggleInput: Toggle input type
+    recordDisplayOptions: On record click
+    recordSelectorDisplayOptions: On record value click
+    recordsLabel: Records
+    rowActionButtons: Row action buttons
+    searchOnSubmit: On submit (Enter or button click)
+    searchOnType: After typing
+    searchSubmitMode: Search submit
+    searchableFields: Searchable fields
+    searchableFieldsFootnote: If no fields are selected, the search will be performed on all available visible fields
+    setCustomFilterPresets: User will be able to set custom filter presets
+    showDeletedRecordsOption: Show deleted records toggle
+    showDeletedRecordsOptionDescription: Add a toolbar toggle so users can switch the list between active and soft-deleted records.
+    showRecordPerPageOption: Records per page selector
+    showRecordPerPageOptionDescription: Let users choose how many records to show per page.
+    showTotalCount: Show total count
+    showTotalCountDescription: Display the total count of matching records alongside the pagination controls.
+    summaries: Summaries
+    summary: Summary
+    summaryField: Field
+    summaryLabel: Label
+    summaryMetric: Metric
+    summaryRoles: Roles
+    textStyles: Text Styles
+    tooltip:
+      clone: Clone
+      delete: Delete
+      edit: Edit
+      permissions: Permissions
+      reminder: Reminder
+      restore: Restore
+      view: View
+  recordPage: record page
+  refField:
+    footnote: Field that links records with the parent record
+    label: Parent field
+  selectAllRecords: Select all records on all pages
+  selectable: Selectable rows
+  selectableDescription: Show selection checkboxes so users can select records for bulk actions.
+  selected: '{count} of {total} records selected'
+  selectedFromAllPages: All {count} records from all pages selected
+  showRecords:
+    deleted: Show deleted records
+    existing: Show existing records
+  sort:
+    tooltip: Sort column
+  summaries:
+    customSummaries:
+      add:
+        label: Add
+        tooltip: Add a custom summary
+      description: Users will be able to set custom summaries
+      label: Custom Summaries
+    label: Summaries
+    metrics:
+      avg:
+        label: Avg
+      emptyCount:
+        label: Empty count
+      max:
+        label: Max
+      min:
+        label: Min
+      notEmptyCount:
+        label: Not empty count
+      sum:
+        label: Sum
+      uniqueCount:
+        label: Unique count
+    param:
+      field:
+        label: Field
+        placeholder: Module Field
+      label:
+        label: Label
+        placeholder: Summary Label
+      metric:
+        label: Metric
+        placeholder: Summary Metric
+      role:
+        label: Role
+        placeholder: Roles that will be able to see the summary
+  tooltip:
+    copy: Copy value
+    copyError: Failed to copy value
+    copyErrorSummary: Error
+    copySuccess: Value copied to clipboard
+    deleteSelected: Delete selected records
+    discardChanges: Discard changes
+    performance:
+      impact: Using this feature will impact performance
+      moduleFields: Selecting a large number of fields or displaying record/user fields will impact performance
+      perPage: Displaying a large amount of records per page will impact performance, especially if you are displaying record/user fields
+    restoreSelected: Restore selected records
+    saveChanges: Save changes
+  unselectAllRecords: Clear selection
+recordOrganizer:
+  addNewRecord: + Add
+  descriptionField:
+    footnote: Field value will be used as record description
+    label: Description field
+  displayOption:
+    label: Record display mode
+  group:
+    footnote: Value that will be set to the key field. The records will be filtered based on this value, if it's defined.
+    label: Key value
+  groupField:
+    footnote: Field whose value will change when a record is moved into the record organizer
+    label: Key field
+  label: Record organizer
+  labelField:
+    footnote: Field value will be used as record label
+    label: Label field
+  module:
+    placeholder: Select a module
+  noRecords: No records in module linked with record organizer. Drag and drop records here.
+  notConfigured: Record organizer is not configured correctly
+  onRecordClick: Record display mode
+  openInModal: Open in a modal
+  openInNewTab: Open in a new tab
+  openInSameTab: Open in the same tab
+  positionField:
+    footnote: Records will be sorted based on this field. That field value will be updated based on the position of the record.
+    label: Record sort field
+    placeholder: Field that will hold the record position
+  prefilter:
+    footnote: Simplified SQL condition (WHERE ...) syntax is supported
+    label: Prefilter
+    placeholder: field1 = 1 AND field2 = 232
+  preview:
+    label: 'Record Organizer block for module {0}. Label field {1}, Description field {2}. Value setting field: {3}, Sorted by position field: {4}.'
+    moduleNotSelected: Record Organizer module not selected
+recordRevisions:
+  configurator:
+    displayedFields: Fields to display in record revisions changes
+    errors:
+      invalid-module-id: Field does not contain a valid module ID.
+    fields:
+      label: Fields to display in record revisions changes
+    label: Record revisions
+    preload: Preload record revisions
+    sortDirection:
+      asc: Oldest first
+      desc: Newest first
+      footnote: Sort revisions by when they were created
+      label: Sort direction
+  label: Record revisions
+  viewer:
+    changes:
+      columns:
+        field:
+          label: Field
+        new-value:
+          label: New value
+        old-value:
+          label: Old value
+    errors:
+      disabled-on-module: Record revisions are disabled on this module
+      no-record: No record found to display revisions for
+      no-revisions: No record revisions found
+    operations:
+      created: Created
+      hard-deleted: Hard deleted
+      soft-deleted: Soft deleted
+      undeleted: Restored
+      updated: Updated
+    revisions:
+      columns:
+        operation:
+          label: Operation
+        timestamp:
+          label: Timestamp
+        user:
+          label: User
+    show-changes: '{ count } change(s)'
+    show-revisions: Show record revisions ({ revision })
+report:
+  element:
+    label: Display element
+  elementIDPlaceholder: Select display element
+  label: Report
+  reportIDFootnote: Select a report to display
+  reportIDPlaceholder: Select a report
+  scenario:
+    label: Scenario
+  scenarioIDPlaceholder: Select a scenario
+selectBlockFootnote: Some types might be disabled for non-record pages
+selector:
+  selectableBlocks:
+    placeholder: Blocks from other layouts
+  tooltip:
+    clone:
+      noRef: Clone without references
+      ref: Clone with references
+socialFeed:
+  label: Twitter feed
+  noInput: No input for displaying social feed...
+  preview:
+    socialFeed: Twitterblo feed
+  twitterProfileField: Field that contains Twitter Profile URL for a record
+  twitterProfileLabel: Twitter Profile URL for list pages i.e (https://twitter.com/bloomberg)
+tabs:
+  alertTitle: Set a title for your block
+  blockAssociation: Block association
+  displayTitle: Display Options
+  label: Tabs
+  menu:
+    clone: Clone tab
+    edit: Edit block
+    remove: Remove tab
+  newBlockModal: Add new block
+  noBlock: No block configured
+  noTabs: No tabs configured
+  placeholder:
+    block: Select a block to tab
+  preview: Live example
+  selectBlock: Choose a block
+  style:
+    alignment: Alignment
+    alignment-nested:
+      center: Center
+      label: Alignment
+      left: Left
+      right: Right
+    alignmentCenter: Center
+    alignmentLeft: Left
+    alignmentRight: Right
+    appearance: Appearance
+    appearance-nested:
+      label: Appearance
+      pills: Pills
+      small: Small
+      tabs: Tabs
+    appearancePills: Pills
+    appearanceSmall: Small
+    appearanceTabs: Tabs
+    justify: Justify
+    justify-nested:
+      justify: Justify
+      label: Justify
+      none: None
+    justifyJustify: Justify
+    justifyNone: None
+    label: Style
+    orientation: Orientation
+    orientation-nested:
+      horizontal: Horizontal
+      label: Orientation
+      vertical: Vertical
+    orientationHorizontal: Horizontal
+    orientationVertical: Vertical
+    position: Position
+    position-nested:
+      end: End
+      label: Position
+      start: Start
+    positionEnd: End
+    positionStart: Start
+  tab: Tab
+  table:
+    columns:
+      block:
+        label: Block
+      lazy:
+        label: Lazy load
+        tooltip: When enabled, the tab content will only be rendered when the tab is first activated
+      title:
+        label: Title
+  title: Tabs
+  tooltip:
+    addBlock: Add new block
+    clone: Clone block & tab
+    copy: Copy block
+    delete: Delete tab
+    edit: Edit block
+    editDisabled: Editing tabbed blocks is disabled until you save this block

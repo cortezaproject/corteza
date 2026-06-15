@@ -18,17 +18,3 @@ export const routes = sections.flatMap(section => section.routes)
 export function sectionById(id) {
   return sections.find(section => section.id === id) || null
 }
-
-// Server-side locale application bundles to load + deep-merge for the active
-// section set. `human-webapp-one` provides the shell chrome (navigation/app),
-// the rest add each section's namespaces.
-export const localeApplications = [
-  'human-webapp-one',
-  'human-webapp-home',
-  'human-webapp-agentic',
-  'human-webapp-workflow',
-  'human-webapp-taq',
-  'human-webapp-admin',
-  'human-webapp-compose',
-  'human-webapp-chatbot',
-]

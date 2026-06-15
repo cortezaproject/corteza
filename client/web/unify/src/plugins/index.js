@@ -16,14 +16,12 @@ import {
     getTheme,
     setThemes,
 } from '@planetcrust/human-vue'
-import { isPlainObject, mergeWith } from 'lodash-es'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'
 import DialogService from 'primevue/dialogservice'
 import Ripple from 'primevue/ripple'
 import ToastService from 'primevue/toastservice'
-import { localeApplications } from '../sections'
 import router from '../router'
 
 /**
@@ -58,47 +56,6 @@ function setupPrimeVue(app, theme) {
   app.use(PrimeVueComponentsPlugin)
 }
 
-// True if a value carries actual translation text (a string anywhere inside).
-function hasTranslationContent(value) {
-  if (typeof value === 'string') return true
-  if (isPlainObject(value)) return Object.values(value).some(hasTranslationContent)
-  return false
-}
-
-/**
- * Deep-merges locale bundles. Apps sometimes define the same key with a
- * different shape — flat string in one app, nested object in another
- * (e.g. `navigation.automation` is "Automation" in compose but
- * `{ group, items }` in admin). A plain deep-merge lets whichever bundle is
- * merged last clobber the other shape and silently drop subkeys. On such a
- * string↔object collision we keep whichever side actually contains
- * translations (so admin's `{ group, items }` wins over a flat label, but a
- * real "General" string wins over an unused garbage object).
- */
-function localeMerge(target, source) {
-  return mergeWith(target, source, (objValue, srcValue) => {
-    const objIsObject = isPlainObject(objValue)
-    const srcIsObject = isPlainObject(srcValue)
-    if (objIsObject === srcIsObject) return undefined // same shape → default merge
-    const objectSide = objIsObject ? objValue : srcValue
-    const primitiveSide = objIsObject ? srcValue : objValue
-    return hasTranslationContent(objectSide) ? objectSide : primitiveSide
-  })
-}
-
-/**
- * Loads and merges the locale bundles for every active section so a single
- * i18n instance resolves chrome + every section's namespaces.
- */
-async function loadMergedTranslations(api, locale) {
-  const bundles = await Promise.all(
-    localeApplications.map(application =>
-      api.localeGet({ lang: locale, application }).catch(() => ({})),
-    ),
-  )
-  return bundles.reduce((acc, bundle) => localeMerge(acc, bundle), {})
-}
-
 /**
  * Main app setup and authentication flow
  */
@@ -127,12 +84,11 @@ export function setupAndAuthenticate(app) {
       app.use(EventBusPlugin)
       app.use(router)
 
-      // i18n — merge every active section's locale bundle into one instance
+      // i18n — single consolidated locale bundle for chrome + every section
       const locale = $Auth.user.meta.preferredLanguage || 'en'
-      const translations = await loadMergedTranslations(
-        app.config.globalProperties.$SystemAPI,
-        locale,
-      )
+      const translations = await app.config.globalProperties.$SystemAPI
+        .localeGet({ lang: locale, application: 'human-webapp' })
+        .catch(() => ({}))
 
       app.use(I18nPlugin, {
         locale: locale,

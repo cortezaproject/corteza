@@ -1,0 +1,232 @@
+addStep: Add Step
+addTrigger: Add Trigger
+arrayInput:
+  addRow: Add Item
+  deleteConfirm: Are you sure you want to remove this item?
+  item: Item
+  itemHead: Item
+branch:
+  condition: Condition
+  defaultPath: Default — no condition needed
+  else: Else
+  elseIf: Else If
+  exclusive: First match
+  exclusiveHint: Takes the first path whose condition is true
+  gatewayType: Branching Mode
+  if: If
+  inclusive: All matches
+  inclusiveHint: Takes every path whose condition is true
+  noCondition: No condition set
+canvas:
+  runAs: Run as
+cards:
+  connections:
+    description: Configure service connections
+    title: Connections
+  connectors:
+    description: Browse and install connectors
+    title: Connectors
+  workflows:
+    description: Build automation workflows
+    title: Workflows
+condition:
+  addCondition: Add condition
+  addGroup: Add group
+  and: AND
+  enterValue: Enter value
+  matchAll: All match
+  matchAny: Any match
+  operators:
+    eq: equals
+    gt: greater than
+    gte: greater or equal
+    isNotNull: is not empty
+    isNull: is empty
+    lt: less than
+    lte: less or equal
+    ne: not equals
+  or: OR
+  selectValue: Select value
+configSidebar:
+  addElseIf: Add Else If Branch
+  branches: Branches
+  deleteNode: Delete Step
+  end: End
+  noDescription: Add a description...
+  node: Node
+  selectNamespaceFirst: Select a namespace first
+confirmDelete:
+  cancel: Cancel
+  confirm: Delete
+  header: Delete Node
+  message: Are you sure you want to delete this node?
+emptyState: Start by adding a trigger
+enabled: Enabled
+fieldValueMap:
+  addRow: Add field value
+  addValue: Add value
+  deleteConfirm: Are you sure you want to remove this field value?
+  enterValue: Enter value
+  selectField: Select field
+  selectModuleFirst: Select a module first
+form:
+  referenceToggle: Use value from a previous step
+  selectFirst: Select {field} first
+  selectPlaceholder: Select {field}
+generalConfig:
+  header: General Configuration
+  runAs: Run as
+  runAsHint: When not set, the automation runs as whoever triggered it.
+  runAsPlaceholder: Default (invoker)
+inputSchema:
+  addParam: Add parameter
+  description: Description
+  descriptionPlaceholder: Optional hint for the agent
+  empty: No params defined yet.
+  errors:
+    nameDuplicate: Duplicate name
+    nameInvalid: Use letters, digits, underscore; must not start with digit
+    nameRequired: Name is required
+  hint: Declare params the agent must pass. They become references available to downstream steps.
+  name: Name
+  namePlaceholder: name
+  remove: Remove param
+  required: Required
+  title: Input schema
+  type: Type
+  types:
+    boolean: Boolean
+    number: Number
+    string: String
+iterator:
+  body: Body
+  done: Done
+newTaq: New TAQ
+nodePicker:
+  categories:
+    actions: Actions
+    branches: Branches
+    triggers: Triggers
+    triggersGeneral: General
+    triggersRecord: Record
+  noResults: No nodes found matching "{query}"
+  nodes:
+    branches:
+      exclusive:
+        description: Takes the first path whose condition is true
+        label: First Match
+      inclusive:
+        description: Takes every path whose condition is true
+        label: All Matches
+    logic:
+      branch:
+        description: Split flow
+        label: Branch
+  searchSteps: Search steps...
+  searchTriggers: Search triggers...
+nodes:
+  branch: Branch
+  end: End
+  iterator: Loop
+  loop: Loop
+  menu:
+    delete: Delete
+    replace: Replace
+  splitFlow: Split flow
+  startAutomation: Start automation
+  step: Step
+  trigger: Trigger
+palette:
+  actions: Actions
+  logic: Logic
+  triggers: Triggers
+preview:
+  field: Field
+  hideConfigurations: Hide step configurations
+  noConfig: No configuration
+  notSet: '-'
+  showConfigurations: Show step configurations
+  toggleAll: Show all previews
+  value: Value
+properties:
+  noSelection: Select a node to configure
+  title: Properties
+referencePanel:
+  invoker: Invoker
+  invokerDescription: The user who triggered this automation.
+  noResults: No upstream steps with results
+  runner: Runner
+  runnerDescription: The user this automation runs as. Defaults to the invoker unless "Run as" is set.
+  systemUser:
+    createdAt: Created At
+    deletedAt: Deleted At
+    email: Email
+    emailConfirmed: Email Confirmed
+    handle: Handle
+    name: Name
+    suspendedAt: Suspended At
+    updatedAt: Updated At
+    userID: User ID
+    username: Username
+  title: Step Results
+replaceStep: Replace Step
+replaceTrigger: Replace Trigger
+run: Run
+runModal:
+  description: Provide initial variables to execute triggers that expect a specific scope.
+  header: Execution Scope
+save: Save
+saveAndRun: Save & Run
+selectTrigger: Select Trigger
+title: TAQ Builder
+toast:
+  error:
+    detail: Failed to save TAQ
+    summary: Error
+  loadError:
+    detail: Failed to load TAQ
+    summary: Load Error
+  run:
+    detail: Automation started
+    summary: Running
+  runError:
+    detail: Failed to run automation
+    summary: Error
+  saved:
+    detail: TAQ saved successfully
+    summary: Saved
+  scopeError:
+    detail: Failed to fetch execution scope. Ensure your selections are valid.
+    summary: Scope Error
+trace:
+  clear: Clear Trace
+  completed: Completed
+  duration: Duration
+  error: Error
+  failed: Failed
+  input: Input
+  noData: No trace data
+  output: Output
+  panelTitle: Execution Trace
+  running: Running...
+  scope: Scope
+  searchPlaceholder: Search keys or values…
+  skipped: Skipped
+  stepsExecuted: steps executed
+triggers:
+  interval:
+    custom: Custom
+    every15Minutes: Every 15 minutes
+    every5Minutes: Every 5 minutes
+    everyDay: Every day at midnight
+    everyHour: Every hour
+    everyMinute: Every minute
+    everyMonday: Every Monday at midnight
+    everyMonth: Every month on the 1st
+unsavedChanges:
+  description: 'You have unsaved changes in this automation.
+
+
+    Please save your work before executing a run to ensure your latest changes are tested.'
+  header: Unsaved Changes Detected
+welcome: Welcome to the TAQ workflow automation builder.

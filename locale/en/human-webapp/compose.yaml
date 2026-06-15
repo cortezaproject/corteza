@@ -1,0 +1,48 @@
+automation:
+  list:
+    columns:
+      events: Triggered on events
+      label: Label
+      name: Name
+    title: Compose Automation
+settings:
+  editor:
+    basic:
+      attachments:
+        icon: Icon attachments
+        max-size: Max size (MB)
+        page: Page attachments
+        record: Record attachments
+        type:
+          description: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
+          whitelist: File type whitelist
+      title: Basic
+    group:
+      general: General
+      record-toolbar: Record Toolbar
+      ui: UI
+    label:
+      default-namespace: Default namespace slug
+      namespace-switch: Namespace switcher enabled
+      page-layout: Page layout enabled
+      record-revisions: Record revisions enabled
+      toolbar-back: Show Back button in record toolbar
+      toolbar-clone: Show Clone button in record toolbar
+      toolbar-delete: Show Delete button in record toolbar
+      toolbar-edit: Show Edit button in record toolbar
+      toolbar-new: Show New button in record toolbar
+    title: Compose settings
+    ui:
+      record-toolbar:
+        hide-back: Hide back link
+        hide-clone: Hide clone button
+        hide-delete: Hide delete button
+        hide-edit: Hide edit button
+        hide-new: Hide new button
+        hide-submit: Hide submit button
+        title: Record Toolbar
+      sidebar:
+        hide-namespace-list: Hide list of namespaces
+        hide-namespace-list-link: Hide link to list of all namespaces
+        title: Sidebar
+      title: User interface

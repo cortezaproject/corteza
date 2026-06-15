@@ -1,0 +1,27 @@
+all: All
+allMarkedAsRead: All notifications have been marked as read
+allMarkedAsUnread: All notifications have been marked as unread
+delete: Delete
+empty: No notifications
+loadMore: Load More
+markAllAsRead: Mark all as read
+markAllAsReadError: Error marking all notifications as read
+markAllAsUnread: Mark all as unread
+markAllAsUnreadError: Error marking all notifications as unread
+markAsRead: Mark as read
+markAsUnread: Mark as unread
+mute: Mute notifications
+muted: Notifications muted
+namespaceNotFound: Namespace not found
+notificationDeleted: Notification has been deleted
+notificationDeletedError: Error deleting notification
+open: Open
+pageNotFound: Page not found
+read: Read
+recordNotFound: Record not found
+recordRedirectError: Error navigating to record
+success: Success
+title: Notifications
+unmute: Unmute notifications
+unmuted: Notifications unmuted
+unread: Unread
