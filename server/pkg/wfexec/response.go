@@ -52,3 +52,22 @@ type (
 
 func LoopBreak() *loopBreak       { return &loopBreak{} }
 func LoopContinue() *loopContinue { return &loopContinue{} }
+
+// responseWithWarnings wraps a *expr.Vars scope together with a set of
+// non-fatal warnings produced while computing it. The session unwraps
+// this and attaches the warnings to the current State so they land in
+// the emitted Frame's Warnings slice alongside the scope in Frame.Scope.
+//
+// Used by the join gateway to surface variable conflicts across
+// parallel branches without changing the normal *expr.Vars contract.
+type responseWithWarnings struct {
+	scope    *expr.Vars
+	warnings []string
+}
+
+// ResponseWithWarnings constructs a wrapper response. Callers pass the
+// scope they would have returned normally plus a list of human-readable
+// warning messages that the session should propagate into the frame.
+func ResponseWithWarnings(scope *expr.Vars, warnings []string) *responseWithWarnings {
+	return &responseWithWarnings{scope: scope, warnings: warnings}
+}

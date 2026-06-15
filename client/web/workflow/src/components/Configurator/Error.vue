@@ -15,17 +15,69 @@
     <b-card-body
       class="p-0"
     >
+      <!-- Title -->
       <b-form-group
-        :label="$t('general:error-expression')"
+        :label="$t('general:error-step.title.label')"
+        :description="$t('general:error-step.title.description')"
+        label-class="text-primary"
+      >
+        <expression-editor
+          v-model="titleArg.expr"
+          font-size="16px"
+          show-line-numbers
+          @open="openInEditor('title')"
+          @input="onFieldInput"
+        />
+      </b-form-group>
+
+      <!-- Severity -->
+      <b-form-group
+        :label="$t('general:error-step.severity.label')"
+        :description="$t('general:error-step.severity.description')"
+        label-class="text-primary"
+      >
+        <b-form-select
+          v-if="severityIsLiteral"
+          v-model="severityValue"
+          :options="severityOptions"
+          @change="onSeverityChange"
+        />
+        <div
+          v-else
+          class="d-flex align-items-center"
+        >
+          <b-form-input
+            v-model="severityArg.expr"
+            class="flex-grow-1"
+            :placeholder="$t('general:error-step.severity.label')"
+            @input="onFieldInput"
+          />
+          <b-button
+            v-b-tooltip.hover
+            variant="link"
+            size="sm"
+            :title="$t('general:error-step.severity.reset-to-literal')"
+            class="ml-2 p-0"
+            @click="resetSeverityToLiteral"
+          >
+            <font-awesome-icon :icon="['fas', 'undo']" />
+          </b-button>
+        </div>
+      </b-form-group>
+
+      <!-- Message -->
+      <b-form-group
+        :label="$t('general:error-step.message.label')"
+        :description="$t('general:error-step.message.description')"
         label-class="text-primary"
         class="mb-0"
       >
         <expression-editor
-          v-model="item.config.arguments[0].expr"
-          font-size="18px"
+          v-model="messageArg.expr"
+          font-size="16px"
           show-line-numbers
-          @open="openInEditor"
-          @input="valueChanged"
+          @open="openInEditor('message')"
+          @input="onFieldInput"
         />
       </b-form-group>
     </b-card-body>
@@ -60,6 +112,13 @@
 import base from './base'
 import ExpressionEditor from '../ExpressionEditor.vue'
 
+const ALLOWED_TARGETS = ['message', 'title', 'severity']
+const SEVERITY_VALUES = ['error', 'warning', 'info']
+
+function makeArg (target, expr = '') {
+  return { target, type: 'String', expr }
+}
+
 export default {
   components: {
     ExpressionEditor,
@@ -71,53 +130,153 @@ export default {
     return {
       expressionEditor: {
         currentExpression: undefined,
+        currentField: undefined,
       },
     }
   },
 
+  computed: {
+    // Computed getters are pure reads. All four allowed-target args
+    // are pre-created in `created()` and also re-created by
+    // `ensureArgs()` before any method that needs write access. This
+    // keeps the computeds side-effect-free so Vue's reactivity graph
+    // can't re-enter the getter while it is mutating arguments.
+    messageArg () {
+      return this.findArg('message') || makeArg('message')
+    },
+    titleArg () {
+      return this.findArg('title') || makeArg('title')
+    },
+    severityArg () {
+      return this.findArg('severity') || makeArg('severity')
+    },
+
+    // severityIsLiteral: true when the severity expression is either
+    // empty or a plain quoted literal we can round-trip through the
+    // dropdown. When it's a real expression (e.g. `vars.level`), the
+    // configurator falls back to a raw text input so we never clobber
+    // the author's work.
+    severityIsLiteral () {
+      const raw = (this.severityArg.expr || '').trim()
+      if (!raw) return true
+      return /^["'](error|warning|info)["']$/.test(raw)
+    },
+
+    severityValue: {
+      get () {
+        const raw = (this.severityArg.expr || '').trim()
+        if (!raw) return 'error'
+        const m = raw.match(/^["'](error|warning|info)["']$/)
+        return m ? m[1] : 'error'
+      },
+      set (v) {
+        if (!SEVERITY_VALUES.includes(v)) v = 'error'
+        const arg = this.severityArg
+        this.$set(arg, 'expr', `"${v}"`)
+      },
+    },
+
+    severityOptions () {
+      return [
+        { value: 'error', text: this.$t('general:error-step.severity.options.error') },
+        { value: 'warning', text: this.$t('general:error-step.severity.options.warning') },
+        { value: 'info', text: this.$t('general:error-step.severity.options.info') },
+      ]
+    },
+  },
+
   created () {
-    let args = [{
-      target: 'message',
-      type: 'String',
-      expr: '',
-    }]
-
-    if (this.item.config.arguments && this.item.config.arguments.length) {
-      args = this.item.config.arguments.map(({ target, type, value, expr }) => {
-        return {
-          target,
-          type,
-          expr: expr || (value ? `"${value}"` : ''),
-        }
-      })
-    }
-
-    this.$set(this.item.config, 'arguments', args)
+    this.ensureArgs()
   },
 
   methods: {
-    valueChanged (value) {
+    // ensureArgs normalises item.config.arguments: keeps only allowed
+    // targets and guarantees one entry per target, even if empty. Safe
+    // to call from any write path. Does NOT run from computed getters.
+    ensureArgs () {
+      const existing = Array.isArray(this.item.config.arguments) ? this.item.config.arguments : []
+      const byTarget = {}
+      existing.forEach(({ target, type, value, expr }) => {
+        if (!ALLOWED_TARGETS.includes(target)) return
+        byTarget[target] = {
+          target,
+          type: type || 'String',
+          expr: expr || (value ? `"${value}"` : ''),
+        }
+      })
+
+      const args = ALLOWED_TARGETS.map(t => byTarget[t] || makeArg(t))
+      this.$set(this.item.config, 'arguments', args)
+    },
+
+    // findArg is a pure read. Returns the matching arg object or
+    // undefined when absent. Safe to call from computeds.
+    findArg (target) {
+      const args = this.item.config.arguments || []
+      return args.find(a => a.target === target)
+    },
+
+    // findOrCreateArg is a mutating read used by write paths only.
+    // It guarantees the arg exists on item.config.arguments before
+    // returning it. Never call from inside a computed getter — use
+    // findArg with a fallback instead.
+    findOrCreateArg (target) {
+      let arg = this.findArg(target)
+      if (!arg) {
+        this.ensureArgs()
+        arg = this.findArg(target) || makeArg(target)
+      }
+      return arg
+    },
+
+    // stripLiteralQuotes returns the unquoted content of a simple
+    // quoted string expression (e.g. "foo" -> foo) so the canvas node
+    // label preview reads cleanly. Non-literal expressions are passed
+    // through unchanged.
+    stripLiteralQuotes (s) {
+      const t = (s || '').trim()
+      const m = t.match(/^(["'])((?:[^\\]|\\.)*)\1$/)
+      return m ? m[2] : t
+    },
+
+    onFieldInput () {
+      const pick = this.titleArg.expr || this.messageArg.expr || ''
+      const preview = this.stripLiteralQuotes(pick)
       this.$emit('update-default-value', {
-        value: `Stop workflow with error: ${value}`,
+        value: preview ? `Stop workflow with error: ${preview}` : 'Stop workflow with error',
         force: !this.item.node.value,
       })
       this.$root.$emit('change-detected')
     },
 
-    openInEditor () {
-      this.expressionEditor.currentExpression = this.item.config.arguments[0].expr
+    onSeverityChange () {
+      this.$root.$emit('change-detected')
+    },
+
+    resetSeverityToLiteral () {
+      this.$set(this.severityArg, 'expr', '"error"')
+      this.$root.$emit('change-detected')
+    },
+
+    openInEditor (field) {
+      const arg = this.findOrCreateArg(field)
+      this.expressionEditor.currentField = field
+      this.expressionEditor.currentExpression = arg.expr || ''
     },
 
     saveExpression () {
-      const { currentExpression } = this.expressionEditor
-      this.$set(this.item.config.arguments[0], 'expr', currentExpression)
-      this.$root.$emit('change-detected')
-
+      const { currentExpression, currentField } = this.expressionEditor
+      if (currentField) {
+        const arg = this.findOrCreateArg(currentField)
+        this.$set(arg, 'expr', currentExpression)
+        this.$root.$emit('change-detected')
+      }
       this.resetExpression()
     },
 
     resetExpression () {
       this.expressionEditor.currentExpression = undefined
+      this.expressionEditor.currentField = undefined
     },
   },
 }

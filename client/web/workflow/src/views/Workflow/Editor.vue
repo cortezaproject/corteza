@@ -121,21 +121,61 @@ export default {
     },
 
     saveWorkflow: throttle(async function (wf) {
-      try {
-        this.processingSave = true
+      // Issue #687: previously this handler would swallow trigger-update
+      // failures behind a misleading "configure triggers" message and
+      // could crash on `undefined.workflowID` if the workflow API call
+      // rejected (e.g. backend unreachable). It now distinguishes
+      // network failures from validation errors and surfaces the real
+      // underlying error to the user.
+      this.processingSave = true
 
+      // isNetworkError requires *positive* evidence of a transport-layer
+      // failure. A plain JS error thrown from inside a .then() handler
+      // must not be misreported as "server unreachable", so we only
+      // match on known axios/fetch signals:
+      //   - axios error code indicates network/timeout/DNS (ECONNREFUSED,
+      //     ETIMEDOUT, ENETUNREACH, ENOTFOUND, EAI_AGAIN) or the
+      //     axios ≥ 1.x generic ERR_NETWORK
+      //   - axios marks the request as sent but with no response
+      //     (err.request set, err.response absent) which is the
+      //     canonical "server did not reply" case
+      //   - the error message explicitly says so
+      // Anything else falls through as a generic error.
+      const isNetworkError = e => {
+        if (!e || typeof e === 'string') return false
+        if (e.code && /^(E(CONN|TIMED|NETUN|NOTFO|AI_AGAIN)|ERR_NETWORK)/i.test(e.code)) return true
+        if (e.request && !e.response) return true
+        if (typeof e.message === 'string' && /Network Error|Failed to fetch/i.test(e.message)) return true
+        return false
+      }
+
+      const reportSaveError = e => {
+        if (isNetworkError(e)) {
+          this.toastDanger(
+            this.$t('notification:failed-save-network'),
+            this.$t('notification:failed-save'),
+          )
+          return
+        }
+        // Defer to the shared handler — it knows how to render workflow
+        // error step rich payloads and falls back to plain toasts.
+        this.toastErrorHandler(this.$t('notification:failed-save'))(e)
+      }
+
+      try {
         const isNew = wf.workflowID === '0'
 
         const { triggers = [] } = wf
 
         // Firstly handle trigger updates
         // Delete triggers of steps that were deleted
-        await Promise.all(this.triggers.filter(({ triggerID }) => {
-          return !triggers.find(t => triggerID === t.triggerID)
-        }).map(({ triggerID }) => {
-          return this.$AutomationAPI.triggerDelete({ triggerID })
-        }),
-        ).then(async () => {
+        try {
+          await Promise.all(this.triggers.filter(({ triggerID }) => {
+            return !triggers.find(t => triggerID === t.triggerID)
+          }).map(({ triggerID }) => {
+            return this.$AutomationAPI.triggerDelete({ triggerID })
+          }))
+
           await Promise.all(triggers.map(t => {
             // Update triggers that already have an ID
             if (t.triggerID) {
@@ -152,25 +192,46 @@ export default {
                 ownedBy: this.userID,
               })
             }
-          })).catch(() => {
-            throw new Error(this.$t('notification:configure-triggers'))
-          })
-        })
+          }))
+        } catch (e) {
+          // Surface the actual trigger error instead of the generic
+          // "configure triggers" message that used to mask it.
+          reportSaveError(e)
+          return
+        }
 
         // Secondly handle workflow updates
-        if (isNew) {
-          wf = await this.$AutomationAPI.workflowCreate(wf)
-        } else {
-          wf = await this.$AutomationAPI.workflowUpdate(wf)
+        let saved
+        try {
+          saved = isNew
+            ? await this.$AutomationAPI.workflowCreate(wf)
+            : await this.$AutomationAPI.workflowUpdate(wf)
+        } catch (e) {
+          reportSaveError(e)
+          return
+        }
+
+        if (!saved || !saved.workflowID) {
+          // Defensive: API returned an unexpected shape. Don't crash on
+          // saved.workflowID later down the chain. Emit the raw payload
+          // to the browser console so the malformed response is still
+          // diagnosable — the toast can't show it safely and silently
+          // dropping it would make this path impossible to debug.
+          console.warn('workflow save: unexpected response payload', saved)
+          this.toastDanger(
+            this.$t('notification:failed-save-unexpected-response'),
+            this.$t('notification:failed-save'),
+          )
+          return
         }
 
         // Lastly update all of the bits
-        await this.fetchTriggers(wf.workflowID)
+        await this.fetchTriggers(saved.workflowID)
 
         this.changeDetected = false
         window.onbeforeunload = null
 
-        this.workflow = new automation.Workflow(wf)
+        this.workflow = new automation.Workflow(saved)
         this.toastSuccess(this.$t('notification:update.success'))
 
         if (isNew) {
@@ -178,10 +239,12 @@ export default {
           this.$router.push({ name: 'workflow.edit', params: { workflowID: this.workflow.workflowID } })
         }
       } catch (e) {
-        this.toastErrorHandler(this.$t('notification:failed-save'))(e)
+        reportSaveError(e)
+      } finally {
+        // Guarantee the processing flag is cleared even if an unexpected
+        // synchronous error escapes the try block above.
+        this.processingSave = false
       }
-
-      this.processingSave = false
     }, 500),
 
     deleteWorkflow () {

@@ -2,7 +2,9 @@ package wfexec
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -27,6 +29,13 @@ func NewGatewayPath(s Step, t pathTester) (gwp *GatewayPath, err error) {
 	return &GatewayPath{to: s, test: t}, nil
 }
 
+// PathAdder is implemented by gateways that support lazy parent registration.
+// This allows resolving circular dependencies during graph construction where
+// parent steps aren't yet in the graph when the gateway is created.
+type PathAdder interface {
+	AddPath(Step)
+}
+
 // joinGateway handles merging/joining of multiple paths into
 // a single path forward
 type (
@@ -38,6 +47,17 @@ type (
 		l       sync.Mutex
 	}
 )
+
+// AddPath adds a parent path to the join gateway after initial creation.
+// This allows resolving circular dependencies where parent steps aren't yet
+// in the graph at the time the join gateway is constructed.
+func (gw *joinGateway) AddPath(s Step) {
+	gw.l.Lock()
+	defer gw.l.Unlock()
+	if !gw.paths.Contains(s) {
+		gw.paths = append(gw.paths, s)
+	}
+}
 
 // JoinGateway fn initializes join gateway with all paths that are expected to be partial
 func JoinGateway(ss ...Step) *joinGateway {
@@ -56,12 +76,30 @@ func JoinGateway(ss ...Step) *joinGateway {
 	}
 }
 
-// Exec fn on join gateway can be called multiple times, even multiple times parent the same parent
+// Exec fn on join gateway can be called multiple times, even multiple times for the same parent.
 //
-// Func will collect results from each parent path.
+// It collects scope and results from every parent path and merges them when
+// all configured paths have reported in.
 //
-// Join gateway is ready to continue when all configured paths have been collected
-// Results are merged to preserve changes from all parallel paths
+// Merge rules:
+//   - Every parent's full scope is merged in (previously only paths[0]'s
+//     scope was kept, so variables set mid-branch in any other path were
+//     silently dropped — this is the "variables lost at parallel join"
+//     class of bug).
+//   - Every parent's immediate step results are merged on top of the
+//     combined scope, mirroring the intra-branch rule that a step's
+//     results overwrite earlier scope values on conflict.
+//   - Within each tier (scopes, then results), lower path index wins on
+//     key conflicts. paths[0] is the preferred branch. This is
+//     implemented by iterating paths in REVERSE order and relying on
+//     MustMerge's last-writer-wins semantics: the last iterator passed
+//     to MustMerge wins, so the earliest path ends up applied last and
+//     takes precedence.
+//
+// Final precedence, high to low:
+//
+//	paths[0].results > paths[1].results > ... > paths[N].results >
+//	paths[0].scope   > paths[1].scope   > ... > paths[N].scope
 func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, error) {
 	gw.l.Lock()
 	defer gw.l.Unlock()
@@ -82,28 +120,153 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 		return &partial{}, nil
 	}
 
-	// All collected, merge results from all paths into base scope
-	var merged *expr.Vars
-	if len(gw.paths) > 0 && gw.scopes[r.SessionID][gw.paths[0]] != nil {
-		merged = gw.scopes[r.SessionID][gw.paths[0]].MustMerge()
-	}
+	// Detect cross-branch variable conflicts before merging. For each
+	// key, collect the set of (pathIndex -> serialised value) entries
+	// across both scopes and results. If a key has more than one
+	// distinct value across the branches it is a conflict and we emit
+	// a warning. The merge still proceeds (paths[0] wins) — the
+	// warnings are advisory, not fatal.
+	warnings := gw.detectConflicts(r.SessionID)
 
-	var allResults []expr.Iterator
-	for _, p := range gw.paths {
-		if gw.results[r.SessionID][p] != nil {
-			allResults = append(allResults, gw.results[r.SessionID][p])
+	// Merge scopes first, in reverse path order so paths[0] wins on conflict.
+	merged := &expr.Vars{}
+	for i := len(gw.paths) - 1; i >= 0; i-- {
+		if s := gw.scopes[r.SessionID][gw.paths[i]]; s != nil {
+			merged = merged.MustMerge(s)
 		}
 	}
 
-	if merged != nil && len(allResults) > 0 {
-		merged = merged.MustMerge(allResults...)
+	// Then merge results on top, also in reverse path order.
+	for i := len(gw.paths) - 1; i >= 0; i-- {
+		if res := gw.results[r.SessionID][gw.paths[i]]; res != nil {
+			merged = merged.MustMerge(res)
+		}
 	}
 
 	// all inbound paths visited, cleanup scopes and results for the session
 	delete(gw.scopes, r.SessionID)
 	delete(gw.results, r.SessionID)
 
+	if len(warnings) > 0 {
+		return ResponseWithWarnings(merged, warnings), nil
+	}
 	return merged, nil
+}
+
+// detectConflicts walks every (scope, results) bag from every parent
+// branch and returns a human-readable warning for every key that has
+// more than one distinct value across branches.
+//
+// The per-value fingerprint is produced by JSON-marshaling the underlying
+// value with map keys sorted. This gives a stable, deterministic string
+// even for map-valued contributors — fmt.Sprintf("%v", ...) prints maps
+// in random iteration order and pointers as addresses, which produces
+// both false positives and false negatives. encoding/json sorts object
+// keys on output (see encoding/json package docs), so two structurally
+// equal maps serialise identically.
+//
+// Values that fail to marshal (cyclic references, unsupported types)
+// fall back to "%v" formatting; they're still compared consistently
+// within a single run, just not robustly across types.
+func (gw *joinGateway) detectConflicts(sessionID uint64) []string {
+	type contributor struct {
+		parentID uint64
+		pathIdx  int
+		origin   string // "scope" or "results"
+		value    string
+	}
+
+	fingerprint := func(tv expr.TypedValue) string {
+		if tv == nil {
+			return "null"
+		}
+		if b, err := json.Marshal(tv.Get()); err == nil {
+			return string(b)
+		}
+		return fmt.Sprintf("%v", tv.Get())
+	}
+
+	perKey := make(map[string][]contributor)
+
+	collect := func(origin string, bag map[Step]*expr.Vars) {
+		for i, p := range gw.paths {
+			v := bag[p]
+			if v == nil {
+				continue
+			}
+			var parentID uint64
+			if p != nil {
+				parentID = p.ID()
+			}
+			_ = v.Each(func(k string, tv expr.TypedValue) error {
+				perKey[k] = append(perKey[k], contributor{
+					parentID: parentID,
+					pathIdx:  i,
+					origin:   origin,
+					value:    fingerprint(tv),
+				})
+				return nil
+			})
+		}
+	}
+
+	collect("scope", gw.scopes[sessionID])
+	collect("results", gw.results[sessionID])
+
+	var warnings []string
+	for key, cc := range perKey {
+		if len(cc) < 2 {
+			continue
+		}
+		// detect whether all contributors share the same value
+		same := true
+		for i := 1; i < len(cc); i++ {
+			if cc[i].value != cc[0].value {
+				same = false
+				break
+			}
+		}
+		if same {
+			continue
+		}
+
+		// build a list of contributing branches for the warning,
+		// naming branches by their parent step ID so authors can
+		// correlate with the canvas instead of an abstract paths[i].
+		branchDescs := make([]string, 0, len(cc))
+		for _, c := range cc {
+			branchDescs = append(branchDescs,
+				fmt.Sprintf("step %d.%s=%s", c.parentID, c.origin, truncateForWarning(c.value)),
+			)
+		}
+
+		// name the winner — paths[0] — by its actual parent step ID
+		var winner uint64
+		if len(gw.paths) > 0 && gw.paths[0] != nil {
+			winner = gw.paths[0].ID()
+		}
+
+		warnings = append(warnings, fmt.Sprintf(
+			"variable %q has conflicting values at parallel join (%s); the value from step %d wins",
+			key,
+			strings.Join(branchDescs, ", "),
+			winner,
+		))
+	}
+
+	return warnings
+}
+
+// truncateForWarning clips long values so a warning listing 8 branches
+// doesn't explode into an unreadable wall of text. Rune-aware so that
+// non-ASCII values can never be split mid-codepoint.
+func truncateForWarning(s string) string {
+	const maxRunes = 40
+	runes := []rune(s)
+	if len(runes) <= maxRunes {
+		return s
+	}
+	return string(runes[:maxRunes]) + "…"
 }
 
 // forkGateway handles forking to multiple paths

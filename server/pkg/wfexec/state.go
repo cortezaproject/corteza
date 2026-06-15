@@ -48,12 +48,56 @@ type (
 		// error handling step
 		errHandler Step
 
+		// error handler result variable name mapping.
+		//
+		// Populated when an error-handler step runs and holds the
+		// "error" / "errorMessage" / "errorStepID" -> variable-name
+		// mapping declared on the handler. Read by the error-injection
+		// path when a downstream step fails, so that the actual error
+		// values end up under the author-configured variable names.
+		//
+		// Must not be conflated with `results` (previous step outputs):
+		// previously both lived in `results`, so the first non-error
+		// step after an error handler clobbered the mapping and made
+		// `errorMessage` etc. disappear from scope on any later error.
+		// Carried alongside `errHandler` in State.Next() with the same
+		// lifecycle — set together, replaced together, cleared together.
+		//
+		// Intentional non-propagation to the running scope: these
+		// variables are NOT merged into the happy-path scope. An
+		// Expressions step downstream of the error handler that
+		// references, say, `myErrorMessage` will not see it until an
+		// error actually fires and the error-injection path writes
+		// the real value under that name. This is by design — silently
+		// seeding author-chosen variable names into scope as empty/nil
+		// would pollute the scope namespace and make debugging harder
+		// (expression referencing `myErrorMessage` returning nil would
+		// not be distinguishable from a typo). Authors who want a
+		// default value should initialise it explicitly in an
+		// Expressions step before the error handler.
+		errHandlerResults *expr.Vars
+
 		// error handled flag, this gets restarted on every new state!
 		errHandled bool
 
 		loops []Iterator
 
 		action string
+
+		// warnings accumulated during the current step's execution.
+		// Set by the session when a step returns a responseWithWarnings
+		// wrapper and surfaced via MakeFrame into Frame.Warnings so the
+		// editor test panel can render them alongside the existing
+		// action/error info.
+		//
+		// Concurrency: each *State is owned by a single step-execution
+		// goroutine for its entire lifecycle (see Session.exec and the
+		// goroutine launched around it). Appends to warnings happen in
+		// exec(); MakeFrame is called synchronously on the same
+		// goroutine from the subsequent eventHandler invocation.
+		// Sibling parallel branches run on distinct *State values so
+		// there is no cross-state sharing. No mutex needed.
+		warnings []string
 	}
 )
 
@@ -83,13 +127,14 @@ func FinalState(ses *Session, scope *expr.Vars) *State {
 
 func (s State) Next(current Step, scope *expr.Vars) *State {
 	return &State{
-		stateId:    nextID(),
-		owner:      s.owner,
-		sessionId:  s.sessionId,
-		parent:     s.step,
-		errHandler: s.errHandler,
-		results:    s.results,
-		loops:      s.loops,
+		stateId:           nextID(),
+		owner:             s.owner,
+		sessionId:         s.sessionId,
+		parent:            s.step,
+		errHandler:        s.errHandler,
+		errHandlerResults: s.errHandlerResults,
+		results:           s.results,
+		loops:             s.loops,
 
 		step:  current,
 		scope: scope,
@@ -153,6 +198,7 @@ func (s State) MakeFrame() *Frame {
 		StateID:   s.stateId,
 		NextSteps: s.next.IDs(),
 		Action:    s.action,
+		Warnings:  append([]string(nil), s.warnings...),
 	}
 
 	var wg sync.WaitGroup

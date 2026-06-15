@@ -44,10 +44,9 @@ func Convert(wfService *workflow, wf *types.Workflow) (*wfexec.Graph, types.Work
 // Converts workflow definition to wf execution graph
 func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, types.WorkflowIssueSet) {
 	var (
-		g           = wfexec.NewGraph()
-		wfii        = types.WorkflowIssueSet{}
-		IDs         = make(map[uint64]int)
-		lastResStep *types.WorkflowStep
+		g    = wfexec.NewGraph()
+		wfii = types.WorkflowIssueSet{}
+		IDs  = make(map[uint64]int)
 	)
 
 	// Basic step verification
@@ -80,10 +79,8 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 
 	for g.Len() < len(ss) {
 		progress := false
-		lastResStep = nil
 
 		for _, step := range ss {
-			lastResStep = step
 			if g.StepByID(step.ID) != nil {
 				// resolved
 				continue
@@ -118,14 +115,76 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 		}
 
 		if !progress {
-			var culprit = make(map[string]int)
-			if lastResStep != nil {
-				culprit = map[string]int{"step": IDs[lastResStep.ID]}
-			}
+			// nothing resolved for 1 cycle — report every unresolved step
+			// that is genuinely waiting on a dependency. If a step has no
+			// unresolved neighbours in either direction, it is failing to
+			// convert for its own reasons (bad ref, missing required
+			// arg, unknown function, ...) — verifyStep and the converter
+			// error path have already added those issues to wfii, so
+			// adding a "waiting for [] and/or []" message on top would
+			// just be misleading noise.
+			for _, step := range def.Steps {
+				if g.StepByID(step.ID) != nil {
+					continue
+				}
 
-			// nothing resolved for 1 cycle
-			wfii = wfii.Append(fmt.Errorf("failed to resolve workflow step dependencies"), culprit)
+				var (
+					unresolvedChildren []uint64
+					unresolvedParents  []uint64
+				)
+
+				for _, path := range def.Paths {
+					if path.ParentID == step.ID && g.StepByID(path.ChildID) == nil {
+						unresolvedChildren = append(unresolvedChildren, path.ChildID)
+					}
+					if path.ChildID == step.ID && g.StepByID(path.ParentID) == nil {
+						unresolvedParents = append(unresolvedParents, path.ParentID)
+					}
+				}
+
+				if len(unresolvedChildren) == 0 && len(unresolvedParents) == 0 {
+					// not a dependency problem — let the other issues on
+					// this step speak for themselves.
+					continue
+				}
+
+				culprit := map[string]int{"step": IDs[step.ID]}
+				wfii = wfii.Append(fmt.Errorf(
+					"failed to resolve workflow step dependencies for %s step (ref: %q, ID: %d): waiting for unresolved child step(s) [IDs: %v] and/or unresolved parent step(s) [IDs: %v]",
+					step.Kind,
+					step.Ref,
+					step.ID,
+					unresolvedChildren,
+					unresolvedParents,
+				), culprit)
+			}
 			break
+		}
+	}
+
+	// Backfill join gateway parents that weren't resolved at the time the
+	// join gateway itself was created. This is necessary because join gateways
+	// are now created eagerly (with whatever parents are available) so that
+	// circular dependencies (e.g. iterator -> join -> iterator) can be broken.
+	for _, step := range ss {
+		if step.Kind != types.WorkflowStepKindGateway || step.Ref != "join" {
+			continue
+		}
+		resolved := g.StepByID(step.ID)
+		if resolved == nil {
+			continue
+		}
+		pa, ok := resolved.(wfexec.PathAdder)
+		if !ok {
+			continue
+		}
+		for _, path := range def.Paths {
+			if path.ChildID != step.ID {
+				continue
+			}
+			if parent := g.StepByID(path.ParentID); parent != nil {
+				pa.AddPath(parent)
+			}
 		}
 	}
 
@@ -162,12 +221,17 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 //
 // if this func returns nil for step and error, assume unresolved dependencies
 func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, def *types.Workflow, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
-	if err := svc.parseExpressions(s.Arguments...); err != nil {
-		return false, errors.Internal("failed to parse step arguments expressions for %s: %s", s.Kind, err).Wrap(err)
+	if err := svc.parseExpressionsAs("argument", s.Arguments...); err != nil {
+		// parseExpressionsAs already wraps its inner error with a
+		// descriptive message via fmt.Errorf("%w"), so the returned
+		// error's .Error() text already includes the full chain.
+		// Don't add another .Wrap(err) on top — that would double
+		// the inner error in both the message AND the wrap chain.
+		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err)
 	}
 
-	if err := svc.parseExpressions(s.Results...); err != nil {
-		return false, errors.Internal("failed to parse step results expressions for %s: %s", s.Kind, err).Wrap(err)
+	if err := svc.parseExpressionsAs("result", s.Results...); err != nil {
+		return false, errors.Internal("invalid %s step (ref: %q): %s", s.Kind, s.Ref, err)
 	}
 
 	conv, err := func() (wfexec.Step, error) {
@@ -238,12 +302,13 @@ func (svc workflowConverter) convGateway(g *wfexec.Graph, s *types.WorkflowStep,
 		var (
 			ss []wfexec.Step
 		)
+		// Collect whatever parents are already resolved. Missing parents will
+		// be backfilled after the main resolution loop via AddPath. This avoids
+		// circular dependencies where a parent (e.g. an iterator) needs this
+		// join gateway to exist in the graph before it itself can resolve.
 		for _, p := range in {
 			if parent := g.StepByID(p.ParentID); parent != nil {
 				ss = append(ss, parent)
-			} else {
-				// unresolved parent, come back later.
-				return nil, nil
 			}
 		}
 
@@ -401,37 +466,94 @@ func (svc workflowConverter) convFunctionStep(g *wfexec.Graph, s *types.Workflow
 
 // creates error step
 //
-// Expects ZERO outgoing paths and
+// Expects ZERO outgoing paths.
+//
+// Supported arguments:
+//   - message  (required, string) the error text. Rendered as the flat
+//     error string and also as the body of the rich toast when title or
+//     severity are set.
+//   - title    (optional, string) short headline for rich toast rendering
+//   - severity (optional, string) one of "error" (default), "warning", "info"
+//
+// title/severity are attached to the resulting error's meta under the
+// "workflow.error.*" namespace and surfaced to the frontend via the
+// errors package's JSON marshaller. The error's flat message is always
+// equal to the evaluated message argument, so older clients that do
+// not understand the meta fields still render a sensible string.
 func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, error) {
 	const (
-		argName = "message"
+		argMessage  = "message"
+		argTitle    = "title"
+		argSeverity = "severity"
+
+		metaTitle    = "workflow.error.title"
+		metaSeverity = "workflow.error.severity"
+
+		severityError   = "error"
+		severityWarning = "warning"
+		severityInfo    = "info"
 	)
 
 	var (
 		args = types.ExprSet(s.Arguments)
 	)
 
+	// resolve a single string argument either from the evaluated scope or
+	// from a literal value on the unevaluated arg set; returns "" if absent.
+	resolveStr := func(result *expr.Vars, name string) string {
+		if result != nil && result.Has(name) {
+			if str, err := expr.NewString(expr.Must(result.Select(name))); err == nil {
+				return str.GetValue()
+			}
+		}
+		if a := args.GetByTarget(name); a != nil {
+			if aux, is := a.Value.(string); is {
+				return aux
+			}
+		}
+		return ""
+	}
+
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
-		var (
-			msg         string
-			result, err = args.Eval(ctx, r.Scope)
-		)
+		result, err := args.Eval(ctx, r.Scope)
 		if err != nil {
 			return nil, err
 		}
 
-		if result.Has(argName) {
-			str, _ := expr.NewString(expr.Must(result.Select(argName)))
-			msg = str.GetValue()
-		} else {
-			if aux, is := args.GetByTarget(argName).Value.(string); is {
-				msg = aux
-			} else {
-				msg = "ERROR"
-			}
+		var (
+			message  = resolveStr(result, argMessage)
+			title    = resolveStr(result, argTitle)
+			severity = resolveStr(result, argSeverity)
+		)
+
+		// normalise severity to a known value; default to error
+		switch severity {
+		case severityWarning, severityInfo, severityError:
+			// keep as-is
+		default:
+			severity = severityError
 		}
 
-		return nil, errors.Automation("%s", msg)
+		// fall back to a literal "ERROR" so we never emit an empty error
+		if message == "" {
+			message = "ERROR"
+		}
+
+		// Tag the error as a user-authored workflow error step so that
+		// errors.ServeHTTPWithCode preserves its full payload (message +
+		// meta) across the wire even under production masking. This is
+		// a narrow, opt-in bypass — generic KindAutomation errors from
+		// elsewhere are not affected.
+		e := errors.Automation("%s", message).Apply(errors.Meta(errors.MetaWorkflowErrorSafe, true))
+
+		if title != "" {
+			e = e.Apply(errors.Meta(metaTitle, title))
+		}
+		if title != "" || severity != severityError {
+			e = e.Apply(errors.Meta(metaSeverity, severity))
+		}
+
+		return nil, e
 	}), nil
 }
 
@@ -598,27 +720,67 @@ func (svc workflowConverter) convExecWorkflowStep(wf *types.Workflow, s *types.W
 	}), nil
 }
 
-func (svc workflowConverter) parseExpressions(ee ...*types.Expr) (err error) {
-	for _, e := range ee {
+// parseExpressionsAs parses argument/result expressions and enriches any
+// failure with a human-readable category (e.g. "argument" or "result"),
+// the target name, the failing expression excerpt, and which lifecycle
+// stage (parse / type / test parse) produced the error.
+//
+// Issue #1725: previously failures leaked bare parser output with no
+// indication of which step field was at fault.
+func (svc workflowConverter) parseExpressionsAs(category string, ee ...*types.Expr) (err error) {
+	wrap := func(target, stage string, inner error) error {
+		excerpt := exprExcerpt(ee, target)
+		if category == "" {
+			return fmt.Errorf("%s %q (%s): %w", stage, target, excerpt, inner)
+		}
+		return fmt.Errorf("%s %q %s (%s): %w", category, target, stage, excerpt, inner)
+	}
 
+	for _, e := range ee {
 		if len(strings.TrimSpace(e.Expr)) > 0 {
 			if err = svc.parser.ParseEvaluators(e); err != nil {
-				return
+				return wrap(e.Target, "failed to parse expression", err)
 			}
 		}
 
 		if err = e.SetType(exprTypeSetter(svc.reg, e)); err != nil {
-			return err
+			return wrap(e.Target, "failed to resolve type", err)
 		}
 
-		for _, t := range e.Tests {
+		for ti, t := range e.Tests {
 			if err = svc.parser.ParseEvaluators(t); err != nil {
-				return
+				return wrap(e.Target, fmt.Sprintf("failed to parse test #%d expression", ti+1), err)
 			}
 		}
 	}
 
 	return nil
+}
+
+// exprExcerpt returns a short, single-line snippet of the expression for
+// the named target, suitable for embedding in an error message. Long
+// expressions are truncated with an ellipsis to keep messages readable.
+//
+// Truncation is rune-aware so that non-ASCII identifiers and string
+// literals are never split mid-codepoint.
+func exprExcerpt(ee []*types.Expr, target string) string {
+	const maxRunes = 80
+	for _, e := range ee {
+		if e.Target != target {
+			continue
+		}
+		s := strings.TrimSpace(e.Expr)
+		s = strings.ReplaceAll(s, "\n", " ")
+		if s == "" {
+			return "<empty>"
+		}
+		runes := []rune(s)
+		if len(runes) > maxRunes {
+			return string(runes[:maxRunes]) + "…"
+		}
+		return s
+	}
+	return "<missing>"
 }
 
 func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.WorkflowIssueSet {
@@ -719,7 +881,14 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 					}
 				}
 
-				return errors.Internal("unexpected type %q for argument %q on step type %q", msgArg.Type, argName, s.Kind)
+				accepted := make([]string, 0, len(tt))
+				for _, typ := range tt {
+					accepted = append(accepted, typ.Type())
+				}
+				return errors.Internal(
+					"%s step argument %q has unexpected type %q (accepted: %s)",
+					s.Kind, argName, msgArg.Type, strings.Join(accepted, ", "),
+				)
 			}
 		}
 
@@ -727,7 +896,17 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 		requiredArg = func(argName string, tt ...expr.Type) func() error {
 			return func() error {
 				if msgArg := types.ExprSet(s.Arguments).GetByTarget(argName); msgArg == nil {
-					return errors.Internal("%s step expects to have '%s' argument", s.Kind, argName)
+					accepted := make([]string, 0, len(tt))
+					for _, typ := range tt {
+						accepted = append(accepted, typ.Type())
+					}
+					if len(accepted) > 0 {
+						return errors.Internal(
+							"%s step is missing required argument %q (expected type: %s)",
+							s.Kind, argName, strings.Join(accepted, " or "),
+						)
+					}
+					return errors.Internal("%s step is missing required argument %q", s.Kind, argName)
 				}
 
 				return checkArg(argName, tt...)()
@@ -789,9 +968,46 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 		checks = append(checks, gatewayCheck(zero(arguments), zero(results))...)
 
 	case types.WorkflowStepKindError:
+		// Error step supports three string arguments:
+		//   message  (required) the error text. Doubles as the rich
+		//            toast body and the flat error string.
+		//   title    (optional) rich toast headline
+		//   severity (optional) "error"|"warning"|"info"
 		checks = append(checks,
 			requiredArg("message", expr.String{}),
-			count(0, 1, arguments),
+			checkArg("title", expr.String{}),
+			checkArg("severity", expr.String{}),
+			count(1, 3, arguments),
+			func() error {
+				allowed := map[string]bool{"message": true, "title": true, "severity": true}
+				for _, a := range s.Arguments {
+					if !allowed[a.Target] {
+						return errors.Internal("%s step does not accept argument %q (allowed: message, title, severity)", s.Kind, a.Target)
+					}
+				}
+				return nil
+			},
+			// If severity is provided as a literal string expression,
+			// validate it at save time. Non-literal expressions (e.g.
+			// vars.level) fall through and are normalised at runtime.
+			func() error {
+				sev := types.ExprSet(s.Arguments).GetByTarget("severity")
+				if sev == nil {
+					return nil
+				}
+				lit, ok := severityLiteralValue(sev.Expr)
+				if !ok {
+					return nil
+				}
+				switch lit {
+				case "error", "warning", "info":
+					return nil
+				}
+				return errors.Internal(
+					"%s step severity must be one of \"error\", \"warning\" or \"info\" (got %q)",
+					s.Kind, lit,
+				)
+			},
 			zero(results),
 			last,
 		)
@@ -881,4 +1097,29 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 	}
 
 	return ii
+}
+
+// severityLiteralValue returns the unquoted content of an expression
+// string when it is a simple single- or double-quoted literal (e.g.
+// "error" or 'warning'), along with true. For any other expression —
+// a variable reference, a function call, a concatenation — it returns
+// "", false so the caller can skip save-time validation and leave the
+// runtime normalisation to do its job.
+func severityLiteralValue(expr string) (string, bool) {
+	s := strings.TrimSpace(expr)
+	if len(s) < 2 {
+		return "", false
+	}
+	q := s[0]
+	if (q != '"' && q != '\'') || s[len(s)-1] != q {
+		return "", false
+	}
+	inner := s[1 : len(s)-1]
+	// Reject anything that still contains a quote of the same kind —
+	// that would mean the literal is not the whole expression (e.g.
+	// "foo" + "bar" — each side is a literal but the whole isn't).
+	if strings.ContainsRune(inner, rune(q)) {
+		return "", false
+	}
+	return inner, true
 }

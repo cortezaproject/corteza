@@ -139,8 +139,22 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 		return
 	}
 
-	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
-		// trim error details when not debugging or error is not safe or maske
+	// Preserve the full error (message + meta) when:
+	//  - it is a KindAutomation error AND
+	//  - it carries the explicit workflow.error.safe = true meta flag
+	//
+	// The flag is set only by convErrorStep for user-authored workflow
+	// error steps. This keeps the bypass surgical: generic automation
+	// errors from elsewhere (e.g. corredor wrapper errors) still go
+	// through the normal masking path.
+	if e, isErr := err.(*Error); isErr && e.kind == KindAutomation && e.meta != nil {
+		if safe, _ := e.meta[MetaWorkflowErrorSafe].(bool); safe {
+			// preserve full error (skip masking)
+		} else if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
+			err = errors.New(err.Error())
+		}
+	} else if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
+		// trim error details when not debugging or error is not safe or masked
 		err = errors.New(err.Error())
 	}
 

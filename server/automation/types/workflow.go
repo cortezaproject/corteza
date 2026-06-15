@@ -36,6 +36,12 @@ type (
 		// Collection of issues from the last parse
 		Issues WorkflowIssueSet `json:"issues,omitempty"`
 
+		// Collection of non-fatal warnings from the last parse.
+		// Uses the same shape as Issues (description + culprit) so
+		// the frontend can render them with the same per-step mapping.
+		// Warnings do not prevent the workflow from running.
+		Warnings WorkflowIssueSet `json:"warnings,omitempty"`
+
 		RunAs uint64 `json:"runAs,string"`
 
 		OwnedBy   uint64     `json:"ownedBy,string"`
