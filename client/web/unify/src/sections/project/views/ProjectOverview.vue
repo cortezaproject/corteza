@@ -1,15 +1,15 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ project?.name || 'Project' }}</span>
+    <span>{{ project?.name || $t('project.overview.fallbackName') }}</span>
   </Teleport>
 
   <div class="h-full w-full flex flex-col items-center justify-center gap-3 text-surface-500">
     <i class="pi pi-folder-open text-4xl" />
-    <h1 class="text-xl font-medium">{{ project?.name || 'Project' }} — overview</h1>
-    <p class="text-sm">Read-only overview / versions for published projects (later screen).</p>
+    <h1 class="text-xl font-medium">{{ $t('project.overview.title', { name: project?.name || $t('project.overview.fallbackName') }) }}</h1>
+    <p class="text-sm">{{ $t('project.overview.blurb') }}</p>
     <div class="flex gap-2">
-      <Button label="Back to projects" icon="pi pi-arrow-left" text size="small" @click="router.push({ name: 'project.list' })" />
-      <Button label="Open wizard" icon="pi pi-sliders-h" size="small" @click="router.push({ name: 'project.wizard', params: { projectId: route.params.projectId } })" />
+      <Button :label="$t('project.overview.backToProjects')" icon="pi pi-arrow-left" text size="small" @click="router.push({ name: 'project.list' })" />
+      <Button :label="$t('project.overview.openWizard')" icon="pi pi-sliders-h" size="small" @click="router.push({ name: 'project.wizard', params: { projectId: route.params.projectId } })" />
     </div>
   </div>
 </template>

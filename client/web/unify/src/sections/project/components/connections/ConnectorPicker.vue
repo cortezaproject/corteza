@@ -2,17 +2,17 @@
   <Dialog
     v-model:visible="visible"
     modal
-    header="Add a connection"
+    :header="$t('project.connectorPicker.header')"
     :style="{ width: '60rem' }"
     :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-end' } }"
   >
     <p class="text-sm text-muted-color mb-3">
-      Pick a connection your system needs. Credentials are configured later in Admin.
+      {{ $t('project.connectorPicker.blurb') }}
     </p>
 
     <IconField class="mb-3">
       <InputIcon class="pi pi-search" />
-      <InputText v-model="query" placeholder="Search connections…" fluid autofocus />
+      <InputText v-model="query" :placeholder="$t('project.connectorPicker.searchPlaceholder')" fluid autofocus />
     </IconField>
 
     <div class="max-h-[26rem] overflow-auto p-1">
@@ -29,17 +29,17 @@
           </span>
           <div class="min-w-0">
             <div class="font-medium text-sm leading-tight">{{ c.label }}</div>
-            <div class="text-xs text-muted-color line-clamp-2">{{ c.description }}</div>
+            <div class="text-xs text-muted-color line-clamp-2">{{ $t(c.descriptionKey) }}</div>
           </div>
         </button>
       </div>
       <div v-if="!filtered.length" class="text-sm text-muted-color italic text-center py-6">
-        No connections match “{{ query }}”.
+        {{ $t('project.connectorPicker.noResults', { query }) }}
       </div>
     </div>
 
     <template #footer>
-      <Button label="Cancel" severity="secondary" outlined size="small" @click="visible = false" />
+      <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="visible = false" />
     </template>
   </Dialog>
 </template>
@@ -47,6 +47,9 @@
 <script setup>
 import { CONNECTORS } from '@/sections/project/config/connectors'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -69,8 +72,8 @@ const filtered = computed(() => {
   return CONNECTORS.filter(
     c =>
       c.label.toLowerCase().includes(q) ||
-      c.description.toLowerCase().includes(q) ||
-      (c.tags || []).some(t => t.includes(q)),
+      t(c.descriptionKey).toLowerCase().includes(q) ||
+      (c.tags || []).some(tag => tag.includes(q)),
   )
 })
 </script>

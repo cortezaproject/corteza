@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>Projects</span>
+    <span>{{ $t('project.list.title') }}</span>
   </Teleport>
 
   <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
@@ -16,17 +16,17 @@
       :loading="false"
       :action-items="actionItemsFor"
       :translations="{
-        searchPlaceholder: 'Search projects…',
-        resourceSingle: 'project',
-        resourcePlural: 'projects',
-        noItems: 'No projects yet.',
+        searchPlaceholder: $t('project.list.searchPlaceholder'),
+        resourceSingle: $t('project.list.resourceSingle'),
+        resourcePlural: $t('project.list.resourcePlural'),
+        noItems: $t('project.list.noItems'),
       }"
       clickable
       @sort="onSort"
       @row-click="onRowClick"
     >
       <template #header>
-        <Button icon="pi pi-plus" label="New Project" size="small" @click="newDialogVisible = true" />
+        <Button icon="pi pi-plus" :label="$t('project.list.newProject')" size="small" @click="newDialogVisible = true" />
       </template>
 
       <template #body-name="{ data }">
@@ -38,14 +38,14 @@
 
       <template #body-mode="{ data }">
         <Tag
-          :value="capitalize(data.mode)"
+          :value="$t(`project.mode.${data.mode}`)"
           :severity="data.mode === 'gated' ? 'warn' : 'secondary'"
           :icon="data.mode === 'gated' ? 'pi pi-shield' : 'pi pi-unlock'"
         />
       </template>
 
       <template #body-status="{ data }">
-        <Tag :value="capitalize(data.status)" :severity="statusSeverity(data.status)" />
+        <Tag :value="$t(`project.status.${data.status}`)" :severity="statusSeverity(data.status)" />
       </template>
 
       <template #body-progress="{ data }">
@@ -57,7 +57,7 @@
             :pt="{ root: { style: 'height: 6px' } }"
           />
           <span class="text-xs text-muted-color whitespace-nowrap">
-            {{ data.gatesApproved }}/{{ totalGates(data) }} gates
+            {{ $t('project.list.gates', { approved: data.gatesApproved, total: totalGates(data) }) }}
           </span>
         </div>
         <span v-else class="text-muted-color">—</span>
@@ -83,10 +83,12 @@ import { storeToRefs } from 'pinia'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { computed, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { CResourceList } = components
 
+const { t } = useI18n()
 const router = useRouter()
 const store = useProjectsStore()
 const confirm = useConfirm()
@@ -112,20 +114,18 @@ const pagination = reactive({
 })
 
 const fields = [
-  { key: 'name', sortable: true, header: 'Name' },
-  { key: 'mode', sortable: true, header: 'Mode' },
-  { key: 'status', sortable: true, header: 'Status' },
-  { key: 'progress', sortable: false, header: 'Build progress' },
+  { key: 'name', sortable: true, header: t('general.label.name') },
+  { key: 'mode', sortable: true, header: t('project.list.columns.mode') },
+  { key: 'status', sortable: true, header: t('general.label.status') },
+  { key: 'progress', sortable: false, header: t('project.list.columns.progress') },
   {
     key: 'updatedAt',
     sortable: true,
-    header: 'Last modified',
+    header: t('project.list.columns.updatedAt'),
     class: 'text-right',
     pt: { columnHeaderContent: 'justify-end' },
   },
 ]
-
-const capitalize = s => (s ? s[0].toUpperCase() + s.slice(1) : s)
 
 const statusSeverity = status =>
   ({ published: 'success', draft: 'info', archived: 'secondary' })[status] ?? null
@@ -180,7 +180,7 @@ const onRowClick = ({ data }) => {
 }
 
 const onCreated = project => {
-  toast.add({ severity: 'success', summary: 'Project created', detail: project.name, life: 2500 })
+  toast.add({ severity: 'success', summary: t('project.list.toast.created'), detail: project.name, life: 2500 })
   router.push({ name: 'project.wizard', params: { projectId: project.id } })
 }
 
@@ -191,14 +191,14 @@ async function apiCall(fn, success) {
     await fn()
     if (success) toast.add({ severity: 'success', life: 2500, ...success })
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Action failed', detail: err.message, life: 4000 })
+    toast.add({ severity: 'error', summary: t('project.list.toast.actionFailed'), detail: err.message, life: 4000 })
   }
 }
 
 const onRename = name => {
   if (!renameTarget.value) return
   apiCall(() => store.updateProject(renameTarget.value.id, { name }), {
-    summary: 'Project renamed',
+    summary: t('project.list.toast.renamed'),
     detail: name,
   })
 }
@@ -217,34 +217,37 @@ const toggleArchive = project => {
   const archive = project.status !== 'archived'
   apiCall(
     () => store.updateProject(project.id, { status: archive ? 'archived' : 'draft' }),
-    { summary: archive ? 'Project archived' : 'Project unarchived', detail: project.name },
+    {
+      summary: archive ? t('project.list.toast.archived') : t('project.list.toast.unarchived'),
+      detail: project.name,
+    },
   )
 }
 
 const confirmDelete = project => {
   closeMenu()
   confirm.require({
-    header: 'Delete project',
-    message: `Delete "${project.name}"? This can't be undone.`,
+    header: t('project.list.confirmDelete.header'),
+    message: t('project.list.confirmDelete.message', { name: project.name }),
     icon: 'pi pi-exclamation-triangle',
-    rejectProps: { label: 'Cancel', severity: 'secondary', text: true },
-    acceptProps: { label: 'Delete', severity: 'danger' },
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true },
+    acceptProps: { label: t('project.list.confirmDelete.accept'), severity: 'danger' },
     accept: () =>
       apiCall(() => store.removeProject(project.id), {
-        summary: 'Project deleted',
+        summary: t('project.list.toast.deleted'),
         detail: project.name,
       }),
   })
 }
 
 const actionItemsFor = project => [
-  { label: 'Rename', icon: 'pi pi-pencil', command: () => openRename(project) },
+  { label: t('project.list.actions.rename'), icon: 'pi pi-pencil', command: () => openRename(project) },
   {
-    label: project.status === 'archived' ? 'Unarchive' : 'Archive',
+    label: project.status === 'archived' ? t('project.list.actions.unarchive') : t('project.list.actions.archive'),
     icon: 'pi pi-inbox',
     command: () => toggleArchive(project),
   },
   { separator: true },
-  { label: 'Delete', icon: 'pi pi-trash', class: 'text-red-500', command: () => confirmDelete(project) },
+  { label: t('general.label.delete'), icon: 'pi pi-trash', class: 'text-red-500', command: () => confirmDelete(project) },
 ]
 </script>

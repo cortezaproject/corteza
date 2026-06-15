@@ -1,14 +1,11 @@
 <template>
   <div class="flex flex-col gap-6">
-    <CFormGroup
-      label="Members"
-      description="Assign people to a role. Each role carries fixed permissions."
-    >
+    <CFormGroup :label="$t('project.members.label')">
       <template #actions>
         <Button
           v-if="canManage"
           icon="pi pi-plus"
-          label="Add member"
+          :label="$t('project.members.addMember')"
           severity="secondary"
           size="small"
           @click="openAdd"
@@ -19,13 +16,25 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-emphasis text-muted-color text-xs uppercase tracking-wider">
-              <th class="text-left font-medium px-3 py-2">Member</th>
-              <th class="text-left font-medium px-3 py-2">Role</th>
-              <th class="text-center font-medium px-3 py-2">Read</th>
-              <th class="text-center font-medium px-3 py-2">Write</th>
-              <th class="text-center font-medium px-3 py-2">Request approval</th>
-              <th class="text-center font-medium px-3 py-2">Grant approval</th>
-              <th class="text-left font-medium px-3 py-2">Resources</th>
+              <th class="text-left font-medium px-3 py-2">
+                {{ $t('project.members.columns.member') }}
+              </th>
+              <th class="text-left font-medium px-3 py-2">{{ $t('general.label.role.single') }}</th>
+              <th class="text-center font-medium px-3 py-2">
+                {{ $t('project.members.columns.read') }}
+              </th>
+              <th class="text-center font-medium px-3 py-2">
+                {{ $t('project.members.columns.write') }}
+              </th>
+              <th class="text-center font-medium px-3 py-2">
+                {{ $t('project.members.columns.requestApproval') }}
+              </th>
+              <th class="text-center font-medium px-3 py-2">
+                {{ $t('project.members.columns.grantApproval') }}
+              </th>
+              <th class="text-left font-medium px-3 py-2">
+                {{ $t('project.members.columns.resources') }}
+              </th>
               <th class="px-3 py-2" />
             </tr>
           </thead>
@@ -39,13 +48,13 @@
                 <Select
                   v-if="canManage"
                   :model-value="row.role"
-                  :options="ROLE_PRESETS"
+                  :options="roleOptions"
                   option-label="label"
                   option-value="id"
                   size="small"
                   @update:model-value="setRole(row, $event)"
                 />
-                <span v-else class="font-medium">{{ row.preset.label }}</span>
+                <span v-else class="font-medium">{{ $t(row.preset.labelKey) }}</span>
               </td>
               <td class="text-center px-3 py-2"><YesNo :on="row.capabilities.canRead" /></td>
               <td class="text-center px-3 py-2"><YesNo :on="row.capabilities.canWrite" /></td>
@@ -55,7 +64,7 @@
               <td class="text-center px-3 py-2">
                 <YesNo :on="row.capabilities.canGrantApproval" />
               </td>
-              <td class="px-3 py-2 text-muted-color">{{ row.preset.resources }}</td>
+              <td class="px-3 py-2 text-muted-color">{{ $t(row.preset.resourcesKey) }}</td>
               <td class="text-right px-3 py-2">
                 <Button
                   v-if="canManage"
@@ -70,7 +79,7 @@
             </tr>
             <tr v-if="!rows.length">
               <td colspan="8" class="px-3 py-4 text-center text-muted-color italic">
-                No members yet.
+                {{ $t('project.members.empty') }}
               </td>
             </tr>
           </tbody>
@@ -83,10 +92,12 @@
       <div class="rounded-lg border border-surface divide-y divide-surface">
         <div v-for="r in ROLE_PRESETS" :key="r.id" class="px-4 py-3">
           <div class="flex items-center gap-2">
-            <span class="font-medium">{{ r.label }}</span>
-            <span class="text-xs text-muted-color">{{ r.resources }}</span>
+            <span class="font-medium">{{ $t(r.labelKey) }}</span>
+            <span class="text-xs text-muted-color">{{ $t(r.resourcesKey) }}</span>
           </div>
-          <p class="text-sm text-muted-color leading-relaxed mt-1">{{ r.description }}</p>
+          <p class="text-sm text-muted-color leading-relaxed mt-1">
+            {{ r.descriptionKey ? $t(r.descriptionKey) : '' }}
+          </p>
         </div>
       </div>
     </CFormGroup>
@@ -94,21 +105,21 @@
     <Dialog
       v-model:visible="addOpen"
       modal
-      header="Add member"
+      :header="$t('project.members.addDialog.header')"
       :style="{ width: '30rem' }"
       :pt="{ footer: { class: 'flex justify-end gap-2' } }"
     >
       <div class="flex flex-col gap-4">
-        <CFormGroup label="Role" required>
+        <CFormGroup :label="$t('general.label.role.single')" required>
           <Select
             v-model="draft.role"
-            :options="ROLE_PRESETS"
+            :options="roleOptions"
             option-label="label"
             option-value="id"
             fluid
           />
         </CFormGroup>
-        <CFormGroup label="User" required>
+        <CFormGroup :label="$t('general.label.user.single')" required>
           <Select
             v-model="draft.userId"
             :options="availableUsers"
@@ -116,7 +127,7 @@
             option-value="id"
             filter
             fluid
-            placeholder="Select a system user"
+            :placeholder="$t('project.members.addDialog.userPlaceholder')"
           >
             <template #option="{ option }">
               <div class="leading-tight">
@@ -129,13 +140,18 @@
       </div>
       <template #footer>
         <Button
-          label="Cancel"
+          :label="$t('general.label.cancel')"
           severity="secondary"
           outlined
           size="small"
           @click="addOpen = false"
         />
-        <Button label="Add" size="small" :disabled="!draft.role || !draft.userId" @click="add" />
+        <Button
+          :label="$t('general.label.add')"
+          size="small"
+          :disabled="!draft.role || !draft.userId"
+          @click="add"
+        />
       </template>
     </Dialog>
   </div>
@@ -148,16 +164,21 @@ import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useToast } from 'primevue/usetoast'
 import { computed, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   project: { type: Object, required: true },
   disabled: { type: Boolean, default: false },
 })
 
+const { t } = useI18n()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
 const toast = useToast()
 usersStore.load()
+
+// Localized role choices for the Select inputs (id is the persisted value).
+const roleOptions = computed(() => ROLE_PRESETS.map(r => ({ id: r.id, label: t(r.labelKey) })))
 
 // Mutations need the members.manage RBAC permission (the `disabled` prop adds
 // the gate lock on top); the backend enforces the same rule.
@@ -198,7 +219,7 @@ async function add() {
     await store.addMember(props.project.id, { userId: draft.userId, role: draft.role })
     addOpen.value = false
   } catch (err) {
-    fail('Could not add member', err)
+    fail(t('project.members.toast.addFailed'), err)
   }
 }
 
@@ -207,7 +228,7 @@ async function setRole(row, role) {
   try {
     await store.updateMember(props.project.id, row.userId, role)
   } catch (err) {
-    fail('Could not change role', err)
+    fail(t('project.members.toast.changeRoleFailed'), err)
   }
 }
 
@@ -215,7 +236,7 @@ async function remove(row) {
   try {
     await store.removeMember(props.project.id, row.userId)
   } catch (err) {
-    fail('Could not remove member', err)
+    fail(t('project.members.toast.removeFailed'), err)
   }
 }
 </script>

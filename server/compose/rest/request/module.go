@@ -50,6 +50,11 @@ type (
 		// Search query
 		Query string
 
+		// ProjectID GET parameter
+		//
+		// Filter by project ID
+		ProjectID uint64 `json:",string"`
+
 		// Name GET parameter
 		//
 		// Search by name
@@ -256,6 +261,7 @@ func (r ModuleList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"query":       r.Query,
+		"projectID":   r.ProjectID,
 		"name":        r.Name,
 		"handle":      r.Handle,
 		"limit":       r.Limit,
@@ -274,6 +280,11 @@ func (r ModuleList) GetNamespaceID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleList) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -320,6 +331,12 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

@@ -1,0 +1,541 @@
+# Project build mode (display only — the raw value free|gated is what persists).
+mode:
+  gated: Gated
+  free: Free
+# Project lifecycle status (display only — raw value is what persists).
+status:
+  draft: Draft
+  published: Published
+  archived: Archived
+list:
+  title: Projects
+  searchPlaceholder: Search projects…
+  resourceSingle: project
+  resourcePlural: projects
+  noItems: No projects yet.
+  newProject: New Project
+  untitled: Untitled project
+  columns:
+    mode: Mode
+    progress: Build progress
+    updatedAt: Last modified
+  gates: '{approved}/{total} gates'
+  actions:
+    rename: Rename
+    archive: Archive
+    unarchive: Unarchive
+  confirmDelete:
+    header: Delete project
+    message: 'Delete "{name}"? This can''t be undone.'
+    accept: Delete
+  toast:
+    created: Project created
+    renamed: Project renamed
+    archived: Project archived
+    unarchived: Project unarchived
+    deleted: Project deleted
+    actionFailed: Action failed
+overview:
+  fallbackName: Project
+  title: '{name} — overview'
+  blurb: Read-only overview / versions for published projects (later screen).
+  backToProjects: Back to projects
+  openWizard: Open wizard
+sidebar:
+  allProjects: All Projects
+  projects: Projects
+newDialog:
+  headerMode: Start a new project
+  headerDetails: Project details
+  headerDeployer: Deployer categories
+  modePrompt: How would you like to build?
+  gated:
+    tag: Governance
+    description: >-
+      Steps flow through governance gates; approvers sign off and publishing requires full
+      approval. Members & roles are set up inside the project.
+  free:
+    tag: No review
+    description: >-
+      No team, no governance, no gates. Build and publish freely. Best for solo work and quick
+      prototypes.
+  namePlaceholder: e.g. CRM & Sales
+  descriptionPlaceholder: Optional short description
+  createProject: Create project
+  toastCreateFailed: Could not create project
+renameDialog:
+  header: Rename project
+deployer:
+  prompt: Is your organisation one or more of the following three categories of Deployers?
+  questions:
+    publicAuthorityAnnex3: >-
+      A public authority deploying high-risk AI systems in the areas listed in AI Act Annex 3,
+      specifically biometrics, education and vocational training, employment, access to and
+      enjoyment of essential private and public services, law enforcement, migration, asylum and
+      border control management, administration of justice and democratic processes.
+    privateEssentialServices: A private entity providing essential public services.
+    insuranceBanking: >-
+      An insurance or banking company using AI to price life and health insurance and evaluate
+      the creditworthiness of natural persons.
+wizard:
+  fallbackName: Project
+  toastLoadFailed: Could not load project
+  submitSectionTitle: Submit this section for approval
+  stepCounter: '{index} / {count}'
+  toolbar:
+    projects: Projects
+    previous: Previous
+    requestApproval: Request approval
+    reopen: Reopen
+    requestChanges: Request changes
+    approve: Approve
+    resubmit: Resubmit
+  gate:
+    label: Gate {number}
+    gatedOnlyStep: Gated-only step
+    lockedTitle: Approve the previous gate first
+    lockedToast:
+      summary: Gate locked
+      detail: Approve the previous gate before requesting this one.
+    requestHeader: Request approval
+    requestMessage: This submits every step in this section for approval and locks them until reviewed. Continue?
+    requestConfirm: Request approval
+    requestedToast: Requested approval
+    requestFailed: Request failed
+  reason:
+    reopen:
+      header: Reopen for changes
+      label: Why are you reopening this?
+      placeholder: Explain why this approved step is being reopened
+      confirm: Reopen
+    requestChanges:
+      header: Request changes
+      label: What needs to change?
+      placeholder: Explain what the developer should revise
+      confirm: Send back
+  toast:
+    saved: Saved
+    approved: Approved
+    resubmitted: Resubmitted
+    reopened: Reopened
+    sentBack: Sent back for changes
+    actionFailed: Action failed
+  blurb:
+    summary: Fill in the form, then submit the section for approval at the gate.
+    resourceManagement: Declare the permitted AI providers, infrastructure and third-party connections, then save. Later steps choose from these.
+    members: Assign people to project roles. Changes save as you go; the section locks at the gate.
+    dataModel: Define the modules (data tables) and their fields.
+    dataSensitivity: Classify each field by its data sensitivity level.
+  hint:
+    grant:
+      submitted: Review this step, then approve or request changes.
+      approved: Approved.
+      changesRequested: Changes requested — waiting for the developer.
+      nothing: Nothing to review yet.
+    submitted: Submitted — waiting for an approver.
+    approved: Approved. Reopen to make changes.
+    changesRequested: Changes requested — update and resubmit.
+governance:
+  status:
+    draft: Draft
+    submitted: Submitted
+    approved: Approved
+    changesRequested: Changes requested
+  banner:
+    changesRequestedLabel: 'Changes requested:'
+    reopenedLabel: 'Reopened:'
+    submitted: Submitted for review — editing is locked until it's approved or sent back.
+    approved: Approved. Reopen from the toolbar to make changes.
+steps:
+  summary:
+    label: Project Summary
+  resource-management:
+    label: Resource Management
+  members:
+    label: Project Members
+  data-model:
+    label: Data Model
+  data-sensitivity:
+    label: Data Sensitivity
+summaryForm:
+  sections:
+    general: General
+  fields:
+    systemName: Project Name
+    orgRole:
+      label: Organisation Role
+      description: >-
+        Your organisation's role(s) for this system under the EU AI Act — a Provider develops it
+        or has it developed, a Deployer uses it under its own authority, Importers and
+        Distributors place it on the EU market.
+    intendedPurpose:
+      label: Project Objective
+      description: >-
+        The intended purpose of the system: what it does, the problem it solves and who uses it.
+        This wording carries into the compliance documentation.
+qms:
+  article17: Article 17
+  title: Quality Management System
+  items:
+    a:
+      body: >-
+        @Human Governance is an AI Compliance-as-Infrastructure tooling layer to deliver an
+        out-of-the-box strategy for AI regulatory compliance, including compliance with conformity
+        assessment procedures and procedures for the management of modifications to the high-risk
+        AI systems.
+      point1: Conformity Assessment Procedures are documented and implemented in the Conformity Assessment section.
+      point2: Management of modifications to a high-risk AI system in production must go through a gated change management procedure documented in the Incident, Issue and Change Management section.
+      point3: By following the full gated development process for AI Systems, EU AI Act Annex IV documentation will be programmatically delivered and updated (after change management).
+    b:
+      body: Techniques, procedures and systematic actions to be used for the design, design control and design verification of high-risk AI systems.
+    c:
+      body: Techniques, procedures and systematic actions to be used for the development, quality control and quality assurance of high-risk AI systems.
+      point1: '@Human Governance delivers a wizard-like user journey for building high-risk AI systems.'
+      point2: 'The design and development process for any high-risk AI system project is gated for governance verification at multiple strategic points: 1. Executive Authority is required to sign off the project after the Project Summary, Quality Management Systems and Project Members have been defined; 2. etc.'
+      point3: After an AI System Project is in production, changes can only be made via a request, approval and review system.
+      point4: Multi-factor authentication is enforced for all Project Members.
+    d:
+      body: Examination, test and validation procedures to be carried out before, during and after the development of the high-risk AI system, and the frequency with which they have to be carried out.
+    e:
+      body: Technical specifications, including standards, to be applied and, where the relevant harmonised standards are not applied in full or do not cover all of the relevant requirements set out in Section 2, the means to be used to ensure that the high-risk AI system complies with those requirements.
+      point1Text: '@Human Governance is 100% open-source and can be inspected at'
+      point2Text: '@Human Governance documentation is 100% open and can be inspected at'
+      point3: High-level technical architecture for any AI System Project is available to download in the project documentation section.
+      point4: Configuration files for any individual AI System Project are available to download in the project documentation section.
+    f:
+      body: Systems and procedures for data management, including data acquisition, data collection, data analysis, data labelling, data storage, data filtration, data mining, data aggregation, data retention and any other operation regarding the data that is performed before and for the purpose of the placing on the market or the putting into service of high-risk AI systems.
+      point1: A Data Access Layer (DAL) is used to connect to third-party Postgres, MySQL (and variants) and Microsoft SQL Server databases. The DAL may also connect to third-party databases via API. The third-party database schema must be programmatically mapped to the @Human data schema and field types.
+      point2: An Application Connection layer allows connection to third-party web applications via API using standard REST methods. This can be bidirectional and all connections must be programmatically mapped to the @Human data schema and field types.
+      point3: All fields in any data model must be labelled for their Sensitivity level.
+      point4: All local data is stored in a Postgres database. Data at rest should be encrypted.
+      point5: The Application layer only provides soft-deletes of data. Hard (i.e. permanent) data deletion must be provided at the database layer.
+    g:
+      body: Each AI System Project has its own documented Risk Management System section.
+    h:
+      body: The setup, implementation and maintenance of a post-market monitoring system are documented in the Monitoring section.
+    i:
+      body: Procedures related to the reporting of a serious incident are documented in the Incident, Issue and Change Management section.
+    j:
+      body: The handling of communication with national competent authorities, other relevant authorities, including those providing or supporting the access to data, notified bodies, other operators, customers or other interested parties.
+    k:
+      body: Systems and procedures for record-keeping of all relevant documentation and information.
+    l:
+      body: Resource management, including security-of-supply related measures.
+      point1: Documented in the Resource Management section.
+    m:
+      body: An accountability framework setting out the responsibilities of the management and other staff with regard to all the aspects listed in this Quality Management System.
+      point1: Documented in the Members section.
+resourceManagement:
+  ai:
+    title: Permitted AI Providers and Continuity
+    description: The LLM providers and models the project may use, with alternatives for continuity.
+    addProvider: Add provider
+    empty: No permitted providers yet.
+    providerPlaceholder: Select a provider
+    modelPlaceholder: Select a model
+    createProvider: Create new provider
+    columnProvider: Provider
+    columnModel: Model
+  infra:
+    title: Permitted Infrastructure and Continuity
+    description: The infrastructure the project may run on, with self-hosting and failover declared per entry.
+    add: Add infrastructure
+    empty: No infrastructure providers yet.
+    selfHosting:
+      label: Self-Hosting
+      description: The platform is hosted on your own infrastructure.
+    providerName: Provider Name
+    providerNamePlaceholder: e.g. AWS, Microsoft Azure
+    specification: Specification
+    regions: Region(s)
+    regionsPlaceholder: e.g. EU-West, EU-Central
+    failover:
+      label: Failover Available?
+      description: Traffic can fail over to a secondary region if the primary is unavailable.
+    failoverRegion: Failover Region
+    failoverRegionPlaceholder: e.g. EU-North
+    backupRestore:
+      label: Backup/Restore Available?
+      description: Data and configuration can be backed up and restored across the project.
+  connections:
+    title: Permitted Third-Party Connections
+    description: The whitelist of connections the Connections step may later choose from.
+    add: Add connection
+    empty: No permitted connections yet.
+    name: External Connection Name
+    type: Connection Type
+    typePlaceholder: Select type
+    typeDatabase: Database (DAL)
+    typeApplication: Application (TAQ)
+    actionIfUnavailable: Action if Unavailable
+    actionDeactivate: Deactivate
+    actionReplace: Replace
+    replacement: Replacement Connection
+    selectReplacement: Select replacement…
+    isAiSystem:
+      label: Is Connection an AI System?
+      description: The connected system is itself an AI system.
+members:
+  label: Members
+  addMember: Add member
+  columns:
+    member: Member
+    read: Read
+    write: Write
+    requestApproval: Request approval
+    grantApproval: Grant approval
+    resources: Resources
+  empty: No members yet.
+  addDialog:
+    header: Add member
+    userPlaceholder: Select a system user
+  toast:
+    addFailed: Could not add member
+    changeRoleFailed: Could not change role
+    removeFailed: Could not remove member
+dataModel:
+  label: Modules
+  addModule: Add module
+  addField: Add field
+  empty: No modules yet.
+  untitledField: Untitled field
+  required: Required
+  multiple: Multiple
+  emptyFields: No fields yet.
+  moduleActions: Module actions
+  fieldActions: Field actions
+  configure: Configure
+  removeModule:
+    header: Remove module
+    message: 'Remove module "{name}"? This cannot be undone.'
+  removeField:
+    header: Remove field
+    message: 'Remove field "{name}"? This cannot be undone.'
+  toast:
+    removed: Module removed
+    removeFailed: Could not remove module
+    fieldRemoved: Field removed
+    fieldRemoveFailed: Could not remove field
+dataSensitivity:
+  unclassified: Unclassified
+  empty: No modules to classify yet. Add modules and fields in the Data Model step first.
+  untitledField: Untitled field
+  toastUpdateFailed: Could not update classification
+  groupBy: Group by
+  viewByLevel: Sensitivity
+  viewByModule: Module
+module:
+  label: Module
+  unnamed: Unnamed
+  fields: Fields
+  addField: Add field
+  nameRequired: Name is required
+  fieldNameRequired: Field name is required
+  nameClash: Clashes with “{name}”
+  toast:
+    saveFailed: Could not save module
+field:
+  label: Field
+  unnamed: Unnamed
+  fieldNamePlaceholder: Field name
+  multipleValues: Multiple values
+  multipleValuesDescription: Let this field hold more than one value (a list).
+  requiredDescription: Records can't be saved unless this field has a value.
+  multiline: Multiline
+  multilineDescription: Allow text to span several lines.
+  helpText: Help text
+  helpTextDescription: A hint shown under the field.
+  helpTextPlaceholder: e.g. We'll never share this.
+  precision: Decimal places
+  precisionDescription: How many digits are allowed after the decimal point.
+  dateMode:
+    label: Mode
+    dateTime: Date & time
+    date: Date only
+    time: Time only
+  sensitivity: Sensitivity
+  record: Record
+  targetModule: Target module
+  targetModuleDescription: The module this field links each record to
+  targetModulePlaceholder: Select module
+  labelField: Label field
+  labelFieldDescription: Represents the referenced record
+  labelFieldPlaceholder: First field
+  options: Options
+  optionLabelPlaceholder: e.g. In progress
+  nameRequired: Name is required
+  nameClash: Another field uses this name
+  targetRequired: Target module is required
+  optionsRequired: Add at least one option
+  optionsClash: Two options resolve to the same value
+  noFields: No fields
+  one: 1 field
+  many: '{count} fields'
+  chooseType: Choose a field type
+  changeType: Change type
+  columns:
+    name: Name
+    type: Type
+    sensitivity: Sensitivity
+    required: Required
+    multiple: Multiple
+  toast:
+    saveFailed: Could not save field
+llmDialog:
+  header: Add LLM provider
+  blurb: Create a new provider here. It becomes available to all projects and is auto-selected when saved.
+  provider: Provider
+  providerPlaceholder: Select a provider
+  nameLabel: Name
+  namePlaceholder: e.g. Production Anthropic
+  handlePlaceholder: optional, e.g. anthropic-prod
+  promptURL: Prompt URL
+  promptURLPlaceholder: https://…
+  apiKey: API Key
+  apiKeyPlaceholder: Secret key
+  providerOther: Other
+  created: LLM provider created
+  createFailed: Failed to create provider
+  createFailedToast: Failed to create LLM provider
+connectorPicker:
+  header: Add a connection
+  blurb: Pick a connection your system needs. Credentials are configured later in Admin.
+  searchPlaceholder: Search connections…
+  noResults: No connections match “{query}”.
+graph:
+  resources: Resources
+  reloadTitle: Reload from the backend
+  empty: >-
+    Resources appear here as you create them; references between them are drawn from their
+    configuration (e.g. Record fields).
+  reference: reference
+  references: references
+  toastLoadFailed: Could not load resource graph
+  edgeReason:
+    moduleFieldRef: Record-field reference
+kinds:
+  module:
+    plural: Modules
+    single: Module
+  connection:
+    plural: Connections
+    single: Connection
+  automation:
+    plural: Automations
+    single: Automation
+  agent:
+    plural: Agents
+    single: Agent
+  chatbot:
+    plural: Chatbots
+    single: Chatbot
+  page:
+    plural: Pages
+    single: Page
+  chart:
+    plural: Charts
+    single: Chart
+  role:
+    plural: Roles
+    single: Role
+  user:
+    plural: Users
+    single: User
+  group:
+    plural: Groups
+    single: Group
+  fallback:
+    plural: Resources
+    single: Resource
+fieldTypeHints:
+  String: Short text, like a name or title
+  Number: Numeric values — integers or decimals
+  Bool: A simple yes / no toggle
+  DateTime: A date, with or without time
+  Select: A choice from a fixed list of options
+  Email: An email address
+  Url: A web link
+  User: A reference to a system user
+  Record: A link to a record in another module
+  File: An uploaded file or attachment
+  Geometry: A location on a map — a point or shape
+sensitivity:
+  unclassified: Unclassified
+  unspecified: Unspecified
+  public: Public
+  internal: Internal
+  confidential: Confidential
+  restricted: Restricted
+roles:
+  fallback:
+    label: Member
+    resources: —
+  developer:
+    label: Developer
+    resources: All Pages, All Gates
+    description: Builds part or all of the project and its AI systems, and requests governance approval at the gates.
+  governance-owner:
+    label: Governance Owner
+    resources: All Pages, All Gates
+    description: Owns project governance and grants approvals at every governance gate.
+  security-owner:
+    label: Security Owner
+    resources: RBAC, Security, Gate 6
+    description: Responsible for RBAC and security configuration; grants approval at the security gate (Gate 6).
+  junior-developer:
+    label: Junior Developer
+    resources: Technical Architecture, Data Model, Connections, Automations
+    description: Builds the technical architecture, data model, connections and automations. Cannot request or grant approvals.
+  executive-authority:
+    label: Executive Authority
+    resources: Read all, Approve at Gate 1
+    description: >-
+      Has read access across the project and signs off the project at Gate 1, once the Project
+      Summary, Quality Management System and Project Members have been defined.
+  infrastructure-administrator:
+    label: Infrastructure Administrator
+    resources: —
+    description: >-
+      Responsible for setting up the server infrastructure, and installing and maintaining the
+      platform software, including platform-level software updates.
+connectors:
+  marketo: Marketo's marketing automation platform.
+  github: Repositories, issues, pull requests and more.
+  googleSheets: Read and write spreadsheet data.
+  xero: Invoices, contacts and financial data.
+  zendesk: Tickets, users and support resources.
+  netsuite: NetSuite's REST API for business operations.
+  notion: Databases, pages and more.
+  discord: Servers, channels and messages.
+  toggl: Time tracking and reporting.
+  bamboohr: Employee data, time tracking and HR workflows.
+  twilio: Twilio's communication APIs.
+  tableau: Data visualization and BI.
+  gmail: Send, receive and manage email.
+  wordpress: Posts, pages and other content.
+  googleTasks: Task lists and tasks.
+  canva: Designs, templates and assets.
+  freshdesk: Ticket management and customer support.
+  sinch: SMS, voice and verification services.
+  datadog: Monitoring, analytics and event tracking.
+  hubspot: Contacts, companies, deals and more.
+  trello: Boards, lists, cards and more.
+  zoom: Meetings, webinars and users.
+  bluesky: Posts, users and feeds.
+  mistral: Mistral AI's API services.
+  hootsuite: Social media content and scheduling.
+  mailchimp: Audiences, campaigns and automation.
+  chatgpt: OpenAI's ChatGPT API.
+  googleDrive: Files and folders in Drive.
+  shopify: Products, orders, customers and more.
+  stripe: Payment processing and financial operations.
+  webflow: Sites, collections and items.
+  telegram: Messages, chats and bots.
+  docusign: Electronic signatures and agreements.
+  figma: Design files, comments and projects.
+  gitlab: Repositories, CI/CD and issue tracking.
+  asana: Tasks, projects and teams.
+  clickup: Tasks, projects and workflows.
+  jotform: Forms, submissions and reports.
+  claude: Anthropic's Claude API.
+  googleCalendar: Events, calendars and reminders.

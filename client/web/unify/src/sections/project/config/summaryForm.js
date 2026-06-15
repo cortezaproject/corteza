@@ -1,25 +1,26 @@
 // Field schema for the Project Summary governance step. Drives GovernanceForm.
-// Section titles mirror the groupings in the source spec.
+// Section titles mirror the groupings in the source spec. `titleKey`/`labelKey`/
+// `descriptionKey` are i18n keys; GovernanceForm resolves them with $t.
+// The multiselect `options` are AI Act enum values that persist verbatim — they
+// stay literal (untranslated), like a status or mode value.
 
 export const SUMMARY_SCHEMA = [
   {
-    title: 'General',
+    titleKey: 'project.summaryForm.sections.general',
     fields: [
-      { key: 'systemName', label: 'Project Name', type: 'text' },
+      { key: 'systemName', labelKey: 'project.summaryForm.fields.systemName', type: 'text' },
       {
         key: 'orgRole',
-        label: 'Organisation Role',
-        description:
-          'Your organisation\'s role(s) for this system under the EU AI Act — a Provider develops it or has it developed, a Deployer uses it under its own authority, Importers and Distributors place it on the EU market.',
+        labelKey: 'project.summaryForm.fields.orgRole.label',
+        descriptionKey: 'project.summaryForm.fields.orgRole.description',
         type: 'multiselect',
         options: ['Provider', 'Deployer', 'Importer', 'Distributor', 'Authorised Representative'],
         default: ['Provider'],
       },
       {
         key: 'intendedPurpose',
-        label: 'Project Objective',
-        description:
-          'The intended purpose of the system: what it does, the problem it solves and who uses it. This wording carries into the compliance documentation.',
+        labelKey: 'project.summaryForm.fields.intendedPurpose.label',
+        descriptionKey: 'project.summaryForm.fields.intendedPurpose.description',
         type: 'textarea',
       },
     ],

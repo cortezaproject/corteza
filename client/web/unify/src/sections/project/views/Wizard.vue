@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ project?.name || 'Project' }}</span>
+    <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
   </Teleport>
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
@@ -24,7 +24,7 @@
         <!-- Step header -->
         <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
           <div class="min-w-0">
-            <h2 class="text-lg font-medium truncate">{{ activeStep?.title || activeStep?.label }}</h2>
+            <h2 class="text-lg font-medium truncate">{{ activeStep ? $t(activeStep.labelKey) : '' }}</h2>
             <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
           </div>
 
@@ -105,6 +105,14 @@
       :module-id="configId"
       :readonly="locked"
     />
+
+    <FieldDialog
+      v-model="fieldOpen"
+      :project="project"
+      :module-id="fieldModuleId"
+      :field-id="fieldId"
+      :readonly="locked"
+    />
   </div>
 
   <Dialog v-model:visible="reason.visible" modal :header="reasonText.header" :style="{ width: '32rem' }">
@@ -113,7 +121,7 @@
     </CFormGroup>
     <template #footer>
       <div class="flex justify-end gap-2">
-        <Button label="Cancel" severity="secondary" outlined size="small" @click="reason.visible = false" />
+        <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="reason.visible = false" />
         <Button :label="reasonText.confirm" size="small" :disabled="!reason.note.trim()" @click="confirmReason" />
       </div>
     </template>
@@ -121,6 +129,7 @@
 </template>
 
 <script setup>
+import FieldDialog from '@/sections/project/components/datamodel/FieldDialog.vue'
 import ModuleDialog from '@/sections/project/components/datamodel/ModuleDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
@@ -140,8 +149,10 @@ import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { computed, provide, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const store = useProjectsStore()
@@ -161,7 +172,7 @@ watch(
       console.error('Failed to load project', err)
       toast.add({
         severity: 'error',
-        summary: 'Could not load project',
+        summary: t('project.wizard.toastLoadFailed'),
         detail: err.message,
         life: 4000,
       })
@@ -225,6 +236,29 @@ provide('createResource', () => {
 })
 watch(configOpen, open => {
   if (!open) configId.value = null
+})
+
+// --- Single-field edit dialog ------------------------------------------------
+// Provided to the step components: open the editor for one field.
+const fieldOpen = ref(false)
+const fieldModuleId = ref(null)
+const fieldId = ref(null)
+provide('editField', (moduleId, id) => {
+  fieldModuleId.value = moduleId
+  fieldId.value = id
+  fieldOpen.value = true
+})
+// Open the field editor in create mode for the given module (null fieldId).
+provide('createField', moduleId => {
+  fieldModuleId.value = moduleId
+  fieldId.value = null
+  fieldOpen.value = true
+})
+watch(fieldOpen, open => {
+  if (!open) {
+    fieldModuleId.value = null
+    fieldId.value = null
+  }
 })
 
 // --- Resizable split (step | resource graph) ---------------------------------
@@ -293,9 +327,12 @@ const statuses = computed(() => {
 
 const statusLabel = computed(
   () =>
-    ({ draft: 'Draft', submitted: 'Submitted', approved: 'Approved', 'changes-requested': 'Changes requested' })[
-      status.value
-    ],
+    ({
+      draft: t('project.governance.status.draft'),
+      submitted: t('project.governance.status.submitted'),
+      approved: t('project.governance.status.approved'),
+      'changes-requested': t('project.governance.status.changesRequested'),
+    })[status.value],
 )
 const statusSeverity = computed(
   () =>
@@ -338,29 +375,27 @@ const gateLocked = computed(() => {
 // --- Header hint -----------------------------------------------------------
 function statusHint(draftText) {
   if (canGrant.value) {
-    if (status.value === 'submitted') return 'Review this step, then approve or request changes.'
-    if (status.value === 'approved') return 'Approved.'
-    if (status.value === 'changes-requested') return 'Changes requested — waiting for the developer.'
-    return 'Nothing to review yet.'
+    if (status.value === 'submitted') return t('project.wizard.hint.grant.submitted')
+    if (status.value === 'approved') return t('project.wizard.hint.grant.approved')
+    if (status.value === 'changes-requested') return t('project.wizard.hint.grant.changesRequested')
+    return t('project.wizard.hint.grant.nothing')
   }
-  if (status.value === 'submitted') return 'Submitted — waiting for an approver.'
-  if (status.value === 'approved') return 'Approved. Reopen to make changes.'
-  if (status.value === 'changes-requested') return 'Changes requested — update and resubmit.'
+  if (status.value === 'submitted') return t('project.wizard.hint.submitted')
+  if (status.value === 'approved') return t('project.wizard.hint.approved')
+  if (status.value === 'changes-requested') return t('project.wizard.hint.changesRequested')
   return draftText
 }
 // Short per-step blurb shown in the header (so steps don't repeat it in-body).
 const STEP_BLURB = {
-  summary: 'Fill in the form, then submit the section for approval at the gate.',
-  'resource-management':
-    'Declare the permitted AI providers, infrastructure and third-party connections, then save. Later steps choose from these.',
-  members: 'Assign people to project roles. Changes save as you go; the section locks at the gate.',
-  'data-model':
-    'Define the modules (data tables) and their fields. A Record field links one module to another. Changes save as you go.',
-  'data-sensitivity':
-    'Classify each field by its data sensitivity level. Changes save as you go; the section locks at the gate.',
+  summary: 'project.wizard.blurb.summary',
+  'resource-management': 'project.wizard.blurb.resourceManagement',
+  members: 'project.wizard.blurb.members',
+  'data-model': 'project.wizard.blurb.dataModel',
+  'data-sensitivity': 'project.wizard.blurb.dataSensitivity',
 }
 const headerHint = computed(() => {
-  const blurb = STEP_BLURB[activeKey.value] || ''
+  const blurbKey = STEP_BLURB[activeKey.value]
+  const blurb = blurbKey ? t(blurbKey) : ''
   // In gated mode a governance status message takes precedence over the blurb.
   return project.value?.mode === 'gated' ? statusHint(blurb) : blurb
 })
@@ -429,8 +464,8 @@ function onGateClick(gateKey) {
   if (gateLocked.value[gateKey]) {
     toast.add({
       severity: 'warn',
-      summary: 'Gate locked',
-      detail: 'Approve the previous gate before requesting this one.',
+      summary: t('project.wizard.gate.lockedToast.summary'),
+      detail: t('project.wizard.gate.lockedToast.detail'),
       life: 2500,
     })
     return
@@ -438,17 +473,17 @@ function onGateClick(gateKey) {
   const submittable = sec.steps.some(s => stepSubmittable(s.key))
   if (canRequest.value && submittable) {
     confirm.require({
-      header: 'Request approval',
-      message: 'This submits every step in this section for approval and locks them until reviewed. Continue?',
+      header: t('project.wizard.gate.requestHeader'),
+      message: t('project.wizard.gate.requestMessage'),
       icon: 'pi pi-lock',
-      rejectProps: { label: 'Cancel', severity: 'secondary', text: true },
-      acceptProps: { label: 'Request approval' },
+      rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true },
+      acceptProps: { label: t('project.wizard.gate.requestConfirm') },
       accept: async () => {
         try {
           await store.submitSection(project.value.id, sec.steps.map(s => s.key))
-          toast.add({ severity: 'success', summary: 'Requested approval', life: 2000 })
+          toast.add({ severity: 'success', summary: t('project.wizard.gate.requestedToast'), life: 2000 })
         } catch (err) {
-          toast.add({ severity: 'error', summary: 'Request failed', detail: err.message, life: 4000 })
+          toast.add({ severity: 'error', summary: t('project.wizard.gate.requestFailed'), detail: err.message, life: 4000 })
         }
       },
     })
@@ -465,17 +500,17 @@ async function governanceAction(fn, summary) {
     await fn()
     toast.add({ severity: 'success', summary, life: 2000 })
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Action failed', detail: err.message, life: 4000 })
+    toast.add({ severity: 'error', summary: t('project.wizard.toast.actionFailed'), detail: err.message, life: 4000 })
   }
 }
 function onSave() {
-  governanceAction(() => store.saveStepForm(project.value.id, activeKey.value, working.value), 'Saved')
+  governanceAction(() => store.saveStepForm(project.value.id, activeKey.value, working.value), t('project.wizard.toast.saved'))
 }
 function onApprove() {
-  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'approve'), 'Approved')
+  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'approve'), t('project.wizard.toast.approved'))
 }
 function onResubmit() {
-  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'submit'), 'Resubmitted')
+  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'submit'), t('project.wizard.toast.resubmitted'))
 }
 
 // Reason dialog, shared by Request changes and Reopen.
@@ -483,16 +518,16 @@ const reason = ref({ visible: false, action: '', note: '' })
 const reasonText = computed(() =>
   reason.value.action === 'reopen'
     ? {
-        header: 'Reopen for changes',
-        label: 'Why are you reopening this?',
-        placeholder: 'Explain why this approved step is being reopened',
-        confirm: 'Reopen',
+        header: t('project.wizard.reason.reopen.header'),
+        label: t('project.wizard.reason.reopen.label'),
+        placeholder: t('project.wizard.reason.reopen.placeholder'),
+        confirm: t('project.wizard.reason.reopen.confirm'),
       }
     : {
-        header: 'Request changes',
-        label: 'What needs to change?',
-        placeholder: 'Explain what the developer should revise',
-        confirm: 'Send back',
+        header: t('project.wizard.reason.requestChanges.header'),
+        label: t('project.wizard.reason.requestChanges.label'),
+        placeholder: t('project.wizard.reason.requestChanges.placeholder'),
+        confirm: t('project.wizard.reason.requestChanges.confirm'),
       },
 )
 function openReason(action) {
@@ -506,11 +541,11 @@ async function confirmReason() {
     reason.value.visible = false
     toast.add({
       severity: 'info',
-      summary: action === 'reopen' ? 'Reopened' : 'Sent back for changes',
+      summary: action === 'reopen' ? t('project.wizard.toast.reopened') : t('project.wizard.toast.sentBack'),
       life: 2000,
     })
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Action failed', detail: err.message, life: 4000 })
+    toast.add({ severity: 'error', summary: t('project.wizard.toast.actionFailed'), detail: err.message, life: 4000 })
   }
 }
 </script>

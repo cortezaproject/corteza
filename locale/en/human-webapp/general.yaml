@@ -39,25 +39,25 @@ fieldKinds:
   Bool:
     label: Checkbox (Y/N)
   DateTime:
-    label: Date and time
+    label: Date and Time
   Email:
-    label: Email input
+    label: Email
   File:
-    label: File upload
+    label: File
   Geometry:
     label: Location
   Number:
-    label: Number input
+    label: Number
   Record:
-    label: Record selector
+    label: Record
   Select:
-    label: Select / dropdown
+    label: Select / Dropdown
   String:
-    label: Text input (string)
+    label: Text
   Url:
-    label: URL input
+    label: URL
   User:
-    label: User selector
+    label: User
 filter:
   apply: Apply Filter
   label: Filter

@@ -72,6 +72,7 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 		err error
 		f   = types.ModuleFilter{
 			NamespaceID: r.NamespaceID,
+			ProjectID:   r.ProjectID,
 			Query:       r.Query,
 			Name:        r.Name,
 			Handle:      r.Handle,

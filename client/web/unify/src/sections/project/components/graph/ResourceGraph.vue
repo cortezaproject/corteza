@@ -2,7 +2,7 @@
   <div class="w-full h-full flex flex-col gap-3">
     <!-- Header: what you're looking at + refresh -->
     <div class="shrink-0 flex items-center gap-2">
-      <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color">Resources</h3>
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color">{{ $t('project.graph.resources') }}</h3>
       <Button
         icon="pi pi-refresh"
         severity="secondary"
@@ -11,7 +11,7 @@
         size="small"
         class="ml-auto !w-7 !h-7"
         :loading="loading"
-        title="Reload from the backend"
+        :title="$t('project.graph.reloadTitle')"
         @click="reload"
       />
     </div>
@@ -31,7 +31,7 @@
           <i :class="[m.cfg.icon, m.cfg.text, 'text-xs']" />
         </span>
         <span class="text-base font-semibold leading-none">{{ m.count }}</span>
-        <span class="text-xs text-muted-color leading-none">{{ m.cfg.label }}</span>
+        <span class="text-xs text-muted-color leading-none">{{ $t(m.cfg.labelKey) }}</span>
       </div>
     </div>
 
@@ -48,8 +48,7 @@
         <div>
           <i class="pi pi-sitemap text-4xl mb-2" />
           <p class="text-sm">
-            Resources appear here as you create them; references between them
-            are drawn from their configuration (e.g. Record fields).
+            {{ $t('project.graph.empty') }}
           </p>
         </div>
       </div>
@@ -67,9 +66,12 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useToast } from 'primevue/usetoast'
 import { computed, inject, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import VChart from 'vue-echarts'
 
 use([CanvasRenderer, GraphChart, TooltipComponent])
+
+const { t } = useI18n()
 
 const props = defineProps({
   project: { type: Object, default: null },
@@ -110,7 +112,7 @@ async function reload() {
   } catch (err) {
     toast.add({
       severity: 'error',
-      summary: 'Could not load resource graph',
+      summary: t('project.graph.toastLoadFailed'),
       detail: err.message,
       life: 4000,
     })
@@ -155,9 +157,9 @@ const visibleEdges = computed(() => {
 
 // --- Rendering ----------------------------------------------------------------
 
-// Human wording for the backend's edge reasons.
+// Human wording for the backend's edge reasons (i18n keys).
 const EDGE_REASONS = {
-  'module-field-ref': 'Record-field reference',
+  'module-field-ref': 'project.graph.edgeReason.moduleFieldRef',
 }
 
 const nameById = computed(() => new Map(graph.value.nodes.map(n => [n.id, n.name])))
@@ -232,17 +234,19 @@ const option = computed(() => {
       formatter: params => {
         if (params.dataType === 'node') {
           const deg = degreeMap.value.get(params.data.id) || 0
-          const kindLabel = kindConfig(params.data.kind).label.replace(/s$/, '')
+          const kindLabel = t(kindConfig(params.data.kind).singularKey)
+          const refLabel = deg === 1 ? t('project.graph.reference') : t('project.graph.references')
           const lines = [
             `<b>${params.data.name}</b>`,
-            `${kindLabel} · ${deg} ${deg === 1 ? 'reference' : 'references'}`,
+            `${kindLabel} · ${deg} ${refLabel}`,
           ]
           return lines.join('<br/>')
         }
         if (params.dataType === 'edge') {
           const from = nameById.value.get(params.data.source) || params.data.source
           const to = nameById.value.get(params.data.target) || params.data.target
-          const reason = EDGE_REASONS[params.data.reason] || params.data.reason || ''
+          const reasonKey = EDGE_REASONS[params.data.reason]
+          const reason = reasonKey ? t(reasonKey) : params.data.reason || ''
           return `<b>${from}</b> → <b>${to}</b>${reason ? `<br/>${reason}` : ''}`
         }
         return ''

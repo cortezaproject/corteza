@@ -14,8 +14,8 @@
           <i class="pi pi-verified text-lg" />
         </span>
         <div class="min-w-0 flex-1">
-          <p class="text-xs font-semibold uppercase tracking-wide text-muted-color">Article 17</p>
-          <h3 class="text-lg font-medium leading-tight">Quality Management System</h3>
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-color">{{ $t('project.qms.article17') }}</p>
+          <h3 class="text-lg font-medium leading-tight">{{ $t('project.qms.title') }}</h3>
         </div>
       </header>
 
@@ -46,6 +46,8 @@
 <script setup>
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
 import { SUMMARY_SCHEMA } from '@/sections/project/config/summaryForm'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -53,97 +55,58 @@ defineProps({
 })
 defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 // A bullet is either a plain string or { text, url } when it carries a link.
 const pointText = p => (typeof p === 'string' ? p : p.text)
 const pointUrl = p => (typeof p === 'string' ? null : p.url)
 
+const qms = (label, point) => t(`project.qms.items.${label}.${point}`)
+
 // EU AI Act Article 17 — Quality Management System. Each aspect is paired with
-// how @Human Governance delivers it. Reference content only (not an input).
-const QMS_ARTICLE_17 = [
+// how @Human Governance delivers it. Reference content only (not an input). The
+// text lives in the locale bundle (project.qms.items.*); the structure and the
+// (non-translatable) source URLs stay here.
+const QMS_ARTICLE_17 = computed(() => [
   {
     label: 'a',
-    body: '@Human Governance is an AI Compliance-as-Infrastructure tooling layer to deliver an out-of-the-box strategy for AI regulatory compliance, including compliance with conformity assessment procedures and procedures for the management of modifications to the high-risk AI systems.',
-    points: [
-      'Conformity Assessment Procedures are documented and implemented in the Conformity Assessment section.',
-      'Management of modifications to a high-risk AI system in production must go through a gated change management procedure documented in the Incident, Issue and Change Management section.',
-      'By following the full gated development process for AI Systems, EU AI Act Annex IV documentation will be programmatically delivered and updated (after change management).',
-    ],
+    body: qms('a', 'body'),
+    points: [qms('a', 'point1'), qms('a', 'point2'), qms('a', 'point3')],
   },
-  {
-    label: 'b',
-    body: 'Techniques, procedures and systematic actions to be used for the design, design control and design verification of high-risk AI systems.',
-    points: [],
-  },
+  { label: 'b', body: qms('b', 'body'), points: [] },
   {
     label: 'c',
-    body: 'Techniques, procedures and systematic actions to be used for the development, quality control and quality assurance of high-risk AI systems.',
-    points: [
-      '@Human Governance delivers a wizard-like user journey for building high-risk AI systems.',
-      'The design and development process for any high-risk AI system project is gated for governance verification at multiple strategic points: 1. Executive Authority is required to sign off the project after the Project Summary, Quality Management Systems and Project Members have been defined; 2. etc.',
-      'After an AI System Project is in production, changes can only be made via a request, approval and review system.',
-      'Multi-factor authentication is enforced for all Project Members.',
-    ],
+    body: qms('c', 'body'),
+    points: [qms('c', 'point1'), qms('c', 'point2'), qms('c', 'point3'), qms('c', 'point4')],
   },
-  {
-    label: 'd',
-    body: 'Examination, test and validation procedures to be carried out before, during and after the development of the high-risk AI system, and the frequency with which they have to be carried out.',
-    points: [],
-  },
+  { label: 'd', body: qms('d', 'body'), points: [] },
   {
     label: 'e',
-    body: 'Technical specifications, including standards, to be applied and, where the relevant harmonised standards are not applied in full or do not cover all of the relevant requirements set out in Section 2, the means to be used to ensure that the high-risk AI system complies with those requirements.',
+    body: qms('e', 'body'),
     points: [
-      { text: '@Human Governance is 100% open-source and can be inspected at', url: 'https://github.com/crusttech' },
-      { text: '@Human Governance documentation is 100% open and can be inspected at', url: 'https://docs.planetcrust.com' },
-      'High-level technical architecture for any AI System Project is available to download in the project documentation section.',
-      'Configuration files for any individual AI System Project are available to download in the project documentation section.',
+      { text: qms('e', 'point1Text'), url: 'https://github.com/crusttech' },
+      { text: qms('e', 'point2Text'), url: 'https://docs.planetcrust.com' },
+      qms('e', 'point3'),
+      qms('e', 'point4'),
     ],
   },
   {
     label: 'f',
-    body: 'Systems and procedures for data management, including data acquisition, data collection, data analysis, data labelling, data storage, data filtration, data mining, data aggregation, data retention and any other operation regarding the data that is performed before and for the purpose of the placing on the market or the putting into service of high-risk AI systems.',
+    body: qms('f', 'body'),
     points: [
-      'A Data Access Layer (DAL) is used to connect to third-party Postgres, MySQL (and variants) and Microsoft SQL Server databases. The DAL may also connect to third-party databases via API. The third-party database schema must be programmatically mapped to the @Human data schema and field types.',
-      'An Application Connection layer allows connection to third-party web applications via API using standard REST methods. This can be bidirectional and all connections must be programmatically mapped to the @Human data schema and field types.',
-      'All fields in any data model must be labelled for their Sensitivity level.',
-      'All local data is stored in a Postgres database. Data at rest should be encrypted.',
-      'The Application layer only provides soft-deletes of data. Hard (i.e. permanent) data deletion must be provided at the database layer.',
+      qms('f', 'point1'),
+      qms('f', 'point2'),
+      qms('f', 'point3'),
+      qms('f', 'point4'),
+      qms('f', 'point5'),
     ],
   },
-  {
-    label: 'g',
-    body: 'Each AI System Project has its own documented Risk Management System section.',
-    points: [],
-  },
-  {
-    label: 'h',
-    body: 'The setup, implementation and maintenance of a post-market monitoring system are documented in the Monitoring section.',
-    points: [],
-  },
-  {
-    label: 'i',
-    body: 'Procedures related to the reporting of a serious incident are documented in the Incident, Issue and Change Management section.',
-    points: [],
-  },
-  {
-    label: 'j',
-    body: 'The handling of communication with national competent authorities, other relevant authorities, including those providing or supporting the access to data, notified bodies, other operators, customers or other interested parties.',
-    points: [],
-  },
-  {
-    label: 'k',
-    body: 'Systems and procedures for record-keeping of all relevant documentation and information.',
-    points: [],
-  },
-  {
-    label: 'l',
-    body: 'Resource management, including security-of-supply related measures.',
-    points: ['Documented in the Resource Management section.'],
-  },
-  {
-    label: 'm',
-    body: 'An accountability framework setting out the responsibilities of the management and other staff with regard to all the aspects listed in this Quality Management System.',
-    points: ['Documented in the Members section.'],
-  },
-]
+  { label: 'g', body: qms('g', 'body'), points: [] },
+  { label: 'h', body: qms('h', 'body'), points: [] },
+  { label: 'i', body: qms('i', 'body'), points: [] },
+  { label: 'j', body: qms('j', 'body'), points: [] },
+  { label: 'k', body: qms('k', 'body'), points: [] },
+  { label: 'l', body: qms('l', 'body'), points: [qms('l', 'point1')] },
+  { label: 'm', body: qms('m', 'body'), points: [qms('m', 'point1')] },
+])
 </script>

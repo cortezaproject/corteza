@@ -7,12 +7,13 @@
 // Management + Members. Data Sensitivity carries Gate 2, closing the Data Model
 // + Data Sensitivity section. Free mode skips the governance steps entirely and
 // starts at the Data Model.
+// `labelKey` is an i18n key; components resolve it with $t for display.
 export const STEPS = [
-  { key: 'summary', label: 'Project Summary', type: 'form', gatedOnly: true, gate: false },
-  { key: 'resource-management', label: 'Resource Management', type: 'form', gatedOnly: true, gate: false },
-  { key: 'members', label: 'Project Members', type: 'members', gatedOnly: true, gate: true },
-  { key: 'data-model', label: 'Data Model', type: 'resource', kind: 'module', gatedOnly: false, gate: false },
-  { key: 'data-sensitivity', label: 'Data Sensitivity', type: 'sensitivity', gatedOnly: true, gate: true },
+  { key: 'summary', labelKey: 'project.steps.summary.label', type: 'form', gatedOnly: true, gate: false },
+  { key: 'resource-management', labelKey: 'project.steps.resource-management.label', type: 'form', gatedOnly: true, gate: false },
+  { key: 'members', labelKey: 'project.steps.members.label', type: 'members', gatedOnly: true, gate: true },
+  { key: 'data-model', labelKey: 'project.steps.data-model.label', type: 'resource', kind: 'module', gatedOnly: false, gate: false },
+  { key: 'data-sensitivity', labelKey: 'project.steps.data-sensitivity.label', type: 'sensitivity', gatedOnly: true, gate: true },
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future

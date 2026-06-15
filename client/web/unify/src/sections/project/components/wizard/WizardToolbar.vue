@@ -5,7 +5,7 @@
     <div class="flex-1 flex items-center">
       <Button
         icon="pi pi-arrow-left"
-        label="Projects"
+        :label="$t('project.wizard.toolbar.projects')"
         severity="secondary"
         text
         @click="$emit('back')"
@@ -18,7 +18,7 @@
     <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
       <Button
         icon="pi pi-chevron-left"
-        label="Previous"
+        :label="$t('project.wizard.toolbar.previous')"
         severity="secondary"
         text
         size="small"
@@ -26,10 +26,10 @@
         :disabled="!canPrev"
         @click="$emit('prev')"
       />
-      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap text-center">{{ stepIndex }} / {{ stepCount }}</span>
+      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap text-center">{{ $t('project.wizard.stepCounter', { index: stepIndex, count: stepCount }) }}</span>
       <Button
-        :title="nextIsGate ? 'Submit this section for approval' : undefined"
-        :label="nextIsGate ? 'Request approval' : 'Next'"
+        :title="nextIsGate ? $t('project.wizard.submitSectionTitle') : undefined"
+        :label="nextIsGate ? $t('project.wizard.toolbar.requestApproval') : $t('general.label.next')"
         icon="pi pi-chevron-right"
         icon-pos="right"
         severity="secondary"
@@ -46,14 +46,14 @@
       <template v-if="showActions">
         <!-- Free mode: just save, no approval -->
         <template v-if="mode !== 'gated'">
-          <Button v-if="showSave" label="Save" icon="pi pi-save" @click="$emit('save')" />
+          <Button v-if="showSave" :label="$t('general.label.save')" icon="pi pi-save" @click="$emit('save')" />
         </template>
 
         <!-- Approved: anyone who works in governance can reopen -->
         <Button
           v-else-if="status === 'approved'"
           v-show="canRequest || canGrant"
-          label="Reopen"
+          :label="$t('project.wizard.toolbar.reopen')"
           icon="pi pi-lock-open"
           severity="secondary"
           outlined
@@ -63,20 +63,20 @@
         <!-- Submitted: approvers (grant) act on it -->
         <template v-else-if="status === 'submitted' && canGrant">
           <Button
-            label="Request changes"
+            :label="$t('project.wizard.toolbar.requestChanges')"
             icon="pi pi-replay"
             severity="secondary"
             outlined
             @click="$emit('request-changes')"
           />
-          <Button label="Approve" icon="pi pi-check" severity="success" @click="$emit('approve')" />
+          <Button :label="$t('project.wizard.toolbar.approve')" icon="pi pi-check" severity="success" @click="$emit('approve')" />
         </template>
 
         <!-- Editable (draft / changes-requested): writers save, requesters submit -->
         <template v-else-if="status === 'draft' || status === 'changes-requested'">
           <Button
             v-if="canWrite && showSave"
-            label="Save"
+            :label="$t('general.label.save')"
             icon="pi pi-save"
             :severity="showResubmit ? 'secondary' : undefined"
             :outlined="showResubmit"
@@ -84,7 +84,7 @@
           />
           <Button
             v-if="showResubmit"
-            label="Resubmit"
+            :label="$t('project.wizard.toolbar.resubmit')"
             icon="pi pi-send"
             :disabled="submitDisabled"
             @click="$emit('resubmit')"

@@ -3,17 +3,17 @@
     :visible="visible"
     @update:visible="$emit('update:visible', $event)"
     modal
-    header="Rename project"
+    :header="$t('project.renameDialog.header')"
     :style="{ width: '28rem' }"
   >
-    <CFormGroup label="Name" required>
+    <CFormGroup :label="$t('general.label.name')" required>
       <InputText v-model="draft" fluid autofocus @keyup.enter="save" />
     </CFormGroup>
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <Button label="Cancel" severity="secondary" outlined size="small" @click="$emit('update:visible', false)" />
-        <Button label="Save" size="small" :disabled="!draft.trim()" @click="save" />
+        <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="$emit('update:visible', false)" />
+        <Button :label="$t('general.label.save')" size="small" :disabled="!draft.trim()" @click="save" />
       </div>
     </template>
   </Dialog>

@@ -2,14 +2,14 @@
   <CFormList
     v-model="fields"
     :columns="columns"
-    empty-message="No fields yet."
+    :empty-message="$t('project.dataModel.emptyFields')"
     :hide-remove="disabled"
   >
     <template #row="{ item: f }">
       <InputText
         :ref="el => nameRefs.set(f.id, el)"
         v-model="f.name"
-        placeholder="Field name"
+        :placeholder="$t('project.field.fieldNamePlaceholder')"
         size="small"
         fluid
         :disabled="disabled"
@@ -17,7 +17,7 @@
       />
       <Select
         v-model="f.type"
-        :options="FIELD_TYPES"
+        :options="fieldTypeOptions"
         option-label="label"
         option-value="id"
         size="small"
@@ -30,12 +30,12 @@
       <Select
         v-if="showSensitivity"
         v-model="f.sensitivity"
-        :options="SENSITIVITY_OPTIONS"
+        :options="sensitivityOptions"
         option-label="label"
         option-value="id"
         size="small"
         fluid
-        placeholder="Unclassified"
+        :placeholder="$t('project.sensitivity.unclassified')"
         :disabled="disabled"
       />
       <div class="flex justify-center">
@@ -50,33 +50,33 @@
     <template #extra="{ item: f }">
       <Fieldset
         v-if="isRecordRef(f.type)"
-        legend="Record"
+        :legend="$t('project.field.record')"
         class="mt-1"
         :pt="{ content: { class: '!p-3' } }"
       >
         <div class="flex flex-wrap gap-5">
-          <CFormGroup label="Target module" required>
+          <CFormGroup :label="$t('project.field.targetModule')" required>
             <Select
               :model-value="f.targetModuleId"
               :options="moduleOptions"
               option-label="name"
               option-value="id"
               size="small"
-              placeholder="Select module"
+              :placeholder="$t('project.field.targetModulePlaceholder')"
               class="w-72"
               :disabled="disabled"
               :invalid="!!errors[f.id]?.target"
               @update:model-value="v => onTarget(f, v)"
             />
           </CFormGroup>
-          <CFormGroup label="Label field" description="Represents the referenced record">
+          <CFormGroup :label="$t('project.field.labelField')" :description="$t('project.field.labelFieldDescription')">
             <Select
               v-model="f.labelField"
               :options="labelFieldOptions(f)"
               option-label="label"
               option-value="value"
               size="small"
-              placeholder="First field"
+              :placeholder="$t('project.field.labelFieldPlaceholder')"
               show-clear
               class="w-72"
               :disabled="disabled || !f.targetModuleId"
@@ -87,7 +87,7 @@
 
       <Fieldset
         v-else-if="f.type === 'Select'"
-        legend="Options"
+        :legend="$t('project.field.options')"
         class="mt-1"
         :pt="{ content: { class: '!p-3' } }"
       >
@@ -104,7 +104,7 @@
             v-if="!disabled"
             v-model="optionDrafts[f.id]"
             size="small"
-            placeholder="Add option, press Enter"
+            :placeholder="$t('project.field.addOption')"
             class="w-56"
             :invalid="!!errors[f.id]?.options"
             @keydown.enter.prevent="addOption(f)"
@@ -120,9 +120,18 @@ import { FIELD_TYPES, isRecordRef } from '@/sections/project/config/fieldTypes'
 import { SENSITIVITY_OPTIONS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
 import { computed, reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // Staged field list (two-way; the dialog owns add, CFormList owns remove).
 const fields = defineModel({ type: Array, required: true })
+
+// Localized option lists for the Selects (id/value is the persisted value).
+const fieldTypeOptions = computed(() => FIELD_TYPES.map(ft => ({ id: ft.id, label: t(ft.labelKey) })))
+const sensitivityOptions = computed(() =>
+  SENSITIVITY_OPTIONS.map(o => ({ id: o.id, label: t(o.labelKey) })),
+)
 
 const props = defineProps({
   // Modules a Record field can point at.
@@ -136,11 +145,11 @@ const props = defineProps({
 })
 
 const columns = computed(() => [
-  { label: 'Name', required: true, width: 'minmax(12rem, 1fr)' },
-  { label: 'Type', width: '13rem' },
-  ...(props.showSensitivity ? [{ label: 'Sensitivity', width: '13rem' }] : []),
-  { label: 'Required', width: '6rem', headerClass: 'text-center' },
-  { label: 'Multiple', width: '6rem', headerClass: 'text-center' },
+  { label: t('project.field.columns.name'), required: true, width: 'minmax(12rem, 1fr)' },
+  { label: t('project.field.columns.type'), width: '13rem' },
+  ...(props.showSensitivity ? [{ label: t('project.field.columns.sensitivity'), width: '13rem' }] : []),
+  { label: t('project.field.columns.required'), width: '6rem', headerClass: 'text-center' },
+  { label: t('project.field.columns.multiple'), width: '6rem', headerClass: 'text-center' },
 ])
 
 // Clear type-specific settings when the kind changes away from them.

@@ -4,15 +4,15 @@
     <section class="flex flex-col gap-3">
       <header class="flex items-center justify-between gap-3">
         <div>
-          <h3 class="text-base font-medium">Permitted AI Providers and Continuity</h3>
+          <h3 class="text-base font-medium">{{ $t('project.resourceManagement.ai.title') }}</h3>
           <p class="text-sm text-muted-color">
-            The LLM providers and models the project may use, with alternatives for continuity.
+            {{ $t('project.resourceManagement.ai.description') }}
           </p>
         </div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
-          label="Add provider"
+          :label="$t('project.resourceManagement.ai.addProvider')"
           severity="secondary"
           size="small"
           @click="addProvider"
@@ -22,7 +22,7 @@
       <CFormList
         v-model="providers"
         :columns="PROVIDER_COLUMNS"
-        empty-message="No permitted providers yet."
+        :empty-message="$t('project.resourceManagement.ai.empty')"
         :hide-remove="disabled"
       >
         <template #row="{ item: p }">
@@ -30,13 +30,13 @@
             :model-value="p.provider"
             :disabled="disabled"
             size="small"
-            placeholder="Select a provider"
+            :placeholder="$t('project.resourceManagement.ai.providerPlaceholder')"
             @update:model-value="v => setProvider(p, v)"
           >
             <template #footer>
               <div class="border-t border-surface p-1">
                 <Button
-                  label="Create new provider"
+                  :label="$t('project.resourceManagement.ai.createProvider')"
                   icon="pi pi-plus"
                   text
                   fluid
@@ -53,7 +53,7 @@
             :llm-provider-i-d="p.provider"
             :disabled="disabled"
             size="small"
-            placeholder="Select a model"
+            :placeholder="$t('project.resourceManagement.ai.modelPlaceholder')"
           />
         </template>
       </CFormList>
@@ -63,16 +63,15 @@
     <section class="flex flex-col gap-3">
       <header class="flex items-center justify-between gap-3">
         <div>
-          <h3 class="text-base font-medium">Permitted Infrastructure and Continuity</h3>
+          <h3 class="text-base font-medium">{{ $t('project.resourceManagement.infra.title') }}</h3>
           <p class="text-sm text-muted-color">
-            The infrastructure the project may run on, with self-hosting and failover declared per
-            entry.
+            {{ $t('project.resourceManagement.infra.description') }}
           </p>
         </div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
-          label="Add infrastructure"
+          :label="$t('project.resourceManagement.infra.add')"
           severity="secondary"
           size="small"
           @click="addInfra"
@@ -84,22 +83,22 @@
           <div class="flex items-start gap-3">
             <div class="flex flex-col gap-4 flex-1 min-w-0">
               <CInputToggleCard
-                label="Self-Hosting"
-                description="The platform is hosted on your own infrastructure."
+                :label="$t('project.resourceManagement.infra.selfHosting.label')"
+                :description="$t('project.resourceManagement.infra.selfHosting.description')"
                 :model-value="p.selfHosting"
                 :disabled="disabled"
                 @update:model-value="v => updateInfra(p.id, { selfHosting: v })"
               />
-              <CFormGroup v-if="!p.selfHosting" label="Provider Name">
+              <CFormGroup v-if="!p.selfHosting" :label="$t('project.resourceManagement.infra.providerName')">
                 <InputText
                   :model-value="p.name"
                   fluid
                   :disabled="disabled"
-                  placeholder="e.g. AWS, Microsoft Azure"
+                  :placeholder="$t('project.resourceManagement.infra.providerNamePlaceholder')"
                   @update:model-value="v => updateInfra(p.id, { name: v })"
                 />
               </CFormGroup>
-              <CFormGroup label="Specification">
+              <CFormGroup :label="$t('project.resourceManagement.infra.specification')">
                 <Textarea
                   :model-value="p.specification"
                   rows="2"
@@ -109,28 +108,28 @@
                   @update:model-value="v => updateInfra(p.id, { specification: v })"
                 />
               </CFormGroup>
-              <CFormGroup label="Region(s)">
+              <CFormGroup :label="$t('project.resourceManagement.infra.regions')">
                 <InputText
                   :model-value="p.regions"
                   fluid
                   :disabled="disabled"
-                  placeholder="e.g. EU-West, EU-Central"
+                  :placeholder="$t('project.resourceManagement.infra.regionsPlaceholder')"
                   @update:model-value="v => updateInfra(p.id, { regions: v })"
                 />
               </CFormGroup>
               <CInputToggleCard
-                label="Failover Available?"
-                description="Traffic can fail over to a secondary region if the primary is unavailable."
+                :label="$t('project.resourceManagement.infra.failover.label')"
+                :description="$t('project.resourceManagement.infra.failover.description')"
                 :model-value="p.failover"
                 :disabled="disabled"
                 @update:model-value="v => updateInfra(p.id, { failover: v })"
               />
-              <CFormGroup v-if="p.failover" label="Failover Region">
+              <CFormGroup v-if="p.failover" :label="$t('project.resourceManagement.infra.failoverRegion')">
                 <InputText
                   :model-value="p.failoverRegion"
                   fluid
                   :disabled="disabled"
-                  placeholder="e.g. EU-North"
+                  :placeholder="$t('project.resourceManagement.infra.failoverRegionPlaceholder')"
                   @update:model-value="v => updateInfra(p.id, { failoverRegion: v })"
                 />
               </CFormGroup>
@@ -151,13 +150,13 @@
         v-else
         class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"
       >
-        No infrastructure providers yet.
+        {{ $t('project.resourceManagement.infra.empty') }}
       </div>
 
       <!-- Backup/Restore is project-wide, not per provider. -->
       <CInputToggleCard
-        label="Backup/Restore Available?"
-        description="Data and configuration can be backed up and restored across the project."
+        :label="$t('project.resourceManagement.infra.backupRestore.label')"
+        :description="$t('project.resourceManagement.infra.backupRestore.description')"
         :model-value="infra.backupRestore"
         :disabled="disabled"
         @update:model-value="v => setInfra({ backupRestore: v })"
@@ -168,15 +167,15 @@
     <section class="flex flex-col gap-3">
       <header class="flex items-center justify-between gap-3">
         <div>
-          <h3 class="text-base font-medium">Permitted Third-Party Connections</h3>
+          <h3 class="text-base font-medium">{{ $t('project.resourceManagement.connections.title') }}</h3>
           <p class="text-sm text-muted-color">
-            The whitelist of connections the Connections step may later choose from.
+            {{ $t('project.resourceManagement.connections.description') }}
           </p>
         </div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
-          label="Add connection"
+          :label="$t('project.resourceManagement.connections.add')"
           severity="secondary"
           size="small"
           @click="openPicker()"
@@ -191,32 +190,36 @@
         >
           <div class="flex items-start gap-3">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 flex-1 min-w-0">
-              <CFormGroup label="External Connection Name">
+              <CFormGroup :label="$t('project.resourceManagement.connections.name')">
                 <div class="flex items-center gap-2 h-10 px-3 rounded-md border border-surface bg-emphasis min-w-0">
                   <i :class="[iconForConnector(c.connector), 'text-primary shrink-0']" />
                   <span class="truncate">{{ c.name }}</span>
                 </div>
               </CFormGroup>
-              <CFormGroup label="Connection Type">
+              <CFormGroup :label="$t('project.resourceManagement.connections.type')">
                 <Select
                   :model-value="c.type"
                   :options="CONNECTION_TYPES"
+                  option-label="label"
+                  option-value="value"
                   fluid
                   :disabled="disabled"
-                  placeholder="Select type"
+                  :placeholder="$t('project.resourceManagement.connections.typePlaceholder')"
                   @update:model-value="v => updateConn(c.id, { type: v })"
                 />
               </CFormGroup>
-              <CFormGroup label="Action if Unavailable">
+              <CFormGroup :label="$t('project.resourceManagement.connections.actionIfUnavailable')">
                 <SelectButton
                   :model-value="c.actionIfUnavailable"
                   :options="ACTIONS"
+                  option-label="label"
+                  option-value="value"
                   :allow-empty="false"
                   :disabled="disabled"
                   @update:model-value="v => updateConn(c.id, { actionIfUnavailable: v })"
                 />
               </CFormGroup>
-              <CFormGroup v-if="c.actionIfUnavailable === 'Replace'" label="Replacement Connection">
+              <CFormGroup v-if="c.actionIfUnavailable === 'Replace'" :label="$t('project.resourceManagement.connections.replacement')">
                 <button
                   type="button"
                   class="flex items-center gap-2 w-full h-10 px-3 rounded-md border border-surface bg-surface min-w-0 text-left transition-colors"
@@ -228,19 +231,19 @@
                     <i :class="[iconForConnector(c.replacementConnector), 'text-primary shrink-0']" />
                     <span class="truncate flex-1">{{ c.replacement }}</span>
                   </template>
-                  <span v-else class="text-muted-color flex-1">Select replacement…</span>
+                  <span v-else class="text-muted-color flex-1">{{ $t('project.resourceManagement.connections.selectReplacement') }}</span>
                   <i class="pi pi-chevron-down text-xs text-muted-color shrink-0" />
                 </button>
               </CFormGroup>
               <CInputToggleCard
                 class="xl:col-span-2"
-                label="Is Connection an AI System?"
-                description="The connected system is itself an AI system."
+                :label="$t('project.resourceManagement.connections.isAiSystem.label')"
+                :description="$t('project.resourceManagement.connections.isAiSystem.description')"
                 :model-value="c.isAiSystem"
                 :disabled="disabled"
                 @update:model-value="v => updateConn(c.id, { isAiSystem: v })"
               />
-              <CFormGroup label="Description" class="xl:col-span-2">
+              <CFormGroup :label="$t('general.label.description')" class="xl:col-span-2">
                 <Textarea
                   :model-value="c.description"
                   rows="2"
@@ -268,7 +271,7 @@
         v-else
         class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"
       >
-        No permitted connections yet.
+        {{ $t('project.resourceManagement.connections.empty') }}
       </div>
     </section>
 
@@ -284,7 +287,9 @@ import { connector } from '@/sections/project/config/connectors'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { components } from '@planetcrust/human-vue'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const { CInputLLM, CInputModel, CInputToggleCard } = components
 
 // Working copy of the governance step values ({ ai, infra, connections });
@@ -295,8 +300,15 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const CONNECTION_TYPES = ['Database (DAL)', 'Application (TAQ)']
-const ACTIONS = ['Deactivate', 'Replace']
+// Persisted enum values stay literal; only the displayed label is localized.
+const CONNECTION_TYPES = computed(() => [
+  { label: t('project.resourceManagement.connections.typeDatabase'), value: 'Database (DAL)' },
+  { label: t('project.resourceManagement.connections.typeApplication'), value: 'Application (TAQ)' },
+])
+const ACTIONS = computed(() => [
+  { label: t('project.resourceManagement.connections.actionDeactivate'), value: 'Deactivate' },
+  { label: t('project.resourceManagement.connections.actionReplace'), value: 'Replace' },
+])
 
 const cfg = kindConfig('connection')
 const iconForConnector = id => connector(id)?.icon || cfg.icon
@@ -318,10 +330,10 @@ const providers = computed({
   set: v => emit('update:modelValue', { ...props.modelValue, ai: { ...ai.value, providers: v } }),
 })
 
-const PROVIDER_COLUMNS = [
-  { label: 'Provider', width: 'minmax(16rem, 1fr)' },
-  { label: 'Model', width: 'minmax(16rem, 1fr)' },
-]
+const PROVIDER_COLUMNS = computed(() => [
+  { label: t('project.resourceManagement.ai.columnProvider'), width: 'minmax(16rem, 1fr)' },
+  { label: t('project.resourceManagement.ai.columnModel'), width: 'minmax(16rem, 1fr)' },
+])
 
 // Permitted infrastructure providers (cards). Edits emit a fresh array so the
 // working copy never mutates the cached governance values.

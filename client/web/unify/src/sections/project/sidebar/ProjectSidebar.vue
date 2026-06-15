@@ -18,9 +18,11 @@ import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components } from '@planetcrust/human-vue'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { CSidebarNav } = components
 
+const { t } = useI18n()
 const store = useProjectsStore()
 const { projects } = storeToRefs(store)
 
@@ -37,14 +39,14 @@ const navItems = computed(() => [
   {
     _id: 'list',
     _parentId: '0',
-    _label: 'All Projects',
+    _label: t('project.sidebar.allProjects'),
     _icon: 'pi pi-folder',
     _route: { name: 'project.list' },
   },
   {
     _id: 'projects',
     _parentId: '0',
-    _label: 'Projects',
+    _label: t('project.sidebar.projects'),
     _icon: 'pi pi-folder-open',
     _divider: true,
   },
@@ -53,7 +55,7 @@ const navItems = computed(() => [
     .map(p => ({
       _id: p.id,
       _parentId: 'projects',
-      _label: p.name || 'Untitled project',
+      _label: p.name || t('project.list.untitled'),
       _icon: p.mode === 'gated' ? 'pi pi-shield' : 'pi pi-unlock',
       _route: routeFor(p),
     })),

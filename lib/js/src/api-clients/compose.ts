@@ -1914,8 +1914,18 @@ export default class Compose {
 
   // List modules
   async moduleList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, query, name, handle, limit, incTotal, pageCursor, labels, sort } =
-      (a as KV) || {}
+    const {
+      namespaceID,
+      query,
+      projectID,
+      name,
+      handle,
+      limit,
+      incTotal,
+      pageCursor,
+      labels,
+      sort,
+    } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -1928,6 +1938,7 @@ export default class Compose {
     }
     cfg.params = {
       query,
+      projectID,
       name,
       handle,
       limit,

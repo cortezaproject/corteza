@@ -1,12 +1,14 @@
 // Per-resource-kind visual config (icon + colors), reused from the project_old
 // concept and extended for the new kinds (connection, chatbot). Tailwind classes
-// are kept literal so JIT picks them up.
+// are kept literal so JIT picks them up. `labelKey`/`singularKey` are i18n keys
+// (plural / singular); components resolve them with $t for display.
 
 import { STEPS } from '@/sections/project/config/pipeline'
 
 export const KIND_CONFIG = {
   module: {
-    label: 'Modules',
+    labelKey: 'project.kinds.module.plural',
+    singularKey: 'project.kinds.module.single',
     icon: 'pi pi-database',
     text: 'text-indigo-600 dark:text-indigo-400',
     bg: 'bg-indigo-50 dark:bg-indigo-950/40',
@@ -14,7 +16,8 @@ export const KIND_CONFIG = {
     stroke: '#4f46e5',
   },
   connection: {
-    label: 'Connections',
+    labelKey: 'project.kinds.connection.plural',
+    singularKey: 'project.kinds.connection.single',
     icon: 'pi pi-link',
     text: 'text-teal-600 dark:text-teal-400',
     bg: 'bg-teal-50 dark:bg-teal-950/40',
@@ -22,7 +25,8 @@ export const KIND_CONFIG = {
     stroke: '#0d9488',
   },
   automation: {
-    label: 'Automations',
+    labelKey: 'project.kinds.automation.plural',
+    singularKey: 'project.kinds.automation.single',
     icon: 'pi pi-bolt',
     text: 'text-orange-600 dark:text-orange-400',
     bg: 'bg-orange-50 dark:bg-orange-950/40',
@@ -30,7 +34,8 @@ export const KIND_CONFIG = {
     stroke: '#ea580c',
   },
   agent: {
-    label: 'Agents',
+    labelKey: 'project.kinds.agent.plural',
+    singularKey: 'project.kinds.agent.single',
     icon: 'pi pi-sparkles',
     text: 'text-fuchsia-600 dark:text-fuchsia-400',
     bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/40',
@@ -38,7 +43,8 @@ export const KIND_CONFIG = {
     stroke: '#c026d3',
   },
   chatbot: {
-    label: 'Chatbots',
+    labelKey: 'project.kinds.chatbot.plural',
+    singularKey: 'project.kinds.chatbot.single',
     icon: 'pi pi-comments',
     text: 'text-rose-600 dark:text-rose-400',
     bg: 'bg-rose-50 dark:bg-rose-950/40',
@@ -46,7 +52,8 @@ export const KIND_CONFIG = {
     stroke: '#e11d48',
   },
   page: {
-    label: 'Pages',
+    labelKey: 'project.kinds.page.plural',
+    singularKey: 'project.kinds.page.single',
     icon: 'pi pi-window-maximize',
     text: 'text-sky-600 dark:text-sky-400',
     bg: 'bg-sky-50 dark:bg-sky-950/40',
@@ -54,7 +61,8 @@ export const KIND_CONFIG = {
     stroke: '#0284c7',
   },
   chart: {
-    label: 'Charts',
+    labelKey: 'project.kinds.chart.plural',
+    singularKey: 'project.kinds.chart.single',
     icon: 'pi pi-chart-bar',
     text: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-50 dark:bg-amber-950/40',
@@ -62,7 +70,8 @@ export const KIND_CONFIG = {
     stroke: '#d97706',
   },
   role: {
-    label: 'Roles',
+    labelKey: 'project.kinds.role.plural',
+    singularKey: 'project.kinds.role.single',
     icon: 'pi pi-id-card',
     text: 'text-violet-600 dark:text-violet-400',
     bg: 'bg-violet-50 dark:bg-violet-950/40',
@@ -70,7 +79,8 @@ export const KIND_CONFIG = {
     stroke: '#7c3aed',
   },
   user: {
-    label: 'Users',
+    labelKey: 'project.kinds.user.plural',
+    singularKey: 'project.kinds.user.single',
     icon: 'pi pi-user',
     text: 'text-emerald-600 dark:text-emerald-400',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
@@ -79,7 +89,8 @@ export const KIND_CONFIG = {
   },
   // Not a resource step kind; used for Group nodes in the relationship graph.
   group: {
-    label: 'Groups',
+    labelKey: 'project.kinds.group.plural',
+    singularKey: 'project.kinds.group.single',
     icon: 'pi pi-folder',
     text: 'text-slate-700 dark:text-slate-200',
     bg: 'bg-slate-100 dark:bg-slate-800',
@@ -89,7 +100,8 @@ export const KIND_CONFIG = {
 }
 
 const FALLBACK = {
-  label: 'Resources',
+  labelKey: 'project.kinds.fallback.plural',
+  singularKey: 'project.kinds.fallback.single',
   icon: 'pi pi-circle',
   text: 'text-color',
   bg: 'bg-emphasis',

@@ -2,48 +2,48 @@
   <Dialog
     v-model:visible="visible"
     modal
-    header="Add LLM provider"
+    :header="$t('project.llmDialog.header')"
     :style="{ width: '52rem' }"
     :pt="{ footer: { class: 'flex justify-end gap-2' } }"
   >
     <p class="text-sm text-muted-color mb-4">
-      Create a new provider here. It becomes available to all projects and is auto-selected when saved.
+      {{ $t('project.llmDialog.blurb') }}
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <CFormGroup label="Provider" required>
+      <CFormGroup :label="$t('project.llmDialog.provider')" required>
         <Select
           v-model="form.provider"
           :options="providerOptions"
           option-label="label"
           option-value="value"
           fluid
-          placeholder="Select a provider"
+          :placeholder="$t('project.llmDialog.providerPlaceholder')"
         />
       </CFormGroup>
 
-      <CFormGroup label="Name">
-        <InputText v-model="form.short" fluid placeholder="e.g. Production Anthropic" />
+      <CFormGroup :label="$t('project.llmDialog.nameLabel')">
+        <InputText v-model="form.short" fluid :placeholder="$t('project.llmDialog.namePlaceholder')" />
       </CFormGroup>
 
-      <CFormGroup label="Handle">
-        <InputText v-model="form.handle" fluid placeholder="optional, e.g. anthropic-prod" />
+      <CFormGroup :label="$t('general.label.handle')">
+        <InputText v-model="form.handle" fluid :placeholder="$t('project.llmDialog.handlePlaceholder')" />
       </CFormGroup>
 
-      <CFormGroup label="Prompt URL" class="md:col-span-2">
-        <InputText v-model="form.promptURL" fluid placeholder="https://…" />
+      <CFormGroup :label="$t('project.llmDialog.promptURL')" class="md:col-span-2">
+        <InputText v-model="form.promptURL" fluid :placeholder="$t('project.llmDialog.promptURLPlaceholder')" />
       </CFormGroup>
 
-      <CFormGroup label="API Key" required class="md:col-span-2">
-        <InputText v-model="apiKey" fluid autocomplete="off" placeholder="Secret key" />
+      <CFormGroup :label="$t('project.llmDialog.apiKey')" required class="md:col-span-2">
+        <InputText v-model="apiKey" fluid autocomplete="off" :placeholder="$t('project.llmDialog.apiKeyPlaceholder')" />
       </CFormGroup>
     </div>
 
     <p v-if="error" class="text-sm text-red-500 mt-3">{{ error }}</p>
 
     <template #footer>
-      <Button label="Cancel" severity="secondary" outlined size="small" @click="visible = false" />
-      <Button label="Create" size="small" :loading="saving" :disabled="!canSubmit" @click="submit" />
+      <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="visible = false" />
+      <Button :label="$t('general.label.create')" size="small" :loading="saving" :disabled="!canSubmit" @click="submit" />
     </template>
   </Dialog>
 </template>
@@ -51,6 +51,9 @@
 <script setup>
 import { system } from '@planetcrust/human-js'
 import { computed, inject, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -70,11 +73,12 @@ const providerDefaultURLs = {
   anthropic: 'https://api.anthropic.com',
 }
 
-const providerOptions = [
+// Provider names are brand names (untranslated); only the generic "Other" is.
+const providerOptions = computed(() => [
   { label: 'Anthropic', value: 'anthropic' },
   { label: 'Mistral', value: 'mistral' },
-  { label: 'Other', value: 'other' },
-]
+  { label: t('project.llmDialog.providerOther'), value: 'other' },
+])
 
 const blank = () => ({ provider: 'anthropic', short: '', handle: '', promptURL: '' })
 const form = reactive(blank())
@@ -125,12 +129,12 @@ async function submit() {
       config: model.config,
       apiKey: apiKey.value,
     })
-    $toast.toastSuccess('LLM provider created')
+    $toast.toastSuccess(t('project.llmDialog.created'))
     emit('created', created)
     visible.value = false
   } catch (e) {
-    error.value = e?.message || 'Failed to create provider'
-    $toast.toastErrorHandler('Failed to create LLM provider')(e)
+    error.value = e?.message || t('project.llmDialog.createFailed')
+    $toast.toastErrorHandler(t('project.llmDialog.createFailedToast'))(e)
   } finally {
     saving.value = false
   }

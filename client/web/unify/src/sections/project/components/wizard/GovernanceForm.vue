@@ -2,14 +2,14 @@
   <div class="flex flex-col gap-6">
     <div
       v-for="(section, i) in schema"
-      :key="section.title || i"
+      :key="section.titleKey || i"
     >
       <div class="grid grid-cols-1 gap-x-6 gap-y-4">
         <CFormGroup
           v-for="field in section.fields"
           :key="field.key"
-          :label="field.label"
-          :description="field.description"
+          :label="$t(field.labelKey)"
+          :description="field.descriptionKey ? $t(field.descriptionKey) : undefined"
         >
           <InputText
             v-if="field.type === 'text'"

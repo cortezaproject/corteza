@@ -12,82 +12,79 @@
 // Tab visibility (see Wizard): a member who can request OR grant approval works
 // in the Governance view; everyone else gets the Build view only.
 
+// `labelKey`/`resourcesKey`/`descriptionKey` are i18n keys; components resolve
+// them with $t for display. Capability flags drive behaviour and stay literal.
 export const ROLE_PRESETS = [
   {
     id: 'developer',
-    label: 'Developer',
+    labelKey: 'project.roles.developer.label',
     read: true,
     write: true,
     requestApproval: true,
     grantApproval: false,
-    resources: 'All Pages, All Gates',
-    description:
-      'Builds part or all of the project and its AI systems, and requests governance approval at the gates.',
+    resourcesKey: 'project.roles.developer.resources',
+    descriptionKey: 'project.roles.developer.description',
   },
   {
     id: 'governance-owner',
-    label: 'Governance Owner',
+    labelKey: 'project.roles.governance-owner.label',
     read: true,
     write: true,
     requestApproval: false,
     grantApproval: true,
-    resources: 'All Pages, All Gates',
-    description: 'Owns project governance and grants approvals at every governance gate.',
+    resourcesKey: 'project.roles.governance-owner.resources',
+    descriptionKey: 'project.roles.governance-owner.description',
   },
   {
     id: 'security-owner',
-    label: 'Security Owner',
+    labelKey: 'project.roles.security-owner.label',
     read: true,
     write: true,
     requestApproval: false,
     grantApproval: true,
-    resources: 'RBAC, Security, Gate 6',
-    description:
-      'Responsible for RBAC and security configuration; grants approval at the security gate (Gate 6).',
+    resourcesKey: 'project.roles.security-owner.resources',
+    descriptionKey: 'project.roles.security-owner.description',
   },
   {
     id: 'junior-developer',
-    label: 'Junior Developer',
+    labelKey: 'project.roles.junior-developer.label',
     read: true,
     write: true,
     requestApproval: false,
     grantApproval: false,
-    resources: 'Technical Architecture, Data Model, Connections, Automations',
-    description:
-      'Builds the technical architecture, data model, connections and automations. Cannot request or grant approvals.',
+    resourcesKey: 'project.roles.junior-developer.resources',
+    descriptionKey: 'project.roles.junior-developer.description',
   },
   {
     id: 'executive-authority',
-    label: 'Executive Authority',
+    labelKey: 'project.roles.executive-authority.label',
     read: true,
     write: false,
     requestApproval: false,
     grantApproval: true,
-    resources: 'Read all, Approve at Gate 1',
-    description:
-      'Has read access across the project and signs off the project at Gate 1, once the Project Summary, Quality Management System and Project Members have been defined.',
+    resourcesKey: 'project.roles.executive-authority.resources',
+    descriptionKey: 'project.roles.executive-authority.description',
   },
   {
     id: 'infrastructure-administrator',
-    label: 'Infrastructure Administrator',
+    labelKey: 'project.roles.infrastructure-administrator.label',
     read: false,
     write: false,
     requestApproval: false,
     grantApproval: false,
-    resources: '—',
-    description:
-      'Responsible for setting up the server infrastructure, and installing and maintaining the platform software, including platform-level software updates.',
+    resourcesKey: 'project.roles.infrastructure-administrator.resources',
+    descriptionKey: 'project.roles.infrastructure-administrator.description',
   },
 ]
 
 const FALLBACK = {
-  label: 'Member',
+  labelKey: 'project.roles.fallback.label',
   read: false,
   write: false,
   requestApproval: false,
   grantApproval: false,
-  resources: '—',
-  description: '',
+  resourcesKey: 'project.roles.fallback.resources',
+  descriptionKey: null,
 }
 
 export const rolePreset = id => ROLE_PRESETS.find(r => r.id === id) || FALLBACK

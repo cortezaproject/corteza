@@ -352,6 +352,10 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 		}
 
 		new.ID = nextID()
+		// Resources inherit their project from the namespace they live in;
+		// a project owns exactly one namespace (project_id 0 = tenant-level).
+		// This is what lets resources be listed by projectID.
+		new.ProjectID = ns.ProjectID
 		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
@@ -361,6 +365,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 				f.ID = nextID()
 				f.ModuleID = new.ID
 				f.NamespaceID = new.NamespaceID
+				f.ProjectID = new.ProjectID
 				f.CreatedAt = *now()
 				f.CreatedByAgent = new.CreatedByAgent
 				f.UpdatedAt = nil
@@ -840,6 +845,9 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		if f.NamespaceID == 0 {
 			f.NamespaceID = new.NamespaceID
 		}
+		// Keep fields' project in sync with their module (incoming payloads
+		// carry no projectID; the module is the source of truth).
+		f.ProjectID = new.ProjectID
 
 		if systemFields[f.Name] && !old.Fields.HasName(f.Name) {
 			// make sure we're backward compatible, or better:

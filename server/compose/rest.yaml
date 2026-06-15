@@ -891,6 +891,10 @@ endpoints:
         name: query
         required: false
         title: Search query
+      - type: uint64
+        name: projectID
+        required: false
+        title: Filter by project ID
       - type: string
         name: name
         required: false

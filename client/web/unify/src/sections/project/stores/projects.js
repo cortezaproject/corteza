@@ -20,11 +20,18 @@ export const useProjectsStore = defineStore('projects', () => {
   const findById = computed(() => id => projects.value.find(p => p.id === String(id)))
 
   // Bumped after every persisting mutation; the resource graph watches it and
-  // refetches, so the panel always reflects what the backend just derived.
+  // refetches, so the panel always reflects current state.
   const graphVersion = ref(0)
   const touch = () => {
     graphVersion.value++
   }
+
+  // Resources (compose modules) are deliberately NOT stored on the project
+  // object. They live here keyed by projectID and are (re)fetched on demand,
+  // filtered by projectID — fetching is the only way to get a project's
+  // resources, and a mutation always refetches rather than patching in place.
+  const resourcesByProject = ref({})
+  const resourcesFor = computed(() => projectId => resourcesByProject.value[String(projectId)] || [])
 
   // --- payload mapping --------------------------------------------------------
 
@@ -58,9 +65,10 @@ export const useProjectsStore = defineStore('projects', () => {
       canDeleteProject: !!raw.canDeleteProject,
       canManageMembers: !!raw.canManageMembers,
 
-      // Loaded separately (fetchProject); preserved across re-unmarshals.
+      // Members are loaded separately (fetchProject) and preserved across
+      // re-unmarshals. Resources are NOT held here — they live in the
+      // store's resourcesByProject cache, fetched by projectID.
       members: prev.members || [],
-      resources: prev.resources || [],
 
       // Backend bookkeeping for optimistic-lock updates. Config is carried
       // whole so updates round-trip fields the UI doesn't surface yet
@@ -166,30 +174,61 @@ export const useProjectsStore = defineStore('projects', () => {
       type: f.kind,
       required: !!f.isRequired,
       multi: !!f.isMulti,
+      // Universal help text (Compose stores it under options.description).
+      helpText: f.options?.description?.edit ?? f.options?.description?.view ?? '',
+      // Text: render across multiple lines.
+      multiLine: f.kind === 'String' ? !!f.options?.multiLine : false,
+      // Number: digits after the decimal point (defaults to 0 = whole numbers).
+      precision: f.kind === 'Number' ? (Number.isFinite(f.options?.precision) ? f.options.precision : 0) : null,
+      // DateTime: 'date' | 'time' | 'datetime' (derived from the two flags).
+      dateMode:
+        f.kind === 'DateTime'
+          ? f.options?.onlyDate
+            ? 'date'
+            : f.options?.onlyTime
+              ? 'time'
+              : 'datetime'
+          : 'datetime',
       targetModuleId: f.kind === 'Record' ? String(f.options?.moduleID || '') || null : null,
       labelField: f.kind === 'Record' ? f.options?.labelField || null : null,
-      // Select options arrive as [{ value, text }] (or bare strings).
+      // Select options arrive as [{ value, text }] (or bare strings); kept as
+      // { value, text } pairs so the editor can show a value + label table.
       selectOptions:
         f.kind === 'Select'
-          ? (f.options?.options || []).map(o => (typeof o === 'string' ? o : o.value))
+          ? (f.options?.options || []).map(o =>
+              typeof o === 'string'
+                ? { value: o, text: o }
+                : { value: o.value ?? '', text: o.text ?? o.value ?? '' },
+            )
           : [],
       sensitivity: sensitivityHandle(f.config?.privacy?.sensitivityLevelID),
     })),
     _raw: m,
   })
 
-  // Kind-specific field options for the compose payload.
+  // Field options for the compose payload: universal help text plus the
+  // kind-specific settings the UI surfaces.
   const fieldOptions = f => {
+    const opts = {}
+    const help = (f.helpText || '').trim()
+    if (help) opts.description = { view: help, edit: help }
+    if (f.type === 'String' && f.multiLine) opts.multiLine = true
+    if (f.type === 'Number' && Number.isFinite(f.precision)) opts.precision = f.precision
+    if (f.type === 'DateTime') {
+      if (f.dateMode === 'date') opts.onlyDate = true
+      else if (f.dateMode === 'time') opts.onlyTime = true
+    }
     if (f.type === 'Record' && f.targetModuleId) {
-      return {
-        moduleID: f.targetModuleId,
-        ...(f.labelField ? { labelField: f.labelField } : {}),
-      }
+      opts.moduleID = f.targetModuleId
+      if (f.labelField) opts.labelField = f.labelField
     }
     if (f.type === 'Select' && f.selectOptions?.length) {
-      return { options: f.selectOptions.map(s => ({ value: s, text: s })) }
+      const options = f.selectOptions
+        .filter(o => (o.value ?? '').toString().trim())
+        .map(o => ({ value: o.value, text: o.text || o.value }))
+      if (options.length) opts.options = options
     }
-    return {}
+    return opts
   }
 
   const marshalFields = (fields = []) =>
@@ -208,7 +247,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function pushModule(p, mod) {
     const raw = mod._raw
-    const updated = await $ComposeAPI.moduleUpdate({
+    await $ComposeAPI.moduleUpdate({
       namespaceID: p.namespaceID,
       moduleID: mod.id,
       name: mod.name,
@@ -220,8 +259,8 @@ export const useProjectsStore = defineStore('projects', () => {
       config: { ...(raw.config || {}) },
       updatedAt: raw.updatedAt,
     })
-    Object.assign(mod, unmarshalModule(updated))
-    touch()
+    // Resync from the server (by projectID) rather than patching in place.
+    await loadResources(p.id)
   }
 
   // --- loading -----------------------------------------------------------------
@@ -241,27 +280,40 @@ export const useProjectsStore = defineStore('projects', () => {
     return loading
   }
 
-  // Full fetch for the wizard: project + members (capability resolution) +
-  // the real compose modules from the project namespace.
+  // Full fetch for the wizard: project + members (capability resolution). The
+  // project's resources are loaded separately into the resourcesByProject
+  // cache (fetched by projectID), never attached to the project object.
   async function fetchProject(id) {
     const raw = await $SystemAPI.projectRead({ projectID: id })
     const p = absorb(raw)
 
     await loadSensitivityLevels()
 
-    const [members, modules] = await Promise.all([
+    const [members] = await Promise.all([
       $SystemAPI.projectListMembers({ projectID: p.id }).catch(() => ({ set: [] })),
-      p.namespaceID
-        ? $ComposeAPI
-            .moduleList({ namespaceID: p.namespaceID, limit: 500 })
-            .catch(() => ({ set: [] }))
-        : { set: [] },
+      loadResources(p.id),
     ])
 
     p.members = (members.set || []).map(unmarshalMember)
-    p.resources = (modules.set || []).map(unmarshalModule)
 
     return p
+  }
+
+  // Fetch a project's resources (compose modules) filtered by projectID and
+  // cache them. This is the single source of resources; callers read them via
+  // resourcesFor(projectId), and every resource mutation calls this to resync.
+  async function loadResources(projectId) {
+    const p = findById.value(projectId)
+    if (!p?.namespaceID) {
+      resourcesByProject.value[String(projectId)] = []
+      return []
+    }
+    const { set = [] } = await $ComposeAPI
+      .moduleList({ namespaceID: p.namespaceID, projectID: p.id, limit: 500 })
+      .catch(() => ({ set: [] }))
+    resourcesByProject.value[String(projectId)] = set.map(unmarshalModule)
+    touch()
+    return resourcesByProject.value[String(projectId)]
   }
 
   // --- project CRUD --------------------------------------------------------------
@@ -362,54 +414,91 @@ export const useProjectsStore = defineStore('projects', () => {
     const raw = await $ComposeAPI.moduleCreate({
       namespaceID: p.namespaceID,
       name: (name || '').trim() || 'Untitled',
-      handle: fieldName(name).toLowerCase() + '_' + Date.now().toString(36),
+      // Handle is the slugified title (no hash). Duplicate titles collide on
+      // the unique handle; the create dialog validates against that first.
+      handle: fieldName(name).toLowerCase(),
       fields: [],
       meta: {},
     })
-    const mod = unmarshalModule(raw)
-    p.resources.push(mod)
-    touch()
-    return mod.id
+    await loadResources(projectId)
+    return String(raw.moduleID)
   }
 
-  // Remove a module and scrub record-field references to it.
   async function removeResource(projectId, resourceId) {
     const p = findById.value(projectId)
-    const r = p?.resources?.find(x => x.id === resourceId)
+    const r = moduleOf(projectId, resourceId)
     if (!r) return
 
     await $ComposeAPI.moduleDelete({ namespaceID: p.namespaceID, moduleID: r.id })
-
-    p.resources = p.resources.filter(x => x.id !== resourceId)
-    for (const o of p.resources) {
-      for (const f of o.fields || []) if (f.targetModuleId === resourceId) f.targetModuleId = null
-    }
-    touch()
+    await loadResources(projectId)
   }
 
   async function updateResource(projectId, resourceId, patch = {}) {
-    const p = findById.value(projectId)
-    const r = p?.resources?.find(x => x.id === resourceId)
+    const r = moduleOf(projectId, resourceId)
     if (!r) return
     if (typeof patch.name === 'string') r.name = patch.name
     if (typeof patch.description === 'string') r.description = patch.description
-    await pushModule(p, r)
+    await pushModule(findById.value(projectId), r)
   }
 
   // --- module fields ---------------------------------------------------------------
 
   function moduleOf(projectId, moduleId) {
-    const p = findById.value(projectId)
-    return p?.resources?.find(r => r.id === moduleId && r.kind === 'module') || null
+    return (
+      resourcesByProject.value[String(projectId)]?.find(
+        r => r.id === moduleId && r.kind === 'module',
+      ) || null
+    )
   }
+
+  // Canonical field shape: keeps only the settings that apply to the field's
+  // type, so switching kinds never leaves stale options behind.
+  const normalizeField = f => ({
+    id: f.id || localId('fld'),
+    name: f.name || '',
+    type: f.type || 'String',
+    required: !!f.required,
+    multi: !!f.multi,
+    helpText: f.helpText || '',
+    multiLine: f.type === 'String' ? !!f.multiLine : false,
+    precision: f.type === 'Number' ? (Number.isFinite(f.precision) ? f.precision : 0) : null,
+    dateMode: f.type === 'DateTime' ? f.dateMode || 'datetime' : 'datetime',
+    targetModuleId: f.type === 'Record' ? f.targetModuleId || null : null,
+    labelField: f.type === 'Record' ? f.labelField || null : null,
+    selectOptions:
+      f.type === 'Select'
+        ? (f.selectOptions || []).map(o =>
+            typeof o === 'string' ? { value: o, text: o } : { value: o.value ?? '', text: o.text ?? '' },
+          )
+        : [],
+    sensitivity: f.sensitivity || null,
+  })
 
   async function updateField(projectId, moduleId, fieldId, patch = {}) {
     const m = moduleOf(projectId, moduleId)
     const f = m?.fields?.find(x => x.id === fieldId)
     if (!f) return
-    Object.assign(f, patch)
-    // A non-record type can't carry a target.
-    if (f.type !== 'Record') f.targetModuleId = null
+    Object.assign(f, normalizeField({ ...f, ...patch, id: f.id }))
+    await pushModule(findById.value(projectId), m)
+  }
+
+  // Append a single field to a module; returns the new field's id (or null if
+  // the module is gone). Used by the quick "Add field" flow on the data model.
+  async function addField(projectId, moduleId, patch = {}) {
+    const m = moduleOf(projectId, moduleId)
+    if (!m) return null
+    const id = localId('fld')
+    const field = normalizeField({ ...patch, id })
+    m.fields = [...(m.fields || []), field]
+    await pushModule(findById.value(projectId), m)
+    return id
+  }
+
+  // Remove a single field from a module.
+  async function removeField(projectId, moduleId, fieldId) {
+    const m = moduleOf(projectId, moduleId)
+    if (!m) return
+    m.fields = (m.fields || []).filter(f => f.id !== fieldId)
     await pushModule(findById.value(projectId), m)
   }
 
@@ -417,49 +506,55 @@ export const useProjectsStore = defineStore('projects', () => {
   async function setFields(projectId, moduleId, fields = []) {
     const m = moduleOf(projectId, moduleId)
     if (!m) return
-    m.fields = fields.map(f => ({
-      id: f.id || localId('fld'),
-      name: f.name || '',
-      type: f.type || 'String',
-      required: !!f.required,
-      multi: !!f.multi,
-      targetModuleId: f.type === 'Record' ? f.targetModuleId || null : null,
-      labelField: f.type === 'Record' ? f.labelField || null : null,
-      selectOptions: f.type === 'Select' ? f.selectOptions || [] : [],
-      sensitivity: f.sensitivity || null,
-    }))
+    m.fields = fields.map(f => normalizeField({ ...f, id: f.id || localId('fld') }))
     await pushModule(findById.value(projectId), m)
   }
 
   // --- per-step governance ----------------------------------------------------------
-  // Step state lives on the backend (project.governance[stepKey] = { values,
-  // status, reviewNote }); transitions are capability-checked server-side.
+  // Governance is kept in memory ONLY for now — nothing is persisted to the
+  // backend. The project object carries the working governance state
+  // (project.governance[stepKey] = { values, status, reviewNote }) but it is
+  // never saved, so it resets on reload. (Backend governance endpoints still
+  // exist; the FE just doesn't call them yet.)
+
+  function ensureGovStep(p, stepKey) {
+    if (!p.governance) p.governance = {}
+    if (!p.governance[stepKey]) {
+      p.governance[stepKey] = { values: {}, status: 'draft', reviewNote: '' }
+    }
+    return p.governance[stepKey]
+  }
 
   async function saveStepForm(projectId, stepKey, values) {
     const p = findById.value(projectId)
     if (!p) return
-    const raw = await $SystemAPI.projectGovernanceSave({
-      projectID: p.id,
-      stepKey,
-      values: { ...values },
-    })
-    absorb(raw)
+    const step = ensureGovStep(p, stepKey)
+    step.values = { ...values }
+    p.gatesApproved = countGatesApproved(p.governance)
     touch()
   }
 
-  // State machine (server-side): submit (draft|changes-requested → submitted),
-  // approve (submitted → approved), request-changes (submitted →
-  // changes-requested), reopen (approved → draft), recall (submitted → draft).
+  // Local mirror of the (server-side) state machine: submit
+  // (draft|changes-requested → submitted), approve (submitted → approved),
+  // request-changes (submitted → changes-requested), reopen (approved → draft),
+  // recall (submitted → draft).
+  const GOV_TRANSITIONS = {
+    submit: { from: ['draft', 'changes-requested'], to: 'submitted', clearNote: true },
+    approve: { from: ['submitted'], to: 'approved', clearNote: true },
+    'request-changes': { from: ['submitted'], to: 'changes-requested' },
+    reopen: { from: ['approved'], to: 'draft' },
+    recall: { from: ['submitted'], to: 'draft', clearNote: true },
+  }
+
   async function transitionStep(projectId, stepKey, action, note = '') {
     const p = findById.value(projectId)
     if (!p) return
-    const raw = await $SystemAPI.projectGovernanceTransition({
-      projectID: p.id,
-      stepKey,
-      action,
-      note,
-    })
-    absorb(raw)
+    const step = ensureGovStep(p, stepKey)
+    const t = GOV_TRANSITIONS[action]
+    if (!t || !t.from.includes(step.status)) return
+    step.status = t.to
+    step.reviewNote = t.clearNote ? '' : note
+    p.gatesApproved = countGatesApproved(p.governance)
     touch()
   }
 
@@ -477,23 +572,11 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // --- resource graph ------------------------------------------------------------
-  // The graph is composed entirely by the backend from the project's real
-  // resources (/projects/{id}/graph). This is a faithful pass-through — no
-  // client-derived nodes or edges are ever merged in.
-  async function graph(projectId) {
-    const g = await $SystemAPI.projectGraph({ projectID: projectId })
-    return {
-      nodes: (g?.nodes || []).map(n => ({
-        id: String(n.id),
-        kind: n.kind,
-        name: n.name,
-      })),
-      edges: (g?.edges || []).map(e => ({
-        source: String(e.sourceID),
-        target: String(e.targetID),
-        reason: e.reason,
-      })),
-    }
+  // The backend project graph endpoint has been removed. The graph panel is
+  // kept in the UI but is not yet wired to a data source, so this returns an
+  // empty graph for now (to be re-sourced from list/read endpoints later).
+  async function graph() {
+    return { nodes: [], edges: [] }
   }
 
   return {
@@ -503,6 +586,8 @@ export const useProjectsStore = defineStore('projects', () => {
     load,
     fetchProject,
     findById,
+    resourcesFor,
+    loadResources,
     create,
     updateProject,
     removeProject,
@@ -513,6 +598,8 @@ export const useProjectsStore = defineStore('projects', () => {
     removeResource,
     updateResource,
     updateField,
+    addField,
+    removeField,
     setFields,
     saveStepForm,
     submitSection,

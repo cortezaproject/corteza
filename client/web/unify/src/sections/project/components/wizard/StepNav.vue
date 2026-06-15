@@ -14,8 +14,8 @@
             @click="$emit('select', step.key)"
           >
             <i :class="['pi', icon(statuses[step.key]).name, icon(statuses[step.key]).class]" />
-            <span class="flex-1 min-w-0 truncate">{{ step.label }}</span>
-            <i v-if="step.gatedOnly" class="pi pi-shield text-[10px] text-amber-500" title="Gated-only step" />
+            <span class="flex-1 min-w-0 truncate">{{ $t(step.labelKey) }}</span>
+            <i v-if="step.gatedOnly" class="pi pi-shield text-[10px] text-amber-500" :title="$t('project.wizard.gate.gatedOnlyStep')" />
           </button>
         </li>
 
@@ -30,7 +30,7 @@
                 : 'hover:bg-surface-100 dark:hover:bg-surface-800'
             "
             :disabled="gateLocked[step.key]"
-            :title="gateLocked[step.key] ? 'Approve the previous gate first' : ''"
+            :title="gateLocked[step.key] ? $t('project.wizard.gate.lockedTitle') : ''"
             @click="$emit('gate-click', step.key)"
           >
             <span class="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
@@ -42,7 +42,7 @@
               v-else
               :class="['pi text-[10px]', icon(gateStatuses[step.key]).name, icon(gateStatuses[step.key]).class]"
             />
-            <span class="text-muted-color">Gate {{ gateNumber[step.key] }}</span>
+            <span class="text-muted-color">{{ $t('project.wizard.gate.label', { number: gateNumber[step.key] }) }}</span>
             <span class="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
           </button>
         </li>
