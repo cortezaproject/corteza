@@ -250,6 +250,7 @@ func ApplicationToEnvoyNode(r *types.Application) (node *envoyx.Node, err error)
 	// Identifiers
 	ii := envoyx.MakeIdentifiers(
 		r.ID,
+		r.Name,
 	)
 
 	// Handle references

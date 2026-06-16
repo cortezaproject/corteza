@@ -396,6 +396,16 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 
 			break
 
+		case "name":
+			// Handle identifiers
+			err = y7s.DecodeScalar(n, "name", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+			ii = ii.Add(auxNodeValue)
+
+			break
+
 		case "ownerid", "owner":
 			// Handle references
 			err = y7s.DecodeScalar(n, "ownerID", &auxNodeValue)

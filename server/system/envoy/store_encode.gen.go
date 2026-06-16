@@ -314,6 +314,7 @@ func (e StoreEncoder) matchupApplications(ctx context.Context, s store.Storer, u
 
 	for _, a := range aa {
 		idMap[a.ID] = a
+		strMap[a.Name] = a
 
 	}
 

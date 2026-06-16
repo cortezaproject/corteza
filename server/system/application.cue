@@ -11,6 +11,9 @@ application: {
 			name: {
 				sortable: true
 				dal: {}
+				envoy: {
+					identifier: true
+				}
 			}
 			enabled: {
 				goType: "bool"
