@@ -8,6 +8,7 @@
 endpoints:
 - title: Namespaces
   entrypoint: namespace
+  genController: true
   path: "/namespace"
   authentication: []
   imports:
@@ -250,6 +251,7 @@ endpoints:
 - title: Pages
   description: Compose pages
   entrypoint: page
+  genController: true
   path: "/namespace/{namespaceID}/page"
   authentication: []
   imports:
@@ -444,6 +446,10 @@ endpoints:
     path: "/{pageID}"
     method: DELETE
     title: Delete page
+    # Hand-written in the companion: the generated Delete would blindly cast
+    # r.Strategy, but Page.Delete validates it and defaults invalid values to
+    # the Abort strategy -- behavior the generator can't reproduce.
+    genSkip: true
     parameters:
       path:
       - { type: uint64, name: pageID, required: true, title: Page ID }
@@ -535,6 +541,12 @@ endpoints:
 - title: icons
   description: Compose icons
   entrypoint: icon
+  genController: true
+  # Icons are attachment-backed; the generated List delegates to the
+  # attachment service (ctrl.attachment.Search), so override the service
+  # field. The companion's makeFilter builds the AttachmentFilter (Kind:
+  # IconAttachment) and makeFilterPayload maps the set to icon payloads.
+  serviceField: attachment
   path: "/icon"
   apis:
   - name: list
@@ -556,6 +568,9 @@ endpoints:
           name: sort
           title: Sort items
   - name: upload
+    # Not a CRUD op (multipart upload via attachment.CreateIconAttachment);
+    # hand-written in the companion.
+    genSkip: true
     path: "/"
     method: POST
     title: Upload icon
@@ -565,6 +580,10 @@ endpoints:
           type: "*multipart.FileHeader"
           title: Icon to upload
   - name: delete
+    # Hand-written: requires an auth-identity check, a FindByID existence
+    # pre-check, and a hardcoded namespaceID(0) leading arg to DeleteByID
+    # that the generated single-id delete cannot reproduce.
+    genSkip: true
     path: "/{iconID}"
     method: DELETE
     title: Delete icon
@@ -578,6 +597,7 @@ endpoints:
 - title: Page Layouts
   description: Compose page layouts
   entrypoint: pageLayout
+  genController: true
   path: "/namespace/{namespaceID}"
   authentication: []
   imports:
@@ -692,10 +712,14 @@ endpoints:
         name: weight
         required: false
         title: Weight
+      # moduleID is a filter-only request param: types.PageLayout has no
+      # ModuleID field anymore, so it must not be assigned onto the struct.
+      # genHook drops the generated assignment; the companion hook ignores it.
       - type: uint64
         name: moduleID
         required: false
         title: ModuleID
+        genHook: true
       - type: string
         name: handle
         required: false
@@ -759,10 +783,14 @@ endpoints:
         name: weight
         required: false
         title: Weight
+      # moduleID is a filter-only request param: types.PageLayout has no
+      # ModuleID field anymore, so it must not be assigned onto the struct.
+      # genHook drops the generated assignment; the companion hook ignores it.
       - type: uint64
         name: moduleID
         required: false
         title: ModuleID
+        genHook: true
       - type: string
         name: handle
         required: false
@@ -808,6 +836,7 @@ endpoints:
     path: "/page/{pageID}/layout/{pageLayoutID}"
     method: DELETE
     title: Delete page layout
+    scopeParams: [namespaceID, pageID]
     parameters:
       path:
       - type: uint64
@@ -821,6 +850,7 @@ endpoints:
     path: "/page/{pageID}/layout/{pageLayoutID}/undelete"
     method: POST
     title: Undelete soft deleted Delete page layout
+    scopeParams: [namespaceID, pageID]
     parameters:
       path:
       - type: uint64
@@ -865,6 +895,7 @@ endpoints:
 - title: Modules
   description: Compose module definitions
   entrypoint: module
+  genController: true
   path: "/namespace/{namespaceID}/module"
   authentication: []
   parameters:
@@ -1019,6 +1050,16 @@ endpoints:
   entrypoint: record
   path: "/namespace/{namespaceID}/module/{moduleID}/record"
   authentication: []
+  # Only delete/undelete match the canonical compound controller template
+  # (DeleteByID/UndeleteByID(ctx, namespaceID, moduleID, recordID)). Scope ids
+  # (namespaceID+moduleID) auto-detect, recordID is the resource id. Every
+  # other CRUD-named api is genSkip'd and stays hand-written in record.go:
+  #  - list  uses FindN (returns summaries) instead of Search
+  #  - read  FindByID returns a 3rd value (RecordValueErrorSet) + needs the
+  #          module lookup / by-module not-found workaround
+  #  - create/update are bulk (RecordBulkSet + sub-record linking + record
+  #          value validation handling); service returns 3 values
+  genController: true
   imports:
     - github.com/crusttech/human/server/compose/types
     - time
@@ -1055,6 +1096,10 @@ endpoints:
     method: GET
     title: List/read records from module section
     path: "/"
+    # Hand-written: uses record.FindN (returns per-record summaries +
+    # paging clamp), not the generated Search. genSkip keeps the summary
+    # behavior the canonical template would drop.
+    genSkip: true
     parameters:
       get:
       - { name: summaries,         type: "string",         title: Record summaries }
@@ -1165,6 +1210,9 @@ endpoints:
     method: POST
     title: Create record in module section
     path: "/"
+    # Hand-written: bulk create (RecordBulkSet, parent/sub-record linking,
+    # record value validation handling); service returns 3 values.
+    genSkip: true
     parameters:
       post:
       - { name: values,  type: "types.RecordValueSet",  title: Record values }
@@ -1175,6 +1223,10 @@ endpoints:
     method: GET
     title: Read records by ID from module section
     path: "/{recordID}"
+    # Hand-written: FindByID returns a 3rd value (RecordValueErrorSet),
+    # needs the module lookup + by-module not-found workaround, and a
+    # 5-arg makePayload(ctx, m, r, dd, err) the canonical template can't emit.
+    genSkip: true
     parameters:
       path:
       - type: uint64
@@ -1185,6 +1237,9 @@ endpoints:
     method: POST
     title: Update records in module section
     path: "/{recordID}"
+    # Hand-written: bulk update (RecordBulkSet, parent/sub-record linking,
+    # record value validation handling); service returns 3 values.
+    genSkip: true
     parameters:
       path:
       - { name: recordID, type: "uint64", required: true, title: Record ID }
@@ -1333,6 +1388,7 @@ endpoints:
 - title: Charts
   path: "/namespace/{namespaceID}/chart"
   entrypoint: chart
+  genController: true
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
@@ -1517,6 +1573,7 @@ endpoints:
 - title: Attachments
   path: "/namespace/{namespaceID}/attachment/{kind}"
   entrypoint: attachment
+  genController: true
   authentication:
   - Client ID
   - Session ID
@@ -1572,6 +1629,9 @@ endpoints:
     path: "/{attachmentID}"
     method: GET
     title: Attachment details
+    # Hand-written: performs an identity Valid() unauthorized check before
+    # FindByID which the generated read controller does not emit.
+    genSkip: true
     parameters:
       path:
       - name: attachmentID
@@ -1582,6 +1642,10 @@ endpoints:
     path: "/{attachmentID}"
     method: DELETE
     title: Delete attachment
+    # Hand-written: performs an identity Valid() unauthorized check and a
+    # FindByID existence pre-check before DeleteByID, neither of which the
+    # generated delete controller emits.
+    genSkip: true
     parameters:
       path:
       - name: attachmentID

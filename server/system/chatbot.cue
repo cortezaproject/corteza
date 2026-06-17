@@ -10,6 +10,12 @@ chatbot: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+		// ChatbotStyling has a custom Value (kept hand-written)
+		jsonTypesSkip: ["ChatbotStyling"]
+	}
+
 	model: {
 		attributes: {
 			id:     schema.IdField
@@ -29,6 +35,7 @@ chatbot: {
 				goType: "string"
 				storeIdent: "widget_key"
 				dal: { length: 128 }
+				json: { field: "widgetKey", omitEmpty: true }
 			}
 			allowed_origins: {
 				goType: "types.ChatbotAllowedOrigins"
@@ -36,12 +43,14 @@ chatbot: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				json: { field: "allowedOrigins", omitEmpty: true }
 			}
 			session_ttl: {
 				goType: "string"
 				ident: "sessionTTL"
 				storeIdent: "session_ttl"
 				dal: { length: 32 }
+				json: { field: "sessionTTL", omitEmpty: true }
 			}
 			handoff: {
 				goType: "types.ChatbotHandoff"
@@ -65,7 +74,7 @@ chatbot: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: { field: "createdBy", string: true } }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -107,6 +116,15 @@ chatbot: {
 			"sessions.manage": description:         "Manage chatbot sessions (advance, close)"
 			"sessions.handoff.manage": description: "Manage chatbot session handoffs"
 		}
+	}
+
+	service: {
+		events:   false
+
+		undelete: true
+
+		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
 	}
 
 	envoy: {

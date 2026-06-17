@@ -24,7 +24,7 @@ type (
 		agent  *types.Agent
 		new    *types.Agent
 		update *types.Agent
-		search *types.AgentFilter
+		filter *types.AgentFilter
 	}
 
 	agentAction struct {
@@ -76,11 +76,11 @@ func (p *agentActionProps) setUpdate(update *types.Agent) *agentActionProps {
 	return p
 }
 
-// setSearch updates agentActionProps's search
+// setFilter updates agentActionProps's filter
 //
 // This function is auto-generated.
-func (p *agentActionProps) setSearch(search *types.AgentFilter) *agentActionProps {
-	p.search = search
+func (p *agentActionProps) setFilter(filter *types.AgentFilter) *agentActionProps {
+	p.filter = filter
 	return p
 }
 
@@ -104,7 +104,7 @@ func (p agentActionProps) Serialize() actionlog.Meta {
 		m.Set("update.handle", p.update.Handle, true)
 		m.Set("update.ID", p.update.ID, true)
 	}
-	if p.search != nil {
+	if p.filter != nil {
 	}
 
 	return m
@@ -176,11 +176,11 @@ func (p agentActionProps) Format(in string, err error) string {
 		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
-	if p.search != nil {
-		// replacement for "{{search}}" (in order how fields are defined)
+	if p.filter != nil {
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{{search}}",
+			"{{filter}}",
 			fns(),
 		)
 	}

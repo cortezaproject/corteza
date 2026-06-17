@@ -10,6 +10,12 @@ sharedModule: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+		// ModuleFieldSet's Scan/Value/Parse are generated via exposed_module (same pkg)
+		jsonTypesSkip: ["ModuleFieldSet"]
+	}
+
 	parents: [
 		{handle: "node"},
 	]
@@ -17,7 +23,11 @@ sharedModule: {
 	model: {
 		ident: "federation_module_shared"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				// hand-written tag is `moduleID,string` (resource ident is
+				// `sharedModule`, so the convention would emit `sharedModuleID`).
+				json: { field: "moduleID", string: true }
+			}
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			handle: schema.HandleField
@@ -27,6 +37,8 @@ sharedModule: {
 				goType: "uint64",
 				storeIdent: "rel_node"
 				dal: { type: "ID" }
+				// parent ref: hand-written tag has no omitempty.
+				json: { field: "nodeID", string: true }
 			}
 			name: {
 				sortable: true
@@ -38,6 +50,8 @@ sharedModule: {
 				goType: "uint64",
 				storeIdent: "xref_module",
 				dal: { type: "ID" }
+				// hand-written tag has no omitempty.
+				json: { field: "externalFederationModuleID", string: true }
 			}
 			fields: {
 				goType: "types.ModuleFieldSet"
@@ -49,7 +63,10 @@ sharedModule: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				// hand-written tag has no omitempty (unlike updated_by/deleted_by).
+				json: { field: "createdBy", string: true }
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -81,6 +98,33 @@ sharedModule: {
 		operations: {
 			"map": description: "Map shared module"
 		}
+	}
+
+	service: {
+		// node-scoped compound-id resource: FindByID takes the parent nodeID as a
+		// leading arg (FindByID(ctx, nodeID, moduleID)).
+		scoped: true
+
+		// no soft-delete: the model has no delete op exposed on the service.
+		delete:   false
+		undelete: false
+
+		// every op's body is bespoke (cross-node federation logic, node preload,
+		// no-access-check lookup/search that the standard scaffold can't express)
+		// so each delegates to a hand-written on<Op> handler.
+		customBodyOps: ["lookup", "search", "create", "update"]
+
+		// search/create do not run a standard RBAC check: search has no access
+		// check at all and create checks CanCreateModuleOnNode against the loaded
+		// node inside onCreate. Keep the generated scaffold from emitting one.
+		customAccessOps: ["search", "create"]
+
+		// action props expose `module`/`changed`, not the default `sharedModule`/
+		// `new`. Lookup/Create reference {{module}}; Create also sets `changed`;
+		// Update sets `module`.
+		actionProp: "module"
+		createProp: "changed"
+		updateProp: "module"
 	}
 
 	store: {

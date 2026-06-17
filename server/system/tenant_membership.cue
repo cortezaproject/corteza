@@ -7,18 +7,29 @@ import (
 tenant_membership: {
 	features: {
 		tenantScoped: true
+		// hand-written TenantMembership struct has no Labels field
+		labels: false
+	}
+
+	types: {
+		gen: true
 	}
 
 	model: {
 		attributes: {
-			id:         schema.IdField
-			tenant_id:  schema.TenantRefField
+			id: schema.IdField
+			tenant_id: schema.TenantRefField & {
+				// hand-written tag has no omitempty
+				json: {field: "tenantID", string: true}
+			}
 			project_id: schema.ProjectRefField
 			user_id: {
 				ident:      "userID"
 				goType:     "uint64"
 				storeIdent: "rel_user"
 				dal: {type: "ID"}
+				// hand-written tag has no omitempty
+				json: {field: "userID", string: true}
 			}
 			role: {
 				goType:     "types.TenantMemberRole"

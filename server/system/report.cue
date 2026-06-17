@@ -8,6 +8,14 @@ report: {
 	features: {
 		projectScoped: true
 	}
+	types: {
+		gen: true
+		// ReportMeta keeps a hand-written pointer-returning ParseReportMeta (REST
+		// request controllers depend on the *ReportMeta return), incompatible with
+		// the value-returning generated version, so it is excluded from JSON helper
+		// generation.
+		jsonTypesPtr: ["ReportMeta"]
+	}
 	model: {
 		attributes: {
 			id:     schema.IdField
@@ -17,6 +25,7 @@ report: {
 			meta: {
 				goType: "*types.ReportMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				json: { field: "meta", omitEmpty: true }
 				omitSetter: true
 				omitGetter: true
 			}
@@ -32,6 +41,7 @@ report: {
 			scenarios: {
 				goType: "types.ReportScenarioSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				json: { field: "scenarios", omitEmpty: true }
 				omitSetter: true
 				omitGetter: true
 			}
@@ -48,13 +58,13 @@ report: {
 				omitGetter: true
 			}
 
-			owned_by:   schema.AttributeUserRef
-			created_at: schema.SortableTimestampNowField
+			owned_by:   schema.AttributeUserRef & { json: "ownedBy" }
+			created_at: schema.SortableTimestampNowField & { json: "createdAt" }
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
-			updated_by: schema.AttributeUserRef
-			deleted_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: "createdBy" }
+			updated_by: schema.AttributeUserRef & { json: { field: "updatedBy", omitEmpty: true } }
+			deleted_by: schema.AttributeUserRef & { json: { field: "deletedBy", omitEmpty: true } }
 		}
 
 		indexes: {
@@ -91,6 +101,19 @@ report: {
 			update: description: "Update report"
 			delete: description: "Delete report"
 			run: description:    "Run report"
+		}
+	}
+
+	service: {
+		events:   false
+
+		undelete: true
+
+		updateFields: ["Handle", "Meta", "Scenarios", "Sources", "Blocks"]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
 		}
 	}
 

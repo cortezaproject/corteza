@@ -10,6 +10,8 @@ knowledge_base: {
 		projectScoped: true
 	}
 
+	types: { gen: true, idLists: ["KnowledgeBaseIDList"] }
+
 	model: {
 		attributes: {
 			id:     schema.IdField
@@ -23,18 +25,26 @@ knowledge_base: {
 			description: {
 				goType: "string"
 				dal: { type: "Text" }
+				// hand-written tag is `description,omitempty`; convention (plain
+				// string) would drop omitempty
+				json: { field: "description", omitEmpty: true }
 			}
 			context: {
 				goType: "*types.KnowledgeBaseContext"
 				dal: { type: "JSON", nullable: true }
 				omitSetter: true
 				omitGetter: true
+				// hand-written tag is `context,omitempty`; convention (non
+				// ID/ref/time) would drop omitempty
+				json: { field: "context", omitEmpty: true }
 			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			// hand-written tag is `createdBy,string` (NO omitempty); the ref
+			// convention would emit `createdBy,string,omitempty`
+			created_by: schema.AttributeUserRef & { json: { field: "createdBy", "string": true } }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -67,6 +77,31 @@ knowledge_base: {
 			read: description:   "Read knowledge base"
 			update: description: "Update knowledge base"
 			delete: description: "Delete knowledge base"
+		}
+	}
+
+	service: {
+		// no eventbus events: the original service does not emit any and the
+		// struct carries no eventbus dependency
+		events: false
+
+		undelete: true
+
+		// the action-log filter prop is named "search" (not the default "filter")
+		filterProp: "search"
+
+		// Update is bespoke: access is checked on the incoming `upd` (before the
+		// existing record is loaded), the existing audit fields are copied ONTO
+		// `upd`, and `upd` (not the loaded record) is what gets persisted.
+		// Undelete is bespoke too: it sets UpdatedAt/UpdatedBy and there is no
+		// dedicated notAllowedToUndelete error (it reuses notAllowedToDelete).
+		customBodyOps: ["update", "undelete"]
+
+		// audit-author bookkeeping (CreatedBy / DeletedBy) the standard scaffold
+		// does not emit lives in these hooks
+		hooks: {
+			beforeCreate: true
+			beforeDelete: true
 		}
 	}
 

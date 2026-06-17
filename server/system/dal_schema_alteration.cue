@@ -10,15 +10,22 @@ dal_schema_alteration: {
 		checkFn: false
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		// lengths for the lang, resource fields are now a bit shorter
 		// Reason for that is supported index length in MySQL
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				json: "alterationID,string"
+			}
 			batchID: {
 				goType: "uint64"
 				storeIdent: "batch_id"
 				dal: { type: "ID" }
+				json: { field: "batchID", string: true }
 			}
 			dependsOn: {
 				goType: "uint64"
@@ -37,6 +44,7 @@ dal_schema_alteration: {
 				goType: "uint64"
 				storeIdent: "connection_id"
 				dal: { type: "Ref", refModelResType: "corteza::system:dal-connection" }
+				json: { field: "connectionID", string: true }
 			}
 
 			kind: {
@@ -51,6 +59,7 @@ dal_schema_alteration: {
 
 			error: {
 				dal: { type: "Text" }
+				json: { field: "error", omitEmpty: true }
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -58,7 +67,9 @@ dal_schema_alteration: {
 			deleted_at: schema.SortableTimestampNilField
 			completed_at: schema.SortableTimestampNilField
 			dismissed_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				json: { field: "createdBy", string: true }
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 			completed_by: schema.AttributeUserRef

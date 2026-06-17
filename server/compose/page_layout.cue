@@ -9,6 +9,10 @@ pageLayout: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	parents: [
 		{handle: "namespace"},
 		{handle: "page"},
@@ -25,9 +29,22 @@ pageLayout: {
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			handle: schema.HandleField
+
+			// struct-only field: `Primary bool json:"primary"` is not backed by a
+			// stored/dal attribute. store:false + no dal block keeps it out of the
+			// store/dal/getters codegen so it appears ONLY in the generated struct.
+			// convention yields json:"primary", matching the hand-written tag.
+			primary: {
+				goType: "bool"
+				store: false
+				omitGetter: true
+				omitSetter: true
+			}
+
 			page_id: {
 				ident: "pageID",
 				goType: "uint64",
+				json: { field: "pageID", string: true }
 				dal: { type: "Ref", refModelResType: "corteza::compose:page" }
 				sortable: true
 				envoy: {
@@ -39,6 +56,7 @@ pageLayout: {
 			parent_id: {
 				ident: "parentID",
 				goType: "uint64",
+				json: { field: "parentID", string: true }
 				dal: { type: "Ref", refModelResType: "corteza::compose:page-layout" }
 				sortable: true
 				envoy: {
@@ -51,6 +69,7 @@ pageLayout: {
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
+				json: { field: "namespaceID", string: true }
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
 				envoy: {
@@ -66,6 +85,7 @@ pageLayout: {
 
 			meta: {
 				goType: "types.PageLayoutMeta"
+				json: { field: "meta", omitEmpty: true }
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -79,12 +99,13 @@ pageLayout: {
 			}
 			blocks: {
 				goType: "types.PageLayoutBlocks"
+				json: { field: "blocks", omitEmpty: true }
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 
-			owned_by:   schema.AttributeUserRef
+			owned_by: schema.AttributeUserRef & {json: {field: "ownedBy", string: true}}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
@@ -130,6 +151,37 @@ pageLayout: {
 		}
 		store: {
 		}
+	}
+
+	service: {
+		// namespace+page-scoped compound-id resource. The by-id methods have
+		// NON-UNIFORM parent arity: FindByID takes only the namespace, while
+		// DeleteByID/UndeleteByID take both namespace and page. opParents.lookup
+		// narrows FindByID to the namespace parent; delete/undelete fall back to the
+		// full [namespace, page] parents list.
+		scoped: true
+
+		undelete: true
+
+		// pageLayout's CRUD is bespoke (namespace/page preload, tx, eventbus,
+		// personal-layout RBAC bypass, block id generation) so every op delegates
+		// its body to an on<Op> handler in the companion file.
+		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		// search/create access checks run against the loaded page inside the on<Op>
+		// handlers, so the generated scaffold must not emit a standard check.
+		customAccessOps: ["search", "create"]
+
+		// FindByID emits one parent (namespace); Delete/Undelete emit both.
+		opParents: {
+			lookup: ["namespace"]
+		}
+
+		// pageLayout's action props expose `pageLayout`/`changed`, not the default
+		// `new`/`update`. actionProp already sets `pageLayout` in Create, so omit
+		// the second prop; map Update's prop onto `changed`.
+		omitCreateProp: true
+		updateProp:     "changed"
 	}
 
 	rbac: {

@@ -10,6 +10,8 @@ attachment: {
 		projectScoped: true
 	}
 
+	types: { gen: true, jsonTypesSkip: ["AttachmentMeta"] }
+
 	model: {
 		attributes: {
 			id: schema.IdField
@@ -19,20 +21,25 @@ attachment: {
 				storeIdent: "rel_owner",
 				ident: "ownerID"
 				schema.AttributeUserRef,
+				json: { field: "ownerID", string: true }
 			}
 			kind: {
 				sortable: true
 				dal: {}
+				json: "-"
 			}
 			url: {
 				dal: {}
+				json: { field: "url", omitEmpty: true }
 			}
 			preview_url: {
 				dal: {}
+				json: { field: "previewUrl", omitEmpty: true }
 			}
 			name: {
 				sortable: true
 				dal: {}
+				json: { field: "name", omitEmpty: true }
 			}
 			meta: {
 				goType: "types.AttachmentMeta"

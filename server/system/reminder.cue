@@ -51,6 +51,29 @@ reminder: {
 		omit: true
 	}
 
+	service: {
+		// Reminder access is entirely non-RBAC: it is gated by comparing the
+		// reminder's assigned_to with the current user (checkAssignTo) plus the
+		// custom CanAssignReminder check. There is no RBAC Can{Read,Search,Create,
+		// Update,Delete}Reminder, so every op delegates its body to a hand-written
+		// on<Op> handler and the AC checks the template would otherwise emit
+		// (search/create) are suppressed via customAccessOps.
+		//
+		// Events are emitted manually inside those on<Op> handlers (with bespoke
+		// ordering and Before/After args), so events stays false here to keep the
+		// generated file from importing the event package.
+		events: false
+
+		// The action-log Update prop is named "updated" (not the default "update").
+		updateProp: "updated"
+
+		// No soft-delete-via-undelete op; delete is a custom soft-delete body.
+		undelete: false
+
+		customBodyOps:   ["lookup", "search", "create", "update", "delete"]
+		customAccessOps: ["search", "create"]
+	}
+
 	filter: {
 		struct: {
 			reminder_id: {goType: "[]uint64", ident: "reminderID", storeIdent: "id"}

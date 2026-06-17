@@ -9,6 +9,10 @@ template: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		// length for the lang is now a bit shorter
 		// Reason for that is supported index length in MySQL
@@ -20,6 +24,8 @@ template: {
 				storeIdent: "rel_owner",
 				ident: "ownerID"
 				schema.AttributeUserRef,
+				// hand-written tag is "ownerID,string"; Ref convention would add ",omitempty"
+				json: "ownerID,string"
 			}
 			handle: schema.HandleField
 			language: {
@@ -110,6 +116,15 @@ template: {
 			delete: description: "Delete template"
 			render: description: "Render template"
 		}
+	}
+
+	service: {
+
+		undelete: true
+
+		updateFields: ["Handle", "Language", "Type", "Partial", "Meta", "Template", "OwnerID"]
+
+		hooks: {validate: true}
 	}
 
 	store: {

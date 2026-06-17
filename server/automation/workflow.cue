@@ -8,6 +8,17 @@ workflow: {
 	features: {
 		projectScoped: true
 	}
+	types: {
+		gen: true
+		// WorkflowMeta keeps a hand-written ParseWorkflowMeta that returns
+		// *WorkflowMeta (REST request controllers depend on the pointer return),
+		// which is incompatible with the value-returning generated version, so
+		// it is excluded from JSON helper generation.
+		jsonTypesPtr: ["WorkflowMeta"]
+		imports: [
+			"github.com/crusttech/human/server/pkg/expr",
+		]
+	}
 	model: {
 		ident: "automation_workflows"
 		attributes: {
@@ -18,6 +29,7 @@ workflow: {
 			meta: {
 				goType: "*types.WorkflowMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				json: { field: "meta", omitEmpty: true }
 				omitSetter: true
 				omitGetter: true
 			}
@@ -64,6 +76,7 @@ workflow: {
 			issues: {
 				goType: "types.WorkflowIssueSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				json: { field: "issues", omitEmpty: true }
 				omitSetter: true
 				omitGetter: true
 				envoy: {
@@ -73,13 +86,13 @@ workflow: {
 				}
 			}
 
-			run_as: schema.AttributeUserRef
+			run_as: schema.AttributeUserRef & { json: { field: "runAs", "string": true } }
 
-			owned_by:   schema.AttributeUserRef
+			owned_by:   schema.AttributeUserRef & { json: { field: "ownedBy", "string": true } }
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: { field: "createdBy", "string": true } }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -139,6 +152,16 @@ workflow: {
 			"triggers.manage": description: "Manage workflow triggers"
 			"sessions.manage": description: "Manage workflow sessions"
 		}
+	}
+
+	service: {
+		events:   false
+
+		lookup:   false
+		create:   false
+		update:   false
+		delete:   false
+		undelete: false
 	}
 
 	store: {

@@ -23,6 +23,7 @@ llm_provider: {
 				goType: "uint64"
 				ident: "credentialID"
 				storeIdent: "rel_credential"
+				json: "credentialID,string"
 				dal: { type: "Ref", refModelResType: "corteza::system:credential", default: 0 }
 			}
 			meta: {
@@ -50,7 +51,7 @@ llm_provider: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: "createdBy,string" }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -86,6 +87,10 @@ llm_provider: {
 	features: {
 		labels: false
 		projectScoped: true
+	}
+
+	types: {
+		gen: true
 	}
 
 	envoy: {

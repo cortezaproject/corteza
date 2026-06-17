@@ -5,6 +5,10 @@ import (
 )
 
 application: {
+	types: {
+		gen: true
+	}
+
 	model: {
 		attributes: {
 			id: schema.IdField
@@ -32,11 +36,13 @@ application: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				json: { field: "unify", omitEmpty: true }
 			}
 			owner_id:   {
 				schema.AttributeUserRef,
 				storeIdent: "rel_owner",
 				ident: "ownerID"
+				json: "ownerID"
 				envoy: {
 					store: {
 						omitRefFilter: true
@@ -97,6 +103,20 @@ application: {
 				description: "Update application"
 			delete:
 				description: "Delete application"
+		}
+	}
+
+	service: {
+
+		undelete: true
+
+		customBodyOps: ["search"]
+
+		updateFields: ["Name", "Enabled", "Weight"]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
 		}
 	}
 

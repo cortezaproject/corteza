@@ -24,6 +24,7 @@ endpoints:
     path: '/auth/clients'
     entrypoint: authClient
     authentication: []
+    genController: true
     imports:
       - github.com/crusttech/human/server/pkg/label
       - github.com/crusttech/human/server/system/types
@@ -309,6 +310,7 @@ endpoints:
       Access to channels may be shared between roles.
     path: '/roles'
     entrypoint: role
+    genController: true
     authentication:
       - Client ID
       - Session ID
@@ -352,6 +354,7 @@ endpoints:
         method: POST
         title: Update role details
         path: '/'
+        genSkip: true
         parameters:
           post:
             - { type: 'string', name: 'name', required: true, title: 'Name of role' }
@@ -373,6 +376,7 @@ endpoints:
         method: PUT
         title: Update role details
         path: '/{roleID}'
+        genSkip: true
         parameters:
           path:
             - { type: 'uint64', name: 'roleID', required: true, title: Role ID }
@@ -582,6 +586,12 @@ endpoints:
     description: User groups outline role hierarchy
     path: '/user-groups'
     entrypoint: userGroup
+    genController: true
+    # members are not a UserGroup struct field: the afterCreate/afterUpdate
+    # companion hooks MemberAdd them one-by-one once the resource (and its
+    # assigned id) exists -- post-service logic the generator can't inline.
+    genAfterCreate: true
+    genAfterUpdate: true
     authentication:
       - Client ID
       - Session ID
@@ -633,18 +643,23 @@ endpoints:
         parameters:
           post:
             - { type: 'string', name: 'handle', title: 'Handle for user group' }
-            - { type: '[]string', name: 'members', title: 'user group member IDs' }
+            # members has no UserGroup struct field; the afterCreate hook adds
+            # them one-by-one via MemberAdd after the resource (and its id)
+            # exists. genHook keeps the generated Create from assigning it.
+            - { type: '[]string', name: 'members', title: 'user group member IDs', genHook: true }
             - {
                 type: '*types.UserGroupConfig',
                 name: 'config',
                 title: 'Config',
                 parser: 'types.ParseUserGroupConfig',
+                genHook: true,
               }
             - {
                 type: '*types.UserGroupMeta',
                 name: 'meta',
                 title: 'Meta',
                 parser: 'types.ParseUserGroupMeta',
+                genHook: true,
               }
             - {
                 type: 'map[string]labelTypes.LabelValue',
@@ -667,18 +682,23 @@ endpoints:
               }
           post:
             - { type: 'string', name: 'handle', required: false, title: 'Handle for user group' }
-            - { type: '[]string', name: 'members', required: false, title: 'user group member IDs' }
+            # members has no UserGroup struct field; the afterUpdate hook adds
+            # them one-by-one via MemberAdd. genHook keeps the generated
+            # Update from assigning it.
+            - { type: '[]string', name: 'members', required: false, title: 'user group member IDs', genHook: true }
             - {
                 type: '*types.UserGroupConfig',
                 name: 'config',
                 title: 'Config',
                 parser: 'types.ParseUserGroupConfig',
+                genHook: true,
               }
             - {
                 type: '*types.UserGroupMeta',
                 name: 'meta',
                 title: 'Meta',
                 parser: 'types.ParseUserGroupMeta',
+                genHook: true,
               }
             - {
                 type: 'map[string]labelTypes.LabelValue',
@@ -754,6 +774,7 @@ endpoints:
   - title: Users
     path: '/users'
     entrypoint: user
+    genController: true
     authentication:
       - Client ID
       - Session ID
@@ -833,6 +854,7 @@ endpoints:
         method: POST
         title: Create user
         path: '/'
+        genSkip: true
         parameters:
           post:
             - name: email
@@ -867,6 +889,7 @@ endpoints:
         method: PUT
         title: Update user details
         path: '/{userID}'
+        genSkip: true
         parameters:
           path:
             - type: uint64
@@ -1167,6 +1190,7 @@ endpoints:
   - title: Data access layer sensitivity levels
     path: '/dal/sensitivity-levels'
     entrypoint: dalSensitivityLevel
+    genController: true
     authentication:
       - Client ID
       - Session ID
@@ -1335,6 +1359,8 @@ endpoints:
   - title: Data access layer connections
     path: '/dal/connections'
     entrypoint: dalConnection
+    genController: true
+    serviceField: svc
     authentication:
       - Client ID
       - Session ID
@@ -1434,6 +1460,7 @@ endpoints:
   - title: Applications
     path: '/application'
     entrypoint: application
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -1607,6 +1634,9 @@ endpoints:
         method: GET
         title: Read application details
         path: '/{applicationID}'
+        # Custom Read kept in application.go for flag.Load/r.IncFlags
+        # enrichment; opt out of the generated Read.
+        genSkip: true
         parameters:
           path:
             - type: uint64
@@ -1793,6 +1823,7 @@ endpoints:
   - title: Reminders
     entrypoint: reminder
     path: '/reminder'
+    genController: true
     authentication:
       - Client ID
       - Session ID
@@ -1954,6 +1985,7 @@ endpoints:
   - title: Notifications
     entrypoint: notification
     path: '/notification'
+    genController: true
     authentication:
       - Client ID
       - Session ID
@@ -2001,10 +2033,16 @@ endpoints:
               title: Kind
               type: string
               required: true
+              # types.Notification.Kind is a named NotificationKind; the
+              # conversion happens in beforeCreate/beforeUpdate.
+              genHook: true
             - name: config
               title: Configuration data for the notification
               type: sqlxTypes.JSONText
               required: true
+              # types.Notification.Config is unmarshalled from JSON in
+              # beforeCreate/beforeUpdate.
+              genHook: true
             - name: recipient
               title: Recipient
               type: uint64
@@ -2024,10 +2062,16 @@ endpoints:
               title: Kind
               type: string
               required: true
+              # types.Notification.Kind is a named NotificationKind; the
+              # conversion happens in beforeCreate/beforeUpdate.
+              genHook: true
             - name: config
               title: Configuration data for the notification
               type: sqlxTypes.JSONText
               required: true
+              # types.Notification.Config is unmarshalled from JSON in
+              # beforeCreate/beforeUpdate.
+              genHook: true
             - name: recipient
               title: Recipient
               type: uint64
@@ -2054,6 +2098,8 @@ endpoints:
               title: Notification ID
       - name: markAsRead
         method: PATCH
+        # custom non-CRUD method; kept hand-written in the companion.
+        genSkip: true
         title: Mark notification as read
         path: '/{notificationID}/read'
         parameters:
@@ -2064,6 +2110,8 @@ endpoints:
               title: Notification ID
       - name: markAsUnread
         method: PATCH
+        # custom non-CRUD method; kept hand-written in the companion.
+        genSkip: true
         title: Mark notification as unread
         path: '/{notificationID}/unread'
         parameters:
@@ -2074,10 +2122,14 @@ endpoints:
               title: Notification ID
       - name: markAllAsRead
         method: PATCH
+        # custom non-CRUD method; kept hand-written in the companion.
+        genSkip: true
         title: Mark all notifications as read for current user
         path: '/all/read'
       - name: markAllAsUnread
         method: PATCH
+        # custom non-CRUD method; kept hand-written in the companion.
+        genSkip: true
         title: Mark all notifications as unread for current user
         path: '/all/unread'
   - title: Attachments
@@ -2158,6 +2210,8 @@ endpoints:
   - title: Template
     path: '/template'
     entrypoint: template
+    genController: true
+    serviceField: renderer
     imports:
       - github.com/crusttech/human/server/system/types
       - github.com/crusttech/human/server/pkg/label
@@ -2224,6 +2278,9 @@ endpoints:
             - name: type
               type: string
               title: Type
+              # types.Template.Type is a named DocumentType; the
+              # conversion happens in beforeCreate/beforeUpdate.
+              genHook: true
             - name: partial
               type: bool
               title: Partial
@@ -2271,6 +2328,9 @@ endpoints:
             - name: type
               type: string
               title: Type
+              # types.Template.Type is a named DocumentType; the
+              # conversion happens in beforeCreate/beforeUpdate.
+              genHook: true
             - name: partial
               type: bool
               title: Partial
@@ -2349,6 +2409,7 @@ endpoints:
   - title: Reports
     path: '/reports'
     entrypoint: report
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -2617,6 +2678,9 @@ endpoints:
 
   - title: Messaging queues
     entrypoint: queues
+    genController: true
+    resource: queue
+    serviceField: svc
     path: '/queues'
     imports:
       - github.com/crusttech/human/server/system/types
@@ -2703,6 +2767,8 @@ endpoints:
   - title: Integration gateway routes
     path: '/apigw/route'
     entrypoint: apigwRoute
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/system/types
@@ -2796,6 +2862,8 @@ endpoints:
   - title: Integration gateway filters
     path: '/apigw/filter'
     entrypoint: apigwFilter
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/system/types
@@ -2827,7 +2895,7 @@ endpoints:
         path: ''
         parameters:
           post:
-            - { name: routeID, type: uint64, title: 'Route', required: true }
+            - { name: routeID, type: uint64, title: 'Route', required: true, genHook: true }
             - { name: weight, type: uint64, title: 'Filter priority' }
             - { name: kind, type: string, title: 'Filter kind' }
             - { name: ref, type: string, title: 'Filter ref' }
@@ -2845,7 +2913,7 @@ endpoints:
         parameters:
           path: [{ name: filterID, type: uint64, required: true, title: 'Filter ID' }]
           post:
-            - { name: routeID, type: uint64, title: 'Route', required: true }
+            - { name: routeID, type: uint64, title: 'Route', required: true, genHook: true }
             - { name: weight, type: uint64, title: 'Filter priority' }
             - { name: kind, type: string, title: 'Filter kind' }
             - { name: ref, type: string, title: 'Filter ref' }
@@ -3119,6 +3187,8 @@ endpoints:
   - title: Connections
     path: '/connections'
     entrypoint: connection
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -3265,6 +3335,7 @@ endpoints:
           post:
             - { type: 'string', name: 'catalogID', title: 'Catalog ID to auto-import on first configure' }
             - { type: 'string', name: 'name', required: true, title: 'Connection name' }
+            - { type: 'string', name: 'catalogID', title: 'Catalog ID to auto-import on first configure' }
             - {
                 type: 'types.ConfiguredConnectionConfig',
                 name: 'config',
@@ -3309,6 +3380,7 @@ endpoints:
   - title: Configured Connections
     path: '/configured-connections'
     entrypoint: configuredConnection
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -3403,6 +3475,7 @@ endpoints:
   - title: Agents
     path: '/agents'
     entrypoint: agent
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -3581,6 +3654,8 @@ endpoints:
   - title: LLM Providers
     path: '/llm-providers'
     entrypoint: llmProvider
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/system/types
@@ -3588,6 +3663,9 @@ endpoints:
       - name: list
         method: GET
         title: List LLM providers
+        # genSkip: service Search(ctx,f) returns (set,err); generated list
+        # expects (set,filter,err) + makeFilterPayload(ctx,set,filter,err).
+        genSkip: true
         path: '/'
         parameters:
           get:
@@ -3596,6 +3674,9 @@ endpoints:
       - name: create
         method: POST
         title: Create LLM provider
+        # genSkip: service Create(ctx,p,apiKey) takes an extra apiKey arg the
+        # generated Create(ctx,svc.Create(ctx,res)) cannot pass.
+        genSkip: true
         path: '/'
         parameters:
           post:
@@ -3618,6 +3699,9 @@ endpoints:
       - name: read
         method: GET
         title: Read LLM provider
+        # genSkip: hand-written Read does a CanReadLlmProvider ACL check
+        # between FindByID and makePayload that the generated read omits.
+        genSkip: true
         path: '/{llmProviderID}'
         parameters:
           path:
@@ -3625,6 +3709,9 @@ endpoints:
       - name: update
         method: PUT
         title: Update LLM provider
+        # genSkip: service Update(ctx,upd,apiKey) takes an extra apiKey arg the
+        # generated Update(ctx,svc.Update(ctx,res)) cannot pass.
+        genSkip: true
         path: '/{llmProviderID}'
         parameters:
           path:
@@ -3649,6 +3736,9 @@ endpoints:
       - name: delete
         method: DELETE
         title: Delete LLM provider
+        # genSkip: service Delete(ctx,id,deletedBy) differs in name and arity
+        # from the generated DeleteByID(ctx,id) call.
+        genSkip: true
         path: '/{llmProviderID}'
         parameters:
           path:
@@ -3671,6 +3761,8 @@ endpoints:
   - title: Knowledge Bases
     path: '/knowledge-bases'
     entrypoint: knowledgeBase
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/system/types
@@ -3737,6 +3829,8 @@ endpoints:
   - title: AI Conversations
     path: '/ai-conversations'
     entrypoint: aiConversation
+    genController: true
+    serviceField: svc
     authentication: []
     apis:
       - name: list
@@ -3789,6 +3883,8 @@ endpoints:
   - title: Chatbots
     path: '/chatbots'
     entrypoint: chatbot
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -4022,6 +4118,8 @@ endpoints:
   - title: Projects
     path: '/projects'
     entrypoint: project
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -4060,7 +4158,7 @@ endpoints:
         parameters:
           post:
             - { type: string, name: handle, title: Project handle }
-            - { type: string, name: status, title: Project status }
+            - { type: string, name: status, title: Project status, genHook: true }
             - {
                 type: 'types.ProjectConfig',
                 name: config,
@@ -4095,7 +4193,7 @@ endpoints:
             - { type: uint64, name: projectID, required: true, title: Project ID }
           post:
             - { type: string, name: handle, title: Project handle }
-            - { type: string, name: status, title: Project status }
+            - { type: string, name: status, title: Project status, genHook: true }
             - {
                 type: 'types.ProjectConfig',
                 name: config,
@@ -4206,6 +4304,8 @@ endpoints:
   - title: Project Groups
     path: '/projects/{projectID}/groups'
     entrypoint: projectGroup
+    genController: true
+    compound: false
     authentication:
       - Client ID
       - Session ID
@@ -4234,6 +4334,10 @@ endpoints:
 
       - name: create
         method: POST
+        # name/description map onto res.Meta (Short/Description), not plain
+        # struct fields, so they are genHook:true and filled by the companion
+        # beforeCreate. projectID is a scope id the endpoint drops under
+        # compound:false; beforeCreate also assigns it onto res from r.
         title: Create project group
         path: '/'
         parameters:
@@ -4241,8 +4345,8 @@ endpoints:
             - { type: uint64, name: projectID, required: true, title: Project ID }
           post:
             - { type: string, name: handle,      required: true, title: Handle }
-            - { type: string, name: name,         title: Name }
-            - { type: string, name: description,  title: Description }
+            - { type: string, name: name,         title: Name, genHook: true }
+            - { type: string, name: description,  title: Description, genHook: true }
 
       - name: read
         method: GET
@@ -4255,6 +4359,9 @@ endpoints:
 
       - name: update
         method: PUT
+        # name/description map onto res.Meta (Short/Description) rather than
+        # plain struct fields, so they are genHook:true and filled by the
+        # companion beforeUpdate. Handle is a plain field assigned directly.
         title: Update project group
         path: '/{projectGroupID}'
         parameters:
@@ -4263,8 +4370,8 @@ endpoints:
             - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
           post:
             - { type: string,      name: handle,      title: Handle }
-            - { type: string,      name: name,         title: Name }
-            - { type: string,      name: description,  title: Description }
+            - { type: string,      name: name,         title: Name, genHook: true }
+            - { type: string,      name: description,  title: Description, genHook: true }
             - { type: '*time.Time', name: updatedAt,   title: Last update timestamp }
 
       - name: delete
@@ -4299,6 +4406,8 @@ endpoints:
   - title: Tenants
     path: '/tenants'
     entrypoint: tenant
+    genController: true
+    serviceField: svc
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/label
@@ -4337,7 +4446,7 @@ endpoints:
         parameters:
           post:
             - { type: string, name: handle, title: Tenant handle }
-            - { type: string, name: status, title: Tenant status }
+            - { type: string, name: status, title: Tenant status, genHook: true }
             - {
                 type: 'types.TenantConfig',
                 name: config,
@@ -4372,7 +4481,7 @@ endpoints:
             - { type: uint64, name: tenantID, required: true, title: Tenant ID }
           post:
             - { type: string, name: handle, title: Tenant handle }
-            - { type: string, name: status, title: Tenant status }
+            - { type: string, name: status, title: Tenant status, genHook: true }
             - {
                 type: 'types.TenantConfig',
                 name: config,

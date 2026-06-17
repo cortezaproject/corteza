@@ -1,0 +1,107 @@
+package service
+
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+
+import (
+	"context"
+
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/store"
+	types "github.com/crusttech/human/server/system/types"
+)
+
+func (svc *tenant) Create(ctx context.Context, new *types.Tenant) (res *types.Tenant, err error) {
+	var (
+		// set both the resource-named prop (action-log message templates
+		// reference it by resource name) and the new prop
+		aProps = &tenantActionProps{tenant: new, new: new}
+	)
+
+	err = func() (err error) {
+		if !svc.ac.CanCreateTenant(ctx) {
+			return TenantErrNotAllowedToCreate()
+		}
+
+		if err = svc.beforeCreate(ctx, new); err != nil {
+			return err
+		}
+
+		new.ID = nextID()
+		new.CreatedAt = *now()
+
+		if err = store.CreateTenant(ctx, svc.store, new); err != nil {
+			return
+		}
+
+		if err = label.Create(ctx, svc.store, new); err != nil {
+			return
+		}
+
+		res = new
+		return nil
+	}()
+
+	return res, svc.recordAction(ctx, aProps, TenantActionCreate, err)
+}
+
+func (svc *tenant) DeleteByID(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+		res    *types.Tenant
+	)
+
+	err = func() (err error) {
+		if res, err = loadTenant(ctx, svc.store, ID); err != nil {
+			return
+		}
+
+		aProps.setTenant(res)
+
+		if !svc.ac.CanDeleteTenant(ctx, res) {
+			return TenantErrNotAllowedToDelete()
+		}
+
+		if err = svc.beforeDelete(ctx, res); err != nil {
+			return err
+		}
+
+		res.DeletedAt = now()
+		if err = store.UpdateTenant(ctx, svc.store, res); err != nil {
+			return
+		}
+		return nil
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionDelete, err)
+}
+
+func loadTenant(ctx context.Context, s store.Tenants, ID uint64) (res *types.Tenant, err error) {
+	if ID == 0 {
+		return nil, TenantErrInvalidID()
+	}
+
+	if res, err = store.LookupTenantByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, TenantErrNotFound()
+	}
+
+	return
+}
+
+// toLabeledTenants converts to []label.LabeledResource
+func toLabeledTenants(set []*types.Tenant) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
+}

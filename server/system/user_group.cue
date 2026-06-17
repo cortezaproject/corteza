@@ -9,6 +9,15 @@ user_group: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+		// UserGroupMeta/UserGroupConfig keep hand-written pointer-returning
+		// ParseUserGroupMeta/ParseUserGroupConfig (REST request controllers depend
+		// on the *T return), incompatible with the value-returning generated
+		// versions, so they are excluded from JSON helper generation.
+		jsonTypesPtr: ["UserGroupMeta", "UserGroupConfig"]
+	}
+
 	model: {
 		attributes: {
 			id: schema.IdField
@@ -36,6 +45,15 @@ user_group: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+			}
+
+			// Struct-only computed flag; not persisted, not a getter/setter target.
+			is_root: {
+				goType: "bool"
+				store: false
+				omitGetter: true
+				omitSetter: true
+				json: "isRoot"
 			}
 
 			archived_at: schema.SortableTimestampNilField
@@ -76,6 +94,26 @@ user_group: {
 			update: description:           "Update user group"
 			delete: description:           "Delete user group"
 			"members.manage": description: "Manage members"
+		}
+	}
+
+	service: {
+		events:   false
+
+		lookup: false
+
+		search: false
+
+		update: false
+
+		delete: false
+
+		undelete: false
+
+		hooks: {
+			validate:     true
+			beforeCreate: true
+			afterCreate:  true
 		}
 	}
 

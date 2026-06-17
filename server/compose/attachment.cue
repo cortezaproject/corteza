@@ -10,6 +10,10 @@ attachment: {
 		labels: false
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		ident: "compose_attachment"
 		attributes: {
@@ -20,6 +24,7 @@ attachment: {
 				ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
+				json: { field: "namespaceID", string: true }
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
 			}
 			owner_id: {
@@ -27,20 +32,25 @@ attachment: {
 				goType: "uint64",
 				storeIdent: "rel_owner",
 				ident: "ownerID"
+				json: { field: "ownerID", string: true }
 				dal: { type: "Ref", refModelResType: "corteza::system:user" }
 			}
 			kind: {
 				sortable: true
+				json: "-"
 				dal: {}
 			}
 			url:  {
+				json: { field: "url", omitEmpty: true }
 				dal: {}
 			}
 			preview_url: {
+				json: { field: "previewUrl", omitEmpty: true }
 				dal: {}
 			}
 			name:        {
 				sortable: true
+				json: { field: "name", omitEmpty: true }
 				dal: {}
 			}
 			meta:        {

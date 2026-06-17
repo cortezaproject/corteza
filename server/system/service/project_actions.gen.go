@@ -24,7 +24,7 @@ type (
 		project *types.Project
 		new     *types.Project
 		update  *types.Project
-		search  *types.ProjectFilter
+		filter  *types.ProjectFilter
 	}
 
 	projectAction struct {
@@ -76,11 +76,11 @@ func (p *projectActionProps) setUpdate(update *types.Project) *projectActionProp
 	return p
 }
 
-// setSearch updates projectActionProps's search
+// setFilter updates projectActionProps's filter
 //
 // This function is auto-generated.
-func (p *projectActionProps) setSearch(search *types.ProjectFilter) *projectActionProps {
-	p.search = search
+func (p *projectActionProps) setFilter(filter *types.ProjectFilter) *projectActionProps {
+	p.filter = filter
 	return p
 }
 
@@ -104,7 +104,7 @@ func (p projectActionProps) Serialize() actionlog.Meta {
 		m.Set("update.handle", p.update.Handle, true)
 		m.Set("update.ID", p.update.ID, true)
 	}
-	if p.search != nil {
+	if p.filter != nil {
 	}
 
 	return m
@@ -176,11 +176,11 @@ func (p projectActionProps) Format(in string, err error) string {
 		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
-	if p.search != nil {
-		// replacement for "{{search}}" (in order how fields are defined)
+	if p.filter != nil {
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{{search}}",
+			"{{filter}}",
 			fns(),
 		)
 	}

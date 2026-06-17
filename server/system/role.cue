@@ -9,6 +9,15 @@ role: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+		// RoleMeta keeps a hand-written pointer-returning ParseRoleMeta (REST
+		// request controllers depend on the *RoleMeta return), incompatible with
+		// the value-returning generated version, so it is excluded from JSON helper
+		// generation.
+		jsonTypesPtr: ["RoleMeta"]
+	}
+
 	model: {
 		attributes: {
 			id:         schema.IdField
@@ -72,6 +81,30 @@ role: {
 			update: description:           "Update role"
 			delete: description:           "Delete role"
 			"members.manage": description: "Manage members"
+		}
+	}
+
+	service: {
+
+		undelete: true
+
+		// lookup: original FindByID = loadRole + proc with NO read-AC and a
+		//   proc-based NotFound/label post-processor whose error handling the
+		//   generated load-error wrapper can't reproduce -> custom body (onLookup).
+		// update/delete/undelete: dispatch eventbus events while events=false,
+		//   plus IsSystem guards, the update skip-on-no-change quirk and the
+		//   undelete-reuses-Update-events quirk -> custom bodies.
+		customBodyOps: ["lookup", "update", "delete", "undelete"]
+
+		events: false
+		hooks: {
+			validate:     true
+			beforeCreate: true
+			afterCreate:  true
+
+			// search: maps MemberID/UserGroupID -> Resource and enforces the
+			// member/user-group mutual-exclusion before the access check.
+			beforeSearch: true
 		}
 	}
 

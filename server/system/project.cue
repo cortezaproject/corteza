@@ -10,6 +10,10 @@ project: {
 		tenantScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		attributes: {
 			id:        schema.IdField
@@ -43,7 +47,9 @@ project: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				json: {field: "createdBy", string: true}
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -83,6 +89,19 @@ project: {
 
 	envoy: {
 		omit: true
+	}
+
+	service: {
+		events:   false
+
+		lookup:   false
+		update:   false
+		undelete: false
+
+		hooks: {
+			beforeCreate: true
+			beforeDelete: true
+		}
 	}
 
 	store: {

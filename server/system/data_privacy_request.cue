@@ -10,10 +10,14 @@ data_privacy_request: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		omitGetterSetter: true
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & { json: "requestID,string" }
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 
@@ -31,12 +35,14 @@ data_privacy_request: {
 			}
 			payload: {
 				goType: "types.DataPrivacyRequestPayloadSet"
+				json: "payload,omitempty"
 				dal: { type: "JSON" }
 			}
 
 			requested_at: schema.SortableTimestampField
 			requested_by: {
 				goType: "uint64"
+				json: "requestedBy,string"
 				dal: { type: "Ref", refModelResType: "corteza::system:user" }
 			}
 
@@ -49,7 +55,7 @@ data_privacy_request: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: "createdBy,string" }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}

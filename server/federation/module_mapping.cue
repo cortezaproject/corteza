@@ -14,6 +14,8 @@ moduleMapping: {
 		projectScoped: true
 	}
 
+	types: { gen: true }
+
 	model: {
 		ident: "federation_module_mapping"
 		attributes: {
@@ -24,6 +26,7 @@ moduleMapping: {
 				unique:  true
 				goType:  "uint64"
 				dal: { type: "ID" }
+				json: { field: "nodeID", string: true }
 			}
 			federation_module_id: {
 				sortable: true,
@@ -31,6 +34,7 @@ moduleMapping: {
 				goType: "uint64"
 				storeIdent: "rel_federation_module"
 				dal: { type: "ID" }
+				json: { field: "federationModuleID", string: true }
 			}
 			compose_module_id: {
 				sortable: true,
@@ -38,6 +42,7 @@ moduleMapping: {
 				goType: "uint64"
 				storeIdent: "rel_compose_module"
 				dal: { type: "ID" }
+				json: { field: "composeModuleID", string: true }
 			}
 			compose_namespace_id: {
 				sortable: true,
@@ -45,12 +50,14 @@ moduleMapping: {
 				goType: "uint64"
 				storeIdent: "rel_compose_namespace"
 				dal: { type: "ID" }
+				json: { field: "composeNamespaceID", string: true }
 			}
 			field_mapping: {
 				goType: "types.ModuleFieldMappingSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				json: { field: "fields" }
 			}
 		}
 
@@ -59,6 +66,28 @@ moduleMapping: {
 				attributes: ["federation_module_id", "compose_module_id", "compose_namespace_id" ]
 			}
 		}
+	}
+
+	service: {
+		// module mapping has no soft-delete; only lookup/search/create/update
+		delete:   false
+		undelete: false
+
+		// every op is bespoke (federation-specific store funcs, shared-module
+		// access checks, compose module/namespace/node validation, label sync) so
+		// the generator only emits the action-log scaffold and delegates the body
+		// to the hand-written on<Op> handlers.
+		customBodyOps: ["lookup", "search", "create", "update"]
+
+		// access is enforced per shared module (CanMapSharedModule), not the
+		// standard CanSearch/CanCreate RBAC ops, so suppress those checks in the
+		// generated Search/Create wrappers.
+		customAccessOps: ["search", "create"]
+
+		// action-log prop names (match module_mapping_actions.yaml)
+		actionProp: "mapping"
+		createProp: "created"
+		updateProp: "changed"
 	}
 
 	envoy: {

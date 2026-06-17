@@ -12,13 +12,30 @@ project_group_entry: {
 		checkFn: false
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		attributes: {
+			// struct-only field: there is no `id` store column (primary key is
+			// the composite project_group_id + resource_ref). expIdent MUST be
+			// "ID" — the default ToTitle(ident) would yield "Id".
+			id: {
+				goType:     "uint64"
+				expIdent:   "ID"
+				store:      false
+				omitGetter: true
+				omitSetter: true
+				json:       "-"
+			}
 			project_group_id: {
 				ident:      "projectGroupID"
 				goType:     "uint64"
 				storeIdent: "rel_project_group"
 				dal: {type: "Ref", refModelResType: "corteza::system:project-group"}
+				// hand-written tag has no omitempty
+				json: {field: "projectGroupID", string: true}
 			}
 			resource_ref: {
 				ident:      "resourceRef"

@@ -37,6 +37,7 @@ endpoints:
   - title: Federation nodes
     path: "/nodes"
     entrypoint: node
+    genController: true
     apis:
       - name: search
         method: GET
@@ -67,6 +68,10 @@ endpoints:
         method: POST
         title: Create a new federation node
         path: "/"
+        # genSkip: hand-written Create branches on pairingURI
+        # (CreateFromPairingURI) and returns that result un-wrapped; the
+        # generated Create can't reproduce that branch.
+        genSkip: true
         parameters:
           post:
             - name: baseURL
@@ -97,6 +102,7 @@ endpoints:
         method: POST
         title: Creates new sharable federation URI
         path: "/{nodeID}/uri"
+        genSkip: true
         parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
 
       - name: update
@@ -135,18 +141,21 @@ endpoints:
         method: POST
         title: Initialize the pairing process between the two nodes
         path: "/{nodeID}/pair"
+        genSkip: true
         parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
 
       - name: handshake confirm
         method: POST
         title: Confirm the requested handshake
         path: "/{nodeID}/handshake-confirm"
+        genSkip: true
         parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
 
       - name: handshake complete
         method: POST
         title: Complete the handshake
         path: "/{nodeID}/handshake-complete"
+        genSkip: true
         parameters:
           path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ]
           post:

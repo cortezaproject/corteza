@@ -87,6 +87,15 @@ import (
 	// enable or disable GetValue and SetValue for this attribute
 	omitSetter: bool | *false
 	omitGetter: bool | *false
+
+	// json overrides the generated struct field's JSON tag (consumed only by the
+	// types template; kept as a plain optional value so it adds no cost to the
+	// store/dal/rbac codegen that also walks #ModelAttribute).
+	//   "foo"                       -> json:"foo"
+	//   true                        -> json:"<name>"
+	//   {field, omitEmpty, string}  -> json:"<field>[,omitempty][,string]"
+	// When absent, the types loader derives the tag by convention.
+	json?: string | bool | {field?: string, omitEmpty?: bool, "string"?: bool}
 }
 
 #attributeEnvoy: {

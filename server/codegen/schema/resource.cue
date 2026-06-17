@@ -107,6 +107,46 @@ import (
 		$resourceIdent: ident
 	}
 
+	service?: #service & {
+		resourceExpIdent: expIdent
+	}
+
+	// types codegen: generate the resource struct from the model into
+	// <comp>/types/<snake>.gen.go. Struct fields come from model.attributes
+	// (+ a Labels field when features.labels); nested types, the Filter, the Set,
+	// and all methods stay in the hand-written companion <snake>.go.
+	types?: {
+		// opt-in struct generation
+		gen: bool | *false
+
+		// extra import paths the generated struct needs for field types from
+		// packages other than the resource's own types pkg (which is implicit) --
+		// e.g. "github.com/crusttech/human/server/pkg/expr" for an *expr.Vars field.
+		// The package name must match the qualifier used in the field goType.
+		imports: [...string] | *[]
+
+		// idLists generates, per name, a `type <name> []uint64` plus MarshalJSON/
+		// UnmarshalJSON that serialize each element as a JSON string (the corteza
+		// id-as-string convention). UnmarshalJSON tolerates both quoted and bare
+		// numbers.
+		idLists: [...string] | *[]
+
+		// The sql.Scanner/driver.Valuer + Parse<name> helpers are AUTO-GENERATED for
+		// every nested type stored in a JSON dal column (in-package exported types):
+		//   func (m *<name>) Scan(src any) error          { return sql.ParseJSON(src, m) }
+		//   func (m <name>) Value() (driver.Value, error) { return json.Marshal(m) }
+		//   func Parse<name>(ss []string) (<name>, error)
+		// The type declaration itself stays hand-written in the companion file.
+		// jsonTypes adds extra names not detectable from a JSON dal attribute.
+		jsonTypes: [...string] | *[]
+		// jsonTypesSkip excludes types whose Scan/Value is custom (kept hand-written).
+		jsonTypesSkip: [...string] | *[]
+		// jsonTypesPtr lists JSON types whose Parse<name> must return *name (the
+		// pointer convention some REST request controllers depend on) instead of
+		// the default value-returning Parse. Scan/Value are unchanged.
+		jsonTypesPtr: [...string] | *[]
+	}
+
 	store?: {
 		// how is this resource represented (prefixed/suffixed functions) in the store
 		"ident": #ident | *ident

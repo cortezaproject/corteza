@@ -9,6 +9,10 @@ tenant: {
 		labels: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		attributes: {
 			id:     schema.IdField
@@ -37,7 +41,10 @@ tenant: {
 			updated_at:   schema.SortableTimestampNilField
 			suspended_at: schema.SortableTimestampNilField
 			deleted_at:   schema.SortableTimestampNilField
-			created_by:   schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				// hand-written tag has string but no omitempty
+				json: {field: "createdBy", string: true}
+			}
 			updated_by:   schema.AttributeUserRef
 			deleted_by:   schema.AttributeUserRef
 		}
@@ -72,6 +79,20 @@ tenant: {
 			delete: description:           "Delete tenant"
 			suspend: description:          "Suspend tenant"
 			"members.manage": description: "Manage tenant members"
+		}
+	}
+
+	service: {
+		events:   false
+
+		lookup:   false
+		search:   false
+		update:   false
+		undelete: false
+
+		hooks: {
+			beforeCreate: true
+			beforeDelete: true
 		}
 	}
 

@@ -10,10 +10,14 @@ chatbot_session: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		ident: "chatbot_sessions"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & { json: "id,string" }
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			chatbot_id: {
@@ -22,6 +26,7 @@ chatbot_session: {
 				ident: "chatbotID"
 				storeIdent: "rel_chatbot"
 				dal: { type: "Ref", refModelResType: "corteza::system:chatbot" }
+				json: "chatbotID,string"
 			}
 			status: {
 				sortable: true,
@@ -39,12 +44,13 @@ chatbot_session: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				json: "state,omitempty"
 			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: "createdBy,string" }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}

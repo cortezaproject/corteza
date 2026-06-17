@@ -1,0 +1,541 @@
+package automation
+
+// REST endpoint definitions for the automation component.
+//
+// 1:1 port of automation/rest.yaml into the CUE codegen. Generates the
+// rest/handlers, rest/request and (for genController endpoints) the
+// rest/<entrypoint>.gen.go controllers via server/codegen/server.rest.cue.
+component: rest: endpoints: [
+	{
+		title:         "Workflows"
+		path:          "/workflows"
+		entrypoint:    "workflow"
+		genController: true
+		imports: [
+			"github.com/crusttech/human/server/pkg/expr",
+			"github.com/crusttech/human/server/automation/types",
+			"github.com/crusttech/human/server/pkg/label",
+			"time",
+			"labelTypes github.com/crusttech/human/server/pkg/label/types",
+		]
+		apis: [
+			{
+				name:   "list"
+				method: "GET"
+				title:  "List workflows"
+				path:   "/"
+				parameters: get: [
+					{name: "workflowID", type: "[]string", title: "Filter by workflow ID"},
+					{name: "query", type: "string", title: "Filter workflows"},
+					{name: "deleted", type: "uint", title: "Exclude (0, default), include (1) or return only (2) deleted workflows"},
+					{name: "disabled", type: "uint", title: "Exclude (0, default), include (1) or return only (2) disabled workflows"},
+					{name: "subWorkflow", type: "uint", title: "Exclude (0, default), include (1) or return only (2) sub workflows"},
+					{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+					{name: "limit", type: "uint", title: "Limit"},
+					{name: "incTotal", type: "bool", title: "Include total rows counter"},
+					{name: "pageCursor", type: "string", title: "Page cursor"},
+					{name: "sort", type: "string", title: "Sort items"},
+				]
+			},
+			{
+				name:   "create"
+				method: "POST"
+				title:  "Create workflow"
+				path:   "/"
+				parameters: post: [
+					{name: "handle", type: "string", title: "Workflow name"},
+					{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+					{name: "meta", type: "*types.WorkflowMeta", title: "Workflow meta data", parser: "types.ParseWorkflowMeta"},
+					{name: "enabled", type: "bool", title: "Is workflow enabled"},
+					{name: "trace", type: "bool", title: "Trace workflow execution"},
+					{name: "keepSessions", type: "int", title: "Keep old workflow sessions"},
+					{name: "scope", type: "*expr.Vars", title: "Workflow meta data", parser: "types.ParseWorkflowVariables"},
+					{name: "steps", type: "types.WorkflowStepSet", title: "Workflow steps definition", parser: "types.ParseWorkflowStepSet"},
+					{name: "paths", type: "types.WorkflowPathSet", title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet"},
+					{name: "runAs", type: "uint64", required: true, title: "Is workflow enabled"},
+					{name: "ownedBy", type: "uint64", required: true, title: "Owner of the workflow"},
+				]
+			},
+			{
+				name:   "update"
+				method: "PUT"
+				title:  "Update triger details"
+				path:   "/{workflowID}"
+				parameters: {
+					path: [{name: "workflowID", type: "uint64", required: true, title: "Workflow ID"}]
+					post: [
+						{name: "handle", type: "string", title: "Workflow name"},
+						{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+						{name: "meta", type: "*types.WorkflowMeta", title: "Workflow meta data", parser: "types.ParseWorkflowMeta"},
+						{name: "enabled", type: "bool", title: "Is workflow enabled"},
+						{name: "trace", type: "bool", title: "Trace workflow execution"},
+						{name: "keepSessions", type: "int", title: "Keep old workflow sessions"},
+						{name: "scope", type: "*expr.Vars", title: "Workflow meta data", parser: "types.ParseWorkflowVariables"},
+						{name: "steps", type: "types.WorkflowStepSet", title: "Workflow steps definition", parser: "types.ParseWorkflowStepSet"},
+						{name: "paths", type: "types.WorkflowPathSet", title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet"},
+						{name: "runAs", type: "uint64", required: true, title: "Is workflow enabled"},
+						{name: "ownedBy", type: "uint64", required: true, title: "Owner of the workflow"},
+						{name: "updatedAt", type: "*time.Time", required: false, title: "Last update (or creation) date"},
+					]
+				}
+			},
+			{
+				name:   "read"
+				method: "GET"
+				title:  "Read workflow details"
+				path:   "/{workflowID}"
+				parameters: path: [{name: "workflowID", type: "uint64", required: true, title: "Workflow ID"}]
+			},
+			{
+				name:   "delete"
+				method: "DELETE"
+				title:  "Remove workflow"
+				path:   "/{workflowID}"
+				parameters: path: [{name: "workflowID", type: "uint64", required: true, title: "Workflow ID"}]
+			},
+			{
+				name:   "undelete"
+				method: "POST"
+				title:  "Undelete workflow"
+				path:   "/{workflowID}/undelete"
+				parameters: path: [{name: "workflowID", type: "uint64", required: true, title: "Workflow ID"}]
+			},
+			{
+				name:   "test"
+				method: "POST"
+				title:  "Test workflow details"
+				path:   "/{workflowID}/test"
+				parameters: {
+					path: [{name: "workflowID", type: "uint64", required: true, title: "Workflow ID"}]
+					post: [
+						{name: "scope", type: "*expr.Vars", title: "Workflow meta data", parser: "types.ParseWorkflowVariables"},
+						{name: "runAs", type: "bool", required: true, title: "Is workflow enabled"},
+					]
+				}
+			},
+			{
+				name:   "exec"
+				method: "POST"
+				title:  "Executes workflow on a specific step (must be orphan step and connected to 'onManual' trigger)"
+				path:   "/{workflowID}/exec"
+				parameters: {
+					path: [{name: "workflowID", type: "uint64", required: true, title: "Workflow ID"}]
+					post: [
+						{name: "stepID", type: "uint64", required: true, title: "Step ID"},
+						{name: "input", type: "*expr.Vars", title: "Input", parser: "types.ParseWorkflowVariables"},
+						{name: "trace", type: "bool", title: "Trace workflow execution"},
+						{name: "wait", type: "bool", title: "Wait for workflow to complete"},
+						{name: "async", type: "bool", title: "Execute step and return immediately"},
+					]
+				}
+			},
+		]
+	},
+	{
+		title:         "Triggers"
+		path:          "/triggers"
+		entrypoint:    "trigger"
+		genController: true
+		imports: [
+			"github.com/crusttech/human/server/automation/types",
+			"github.com/crusttech/human/server/pkg/expr",
+			"github.com/crusttech/human/server/pkg/label",
+			"time",
+			"labelTypes github.com/crusttech/human/server/pkg/label/types",
+		]
+		apis: [
+			{
+				name:   "list"
+				method: "GET"
+				title:  "List triggers"
+				path:   "/"
+				parameters: get: [
+					{name: "triggerID", type: "[]string", title: "Filter by trigger ID"},
+					{name: "workflowID", type: "[]string", title: "Filter by workflow ID"},
+					{name: "deleted", type: "uint", title: "Exclude (0, default), include (1) or return only (2) deleted triggers"},
+					{name: "disabled", type: "uint", title: "Exclude (0, default), include (1) or return only (2) disabled triggers"},
+					{name: "eventType", type: "string", title: "Filter triggers by event type"},
+					{name: "resourceType", type: "string", title: "Filter triggers by resource type"},
+					{name: "query", type: "string", title: "Filter workflows,"},
+					{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+					{name: "limit", type: "uint", title: "Limit"},
+					{name: "pageCursor", type: "string", title: "Page cursor"},
+					{name: "sort", type: "string", title: "Sort items"},
+				]
+			},
+			{
+				name:   "create"
+				method: "POST"
+				title:  "Create trigger"
+				path:   "/"
+				parameters: post: [
+					{name: "eventType", type: "string", required: true, title: "Event type"},
+					{name: "resourceType", type: "string", required: true, title: "Resource type"},
+					{name: "enabled", type: "bool", title: "Is trigger enabled"},
+					{name: "workflowID", type: "uint64", required: true, title: "Workflow to be triggered"},
+					{name: "workflowStepID", type: "uint64", required: true, genHook: true, title: "Start workflow in a specific step"},
+					{name: "input", type: "*expr.Vars", title: "Workflow meta data", parser: "types.ParseWorkflowVariables"},
+					{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+					{name: "meta", type: "*types.TriggerMeta", title: "Trigger meta data", parser: "types.ParseTriggerMeta"},
+					{name: "constraints", type: "types.TriggerConstraintSet", title: "Workflow steps definition", parser: "types.ParseTriggerConstraintSet"},
+					{name: "ownedBy", type: "uint64", required: true, title: "Owner of the trigger"},
+				]
+			},
+			{
+				name:   "update"
+				method: "PUT"
+				title:  "Update trigger details"
+				path:   "/{triggerID}"
+				parameters: {
+					path: [{name: "triggerID", type: "uint64", required: true, title: "Trigger ID"}]
+					post: [
+						{name: "eventType", type: "string", required: true, title: "Event type"},
+						{name: "resourceType", type: "string", required: true, title: "Resource type"},
+						{name: "enabled", type: "bool", title: "Is trigger enabled"},
+						{name: "workflowID", type: "uint64", required: true, title: "Workflow to be triggered"},
+						{name: "workflowStepID", type: "uint64", required: true, genHook: true, title: "Start workflow in a specific step"},
+						{name: "input", type: "*expr.Vars", title: "Workflow meta data", parser: "types.ParseWorkflowVariables"},
+						{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+						{name: "meta", type: "*types.TriggerMeta", title: "Trigger meta data", parser: "types.ParseTriggerMeta"},
+						{name: "constraints", type: "types.TriggerConstraintSet", title: "Workflow steps definition", parser: "types.ParseTriggerConstraintSet"},
+						{name: "ownedBy", type: "uint64", required: true, title: "Owner of the trigger"},
+						{name: "updatedAt", type: "*time.Time", required: false, title: "Last update (or creation) date"},
+					]
+				}
+			},
+			{
+				name:   "read"
+				method: "GET"
+				title:  "Read trigger details"
+				path:   "/{triggerID}"
+				parameters: path: [{name: "triggerID", type: "uint64", required: true, title: "Trigger ID"}]
+			},
+			{
+				name:   "delete"
+				method: "DELETE"
+				title:  "Remove trigger"
+				path:   "/{triggerID}"
+				parameters: path: [{name: "triggerID", type: "uint64", required: true, title: "Trigger ID"}]
+			},
+			{
+				name:   "undelete"
+				method: "POST"
+				title:  "Undelete trigger"
+				path:   "/{triggerID}/undelete"
+				parameters: path: [{name: "triggerID", type: "uint64", required: true, title: "Trigger ID"}]
+			},
+		]
+	},
+	{
+		title:      "Sessions"
+		path:       "/sessions"
+		entrypoint: "session"
+		imports: [
+			"github.com/crusttech/human/server/pkg/expr",
+			"github.com/crusttech/human/server/automation/types",
+		]
+		apis: [
+			{
+				name:   "list"
+				method: "GET"
+				title:  "List sessions"
+				path:   "/"
+				parameters: get: [
+					{name: "sessionID", type: "[]string", title: "Filter by session ID"},
+					{name: "workflowID", type: "[]string", title: "Filter by workflow ID"},
+					{name: "createdBy", type: "[]string", title: "Filter by creators ID"},
+					{name: "completed", type: "uint", title: "Exclude (0, default), include (1) or return only (2) completed sessions"},
+					{name: "status", type: "[]uint", title: "Filter by status: started (0), prompted (1), suspended (2), failed (3) and completed (4)"},
+					{name: "eventType", type: "string", title: "Filter event type"},
+					{name: "resourceType", type: "string", title: "Filter resource type"},
+					{name: "limit", type: "uint", title: "Limit"},
+					{name: "incTotal", type: "bool", title: "Include total rows counter"},
+					{name: "pageCursor", type: "string", title: "Page cursor"},
+					{name: "sort", type: "string", title: "Sort items"},
+				]
+			},
+			{
+				name:   "read"
+				method: "GET"
+				title:  "Read session details"
+				path:   "/{sessionID}"
+				parameters: path: [{name: "sessionID", type: "uint64", required: true, title: "Session ID"}]
+			},
+			{
+				name:   "cancel"
+				method: "POST"
+				title:  "Cancel session"
+				path:   "/{sessionID}/cancel"
+				parameters: path: [{name: "sessionID", type: "uint64", required: true, title: "Session ID"}]
+			},
+			{
+				name:   "listPrompts"
+				method: "GET"
+				title:  "Returns pending prompts from all sessions"
+				path:   "/prompts"
+			},
+			{
+				name:   "resumeState"
+				method: "POST"
+				title:  "Resume session"
+				path:   "/{sessionID}/state/{stateID}"
+				parameters: {
+					path: [
+						{name: "sessionID", type: "uint64", required: true, title: "Session ID"},
+						{name: "stateID", type: "uint64", required: true, title: "State ID"},
+					]
+					post: [
+						{name: "input", type: "*expr.Vars", title: "Prompt variables", parser: "types.ParseWorkflowVariables"},
+					]
+				}
+			},
+		]
+	},
+	{
+		title:      "Functions"
+		path:       "/functions"
+		entrypoint: "function"
+		apis: [
+			{name: "list", method: "GET", title: "Available workflow functions", path: "/"},
+		]
+	},
+	{
+		title:      "Types"
+		path:       "/types"
+		entrypoint: "type"
+		apis: [
+			{name: "list", method: "GET", title: "Available workflow types", path: "/"},
+		]
+	},
+	{
+		title:      "Event types"
+		path:       "/event-types"
+		entrypoint: "eventTypes"
+		apis: [
+			{name: "list", method: "GET", title: "Available workflow types", path: "/"},
+		]
+	},
+	{
+		title:      "Permissions"
+		entrypoint: "permissions"
+		path:       "/permissions"
+		authentication: ["Client ID", "Session ID"]
+		imports: [
+			"github.com/crusttech/human/server/pkg/rbac",
+		]
+		apis: [
+			{
+				name:   "list"
+				path:   "/"
+				method: "GET"
+				title:  "Retrieve defined permissions"
+			},
+			{
+				name:   "effective"
+				path:   "/effective"
+				method: "GET"
+				title:  "Effective rules for current user"
+				parameters: get: [
+					{name: "resource", type: "string", required: false, title: "Show only rules for a specific resource"},
+				]
+			},
+			{
+				name:   "trace"
+				path:   "/trace"
+				method: "GET"
+				title:  "Evaluate rules for given user/role combo"
+				parameters: get: [
+					{name: "resource", type: "[]string", required: false, title: "Show only rules for a specific resource"},
+					{name: "userID", type: "uint64", required: false},
+					{name: "roleID", type: "[]uint64", required: false},
+				]
+			},
+			{
+				name:   "read"
+				path:   "/{roleID}/rules"
+				method: "GET"
+				title:  "Retrieve role permissions"
+				parameters: {
+					path: [{name: "roleID", type: "uint64", required: true, title: "Role ID"}]
+					get: [{name: "resource", type: "[]string", required: false, title: "Show only rules for a specific resource"}]
+				}
+			},
+			{
+				name:   "delete"
+				path:   "/{roleID}/rules"
+				method: "DELETE"
+				title:  "Remove all defined role permissions"
+				parameters: path: [{name: "roleID", type: "uint64", required: true, title: "Role ID"}]
+			},
+			{
+				name:   "update"
+				path:   "/{roleID}/rules"
+				method: "PATCH"
+				title:  "Update permission settings"
+				parameters: {
+					path: [{name: "roleID", type: "uint64", required: true, title: "Role ID"}]
+					post: [{name: "rules", type: "rbac.RuleSet", required: true, title: "List of permission rules to set"}]
+				}
+			},
+		]
+	},
+	{
+		title:      "Construct Registry"
+		path:       "/construct-library"
+		entrypoint: "constructLibrary"
+		apis: [
+			{name: "functions", method: "GET", title: "List functions", path: "/functions"},
+			{name: "triggers", method: "GET", title: "List triggers", path: "/triggers"},
+		]
+	},
+	{
+		title:         "NgAutomations"
+		path:          "/ng-automation"
+		entrypoint:    "ngAutomation"
+		genController: true
+		imports: [
+			"github.com/crusttech/human/server/pkg/expr",
+			"github.com/crusttech/human/server/automation/types",
+			"github.com/crusttech/human/server/pkg/label",
+			"time",
+			"labelTypes github.com/crusttech/human/server/pkg/label/types",
+		]
+		apis: [
+			{
+				name:   "list"
+				method: "GET"
+				title:  "List automations"
+				path:   "/"
+				parameters: get: [
+					{name: "automationID", type: "[]string", title: "Filter by automation ID"},
+					{name: "query", type: "string", title: "Filter automation"},
+					{name: "deleted", type: "uint", title: "Exclude (0, default), include (1) or return only (2) deleted automation"},
+					{name: "disabled", type: "uint", title: "Exclude (0, default), include (1) or return only (2) disabled automation"},
+					{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+					{name: "limit", type: "uint", title: "Limit"},
+					{name: "incTotal", type: "bool", title: "Include total rows counter"},
+					{name: "pageCursor", type: "string", title: "Page cursor"},
+					{name: "sort", type: "string", title: "Sort items"},
+				]
+			},
+			{
+				name:   "create"
+				method: "POST"
+				title:  "Create automation"
+				path:   "/"
+				parameters: post: [
+					{name: "handle", type: "string", title: "NgAutomation name"},
+					{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+					{name: "meta", type: "*types.NgAutomationMeta", title: "NgAutomation meta data", parser: "types.ParseNgAutomationMeta"},
+					{name: "enabled", type: "bool", title: "Is automation enabled"},
+					{name: "scope", type: "*expr.Vars", title: "NgAutomation meta data", parser: "types.ParseWorkflowVariables"},
+					{name: "triggers", type: "types.NgAutomationTriggerSet", title: "NgAutomation steps definition", parser: "types.ParseNgAutomationTriggerSet"},
+					{name: "steps", type: "types.NgAutomationStepSet", title: "NgAutomation steps definition", parser: "types.ParseNgAutomationStepSet"},
+					{name: "paths", type: "types.NgAutomationPathSet", title: "NgAutomation step paths definition", parser: "types.ParseNgAutomationPathSet"},
+					{name: "runAs", type: "uint64", title: "Is automation enabled"},
+					{name: "ownedBy", type: "uint64", title: "Owner of the automation"},
+				]
+			},
+			{
+				name:   "update"
+				method: "PUT"
+				title:  "Update triger details"
+				path:   "/{automationID}"
+				parameters: {
+					path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+					post: [
+						{name: "handle", type: "string", title: "NgAutomation name"},
+						{name: "labels", type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings"},
+						{name: "meta", type: "*types.NgAutomationMeta", title: "NgAutomation meta data", parser: "types.ParseNgAutomationMeta"},
+						{name: "enabled", type: "bool", title: "Is automation enabled"},
+						{name: "scope", type: "*expr.Vars", title: "NgAutomation meta data", parser: "types.ParseWorkflowVariables"},
+						{name: "triggers", type: "types.NgAutomationTriggerSet", title: "NgAutomation steps definition", parser: "types.ParseNgAutomationTriggerSet"},
+						{name: "steps", type: "types.NgAutomationStepSet", title: "NgAutomation steps definition", parser: "types.ParseNgAutomationStepSet"},
+						{name: "paths", type: "types.NgAutomationPathSet", title: "NgAutomation step paths definition", parser: "types.ParseNgAutomationPathSet"},
+						{name: "runAs", type: "uint64", title: "Is automation enabled"},
+						{name: "ownedBy", type: "uint64", title: "Owner of the automation"},
+						{name: "updatedAt", type: "*time.Time", required: false, title: "Last update (or creation) date"},
+					]
+				}
+			},
+			{
+				name:   "read"
+				method: "GET"
+				title:  "Read automation details"
+				path:   "/{automationID}"
+				parameters: path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+			},
+			{
+				name:   "delete"
+				method: "DELETE"
+				title:  "Remove automation"
+				path:   "/{automationID}"
+				parameters: path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+			},
+			{
+				name:   "undelete"
+				method: "POST"
+				title:  "Undelete automation"
+				path:   "/{automationID}/undelete"
+				parameters: path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+			},
+			{
+				name:   "test"
+				method: "POST"
+				title:  "Test automation details"
+				path:   "/{automationID}/test"
+				parameters: {
+					path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+					post: [
+						{name: "scope", type: "*expr.Vars", title: "NgAutomation meta data", parser: "types.ParseWorkflowVariables"},
+						{name: "runAs", type: "bool", required: true, title: "Is automation enabled"},
+					]
+				}
+			},
+			{
+				name:   "exec"
+				method: "POST"
+				title:  "Executes automation on a specific step (must be orphan step and connected to 'onManual' trigger)"
+				path:   "/{automationID}/exec"
+				parameters: {
+					path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+					post: [
+						{name: "input", type: "*expr.Vars", title: "Input", parser: "types.ParseWorkflowVariables"},
+						{name: "trace", type: "bool", title: "Trace ngAutomation execution"},
+						{name: "wait", type: "bool", title: "Wait for ngAutomation to complete"},
+						{name: "async", type: "bool", title: "Execute step and return immediately"},
+					]
+				}
+			},
+			{
+				name:   "executions"
+				method: "GET"
+				title:  "Get automation executions"
+				path:   "/{automationID}/executions"
+				parameters: path: [{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"}]
+			},
+			{
+				name:   "executionTrace"
+				method: "GET"
+				title:  "Get automation execution trace"
+				path:   "/{automationID}/execution/{executionID}/trace"
+				parameters: path: [
+					{name: "automationID", type: "uint64", required: true, title: "NgAutomation ID"},
+					{name: "executionID", type: "uint64", required: true, title: "Execution ID"},
+				]
+			},
+			{
+				name:   "allExecutions"
+				method: "GET"
+				title:  "List all ng automation execution sessions"
+				path:   "/executions"
+				parameters: get: [
+					{name: "automationID", type: "[]string", title: "Filter by automation ID"},
+					{name: "eventType", type: "string", title: "Filter by event type"},
+					{name: "resourceType", type: "string", title: "Filter by resource type"},
+					{name: "status", type: "[]string", title: "Filter by status"},
+				]
+			},
+		]
+	},
+]

@@ -6,19 +6,29 @@ import (
 
 project_member: {
 	features: {
+		labels:        false
 		projectScoped: true
+	}
+
+	types: {
+		gen: true
 	}
 
 	model: {
 		attributes: {
 			id:         schema.IdField
 			tenant_id:  schema.TenantRefField
-			project_id: schema.ProjectRefField
+			project_id: schema.ProjectRefField & {
+				// hand-written tag has no omitempty (owning project ref)
+				json: {field: "projectID", string: true}
+			}
 			user_id: {
 				ident:      "userID"
 				goType:     "uint64"
 				storeIdent: "rel_user"
 				dal: {type: "ID"}
+				// hand-written tag has no omitempty
+				json: {field: "userID", string: true}
 			}
 			role_preset: {
 				ident:      "rolePreset"

@@ -174,6 +174,25 @@ func (e *nodeSyncAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
+// NodeSyncActionSearch returns "federation:node_sync.search" action
+//
+// This function is auto-generated.
+func NodeSyncActionSearch(props ...*nodeSyncActionProps) *nodeSyncAction {
+	a := &nodeSyncAction{
+		timestamp: time.Now(),
+		resource:  "federation:node_sync",
+		action:    "search",
+		log:       "searched for node_sync",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // NodeSyncActionLookup returns "federation:node_sync.lookup" action
 //
 // This function is auto-generated.

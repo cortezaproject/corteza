@@ -146,6 +146,13 @@ user: {
 		}
 	}
 
+	service: {
+
+		undelete: true
+
+		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+	}
+
 	store: {
 		api: {
 			lookups: [

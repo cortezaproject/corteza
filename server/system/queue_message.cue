@@ -10,11 +10,15 @@ queue_message: {
 		checkFn: false
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		omitGetterSetter: true
 
 		attributes: {
-		  id:        schema.IdField
+		  id:        schema.IdField & { json: "messageID" }
 		  queue:     {
 		  	sortable: true
 		  	dal: {}
@@ -23,8 +27,8 @@ queue_message: {
 		  	goType: "[]byte"
 		  	dal: { type: "Blob" }
 		  }
-		  created:   schema.SortableTimestampNilField
-		  processed: schema.SortableTimestampNilField
+		  created:   schema.SortableTimestampNilField & { json: "created" }
+		  processed: schema.SortableTimestampNilField & { json: "processed" }
 		}
 
 		indexes: {

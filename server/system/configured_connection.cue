@@ -7,7 +7,9 @@ import (
 configured_connection: {
 	model: {
 		attributes: {
-			id:           schema.IdField
+			id: schema.IdField & {
+				json: "configurationID,string"
+			}
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			connection_id: {
@@ -16,6 +18,7 @@ configured_connection: {
 				ident:    "connectionID"
 				storeIdent: "rel_connection"
 				dal: { type: "Ref", refModelResType: "corteza::system:connection" }
+				json: {field: "connectionID", string: true}
 			}
 			name: {
 				sortable: true
@@ -41,7 +44,9 @@ configured_connection: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				json: {field: "createdBy", string: true}
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -69,6 +74,10 @@ configured_connection: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	envoy: {
 		omit: true
 	}
@@ -79,6 +88,19 @@ configured_connection: {
 			"delete": description: "Delete connection"
       "update": description: "Update connection"
 		}
+	}
+
+	service: {
+		events:   false
+
+		lookup: false
+		search: false
+		update: false
+		delete: false
+
+		actionProp: "connection"
+
+		hooks: {beforeCreate: true}
 	}
 
 	store: {

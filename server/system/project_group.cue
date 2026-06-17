@@ -10,12 +10,19 @@ project_group: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		attributes: {
-			id:         schema.IdField
-			tenant_id:  schema.TenantRefField
-			project_id: schema.ProjectRefField
-			handle:     schema.HandleField
+			id:        schema.IdField
+			tenant_id: schema.TenantRefField
+			project_id: schema.ProjectRefField & {
+				// hand-written tag has no omitempty (owning project ref)
+				json: {field: "projectID", string: true}
+			}
+			handle: schema.HandleField
 			meta: {
 				goType: "types.ProjectGroupMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
@@ -59,6 +66,20 @@ project_group: {
 	}
 
 	envoy: {omit: true}
+
+	service: {
+
+		filterProp: "search"
+
+		undelete: false
+
+		omitUpdateFields: ["handle"]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
+		}
+	}
 
 	store: {
 		api: {

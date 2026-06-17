@@ -21,6 +21,7 @@ connection: {
 			source: {
 				sortable: true
 				dal: { type: "Text", length: 16 }
+				json: { field: "source", omitEmpty: true }
 			}
 
 			meta: {
@@ -57,10 +58,36 @@ connection: {
 				omitGetter: true
 			}
 
+			// Struct-only fields (not persisted via store/dal).
+			derived_params: {
+				goType: "[]types.ConnectionDerivedParam"
+				store: false
+				omitGetter: true
+				omitSetter: true
+				json: { field: "derivedParams", omitEmpty: true }
+			}
+			catalog_id: {
+				expIdent: "CatalogID"
+				goType: "string"
+				store: false
+				omitGetter: true
+				omitSetter: true
+				json: { field: "catalogID", omitEmpty: true }
+			}
+			installed_count: {
+				goType: "int"
+				store: false
+				omitGetter: true
+				omitSetter: true
+				json: { field: "installedCount", omitEmpty: true }
+			}
+
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				json: { field: "createdBy", string: true }
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -86,6 +113,10 @@ connection: {
 		labels: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	envoy: {
 		omit: true
 	}
@@ -96,6 +127,22 @@ connection: {
 			"update": description: "Update connection"
 			"delete": description: "Delete connection"
 			"install": description: "Install connection"
+		}
+	}
+
+	service: {
+		events:   false
+
+		lookup:   false
+		search:   false
+		update:   false
+		undelete: true
+
+		hooks: {
+			beforeCreate:   true
+			afterCreate:    true
+			beforeDelete:   true
+			beforeUndelete: true
 		}
 	}
 

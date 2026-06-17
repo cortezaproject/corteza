@@ -8,6 +8,7 @@ endpoints:
   - title: Workflows
     path: '/workflows'
     entrypoint: workflow
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/expr
@@ -193,6 +194,7 @@ endpoints:
   - title: Triggers
     path: '/triggers'
     entrypoint: trigger
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/automation/types
@@ -245,6 +247,7 @@ endpoints:
                 name: workflowStepID,
                 type: uint64,
                 required: true,
+                genHook: true,
                 title: 'Start workflow in a specific step',
               }
             - {
@@ -287,6 +290,7 @@ endpoints:
                 name: workflowStepID,
                 type: uint64,
                 required: true,
+                genHook: true,
                 title: 'Start workflow in a specific step',
               }
             - {
@@ -536,6 +540,7 @@ endpoints:
   - title: NgAutomations
     path: '/ng-automation'
     entrypoint: ngAutomation
+    genController: true
     authentication: []
     imports:
       - github.com/crusttech/human/server/pkg/expr

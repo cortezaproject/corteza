@@ -10,6 +10,8 @@ queue: {
 		projectScoped: true
 	}
 
+	types: { gen: true }
+
 	model: {
 		ident: "queue_settings"
 		attributes: {
@@ -39,7 +41,9 @@ queue: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				json: {field: "createdBy", string: true}
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -81,6 +85,24 @@ queue: {
 			"delete": description:      "Delete queue"
 			"queue.read": description:  "Read from queue"
 			"queue.write": description: "Write to queue"
+		}
+	}
+
+	service: {
+		events:   false
+
+		search:   false
+		undelete: true
+
+		updateFields: ["Consumer", "Queue", "Meta"]
+
+		hooks: {
+			beforeCreate:  true
+			afterCreate:   true
+			beforeUpdate:  true
+			afterUpdate:   true
+			afterDelete:   true
+			afterUndelete: true
 		}
 	}
 

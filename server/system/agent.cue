@@ -5,6 +5,11 @@ import (
 )
 
 agent: {
+	types: {
+		gen:     true
+		idLists: ["AgentAccessIDList"]
+	}
+
 	features: {
 		labels: true
 		projectScoped: true
@@ -68,7 +73,10 @@ agent: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				// hand-written tag has no omitempty (record is always created)
+				json: { field: "createdBy", string: true }
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -103,6 +111,18 @@ agent: {
 			update: description: "Update agent"
 			delete: description: "Delete agent"
 		}
+	}
+
+	service: {
+		events: false
+    
+		undelete: false
+
+		// lookup   -> custom body loads labels after the read access check
+		// search   -> label filtering + Check + label load
+		// create   -> Revision/Status defaults, optional temperature validation, prepareTCL
+		// update   -> Revision bump, optional temperature validation, prepareTCL, whole-record store
+		customBodyOps: ["lookup", "search", "create", "update"]
 	}
 
 	envoy: {

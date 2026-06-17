@@ -10,6 +10,12 @@ notification: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+		// NotificationConfig has a custom Scan/Value (kept hand-written)
+		jsonTypesSkip: ["NotificationConfig"]
+	}
+
 	model: {
 		omitGetterSetter: true
 
@@ -26,9 +32,21 @@ notification: {
 				goType: "types.NotificationConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
 			}
-			recipient: schema.AttributeUserRef
-			created_by: schema.AttributeUserRef
-			read_at: schema.SortableTimestampNilField
+			recipient: schema.AttributeUserRef & {
+				// hand-written tag is `recipient,string` (no omitempty);
+				// the Ref convention would add omitempty.
+				json: {field: "recipient", string: true}
+			}
+			created_by: schema.AttributeUserRef & {
+				// hand-written tag is `createdBy,string` (no omitempty);
+				// the Ref convention would add omitempty.
+				json: {field: "createdBy", string: true}
+			}
+			read_at: schema.SortableTimestampNilField & {
+				// hand-written tag is `readAt` (no omitempty);
+				// the time convention would add omitempty.
+				json: {field: "readAt"}
+			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
@@ -58,6 +76,26 @@ notification: {
 
 		byValue: ["notification_id", "recipient"]
 		byNilState: ["read", "deleted"]
+	}
+
+	service: {
+		// Canonical CRUD names already in use (Search/FindByID/Create/Update/
+		// DeleteByID). No eventbus events are emitted; no undelete op.
+		//
+		// Every op diverges from the standard scaffold: read access is
+		// recipient-ownership (non-RBAC) and Create/Delete emit websocket
+		// messages, so all CRUD bodies are hand-written in the companion file
+		// via on<Op> handlers. The access controller only exposes
+		// CanAssignNotification, so search/create are also flagged as
+		// customAccessOps to suppress generation of the standard
+		// CanSearchNotifications / CanCreateNotification checks (and the
+		// missing NotificationErrNotAllowedToSearch error).
+		customBodyOps:   ["lookup", "search", "create", "update", "delete"]
+		customAccessOps: ["search", "create"]
+
+		// action-log prop set by the generated Update body is named "updated"
+		// in notification_actions.yaml (default is "update").
+		updateProp: "updated"
 	}
 
 	store: {

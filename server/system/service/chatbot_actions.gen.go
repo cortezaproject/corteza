@@ -24,7 +24,7 @@ type (
 		chatbot *types.Chatbot
 		new     *types.Chatbot
 		update  *types.Chatbot
-		search  *types.ChatbotFilter
+		filter  *types.ChatbotFilter
 	}
 
 	chatbotAction struct {
@@ -76,11 +76,11 @@ func (p *chatbotActionProps) setUpdate(update *types.Chatbot) *chatbotActionProp
 	return p
 }
 
-// setSearch updates chatbotActionProps's search
+// setFilter updates chatbotActionProps's filter
 //
 // This function is auto-generated.
-func (p *chatbotActionProps) setSearch(search *types.ChatbotFilter) *chatbotActionProps {
-	p.search = search
+func (p *chatbotActionProps) setFilter(filter *types.ChatbotFilter) *chatbotActionProps {
+	p.filter = filter
 	return p
 }
 
@@ -104,7 +104,7 @@ func (p chatbotActionProps) Serialize() actionlog.Meta {
 		m.Set("update.handle", p.update.Handle, true)
 		m.Set("update.ID", p.update.ID, true)
 	}
-	if p.search != nil {
+	if p.filter != nil {
 	}
 
 	return m
@@ -176,11 +176,11 @@ func (p chatbotActionProps) Format(in string, err error) string {
 		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
-	if p.search != nil {
-		// replacement for "{{search}}" (in order how fields are defined)
+	if p.filter != nil {
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{{search}}",
+			"{{filter}}",
 			fns(),
 		)
 	}

@@ -12,6 +12,10 @@ node: {
 		tenantScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		ident: "federation_nodes"
 		attributes: {
@@ -22,6 +26,7 @@ node: {
       	ident: "sharedNodeID",
       	goType: "uint64"
 				dal: { type: "ID" }
+				json: { field: "sharedNodeID", string: true }
 			}
       name: {
       	sortable: true
@@ -42,14 +47,16 @@ node: {
 			}
       pair_token: {
       	dal: {}
+				json: "-"
 			}
       auth_token: {
       	dal: {}
+				json: "-"
 			}
       created_at: schema.SortableTimestampNowField
       updated_at: schema.SortableTimestampNilField
       deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: { field: "createdBy", string: true } }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -61,6 +68,29 @@ node: {
 
 	envoy: {
 		omit: true
+	}
+
+	service: {
+		// Node CRUD is heavily bespoke: every mutating op funnels through the
+		// hand-written svc.updater (status=Failed-on-error bookkeeping, UpdatedBy/
+		// DeletedBy stamping) and uses CanManageNode rather than the unified
+		// CanRead/Update/Delete checks, so the standard generated bodies can't be
+		// used. The generator owns only the recordAction scaffold + the search/
+		// create access checks; the bodies are delegated to on<Op> handlers.
+		//
+		// lookup is disabled: FindByID (and the controller-facing Read alias) are
+		// kept fully custom -- they record no action / a different action and use
+		// CanManageNode.
+		lookup:   false
+		undelete: true
+
+		// action-log prop is named "node" (no dedicated "new"/"update" props exist
+		// in node_actions.yaml), so omit the create prop and point updateProp at it.
+		actionProp:     "node"
+		omitCreateProp: true
+		updateProp:     "node"
+
+		customBodyOps: ["search", "create", "update", "delete", "undelete"]
 	}
 
 	filter: {

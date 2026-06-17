@@ -8,6 +8,17 @@ trigger: {
 	features: {
 		projectScoped: true
 	}
+	types: {
+		// generate the Trigger struct from the model into types/trigger.gen.go
+		gen: true
+		// Input *expr.Vars needs the expr package qualifier
+		imports: ["github.com/crusttech/human/server/pkg/expr"]
+		// TriggerMeta keeps a hand-written pointer-returning ParseTriggerMeta
+		// (REST request controllers depend on the *TriggerMeta return), which is
+		// incompatible with the value-returning generated version, so it is
+		// excluded from JSON helper generation.
+		jsonTypesPtr: ["TriggerMeta"]
+	}
 	model: {
 		ident: "automation_triggers"
 		attributes: {
@@ -20,12 +31,16 @@ trigger: {
 				goType: "uint64",
 				storeIdent: "rel_workflow"
 				dal: { type: "Ref", refModelResType: "corteza::automation:workflow" }
+				// hand-written tag has no omitempty (convention would add it for refs)
+				json: { field: "workflowID", string: true }
 			}
 			step_id: {
 				ident: "stepID",
 				goType: "uint64",
 				storeIdent: "rel_step"
 				dal: { type: "ID" }
+				// hand-written tag has no omitempty (convention would add it for refs)
+				json: { field: "stepID", string: true }
 				envoy: {
 					yaml: {
 						identKeyAlias: ["stepID", "step_id"]
@@ -42,6 +57,8 @@ trigger: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				// hand-written tag is meta,omitempty (convention has no omitempty)
+				json: { omitEmpty: true }
 			}
 			resource_type: {
 				sortable: true,
@@ -76,11 +93,13 @@ trigger: {
 				omitGetter: true
 			}
 
-			owned_by:   schema.AttributeUserRef
+			// hand-written tag is ownedBy,string (no omitempty); convention would add it
+			owned_by:   schema.AttributeUserRef & { json: { field: "ownedBy", string: true } }
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			// hand-written tag is createdBy,string (no omitempty); convention would add it
+			created_by: schema.AttributeUserRef & { json: { field: "createdBy", string: true } }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -115,6 +134,32 @@ trigger: {
 		byValue: ["trigger_id", "workflow_id", "event_type", "resource_type"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
+	}
+
+	service: {
+		// no eventbus Before/After CRUD events
+		events: false
+
+		// trigger exposes a bespoke LookupByID (custom name + label load), kept in
+		// the companion file -- do not generate FindByID.
+		lookup: false
+
+		search:   true
+		create:   true
+		update:   true
+		delete:   true
+		undelete: true
+
+		// every CRUD body is bespoke (workflow preload + registration on Create,
+		// diff-based updater/handleUpdate/handleDelete/handleUndelete) so each op
+		// delegates its body to a hand-written on<Op> handler.
+		customBodyOps: ["search", "create", "update", "delete", "undelete"]
+
+		// create/update/delete/undelete access checks run against the loaded
+		// workflow (CanManageTriggersOnWorkflow), not a standard CanX check, so the
+		// generated scaffold must not emit a standard access check for them. Search
+		// keeps the standard CanSearchTriggers check.
+		customAccessOps: ["create", "update", "delete", "undelete"]
 	}
 
 	store: {

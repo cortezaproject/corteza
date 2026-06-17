@@ -8,6 +8,14 @@ auth_client: {
 	features: {
 		projectScoped: true
 	}
+	types: {
+		gen: true
+		// AuthClientMeta/AuthClientSecurity keep hand-written pointer-returning
+		// ParseAuthClientMeta/ParseAuthClientSecurity (REST request controllers
+		// depend on the *T return), incompatible with the value-returning
+		// generated versions, so they are excluded from JSON helper generation.
+		jsonTypesPtr: ["AuthClientMeta", "AuthClientSecurity"]
+	}
 	model: {
 		attributes: {
 			id:     schema.IdField
@@ -16,6 +24,7 @@ auth_client: {
 			handle: schema.HandleField
 			meta: {
 				goType: "*types.AuthClientMeta"
+				json: { field: "meta", omitEmpty: true }
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -37,6 +46,7 @@ auth_client: {
 			}
 			secret: {
 				goType: "string"
+				json: { field: "secret", omitEmpty: true }
 				dal: { type: "Text", length: 64 }
 			}
 			scope: {
@@ -76,13 +86,13 @@ auth_client: {
 					}
 				}
 			}
-			owned_by:   schema.AttributeUserRef
-			created_at: schema.SortableTimestampNowField
+			owned_by:   schema.AttributeUserRef & { json: "ownedBy" }
+			created_at: schema.SortableTimestampNowField & { json: { field: "createdAt" } }
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
-			updated_by: schema.AttributeUserRef
-			deleted_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: "createdBy" }
+			updated_by: schema.AttributeUserRef & { json: { field: "updatedBy", omitEmpty: true } }
+			deleted_by: schema.AttributeUserRef & { json: { field: "deletedBy", omitEmpty: true } }
 		}
 
 		indexes: {
@@ -130,6 +140,21 @@ auth_client: {
 			update: description:    "Update authorization client"
 			delete: description:    "Delete authorization client"
 			authorize: description: "Authorize authorization client"
+		}
+	}
+
+	service: {
+
+
+		lookup:   false
+		search:   false
+		update:   false
+		delete:   false
+		undelete: true
+
+		hooks: {
+			validate:     true
+			beforeCreate: true
 		}
 	}
 

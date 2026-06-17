@@ -10,9 +10,16 @@ apigw_route: {
 		projectScoped: true
 	}
 
+	types: {
+		gen: true
+	}
+
 	model: {
 		attributes: {
-			id:       schema.IdField
+			id:       schema.IdField & {
+				// hand-written tag uses custom "routeID" name (not the apigwRoute resource ident)
+				json: "routeID,string"
+			}
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			endpoint: {
@@ -38,6 +45,8 @@ apigw_route: {
 				sortable: true,
 				goType: "uint64",
 				storeIdent: "rel_group"
+				// hand-written tag is `group,string` (no omitempty)
+				json: {field: "group", string: true}
 			  dal: {
 			  	type: "Ref",
 			  	// @todo what does this do?
@@ -53,7 +62,10 @@ apigw_route: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & {
+				// hand-written tag is `createdBy,string` (no omitempty)
+				json: {field: "createdBy", string: true}
+			}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -111,6 +123,21 @@ apigw_route: {
 			update: description: "Update API Gateway route"
 			delete: description: "Delete API Gateway route"
 		}
+	}
+
+	service: {
+		// action-log resource prop is "route" (not the "apigwRoute" ident)
+		actionProp: "route"
+		// Search records under the "search" action-log prop
+		filterProp: "search"
+
+		undelete: true
+
+		// lookup + search use the standard generated bodies (FindByID/Search);
+		// create/update/delete/undelete carry bespoke logic (CreatedBy/Group
+		// defaulting, endpoint-moved 404 handling, apigw reload/not-found
+		// signalling, soft-delete via UpdateApigwRoute) handled by on<Op>.
+		customBodyOps: ["create", "update", "delete", "undelete"]
 	}
 
 	store: {

@@ -10,6 +10,8 @@ ai_conversation: {
 		projectScoped: true
 	}
 
+	types: { gen: true }
+
 	model: {
 		ident: "ai_conversations"
 		attributes: {
@@ -21,6 +23,7 @@ ai_conversation: {
 				goType: "uint64"
 				storeIdent: "rel_agent"
 				dal: { type: "Ref", refModelResType: "corteza::system:agent" }
+				json: {field: "agentID", string: true}
 			}
 			messages: {
 				goType: "types.AiConversationMessages"
@@ -37,7 +40,7 @@ ai_conversation: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef
+			created_by: schema.AttributeUserRef & { json: {field: "createdBy", string: true} }
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
@@ -62,6 +65,15 @@ ai_conversation: {
 
 		byValue: ["ai_conversation_id", "agent_id"]
 		byNilState: ["deleted"]
+	}
+
+	service: {
+
+		undelete: true
+
+		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		customAccessOps: ["search"]
 	}
 
 	rbac: {

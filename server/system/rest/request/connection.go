@@ -1284,6 +1284,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["catalogID"]; ok && len(val) > 0 {
+				r.CatalogID, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["config[]"]; ok {
 				r.Config, err = types.ParseConfiguredConnectionConfig(val)
 				if err != nil {
@@ -1326,6 +1333,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
+			r.CatalogID, err = val[0], nil
 			if err != nil {
 				return err
 			}
