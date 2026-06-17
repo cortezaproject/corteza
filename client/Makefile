@@ -20,4 +20,4 @@ build:
 		(cd $$dir && pnpm run build) || (echo "Failed to build $$dir"; exit 1); \
 	done
 
-.DEFAULT_GOAL := dev
+.DEFAULT_GOAL := build

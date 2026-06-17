@@ -1,52 +1,38 @@
-.PHONY: all install-fresh install-packages build clean cleaner
+.PHONY: all install-fresh install-packages build download clean cleaner
 
 WGET         ?= wget
 WGET_FLAGS   ?= -q
 TAR          ?= tar
 TAR_FLAGS    ?= -xzmok
-APPS         ?= admin compose workflow reporter discovery
-ALL_APPS     ?= $(APPS) one
+APP          ?= unify
 VERSION      ?= $(shell git describe --tags --abbrev=0)
-PACKAGES      = $(addprefix human-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
-SOURCE_LOC   ?= "../../webapp-"
-SOURCES       = $(addprefix $(SOURCE_LOC),$(ALL_APPS))
+PACKAGE       = human-webapp-$(APP)-$(VERSION).tar.gz
+SOURCE_LOC   ?= ../../client/web/$(APP)
 
 all: install-packages
 
-install-packages: $(PACKAGES)
-	$(info installing packages to public/)
-	@ rm -rf $(addprefix public/,$(APPS))
-	@ mkdir -p $(addprefix public/,$(APPS))
-	@ $(TAR) $(TAR_FLAGS) -f human-webapp-one-$(VERSION).tar.gz -C public
-	@ $(TAR) $(TAR_FLAGS) -f human-webapp-admin-$(VERSION).tar.gz -C public/admin
-	@ $(TAR) $(TAR_FLAGS) -f human-webapp-compose-$(VERSION).tar.gz -C public/compose
-	@ $(TAR) $(TAR_FLAGS) -f human-webapp-workflow-$(VERSION).tar.gz -C public/workflow
-	@ $(TAR) $(TAR_FLAGS) -f human-webapp-reporter-$(VERSION).tar.gz -C public/reporter
-	@ $(TAR) $(TAR_FLAGS) -f human-webapp-discovery-$(VERSION).tar.gz -C public/discovery
+install-packages: $(PACKAGE)
+	$(info installing package to public/)
+	@ rm -rf public
+	@ mkdir -p public
+	@ $(TAR) $(TAR_FLAGS) -f $(PACKAGE) -C public
 
-download: $(PACKAGES)
+download: $(PACKAGE)
 
-$(PACKAGES):
+$(PACKAGE):
 	$(info downloading $(RELEASE_PAGE)/$(@))
 	@ $(WGET) $(WGET_FLAGS) $(RELEASE_PAGE)/$(@)
 
 install-fresh: build
 	@ rm -rf public
-	@ cp -r $(SOURCE_LOC)one/dist       public/
-	@ cp -r $(SOURCE_LOC)admin/dist     public/admin
-	@ cp -r $(SOURCE_LOC)compose/dist   public/compose
-	@ cp -r $(SOURCE_LOC)workflow/dist  public/workflow
-	@ cp -r $(SOURCE_LOC)reporter/dist  public/reporter
-	@ cp -r $(SOURCE_LOC)discovery/dist public/discovery
+	@ cp -r $(SOURCE_LOC)/dist public
 
-build: $(SOURCES)
-
-$(SOURCES):
-	$(info building $(@))
-	@ cd $(@) && yarn build
+build:
+	$(info building $(APP))
+	@ cd $(SOURCE_LOC) && pnpm build
 
 clean:
-	@ rm -f $(PACKAGES)
+	@ rm -f $(PACKAGE)
 
 cleaner:
 	@ rm -rf public human-webapp-*.tar.gz

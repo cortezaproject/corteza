@@ -1,15 +1,15 @@
 = Web applications
 
-Rationale behind `/webapp/...` tools is to allow backend developers to quickly test server with frontend applications.
-Tools (see Makefile) download and install unstable (can be changed with `VERSION` var).
+Rationale behind `/webapp/...` tools is to allow backend developers to quickly test the server with the
+unified web application. Tools (see Makefile) download and install unstable (can be changed with `VERSION` var).
 
-.Downloads and installs packages under webapp/public using current version
+.Downloads and installs the webapp under webapp/public using current version
 [source,shell]
 ----
 make
 ----
 
-.Downloads and installs packages under webapp/public using specific version
+.Downloads and installs the webapp under webapp/public using specific version
 [source,shell]
 ----
 make VERSION=2021.3.3
@@ -23,23 +23,20 @@ make VERSION=2021.3.3
 | all
 | default target alias for install-packages
 
-| install-package
-| installs all packages
+| install-packages
+| downloads and installs the webapp package
 
 | download
-| downloads all packages
+| downloads the webapp package
 
 | install-fresh
-| builds and installs all packages from source
-
-| install-fresh
-| builds and installs all web applications from source
+| builds and installs the webapp from source
 
 | build
-| builds all web applications from source
+| builds the webapp from source
 
 | clean
-| removes packages of the current versions
+| removes the package of the current version
 
 | cleaner
 | removes all

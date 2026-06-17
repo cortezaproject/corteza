@@ -20,4 +20,4 @@ lint:
 	@echo "---Linting vue---"
 	@(cd $(CURDIR)/vue && pnpm lint) || (echo "Failed to lint vue"; exit 1)
 
-.DEFAULT_GOAL := dev
+.DEFAULT_GOAL := test
