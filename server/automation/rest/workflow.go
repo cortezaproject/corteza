@@ -10,16 +10,15 @@ import (
 	"github.com/crusttech/human/server/compose/automation"
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
 	Workflow struct {
-		svc interface {
+		workflow interface {
 			Search(ctx context.Context, filter types.WorkflowFilter) (types.WorkflowSet, types.WorkflowFilter, error)
-			LookupByID(ctx context.Context, workflowID uint64) (*types.Workflow, error)
+			FindByID(ctx context.Context, workflowID uint64) (*types.Workflow, error)
 			Create(ctx context.Context, new *types.Workflow) (*types.Workflow, error)
 			Update(ctx context.Context, upd *types.Workflow) (*types.Workflow, error)
 			DeleteByID(ctx context.Context, workflowID uint64) error
@@ -73,13 +72,14 @@ type (
 
 func (Workflow) New() *Workflow {
 	ctrl := &Workflow{}
-	ctrl.svc = service.DefaultWorkflow
+	ctrl.workflow = service.DefaultWorkflow
 	ctrl.svcModule = cmpService.DefaultModule
 	ctrl.ac = service.DefaultAccessControl
 	return ctrl
 }
 
-func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Workflow) makeFilter(ctx context.Context, r *request.WorkflowList) (types.WorkflowFilter, error) {
 	var (
 		err error
 		f   = types.WorkflowFilter{
@@ -93,74 +93,42 @@ func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interfa
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl Workflow) Create(ctx context.Context, r *request.WorkflowCreate) (interface{}, error) {
-	workflow := &types.Workflow{
-		Handle:       r.Handle,
-		Labels:       r.Labels,
-		Meta:         r.Meta,
-		Enabled:      r.Enabled,
-		Trace:        r.Trace,
-		KeepSessions: r.KeepSessions,
-		Scope:        r.Scope,
-		Steps:        r.Steps,
-		Paths:        r.Paths,
-		RunAs:        r.RunAs,
-		OwnedBy:      r.OwnedBy,
-	}
-
-	wf, err := ctrl.svc.Create(ctx, workflow)
-	return ctrl.makePayload(ctx, wf, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl Workflow) beforeCreate(ctx context.Context, res *types.Workflow, r *request.WorkflowCreate) error {
+	res.Meta = r.Meta
+	res.Scope = r.Scope
+	res.Steps = r.Steps
+	res.Paths = r.Paths
+	return nil
 }
 
-func (ctrl Workflow) Update(ctx context.Context, r *request.WorkflowUpdate) (interface{}, error) {
-	workflow := &types.Workflow{
-		ID:           r.WorkflowID,
-		Handle:       r.Handle,
-		Labels:       r.Labels,
-		Meta:         r.Meta,
-		Enabled:      r.Enabled,
-		Trace:        r.Trace,
-		KeepSessions: r.KeepSessions,
-		Scope:        r.Scope,
-		Steps:        r.Steps,
-		Paths:        r.Paths,
-		RunAs:        r.RunAs,
-		OwnedBy:      r.OwnedBy,
-		UpdatedAt:    r.UpdatedAt,
-	}
-
-	wf, err := ctrl.svc.Update(ctx, workflow)
-	return ctrl.makePayload(ctx, wf, err)
-}
-
-func (ctrl Workflow) Read(ctx context.Context, r *request.WorkflowRead) (interface{}, error) {
-	wf, err := ctrl.svc.LookupByID(ctx, r.WorkflowID)
-	return ctrl.makePayload(ctx, wf, err)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl Workflow) beforeUpdate(ctx context.Context, res *types.Workflow, r *request.WorkflowUpdate) error {
+	res.Meta = r.Meta
+	res.Scope = r.Scope
+	res.Steps = r.Steps
+	res.Paths = r.Paths
+	return nil
 }
 
 func (ctrl Workflow) Test(ctx context.Context, r *request.WorkflowTest) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
-}
-
-func (ctrl Workflow) Delete(ctx context.Context, r *request.WorkflowDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.WorkflowID)
-}
-
-func (ctrl Workflow) Undelete(ctx context.Context, r *request.WorkflowUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.WorkflowID)
 }
 
 func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interface{}, error) {
@@ -204,7 +172,7 @@ func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interfa
 		return nil
 	})
 
-	wep.Results, wep.SessionID, wep.Trace, err = ctrl.svc.Exec(ctx, r.WorkflowID, execParams)
+	wep.Results, wep.SessionID, wep.Trace, err = ctrl.workflow.Exec(ctx, r.WorkflowID, execParams)
 
 	if err != nil && wep.Trace != nil && r.Trace {
 		// in case of an error & trace enabled (and stacktrace present)

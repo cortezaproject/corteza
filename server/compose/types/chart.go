@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/crusttech/human/server/pkg/sql"
@@ -16,23 +15,6 @@ import (
 )
 
 type (
-	Chart struct {
-		ID        uint64      `json:"chartID,string"`
-		TenantID  uint64      `json:"tenantID,string,omitempty"`
-		ProjectID uint64      `json:"projectID,string,omitempty"`
-		Handle    string      `json:"handle"`
-		Name   string      `json:"name"`
-		Config ChartConfig `json:"config"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		NamespaceID uint64 `json:"namespaceID,string"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	ChartConfig struct {
 		Reports     []*ChartConfigReport   `json:"reports,omitempty"`
 		ColorScheme string                 `json:"colorScheme,omitempty"`
@@ -64,7 +46,7 @@ type (
 		Name        string   `json:"name"`
 		Query       string   `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`

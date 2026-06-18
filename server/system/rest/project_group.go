@@ -12,8 +12,8 @@ import (
 
 type (
 	ProjectGroup struct {
-		svc projectGroupService
-		ac  projectGroupAccessController
+		projectGroup projectGroupService
+		ac           projectGroupAccessController
 	}
 
 	projectGroupPayload struct {
@@ -51,12 +51,12 @@ type (
 
 func (ProjectGroup) New() *ProjectGroup {
 	return &ProjectGroup{
-		svc: service.DefaultProjectGroup,
-		ac:  service.DefaultAccessControl,
+		projectGroup: service.DefaultProjectGroup,
+		ac:           service.DefaultAccessControl,
 	}
 }
 
-func (ctrl *ProjectGroup) List(ctx context.Context, r *request.ProjectGroupList) (interface{}, error) {
+func (ctrl *ProjectGroup) makeFilter(ctx context.Context, r *request.ProjectGroupList) (types.ProjectGroupFilter, error) {
 	var (
 		err error
 		f   = types.ProjectGroupFilter{
@@ -67,63 +67,46 @@ func (ctrl *ProjectGroup) List(ctx context.Context, r *request.ProjectGroupList)
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *ProjectGroup) Create(ctx context.Context, r *request.ProjectGroupCreate) (interface{}, error) {
-	g := &types.ProjectGroup{
-		ProjectID: r.ProjectID,
-		Handle:    r.Handle,
-		Meta: types.ProjectGroupMeta{
-			Short:       r.Name,
-			Description: r.Description,
-		},
-	}
-
-	g, err := ctrl.svc.Create(ctx, g)
-	return ctrl.makePayload(ctx, g, err)
+// beforeCreate fills the request params the generated Create cannot assign
+// directly onto the resource struct: name/description map onto res.Meta
+// (genHook: true) rather than plain fields, and projectID is a scope id the
+// endpoint drops under compound:false, so create restores it here. The
+// generated Create has already assigned the plain Handle field.
+func (ctrl *ProjectGroup) beforeCreate(ctx context.Context, res *types.ProjectGroup, r *request.ProjectGroupCreate) error {
+	res.ProjectID = r.ProjectID
+	res.Meta.Short = r.Name
+	res.Meta.Description = r.Description
+	return nil
 }
 
-func (ctrl *ProjectGroup) Read(ctx context.Context, r *request.ProjectGroupRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.ProjectGroupID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *ProjectGroup) Update(ctx context.Context, r *request.ProjectGroupUpdate) (interface{}, error) {
-	g := &types.ProjectGroup{
-		ID:     r.ProjectGroupID,
-		Handle: r.Handle,
-		Meta: types.ProjectGroupMeta{
-			Short:       r.Name,
-			Description: r.Description,
-		},
-		UpdatedAt: r.UpdatedAt,
-	}
-
-	g, err := ctrl.svc.Update(ctx, g)
-	return ctrl.makePayload(ctx, g, err)
-}
-
-func (ctrl *ProjectGroup) Delete(ctx context.Context, r *request.ProjectGroupDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.ProjectGroupID)
+// beforeUpdate fills the name/description request params onto res.Meta;
+// they are genHook: true because they map onto res.Meta rather than plain
+// struct fields. The generated Update has already assigned ID, the plain
+// Handle field and UpdatedAt.
+func (ctrl *ProjectGroup) beforeUpdate(ctx context.Context, res *types.ProjectGroup, r *request.ProjectGroupUpdate) error {
+	res.Meta.Short = r.Name
+	res.Meta.Description = r.Description
+	return nil
 }
 
 func (ctrl *ProjectGroup) EntryAdd(ctx context.Context, r *request.ProjectGroupEntryAdd) (interface{}, error) {
-	return api.OK(), ctrl.svc.MemberAdd(ctx, r.ProjectGroupID, r.ResourceRef)
+	return api.OK(), ctrl.projectGroup.MemberAdd(ctx, r.ProjectGroupID, r.ResourceRef)
 }
 
 func (ctrl *ProjectGroup) EntryRemove(ctx context.Context, r *request.ProjectGroupEntryRemove) (interface{}, error) {
-	return api.OK(), ctrl.svc.MemberRemove(ctx, r.ProjectGroupID, r.ResourceRef)
+	return api.OK(), ctrl.projectGroup.MemberRemove(ctx, r.ProjectGroupID, r.ResourceRef)
 }
 
 func (ctrl *ProjectGroup) makePayload(ctx context.Context, g *types.ProjectGroup, err error) (*projectGroupPayload, error) {
@@ -131,7 +114,7 @@ func (ctrl *ProjectGroup) makePayload(ctx context.Context, g *types.ProjectGroup
 		return nil, err
 	}
 
-	entries, _ := ctrl.svc.MemberList(ctx, g.ID)
+	entries, _ := ctrl.projectGroup.MemberList(ctx, g.ID)
 
 	return &projectGroupPayload{
 		ProjectGroup:     g,

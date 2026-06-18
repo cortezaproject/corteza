@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/system/agentic/tcl"
-	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
@@ -15,8 +14,8 @@ import (
 
 type (
 	Agent struct {
-		svc agentService
-		ac  agentAccessController
+		agent agentService
+		ac    agentAccessController
 	}
 
 	agentPayload struct {
@@ -52,12 +51,13 @@ type (
 
 func (Agent) New() *Agent {
 	return &Agent{
-		svc: service.DefaultAgent,
-		ac:  service.DefaultAccessControl,
+		agent: service.DefaultAgent,
+		ac:    service.DefaultAccessControl,
 	}
 }
 
-func (ctrl *Agent) List(ctx context.Context, r *request.AgentList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Agent) makeFilter(ctx context.Context, r *request.AgentList) (types.AgentFilter, error) {
 	var (
 		err error
 		f   = types.AgentFilter{
@@ -70,74 +70,46 @@ func (ctrl *Agent) List(ctx context.Context, r *request.AgentList) (interface{},
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Agent) Create(ctx context.Context, r *request.AgentCreate) (interface{}, error) {
-	var (
-		err error
-		a   = &types.Agent{
-			Handle:     r.Handle,
-			Status:     r.Status,
-			Meta:       r.Meta,
-			Behavior:   r.Behavior,
-			Execution:  r.Execution,
-			Access:     r.Access,
-			Invocation: r.Invocation,
-			Labels:     r.Labels,
-		}
-	)
-
-	a, err = ctrl.svc.Create(ctx, a)
-	return ctrl.makePayload(ctx, a, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *Agent) beforeCreate(ctx context.Context, res *types.Agent, r *request.AgentCreate) error {
+	res.Meta = r.Meta
+	res.Behavior = r.Behavior
+	res.Execution = r.Execution
+	res.Access = r.Access
+	res.Invocation = r.Invocation
+	res.Labels = r.Labels
+	return nil
 }
 
-func (ctrl *Agent) Read(ctx context.Context, r *request.AgentRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.AgentID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *Agent) Update(ctx context.Context, r *request.AgentUpdate) (interface{}, error) {
-	var (
-		err error
-		a   = &types.Agent{
-			ID:         r.AgentID,
-			Handle:     r.Handle,
-			Status:     r.Status,
-			Meta:       r.Meta,
-			Behavior:   r.Behavior,
-			Execution:  r.Execution,
-			Access:     r.Access,
-			Invocation: r.Invocation,
-			UpdatedAt:  r.UpdatedAt,
-			Labels:     r.Labels,
-		}
-	)
-
-	a, err = ctrl.svc.Update(ctx, a)
-	return ctrl.makePayload(ctx, a, err)
-}
-
-func (ctrl *Agent) Delete(ctx context.Context, r *request.AgentDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.AgentID)
-}
-
-func (ctrl *Agent) Undelete(ctx context.Context, r *request.AgentUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.AgentID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *Agent) beforeUpdate(ctx context.Context, res *types.Agent, r *request.AgentUpdate) error {
+	res.Meta = r.Meta
+	res.Behavior = r.Behavior
+	res.Execution = r.Execution
+	res.Access = r.Access
+	res.Invocation = r.Invocation
+	res.Labels = r.Labels
+	return nil
 }
 
 func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{}, error) {
-	a, err := ctrl.svc.FindByID(ctx, r.AgentID)
+	a, err := ctrl.agent.FindByID(ctx, r.AgentID)
 	if err != nil {
 		return nil, err
 	}

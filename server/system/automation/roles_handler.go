@@ -16,15 +16,15 @@ type (
 	roleService interface {
 		FindByID(ctx context.Context, roleID uint64) (*types.Role, error)
 		FindByHandle(ctx context.Context, handle string) (*types.Role, error)
-		Find(ctx context.Context, filter types.RoleFilter) (set types.RoleSet, f types.RoleFilter, err error)
+		Search(ctx context.Context, filter types.RoleFilter) (set types.RoleSet, f types.RoleFilter, err error)
 
 		Create(ctx context.Context, role *types.Role) (*types.Role, error)
 		Update(ctx context.Context, role *types.Role) (*types.Role, error)
 
-		Delete(ctx context.Context, id uint64) error
+		DeleteByID(ctx context.Context, id uint64) error
 		Archive(ctx context.Context, id uint64) error
 		Unarchive(ctx context.Context, id uint64) error
-		Undelete(ctx context.Context, id uint64) error
+		UndeleteByID(ctx context.Context, id uint64) error
 
 		Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error)
 		MemberList(ctx context.Context, roleID uint64) (types.RoleMemberSet, error)
@@ -248,7 +248,7 @@ func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (result
 	}
 
 	var auxf types.RoleFilter
-	results.Roles, auxf, err = h.rSvc.Find(ctx, f)
+	results.Roles, auxf, err = h.rSvc.Search(ctx, f)
 	results.Total = uint64(auxf.Total)
 	return
 }
@@ -309,7 +309,7 @@ func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (out wfexec
 
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
-		i.buffer, i.filter, err = h.rSvc.Find(ctx, i.filter)
+		i.buffer, i.filter, err = h.rSvc.Search(ctx, i.filter)
 
 		return
 	}
@@ -334,7 +334,7 @@ func (h rolesHandler) delete(ctx context.Context, args *rolesDeleteArgs) error {
 	if id, err := getRoleID(ctx, h.rSvc, args); err != nil {
 		return err
 	} else {
-		return h.rSvc.Delete(ctx, id)
+		return h.rSvc.DeleteByID(ctx, id)
 	}
 }
 
@@ -342,7 +342,7 @@ func (h rolesHandler) recover(ctx context.Context, args *rolesRecoverArgs) error
 	if id, err := getRoleID(ctx, h.rSvc, args); err != nil {
 		return err
 	} else {
-		return h.rSvc.Undelete(ctx, id)
+		return h.rSvc.UndeleteByID(ctx, id)
 	}
 }
 

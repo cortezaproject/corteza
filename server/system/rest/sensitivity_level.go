@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -14,8 +13,8 @@ import (
 )
 
 type (
-	SensitivityLevel struct {
-		svc sensitivityLevelService
+	DalSensitivityLevel struct {
+		dalSensitivityLevel dalSensitivityLevelService
 	}
 
 	sensitivityLevelSetPayload struct {
@@ -27,7 +26,7 @@ type (
 		*types.DalSensitivityLevel
 	}
 
-	sensitivityLevelService interface {
+	dalSensitivityLevelService interface {
 		FindByID(ctx context.Context, ID uint64) (*types.DalSensitivityLevel, error)
 		Create(ctx context.Context, new *types.DalSensitivityLevel) (*types.DalSensitivityLevel, error)
 		Update(ctx context.Context, upd *types.DalSensitivityLevel) (*types.DalSensitivityLevel, error)
@@ -37,23 +36,19 @@ type (
 	}
 )
 
-func (SensitivityLevel) New() *SensitivityLevel {
-	return &SensitivityLevel{
-		svc: service.DefaultDalSensitivityLevel,
+func (DalSensitivityLevel) New() *DalSensitivityLevel {
+	return &DalSensitivityLevel{
+		dalSensitivityLevel: service.DefaultDalSensitivityLevel,
 	}
 }
 
-func (ctrl SensitivityLevel) List(ctx context.Context, r *request.DalSensitivityLevelList) (interface{}, error) {
-	var (
-		err error
-		set types.DalSensitivityLevelSet
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl DalSensitivityLevel) makeFilter(ctx context.Context, r *request.DalSensitivityLevelList) (types.DalSensitivityLevelFilter, error) {
+	f := types.DalSensitivityLevelFilter{
+		DalSensitivityLevelID: r.SensitivityLevelID,
 
-		f = types.DalSensitivityLevelFilter{
-			DalSensitivityLevelID: r.SensitivityLevelID,
-
-			Deleted: filter.State(r.Deleted),
-		}
-	)
+		Deleted: filter.State(r.Deleted),
+	}
 
 	if f.Deleted == 0 {
 		f.Deleted = filter.StateExcluded
@@ -61,45 +56,26 @@ func (ctrl SensitivityLevel) List(ctx context.Context, r *request.DalSensitivity
 
 	f.IncTotal = r.IncTotal
 
-	set, f, err = ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl SensitivityLevel) Create(ctx context.Context, r *request.DalSensitivityLevelCreate) (interface{}, error) {
-	sensitivityLevel := &types.DalSensitivityLevel{
-		Handle: r.Handle,
-		Level:  r.Level,
-		Meta:   r.Meta,
-	}
-
-	return ctrl.svc.Create(ctx, sensitivityLevel)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl DalSensitivityLevel) beforeCreate(ctx context.Context, res *types.DalSensitivityLevel, r *request.DalSensitivityLevelCreate) error {
+	res.Meta = r.Meta
+	return nil
 }
 
-func (ctrl SensitivityLevel) Update(ctx context.Context, r *request.DalSensitivityLevelUpdate) (interface{}, error) {
-	sensitivityLevel := &types.DalSensitivityLevel{
-		ID:        r.SensitivityLevelID,
-		Handle:    r.Handle,
-		Level:     r.Level,
-		Meta:      r.Meta,
-		UpdatedAt: r.UpdatedAt,
-	}
-
-	return ctrl.svc.Update(ctx, sensitivityLevel)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl DalSensitivityLevel) beforeUpdate(ctx context.Context, res *types.DalSensitivityLevel, r *request.DalSensitivityLevelUpdate) error {
+	res.Meta = r.Meta
+	return nil
 }
 
-func (ctrl SensitivityLevel) Read(ctx context.Context, r *request.DalSensitivityLevelRead) (interface{}, error) {
-	return ctrl.svc.FindByID(ctx, r.SensitivityLevelID)
-}
-
-func (ctrl SensitivityLevel) Delete(ctx context.Context, r *request.DalSensitivityLevelDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.SensitivityLevelID)
-}
-
-func (ctrl SensitivityLevel) Undelete(ctx context.Context, r *request.DalSensitivityLevelUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.SensitivityLevelID)
-}
-
-func (ctrl SensitivityLevel) makePayload(ctx context.Context, res *types.DalSensitivityLevel, err error) (*sensitivityLevelPayload, error) {
+func (ctrl DalSensitivityLevel) makePayload(ctx context.Context, res *types.DalSensitivityLevel, err error) (*sensitivityLevelPayload, error) {
 	if err != nil || res == nil {
 		return nil, err
 	}
@@ -109,7 +85,7 @@ func (ctrl SensitivityLevel) makePayload(ctx context.Context, res *types.DalSens
 	return pl, nil
 }
 
-func (ctrl SensitivityLevel) makeFilterPayload(ctx context.Context, rr types.DalSensitivityLevelSet, f types.DalSensitivityLevelFilter, err error) (*sensitivityLevelSetPayload, error) {
+func (ctrl DalSensitivityLevel) makeFilterPayload(ctx context.Context, rr types.DalSensitivityLevelSet, f types.DalSensitivityLevelFilter, err error) (*sensitivityLevelSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +98,7 @@ func (ctrl SensitivityLevel) makeFilterPayload(ctx context.Context, rr types.Dal
 	return out, nil
 }
 
-func (ctrl SensitivityLevel) serve(ctx context.Context, fn string, archive io.ReadSeeker, err error) (interface{}, error) {
+func (ctrl DalSensitivityLevel) serve(ctx context.Context, fn string, archive io.ReadSeeker, err error) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}

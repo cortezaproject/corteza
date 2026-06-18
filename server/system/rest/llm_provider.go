@@ -30,7 +30,7 @@ type (
 
 	llmProviderService interface {
 		Create(ctx context.Context, p *types.LlmProvider, apiKey string) (*types.LlmProvider, error)
-		LookupByID(ctx context.Context, id uint64) (*types.LlmProvider, error)
+		FindByID(ctx context.Context, id uint64) (*types.LlmProvider, error)
 		Update(ctx context.Context, p *types.LlmProvider, apiKey string) (*types.LlmProvider, error)
 		Delete(ctx context.Context, id uint64, deletedBy uint64) error
 		Search(ctx context.Context, f types.LlmProviderFilter) (types.LlmProviderSet, error)
@@ -71,7 +71,7 @@ func (ctrl LlmProvider) Create(ctx context.Context, r *request.LlmProviderCreate
 }
 
 func (ctrl LlmProvider) Read(ctx context.Context, r *request.LlmProviderRead) (interface{}, error) {
-	p, err := ctrl.svc.LookupByID(ctx, r.LlmProviderID)
+	p, err := ctrl.svc.FindByID(ctx, r.LlmProviderID)
 	if err != nil {
 		return nil, err
 	}

@@ -21,10 +21,10 @@ type (
 		Create(ctx context.Context, user *types.User) (*types.User, error)
 		Update(ctx context.Context, user *types.User) (*types.User, error)
 
-		Delete(ctx context.Context, id uint64) error
+		DeleteByID(ctx context.Context, id uint64) error
 		Suspend(ctx context.Context, id uint64) error
 		Unsuspend(ctx context.Context, id uint64) error
-		Undelete(ctx context.Context, id uint64) error
+		UndeleteByID(ctx context.Context, id uint64) error
 	}
 
 	usersHandler struct {
@@ -95,7 +95,7 @@ func (h usersHandler) searchMembership(ctx context.Context, args *usersSearchMem
 		rr[i] = strconv.FormatUint(r.RoleID, 10)
 	}
 
-	results.Roles, _, err = h.rSvc.Find(ctx, types.RoleFilter{
+	results.Roles, _, err = h.rSvc.Search(ctx, types.RoleFilter{
 		RoleID: rr,
 	})
 	results.Total = uint64(len(results.Roles))
@@ -285,7 +285,7 @@ func (h usersHandler) delete(ctx context.Context, args *usersDeleteArgs) error {
 	if id, err := getUserID(ctx, h.uSvc, args); err != nil {
 		return err
 	} else {
-		return h.uSvc.Delete(ctx, id)
+		return h.uSvc.DeleteByID(ctx, id)
 	}
 }
 
@@ -293,7 +293,7 @@ func (h usersHandler) recover(ctx context.Context, args *usersRecoverArgs) error
 	if id, err := getUserID(ctx, h.uSvc, args); err != nil {
 		return err
 	} else {
-		return h.uSvc.Undelete(ctx, id)
+		return h.uSvc.UndeleteByID(ctx, id)
 	}
 }
 

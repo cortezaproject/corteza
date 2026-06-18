@@ -67,8 +67,11 @@ func PageLayout() *pageLayout {
 	}
 }
 
-func (svc pageLayout) FindByID(ctx context.Context, namespaceID, pageLayoutID uint64) (p *types.PageLayout, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
+// onLookup is the generated FindByID body handler. FindByID is scoped to the
+// namespace parent only (per opParents.lookup) so the page id is not part of the
+// signature.
+func (svc *pageLayout) onLookup(ctx context.Context, namespaceID, pageLayoutID uint64, aProps *pageLayoutActionProps) (p *types.PageLayout, err error) {
+	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
 		if pageLayoutID == 0 {
 			return nil, PageLayoutErrInvalidID()
 		}
@@ -78,8 +81,10 @@ func (svc pageLayout) FindByID(ctx context.Context, namespaceID, pageLayoutID ui
 	})
 }
 
-func (svc pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.PageLayout, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
+func (svc *pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.PageLayout, err error) {
+	var aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{NamespaceID: namespaceID}}
+
+	c, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
 		if !handle.IsValid(h) {
 			return nil, PageLayoutErrInvalidHandle()
 		}
@@ -87,10 +92,14 @@ func (svc pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h st
 		aProps.pageLayout.Handle = h
 		return store.LookupComposePageLayoutByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
+
+	return c, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
 }
 
-func (svc pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID, pageLayoutID uint64) (p *types.PageLayout, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
+func (svc *pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID, pageLayoutID uint64) (p *types.PageLayout, err error) {
+	var aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{NamespaceID: namespaceID}}
+
+	p, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
 		if pageLayoutID == 0 {
 			return nil, PageLayoutErrInvalidID()
 		}
@@ -98,6 +107,8 @@ func (svc pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID, pageL
 		aProps.pageLayout.ID = pageLayoutID
 		return store.LookupComposePageLayoutByID(ctx, svc.store, pageLayoutID)
 	})
+
+	return p, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
 }
 
 func checkPageLayout(ctx context.Context, ac pageLayoutAccessController) func(res *types.PageLayout) (bool, error) {
@@ -110,79 +121,78 @@ func checkPageLayout(ctx context.Context, ac pageLayoutAccessController) func(re
 	}
 }
 
-// search fn() orchestrates pageLayouts search, namespace preload and check
-func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error) {
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper and aProps (filter) are owned by the generated
+// page_layout.gen.go; this handler runs the namespace/page preload, access check
+// and store search.
+func (svc *pageLayout) onSearch(ctx context.Context, filter types.PageLayoutFilter, aProps *pageLayoutActionProps) (set types.PageLayoutSet, f types.PageLayoutFilter, err error) {
 	var (
-		aProps = &pageLayoutActionProps{filter: &filter}
-		ns     *types.Namespace
-		pg     *types.Page
+		ns *types.Namespace
+		pg *types.Page
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = checkPageLayout(ctx, svc.ac)
 
-	err = func() error {
-		if filter.PageID > 0 {
-			ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
-			if err != nil {
-				return err
-			}
-			if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
-				return PageLayoutErrNotAllowedToSearch()
-			}
-		} else {
-			ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
-			if err != nil {
-				return err
-			}
+	if filter.PageID > 0 {
+		ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
+		if err != nil {
+			return
+		}
+		if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
+			return nil, f, PageLayoutErrNotAllowedToSearch()
+		}
+	} else {
+		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+		if err != nil {
+			return
+		}
+	}
+
+	aProps.setNamespace(ns)
+
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.PageLayout{}.LabelResourceKind(),
+			filter.Labels,
+		)
+
+		if err != nil {
+			return
 		}
 
-		aProps.setNamespace(ns)
-
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.PageLayout{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return
 		}
+	}
 
-		if set, f, err = store.SearchComposePageLayouts(ctx, svc.store, filter); err != nil {
-			return err
-		}
+	if set, f, err = store.SearchComposePageLayouts(ctx, svc.store, filter); err != nil {
+		return
+	}
 
-		if err = label.Load(ctx, svc.store, toLabeledPageLayouts(set)...); err != nil {
-			return err
-		}
+	if err = label.Load(ctx, svc.store, toLabeledPageLayouts(set)...); err != nil {
+		return
+	}
 
-		// i18n
-		tag := locale.GetAcceptLanguageFromContext(ctx)
-		set.Walk(func(p *types.PageLayout) error {
-			p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
-			return nil
-		})
-
+	// i18n
+	tag := locale.GetAcceptLanguageFromContext(ctx)
+	set.Walk(func(p *types.PageLayout) error {
+		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
 		return nil
-	}()
+	})
 
-	return set, f, svc.recordAction(ctx, aProps, PageLayoutActionSearch, err)
+	return
 }
 
-func (svc pageLayout) Find(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error) {
-	return svc.search(ctx, filter)
-}
-
-func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types.PageLayout, error) {
+// onCreate is the generated Create body handler.
+//
+// The recordAction wrapper, aProps and res=new assignment are owned by the
+// generated page_layout.gen.go.
+func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) error {
 	var (
 		aProps = &pageLayoutActionProps{pageLayout: new}
 		ns     *types.Namespace
@@ -191,7 +201,7 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 
 	new.ID = 0
 
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return PageLayoutErrInvalidID()
 		}
@@ -244,11 +254,9 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 		_ = svc.eventbus.WaitFor(ctx, event.PageLayoutAfterCreate(new, nil, ns, nil))
 		return err
 	})
-
-	return new, svc.recordAction(ctx, aProps, PageLayoutActionCreate, err)
 }
 
-func (svc pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, pageLayoutIDs []uint64) (err error) {
+func (svc *pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, pageLayoutIDs []uint64) (err error) {
 	var (
 		aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{ID: pageID}}
 		p      *types.Page
@@ -276,7 +284,8 @@ func (svc pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, p
 
 }
 
-func (svc pageLayout) Update(ctx context.Context, upd *types.PageLayout) (c *types.PageLayout, err error) {
+// onUpdate is the generated Update body handler.
+func (svc *pageLayout) onUpdate(ctx context.Context, upd *types.PageLayout, aProps *pageLayoutActionProps) (c *types.PageLayout, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, pg, res, err := loadPageLayoutCombo(ctx, s, upd.NamespaceID, upd.PageID, upd.ID)
 		if err != nil {
@@ -290,7 +299,9 @@ func (svc pageLayout) Update(ctx context.Context, upd *types.PageLayout) (c *typ
 	return
 }
 
-func (svc pageLayout) DeleteByID(ctx context.Context, namespaceID, pageID, pageLayoutID uint64) error {
+// onDelete is the generated DeleteByID body handler (namespace+page-scoped
+// compound id).
+func (svc *pageLayout) onDelete(ctx context.Context, namespaceID, pageID, pageLayoutID uint64, aProps *pageLayoutActionProps) error {
 	var (
 		ns  *types.Namespace
 		pg  *types.Page
@@ -309,7 +320,9 @@ func (svc pageLayout) DeleteByID(ctx context.Context, namespaceID, pageID, pageL
 	})
 }
 
-func (svc pageLayout) UndeleteByID(ctx context.Context, namespaceID, pageID, pageLayoutID uint64) error {
+// onUndelete is the generated UndeleteByID body handler (namespace+page-scoped
+// compound id).
+func (svc *pageLayout) onUndelete(ctx context.Context, namespaceID, pageID, pageLayoutID uint64, aProps *pageLayoutActionProps) error {
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, pg, res, err := loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
 		if err != nil {
@@ -321,7 +334,7 @@ func (svc pageLayout) UndeleteByID(ctx context.Context, namespaceID, pageID, pag
 	})
 }
 
-func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, pg *types.Page, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
+func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, pg *types.Page, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
 	var (
 		changes pageLayoutChanges
 		old     *types.PageLayout
@@ -381,9 +394,14 @@ func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Nam
 	return res, svc.recordAction(ctx, aProps, action, err)
 }
 
-// lookup fn() orchestrates pageLayout lookup, namespace preload and check
-func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup func(*pageLayoutActionProps) (*types.PageLayout, error)) (p *types.PageLayout, err error) {
-	var aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{NamespaceID: namespaceID}}
+// lookup fn() orchestrates pageLayout lookup, namespace preload and check.
+//
+// The recordAction wrapper is owned by the caller (the generated onLookup path
+// via page_layout.gen.go, or the custom FindBy* methods).
+func (svc *pageLayout) lookup(ctx context.Context, namespaceID uint64, aProps *pageLayoutActionProps, lookup func(*pageLayoutActionProps) (*types.PageLayout, error)) (p *types.PageLayout, err error) {
+	if aProps.pageLayout == nil {
+		aProps.pageLayout = &types.PageLayout{NamespaceID: namespaceID}
+	}
 
 	err = func() error {
 		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
@@ -413,10 +431,10 @@ func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup fun
 		return nil
 	}()
 
-	return p, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
+	return p, err
 }
 
-func (svc pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err error) {
+func (svc *pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err error) {
 	if p.Handle != "" {
 		if e, _ := store.LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx, svc.store, p.NamespaceID, p.PageID, p.Handle); e != nil && e.ID != p.ID {
 			return PageLayoutErrHandleNotUnique()
@@ -426,7 +444,7 @@ func (svc pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err
 	return nil
 }
 
-func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) pageLayoutUpdateHandler {
+func (svc *pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) pageLayoutUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, pg *types.Page, res *types.PageLayout) (changes pageLayoutChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return pageLayoutUnchanged, PageLayoutErrStaleData()
@@ -536,7 +554,7 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 	}
 }
 
-func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
+func (svc *pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
 		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
@@ -553,7 +571,7 @@ func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg 
 	return pageLayoutChanged, nil
 }
 
-func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
+func (svc *pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
 		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
@@ -616,20 +634,4 @@ func loadPageLayout(ctx context.Context, s store.ComposePageLayouts, namespaceID
 	}
 
 	return
-}
-
-// toLabeledPageLayouts converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledPageLayouts(set []*types.PageLayout) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

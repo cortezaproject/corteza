@@ -1,38 +1,12 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	ConfiguredConnection struct {
-		ID           uint64 `json:"configurationID,string"`
-		TenantID     uint64 `json:"tenantID,string,omitempty"`
-		ProjectID    uint64 `json:"projectID,string,omitempty"`
-		ConnectionID uint64 `json:"connectionID,string"`
-
-		Name   string `json:"name"`
-		Status string `json:"status"`
-
-		Connection Connection                 `json:"connection"`
-		Config     ConfiguredConnectionConfig `json:"config"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	ConfiguredConnectionConfig struct {
 		NamespaceID     uint64 `json:"namespaceID,string"`
 		DalConnectionID uint64 `json:"dalConnectionID,string"`
@@ -77,16 +51,3 @@ type (
 		Message string `json:"message,omitempty"`
 	}
 )
-
-func ParseConfiguredConnectionConfig(ss []string) (m ConfiguredConnectionConfig, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func (m *ConfiguredConnectionConfig) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ConfiguredConnectionConfig) Value() (driver.Value, error) { return json.Marshal(m) }
-func (m *Connection) Scan(src any) error                          { return sql.ParseJSON(src, m) }
-func (m Connection) Value() (driver.Value, error)                 { return json.Marshal(m) }

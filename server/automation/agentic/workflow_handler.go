@@ -127,7 +127,7 @@ func (h *workflowHandler) resolve(ctx context.Context, ref interface{}) (*autoTy
 	}
 
 	if id, err := strconv.ParseUint(refStr, 10, 64); err == nil {
-		return autoService.DefaultWorkflow.LookupByID(ctx, id)
+		return autoService.DefaultWorkflow.FindByID(ctx, id)
 	}
 
 	set, _, err := autoService.DefaultWorkflow.Search(ctx, autoTypes.WorkflowFilter{Handle: refStr})

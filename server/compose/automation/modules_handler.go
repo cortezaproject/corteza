@@ -10,7 +10,7 @@ type (
 	moduleService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID uint64) (*types.Module, error)
 		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Module, error)
-		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
+		Search(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 
 		Create(ctx context.Context, module *types.Module) (*types.Module, error)
 		Update(ctx context.Context, module *types.Module) (*types.Module, error)

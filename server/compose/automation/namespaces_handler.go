@@ -10,7 +10,7 @@ type (
 	namespaceService interface {
 		FindByID(ctx context.Context, namespaceID uint64) (*types.Namespace, error)
 		FindByHandle(ctx context.Context, handle string) (*types.Namespace, error)
-		Find(ctx context.Context, filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error)
+		Search(ctx context.Context, filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error)
 
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Update(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)

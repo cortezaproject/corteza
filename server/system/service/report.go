@@ -7,18 +7,24 @@ import (
 	"strings"
 
 	"github.com/crusttech/human/server/pkg/dal"
-	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/reporting"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )
+
+// The CRUD skeleton (LookupByID, Search, Create, Update, Delete, Undelete,
+// loadReport and toLabeledReports) is generated in report.gen.go from
+// system/report.cue.
+//
+// This file owns the struct, access-controller interface, constructor, the
+// before-create / before-update hooks the generated Create / Update call into,
+// and the custom methods (Describe, Run and helpers).
 
 type (
 	report struct {
@@ -64,242 +70,25 @@ func Report(s store.Storer, ac reportAccessController, al actionlog.Recorder, eb
 	}
 }
 
-func (svc *report) LookupByID(ctx context.Context, ID uint64) (report *types.Report, err error) {
-	var (
-		aaProps = &reportActionProps{report: &types.Report{ID: ID}}
-	)
-
-	err = func() error {
-		if report, err = loadReport(ctx, svc.store, ID); err != nil {
-			return ReportErrInvalidID().Wrap(err)
-		}
-
-		if !svc.ac.CanReadReport(ctx, report) {
-			return ReportErrNotAllowedToRead()
-		}
-
-		return nil
-	}()
-
-	return report, svc.recordAction(ctx, aaProps, ReportActionLookup, err)
-}
-
-func (svc *report) Search(ctx context.Context, rf types.ReportFilter) (rr types.ReportSet, f types.ReportFilter, err error) {
-	var (
-		aaProps = &reportActionProps{filter: &rf}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	rf.Check = func(res *types.Report) (bool, error) {
-		if !svc.ac.CanReadReport(ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
+// beforeCreate runs after the access check and before the generated Create
+// assigns the ID / timestamps and persists. It defaults the Meta and assigns
+// IDs to nested scenarios / blocks / elements.
+func (svc *report) beforeCreate(ctx context.Context, new *types.Report) error {
+	if new.Meta == nil {
+		new.Meta = &types.ReportMeta{}
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchReports(ctx) {
-			return ReportErrNotAllowedToSearch()
-		}
-
-		if len(rf.Labels) > 0 {
-			rf.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Report{}.LabelResourceKind(),
-				rf.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(rf.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if rr, f, err = store.SearchReports(ctx, svc.store, rf); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledReports(rr)...); err != nil {
-			return err
-		}
-
-		return nil
-
-	}()
-
-	return rr, f, svc.recordAction(ctx, aaProps, ReportActionSearch, err)
+	svc.setIDs(new)
+	return nil
 }
 
-func (svc *report) Create(ctx context.Context, new *types.Report) (report *types.Report, err error) {
-	var (
-		aaProps = &reportActionProps{report: new}
-	)
-
-	err = func() (err error) {
-		if !svc.ac.CanCreateReport(ctx) {
-			return ReportErrNotAllowedToCreate()
-		}
-
-		// if err = svc.eventbus.WaitFor(ctx, event.ReportBeforeCreate(new, nil)); err != nil {
-		// 	return
-		// }
-
-		// Set new values after beforeCreate events are emitted
-		new.ID = nextID()
-		new.CreatedAt = *now()
-
-		if new.Meta == nil {
-			new.Meta = &types.ReportMeta{}
-		}
-
-		new = svc.setIDs(new)
-
-		aaProps.setNew(new)
-
-		if err = store.CreateReport(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		report = new
-
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterCreate(new, nil))
-		return nil
-	}()
-
-	return report, svc.recordAction(ctx, aaProps, ReportActionCreate, err)
-}
-
-func (svc *report) Update(ctx context.Context, upd *types.Report) (report *types.Report, err error) {
-	var (
-		aaProps = &reportActionProps{update: upd}
-	)
-
-	err = func() (err error) {
-		if report, err = loadReport(ctx, svc.store, upd.ID); err != nil {
-			return
-		}
-
-		aaProps.setReport(report)
-
-		if !svc.ac.CanUpdateReport(ctx, report) {
-			return ReportErrNotAllowedToUpdate()
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, report.UpdatedAt, report.CreatedAt) {
-			return ReportErrStaleData()
-		}
-
-		// if err = svc.eventbus.WaitFor(ctx, event.ReportBeforeUpdate(upd, report)); err != nil {
-		// 	return
-		// }
-
-		// Assign changed values after afterUpdate events are emitted
-		report.Handle = upd.Handle
-		report.Meta = upd.Meta
-		report.Scenarios = upd.Scenarios
-		report.Sources = upd.Sources
-		report.Blocks = upd.Blocks
-		report.UpdatedAt = now()
-
-		if upd.Meta != nil {
-			report.Meta = upd.Meta
-		}
-
-		report = svc.setIDs(report)
-
-		if err = store.UpdateReport(ctx, svc.store, report); err != nil {
-			return err
-		}
-
-		if label.Changed(report.Labels, upd.Labels) {
-			if err = label.Update(ctx, svc.store, upd); err != nil {
-				return
-			}
-			report.Labels = upd.Labels
-		}
-
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterUpdate(upd, report))
-		return nil
-	}()
-
-	return report, svc.recordAction(ctx, aaProps, ReportActionUpdate, err)
-}
-
-func (svc *report) Delete(ctx context.Context, ID uint64) (err error) {
-	var (
-		aaProps = &reportActionProps{}
-		report  *types.Report
-	)
-
-	err = func() (err error) {
-		if report, err = loadReport(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		aaProps.setReport(report)
-
-		if !svc.ac.CanDeleteReport(ctx, report) {
-			return ReportErrNotAllowedToDelete()
-		}
-
-		// if err = svc.eventbus.WaitFor(ctx, event.ReportBeforeDelete(nil, report)); err != nil {
-		// 	return
-		// }
-
-		report.DeletedAt = now()
-		if err = store.UpdateReport(ctx, svc.store, report); err != nil {
-			return
-		}
-
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterDelete(nil, report))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, aaProps, ReportActionDelete, err)
-}
-
-func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
-	var (
-		aaProps = &reportActionProps{}
-		report  *types.Report
-	)
-
-	err = func() (err error) {
-		if report, err = loadReport(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		aaProps.setReport(report)
-
-		if !svc.ac.CanDeleteReport(ctx, report) {
-			return ReportErrNotAllowedToUndelete()
-		}
-
-		// if err = svc.eventbus.WaitFor(ctx, event.ReportBeforeUndelete(nil, app)); err != nil {
-		// 	return
-		// }
-
-		report.DeletedAt = nil
-		if err = store.UpdateReport(ctx, svc.store, report); err != nil {
-			return
-		}
-
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterUndelete(nil, app))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, aaProps, ReportActionUndelete, err)
+// beforeUpdate runs after the stale-data guard and before the generated Update
+// copies the mutable fields onto the loaded record. We assign IDs to nested
+// scenarios / blocks / elements on the incoming resource so the subsequent
+// field copy carries them onto the persisted record.
+func (svc *report) beforeUpdate(ctx context.Context, upd, existing *types.Report) error {
+	svc.setIDs(upd)
+	return nil
 }
 
 // @todo actionlog?
@@ -500,32 +289,4 @@ func (svc *report) setIDs(r *types.Report) *types.Report {
 	}
 
 	return r
-}
-
-func loadReport(ctx context.Context, s store.Reports, ID uint64) (res *types.Report, err error) {
-	if ID == 0 {
-		return nil, ReportErrInvalidID()
-	}
-
-	if res, err = store.LookupReportByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, ReportErrNotFound()
-	}
-
-	return
-}
-
-// toLabeledReports converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledReports(set []*types.Report) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

@@ -21,11 +21,6 @@ import (
 		omit: bool | *false
 	}
 
-	// REST endpoint definitions (ported from the legacy per-component rest.yaml).
-	// Consumed by server.rest.cue to generate rest/handlers, rest/request and
-	// the opt-in rest/<entrypoint>.gen.go controllers.
-	rest?: #rest
-
 	// All known RBAC operations for this component
 	rbac: #rbacComponent & {
 		operations: {

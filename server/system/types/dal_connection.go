@@ -1,42 +1,12 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/geolocation"
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	DalConnection struct {
-		ID     uint64 `json:"connectionID,string"`
-		Handle string `json:"handle"`
-		Type   string `json:"type"`
-
-		// descriptions, notes, and other user-provided meta-data
-		Meta DalConnectionMeta `json:"meta"`
-
-		// collection of configurations for various subsystems that
-		// use this connection and how it affects their behaviour
-		Config DalConnectionConfig `json:"config"`
-
-		Issues []dal.Issue `json:"issues,omitempty"`
-
-		Labels map[string]string `json:"labels,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	// Meta ...................................................................
 
 	DalConnectionMeta struct {
@@ -126,26 +96,3 @@ func (c DalConnection) HasIssues() bool {
 	return len(c.Issues) > 0
 }
 
-func ParseDalConnectionConfig(ss []string) (m DalConnectionConfig, err error) {
-	if len(ss) == 0 {
-		return
-	}
-
-	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func ParseDalConnectionMeta(ss []string) (m DalConnectionMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-
-	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func (nm *DalConnectionConfig) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm DalConnectionConfig) Value() (driver.Value, error) { return json.Marshal(nm) }
-
-func (nm *DalConnectionMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm DalConnectionMeta) Value() (driver.Value, error) { return json.Marshal(nm) }

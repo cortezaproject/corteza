@@ -1,42 +1,13 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
-	"strconv"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
-	Agent struct {
-		ID        uint64 `json:"agentID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Handle    string `json:"handle"`
-		Status    string `json:"status"`
-		Revision  int    `json:"revision"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		Meta       AgentMeta       `json:"meta"`
-		Behavior   AgentBehavior   `json:"behavior"`
-		Execution  AgentExecution  `json:"execution"`
-		Access     AgentAccess     `json:"access"`
-		Invocation AgentInvocation `json:"invocation"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	AgentMeta struct {
 		Short        string   `json:"short"`
 		Description  string   `json:"description,omitempty"`
@@ -59,8 +30,8 @@ type (
 	}
 
 	AgentExecutionModel struct {
-		LLMProviderID uint64  `json:"llmProviderID,string,omitempty"`
-		Model         string  `json:"model,omitempty"`
+		LLMProviderID uint64   `json:"llmProviderID,string,omitempty"`
+		Model         string   `json:"model,omitempty"`
 		Temperature   *float64 `json:"temperature,omitempty"`
 	}
 
@@ -97,10 +68,10 @@ type (
 	}
 
 	AgentAccessTool struct {
-		Name    string                 `json:"name"`
-		Description string             `json:"description"`
-		Allow   []AgentAccessAllow     `json:"allow"`
-		Context AgentAccessToolContext `json:"context,omitempty"`
+		Name        string                 `json:"name"`
+		Description string                 `json:"description"`
+		Allow       []AgentAccessAllow     `json:"allow"`
+		Context     AgentAccessToolContext `json:"context,omitempty"`
 	}
 
 	AgentAccessToolContext struct {
@@ -112,9 +83,6 @@ type (
 		NamespaceID uint64            `json:"namespaceID,string"`
 		ModuleIDs   AgentAccessIDList `json:"moduleIDs"`
 	}
-
-	// AgentAccessIDList is a []uint64 that serializes each element as a JSON string.
-	AgentAccessIDList []uint64
 
 	AgentInvocation struct {
 		User   AgentInvocationUser   `json:"user"`
@@ -153,77 +121,3 @@ type (
 		filter.Paging
 	}
 )
-
-func (m *AgentMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m AgentMeta) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *AgentBehavior) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m AgentBehavior) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *AgentExecution) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m AgentExecution) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *AgentAccess) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m AgentAccess) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *AgentInvocation) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m AgentInvocation) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func ParseAgentMeta(ss []string) (p AgentMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseAgentBehavior(ss []string) (p AgentBehavior, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseAgentExecution(ss []string) (p AgentExecution, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseAgentAccess(ss []string) (p AgentAccess, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseAgentInvocation(ss []string) (p AgentInvocation, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func (ll AgentAccessIDList) MarshalJSON() ([]byte, error) {
-	strs := make([]string, len(ll))
-	for i, id := range ll {
-		strs[i] = strconv.FormatUint(id, 10)
-	}
-	return json.Marshal(strs)
-}
-
-func (ll *AgentAccessIDList) UnmarshalJSON(data []byte) error {
-	var strs []string
-	if err := json.Unmarshal(data, &strs); err != nil {
-		return err
-	}
-	*ll = make(AgentAccessIDList, len(strs))
-	for i, s := range strs {
-		id, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			return err
-		}
-		(*ll)[i] = id
-	}
-	return nil
-}

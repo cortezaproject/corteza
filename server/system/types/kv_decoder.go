@@ -20,14 +20,14 @@ type (
 //
 // Example:
 // key-value pairs:
-//   string1: "string"
-//   number:  42
 //
-// struct{
-//   String1 string `kv:"string1`
-//   Number  int
-// }
+//	string1: "string"
+//	number:  42
 //
+//	struct{
+//	  String1 string `kv:"string1`
+//	  Number  int
+//	}
 func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 	valueOf := reflect.ValueOf(dst)
 	if valueOf.Kind() != reflect.Ptr {

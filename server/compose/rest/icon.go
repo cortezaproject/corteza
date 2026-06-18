@@ -42,28 +42,26 @@ func (Icon) New() *Icon {
 	}
 }
 
-func (ctrl *Icon) List(ctx context.Context, r *request.IconList) (interface{}, error) {
-	var (
-		err error
-		f   = types.AttachmentFilter{
-			Kind: types.IconAttachment,
-		}
-		set types.AttachmentSet
-	)
+// makeFilter builds the icon search filter for the generated List
+// controller. Icons are attachment-backed, so the filter is an
+// AttachmentFilter scoped to IconAttachment and excluding deleted icons.
+func (ctrl *Icon) makeFilter(ctx context.Context, r *request.IconList) (f types.AttachmentFilter, err error) {
+	f = types.AttachmentFilter{
+		Kind: types.IconAttachment,
+	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return
 	}
 
 	//Get only the undeleted icons
 	f.Deleted = filter.StateExcluded
 
-	set, f, err = ctrl.attachment.Find(ctx, f)
-	return ctrl.makeIconFilterPayload(ctx, set, f, err)
+	return
 }
 
 func (ctrl *Icon) Upload(ctx context.Context, r *request.IconUpload) (interface{}, error) {
@@ -89,7 +87,7 @@ func (ctrl *Icon) Upload(ctx context.Context, r *request.IconUpload) (interface{
 	return makeAttachmentPayload(ctx, a, err)
 }
 
-func (ctrl *Icon) makeIconFilterPayload(ctx context.Context, nn types.AttachmentSet, f types.AttachmentFilter, err error) (*iconSetPayload, error) {
+func (ctrl *Icon) makeFilterPayload(ctx context.Context, nn types.AttachmentSet, f types.AttachmentFilter, err error) (*iconSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}

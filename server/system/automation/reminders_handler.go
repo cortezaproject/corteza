@@ -16,10 +16,10 @@ import (
 type (
 	reminderService interface {
 		FindByID(ctx context.Context, ID uint64) (*types.Reminder, error)
-		Find(ctx context.Context, filter types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error)
+		Search(ctx context.Context, filter types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error)
 		Create(ctx context.Context, reminder *types.Reminder) (*types.Reminder, error)
 		Update(ctx context.Context, reminder *types.Reminder) (*types.Reminder, error)
-		Delete(ctx context.Context, ID uint64) error
+		DeleteByID(ctx context.Context, ID uint64) error
 		Dismiss(ctx context.Context, ID uint64) error
 		Snooze(ctx context.Context, ID uint64, remindAt *time.Time) error
 	}
@@ -91,7 +91,7 @@ func (h remindersHandler) search(ctx context.Context, args *remindersSearchArgs)
 		f.Limit = uint(args.Limit)
 	}
 	var auxf types.ReminderFilter
-	results.Reminders, auxf, err = h.rSvc.Find(ctx, f)
+	results.Reminders, auxf, err = h.rSvc.Search(ctx, f)
 	results.Total = uint64(auxf.Total)
 	return
 }
@@ -135,7 +135,7 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 		i.ptr = 0
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
-		i.buffer, i.filter, err = h.rSvc.Find(ctx, i.filter)
+		i.buffer, i.filter, err = h.rSvc.Search(ctx, i.filter)
 		return
 	}
 	return i, i.loader()
@@ -211,7 +211,7 @@ func (h remindersHandler) delete(ctx context.Context, args *remindersDeleteArgs)
 	if id, err := getReminderID(ctx, h.rSvc, args); err != nil {
 		return err
 	} else {
-		return h.rSvc.Delete(ctx, id)
+		return h.rSvc.DeleteByID(ctx, id)
 	}
 }
 func getReminderID(ctx context.Context, svc reminderService, args reminderLookup) (uint64, error) {

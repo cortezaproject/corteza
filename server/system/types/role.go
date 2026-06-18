@@ -1,34 +1,11 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
-	Role struct {
-		ID        uint64 `json:"roleID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Name      string `json:"name"`
-		Handle string `json:"handle"`
-
-		Meta   *RoleMeta         `json:"meta"`
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt  time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
-		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	RoleMeta struct {
 		Description string       `json:"description,omitempty"`
 		Context     *RoleContext `json:"context,omitempty"`
@@ -40,10 +17,10 @@ type (
 	}
 
 	RoleFilter struct {
-		RoleID    []string `json:"roleID"`
-		TenantID  uint64   `json:"tenantID,string,omitempty"`
-		ProjectID uint64   `json:"projectID,string,omitempty"`
-		MemberID  uint64   `json:"memberID,string"`
+		RoleID      []string `json:"roleID"`
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
+		MemberID    uint64   `json:"memberID,string"`
 		UserGroupID uint64   `json:"userGroupID,string"`
 
 		// @todo will migrate from MemberID/UserGroupID in a later releae
@@ -58,7 +35,7 @@ type (
 		Deleted  filter.State `json:"deleted"`
 		Archived filter.State `json:"archived"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
@@ -114,6 +91,3 @@ func (set RoleSet) FindByHandle(handle string) *Role {
 
 	return nil
 }
-
-func (vv *RoleMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *RoleMeta) Value() (driver.Value, error) { return json.Marshal(vv) }

@@ -1,36 +1,11 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
 	ApigwFilterParams map[string]interface{}
-
-	ApigwFilter struct {
-		ID        uint64            `json:"filterID,string"`
-		TenantID  uint64            `json:"tenantID,string,omitempty"`
-		ProjectID uint64            `json:"projectID,string,omitempty"`
-		Route     uint64            `json:"routeID,string"`
-		Weight    uint64            `json:"weight,string"`
-		Ref       string            `json:"ref,omitempty"`
-		Kind      string            `json:"kind,omitempty"`
-		Enabled   bool              `json:"enabled,omitempty"`
-		Params    ApigwFilterParams `json:"params"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
-	}
 
 	ApigwFilterFilter struct {
 		ApigwFilterID []string `json:"apigwFilterID"`
@@ -52,6 +27,3 @@ type (
 		filter.Paging
 	}
 )
-
-func (vv *ApigwFilterParams) Scan(src any) error          { return sql.ParseJSON(src, vv) }
-func (vv ApigwFilterParams) Value() (driver.Value, error) { return json.Marshal(vv) }

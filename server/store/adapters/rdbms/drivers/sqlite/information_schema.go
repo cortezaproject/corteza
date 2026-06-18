@@ -64,6 +64,24 @@ func (i *informationSchema) TableLookup(ctx context.Context, table, schema, dbna
 	return
 }
 
+func (i *informationSchema) TableSet(ctx context.Context) ([]*ddl.Table, error) {
+	var tableNames []string
+	query := `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`
+	if err := sqlx.SelectContext(ctx, i.conn, &tableNames, query); err != nil {
+		return nil, err
+	}
+
+	out := make([]*ddl.Table, 0, len(tableNames))
+	for _, name := range tableNames {
+		t, err := i.TableLookup(ctx, name, "", "")
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, nil
+}
+
 func (i *informationSchema) IndexLookup(ctx context.Context, index, table, schema string) (*ddl.Index, error) {
 	// for now, there is no need do implement this
 	return nil, errors.NotFound("index %q not found", index)

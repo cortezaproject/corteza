@@ -1,69 +1,14 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
-	AuthClient struct {
-		ID        uint64 `json:"authClientID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-
-		// Client's handle
-		Handle string `json:"handle"`
-
-		// Client's meta data, see comments on AuthClientMeta
-		Meta *AuthClientMeta `json:"meta,omitempty"`
-
-		// Client secret
-		Secret string `json:"secret,omitempty"`
-
-		Scope string `json:"scope"`
-
-		// valid grant for this client (only one)
-		//  - authorization_code
-		//  - client_credentials
-		ValidGrant string `json:"validGrant"`
-
-		// Valid redirection URIs
-		RedirectURI string `json:"redirectURI"`
-
-		// Users will not be prompted to confirm the client after login
-		Trusted bool `json:"trusted"`
-
-		// Can client be used for authentication
-		Enabled bool `json:"enabled"`
-
-		// Is client valid yet?
-		ValidFrom *time.Time `json:"validFrom,omitempty"`
-
-		// Is client still valid
-		ExpiresAt *time.Time `json:"expiresAt,omitempty"`
-
-		// Role-specific settings, see comments on AuthClientSecurity
-		Security *AuthClientSecurity `json:"security"`
-
-		// Auth client labels
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		OwnedBy   uint64     `json:"ownedBy"`
-		CreatedBy uint64     `json:"createdBy"`
-		CreatedAt time.Time  `json:"createdAt"`
-		UpdatedBy uint64     `json:"updatedBy,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	AuthClientMeta struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -180,9 +125,3 @@ func (r *AuthClient) Verify() error {
 
 	return nil
 }
-
-func (vv *AuthClientMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *AuthClientMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
-
-func (vv *AuthClientSecurity) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *AuthClientSecurity) Value() (driver.Value, error) { return json.Marshal(vv) }

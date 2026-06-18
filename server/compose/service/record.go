@@ -108,18 +108,18 @@ type (
 	}
 
 	moduleFinder interface {
-		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
+		Search(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 	}
 
 	namespaceFinder interface {
-		Find(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
+		Search(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
 	}
 
 	RecordService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, *types.RecordValueErrorSet, error)
 
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (any, error)
-		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
+		Search(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		FindN(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, stats map[string]types.RecordSummary, f types.RecordFilter, err error)
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64, sorting filter.Sorting) (dal.Iterator, error)
@@ -381,7 +381,7 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 	return reportItems, svc.recordAction(ctx, aProps, RecordActionReport, err)
 }
 
-func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
+func (svc record) Search(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	var (
 		m      *types.Module
 		aProps = &recordActionProps{filter: &filter}
@@ -464,14 +464,14 @@ func (svc record) SearchSensitive(ctx context.Context) (set []types.SensitiveRec
 
 	err = func() error {
 		// Get namespaces
-		namespaces, _, err = svc.namespace.Find(ctx, types.NamespaceFilter{})
+		namespaces, _, err = svc.namespace.Search(ctx, types.NamespaceFilter{})
 		if err != nil {
 			return err
 		}
 
 		for _, namespace := range namespaces {
 			// Get corresponding modules
-			modules, _, err = svc.module.Find(ctx, types.ModuleFilter{NamespaceID: namespace.ID})
+			modules, _, err = svc.module.Search(ctx, types.ModuleFilter{NamespaceID: namespace.ID})
 			if err != nil {
 				return err
 			}
@@ -509,7 +509,7 @@ func (svc record) searchSensitive(ctx context.Context, userID uint64, namespace 
 	// @todo allow additional querying
 	filter.Query = fmt.Sprintf("ownedBy='%d'", userID)
 
-	rr, _, err := svc.Find(ctx, filter)
+	rr, _, err := svc.Search(ctx, filter)
 	if err != nil {
 		return
 	}
@@ -803,7 +803,7 @@ func (svc record) BulkModifyByFilter(ctx context.Context, f types.RecordFilter, 
 
 		// performing a batched search for IDs, processing them in batches of 500 for update.
 		for {
-			records, recordFilter, err = svc.Find(ctx, f)
+			records, recordFilter, err = svc.Search(ctx, f)
 			if err != nil {
 				return err
 			}
@@ -2137,7 +2137,7 @@ func (svc record) DupDetection(ctx context.Context, m *types.Module, rec *types.
 	)
 
 	if len(config.Rules) > 0 && config.Rules.Validate() == nil {
-		records, _, err = svc.Find(ctx, types.RecordFilter{
+		records, _, err = svc.Search(ctx, types.RecordFilter{
 			ModuleID:    m.ID,
 			NamespaceID: m.NamespaceID,
 		})

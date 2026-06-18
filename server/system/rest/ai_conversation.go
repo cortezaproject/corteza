@@ -38,7 +38,8 @@ func (AiConversation) New() *AiConversation {
 	}
 }
 
-func (ctrl *AiConversation) List(ctx context.Context, r *request.AiConversationList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *AiConversation) makeFilter(ctx context.Context, r *request.AiConversationList) (types.AiConversationFilter, error) {
 	var (
 		err error
 		f   = types.AiConversationFilter{
@@ -48,31 +49,29 @@ func (ctrl *AiConversation) List(ctx context.Context, r *request.AiConversationL
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if r.IncTotal {
 		f.IncTotal = true
 	}
 
-	set, f, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *AiConversation) Read(ctx context.Context, r *request.AiConversationRead) (interface{}, error) {
-	return ctrl.svc.FindByID(ctx, r.AiConversationID)
-}
+// makePayload wraps a single resource for the generated Read controller.
+// The original Read returned the resource (or error) directly, so this is
+// a straight passthrough that preserves that behavior.
+func (ctrl *AiConversation) makePayload(_ context.Context, m *types.AiConversation, err error) (*types.AiConversation, error) {
+	if err != nil {
+		return nil, err
+	}
 
-func (ctrl *AiConversation) Delete(ctx context.Context, r *request.AiConversationDelete) (interface{}, error) {
-	return nil, ctrl.svc.DeleteByID(ctx, r.AiConversationID)
-}
-
-func (ctrl *AiConversation) Undelete(ctx context.Context, r *request.AiConversationUndelete) (interface{}, error) {
-	return nil, ctrl.svc.UndeleteByID(ctx, r.AiConversationID)
+	return m, nil
 }
 
 func (ctrl *AiConversation) Continue(ctx context.Context, r *request.AiConversationContinue) (interface{}, error) {

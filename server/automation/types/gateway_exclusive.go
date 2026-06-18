@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	nx "github.com/crusttech/human/server/pkg/automation_exec/types"
 	"github.com/crusttech/human/server/pkg/ast"
+	nx "github.com/crusttech/human/server/pkg/automation_exec/types"
 	"github.com/crusttech/human/server/pkg/expr"
 )
 

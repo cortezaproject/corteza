@@ -97,7 +97,7 @@ func (s *Sync) DeleteRecord(ctx context.Context, rec *ct.Record) error {
 
 // FindRecord find the record via federation label
 func (s *Sync) FindRecords(ctx context.Context, filter ct.RecordFilter) (set ct.RecordSet, err error) {
-	set, _, err = s.composeRecordService.Find(ctx, filter)
+	set, _, err = s.composeRecordService.Search(ctx, filter)
 	return
 }
 
@@ -105,7 +105,7 @@ func (s *Sync) FindRecords(ctx context.Context, filter ct.RecordFilter) (set ct.
 func (s *Sync) LookupSharedModule(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
 	var sm *types.SharedModule
 
-	list, _, err := s.sharedModuleService.Find(ctx, types.SharedModuleFilter{
+	list, _, err := s.sharedModuleService.Search(ctx, types.SharedModuleFilter{
 		NodeID:                     new.NodeID,
 		ExternalFederationModuleID: new.ExternalFederationModuleID})
 
@@ -144,7 +144,7 @@ func (s *Sync) GetPairedNodes(ctx context.Context) (types.NodeSet, error) {
 }
 
 func (s *Sync) GetSharedModules(ctx context.Context, nodeID uint64) (types.SharedModuleSet, error) {
-	set, _, err := DefaultSharedModule.Find(ctx, types.SharedModuleFilter{NodeID: nodeID})
+	set, _, err := DefaultSharedModule.Search(ctx, types.SharedModuleFilter{NodeID: nodeID})
 
 	if err != nil {
 		return nil, err
@@ -216,7 +216,7 @@ func (s *Sync) LoadUserWithRoles(ctx context.Context, nodeID uint64) (*st.User, 
 	}
 
 	// attach the roles
-	rr, _, err := s.systemRoleService.Find(ctx, st.RoleFilter{MemberID: u.ID})
+	rr, _, err := s.systemRoleService.Search(ctx, st.RoleFilter{MemberID: u.ID})
 
 	if err != nil {
 		return nil, err

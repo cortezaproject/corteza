@@ -81,7 +81,8 @@ func (Project) New() *Project {
 	}
 }
 
-func (ctrl *Project) List(ctx context.Context, r *request.ProjectList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Project) makeFilter(ctx context.Context, r *request.ProjectList) (types.ProjectFilter, error) {
 	var (
 		err error
 		f   = types.ProjectFilter{
@@ -94,58 +95,38 @@ func (ctrl *Project) List(ctx context.Context, r *request.ProjectList) (interfac
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *Project) Create(ctx context.Context, r *request.ProjectCreate) (interface{}, error) {
-	p := &types.Project{
-		Handle: r.Handle,
-		Status: types.ProjectStatus(r.Status),
-		Config: r.Config,
-		Meta:   r.Meta,
-		Labels: r.Labels,
-	}
-
-	p, err := ctrl.svc.Create(ctx, p)
-	return ctrl.makePayload(ctx, p, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *Project) beforeCreate(ctx context.Context, res *types.Project, r *request.ProjectCreate) error {
+	res.Status = types.ProjectStatus(r.Status)
+	res.Config = r.Config
+	res.Meta = r.Meta
+	res.Labels = r.Labels
+	return nil
 }
 
-func (ctrl *Project) Read(ctx context.Context, r *request.ProjectRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.ProjectID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *Project) Update(ctx context.Context, r *request.ProjectUpdate) (interface{}, error) {
-	p := &types.Project{
-		ID:        r.ProjectID,
-		Handle:    r.Handle,
-		Status:    types.ProjectStatus(r.Status),
-		Config:    r.Config,
-		Meta:      r.Meta,
-		UpdatedAt: r.UpdatedAt,
-		Labels:    r.Labels,
-	}
-
-	p, err := ctrl.svc.Update(ctx, p)
-	return ctrl.makePayload(ctx, p, err)
-}
-
-func (ctrl *Project) Delete(ctx context.Context, r *request.ProjectDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.ProjectID)
-}
-
-func (ctrl *Project) Undelete(ctx context.Context, r *request.ProjectUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ProjectID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *Project) beforeUpdate(ctx context.Context, res *types.Project, r *request.ProjectUpdate) error {
+	res.Status = types.ProjectStatus(r.Status)
+	res.Config = r.Config
+	res.Meta = r.Meta
+	res.Labels = r.Labels
+	return nil
 }
 
 func (ctrl *Project) ListMembers(ctx context.Context, r *request.ProjectListMembers) (interface{}, error) {

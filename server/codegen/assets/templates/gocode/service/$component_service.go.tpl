@@ -3,29 +3,83 @@ package {{ .package }}
 {{ template "gocode/header-gentext.tpl" }}
 {{/*
   Service CRUD methods: each body is wrapped in a recordAction closure (action
-  logging) and may emit eventbus Before/After events. Only the method bodies and
-  loadXxx / toLabeledXxx helpers are generated -- the struct, access-controller
-  interface, constructor and any custom methods stay in the hand-written
-  companion file. Ops listed in customBodyOps delegate to hand-written on<Op>
-  handlers instead of generating a standard body.
+  logging) and may emit eventbus Before/After events. The method bodies and the
+  loadXxx / toLabeledXxx helpers are always generated; the struct, access-control
+  interface and constructor are generated only when genConstructor /
+  genAccessController are set (otherwise they stay in the hand-written companion
+  file, alongside any custom methods). Ops listed in customBodyOps delegate to
+  hand-written on<Op> handlers instead of generating a standard body.
 */}}
 import (
 	"context"
+{{- if .genConstructor }}
+
+	"github.com/crusttech/human/server/pkg/actionlog"
+{{- end }}
 {{- if .load }}
+{{- if .genConstructor }}
+	"github.com/crusttech/human/server/pkg/errors"
+{{- else }}
 
 	"github.com/crusttech/human/server/pkg/errors"
+{{- end }}
 {{- end }}
 {{- if .usesLabel }}
 	"github.com/crusttech/human/server/pkg/label"
 {{- end }}
+{{- if and .genConstructor .events }}
+	"github.com/crusttech/human/server/pkg/eventbus"
+{{- end }}
 {{- if .events }}
 	"{{ .eventImport }}"
 {{- end }}
-{{- if .usesStore }}
+{{- if or .usesStore .genConstructor }}
 	"github.com/crusttech/human/server/store"
 {{- end }}
 	types "{{ .typesImport }}"
 )
+{{- if .genAccessController }}
+
+type {{ .ident }}AccessController interface {
+{{- if .create }}
+	{{ .ac.create }}(context.Context) bool
+{{- end }}
+{{- if .search }}
+	{{ .ac.search }}(context.Context) bool
+{{- end }}
+{{- if or .lookup (and .search .checkFn) }}
+	{{ .ac.read }}(context.Context, *{{ .goType }}) bool
+{{- end }}
+{{- if .update }}
+	{{ .ac.update }}(context.Context, *{{ .goType }}) bool
+{{- end }}
+{{- if or .delete .undelete }}
+	{{ .ac.delete }}(context.Context, *{{ .goType }}) bool
+{{- end }}
+}
+{{- end }}
+{{- if .genConstructor }}
+
+type {{ .ident }} struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        {{ .ident }}AccessController
+{{- if .events }}
+	eventbus  eventDispatcher
+{{- end }}
+}
+
+func {{ .expIdent }}() *{{ .ident }} {
+	return &{{ .ident }}{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+{{- if .events }}
+		eventbus:  eventbus.Service(),
+{{- end }}
+	}
+}
+{{- end }}
 {{- if .lookup }}
 
 func (svc {{ .recv }}{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .lookupParentParamsTyped }}ID uint64) (res *{{ .goType }}, err error) {
@@ -44,7 +98,7 @@ func (svc {{ .recv }}{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .l
 		}
 
 {{- end }}
-		if res, err = load{{ .expIdent }}(ctx, svc.store, {{ .lookupParentParams }}ID); err != nil {
+		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return {{ .expIdent }}ErrInvalidID().Wrap(err)
 		}
 {{- if .hooks.afterLookup }}
@@ -241,7 +295,7 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 		}
 
 {{- end }}
-		if res, err = load{{ .expIdent }}(ctx, svc.store, {{ .parentParamsFromUpd }}upd.ID); err != nil {
+		if res, err = load{{ .expIdent }}(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -320,7 +374,7 @@ func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .d
 {{- if has "delete" .customBodyOps }}
 		return svc.onDelete(ctx, {{ .deleteParentParams }}ID, {{ .deleteExtraArgsCall }}aProps)
 {{- else }}
-		if res, err = load{{ .expIdent }}(ctx, svc.store, {{ .deleteParentParams }}ID); err != nil {
+		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
 {{- if .guard }}
@@ -383,7 +437,7 @@ func (svc {{ .recv }}{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ 
 {{- if has "undelete" .customBodyOps }}
 		return svc.onUndelete(ctx, {{ .undeleteParentParams }}ID, aProps)
 {{- else }}
-		if res, err = load{{ .expIdent }}(ctx, svc.store, {{ .undeleteParentParams }}ID); err != nil {
+		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
 {{- if .guard }}
@@ -425,7 +479,10 @@ func (svc {{ .recv }}{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ 
 {{- end }}
 {{- if .load }}
 
-func load{{ .expIdent }}(ctx context.Context, s store.{{ .storeExpIdentPlural }}, {{ .parentParamsTyped }}ID uint64) (res *{{ .goType }}, err error) {
+{{/* load looks up by globally-unique ID only -- scoped (compound-id) resources
+     enforce their parent scope via the access check on the loaded record, so the
+     parent ids are not threaded through here. */}}
+func load{{ .expIdent }}(ctx context.Context, s store.{{ .storeExpIdentPlural }}, ID uint64) (res *{{ .goType }}, err error) {
 	if ID == 0 {
 		return nil, {{ .expIdent }}ErrInvalidID()
 	}

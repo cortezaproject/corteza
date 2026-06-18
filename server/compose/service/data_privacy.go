@@ -40,7 +40,7 @@ func (svc dataPrivacy) FindModules(ctx context.Context, filter types.PrivacyModu
 		cc      = make(map[uint64]*sysTypes.DalConnection, 0)
 	)
 
-	namespaces, _, err := svc.ns.Find(ctx, types.NamespaceFilter{})
+	namespaces, _, err := svc.ns.Search(ctx, types.NamespaceFilter{})
 	if err != nil {
 		return
 	}

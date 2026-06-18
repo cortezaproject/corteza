@@ -2196,10 +2196,7 @@ func (r *ProjectGroup) SetValue(name string, pos uint, value any) (err error) {
 	return nil
 }
 
-func (r ProjectGroupEntry) GetID() uint64 {
-	// The resource does not define an ID field
-	return 0
-}
+func (r ProjectGroupEntry) GetID() uint64 { return r.ID }
 
 func (r *ProjectGroupEntry) GetValue(name string, pos uint) (any, error) {
 	if r == nil {

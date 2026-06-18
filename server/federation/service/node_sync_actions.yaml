@@ -21,6 +21,9 @@ props:
     fields: [ Query ]
 
 actions:
+  - action: search
+    log: "searched for node_sync"
+
   - action: lookup
     log: "looked-up for the last successful sync"
     severity: info

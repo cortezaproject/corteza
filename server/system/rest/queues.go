@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -54,7 +53,8 @@ func (Queue) New() *Queue {
 	}
 }
 
-func (ctrl *Queue) List(ctx context.Context, r *request.QueuesList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Queue) makeFilter(ctx context.Context, r *request.QueuesList) (types.QueueFilter, error) {
 	var (
 		err error
 		f   = types.QueueFilter{
@@ -64,62 +64,32 @@ func (ctrl *Queue) List(ctx context.Context, r *request.QueuesList) (interface{}
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Queue) Create(ctx context.Context, r *request.QueuesCreate) (interface{}, error) {
-	var (
-		err error
-		q   = &types.Queue{
-			Consumer: r.Consumer,
-			Queue:    r.Queue,
-			Meta:     r.Meta,
-		}
-	)
-
-	q, err = ctrl.svc.Create(ctx, q)
-
-	return ctrl.makePayload(ctx, q, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *Queue) beforeCreate(ctx context.Context, res *types.Queue, r *request.QueuesCreate) error {
+	res.Meta = r.Meta
+	return nil
 }
 
-func (ctrl *Queue) Read(ctx context.Context, r *request.QueuesRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.QueueID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *Queue) Update(ctx context.Context, r *request.QueuesUpdate) (interface{}, error) {
-	var (
-		err error
-		q   = &types.Queue{
-			ID:        r.QueueID,
-			Consumer:  r.Consumer,
-			Queue:     r.Queue,
-			Meta:      r.Meta,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
-
-	q, err = ctrl.svc.Update(ctx, q)
-
-	return ctrl.makePayload(ctx, q, err)
-}
-
-func (ctrl *Queue) Delete(ctx context.Context, r *request.QueuesDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.QueueID)
-}
-
-func (ctrl *Queue) Undelete(ctx context.Context, r *request.QueuesUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.QueueID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *Queue) beforeUpdate(ctx context.Context, res *types.Queue, r *request.QueuesUpdate) error {
+	res.Meta = r.Meta
+	return nil
 }
 
 func (ctrl *Queue) makePayload(ctx context.Context, q *types.Queue, err error) (*queuePayload, error) {

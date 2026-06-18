@@ -271,7 +271,7 @@ func (h groupsHandler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := svc.Delete(ctx, res.ID); err != nil {
+	if err := svc.DeleteByID(ctx, res.ID); err != nil {
 		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 	} else {
 		w.WriteHeader(http.StatusNoContent)
@@ -320,7 +320,7 @@ func (h groupsHandler) lookupByExternalId(ctx context.Context, id string) (r *ty
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
-	rr, _, err := h.svc.Find(ctx, types.RoleFilter{Labels: map[string]labelTypes.LabelValue{groupLabel_SCIM_externalId: labelTypes.LabelValue{Val: id}}})
+	rr, _, err := h.svc.Search(ctx, types.RoleFilter{Labels: map[string]labelTypes.LabelValue{groupLabel_SCIM_externalId: labelTypes.LabelValue{Val: id}}})
 	if err != nil {
 		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}

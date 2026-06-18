@@ -32,7 +32,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewAutomation(Automation{}.New()).MountRoutes(r)
 			handlers.NewUser(User{}.New()).MountRoutes(r)
 			handlers.NewDalConnection(DalConnection{}.New()).MountRoutes(r)
-			handlers.NewDalSensitivityLevel(SensitivityLevel{}.New()).MountRoutes(r)
+			handlers.NewDalSensitivityLevel(DalSensitivityLevel{}.New()).MountRoutes(r)
 			handlers.NewDalDriver(DalDriver{}.New()).MountRoutes(r)
 			handlers.NewDalSchemaAlteration(DalSchemaAlteration{}.New()).MountRoutes(r)
 			handlers.NewRole(Role{}.New()).MountRoutes(r)
@@ -76,6 +76,7 @@ func MountRoutes() func(r chi.Router) {
 			//
 			// @todo can/should we pipe this via our standard approach instead?
 			NewChatbotPreviewController().MountRoutes(r)
+			NewDmlController().MountRoutes(r)
 		})
 	}
 }

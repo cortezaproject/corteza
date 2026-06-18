@@ -744,7 +744,7 @@ func TestRecord_searchAccessControl(t *testing.T) {
 
 	t.Log("search for the newly created records; should not find any (all denied)")
 	f.IncTotal = true
-	hits, f, err = svc.Find(ctx, f)
+	hits, f, err = svc.Search(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 0)
 	req.Equal(uint(0), f.Total)
@@ -755,7 +755,7 @@ func TestRecord_searchAccessControl(t *testing.T) {
 
 	t.Log("search for the newly created records; should find 2 we're allowed to read")
 	f.IncTotal = true
-	hits, f, err = svc.Find(ctx, f)
+	hits, f, err = svc.Search(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 2)
 	req.Equal(uint(2), f.Total)
@@ -891,25 +891,25 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, baseRole.ID))
 
 	t.Log("expecting not find any (all denied)")
-	hits, _, err = svc.Find(ctx, f)
+	hits, _, err = svc.Search(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 0)
 
 	t.Log("expecting to find 5 records (owned by us)")
 	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(ownerRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
-	hits, _, err = svc.Find(ctx, f)
+	hits, _, err = svc.Search(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 5)
 
 	t.Log("expecting to find 2 records (owned by us and with true value for 'yes' field)")
 	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(truthyRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
-	hits, _, err = svc.Find(ctx, f)
+	hits, _, err = svc.Search(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 8)
 
 	t.Log("expecting to find 2 records (owned by us and with true value for 'yes' field + 333 for num)")
 	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(tttRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
-	hits, _, err = svc.Find(ctx, f)
+	hits, _, err = svc.Search(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 9)
 }

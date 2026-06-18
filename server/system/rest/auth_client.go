@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/system/rest/request"
@@ -19,12 +18,12 @@ type (
 	}
 
 	authClientService interface {
-		LookupByID(ctx context.Context, ID uint64) (app *types.AuthClient, err error)
+		FindByID(ctx context.Context, ID uint64) (app *types.AuthClient, err error)
 		Search(ctx context.Context, filter types.AuthClientFilter) (aa types.AuthClientSet, f types.AuthClientFilter, err error)
 		Create(ctx context.Context, new *types.AuthClient) (app *types.AuthClient, err error)
 		Update(ctx context.Context, upd *types.AuthClient) (app *types.AuthClient, err error)
-		Delete(ctx context.Context, ID uint64) (err error)
-		Undelete(ctx context.Context, ID uint64) (err error)
+		DeleteByID(ctx context.Context, ID uint64) (err error)
+		UndeleteByID(ctx context.Context, ID uint64) (err error)
 		ExposeSecret(ctx context.Context, ID uint64) (secret string, err error)
 		RegenerateSecret(ctx context.Context, ID uint64) (secret string, err error)
 		IsDefaultClient(c *types.AuthClient) bool
@@ -60,7 +59,8 @@ func (AuthClient) New() *AuthClient {
 	}
 }
 
-func (ctrl *AuthClient) List(ctx context.Context, r *request.AuthClientList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl AuthClient) makeFilter(ctx context.Context, r *request.AuthClientList) (types.AuthClientFilter, error) {
 	var (
 		err error
 		f   = types.AuthClientFilter{
@@ -71,68 +71,34 @@ func (ctrl *AuthClient) List(ctx context.Context, r *request.AuthClientList) (in
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.authClient.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *AuthClient) Create(ctx context.Context, r *request.AuthClientCreate) (interface{}, error) {
-	var (
-		err error
-		app = &types.AuthClient{
-			Handle:      r.Handle,
-			Meta:        r.Meta,
-			ValidGrant:  r.ValidGrant,
-			RedirectURI: r.RedirectURI,
-			Scope:       r.Scope,
-			Trusted:     r.Trusted,
-			Enabled:     r.Enabled,
-			ValidFrom:   r.ValidFrom,
-			ExpiresAt:   r.ExpiresAt,
-			Security:    r.Security,
-			Labels:      r.Labels,
-		}
-	)
-
-	app, err = ctrl.authClient.Create(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl AuthClient) beforeCreate(ctx context.Context, res *types.AuthClient, r *request.AuthClientCreate) error {
+	res.Meta = r.Meta
+	res.Security = r.Security
+	return nil
 }
 
-func (ctrl *AuthClient) Update(ctx context.Context, r *request.AuthClientUpdate) (interface{}, error) {
-	var (
-		err error
-		app = &types.AuthClient{
-			ID:          r.ClientID,
-			Handle:      r.Handle,
-			Meta:        r.Meta,
-			ValidGrant:  r.ValidGrant,
-			RedirectURI: r.RedirectURI,
-			Scope:       r.Scope,
-			Trusted:     r.Trusted,
-			Enabled:     r.Enabled,
-			ValidFrom:   r.ValidFrom,
-			ExpiresAt:   r.ExpiresAt,
-			Security:    r.Security,
-			Labels:      r.Labels,
-			UpdatedAt:   r.UpdatedAt,
-		}
-	)
-
-	app, err = ctrl.authClient.Update(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
-}
-
-func (ctrl *AuthClient) Read(ctx context.Context, r *request.AuthClientRead) (interface{}, error) {
-	app, err := ctrl.authClient.LookupByID(ctx, r.ClientID)
-	return ctrl.makePayload(ctx, app, err)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl AuthClient) beforeUpdate(ctx context.Context, res *types.AuthClient, r *request.AuthClientUpdate) error {
+	res.Meta = r.Meta
+	res.Security = r.Security
+	return nil
 }
 
 func (ctrl *AuthClient) ExposeSecret(ctx context.Context, r *request.AuthClientExposeSecret) (interface{}, error) {
@@ -141,14 +107,6 @@ func (ctrl *AuthClient) ExposeSecret(ctx context.Context, r *request.AuthClientE
 
 func (ctrl *AuthClient) RegenerateSecret(ctx context.Context, r *request.AuthClientRegenerateSecret) (interface{}, error) {
 	return ctrl.authClient.RegenerateSecret(ctx, r.ClientID)
-}
-
-func (ctrl *AuthClient) Delete(ctx context.Context, r *request.AuthClientDelete) (interface{}, error) {
-	return api.OK(), ctrl.authClient.Delete(ctx, r.ClientID)
-}
-
-func (ctrl *AuthClient) Undelete(ctx context.Context, r *request.AuthClientUndelete) (interface{}, error) {
-	return api.OK(), ctrl.authClient.Undelete(ctx, r.ClientID)
 }
 
 func (ctrl AuthClient) makePayload(ctx context.Context, m *types.AuthClient, err error) (*authClientPayload, error) {

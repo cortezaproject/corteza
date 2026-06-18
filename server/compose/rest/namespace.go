@@ -48,15 +48,15 @@ type (
 	}
 
 	pageFinder interface {
-		Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
+		Search(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 	}
 
 	pageLayoutFinder interface {
-		Find(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error)
+		Search(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error)
 	}
 
 	chartFinder interface {
-		Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
+		Search(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 	}
 
 	Namespace struct {
@@ -101,7 +101,8 @@ func (Namespace) New() *Namespace {
 	}
 }
 
-func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Namespace) makeFilter(ctx context.Context, r *request.NamespaceList) (types.NamespaceFilter, error) {
 	var (
 		err error
 		f   = types.NamespaceFilter{
@@ -112,41 +113,38 @@ func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (inter
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.namespace.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (interface{}, error) {
-	var (
-		err error
-		ns  = &types.Namespace{
-			Name:    r.Name,
-			Slug:    r.Slug,
-			Enabled: r.Enabled,
-			Labels:  r.Labels,
-		}
-	)
-
-	if err = r.Meta.Unmarshal(&ns.Meta); err != nil {
-		return nil, err
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl Namespace) beforeCreate(ctx context.Context, res *types.Namespace, r *request.NamespaceCreate) error {
+	if err := r.Meta.Unmarshal(&res.Meta); err != nil {
+		return err
 	}
 
-	ns, err = ctrl.namespace.Create(ctx, ns)
-	return ctrl.makePayload(ctx, ns, err)
+	return nil
 }
 
-func (ctrl Namespace) Read(ctx context.Context, r *request.NamespaceRead) (interface{}, error) {
-	ns, err := ctrl.namespace.FindByID(ctx, r.NamespaceID)
-	return ctrl.makePayload(ctx, ns, err)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params and the resource ID/UpdatedAt.
+func (ctrl Namespace) beforeUpdate(ctx context.Context, res *types.Namespace, r *request.NamespaceUpdate) error {
+	if err := r.Meta.Unmarshal(&res.Meta); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ctrl Namespace) ListTranslations(ctx context.Context, r *request.NamespaceListTranslations) (interface{}, error) {
@@ -155,36 +153,6 @@ func (ctrl Namespace) ListTranslations(ctx context.Context, r *request.Namespace
 
 func (ctrl Namespace) UpdateTranslations(ctx context.Context, r *request.NamespaceUpdateTranslations) (interface{}, error) {
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
-}
-
-func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (interface{}, error) {
-	var (
-		err error
-		ns  = &types.Namespace{
-			ID:        r.NamespaceID,
-			Name:      r.Name,
-			Slug:      r.Slug,
-			Enabled:   r.Enabled,
-			Labels:    r.Labels,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
-
-	if err = r.Meta.Unmarshal(&ns.Meta); err != nil {
-		return nil, err
-	}
-
-	ns, err = ctrl.namespace.Update(ctx, ns)
-	return ctrl.makePayload(ctx, ns, err)
-}
-
-func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (interface{}, error) {
-	_, err := ctrl.namespace.FindByID(ctx, r.NamespaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	return api.OK(), ctrl.namespace.DeleteByID(ctx, r.NamespaceID)
 }
 
 func (ctrl Namespace) Upload(ctx context.Context, r *request.NamespaceUpload) (interface{}, error) {
@@ -445,7 +413,7 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	resources = append(resources, nsNode)
 
 	// - modules
-	mm, _, err := ctrl.module.Find(ctx, types.ModuleFilter{NamespaceID: n.ID})
+	mm, _, err := ctrl.module.Search(ctx, types.ModuleFilter{NamespaceID: n.ID})
 	if err != nil {
 		return
 	}
@@ -467,7 +435,7 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	}
 
 	// - pages
-	pp, _, err := ctrl.page.Find(ctx, types.PageFilter{NamespaceID: n.ID})
+	pp, _, err := ctrl.page.Search(ctx, types.PageFilter{NamespaceID: n.ID})
 	if err != nil {
 		return
 	}
@@ -481,7 +449,7 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	}
 
 	// - page layouts
-	ll, _, err := ctrl.pageLayout.Find(ctx, types.PageLayoutFilter{NamespaceID: n.ID})
+	ll, _, err := ctrl.pageLayout.Search(ctx, types.PageLayoutFilter{NamespaceID: n.ID})
 	if err != nil {
 		return
 	}
@@ -495,7 +463,7 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	}
 
 	// - charts
-	cc, _, err := ctrl.chart.Find(ctx, types.ChartFilter{NamespaceID: n.ID})
+	cc, _, err := ctrl.chart.Search(ctx, types.ChartFilter{NamespaceID: n.ID})
 	if err != nil {
 		return
 	}
@@ -581,7 +549,7 @@ func (ctrl Namespace) tweakExport(ctx context.Context, nodes envoyx.NodeSet, nsI
 }
 
 func (ctrl Namespace) preparePlaceholders(ctx context.Context) (resources envoyx.NodeSet, err error) {
-	rr, _, err := ctrl.role.Find(ctx, systemTypes.RoleFilter{})
+	rr, _, err := ctrl.role.Search(ctx, systemTypes.RoleFilter{})
 	if err != nil {
 		return
 	}

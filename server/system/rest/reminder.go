@@ -28,7 +28,8 @@ func (Reminder) New() *Reminder {
 	return ctrl
 }
 
-func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Reminder) makeFilter(ctx context.Context, r *request.ReminderList) (types.ReminderFilter, error) {
 	var (
 		err error
 		f   = types.ReminderFilter{
@@ -43,52 +44,34 @@ func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interf
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err := ctrl.reminder.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *Reminder) Create(ctx context.Context, r *request.ReminderCreate) (interface{}, error) {
-	ntf := &types.Reminder{
-		AssignedAt: time.Now(),
-		AssignedBy: auth.GetIdentityFromContext(ctx).Identity(),
-
-		AssignedTo: r.AssignedTo,
-		Payload:    r.Payload,
-		Resource:   r.Resource,
-		RemindAt:   r.RemindAt,
-	}
-
-	return ctrl.reminder.Create(ctx, ntf)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *Reminder) beforeCreate(ctx context.Context, res *types.Reminder, r *request.ReminderCreate) error {
+	res.Payload = r.Payload
+	res.AssignedAt = time.Now()
+	res.AssignedBy = auth.GetIdentityFromContext(ctx).Identity()
+	return nil
 }
 
-func (ctrl *Reminder) Update(ctx context.Context, r *request.ReminderUpdate) (interface{}, error) {
-	ntf := &types.Reminder{
-		ID:         r.ReminderID,
-		AssignedAt: time.Now(),
-		AssignedBy: auth.GetIdentityFromContext(ctx).Identity(),
-
-		AssignedTo: r.AssignedTo,
-		Payload:    r.Payload,
-		Resource:   r.Resource,
-		RemindAt:   r.RemindAt,
-	}
-
-	return ctrl.reminder.Update(ctx, ntf)
-}
-
-func (ctrl *Reminder) Read(ctx context.Context, r *request.ReminderRead) (interface{}, error) {
-	return ctrl.reminder.FindByID(ctx, r.ReminderID)
-}
-
-func (ctrl *Reminder) Delete(ctx context.Context, r *request.ReminderDelete) (interface{}, error) {
-	return api.OK(), ctrl.reminder.Delete(ctx, r.ReminderID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID).
+func (ctrl *Reminder) beforeUpdate(ctx context.Context, res *types.Reminder, r *request.ReminderUpdate) error {
+	res.Payload = r.Payload
+	res.AssignedAt = time.Now()
+	res.AssignedBy = auth.GetIdentityFromContext(ctx).Identity()
+	return nil
 }
 
 func (ctrl *Reminder) Dismiss(ctx context.Context, r *request.ReminderDismiss) (interface{}, error) {
@@ -101,6 +84,14 @@ func (ctrl *Reminder) Undismiss(ctx context.Context, r *request.ReminderUndismis
 
 func (ctrl *Reminder) Snooze(ctx context.Context, r *request.ReminderSnooze) (interface{}, error) {
 	return api.OK(), ctrl.reminder.Snooze(ctx, r.ReminderID, r.RemindAt)
+}
+
+func (ctrl *Reminder) makePayload(ctx context.Context, m *types.Reminder, err error) (*types.Reminder, error) {
+	if err != nil || m == nil {
+		return nil, err
+	}
+
+	return m, nil
 }
 
 func (ctrl *Reminder) makeFilterPayload(ctx context.Context, nn types.ReminderSet, f types.ReminderFilter, err error) (*reminderSetPayload, error) {

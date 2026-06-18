@@ -139,7 +139,7 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 	}
 
 	filter, _ := args["filter"].(string)
-	set, _, err := cmpService.DefaultRecord.Find(ctx, cmpTypes.RecordFilter{
+	set, _, err := cmpService.DefaultRecord.Search(ctx, cmpTypes.RecordFilter{
 		NamespaceID: nsID,
 		ModuleID:    modID,
 		Query:       filter,

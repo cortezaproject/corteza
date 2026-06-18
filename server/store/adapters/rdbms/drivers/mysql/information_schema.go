@@ -43,6 +43,22 @@ func (i *informationSchema) TableLookup(ctx context.Context, table, dbname strin
 	}
 }
 
+func (i *informationSchema) TableSet(ctx context.Context, dbname string) ([]*ddl.Table, error) {
+	tableNamesQuery := dialect.GOQU().
+		Select("TABLE_NAME").
+		From("information_schema.tables").
+		Where(
+			exp.ParseIdentifier("TABLE_SCHEMA").Eq(dbname),
+			exp.ParseIdentifier("TABLE_TYPE").Eq("BASE TABLE"),
+		)
+
+	all := i.columnSelect().Where(
+		exp.ParseIdentifier("TABLE_SCHEMA").Eq(dbname),
+		exp.ParseIdentifier("TABLE_NAME").In(tableNamesQuery),
+	)
+	return i.scanColumns(ctx, all)
+}
+
 func (i *informationSchema) columnSelect() *goqu.SelectDataset {
 	return dialect.GOQU().Select(
 		"TABLE_NAME",

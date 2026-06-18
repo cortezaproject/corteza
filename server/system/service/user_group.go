@@ -47,13 +47,13 @@ type (
 	UserGroupService interface {
 		FindByID(ctx context.Context, userGroupID uint64) (*types.UserGroup, error)
 		FindByHandle(ctx context.Context, handle string) (*types.UserGroup, error)
-		Find(context.Context, types.UserGroupFilter) (types.UserGroupSet, types.UserGroupFilter, error)
+		Search(context.Context, types.UserGroupFilter) (types.UserGroupSet, types.UserGroupFilter, error)
 
 		Create(ctx context.Context, userGroup *types.UserGroup) (*types.UserGroup, error)
 		Update(ctx context.Context, userGroup *types.UserGroup) (*types.UserGroup, error)
 
-		Delete(ctx context.Context, ID uint64) error
-		Undelete(ctx context.Context, ID uint64) error
+		DeleteByID(ctx context.Context, ID uint64) error
+		UndeleteByID(ctx context.Context, ID uint64) error
 
 		MemberList(ctx context.Context, userGroupID uint64) (types.UserSet, error)
 		MemberAdd(ctx context.Context, userGroupID, userID uint64) error
@@ -94,7 +94,7 @@ func UserGroup(rbac rbacUserGroupService) *userGroup {
 func (svc *userGroup) Activate(ctx context.Context) (err error) {
 	gMembers := []rbac.GroupMembers{}
 
-	groups, _, err := svc.Find(ctx, types.UserGroupFilter{})
+	groups, _, err := svc.Search(ctx, types.UserGroupFilter{})
 	if err != nil {
 		return
 	}
@@ -104,7 +104,7 @@ func (svc *userGroup) Activate(ctx context.Context) (err error) {
 			svc.rootUserGroup = id.MustNumID(g.ID)
 		}
 
-		roles, _, err := svc.role.Find(ctx, types.RoleFilter{
+		roles, _, err := svc.role.Search(ctx, types.RoleFilter{
 			Resource: fmt.Sprintf("corteza::system:user-group/%d", g.ID),
 		})
 		if err != nil {
@@ -147,7 +147,7 @@ func (svc *userGroup) Activate(ctx context.Context) (err error) {
 	return
 }
 
-func (svc *userGroup) Find(ctx context.Context, filter types.UserGroupFilter) (rr types.UserGroupSet, f types.UserGroupFilter, err error) {
+func (svc *userGroup) Search(ctx context.Context, filter types.UserGroupFilter) (rr types.UserGroupSet, f types.UserGroupFilter, err error) {
 	var (
 		raProps = &userGroupActionProps{filter: &filter}
 	)
@@ -287,70 +287,56 @@ func (svc *userGroup) proc(ctx context.Context, r *types.UserGroup, err error) (
 	return r, nil
 }
 
-func (svc *userGroup) Create(ctx context.Context, new *types.UserGroup) (r *types.UserGroup, err error) {
-	var (
-		raProps = &userGroupActionProps{userGroup: new}
-	)
+// validate runs at the top of the generated Create, before the access check, on
+// the incoming record. checkPaths additionally normalises new.Config (defaults
+// it and is the reason it runs before the access check / event in the original).
+func (svc *userGroup) validate(ctx context.Context, new *types.UserGroup) error {
+	if !handle.IsValid(new.Handle) {
+		return UserGroupErrInvalidHandle()
+	}
 
-	err = func() (err error) {
-		if !handle.IsValid(new.Handle) {
-			return UserGroupErrInvalidHandle()
-		}
+	if !svc.checkPaths(new) {
+		return UserGroupErrInvalidSelfID()
+	}
 
-		if !svc.checkPaths(new) {
-			return UserGroupErrInvalidSelfID()
-		}
+	if !svc.isValidStructure(ctx, new) {
+		return UserGroupErrInvalidUpdateStructure()
+	}
 
-		if !svc.isValidStructure(ctx, new) {
-			return UserGroupErrInvalidUpdateStructure()
-		}
+	return nil
+}
 
-		if !svc.ac.CanCreateUserGroup(ctx) {
-			return UserGroupErrNotAllowedToCreate()
-		}
+// beforeCreate runs after the access check and before the generated Create
+// assigns the ID / timestamps and persists. It fires the (synchronous)
+// before-create event and then enforces handle uniqueness, matching the original
+// ordering exactly.
+func (svc *userGroup) beforeCreate(ctx context.Context, new *types.UserGroup) error {
+	if err := svc.eventbus.WaitFor(ctx, event.UserGroupBeforeCreate(new, nil)); err != nil {
+		return err
+	}
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeCreate(new, r)); err != nil {
-			return
-		}
+	return svc.UniqueCheck(ctx, new)
+}
 
-		if err = svc.UniqueCheck(ctx, new); err != nil {
-			return
-		}
+// afterCreate runs after the generated Create has persisted the record and its
+// labels. It registers the rbac node and then dispatches the after-create event
+// asynchronously (eventbus.Dispatch), preserving the original's
+// "AddNode before AfterCreate" ordering and fire-and-forget semantics.
+func (svc *userGroup) afterCreate(ctx context.Context, r *types.UserGroup) error {
+	pp := []rbac.GroupNodePath{}
+	for _, p := range r.Config.Paths {
+		pp = append(pp, rbac.GroupNodePath{
+			SelfID: id.MustNumID(p.SelfID),
+			Name:   p.Name,
+		})
+	}
 
-		new.ID = nextID()
-		new.CreatedAt = *now()
+	if err := svc.rbac.AddNode(id.MustNumID(r.ID), r.Handle, pp...); err != nil {
+		return err
+	}
 
-		raProps.setNew(new)
-
-		if err = store.CreateUserGroup(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		r = new
-
-		pp := []rbac.GroupNodePath{}
-		for _, p := range new.Config.Paths {
-			pp = append(pp, rbac.GroupNodePath{
-				SelfID: id.MustNumID(p.SelfID),
-				Name:   p.Name,
-			})
-		}
-
-		err = svc.rbac.AddNode(id.MustNumID(new.ID), new.Handle, pp...)
-		if err != nil {
-			return
-		}
-
-		svc.eventbus.Dispatch(ctx, event.UserGroupAfterCreate(new, r))
-		return
-	}()
-
-	return r, svc.recordAction(ctx, raProps, UserGroupActionCreate, err)
-
+	svc.eventbus.Dispatch(ctx, event.UserGroupAfterCreate(r, r))
+	return nil
 }
 
 func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *types.UserGroup, err error) {
@@ -452,7 +438,7 @@ func (svc *userGroup) UniqueCheck(ctx context.Context, r *types.UserGroup) (err 
 	return nil
 }
 
-func (svc *userGroup) Delete(ctx context.Context, userGroupID uint64) (err error) {
+func (svc *userGroup) DeleteByID(ctx context.Context, userGroupID uint64) (err error) {
 	var (
 		r       *types.UserGroup
 		raProps = &userGroupActionProps{userGroup: &types.UserGroup{ID: userGroupID}}
@@ -492,7 +478,7 @@ func (svc *userGroup) Delete(ctx context.Context, userGroupID uint64) (err error
 	return svc.recordAction(ctx, raProps, UserGroupActionDelete, err)
 }
 
-func (svc *userGroup) Undelete(ctx context.Context, userGroupID uint64) (err error) {
+func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err error) {
 	var (
 		r, upd  *types.UserGroup
 		raProps = &userGroupActionProps{userGroup: &types.UserGroup{ID: userGroupID}}
@@ -636,22 +622,6 @@ func loadUserGroup(ctx context.Context, s store.UserGroups, ID uint64) (res *typ
 	}
 
 	return
-}
-
-// toLabeledUserGroups converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledUserGroups(set []*types.UserGroup) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 func (svc *userGroup) isValidStructure(ctx context.Context, g *types.UserGroup) (ok bool) {

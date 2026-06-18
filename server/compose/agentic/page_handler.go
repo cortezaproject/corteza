@@ -455,7 +455,7 @@ func findPageByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTyp
 	if p, err := cmpService.DefaultPage.FindByHandle(ctx, namespaceID, ref); err == nil {
 		return p, nil
 	}
-	set, _, err := cmpService.DefaultPage.Find(ctx, cmpTypes.PageFilter{
+	set, _, err := cmpService.DefaultPage.Search(ctx, cmpTypes.PageFilter{
 		NamespaceID: namespaceID,
 		Query:       ref,
 	})

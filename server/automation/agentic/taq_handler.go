@@ -236,7 +236,7 @@ func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgA
 	}
 
 	if id, err := strconv.ParseUint(refStr, 10, 64); err == nil {
-		return autoService.DefaultNgAutomation.LookupByID(ctx, id)
+		return autoService.DefaultNgAutomation.FindByID(ctx, id)
 	}
 
 	set, _, err := autoService.DefaultNgAutomation.Search(ctx, autoTypes.NgAutomationFilter{Handle: refStr})

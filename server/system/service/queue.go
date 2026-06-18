@@ -3,9 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/errors"
-
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/messagebus"
 	mt "github.com/crusttech/human/server/pkg/messagebus/types"
@@ -14,28 +11,70 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-type (
-	queue struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        queueAccessController
+// The CRUD skeleton (FindByID, Create, Update, DeleteByID, UndeleteByID and the
+// loadQueue helper) is generated in queue.gen.go from system/queue.cue.
+//
+// The struct, queueAccessController interface and Queue() constructor are also
+// generated (genConstructor + genAccessController), as is the standard Search
+// (its action-log filter prop is named `search`, set via filterProp).
+//
+// This file owns the before/after hooks the generated CRUD calls into (consumer
+// validation, unique-name check and the messagebus ReloadQueues() signal) and the
+// custom methods (CreateQueueEvent, ProcessQueueMessage, CreateQueueMessage, the
+// messagebus SearchQueues + makeFilter, isValidHandler).
+
+// beforeCreate runs after the create access check, before id/timestamps are set.
+func (svc *queue) beforeCreate(ctx context.Context, new *types.Queue) error {
+	if !svc.isValidHandler(mt.ConsumerType(new.Consumer)) {
+		return QueueErrInvalidConsumer(&queueActionProps{new: new})
 	}
 
-	queueAccessController interface {
-		CanCreateQueue(ctx context.Context) bool
-		CanSearchQueues(ctx context.Context) bool
-		CanReadQueue(ctx context.Context, c *types.Queue) bool
-		CanUpdateQueue(ctx context.Context, c *types.Queue) bool
-		CanDeleteQueue(ctx context.Context, c *types.Queue) bool
-	}
-)
+	return nil
+}
 
-func Queue() *queue {
-	return &queue{
-		ac:        DefaultAccessControl,
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
+// afterCreate runs after the store create.
+func (svc *queue) afterCreate(ctx context.Context, res *types.Queue) error {
+	// send the signal to reload all queues
+	messagebus.Service().ReloadQueues()
+
+	return nil
+}
+
+// beforeUpdate runs after the stale check, before the field copy.
+func (svc *queue) beforeUpdate(ctx context.Context, upd, existing *types.Queue) error {
+	if qq, e := store.LookupQueueByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
+		return QueueErrAlreadyExists(&queueActionProps{update: upd})
 	}
+
+	if !svc.isValidHandler(mt.ConsumerType(upd.Consumer)) {
+		return QueueErrInvalidConsumer(&queueActionProps{update: upd})
+	}
+
+	return nil
+}
+
+// afterUpdate runs after the store update.
+func (svc *queue) afterUpdate(ctx context.Context, res *types.Queue) error {
+	// send the signal to reload all queues
+	messagebus.Service().ReloadQueues()
+
+	return nil
+}
+
+// afterDelete runs after the store soft-delete.
+func (svc *queue) afterDelete(ctx context.Context, res *types.Queue) error {
+	// send the signal to reload all queues
+	messagebus.Service().ReloadQueues()
+
+	return nil
+}
+
+// afterUndelete runs after the store undelete.
+func (svc *queue) afterUndelete(ctx context.Context, res *types.Queue) error {
+	// send the signal to reload all queues
+	messagebus.Service().ReloadQueues()
+
+	return nil
 }
 
 func (svc *queue) CreateQueueEvent(q string, p []byte) eventbus.Event {
@@ -94,213 +133,6 @@ func makeFilter(ff *mt.QueueFilter) (f *types.QueueFilter) {
 		Sorting: ff.Sorting,
 		Paging:  ff.Paging,
 	}
-}
-
-func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *types.Queue, err error) {
-	var (
-		qProps = &queueActionProps{}
-	)
-
-	err = func() error {
-		if q, err = loadQueue(ctx, svc.store, ID); err != nil {
-			return TemplateErrInvalidID().Wrap(err)
-		}
-
-		qProps.setQueue(q)
-
-		if !svc.ac.CanReadQueue(ctx, q) {
-			return QueueErrNotAllowedToRead(qProps)
-		}
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, qProps, QueueActionLookup, err)
-}
-
-func (svc *queue) Create(ctx context.Context, new *types.Queue) (q *types.Queue, err error) {
-	var (
-		qProps = &queueActionProps{new: new}
-	)
-
-	err = func() (err error) {
-		if !svc.ac.CanCreateQueue(ctx) {
-			return QueueErrNotAllowedToCreate(qProps)
-		}
-
-		if !svc.isValidHandler(mt.ConsumerType(new.Consumer)) {
-			return QueueErrInvalidConsumer(qProps)
-		}
-
-		// Set new values after beforeCreate events are emitted
-		new.ID = nextID()
-		new.CreatedAt = *now()
-
-		if err = store.CreateQueue(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		q = new
-
-		// send the signal to reload all queues
-		messagebus.Service().ReloadQueues()
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, qProps, QueueActionCreate, err)
-}
-
-func (svc *queue) Update(ctx context.Context, upd *types.Queue) (q *types.Queue, err error) {
-	var (
-		qProps = &queueActionProps{update: upd}
-		qq     *types.Queue
-		e      error
-	)
-
-	err = func() (err error) {
-		if !svc.ac.CanUpdateQueue(ctx, upd) {
-			return QueueErrNotAllowedToUpdate(qProps)
-		}
-
-		if qq, e = store.LookupQueueByID(ctx, svc.store, upd.ID); e != nil {
-			return QueueErrNotFound(qProps)
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
-			return QueueErrStaleData()
-		}
-
-		if qq, e := store.LookupQueueByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
-			return QueueErrAlreadyExists(qProps)
-		}
-
-		if !svc.isValidHandler(mt.ConsumerType(upd.Consumer)) {
-			return QueueErrInvalidConsumer(qProps)
-		}
-
-		// Set new values after beforeCreate events are emitted
-		upd.UpdatedAt = now()
-		upd.CreatedAt = qq.CreatedAt
-		upd.DeletedAt = qq.DeletedAt
-
-		if err = store.UpdateQueue(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		q = upd
-
-		// send the signal to reload all queues
-		messagebus.Service().ReloadQueues()
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, qProps, QueueActionUpdate, err)
-}
-
-func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		qProps = &queueActionProps{}
-		q      *types.Queue
-	)
-
-	err = func() (err error) {
-		if q, err = loadQueue(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		qProps.setQueue(q)
-
-		if !svc.ac.CanDeleteQueue(ctx, q) {
-			return QueueErrNotAllowedToDelete(qProps)
-		}
-
-		q.DeletedAt = now()
-		if err = store.UpdateQueue(ctx, svc.store, q); err != nil {
-			return
-		}
-
-		// send the signal to reload all queues
-		messagebus.Service().ReloadQueues()
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, qProps, QueueActionDelete, err)
-}
-
-func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		qProps = &queueActionProps{}
-		q      *types.Queue
-	)
-
-	err = func() (err error) {
-		if q, err = loadQueue(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		qProps.setQueue(q)
-
-		if !svc.ac.CanDeleteQueue(ctx, q) {
-			return QueueErrNotAllowedToDelete(qProps)
-		}
-
-		q.DeletedAt = nil
-		if err = store.UpdateQueue(ctx, svc.store, q); err != nil {
-			return
-		}
-
-		// send the signal to reload all queues
-		messagebus.Service().ReloadQueues()
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, qProps, QueueActionDelete, err)
-}
-
-func (svc *queue) Search(ctx context.Context, filter types.QueueFilter) (q types.QueueSet, f types.QueueFilter, err error) {
-	var (
-		aProps = &queueActionProps{search: &filter}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Queue) (bool, error) {
-		if !svc.ac.CanReadQueue(ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
-	}
-
-	err = func() error {
-		if !svc.ac.CanSearchQueues(ctx) {
-			return QueueErrNotAllowedToSearch()
-		}
-
-		if q, f, err = store.SearchQueues(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return q, f, svc.recordAction(ctx, aProps, QueueActionSearch, err)
-}
-
-func loadQueue(ctx context.Context, s store.Queues, ID uint64) (res *types.Queue, err error) {
-	if ID == 0 {
-		return nil, QueueErrInvalidID()
-	}
-
-	if res, err = store.LookupQueueByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, QueueErrNotFound()
-	}
-
-	return
 }
 
 func (svc *queue) isValidHandler(h mt.ConsumerType) bool {

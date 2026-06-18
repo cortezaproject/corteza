@@ -36,22 +36,23 @@ func (Attachment) New() *Attachment {
 	}
 }
 
-// Attachments returns list of all files attached to records
-func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+//
+// It also carries the identity Valid() unauthorized check that used to sit
+// at the top of the hand-written List: the generated List returns this
+// hook's error before calling Search, so the behavior is preserved exactly.
+func (ctrl Attachment) makeFilter(ctx context.Context, r *request.AttachmentList) (types.AttachmentFilter, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
-		return nil, errors.Unauthorized("cannot list attachments")
+		return types.AttachmentFilter{}, errors.Unauthorized("cannot list attachments")
 	}
 
-	f := types.AttachmentFilter{
+	return types.AttachmentFilter{
 		NamespaceID: r.NamespaceID,
 		Kind:        r.Kind,
 		ModuleID:    r.ModuleID,
 		RecordID:    r.RecordID,
 		FieldName:   r.FieldName,
-	}
-
-	set, filter, err := ctrl.attachment.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	}, nil
 }
 
 func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (interface{}, error) {

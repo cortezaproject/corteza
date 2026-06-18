@@ -3,7 +3,6 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
@@ -11,32 +10,6 @@ import (
 )
 
 type (
-	Chatbot struct {
-		ID        uint64 `json:"chatbotID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Handle    string `json:"handle"`
-		Name      string `json:"name"`
-		Enabled   bool   `json:"enabled"`
-
-		WidgetKey      string                `json:"widgetKey,omitempty"`
-		AllowedOrigins ChatbotAllowedOrigins `json:"allowedOrigins,omitempty"`
-		SessionTTL     string                `json:"sessionTTL,omitempty"`
-
-		Handoff   ChatbotHandoff   `json:"handoff"`
-		Styling   ChatbotStyling   `json:"styling"`
-		Scenarios ChatbotScenarios `json:"scenarios"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	ChatbotFilter struct {
 		ChatbotID []string `json:"chatbotID"`
 		Handle    string   `json:"handle"`
@@ -143,9 +116,6 @@ type (
 	ChatbotAllowedOrigins []string
 )
 
-func (m *ChatbotHandoff) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ChatbotHandoff) Value() (driver.Value, error) { return json.Marshal(m) }
-
 func (m *ChatbotStyling) Scan(src any) error { return sql.ParseJSON(src, m) }
 
 // Value strips computed URL fields before persisting. LogoURL/IconURL are
@@ -158,34 +128,7 @@ func (m ChatbotStyling) Value() (driver.Value, error) {
 	return json.Marshal(out)
 }
 
-func (m *ChatbotScenarios) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ChatbotScenarios) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *ChatbotAllowedOrigins) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ChatbotAllowedOrigins) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func ParseChatbotAllowedOrigins(ss []string) (p ChatbotAllowedOrigins, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseChatbotHandoff(ss []string) (p ChatbotHandoff, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
 func ParseChatbotStyling(ss []string) (p ChatbotStyling, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseChatbotScenarios(ss []string) (p ChatbotScenarios, err error) {
 	if len(ss) == 0 {
 		return
 	}

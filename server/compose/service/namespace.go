@@ -67,7 +67,7 @@ type (
 	NamespaceService interface {
 		FindByID(ctx context.Context, namespaceID uint64) (*types.Namespace, error)
 		FindByHandle(ctx context.Context, handle string) (*types.Namespace, error)
-		Find(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
+		Search(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
 		FindByAny(context.Context, interface{}) (*types.Namespace, error)
 
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
@@ -109,12 +109,13 @@ func Namespace() *namespace {
 	}
 }
 
-// search fn() orchestrates pages search, namespace preload and check
-func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
-	var (
-		aProps = &namespaceActionProps{filter: &filter}
-	)
-
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper, aProps (filter) and the standard CanSearchNamespaces
+// access check are owned by the generated namespace.gen.go; this handler runs the
+// store search, i18n decode and label load. It also installs filter.Check
+// (the generated wrapper does not emit it for custom-body search).
+func (svc namespace) onSearch(ctx context.Context, filter types.NamespaceFilter, aProps *namespaceActionProps) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Namespace) (bool, error) {
 		if !svc.ac.CanReadNamespace(ctx, res) {
@@ -124,52 +125,48 @@ func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (se
 		return true, nil
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchNamespaces(ctx) {
-			return NamespaceErrNotAllowedToSearch()
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Namespace{}.LabelResourceKind(),
+			filter.Labels,
+		)
+
+		if err != nil {
+			return
 		}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Namespace{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return
 		}
+	}
 
-		if set, f, err = store.SearchComposeNamespaces(ctx, svc.store, filter); err != nil {
-			return err
-		}
+	if set, f, err = store.SearchComposeNamespaces(ctx, svc.store, filter); err != nil {
+		return
+	}
 
-		// i18n
-		tag := locale.GetAcceptLanguageFromContext(ctx)
-		set.Walk(func(n *types.Namespace) error {
-			n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
-			return nil
-		})
-
-		if err = label.Load(ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
-			return err
-		}
-
+	// i18n
+	tag := locale.GetAcceptLanguageFromContext(ctx)
+	set.Walk(func(n *types.Namespace) error {
+		n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
 		return nil
-	}()
+	})
 
-	return set, f, svc.recordAction(ctx, aProps, NamespaceActionSearch, err)
+	if err = label.Load(ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
+		return
+	}
+
+	return
 }
 
-func (svc namespace) FindByID(ctx context.Context, ID uint64) (ns *types.Namespace, err error) {
-	return svc.lookup(ctx, func(aProps *namespaceActionProps) (*types.Namespace, error) {
+// onLookup is the generated FindByID body handler.
+//
+// The recordAction wrapper and aProps (namespace) are owned by the generated
+// namespace.gen.go.
+func (svc namespace) onLookup(ctx context.Context, ID uint64, aProps *namespaceActionProps) (ns *types.Namespace, err error) {
+	return svc.lookup(ctx, aProps, func(aProps *namespaceActionProps) (*types.Namespace, error) {
 		if ID == 0 {
 			return nil, NamespaceErrInvalidID()
 		}
@@ -185,7 +182,9 @@ func (svc namespace) FindByHandle(ctx context.Context, handle string) (ns *types
 }
 
 func (svc namespace) FindBySlug(ctx context.Context, slug string) (ns *types.Namespace, err error) {
-	return svc.lookup(ctx, func(aProps *namespaceActionProps) (*types.Namespace, error) {
+	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
+
+	ns, err = svc.lookup(ctx, aProps, func(aProps *namespaceActionProps) (*types.Namespace, error) {
 		if !handle.IsValid(slug) {
 			return nil, NamespaceErrInvalidHandle()
 		}
@@ -193,6 +192,8 @@ func (svc namespace) FindBySlug(ctx context.Context, slug string) (ns *types.Nam
 		aProps.namespace.Slug = slug
 		return store.LookupComposeNamespaceBySlug(ctx, svc.store, slug)
 	})
+
+	return ns, svc.recordAction(ctx, aProps, NamespaceActionLookup, err)
 }
 
 // FindByAny tries to find namespace by id, handle or slug
@@ -219,13 +220,19 @@ func (svc namespace) FindByAny(ctx context.Context, identifier interface{}) (r *
 	return
 }
 
-// Create adds namespace and presets access rules for role everyone
-func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.Namespace, error) {
+// onCreate is the generated Create body handler. It adds namespace and presets
+// access rules for role everyone.
+//
+// The recordAction wrapper, aProps (namespace) and res=new assignment are owned
+// by the generated namespace.gen.go. The CanCreateNamespace access check lives
+// here (create is in customAccessOps) because it must run inside the tx, after
+// the handle validation.
+func (svc namespace) onCreate(ctx context.Context, new *types.Namespace) error {
 	var (
 		aProps = &namespaceActionProps{namespace: new}
 	)
 
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Slug) {
 			return NamespaceErrInvalidHandle()
 		}
@@ -264,12 +271,11 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 		_ = svc.eventbus.WaitFor(ctx, event.NamespaceAfterCreate(new, nil))
 		return nil
 	})
-
-	return new, svc.recordAction(ctx, aProps, NamespaceActionCreate, err)
 }
 
-func (svc namespace) Update(ctx context.Context, upd *types.Namespace) (c *types.Namespace, err error) {
-	return svc.updater(ctx, upd.ID, NamespaceActionUpdate, svc.handleUpdate(ctx, upd))
+// onUpdate is the generated Update body handler.
+func (svc namespace) onUpdate(ctx context.Context, upd *types.Namespace, aProps *namespaceActionProps) (*types.Namespace, error) {
+	return svc.updater(ctx, upd.ID, aProps, svc.handleUpdate(ctx, upd))
 }
 
 func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (envoyx.NodeSet, error)) (ns *types.Namespace, err error) {
@@ -505,21 +511,32 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionImportRun, err)
 }
 
-func (svc namespace) DeleteByID(ctx context.Context, namespaceID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, NamespaceActionDelete, svc.handleDelete))
+// onDelete is the generated DeleteByID body handler.
+func (svc namespace) onDelete(ctx context.Context, namespaceID uint64, aProps *namespaceActionProps) error {
+	_, err := svc.updater(ctx, namespaceID, aProps, svc.handleDelete)
+	return err
 }
 
 func (svc namespace) UndeleteByID(ctx context.Context, namespaceID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, NamespaceActionUndelete, svc.handleUndelete))
+	var (
+		aProps = &namespaceActionProps{}
+	)
+
+	_, err := svc.updater(ctx, namespaceID, aProps, svc.handleUndelete)
+
+	return svc.recordAction(ctx, aProps, NamespaceActionUndelete, err)
 }
 
-func (svc namespace) updater(ctx context.Context, namespaceID uint64, action func(...*namespaceActionProps) *namespaceAction, fn namespaceUpdateHandler) (*types.Namespace, error) {
+func (svc namespace) updater(ctx context.Context, namespaceID uint64, aProps *namespaceActionProps, fn namespaceUpdateHandler) (*types.Namespace, error) {
 	var (
 		changes namespaceChanges
 		ns, old *types.Namespace
-		aProps  = &namespaceActionProps{namespace: &types.Namespace{ID: namespaceID}}
 		err     error
 	)
+
+	if aProps.namespace == nil {
+		aProps.namespace = &types.Namespace{ID: namespaceID}
+	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, err = loadNamespace(ctx, s, namespaceID)
@@ -575,12 +592,19 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, action fun
 		return err
 	})
 
-	return ns, svc.recordAction(ctx, aProps, action, err)
+	return ns, err
 }
 
-// lookup fn() orchestrates namespace lookup, and check
-func (svc namespace) lookup(ctx context.Context, lookup func(*namespaceActionProps) (*types.Namespace, error)) (ns *types.Namespace, err error) {
-	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
+// lookup fn() orchestrates namespace lookup, and check.
+//
+// The recordAction wrapper (NamespaceActionLookup) is owned by the generated
+// FindByID; UndeleteByID/Clone callers that still own their action log pass their
+// own aProps. The aProps.namespace is preset to a blank namespace when nil so the
+// lookup fn can stamp the ID/slug onto it.
+func (svc namespace) lookup(ctx context.Context, aProps *namespaceActionProps, lookup func(*namespaceActionProps) (*types.Namespace, error)) (ns *types.Namespace, err error) {
+	if aProps.namespace == nil {
+		aProps.namespace = &types.Namespace{}
+	}
 
 	err = func() error {
 		if ns, err = lookup(aProps); errors.IsNotFound(err) {
@@ -602,7 +626,7 @@ func (svc namespace) lookup(ctx context.Context, lookup func(*namespaceActionPro
 		return nil
 	}()
 
-	return ns, svc.recordAction(ctx, aProps, NamespaceActionLookup, err)
+	return ns, err
 }
 
 func (svc namespace) uniqueCheck(ctx context.Context, ns *types.Namespace) (err error) {
@@ -883,20 +907,4 @@ func loadNamespace(ctx context.Context, s store.ComposeNamespaces, namespaceID u
 	}
 
 	return
-}
-
-// toLabeledNamespaces converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledNamespaces(set []*types.Namespace) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

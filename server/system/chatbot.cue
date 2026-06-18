@@ -119,6 +119,9 @@ chatbot: {
 	}
 
 	service: {
+		genAccessController: true
+		genConstructor:      true
+
 		events:   false
 
 		undelete: true

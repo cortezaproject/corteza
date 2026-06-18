@@ -53,11 +53,13 @@ func Chart() *chart {
 	}
 }
 
-func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
-	var (
-		aProps = &chartActionProps{filter: &filter}
-		ns     *types.Namespace
-	)
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper and aProps (filter) are owned by the generated
+// chart.gen.go; this handler runs the namespace preload, access check and store
+// search.
+func (svc *chart) onSearch(ctx context.Context, filter types.ChartFilter, aProps *chartActionProps) (set types.ChartSet, f types.ChartFilter, err error) {
+	var ns *types.Namespace
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Chart) (bool, error) {
@@ -68,63 +70,62 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 		return true, nil
 	}
 
-	err = func() error {
-		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+	ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+	if err != nil {
+		return
+	}
+
+	aProps.setNamespace(ns)
+	if !svc.ac.CanSearchChartsOnNamespace(ctx, ns) {
+		return nil, f, ChartErrNotAllowedToSearch()
+	}
+
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Chart{}.LabelResourceKind(),
+			filter.Labels,
+			id.Uints(filter.ChartID...)...,
+		)
+
 		if err != nil {
-			return err
+			return
 		}
 
-		aProps.setNamespace(ns)
-		if !svc.ac.CanSearchChartsOnNamespace(ctx, ns) {
-			return ChartErrNotAllowedToSearch()
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return
 		}
+	}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Chart{}.LabelResourceKind(),
-				filter.Labels,
-				id.Uints(filter.ChartID...)...,
-			)
+	if set, f, err = store.SearchComposeCharts(ctx, svc.store, filter); err != nil {
+		return
+	}
 
-			if err != nil {
-				return err
-			}
+	if err = label.Load(ctx, svc.store, toLabeledCharts(set)...); err != nil {
+		return
+	}
 
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if set, f, err = store.SearchComposeCharts(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledCharts(set)...); err != nil {
-			return err
-		}
-
-		set.Walk(func(c *types.Chart) error {
-			svc.proc(ctx, c)
-			return nil
-		})
-
+	set.Walk(func(c *types.Chart) error {
+		svc.proc(ctx, c)
 		return nil
-	}()
+	})
 
-	return set, f, svc.recordAction(ctx, aProps, ChartActionSearch, err)
+	return
 }
 
-func (svc chart) FindByID(ctx context.Context, namespaceID, chartID uint64) (c *types.Chart, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *chartActionProps) (*types.Chart, error) {
+// onLookup is the generated FindByID body handler (namespace-scoped compound id).
+func (svc *chart) onLookup(ctx context.Context, namespaceID, chartID uint64, aProps *chartActionProps) (c *types.Chart, err error) {
+	return svc.lookup(ctx, namespaceID, aProps, func(aProps *chartActionProps) (*types.Chart, error) {
 		return loadChart(ctx, svc.store, namespaceID, chartID)
 	})
 }
 
-func (svc chart) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.Chart, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *chartActionProps) (*types.Chart, error) {
+func (svc *chart) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.Chart, err error) {
+	var aProps = &chartActionProps{chart: &types.Chart{NamespaceID: namespaceID}}
+
+	c, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *chartActionProps) (*types.Chart, error) {
 		if !handle.IsValid(h) {
 			return nil, ChartErrInvalidHandle()
 		}
@@ -132,9 +133,11 @@ func (svc chart) FindByHandle(ctx context.Context, namespaceID uint64, h string)
 		aProps.chart.Handle = h
 		return store.LookupComposeChartByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
+
+	return c, svc.recordAction(ctx, aProps, ChartActionLookup, err)
 }
 
-func (svc chart) proc(ctx context.Context, c *types.Chart) {
+func (svc *chart) proc(ctx context.Context, c *types.Chart) {
 	if svc.locale == nil || svc.locale.Locale() == nil {
 		return
 	}
@@ -143,14 +146,17 @@ func (svc chart) proc(ctx context.Context, c *types.Chart) {
 	c.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, c.ResourceTranslation()))
 }
 
-func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, error) {
+// onCreate is the generated Create body handler.
+//
+// The recordAction wrapper, aProps and res=new assignment are owned by the
+// generated chart.gen.go.
+func (svc *chart) onCreate(ctx context.Context, new *types.Chart) error {
 	var (
-		err    error
 		ns     *types.Namespace
 		aProps = &chartActionProps{chart: new}
 	)
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ChartErrInvalidHandle()
 		}
@@ -193,25 +199,30 @@ func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, er
 
 		return nil
 	})
-
-	return new, svc.recordAction(ctx, aProps, ChartActionCreate, err)
 }
 
-func (svc chart) Update(ctx context.Context, upd *types.Chart) (c *types.Chart, err error) {
-	return svc.updater(ctx, upd.NamespaceID, upd.ID, ChartActionUpdate, svc.handleUpdate(ctx, upd))
+// onUpdate is the generated Update body handler.
+func (svc *chart) onUpdate(ctx context.Context, upd *types.Chart, aProps *chartActionProps) (*types.Chart, error) {
+	return svc.updater(ctx, upd.NamespaceID, upd.ID, aProps, svc.handleUpdate(ctx, upd))
 }
 
-func (svc chart) DeleteByID(ctx context.Context, namespaceID, chartID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, chartID, ChartActionDelete, svc.handleDelete))
+// onDelete is the generated DeleteByID body handler (namespace-scoped compound id).
+func (svc *chart) onDelete(ctx context.Context, namespaceID, chartID uint64, aProps *chartActionProps) error {
+	_, err := svc.updater(ctx, namespaceID, chartID, aProps, svc.handleDelete)
+	return err
 }
 
-func (svc chart) UndeleteByID(ctx context.Context, namespaceID, chartID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, chartID, ChartActionUndelete, svc.handleUndelete))
+// onUndelete is the generated UndeleteByID body handler (namespace-scoped compound id).
+func (svc *chart) onUndelete(ctx context.Context, namespaceID, chartID uint64, aProps *chartActionProps) error {
+	_, err := svc.updater(ctx, namespaceID, chartID, aProps, svc.handleUndelete)
+	return err
 }
 
 // lookup fn() orchestrates chart lookup, namespace preload and check
-func (svc chart) lookup(ctx context.Context, namespaceID uint64, lookup func(*chartActionProps) (*types.Chart, error)) (c *types.Chart, err error) {
-	var aProps = &chartActionProps{chart: &types.Chart{NamespaceID: namespaceID}}
+func (svc *chart) lookup(ctx context.Context, namespaceID uint64, aProps *chartActionProps, lookup func(*chartActionProps) (*types.Chart, error)) (c *types.Chart, err error) {
+	if aProps.chart == nil {
+		aProps.chart = &types.Chart{NamespaceID: namespaceID}
+	}
 
 	err = func() error {
 		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
@@ -241,17 +252,20 @@ func (svc chart) lookup(ctx context.Context, namespaceID uint64, lookup func(*ch
 		return nil
 	}()
 
-	return c, svc.recordAction(ctx, aProps, ChartActionLookup, err)
+	return c, err
 }
 
-func (svc chart) updater(ctx context.Context, namespaceID, chartID uint64, action func(...*chartActionProps) *chartAction, fn chartUpdateHandler) (*types.Chart, error) {
+func (svc *chart) updater(ctx context.Context, namespaceID, chartID uint64, aProps *chartActionProps, fn chartUpdateHandler) (*types.Chart, error) {
 	var (
 		changes chartChanges
 		ns      *types.Namespace
 		c       *types.Chart
-		aProps  = &chartActionProps{chart: &types.Chart{ID: chartID, NamespaceID: namespaceID}}
 		err     error
 	)
+
+	if aProps.chart == nil {
+		aProps.chart = &types.Chart{ID: chartID, NamespaceID: namespaceID}
+	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, c, err = loadChartCombo(ctx, s, namespaceID, chartID)
@@ -292,10 +306,10 @@ func (svc chart) updater(ctx context.Context, namespaceID, chartID uint64, actio
 		return nil
 	})
 
-	return c, svc.recordAction(ctx, aProps, action, err)
+	return c, err
 }
 
-func (svc chart) uniqueCheck(ctx context.Context, c *types.Chart) (err error) {
+func (svc *chart) uniqueCheck(ctx context.Context, c *types.Chart) (err error) {
 	if c.Handle != "" {
 		if e, _ := store.LookupComposeChartByNamespaceIDHandle(ctx, svc.store, c.NamespaceID, c.Handle); e != nil && e.ID != c.ID {
 			return ChartErrHandleNotUnique()
@@ -305,7 +319,7 @@ func (svc chart) uniqueCheck(ctx context.Context, c *types.Chart) (err error) {
 	return nil
 }
 
-func (svc chart) handleUpdate(ctx context.Context, upd *types.Chart) chartUpdateHandler {
+func (svc *chart) handleUpdate(ctx context.Context, upd *types.Chart) chartUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, res *types.Chart) (changes chartChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return chartUnchanged, ChartErrStaleData()
@@ -372,7 +386,7 @@ func (svc chart) handleUpdate(ctx context.Context, upd *types.Chart) chartUpdate
 	}
 }
 
-func (svc chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error) {
+func (svc *chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error) {
 	if !svc.ac.CanDeleteChart(ctx, c) {
 		return chartUnchanged, ChartErrNotAllowedToDelete()
 	}
@@ -386,7 +400,7 @@ func (svc chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types
 	return chartChanged, nil
 }
 
-func (svc chart) handleUndelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error) {
+func (svc *chart) handleUndelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error) {
 	if !svc.ac.CanDeleteChart(ctx, c) {
 		return chartUnchanged, ChartErrNotAllowedToUndelete()
 	}
@@ -428,20 +442,4 @@ func loadChart(ctx context.Context, s store.ComposeCharts, namespaceID, chartID 
 	}
 
 	return
-}
-
-// toLabeledCharts converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledCharts(set []*types.Chart) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

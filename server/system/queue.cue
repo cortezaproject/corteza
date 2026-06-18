@@ -90,9 +90,14 @@ queue: {
 
 	service: {
 		events:   false
-
-		search:   false
 		undelete: true
+
+		genAccessController: true
+		genConstructor:      true
+
+		// the action-log prop for the filter is named "search" (not the default
+		// "filter"); the standard Search body is otherwise generated.
+		filterProp: "search"
 
 		updateFields: ["Consumer", "Queue", "Meta"]
 

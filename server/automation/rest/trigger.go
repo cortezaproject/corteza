@@ -6,15 +6,14 @@ import (
 	"github.com/crusttech/human/server/automation/rest/request"
 	"github.com/crusttech/human/server/automation/service"
 	"github.com/crusttech/human/server/automation/types"
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
 	Trigger struct {
-		svc interface {
+		trigger interface {
 			Search(ctx context.Context, filter types.TriggerFilter) (types.TriggerSet, types.TriggerFilter, error)
-			LookupByID(ctx context.Context, triggerID uint64) (*types.Trigger, error)
+			FindByID(ctx context.Context, triggerID uint64) (*types.Trigger, error)
 			Create(ctx context.Context, new *types.Trigger) (*types.Trigger, error)
 			Update(ctx context.Context, upd *types.Trigger) (*types.Trigger, error)
 			DeleteByID(ctx context.Context, triggerID uint64) error
@@ -30,11 +29,12 @@ type (
 
 func (Trigger) New() *Trigger {
 	ctrl := &Trigger{}
-	ctrl.svc = service.DefaultTrigger
+	ctrl.trigger = service.DefaultTrigger
 	return ctrl
 }
 
-func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Trigger) makeFilter(ctx context.Context, r *request.TriggerList) (types.TriggerFilter, error) {
 	var (
 		err error
 		f   = types.TriggerFilter{
@@ -49,63 +49,46 @@ func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return f, err
+	}
+
+	return f, nil
+}
+
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl Trigger) beforeCreate(ctx context.Context, res *types.Trigger, r *request.TriggerCreate) error {
+	res.StepID = r.WorkflowStepID
+	res.Constraints = r.Constraints
+	res.Input = r.Input
+	res.Labels = r.Labels
+	res.Meta = r.Meta
+	return nil
+}
+
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl Trigger) beforeUpdate(ctx context.Context, res *types.Trigger, r *request.TriggerUpdate) error {
+	res.StepID = r.WorkflowStepID
+	res.Constraints = r.Constraints
+	res.Input = r.Input
+	res.Labels = r.Labels
+	res.Meta = r.Meta
+	return nil
+}
+
+func (ctrl Trigger) makePayload(ctx context.Context, m *types.Trigger, err error) (*types.Trigger, error) {
+	if err != nil || m == nil {
 		return nil, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
-}
-
-func (ctrl Trigger) Create(ctx context.Context, r *request.TriggerCreate) (interface{}, error) {
-	trigger := &types.Trigger{
-		Enabled:      r.Enabled,
-		WorkflowID:   r.WorkflowID,
-		StepID:       r.WorkflowStepID,
-		ResourceType: r.ResourceType,
-		EventType:    r.EventType,
-		Constraints:  r.Constraints,
-		Input:        r.Input,
-		Labels:       r.Labels,
-		OwnedBy:      r.OwnedBy,
-		Meta:         r.Meta,
-	}
-
-	return ctrl.svc.Create(ctx, trigger)
-}
-
-func (ctrl Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (interface{}, error) {
-	trigger := &types.Trigger{
-		ID:           r.TriggerID,
-		Enabled:      r.Enabled,
-		WorkflowID:   r.WorkflowID,
-		StepID:       r.WorkflowStepID,
-		ResourceType: r.ResourceType,
-		EventType:    r.EventType,
-		Constraints:  r.Constraints,
-		Input:        r.Input,
-		Labels:       r.Labels,
-		OwnedBy:      r.OwnedBy,
-		Meta:         r.Meta,
-		UpdatedAt:    r.UpdatedAt,
-	}
-
-	return ctrl.svc.Update(ctx, trigger)
-}
-
-func (ctrl Trigger) Read(ctx context.Context, r *request.TriggerRead) (interface{}, error) {
-	return ctrl.svc.LookupByID(ctx, r.TriggerID)
-}
-
-func (ctrl Trigger) Delete(ctx context.Context, r *request.TriggerDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.TriggerID)
-}
-
-func (ctrl Trigger) Undelete(ctx context.Context, r *request.TriggerUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.TriggerID)
+	return m, nil
 }
 
 func (ctrl Trigger) makeFilterPayload(ctx context.Context, uu types.TriggerSet, f types.TriggerFilter, err error) (*triggerSetPayload, error) {

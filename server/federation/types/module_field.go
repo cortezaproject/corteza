@@ -1,9 +1,6 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"github.com/crusttech/human/server/pkg/sql"
 	"strings"
 )
 
@@ -30,6 +27,3 @@ func (list ModuleFieldSet) HasField(name string) (bool, error) {
 
 	return false, nil
 }
-
-func (list *ModuleFieldSet) Scan(src any) error          { return sql.ParseJSON(src, list) }
-func (list ModuleFieldSet) Value() (driver.Value, error) { return json.Marshal(list) }

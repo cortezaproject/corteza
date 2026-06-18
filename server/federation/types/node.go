@@ -1,8 +1,6 @@
 package types
 
 import (
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
@@ -14,31 +12,6 @@ var (
 )
 
 type (
-	Node struct {
-		ID       uint64 `json:"nodeID,string"`
-		TenantID uint64 `json:"tenantID,string,omitempty"`
-		Name     string `json:"name"`
-		Status   string `json:"status"`
-
-		// Base URL of the remote server
-		BaseURL string `json:"baseURL"`
-
-		Contact string `json:"contact"`
-
-		// Node ID on the remote server that points back to us
-		SharedNodeID uint64 `json:"sharedNodeID,string"`
-
-		PairToken string `json:"-"`
-		AuthToken string `json:"-"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
-	}
-
 	NodeFilter struct {
 		Query  string `json:"name"`
 		Status string `json:"status"`

@@ -1,36 +1,11 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
-	Application struct {
-		ID        uint64 `json:"applicationID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Name      string `json:"name"`
-		OwnerID  uint64 `json:"ownerID"`
-		Enabled  bool   `json:"enabled"`
-		Weight   int    `json:"weight"`
-
-		Unify *ApplicationUnify `json:"unify,omitempty"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Flags  []string                         `json:"flags,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	ApplicationUnify struct {
 		Name   string `json:"name,omitempty"`
 		Listed bool   `json:"listed"`
@@ -80,9 +55,6 @@ type (
 func (a *Application) Valid() bool {
 	return a.ID > 0 && a.DeletedAt == nil
 }
-
-func (au *ApplicationUnify) Scan(src any) error          { return sql.ParseJSON(src, au) }
-func (au ApplicationUnify) Value() (driver.Value, error) { return json.Marshal(au) }
 
 // // // These will get generated later on
 

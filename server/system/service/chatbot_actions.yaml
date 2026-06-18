@@ -20,7 +20,7 @@ props:
   - name: update
     type: "*types.Chatbot"
     fields: [ handle, ID ]
-  - name: search
+  - name: filter
     type: "*types.ChatbotFilter"
     fields: [ ]
 

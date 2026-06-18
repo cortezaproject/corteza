@@ -1,29 +1,10 @@
 package types
 
 import (
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	// ProjectMember is the join record between a user and a project.
-	//
-	// One membership record per user per project (enforced by unique index).
-	// TenantID is denormalised for query efficiency once tenant scoping lands.
-	ProjectMember struct {
-		ID         uint64            `json:"projectMemberID,string"`
-		ProjectID  uint64            `json:"projectID,string"`
-		TenantID   uint64            `json:"tenantID,string,omitempty"`
-		UserID     uint64            `json:"userID,string"`
-		RolePreset ProjectMemberRole `json:"rolePreset"`
-		InvitedBy  uint64            `json:"invitedBy,string,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	ProjectMemberFilter struct {
 		ProjectMemberID []string          `json:"projectMemberID"`
 		ProjectID       uint64            `json:"projectID,string,omitempty"`

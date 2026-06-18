@@ -1,33 +1,14 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/spf13/cast"
 )
 
 type (
-	Queue struct {
-		ID        uint64    `json:"queueID,string"`
-		TenantID  uint64    `json:"tenantID,string,omitempty"`
-		ProjectID uint64    `json:"projectID,string,omitempty"`
-		Consumer  string    `json:"consumer"`
-		Queue    string    `json:"queue"`
-		Meta     QueueMeta `json:"meta"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
-	}
-
 	QueueFilter struct {
 		QueueID []string     `json:"queueID"`
 		Query   string       `json:"query"`
@@ -41,14 +22,6 @@ type (
 
 		filter.Sorting
 		filter.Paging
-	}
-
-	QueueMessage struct {
-		ID        uint64     `json:"messageID"`
-		Queue     string     `json:"queue"`
-		Payload   []byte     `json:"payload"`
-		Created   *time.Time `json:"created"`
-		Processed *time.Time `json:"processed"`
 	}
 
 	QueueMessageFilter struct {
@@ -90,9 +63,6 @@ func (h *QueueMeta) UnmarshalJSON(s []byte) error {
 	return nil
 }
 
-func (m *QueueMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m QueueMeta) Value() (driver.Value, error) { return json.Marshal(m) }
-
 func (m QueueMeta) MarshalJSON() ([]byte, error) {
 
 	pollDelay := ""
@@ -111,14 +81,4 @@ func (m QueueMeta) MarshalJSON() ([]byte, error) {
 
 func (s *Queue) CanDispatch() bool {
 	return s.Meta.DispatchEvents
-}
-
-func ParseQueueMeta(ss []string) (p QueueMeta, err error) {
-	p = QueueMeta{}
-
-	if len(ss) == 0 {
-		return
-	}
-
-	return p, json.Unmarshal([]byte(ss[0]), &p)
 }

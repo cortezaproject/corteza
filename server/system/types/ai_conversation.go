@@ -1,31 +1,10 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	AiConversation struct {
-		ID         uint64                 `json:"aiConversationID,string"`
-		TenantID   uint64                 `json:"tenantID,string,omitempty"`
-		ProjectID  uint64                 `json:"projectID,string,omitempty"`
-		AgentID    uint64                 `json:"agentID,string"`
-		Messages   AiConversationMessages `json:"messages"`
-		TokenCount int                    `json:"tokenCount"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	AiConversationMessage struct {
 		Role        string                     `json:"role"`
 		Content     string                     `json:"content"`
@@ -63,13 +42,3 @@ type (
 		filter.Paging
 	}
 )
-
-func (m *AiConversationMessages) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m AiConversationMessages) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func ParseAiConversationMessages(ss []string) (p AiConversationMessages, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}

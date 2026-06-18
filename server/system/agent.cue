@@ -114,8 +114,10 @@ agent: {
 	}
 
 	service: {
+		genAccessController: true
+
 		events: false
-    
+
 		undelete: false
 
 		// lookup   -> custom body loads labels after the read access check

@@ -3,27 +3,28 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
 
-type (
-	projectGroup struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        projectGroupAccessController
-	}
+// The CRUD method bodies (FindByID, Search, Create, Update, DeleteByID and
+// loadProjectGroup) are generated in project_group.gen.go from
+// system/project_group.cue.
+//
+// This file owns the struct, access-controller interface, constructor, the
+// public service contract, member management and the before-create /
+// before-update hooks the generated Create / Update call into.
 
+type (
 	projectGroupAccessController interface {
 		CanCreateProjectGroup(ctx context.Context) bool
 		CanSearchProjectGroups(ctx context.Context) bool
-		CanReadProjectGroup(ctx context.Context, g *types.ProjectGroup) bool
-		CanUpdateProjectGroup(ctx context.Context, g *types.ProjectGroup) bool
-		CanDeleteProjectGroup(ctx context.Context, g *types.ProjectGroup) bool
-		CanManageMembersOnProjectGroup(ctx context.Context, g *types.ProjectGroup) bool
+		CanReadProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
+		CanUpdateProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
+		CanDeleteProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
+		CanManageMembersOnProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
 	}
 
 	ProjectGroupService interface {
@@ -39,91 +40,38 @@ type (
 	}
 )
 
-func ProjectGroup() *projectGroup {
-	return &projectGroup{
-		actionlog: DefaultActionlog,
-		ac:        DefaultAccessControl,
-		store:     DefaultStore,
-	}
-}
-
-func (svc *projectGroup) FindByID(ctx context.Context, id uint64) (g *types.ProjectGroup, err error) {
-	if g, err = loadProjectGroup(ctx, svc.store, id); err != nil {
-		return nil, err
-	}
-
-	if !svc.ac.CanReadProjectGroup(ctx, g) {
-		return nil, ProjectGroupErrNotAllowedToRead()
-	}
-
-	return g, nil
-}
-
-func (svc *projectGroup) Search(ctx context.Context, f types.ProjectGroupFilter) (set types.ProjectGroupSet, rf types.ProjectGroupFilter, err error) {
-	if !svc.ac.CanSearchProjectGroups(ctx) {
-		return nil, f, ProjectGroupErrNotAllowedToSearch()
-	}
-
-	f.Check = func(res *types.ProjectGroup) (bool, error) {
-		if !svc.ac.CanReadProjectGroup(ctx, res) {
-			return false, nil
-		}
-		return true, nil
-	}
-
-	return store.SearchProjectGroups(ctx, svc.store, f)
-}
-
-func (svc *projectGroup) Create(ctx context.Context, new *types.ProjectGroup) (g *types.ProjectGroup, err error) {
-	if !svc.ac.CanCreateProjectGroup(ctx) {
-		return nil, ProjectGroupErrNotAllowedToCreate()
-	}
-
+// beforeCreate validates the handle, resolves the owning tenant from the
+// project and enforces handle uniqueness before the generated Create assigns
+// the ID / timestamps and persists.
+func (svc *projectGroup) beforeCreate(ctx context.Context, new *types.ProjectGroup) error {
 	if !handle.IsValid(new.Handle) {
-		return nil, ProjectGroupErrInvalidHandle()
+		return ProjectGroupErrInvalidHandle()
 	}
 
 	p, err := loadProject(ctx, svc.store, new.ProjectID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = svc.uniqueCheck(ctx, new); err != nil {
-		return nil, err
+		return err
 	}
 
-	new.ID = nextID()
 	new.TenantID = p.TenantID
-	new.CreatedAt = *now()
-
-	if err = store.CreateProjectGroup(ctx, svc.store, new); err != nil {
-		return nil, err
-	}
-
-	return new, nil
+	return nil
 }
 
-func (svc *projectGroup) Update(ctx context.Context, upd *types.ProjectGroup) (g *types.ProjectGroup, err error) {
-	existing, err := loadProjectGroup(ctx, svc.store, upd.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if !svc.ac.CanUpdateProjectGroup(ctx, existing) {
-		return nil, ProjectGroupErrNotAllowedToUpdate()
-	}
-
-	if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-		return nil, ProjectGroupErrStaleData()
-	}
-
+// beforeUpdate merges the mutable fields (handle, meta) with validation and
+// uniqueness checks. The generated Update has already loaded `existing`, run
+// the access check and the stale-data guard.
+func (svc *projectGroup) beforeUpdate(ctx context.Context, upd, existing *types.ProjectGroup) error {
 	if upd.Handle != "" && !handle.IsValid(upd.Handle) {
-		return nil, ProjectGroupErrInvalidHandle()
+		return ProjectGroupErrInvalidHandle()
 	}
 
 	if upd.Handle != "" && upd.Handle != existing.Handle {
-		if err = svc.uniqueCheck(ctx, &types.ProjectGroup{ID: upd.ID, ProjectID: existing.ProjectID, Handle: upd.Handle}); err != nil {
-			return nil, err
+		if err := svc.uniqueCheck(ctx, &types.ProjectGroup{ID: upd.ID, ProjectID: existing.ProjectID, Handle: upd.Handle}); err != nil {
+			return err
 		}
 		existing.Handle = upd.Handle
 	}
@@ -135,27 +83,7 @@ func (svc *projectGroup) Update(ctx context.Context, upd *types.ProjectGroup) (g
 		existing.Meta.Description = upd.Meta.Description
 	}
 
-	existing.UpdatedAt = now()
-
-	if err = store.UpdateProjectGroup(ctx, svc.store, existing); err != nil {
-		return nil, err
-	}
-
-	return existing, nil
-}
-
-func (svc *projectGroup) DeleteByID(ctx context.Context, id uint64) (err error) {
-	g, err := loadProjectGroup(ctx, svc.store, id)
-	if err != nil {
-		return err
-	}
-
-	if !svc.ac.CanDeleteProjectGroup(ctx, g) {
-		return ProjectGroupErrNotAllowedToDelete()
-	}
-
-	g.DeletedAt = now()
-	return store.UpdateProjectGroup(ctx, svc.store, g)
+	return nil
 }
 
 // --- members ---
@@ -228,16 +156,4 @@ func (svc *projectGroup) uniqueCheck(ctx context.Context, g *types.ProjectGroup)
 		return err
 	}
 	return nil
-}
-
-func loadProjectGroup(ctx context.Context, s store.ProjectGroups, id uint64) (res *types.ProjectGroup, err error) {
-	if id == 0 {
-		return nil, ProjectGroupErrInvalidID()
-	}
-
-	if res, err = store.LookupProjectGroupByID(ctx, s, id); errors.IsNotFound(err) {
-		return nil, ProjectGroupErrNotFound()
-	}
-
-	return
 }

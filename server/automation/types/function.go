@@ -25,9 +25,9 @@ type (
 		Parameters ParamSet      `json:"parameters,omitempty"`
 		Results    ParamSet      `json:"results,omitempty"`
 
-		ArgsMerger   FunctionMerger  `json:"-"`
-		Handler  FunctionHandler `json:"-"`
-		Iterator IteratorHandler `json:"-"`
+		ArgsMerger FunctionMerger  `json:"-"`
+		Handler    FunctionHandler `json:"-"`
+		Iterator   IteratorHandler `json:"-"`
 
 		Labels   map[string]string `json:"labels,omitempty"`
 		Disabled bool              `json:"disabled,omitempty"`

@@ -8,16 +8,21 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/crusttech/human/server/pkg/errors"
-
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/handle"
-	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/renderer"
 	"github.com/crusttech/human/server/system/types"
 )
+
+// The CRUD skeleton (FindByID, Search, Create, Update, DeleteByID,
+// UndeleteByID, loadTemplate and toLabeledTemplates) is generated in
+// template.gen.go from system/template.cue.
+//
+// This file owns the struct, access-controller interface, constructor, the
+// `validate` hook the generated Create / Update call into, and the custom
+// methods (FindByHandle, FindByAny, Render and helpers).
 
 type (
 	template struct {
@@ -69,29 +74,21 @@ func Renderer(cfg options.TemplateOpt) *template {
 	}
 }
 
-func (svc template) FindByID(ctx context.Context, ID uint64) (tpl *types.Template, err error) {
-	var (
-		tplProps = &templateActionProps{template: &types.Template{ID: ID}}
-	)
+// validate runs at the top of the generated Create and Update, on the incoming
+// resource.
+func (svc *template) validate(ctx context.Context, res *types.Template) error {
+	if !handle.IsValid(res.Handle) {
+		return TemplateErrInvalidHandle()
+	}
 
-	err = func() error {
-		if tpl, err = loadTemplate(ctx, svc.store, ID); err != nil {
-			return TemplateErrInvalidID().Wrap(err)
-		}
+	if res.Meta.Short == "" {
+		return TemplateErrMissingShort()
+	}
 
-		tplProps.setTemplate(tpl)
-
-		if !svc.ac.CanReadTemplate(ctx, tpl) {
-			return TemplateErrNotAllowedToRead()
-		}
-
-		return nil
-	}()
-
-	return tpl, svc.recordAction(ctx, tplProps, TemplateActionLookup, err)
+	return nil
 }
 
-func (svc template) FindByHandle(ctx context.Context, h string) (tpl *types.Template, err error) {
+func (svc *template) FindByHandle(ctx context.Context, h string) (tpl *types.Template, err error) {
 	var (
 		tplProps = &templateActionProps{template: &types.Template{Handle: h}}
 	)
@@ -117,7 +114,7 @@ func (svc template) FindByHandle(ctx context.Context, h string) (tpl *types.Temp
 	return tpl, svc.recordAction(ctx, tplProps, TemplateActionLookup, err)
 }
 
-func (svc template) FindByAny(ctx context.Context, identifier interface{}) (tpl *types.Template, err error) {
+func (svc *template) FindByAny(ctx context.Context, identifier interface{}) (tpl *types.Template, err error) {
 	if ID, ok := identifier.(uint64); ok {
 		tpl, err = svc.FindByID(ctx, ID)
 	} else if strIdentifier, ok := identifier.(string); ok {
@@ -137,218 +134,11 @@ func (svc template) FindByAny(ctx context.Context, identifier interface{}) (tpl 
 	return
 }
 
-func (svc template) Search(ctx context.Context, filter types.TemplateFilter) (set types.TemplateSet, f types.TemplateFilter, err error) {
-	var (
-		aProps = &templateActionProps{filter: &filter}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Template) (bool, error) {
-		if !svc.ac.CanReadTemplate(ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
-	}
-
-	err = func() error {
-		if !svc.ac.CanSearchTemplates(ctx) {
-			return TemplateErrNotAllowedToSearch()
-		}
-
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Template{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if set, f, err = store.SearchTemplates(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledTemplates(set)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return set, f, svc.recordAction(ctx, aProps, TemplateActionSearch, err)
-}
-
-func (svc template) Create(ctx context.Context, new *types.Template) (tpl *types.Template, err error) {
-	var (
-		tplProps = &templateActionProps{new: new}
-	)
-
-	err = func() (err error) {
-		if !handle.IsValid(new.Handle) {
-			return TemplateErrInvalidHandle()
-		}
-
-		if new.Meta.Short == "" {
-			return TemplateErrMissingShort()
-		}
-
-		if !svc.ac.CanCreateTemplate(ctx) {
-			return TemplateErrNotAllowedToCreate()
-		}
-
-		// @todo corredor?
-
-		// Set new values after beforeCreate events are emitted
-		new.ID = nextID()
-		new.CreatedAt = *now()
-
-		if err = store.CreateTemplate(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		tpl = new
-
-		return nil
-	}()
-
-	return tpl, svc.recordAction(ctx, tplProps, TemplateActionCreate, err)
-}
-
-func (svc template) Update(ctx context.Context, upd *types.Template) (tpl *types.Template, err error) {
-	var (
-		tplProps = &templateActionProps{update: upd}
-	)
-
-	err = func() (err error) {
-		if !handle.IsValid(upd.Handle) {
-			return TemplateErrInvalidHandle()
-		}
-
-		if upd.Meta.Short == "" {
-			return TemplateErrMissingShort()
-		}
-
-		if tpl, err = loadTemplate(ctx, svc.store, upd.ID); err != nil {
-			return
-		}
-
-		tplProps.setTemplate(tpl)
-
-		if !svc.ac.CanUpdateTemplate(ctx, tpl) {
-			return TemplateErrNotAllowedToUpdate()
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, tpl.UpdatedAt, tpl.CreatedAt) {
-			return TemplateErrStaleData()
-		}
-
-		// @todo corredor?
-
-		tpl.Handle = upd.Handle
-		tpl.Language = upd.Language
-		tpl.Type = upd.Type
-		tpl.Partial = upd.Partial
-		tpl.Meta = upd.Meta
-		tpl.Template = upd.Template
-		tpl.OwnerID = upd.OwnerID
-		tpl.UpdatedAt = now()
-
-		if err = store.UpdateTemplate(ctx, svc.store, tpl); err != nil {
-			return err
-		}
-
-		if label.Changed(tpl.Labels, upd.Labels) {
-			if err = label.Update(ctx, svc.store, upd); err != nil {
-				return
-			}
-			tpl.Labels = upd.Labels
-		}
-
-		return nil
-	}()
-
-	return tpl, svc.recordAction(ctx, tplProps, TemplateActionUpdate, err)
-}
-
-func (svc template) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		tplProps = &templateActionProps{}
-		tpl      *types.Template
-	)
-
-	err = func() (err error) {
-		if tpl, err = loadTemplate(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		tplProps.setTemplate(tpl)
-
-		if !svc.ac.CanDeleteTemplate(ctx, tpl) {
-			return TemplateErrNotAllowedToDelete()
-		}
-
-		// @todo corredor?
-
-		tpl.DeletedAt = now()
-		if err = store.UpdateTemplate(ctx, svc.store, tpl); err != nil {
-			return
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, tplProps, TemplateActionDelete, err)
-}
-
-func (svc template) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		tplProps = &templateActionProps{}
-		tpl      *types.Template
-	)
-
-	err = func() (err error) {
-		if tpl, err = loadTemplate(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		tplProps.setTemplate(tpl)
-
-		if !svc.ac.CanDeleteTemplate(ctx, tpl) {
-			return TemplateErrNotAllowedToUndelete()
-		}
-
-		// @todo corredor?
-		tpl.DeletedAt = nil
-		if err = store.UpdateTemplate(ctx, svc.store, tpl); err != nil {
-			return
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, tplProps, TemplateActionUndelete, err)
-}
-
-func (svc template) Drivers() []renderer.DriverDefinition {
+func (svc *template) Drivers() []renderer.DriverDefinition {
 	return svc.renderer.Drivers()
 }
 
-func (svc template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
+func (svc *template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
 	var (
 		tplProps = &templateActionProps{}
 		tpl      *types.Template
@@ -410,11 +200,11 @@ func (svc template) Render(ctx context.Context, templateID uint64, dstType strin
 
 // Util things
 
-func (svc template) getSource(tpl *types.Template) io.Reader {
+func (svc *template) getSource(tpl *types.Template) io.Reader {
 	return bytes.NewBuffer([]byte(tpl.Template))
 }
 
-func (svc template) getPartials(ctx context.Context, tpl *types.Template) ([]*renderer.TemplatePartial, error) {
+func (svc *template) getPartials(ctx context.Context, tpl *types.Template) ([]*renderer.TemplatePartial, error) {
 	pp := make([]*renderer.TemplatePartial, 0, 20)
 
 	set, _, err := svc.Search(ctx, types.TemplateFilter{
@@ -444,65 +234,6 @@ func (svc template) getPartials(ctx context.Context, tpl *types.Template) ([]*re
 }
 
 // @todo...
-func (svc template) getAttachments(ctx context.Context, tpl *types.Template) (renderer.AttachmentIndex, error) {
+func (svc *template) getAttachments(ctx context.Context, tpl *types.Template) (renderer.AttachmentIndex, error) {
 	return make(renderer.AttachmentIndex), nil
-	// fpath := "..."
-
-	// att := make(renderer.AttachmentIndex)
-	// return att, filepath.Walk(fpath, func(fpath string, info os.FileInfo, err error) error {
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	if info.IsDir() {
-	// 		return nil
-	// 	}
-
-	// 	f, err := os.Open(fpath)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	defer f.Close()
-
-	// 	bb := make([]byte, info.Size())
-	// 	_, err = f.Read(bb)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	att[info.Name()] = &renderer.Attachment{
-	// 		Source: bytes.NewBuffer(bb),
-	// 		// @todo proper implementation!!!
-	// 		Mime: "image/png",
-	// 		Name: info.Name(),
-	// 	}
-
-	// 	return nil
-	// })
-}
-
-func loadTemplate(ctx context.Context, s store.Templates, ID uint64) (res *types.Template, err error) {
-	if ID == 0 {
-		return nil, TemplateErrInvalidID()
-	}
-
-	if res, err = store.LookupTemplateByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, TemplateErrNotFound()
-	}
-
-	return
-}
-
-// toLabeledTemplates converts to []label.LabeledResource
-func toLabeledTemplates(set []*types.Template) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

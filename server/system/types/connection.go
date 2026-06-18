@@ -3,41 +3,12 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	Connection struct {
-		ID       uint64 `json:"connectionID,string"`
-		Handle   string `json:"handle"`
-		Revision int    `json:"revision"`
-		Status   string `json:"status"`
-
-		Meta    ConnectionMeta    `json:"meta"`
-		Service ConnectionService `json:"service"`
-
-		Resources     ConnectionResources      `json:"resources"`
-		Operations    ConnectionOperations     `json:"operations"`
-		DerivedParams []ConnectionDerivedParam `json:"derivedParams,omitempty"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		Source         string `json:"source,omitempty"`         // "catalog" | "local"
-		CatalogID      string `json:"catalogID,omitempty"`      // runtime-only: appstore connection ID, populated during Search
-		InstalledCount int    `json:"installedCount,omitempty"` // number of ConfiguredConnections
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	ConnectionMeta struct {
 		Short       string   `json:"short"`
 		Description string   `json:"description"`
@@ -224,29 +195,5 @@ func (ct *ConnectionTemplate) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, (*Alias)(ct))
 }
 
-func ParseConnectionMeta(ss []string) (m ConnectionMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func ParseConnectionService(ss []string) (m ConnectionService, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func (m *ConnectionMeta) Scan(src any) error                        { return sql.ParseJSON(src, m) }
-func (m ConnectionMeta) Value() (driver.Value, error)               { return json.Marshal(m) }
-func (m *ConnectionService) Scan(src any) error                     { return sql.ParseJSON(src, m) }
-func (m ConnectionService) Value() (driver.Value, error)            { return json.Marshal(m) }
-func (m *ConnectionResources) Scan(src any) error                   { return sql.ParseJSON(src, m) }
-func (m ConnectionResources) Value() (driver.Value, error)          { return json.Marshal(m) }
 func (m *ConnectionResourceOperations) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ConnectionResourceOperations) Value() (driver.Value, error) { return json.Marshal(m) }
-func (m *ConnectionOperations) Scan(src any) error                  { return sql.ParseJSON(src, m) }
-func (m ConnectionOperations) Value() (driver.Value, error)         { return json.Marshal(m) }

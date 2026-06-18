@@ -3,17 +3,23 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/errors"
-
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/flag"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
-	"github.com/crusttech/human/server/system/service/event"
 	"github.com/crusttech/human/server/system/types"
 )
+
+// The CRUD skeleton (LookupByID, Create, Update, Delete, Undelete, loadApplication
+// and toLabeledApplications) is generated in application.gen.go from
+// system/application.cue.
+//
+// This file owns the struct, access-controller interface, constructor, the
+// before-create / before-update hooks the generated Create / Update call into,
+// and the resource-specific methods: Search (flag filtering + enrichment),
+// Flag / Unflag / checkFlag and Reorder.
 
 type (
 	application struct {
@@ -39,33 +45,32 @@ func Application(s store.Storer, ac applicationAccessController, al actionlog.Re
 	return &application{store: s, ac: ac, actionlog: al, eventbus: eb}
 }
 
-func (svc *application) LookupByID(ctx context.Context, ID uint64) (app *types.Application, err error) {
-	var (
-		aaProps = &applicationActionProps{application: &types.Application{ID: ID}}
-	)
+// beforeCreate runs after the access check and before the generated Create
+// assigns the ID / timestamps and persists. It defaults the Unify config.
+func (svc *application) beforeCreate(ctx context.Context, new *types.Application) error {
+	if new.Unify == nil {
+		new.Unify = &types.ApplicationUnify{}
+	}
 
-	err = func() error {
-		if app, err = loadApplication(ctx, svc.store, ID); err != nil {
-			return ApplicationErrInvalidID().Wrap(err)
-		}
-
-		aaProps.setApplication(app)
-
-		if !svc.ac.CanReadApplication(ctx, app) {
-			return ApplicationErrNotAllowedToRead()
-		}
-
-		return nil
-	}()
-
-	return app, svc.recordAction(ctx, aaProps, ApplicationActionLookup, err)
+	return nil
 }
 
-func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) (aa types.ApplicationSet, f types.ApplicationFilter, err error) {
-	var (
-		aaProps = &applicationActionProps{filter: &af}
-	)
+// beforeUpdate runs after the stale-data guard and before the generated Update
+// copies the mutable fields onto the loaded record. Unify is merged here because
+// the original copies it only when provided (it must not be nulled out otherwise).
+func (svc *application) beforeUpdate(ctx context.Context, upd, existing *types.Application) error {
+	if upd.Unify != nil {
+		existing.Unify = upd.Unify
+	}
 
+	return nil
+}
+
+// onSearch is the custom body for the generated Search. The generated method
+// owns the action-log scaffold + recordAction + the standard CanSearchApplications
+// check; the flag filtering / enrichment (flag.Search / flag.Load), which the
+// template does not emit, lives here.
+func (svc *application) onSearch(ctx context.Context, af types.ApplicationFilter, aaProps *applicationActionProps) (aa types.ApplicationSet, f types.ApplicationFilter, err error) {
 	// For each fetched item, store backend will check if it is valid or not
 	af.Check = func(res *types.Application) (bool, error) {
 		if !svc.ac.CanReadApplication(ctx, res) {
@@ -75,238 +80,67 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 		return true, nil
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchApplications(ctx) {
-			return ApplicationErrNotAllowedToSearch()
-		}
+	if af.Deleted > filter.StateExcluded {
+		// If list with deleted applications is requested
+		// user must have access permissions to system (ie: is admin)
+		//
+		// not the best solution but ATM it allows us to have at least
+		// some kind of control over who can see deleted applications
+		//if !svc.ac.CanAccess(ctx) {
+		//	return ApplicationErrNotAllowedToListApplications()
+		//}
+	}
 
-		if af.Deleted > filter.StateExcluded {
-			// If list with deleted applications is requested
-			// user must have access permissions to system (ie: is admin)
-			//
-			// not the best solution but ATM it allows us to have at least
-			// some kind of control over who can see deleted applications
-			//if !svc.ac.CanAccess(ctx) {
-			//	return ApplicationErrNotAllowedToListApplications()
-			//}
-		}
+	if len(af.Labels) > 0 {
+		af.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Application{}.LabelResourceKind(),
+			af.Labels,
+		)
 
-		if len(af.Labels) > 0 {
-			af.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Application{}.LabelResourceKind(),
-				af.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(af.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if len(af.Flags) > 0 {
-			af.FlaggedIDs, err = flag.Search(
-				ctx,
-				svc.store,
-				a.GetIdentityFromContext(ctx).Identity(),
-				(&types.Application{}).FlagResourceKind(),
-				af.Flags...,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// flags specified byt no flagged resources found
-			if len(af.FlaggedIDs) == 0 {
-				return nil
-			}
-		}
-
-		if aa, f, err = store.SearchApplications(ctx, svc.store, af); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledApplications(aa)...); err != nil {
-			return err
-		}
-
-		if err = flag.Load(ctx, svc.store, f.IncFlags, a.GetIdentityFromContext(ctx).Identity(), toFlaggedApplications(aa)...); err != nil {
-			return err
-		}
-
-		return nil
-
-	}()
-
-	return aa, f, svc.recordAction(ctx, aaProps, ApplicationActionSearch, err)
-}
-
-func (svc *application) Create(ctx context.Context, new *types.Application) (app *types.Application, err error) {
-	var (
-		aaProps = &applicationActionProps{application: new}
-	)
-
-	err = func() (err error) {
-		if !svc.ac.CanCreateApplication(ctx) {
-			return ApplicationErrNotAllowedToCreate()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.ApplicationBeforeCreate(new, nil)); err != nil {
+		if err != nil {
 			return
 		}
 
-		// Set new values after beforeCreate events are emitted
-		new.ID = nextID()
-		new.CreatedAt = *now()
-
-		if new.Unify == nil {
-			new.Unify = &types.ApplicationUnify{}
+		// labels specified but no labeled resources found
+		if len(af.LabeledIDs) == 0 {
+			return
 		}
+	}
 
-		aaProps.setNew(new)
+	if len(af.Flags) > 0 {
+		af.FlaggedIDs, err = flag.Search(
+			ctx,
+			svc.store,
+			a.GetIdentityFromContext(ctx).Identity(),
+			(&types.Application{}).FlagResourceKind(),
+			af.Flags...,
+		)
 
-		if err = store.CreateApplication(ctx, svc.store, new); err != nil {
+		if err != nil {
 			return
 		}
 
-		if err = label.Create(ctx, svc.store, new); err != nil {
+		// flags specified byt no flagged resources found
+		if len(af.FlaggedIDs) == 0 {
 			return
 		}
+	}
 
-		app = new
+	if aa, f, err = store.SearchApplications(ctx, svc.store, af); err != nil {
+		return
+	}
 
-		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterCreate(new, nil))
-		return nil
-	}()
+	if err = label.Load(ctx, svc.store, toLabeledApplications(aa)...); err != nil {
+		return
+	}
 
-	return app, svc.recordAction(ctx, aaProps, ApplicationActionCreate, err)
-}
+	if err = flag.Load(ctx, svc.store, f.IncFlags, a.GetIdentityFromContext(ctx).Identity(), toFlaggedApplications(aa)...); err != nil {
+		return
+	}
 
-func (svc *application) Update(ctx context.Context, upd *types.Application) (app *types.Application, err error) {
-	var (
-		aaProps = &applicationActionProps{update: upd}
-	)
-
-	err = func() (err error) {
-		if app, err = loadApplication(ctx, svc.store, upd.ID); err != nil {
-			return
-		}
-
-		aaProps.setApplication(app)
-
-		if !svc.ac.CanUpdateApplication(ctx, app) {
-			return ApplicationErrNotAllowedToUpdate()
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, app.UpdatedAt, app.CreatedAt) {
-			return ApplicationErrStaleData()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.ApplicationBeforeUpdate(upd, app)); err != nil {
-			return
-		}
-
-		// Assign changed values after afterUpdate events are emitted
-		app.Name = upd.Name
-		app.Enabled = upd.Enabled
-		app.Weight = upd.Weight
-		app.UpdatedAt = now()
-
-		if upd.Unify != nil {
-			app.Unify = upd.Unify
-		}
-
-		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
-			return err
-		}
-
-		if label.Changed(app.Labels, upd.Labels) {
-			if err = label.Update(ctx, svc.store, upd); err != nil {
-				return
-			}
-			app.Labels = upd.Labels
-		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterUpdate(upd, app))
-		return nil
-	}()
-
-	return app, svc.recordAction(ctx, aaProps, ApplicationActionUpdate, err)
-}
-
-func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
-	var (
-		aaProps = &applicationActionProps{}
-		app     *types.Application
-	)
-
-	err = func() (err error) {
-		if app, err = loadApplication(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		aaProps.setApplication(app)
-
-		if !svc.ac.CanDeleteApplication(ctx, app) {
-			return ApplicationErrNotAllowedToDelete()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.ApplicationBeforeDelete(nil, app)); err != nil {
-			return
-		}
-
-		app.DeletedAt = now()
-		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
-			return
-		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterDelete(nil, app))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, aaProps, ApplicationActionDelete, err)
-}
-
-func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
-	var (
-		aaProps = &applicationActionProps{}
-		app     *types.Application
-	)
-
-	err = func() (err error) {
-		if app, err = loadApplication(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		aaProps.setApplication(app)
-
-		if !svc.ac.CanDeleteApplication(ctx, app) {
-			return ApplicationErrNotAllowedToUndelete()
-		}
-
-		// @todo add event
-		//       if err = svc.eventbus.WaitFor(ctx, event.ApplicationBeforeUndelete(nil, app)); err != nil {
-		//       	return
-		//       }
-
-		app.DeletedAt = nil
-		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
-			return
-		}
-
-		// @todo add event
-		//       _ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterUndelete(nil, app))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, aaProps, ApplicationActionUndelete, err)
+	return
 }
 
 func (svc *application) Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error {
@@ -362,34 +196,6 @@ func (svc *application) Reorder(ctx context.Context, order []uint64) (err error)
 	})
 
 	return svc.recordAction(ctx, aProps, ApplicationActionReorder, err)
-}
-
-func loadApplication(ctx context.Context, s store.Applications, ID uint64) (res *types.Application, err error) {
-	if ID == 0 {
-		return nil, ApplicationErrInvalidID()
-	}
-
-	if res, err = store.LookupApplicationByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, ApplicationErrNotFound()
-	}
-
-	return
-}
-
-// toLabeledApplications converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledApplications(set []*types.Application) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 // toFlaggedApplications converts to []flag.FlaggedResource

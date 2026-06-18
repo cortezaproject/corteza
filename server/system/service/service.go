@@ -151,6 +151,12 @@ var (
 
 	DefaultStatistics *statistics
 
+	// DML services
+	DefaultDmlConnection *dmlConnectionSvc
+	DefaultDmlMapping    *dmlMappingSvc
+	DefaultDmlApplier    *dmlApplierSvc
+	DefaultDmlImporter   *dmlImporterSvc
+
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
 		c := time.Now().Round(time.Second)
@@ -220,6 +226,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultDalConnection = DalConnection(ctx, dal.Service(), c.DB)
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
+
+	InitDmlServices(s, dal.Service())
 
 	DefaultDalSchemaAlteration = DalSchemaAlteration(dal.Service())
 

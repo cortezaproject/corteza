@@ -9,10 +9,25 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type projectGroup struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        projectGroupAccessController
+}
+
+func ProjectGroup() *projectGroup {
+	return &projectGroup{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *projectGroup) FindByID(ctx context.Context, ID uint64) (res *types.ProjectGroup, err error) {
 	var (

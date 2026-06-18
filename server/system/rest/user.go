@@ -92,10 +92,10 @@ func (User) New() *User {
 	}
 }
 
-func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl User) makeFilter(ctx context.Context, r *request.UserList) (types.UserFilter, error) {
 	var (
 		err error
-		set types.UserSet
 		f   = types.UserFilter{
 			UserID:    r.UserID,
 			RoleID:    r.RoleID,
@@ -116,13 +116,13 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if r.IncSuspended && f.Suspended == 0 {
@@ -133,8 +133,7 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		f.Deleted = filter.StateInclusive
 	}
 
-	set, f, err = ctrl.user.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
 func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}, error) {
@@ -258,25 +257,12 @@ func (ctrl User) PartialUpdate(ctx context.Context, r *request.UserPartialUpdate
 	}, nil
 }
 
-func (ctrl User) Read(ctx context.Context, r *request.UserRead) (interface{}, error) {
-	res, err := ctrl.user.FindByID(ctx, r.UserID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl User) Delete(ctx context.Context, r *request.UserDelete) (interface{}, error) {
-	return api.OK(), ctrl.user.Delete(ctx, r.UserID)
-}
-
 func (ctrl User) Suspend(ctx context.Context, r *request.UserSuspend) (interface{}, error) {
 	return api.OK(), ctrl.user.Suspend(ctx, r.UserID)
 }
 
 func (ctrl User) Unsuspend(ctx context.Context, r *request.UserUnsuspend) (interface{}, error) {
 	return api.OK(), ctrl.user.Unsuspend(ctx, r.UserID)
-}
-
-func (ctrl User) Undelete(ctx context.Context, r *request.UserUndelete) (interface{}, error) {
-	return api.OK(), ctrl.user.Undelete(ctx, r.UserID)
 }
 
 func (ctrl User) SetPassword(ctx context.Context, r *request.UserSetPassword) (interface{}, error) {
@@ -385,7 +371,7 @@ func (ctrl *User) Export(ctx context.Context, r *request.UserExport) (rsp interf
 	// Roles
 	roleIndex := make(map[uint64]*types.Role)
 	roleResIndex := make(map[uint64]resource.Interface)
-	rr, _, err := ctrl.role.Find(ctx, types.RoleFilter{Paging: filter.Paging{Limit: 0}})
+	rr, _, err := ctrl.role.Search(ctx, types.RoleFilter{Paging: filter.Paging{Limit: 0}})
 	if err != nil {
 		return
 	}

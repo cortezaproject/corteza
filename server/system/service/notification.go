@@ -30,12 +30,12 @@ type (
 	}
 
 	NotificationService interface {
-		Find(context.Context, types.NotificationFilter) (types.NotificationSet, types.NotificationFilter, error)
+		Search(context.Context, types.NotificationFilter) (types.NotificationSet, types.NotificationFilter, error)
 		FindByID(context.Context, uint64) (*types.Notification, error)
 
 		Create(context.Context, *types.Notification) (*types.Notification, error)
 		Update(context.Context, *types.Notification) (*types.Notification, error)
-		Delete(context.Context, uint64) error
+		DeleteByID(context.Context, uint64) error
 
 		MarkAsRead(context.Context, uint64) error
 		MarkAsUnread(context.Context, uint64) error
@@ -53,193 +53,169 @@ func Notification(ctx context.Context, log *zap.Logger, ns notificationSender) N
 	}
 }
 
-func (svc notification) Find(ctx context.Context, filter types.NotificationFilter) (nn types.NotificationSet, f types.NotificationFilter, err error) {
-	var (
-		raProps = &notificationActionProps{filter: &filter}
-	)
+// onSearch is the custom body for the generated Search. The generated method
+// owns the action-log scaffold + recordAction; the recipient-scoping (read
+// access is recipient-ownership, non-RBAC) lives here.
+func (svc *notification) onSearch(ctx context.Context, filter types.NotificationFilter, aProps *notificationActionProps) (nn types.NotificationSet, f types.NotificationFilter, err error) {
+	// Get current user ID
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
 
-	err = func() (err error) {
-		// Get current user ID
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	// Override recipient filter to ensure users can only see their own notifications
+	filter.Recipient = currentUserID
 
-		// Override recipient filter to ensure users can only see their own notifications
-		filter.Recipient = currentUserID
+	nn, f, err = store.SearchNotifications(ctx, svc.store, filter)
+	if err != nil {
+		return nn, f, err
+	}
 
-		nn, f, err = store.SearchNotifications(ctx, svc.store, filter)
-		if err != nil {
-			return err
-		}
+	// Ensure we never return nil, but an empty slice instead
+	if nn == nil {
+		nn = make(types.NotificationSet, 0)
+	}
 
-		// Ensure we never return nil, but an empty slice instead
-		if nn == nil {
-			nn = make(types.NotificationSet, 0)
-		}
-
-		return nil
-	}()
-
-	return nn, f, svc.recordAction(ctx, raProps, NotificationActionSearch, err)
+	return nn, f, nil
 }
 
-func (svc notification) FindByID(ctx context.Context, ID uint64) (n *types.Notification, err error) {
-	var (
-		raProps = &notificationActionProps{notification: &types.Notification{ID: ID}}
-	)
+// onLookup is the custom body for the generated FindByID. The generated method
+// owns the action-log scaffold + recordAction; the recipient-ownership check
+// (non-RBAC read access) lives here.
+func (svc *notification) onLookup(ctx context.Context, ID uint64, aProps *notificationActionProps) (n *types.Notification, err error) {
+	if ID == 0 {
+		return nil, NotificationErrInvalidID()
+	}
 
-	err = func() (err error) {
-		if ID == 0 {
-			return NotificationErrInvalidID()
-		}
+	n, err = store.LookupNotificationByID(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
 
-		n, err = store.LookupNotificationByID(ctx, svc.store, ID)
-		if err != nil {
-			return err
-		}
+	// Check if the notification belongs to the current user
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	if n.Recipient != currentUserID {
+		return nil, NotificationErrNotFound()
+	}
 
-		// Check if the notification belongs to the current user
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-		if n.Recipient != currentUserID {
-			return NotificationErrNotFound()
-		}
+	aProps.setNotification(n)
 
-		raProps.setNotification(n)
-
-		return nil
-	}()
-
-	return n, svc.recordAction(ctx, raProps, NotificationActionLookup, err)
+	return n, nil
 }
 
-func (svc notification) Create(ctx context.Context, new *types.Notification) (n *types.Notification, err error) {
-	var (
-		raProps = &notificationActionProps{new: new}
-	)
+// onCreate is the custom body for the generated Create. The generated method
+// owns the action-log scaffold; the assignee permission check, creator
+// stamping and websocket delivery live here.
+func (svc *notification) onCreate(ctx context.Context, new *types.Notification) (err error) {
+	// Check if current user has permission to assign notifications to others
+	if err := svc.checkAssignee(ctx, new); err != nil {
+		return err
+	}
 
-	err = func() (err error) {
-		// Check if current user has permission to assign notifications to others
-		if err := svc.checkAssignee(ctx, new); err != nil {
+	new.ID = nextID()
+	new.CreatedAt = *now()
+
+	// Set creator
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	new.CreatedBy = currentUserID
+
+	if err = store.CreateNotification(ctx, svc.store, new); err != nil {
+		return err
+	}
+
+	// Send the notification via websocket
+	if svc.notificationSender != nil {
+		// Send only to the recipient
+		if err = svc.notificationSender.Send("notification", new, new.Recipient); err != nil {
 			return err
 		}
+	}
 
-		n = new
-		n.ID = nextID()
-		n.CreatedAt = *now()
-
-		// Set creator
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-		n.CreatedBy = currentUserID
-
-		if err = store.CreateNotification(ctx, svc.store, n); err != nil {
-			return err
-		}
-
-		// Send the notification via websocket
-		if svc.notificationSender != nil {
-			// Send only to the recipient
-			if err = svc.notificationSender.Send("notification", n, n.Recipient); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return n, svc.recordAction(ctx, raProps, NotificationActionCreate, err)
+	return nil
 }
 
-func (svc notification) Update(ctx context.Context, upd *types.Notification) (n *types.Notification, err error) {
-	var (
-		raProps = &notificationActionProps{updated: upd}
-	)
+// onUpdate is the custom body for the generated Update. The generated method
+// owns the action-log scaffold + recordAction; the recipient-ownership check,
+// assignee re-check on recipient change and field copy live here.
+func (svc *notification) onUpdate(ctx context.Context, upd *types.Notification, aProps *notificationActionProps) (n *types.Notification, err error) {
+	if upd.ID == 0 {
+		return nil, NotificationErrInvalidID()
+	}
 
-	err = func() (err error) {
-		if upd.ID == 0 {
-			return NotificationErrInvalidID()
+	if n, err = store.LookupNotificationByID(ctx, svc.store, upd.ID); err != nil {
+		return
+	}
+
+	// Check if the notification belongs to the current user
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	if n.Recipient != currentUserID {
+		return nil, NotificationErrNotFound()
+	}
+
+	// Check if the recipient is being changed and if so, check permissions
+	if upd.Recipient != 0 && upd.Recipient != n.Recipient {
+		// Create a temporary notification for the permission check
+		tempNotification := &types.Notification{
+			Recipient: upd.Recipient,
 		}
 
-		if n, err = store.LookupNotificationByID(ctx, svc.store, upd.ID); err != nil {
-			return
+		if err := svc.checkAssignee(ctx, tempNotification); err != nil {
+			return n, err
 		}
 
-		// Check if the notification belongs to the current user
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-		if n.Recipient != currentUserID {
-			return NotificationErrNotFound()
-		}
+		n.Recipient = upd.Recipient
+	}
 
-		// Check if the recipient is being changed and if so, check permissions
-		if upd.Recipient != 0 && upd.Recipient != n.Recipient {
-			// Create a temporary notification for the permission check
-			tempNotification := &types.Notification{
-				Recipient: upd.Recipient,
-			}
+	// Assign changed values
+	n.Kind = upd.Kind
+	n.Config = upd.Config
+	n.UpdatedAt = now()
 
-			if err := svc.checkAssignee(ctx, tempNotification); err != nil {
-				return err
-			}
+	if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+		return n, err
+	}
 
-			n.Recipient = upd.Recipient
-		}
-
-		// Assign changed values
-		n.Kind = upd.Kind
-		n.Config = upd.Config
-		n.UpdatedAt = now()
-
-		if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return n, svc.recordAction(ctx, raProps, NotificationActionUpdate, err)
+	return n, nil
 }
 
-func (svc notification) Delete(ctx context.Context, ID uint64) (err error) {
+// onDelete is the custom body for the generated DeleteByID. The generated
+// method owns the action-log scaffold + recordAction; the recipient-ownership
+// check, soft-delete and websocket delivery live here.
+func (svc *notification) onDelete(ctx context.Context, ID uint64, aProps *notificationActionProps) (err error) {
 	var (
 		n *types.Notification
-
-		raProps = &notificationActionProps{notification: &types.Notification{ID: ID}}
 	)
 
-	err = func() (err error) {
-		if ID == 0 {
-			return NotificationErrInvalidID()
-		}
+	if ID == 0 {
+		return NotificationErrInvalidID()
+	}
 
-		if n, err = svc.FindByID(ctx, ID); err != nil {
-			return NotificationErrNotFound()
-		}
+	if n, err = svc.FindByID(ctx, ID); err != nil {
+		return NotificationErrNotFound()
+	}
 
-		// Check if the notification belongs to the current user
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-		if n.Recipient != currentUserID {
-			return NotificationErrNotFound()
-		}
+	// Check if the notification belongs to the current user
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	if n.Recipient != currentUserID {
+		return NotificationErrNotFound()
+	}
 
-		raProps.setNotification(n)
+	aProps.setNotification(n)
 
-		n.DeletedAt = now()
+	n.DeletedAt = now()
 
-		if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+	if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+		return err
+	}
+
+	// Send the deleted notification via websocket so client can update UI
+	if svc.notificationSender != nil {
+		if err = svc.notificationSender.Send("notification.delete", n, n.Recipient); err != nil {
 			return err
 		}
+	}
 
-		// Send the deleted notification via websocket so client can update UI
-		if svc.notificationSender != nil {
-			if err = svc.notificationSender.Send("notification.delete", n, n.Recipient); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, raProps, NotificationActionDelete, err)
+	return nil
 }
 
-func (svc notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
+func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
 	var (
 		n *types.Notification
 
@@ -285,7 +261,7 @@ func (svc notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, raProps, NotificationActionMarkAsRead, err)
 }
 
-func (svc notification) MarkAsUnread(ctx context.Context, ID uint64) (err error) {
+func (svc *notification) MarkAsUnread(ctx context.Context, ID uint64) (err error) {
 	var (
 		n *types.Notification
 
@@ -331,7 +307,7 @@ func (svc notification) MarkAsUnread(ctx context.Context, ID uint64) (err error)
 	return svc.recordAction(ctx, raProps, NotificationActionMarkAsUnread, err)
 }
 
-func (svc notification) MarkAllAsRead(ctx context.Context) (err error) {
+func (svc *notification) MarkAllAsRead(ctx context.Context) (err error) {
 	var (
 		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
 		raProps       = &notificationActionProps{notification: &types.Notification{Recipient: currentUserID}}
@@ -395,7 +371,7 @@ func (svc notification) MarkAllAsRead(ctx context.Context) (err error) {
 	return svc.recordAction(ctx, raProps, NotificationActionMarkAllAsRead, err)
 }
 
-func (svc notification) MarkAllAsUnread(ctx context.Context) (err error) {
+func (svc *notification) MarkAllAsUnread(ctx context.Context) (err error) {
 	var (
 		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
 		raProps       = &notificationActionProps{notification: &types.Notification{Recipient: currentUserID}}
@@ -453,7 +429,7 @@ func (svc notification) MarkAllAsUnread(ctx context.Context) (err error) {
 	return svc.recordAction(ctx, raProps, NotificationActionMarkAllAsUnread, err)
 }
 
-func (svc notification) checkAssignee(ctx context.Context, n *types.Notification) (err error) {
+func (svc *notification) checkAssignee(ctx context.Context, n *types.Notification) (err error) {
 	// Check if user is assigning to someone else
 	if n.Recipient != svc.currentUser(ctx) {
 		if !svc.ac.CanAssignNotification(ctx) {
@@ -464,6 +440,6 @@ func (svc notification) checkAssignee(ctx context.Context, n *types.Notification
 	return nil
 }
 
-func (svc notification) currentUser(ctx context.Context) uint64 {
+func (svc *notification) currentUser(ctx context.Context) uint64 {
 	return intAuth.GetIdentityFromContext(ctx).Identity()
 }

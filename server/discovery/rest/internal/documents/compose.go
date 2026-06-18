@@ -38,20 +38,20 @@ type (
 
 		ns interface {
 			FindByID(context.Context, uint64) (*cmpTypes.Namespace, error)
-			Find(context.Context, cmpTypes.NamespaceFilter) (cmpTypes.NamespaceSet, cmpTypes.NamespaceFilter, error)
+			Search(context.Context, cmpTypes.NamespaceFilter) (cmpTypes.NamespaceSet, cmpTypes.NamespaceFilter, error)
 		}
 
 		mod interface {
 			FindByID(context.Context, uint64, uint64) (*cmpTypes.Module, error)
-			Find(ctx context.Context, filter cmpTypes.ModuleFilter) (set cmpTypes.ModuleSet, f cmpTypes.ModuleFilter, err error)
+			Search(ctx context.Context, filter cmpTypes.ModuleFilter) (set cmpTypes.ModuleSet, f cmpTypes.ModuleFilter, err error)
 		}
 
 		rec interface {
-			Find(ctx context.Context, filter cmpTypes.RecordFilter) (set cmpTypes.RecordSet, f cmpTypes.RecordFilter, err error)
+			Search(ctx context.Context, filter cmpTypes.RecordFilter) (set cmpTypes.RecordSet, f cmpTypes.RecordFilter, err error)
 		}
 
 		page interface {
-			Find(ctx context.Context, filter cmpTypes.PageFilter) (set cmpTypes.PageSet, f cmpTypes.PageFilter, err error)
+			Search(ctx context.Context, filter cmpTypes.PageFilter) (set cmpTypes.PageSet, f cmpTypes.PageFilter, err error)
 		}
 
 		usr interface {
@@ -113,7 +113,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 			return err
 		}
 
-		if nss, f, err = d.ns.Find(ctx, f); err != nil {
+		if nss, f, err = d.ns.Search(ctx, f); err != nil {
 			return err
 		}
 
@@ -132,7 +132,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 			pf.NamespaceID = nsID
 
 			// namespace pages
-			if ps, pf, err = d.page.Find(ctx, pf); err != nil {
+			if ps, pf, err = d.page.Search(ctx, pf); err != nil {
 				return err
 			}
 
@@ -213,7 +213,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 			return
 		}
 
-		if mm, f, err = d.mod.Find(ctx, f); err != nil {
+		if mm, f, err = d.mod.Search(ctx, f); err != nil {
 			return
 		}
 
@@ -330,7 +330,7 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 			return err
 		}
 
-		if rr, f, err = d.rec.Find(ctx, f); err != nil {
+		if rr, f, err = d.rec.Search(ctx, f); err != nil {
 			return err
 		}
 

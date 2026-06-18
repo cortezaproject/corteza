@@ -193,7 +193,7 @@ func TestModule_LabelSearch(t *testing.T) {
 
 		findModules = func(labels map[string]labelTypes.LabelValue, IDs []string) types.ModuleSet {
 			f := types.ModuleFilter{NamespaceID: ns.ID, Labels: labels, ModuleID: IDs}
-			set, _, err := svc.Find(ctx, f)
+			set, _, err := svc.Search(ctx, f)
 			req.NoError(err)
 
 			return set

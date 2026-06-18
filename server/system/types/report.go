@@ -2,41 +2,16 @@ package types
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"encoding/json"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/ast"
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/ql"
-	"github.com/crusttech/human/server/pkg/sql"
 	"github.com/spf13/cast"
 )
 
 type (
-	Report struct {
-		ID        uint64      `json:"reportID,string"`
-		TenantID  uint64      `json:"tenantID,string,omitempty"`
-		ProjectID uint64      `json:"projectID,string,omitempty"`
-		Handle    string      `json:"handle"`
-		Meta      *ReportMeta `json:"meta,omitempty"`
-
-		Scenarios ReportScenarioSet   `json:"scenarios,omitempty"`
-		Sources   ReportDataSourceSet `json:"sources"`
-		Blocks    ReportBlockSet      `json:"blocks"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		OwnedBy   uint64     `json:"ownedBy"`
-		CreatedBy uint64     `json:"createdBy"`
-		CreatedAt time.Time  `json:"createdAt"`
-		UpdatedBy uint64     `json:"updatedBy,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	ReportMeta struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -209,21 +184,6 @@ func (b *ReportBlock) UnmarshalJSON(data []byte) (err error) {
 
 	return nil
 }
-
-// Store stuff
-
-func (vv *ReportMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *ReportMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
-
-func (vv *ReportBlockSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
-func (vv ReportBlockSet) Value() (driver.Value, error) { return json.Marshal(vv) }
-
-// Scan on ReportDataSourceSet gracefully handles conversion from NULL
-func (vv *ReportDataSourceSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
-func (vv ReportDataSourceSet) Value() (driver.Value, error) { return json.Marshal(vv) }
-
-func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
-func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 // Node is a helper for accessing the wrapped QL node to omit nil checks
 func (f *ReportFilterExpr) Node() *ast.ASTNode {

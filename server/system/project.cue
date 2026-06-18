@@ -92,6 +92,8 @@ project: {
 	}
 
 	service: {
+		genConstructor: true
+
 		events:   false
 
 		lookup:   false

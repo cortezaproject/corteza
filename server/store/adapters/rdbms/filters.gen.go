@@ -1656,10 +1656,6 @@ func ProjectMemberFilter(d drivers.Dialect, f systemType.ProjectMemberFilter) (e
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
 	}
 
-	if len(f.LabeledIDs) > 0 {
-		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
-	}
-
 	return ee, f, err
 }
 
@@ -1995,10 +1991,6 @@ func TenantMembershipFilter(d drivers.Dialect, f systemType.TenantMembershipFilt
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
-	}
-
-	if len(f.LabeledIDs) > 0 {
-		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
 	return ee, f, err

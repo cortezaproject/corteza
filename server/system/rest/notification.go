@@ -28,7 +28,8 @@ func (Notification) New() *Notification {
 	return ctrl
 }
 
-func (ctrl *Notification) List(ctx context.Context, r *request.NotificationList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Notification) makeFilter(ctx context.Context, r *request.NotificationList) (types.NotificationFilter, error) {
 	var (
 		err error
 		f   = types.NotificationFilter{
@@ -39,71 +40,52 @@ func (ctrl *Notification) List(ctx context.Context, r *request.NotificationList)
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if len(r.NotificationID) > 0 {
 		f.NotificationID = payload.ParseUint64s(r.NotificationID)
 	}
 
-	set, f, err := ctrl.notification.Find(ctx, f)
-	if err != nil {
-		return nil, err
-	}
-
-	// Ensure we have a valid empty set rather than nil
-	if set == nil {
-		set = make(types.NotificationSet, 0)
-	}
-
-	return ctrl.makeFilterPayload(ctx, set, f, nil)
+	return f, nil
 }
 
-func (ctrl *Notification) Create(ctx context.Context, r *request.NotificationCreate) (interface{}, error) {
-	ntf := &types.Notification{
-		Kind:      types.NotificationKind(r.Kind),
-		Config:    types.NotificationConfig{},
-		Recipient: r.Recipient,
-	}
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *Notification) beforeCreate(ctx context.Context, res *types.Notification, r *request.NotificationCreate) error {
+	res.Kind = types.NotificationKind(r.Kind)
+	res.Config = types.NotificationConfig{}
 
 	// Convert sqlxTypes.JSONText to NotificationConfig
 	if len(r.Config) > 0 {
-		if err := r.Config.Unmarshal(&ntf.Config); err != nil {
-			return nil, err
+		if err := r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
 
-	return ctrl.notification.Create(ctx, ntf)
+	return nil
 }
 
-func (ctrl *Notification) Update(ctx context.Context, r *request.NotificationUpdate) (interface{}, error) {
-	ntf := &types.Notification{
-		ID:        r.NotificationID,
-		Kind:      types.NotificationKind(r.Kind),
-		Config:    types.NotificationConfig{},
-		Recipient: r.Recipient,
-	}
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID).
+func (ctrl *Notification) beforeUpdate(ctx context.Context, res *types.Notification, r *request.NotificationUpdate) error {
+	res.Kind = types.NotificationKind(r.Kind)
+	res.Config = types.NotificationConfig{}
 
 	// Convert sqlxTypes.JSONText to NotificationConfig
 	if len(r.Config) > 0 {
-		if err := r.Config.Unmarshal(&ntf.Config); err != nil {
-			return nil, err
+		if err := r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
 
-	return ctrl.notification.Update(ctx, ntf)
-}
-
-func (ctrl *Notification) Read(ctx context.Context, r *request.NotificationRead) (interface{}, error) {
-	return ctrl.notification.FindByID(ctx, r.NotificationID)
-}
-
-func (ctrl *Notification) Delete(ctx context.Context, r *request.NotificationDelete) (interface{}, error) {
-	return api.OK(), ctrl.notification.Delete(ctx, r.NotificationID)
+	return nil
 }
 
 func (ctrl *Notification) MarkAsRead(ctx context.Context, r *request.NotificationMarkAsRead) (interface{}, error) {
@@ -120,6 +102,14 @@ func (ctrl *Notification) MarkAllAsRead(ctx context.Context, r *request.Notifica
 
 func (ctrl *Notification) MarkAllAsUnread(ctx context.Context, r *request.NotificationMarkAllAsUnread) (interface{}, error) {
 	return api.OK(), ctrl.notification.MarkAllAsUnread(ctx)
+}
+
+func (ctrl *Notification) makePayload(ctx context.Context, ntf *types.Notification, err error) (*types.Notification, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	return ntf, nil
 }
 
 func (ctrl *Notification) makeFilterPayload(ctx context.Context, nn types.NotificationSet, f types.NotificationFilter, err error) (*notificationSetPayload, error) {

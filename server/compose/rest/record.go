@@ -327,10 +327,6 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 	return ctrl.makeBulkPayload(ctx, m, dd, err, rr...)
 }
 
-func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
-	return api.OK(), ctrl.record.DeleteByID(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
-}
-
 func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete) (interface{}, error) {
 	var (
 		f = types.RecordFilter{
@@ -346,10 +342,6 @@ func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete)
 	}
 
 	return api.OK(), ctrl.record.BulkModifyByFilter(ctx, f, nil, types.OperationTypeDelete)
-}
-
-func (ctrl *Record) Undelete(ctx context.Context, r *request.RecordUndelete) (interface{}, error) {
-	return api.OK(), ctrl.record.UndeleteByID(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
 }
 
 func (ctrl *Record) BulkUndelete(ctx context.Context, r *request.RecordBulkUndelete) (interface{}, error) {

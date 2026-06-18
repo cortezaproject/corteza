@@ -58,7 +58,7 @@ type (
 
 	AttachmentService interface {
 		FindByID(ctx context.Context, namespaceID, attachmentID uint64) (*types.Attachment, error)
-		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
+		Search(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreatePageAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
 		CreateIconAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
 		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error)
@@ -78,7 +78,7 @@ func Attachment(store objstore.Store, dal dalDater) *attachment {
 	}
 }
 
-func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
+func (svc attachment) Search(ctx context.Context, filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
 	var (
 		aProps = &attachmentActionProps{filter: &filter}
 	)

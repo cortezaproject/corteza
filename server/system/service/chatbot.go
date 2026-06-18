@@ -6,125 +6,86 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
 
-type (
-	chatbot struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        chatbotAccessController
-	}
-
-	chatbotAccessController interface {
-		CanCreateChatbot(ctx context.Context) bool
-		CanSearchChatbots(ctx context.Context) bool
-		CanReadChatbot(ctx context.Context, c *types.Chatbot) bool
-		CanUpdateChatbot(ctx context.Context, c *types.Chatbot) bool
-		CanDeleteChatbot(ctx context.Context, c *types.Chatbot) bool
-	}
-)
-
-func Chatbot() *chatbot {
-	return &chatbot{
-		ac:        DefaultAccessControl,
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-	}
-}
-
 func (svc *chatbot) Get(ctx context.Context, ID uint64) (*types.Chatbot, error) {
 	return svc.FindByID(ctx, ID)
 }
 
-func (svc *chatbot) FindByID(ctx context.Context, ID uint64) (c *types.Chatbot, err error) {
-	err = func() error {
-		if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
-			return err
-		}
+func (svc *chatbot) onLookup(ctx context.Context, ID uint64, aProps *chatbotActionProps) (c *types.Chatbot, err error) {
+	if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
+		return nil, err
+	}
 
-		if !svc.ac.CanReadChatbot(ctx, c) {
-			return ChatbotErrNotAllowedToRead()
-		}
+	aProps.setChatbot(c)
 
-		if err = label.Load(ctx, svc.store, c); err != nil {
-			return err
-		}
+	if !svc.ac.CanReadChatbot(ctx, c) {
+		return nil, ChatbotErrNotAllowedToRead()
+	}
 
-		return nil
-	}()
+	if err = label.Load(ctx, svc.store, c); err != nil {
+		return nil, err
+	}
 
-	return c, err
+	return c, nil
 }
 
-func (svc *chatbot) Create(ctx context.Context, new *types.Chatbot) (c *types.Chatbot, err error) {
-	err = func() (err error) {
-		if !svc.ac.CanCreateChatbot(ctx) {
-			return ChatbotErrNotAllowedToCreate()
-		}
+func (svc *chatbot) onCreate(ctx context.Context, new *types.Chatbot) (err error) {
+	new.ID = nextID()
+	new.CreatedAt = *now()
 
-		new.ID = nextID()
-		new.CreatedAt = *now()
+	if err = prepareChatbotOnCreate(new); err != nil {
+		return
+	}
 
-		if err = prepareChatbotOnCreate(new); err != nil {
-			return
-		}
+	if err = store.CreateChatbot(ctx, svc.store, new); err != nil {
+		return
+	}
 
-		if err = store.CreateChatbot(ctx, svc.store, new); err != nil {
-			return
-		}
+	if err = label.Create(ctx, svc.store, new); err != nil {
+		return
+	}
 
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		c = new
-		return nil
-	}()
-
-	return c, err
+	return nil
 }
 
-func (svc *chatbot) Update(ctx context.Context, upd *types.Chatbot) (c *types.Chatbot, err error) {
-	err = func() (err error) {
-		if !svc.ac.CanUpdateChatbot(ctx, upd) {
-			return ChatbotErrNotAllowedToUpdate()
-		}
+func (svc *chatbot) onUpdate(ctx context.Context, upd *types.Chatbot, aProps *chatbotActionProps) (c *types.Chatbot, err error) {
+	if !svc.ac.CanUpdateChatbot(ctx, upd) {
+		return nil, ChatbotErrNotAllowedToUpdate()
+	}
 
-		var existing *types.Chatbot
-		if existing, err = store.LookupChatbotByID(ctx, svc.store, upd.ID); err != nil {
-			return ChatbotErrNotFound()
-		}
+	var existing *types.Chatbot
+	if existing, err = store.LookupChatbotByID(ctx, svc.store, upd.ID); err != nil {
+		return nil, ChatbotErrNotFound()
+	}
 
-		if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-			return ChatbotErrStaleData()
-		}
+	aProps.setChatbot(existing)
 
-		upd.UpdatedAt = now()
-		upd.CreatedAt = existing.CreatedAt
-		upd.DeletedAt = existing.DeletedAt
+	if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
+		return nil, ChatbotErrStaleData()
+	}
 
-		if err = prepareChatbotOnUpdate(upd, existing); err != nil {
-			return
-		}
+	upd.UpdatedAt = now()
+	upd.CreatedAt = existing.CreatedAt
+	upd.DeletedAt = existing.DeletedAt
 
-		if err = store.UpdateChatbot(ctx, svc.store, upd); err != nil {
-			return
-		}
+	if err = prepareChatbotOnUpdate(upd, existing); err != nil {
+		return nil, err
+	}
 
-		if err = label.Update(ctx, svc.store, upd); err != nil {
-			return
-		}
+	if err = store.UpdateChatbot(ctx, svc.store, upd); err != nil {
+		return nil, err
+	}
 
-		c = upd
-		return nil
-	}()
+	if err = label.Update(ctx, svc.store, upd); err != nil {
+		return nil, err
+	}
 
-	return c, err
+	return upd, nil
 }
 
 func (svc *chatbot) RegenerateWidgetKey(ctx context.Context, ID uint64) (c *types.Chatbot, err error) {
@@ -156,28 +117,26 @@ func (svc *chatbot) RegenerateWidgetKey(ctx context.Context, ID uint64) (c *type
 	return c, err
 }
 
-func (svc *chatbot) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	err = func() (err error) {
-		var c *types.Chatbot
-		if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
-			return
-		}
+func (svc *chatbot) onDelete(ctx context.Context, ID uint64, aProps *chatbotActionProps) (err error) {
+	var c *types.Chatbot
+	if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanDeleteChatbot(ctx, c) {
-			return ChatbotErrNotAllowedToDelete()
-		}
+	aProps.setChatbot(c)
 
-		c.DeletedAt = now()
-		if err = store.UpdateChatbot(ctx, svc.store, c); err != nil {
-			return
-		}
+	if !svc.ac.CanDeleteChatbot(ctx, c) {
+		return ChatbotErrNotAllowedToDelete()
+	}
 
-		svc.softDeleteChatbotAttachments(ctx, ID)
+	c.DeletedAt = now()
+	if err = store.UpdateChatbot(ctx, svc.store, c); err != nil {
+		return
+	}
 
-		return nil
-	}()
+	svc.softDeleteChatbotAttachments(ctx, ID)
 
-	return err
+	return nil
 }
 
 // softDeleteChatbotAttachments marks every chatbot-kind attachment whose
@@ -200,29 +159,27 @@ func (svc *chatbot) softDeleteChatbotAttachments(ctx context.Context, ID uint64)
 	}
 }
 
-func (svc *chatbot) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	err = func() (err error) {
-		var c *types.Chatbot
-		if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
-			return
-		}
+func (svc *chatbot) onUndelete(ctx context.Context, ID uint64, aProps *chatbotActionProps) (err error) {
+	var c *types.Chatbot
+	if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanDeleteChatbot(ctx, c) {
-			return ChatbotErrNotAllowedToDelete()
-		}
+	aProps.setChatbot(c)
 
-		c.DeletedAt = nil
-		if err = store.UpdateChatbot(ctx, svc.store, c); err != nil {
-			return
-		}
+	if !svc.ac.CanDeleteChatbot(ctx, c) {
+		return ChatbotErrNotAllowedToDelete()
+	}
 
-		return nil
-	}()
+	c.DeletedAt = nil
+	if err = store.UpdateChatbot(ctx, svc.store, c); err != nil {
+		return
+	}
 
-	return err
+	return nil
 }
 
-func (svc *chatbot) Search(ctx context.Context, filter types.ChatbotFilter) (set types.ChatbotSet, f types.ChatbotFilter, err error) {
+func (svc *chatbot) onSearch(ctx context.Context, filter types.ChatbotFilter, aProps *chatbotActionProps) (set types.ChatbotSet, f types.ChatbotFilter, err error) {
 	filter.Check = func(res *types.Chatbot) (bool, error) {
 		if !svc.ac.CanReadChatbot(ctx, res) {
 			return false, nil
@@ -230,53 +187,32 @@ func (svc *chatbot) Search(ctx context.Context, filter types.ChatbotFilter) (set
 		return true, nil
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchChatbots(ctx) {
-			return ChatbotErrNotAllowedToSearch()
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Chatbot{}.LabelResourceKind(),
+			filter.Labels,
+		)
+
+		if err != nil {
+			return set, f, err
 		}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Chatbot{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
+		if len(filter.LabeledIDs) == 0 {
+			return set, f, nil
 		}
-
-		if set, f, err = store.SearchChatbots(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledChatbots(set)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return set, f, err
-}
-
-func toLabeledChatbots(set types.ChatbotSet) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
 	}
 
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
+	if set, f, err = store.SearchChatbots(ctx, svc.store, filter); err != nil {
+		return set, f, err
 	}
 
-	return ll
+	if err = label.Load(ctx, svc.store, toLabeledChatbots(set)...); err != nil {
+		return set, f, err
+	}
+
+	return set, f, nil
 }
 
 func prepareChatbotOnCreate(c *types.Chatbot) error {

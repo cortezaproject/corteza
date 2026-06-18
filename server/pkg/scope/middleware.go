@@ -137,7 +137,7 @@ func (c *tenantStatusCache) set(tenantID uint64, active bool) {
 //
 // TODO(multi-tenancy): tenant is mocked to 0 system-wide. TenantFromToken
 // returns 0 for current tokens, which is treated as the single active tenant.
-func TenantScopeMiddleware[S any](reg *ScopeRegistry[S], validator TenantValidator) func(http.Handler) http.Handler {
+func TenantScopeMiddleware(reg *ScopeRegistry, validator TenantValidator) func(http.Handler) http.Handler {
 	cache := newTenantStatusCache(30 * time.Second)
 
 	return func(next http.Handler) http.Handler {
@@ -187,7 +187,7 @@ func TenantScopeMiddleware[S any](reg *ScopeRegistry[S], validator TenantValidat
 // parameter name carrying the project handle or ID (e.g. "projectID").
 //
 // reg may be nil to skip runtime initialisation.
-func ProjectScopeMiddleware[S any](reg *ScopeRegistry[S], resolver ProjectResolver, urlParam string) func(http.Handler) http.Handler {
+func ProjectScopeMiddleware(reg *ScopeRegistry, resolver ProjectResolver, urlParam string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()

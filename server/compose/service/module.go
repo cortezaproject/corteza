@@ -57,7 +57,7 @@ type (
 		FindByName(ctx context.Context, namespaceID uint64, name string) (*types.Module, error)
 		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Module, error)
 		FindByAny(ctx context.Context, namespaceID uint64, identifier interface{}) (*types.Module, error)
-		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
+		Search(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 		SearchSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error)
 
 		Create(ctx context.Context, module *types.Module) (*types.Module, error)
@@ -158,11 +158,13 @@ func Module(am schemaAltManager) *module {
 	}
 }
 
-func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
-	var (
-		ns     *types.Namespace
-		aProps = &moduleActionProps{filter: &filter}
-	)
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper and aProps (filter) are owned by the generated
+// module.gen.go; this handler runs the namespace preload, access check and
+// store search.
+func (svc *module) onSearch(ctx context.Context, filter types.ModuleFilter, aProps *moduleActionProps) (set types.ModuleSet, f types.ModuleFilter, err error) {
+	var ns *types.Namespace
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Module) (bool, error) {
@@ -173,62 +175,59 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 		return true, nil
 	}
 
-	err = func() error {
-		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+	ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+	if err != nil {
+		return
+	}
+
+	aProps.setNamespace(ns)
+	if !svc.ac.CanSearchModulesOnNamespace(ctx, ns) {
+		return nil, f, ModuleErrNotAllowedToSearch()
+	}
+
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Module{}.LabelResourceKind(),
+			filter.Labels,
+			id.Uints(filter.ModuleID...)...,
+		)
+
 		if err != nil {
-			return err
+			return
 		}
 
-		aProps.setNamespace(ns)
-		if !svc.ac.CanSearchModulesOnNamespace(ctx, ns) {
-			return ModuleErrNotAllowedToSearch()
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return
 		}
+	}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Module{}.LabelResourceKind(),
-				filter.Labels,
-				id.Uints(filter.ModuleID...)...,
-			)
+	if set, f, err = store.SearchComposeModules(ctx, svc.store, filter); err != nil {
+		return
+	}
 
-			if err != nil {
-				return err
-			}
+	if err = loadModuleLabels(ctx, svc.store, set...); err != nil {
+		return
+	}
 
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
+	err = loadModuleFields(ctx, svc.store, set...)
+	if err != nil {
+		return
+	}
 
-		if set, f, err = store.SearchComposeModules(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = loadModuleLabels(ctx, svc.store, set...); err != nil {
-			return err
-		}
-
-		err = loadModuleFields(ctx, svc.store, set...)
-		if err != nil {
-			return err
-		}
-
-		set.Walk(func(m *types.Module) error {
-			svc.proc(ctx, m)
-			return nil
-		})
+	set.Walk(func(m *types.Module) error {
+		svc.proc(ctx, m)
 		return nil
-	}()
+	})
 
-	return set, f, svc.recordAction(ctx, aProps, ModuleActionSearch, err)
+	return
 }
 
-// FindByID tries to find module by ID
-func (svc module) FindByID(ctx context.Context, namespaceID, moduleID uint64) (m *types.Module, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
+// onLookup is the generated FindByID body handler (namespace-scoped compound id).
+func (svc *module) onLookup(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps) (m *types.Module, err error) {
+	return svc.lookup(ctx, namespaceID, aProps, func(aProps *moduleActionProps) (*types.Module, error) {
 		if moduleID == 0 {
 			return nil, ModuleErrInvalidID()
 		}
@@ -240,15 +239,21 @@ func (svc module) FindByID(ctx context.Context, namespaceID, moduleID uint64) (m
 
 // FindByName tries to find module by name
 func (svc module) FindByName(ctx context.Context, namespaceID uint64, name string) (m *types.Module, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
+	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
+
+	m, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *moduleActionProps) (*types.Module, error) {
 		aProps.module.Name = name
 		return store.LookupComposeModuleByNamespaceIDName(ctx, svc.store, namespaceID, name)
 	})
+
+	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
 
 // FindByHandle tries to find module by handle
 func (svc module) FindByHandle(ctx context.Context, namespaceID uint64, h string) (m *types.Module, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
+	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
+
+	m, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *moduleActionProps) (*types.Module, error) {
 		if !handle.IsValid(h) {
 			return nil, ModuleErrInvalidHandle()
 		}
@@ -256,6 +261,8 @@ func (svc module) FindByHandle(ctx context.Context, namespaceID uint64, h string
 		aProps.module.Handle = h
 		return store.LookupComposeModuleByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
+
+	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
 
 // FindByAny tries to find module in a particular namespace by id, handle or name
@@ -315,13 +322,17 @@ func (svc module) procDal(m *types.Module) {
 	}
 }
 
-func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module, error) {
+// onCreate is the generated Create body handler.
+//
+// The recordAction wrapper, aProps and res=new assignment are owned by the
+// generated module.gen.go.
+func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 	var (
 		ns     *types.Namespace
 		aProps = &moduleActionProps{module: new}
 	)
 
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ModuleErrInvalidHandle()
 		}
@@ -423,20 +434,23 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 		svc.procDal(new)
 		return nil
 	})
-
-	return new, svc.recordAction(ctx, aProps, ModuleActionCreate, err)
 }
 
-func (svc module) Update(ctx context.Context, upd *types.Module) (c *types.Module, err error) {
-	return svc.updater(ctx, upd.NamespaceID, upd.ID, ModuleActionUpdate, svc.handleUpdate(ctx, upd))
+// onUpdate is the generated Update body handler.
+func (svc *module) onUpdate(ctx context.Context, upd *types.Module, aProps *moduleActionProps) (*types.Module, error) {
+	return svc.updater(ctx, upd.NamespaceID, upd.ID, aProps, svc.handleUpdate(ctx, upd))
 }
 
-func (svc module) DeleteByID(ctx context.Context, namespaceID, moduleID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, moduleID, ModuleActionDelete, svc.handleDelete))
+// onDelete is the generated DeleteByID body handler (namespace-scoped compound id).
+func (svc *module) onDelete(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps) error {
+	_, err := svc.updater(ctx, namespaceID, moduleID, aProps, svc.handleDelete)
+	return err
 }
 
-func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, moduleID, ModuleActionUndelete, svc.handleUndelete))
+// onUndelete is the generated UndeleteByID body handler (namespace-scoped compound id).
+func (svc *module) onUndelete(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps) error {
+	_, err := svc.updater(ctx, namespaceID, moduleID, aProps, svc.handleUndelete)
+	return err
 }
 
 // ReloadDALModels reconstructs the DAL's data model based on the store.Storer
@@ -460,7 +474,7 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	}
 
 	err = func() error {
-		mm, _, err = svc.Find(ctx, types.ModuleFilter{NamespaceID: filter.NamespaceID})
+		mm, _, err = svc.Search(ctx, types.ModuleFilter{NamespaceID: filter.NamespaceID})
 		if err != nil {
 			return err
 		}
@@ -505,19 +519,22 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	return set, filter, err
 }
 
-func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.Module, error) {
+func (svc *module) updater(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps, fn moduleUpdateHandler) (*types.Module, error) {
 	var (
 		changes moduleChanges
 
 		ns     *types.Namespace
 		m, old *types.Module
-		aProps = &moduleActionProps{module: &types.Module{ID: moduleID, NamespaceID: namespaceID}}
 		err    error
 
 		defConn *dal.ConnectionWrap
 
 		hasRecords bool
 	)
+
+	if aProps.module == nil {
+		aProps.module = &types.Module{ID: moduleID, NamespaceID: namespaceID}
+	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID)
@@ -644,12 +661,17 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		return err
 	})
 
-	return m, svc.recordAction(ctx, aProps, action, err)
+	return m, err
 }
 
 // lookup fn() orchestrates module lookup, namespace preload and check, module reading...
-func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
-	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
+//
+// The recordAction wrapper is owned by the caller (the generated onLookup body
+// or the custom FindBy* methods).
+func (svc *module) lookup(ctx context.Context, namespaceID uint64, aProps *moduleActionProps, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
+	if aProps.module == nil {
+		aProps.module = &types.Module{NamespaceID: namespaceID}
+	}
 
 	err = func() error {
 		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
@@ -682,7 +704,7 @@ func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*m
 		return nil
 	}()
 
-	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
+	return m, err
 }
 
 func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) {

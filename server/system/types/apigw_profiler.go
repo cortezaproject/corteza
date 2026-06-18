@@ -209,9 +209,7 @@ func (h ByTimeMin) Swap(i, j int) {
 	return
 }
 
-//
 // Sorting hits
-//
 func (h BySTime) Len() int {
 	return len(h)
 }

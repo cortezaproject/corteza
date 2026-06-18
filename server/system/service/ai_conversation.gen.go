@@ -8,8 +8,33 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type aiConversationAccessController interface {
+	CanCreateAiConversation(context.Context) bool
+	CanSearchAiConversations(context.Context) bool
+	CanReadAiConversation(context.Context, *types.AiConversation) bool
+	CanUpdateAiConversation(context.Context, *types.AiConversation) bool
+	CanDeleteAiConversation(context.Context, *types.AiConversation) bool
+}
+
+type aiConversation struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        aiConversationAccessController
+}
+
+func AiConversation() *aiConversation {
+	return &aiConversation{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *aiConversation) FindByID(ctx context.Context, ID uint64) (res *types.AiConversation, err error) {
 	var (

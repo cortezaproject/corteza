@@ -67,8 +67,9 @@ func Page() *page {
 	}
 }
 
-func (svc page) FindByID(ctx context.Context, namespaceID, pageID uint64) (p *types.Page, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+// onLookup is the generated FindByID body handler (namespace-scoped compound id).
+func (svc *page) onLookup(ctx context.Context, namespaceID, pageID uint64, aProps *pageActionProps) (p *types.Page, err error) {
+	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageActionProps) (*types.Page, error) {
 		if pageID == 0 {
 			return nil, PageErrInvalidID()
 		}
@@ -78,8 +79,10 @@ func (svc page) FindByID(ctx context.Context, namespaceID, pageID uint64) (p *ty
 	})
 }
 
-func (svc page) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.Page, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+func (svc *page) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.Page, err error) {
+	var aProps = &pageActionProps{page: &types.Page{NamespaceID: namespaceID}}
+
+	c, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *pageActionProps) (*types.Page, error) {
 		if !handle.IsValid(h) {
 			return nil, PageErrInvalidHandle()
 		}
@@ -87,10 +90,14 @@ func (svc page) FindByHandle(ctx context.Context, namespaceID uint64, h string) 
 		aProps.page.Handle = h
 		return store.LookupComposePageByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
+
+	return c, svc.recordAction(ctx, aProps, PageActionLookup, err)
 }
 
-func (svc page) FindByPageID(ctx context.Context, namespaceID, pageID uint64) (p *types.Page, err error) {
-	return svc.lookup(ctx, namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+func (svc *page) FindByPageID(ctx context.Context, namespaceID, pageID uint64) (p *types.Page, err error) {
+	var aProps = &pageActionProps{page: &types.Page{NamespaceID: namespaceID}}
+
+	p, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *pageActionProps) (*types.Page, error) {
 		if pageID == 0 {
 			return nil, PageErrInvalidID()
 		}
@@ -98,6 +105,8 @@ func (svc page) FindByPageID(ctx context.Context, namespaceID, pageID uint64) (p
 		aProps.page.ID = pageID
 		return store.LookupComposePageByID(ctx, svc.store, pageID)
 	})
+
+	return p, svc.recordAction(ctx, aProps, PageActionLookup, err)
 }
 
 func checkPage(ctx context.Context, ac pageAccessController) func(res *types.Page) (bool, error) {
@@ -110,67 +119,74 @@ func checkPage(ctx context.Context, ac pageAccessController) func(res *types.Pag
 	}
 }
 
-// search fn() orchestrates pages search, namespace preload and check
-func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
-	var (
-		aProps = &pageActionProps{filter: &filter}
-		ns     *types.Namespace
-	)
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper and aProps (filter) are owned by the generated
+// page.gen.go; this handler runs the namespace preload, access check and store
+// search.
+func (svc *page) onSearch(ctx context.Context, filter types.PageFilter, aProps *pageActionProps) (set types.PageSet, f types.PageFilter, err error) {
+	var ns *types.Namespace
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = checkPage(ctx, svc.ac)
 
-	err = func() error {
-		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+	ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+	if err != nil {
+		return
+	}
+
+	aProps.setNamespace(ns)
+	if !svc.ac.CanSearchPagesOnNamespace(ctx, ns) {
+		return nil, f, PageErrNotAllowedToSearch()
+	}
+
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Page{}.LabelResourceKind(),
+			filter.Labels,
+		)
+
 		if err != nil {
-			return err
+			return
 		}
 
-		aProps.setNamespace(ns)
-		if !svc.ac.CanSearchPagesOnNamespace(ctx, ns) {
-			return PageErrNotAllowedToSearch()
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return
 		}
+	}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Page{}.LabelResourceKind(),
-				filter.Labels,
-			)
+	if set, f, err = store.SearchComposePages(ctx, svc.store, filter); err != nil {
+		return
+	}
 
-			if err != nil {
-				return err
-			}
+	if err = label.Load(ctx, svc.store, toLabeledPages(set)...); err != nil {
+		return
+	}
 
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if set, f, err = store.SearchComposePages(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledPages(set)...); err != nil {
-			return err
-		}
-
-		// i18n
-		tag := locale.GetAcceptLanguageFromContext(ctx)
-		set.Walk(func(p *types.Page) error {
-			p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
-			return nil
-		})
-
+	// i18n
+	tag := locale.GetAcceptLanguageFromContext(ctx)
+	set.Walk(func(p *types.Page) error {
+		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
 		return nil
-	}()
+	})
+
+	return
+}
+
+// search fn() orchestrates pages search; it is retained for the custom methods
+// (FindBySelfID/Tree) that need the recorded-action wrapper.
+func (svc *page) search(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	var aProps = &pageActionProps{filter: &filter}
+
+	set, f, err = svc.onSearch(ctx, filter, aProps)
 
 	return set, f, svc.recordAction(ctx, aProps, PageActionSearch, err)
 }
 
-func (svc page) FindBySelfID(ctx context.Context, namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
+func (svc *page) FindBySelfID(ctx context.Context, namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
 	return svc.search(ctx, types.PageFilter{
 		NamespaceID: namespaceID,
 		ParentID:    parentID,
@@ -182,11 +198,7 @@ func (svc page) FindBySelfID(ctx context.Context, namespaceID, parentID uint64) 
 	})
 }
 
-func (svc page) Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
-	return svc.search(ctx, filter)
-}
-
-func (svc page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSet, err error) {
+func (svc *page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSet, err error) {
 	var (
 		pages  types.PageSet
 		filter = types.PageFilter{
@@ -226,7 +238,7 @@ func (svc page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSe
 }
 
 // Reorder pages
-func (svc page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
+func (svc *page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
 	var (
 		aProps = &pageActionProps{page: &types.Page{ID: parentID}}
 		ns     *types.Namespace
@@ -265,7 +277,11 @@ func (svc page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageI
 
 }
 
-func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error) {
+// onCreate is the generated Create body handler.
+//
+// The recordAction wrapper, aProps and res=new assignment are owned by the
+// generated page.gen.go.
+func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 	var (
 		ns     *types.Namespace
 		aProps = &pageActionProps{page: new}
@@ -273,7 +289,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 
 	new.ID = 0
 
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return PageErrInvalidID()
 		}
@@ -323,11 +339,10 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 		_ = svc.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns, nil))
 		return err
 	})
-
-	return new, svc.recordAction(ctx, aProps, PageActionCreate, err)
 }
 
-func (svc page) Update(ctx context.Context, upd *types.Page) (c *types.Page, err error) {
+// onUpdate is the generated Update body handler.
+func (svc *page) onUpdate(ctx context.Context, upd *types.Page, aProps *pageActionProps) (c *types.Page, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, res, err := loadPageCombo(ctx, s, upd.NamespaceID, upd.ID)
 		if err != nil {
@@ -341,7 +356,10 @@ func (svc page) Update(ctx context.Context, upd *types.Page) (c *types.Page, err
 	return
 }
 
-func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64, strategy types.PageChildrenDeleteStrategy) error {
+// onDelete is the generated DeleteByID body handler (namespace-scoped compound
+// id + child-delete strategy). The recordAction wrapper and aProps are owned by
+// the generated page.gen.go.
+func (svc *page) onDelete(ctx context.Context, namespaceID, pageID uint64, strategy types.PageChildrenDeleteStrategy, aProps *pageActionProps) error {
 	var (
 		validChildren, pp types.PageSet
 
@@ -422,7 +440,9 @@ func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64, stra
 	})
 }
 
-func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
+// onUndelete is the generated UndeleteByID body handler (namespace-scoped
+// compound id).
+func (svc *page) onUndelete(ctx context.Context, namespaceID, pageID uint64, aProps *pageActionProps) error {
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, res, err := loadPageCombo(ctx, s, namespaceID, pageID)
 		if err != nil {
@@ -434,7 +454,7 @@ func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) er
 	})
 }
 
-func (svc page) UpdateIcon(ctx context.Context, namespaceID, pageID uint64, icon *types.PageConfigIcon) (out *types.PageConfigIcon, err error) {
+func (svc *page) UpdateIcon(ctx context.Context, namespaceID, pageID uint64, icon *types.PageConfigIcon) (out *types.PageConfigIcon, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, p, err := loadPageCombo(ctx, s, namespaceID, pageID)
 		if err != nil {
@@ -451,7 +471,7 @@ func (svc page) UpdateIcon(ctx context.Context, namespaceID, pageID uint64, icon
 	return
 }
 
-func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace, res *types.Page, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
+func (svc *page) updater(ctx context.Context, s store.Storer, ns *types.Namespace, res *types.Page, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
 	var (
 		changes pageChanges
 		old     *types.Page
@@ -511,9 +531,14 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 	return res, svc.recordAction(ctx, aProps, action, err)
 }
 
-// lookup fn() orchestrates page lookup, namespace preload and check
-func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pageActionProps) (*types.Page, error)) (p *types.Page, err error) {
-	var aProps = &pageActionProps{page: &types.Page{NamespaceID: namespaceID}}
+// lookup fn() orchestrates page lookup, namespace preload and check.
+//
+// The recordAction wrapper is owned by the caller (the generated onLookup path
+// via page.gen.go, or the custom FindBy* methods).
+func (svc *page) lookup(ctx context.Context, namespaceID uint64, aProps *pageActionProps, lookup func(*pageActionProps) (*types.Page, error)) (p *types.Page, err error) {
+	if aProps.page == nil {
+		aProps.page = &types.Page{NamespaceID: namespaceID}
+	}
 
 	err = func() error {
 		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
@@ -543,10 +568,10 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 		return nil
 	}()
 
-	return p, svc.recordAction(ctx, aProps, PageActionLookup, err)
+	return p, err
 }
 
-func (svc page) uniqueCheck(ctx context.Context, p *types.Page) (err error) {
+func (svc *page) uniqueCheck(ctx context.Context, p *types.Page) (err error) {
 	if p.Handle != "" {
 		if e, _ := store.LookupComposePageByNamespaceIDHandle(ctx, svc.store, p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
 			return PageErrHandleNotUnique()
@@ -562,7 +587,7 @@ func (svc page) uniqueCheck(ctx context.Context, p *types.Page) (err error) {
 	return nil
 }
 
-func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHandler {
+func (svc *page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, res *types.Page) (changes pageChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return pageUnchanged, PageErrStaleData()
@@ -669,7 +694,7 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 	}
 }
 
-func (svc page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Page) (pageChanges, error) {
+func (svc *page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Page) (pageChanges, error) {
 	if !svc.ac.CanDeletePage(ctx, m) {
 		return pageUnchanged, PageErrNotAllowedToDelete()
 	}
@@ -683,7 +708,7 @@ func (svc page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.
 	return pageChanged, nil
 }
 
-func (svc page) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.Page) (pageChanges, error) {
+func (svc *page) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.Page) (pageChanges, error) {
 	if !svc.ac.CanDeletePage(ctx, m) {
 		return pageUnchanged, PageErrNotAllowedToUndelete()
 	}
@@ -743,20 +768,4 @@ func loadPage(ctx context.Context, s store.ComposePages, namespaceID, pageID uin
 	}
 
 	return
-}
-
-// toLabeledPages converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledPages(set []*types.Page) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

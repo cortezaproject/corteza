@@ -74,7 +74,7 @@ func (h *namespaceHandler) lookup(ctx context.Context, req mcp.CallToolRequest) 
 
 	nsRef, _ := args["namespace"].(string)
 	if nsRef == "" {
-		set, _, err := cmpService.DefaultNamespace.Find(ctx, cmpTypes.NamespaceFilter{})
+		set, _, err := cmpService.DefaultNamespace.Search(ctx, cmpTypes.NamespaceFilter{})
 		if err != nil {
 			return nil, fmt.Errorf("namespace list failed: %w", err)
 		}
@@ -97,7 +97,7 @@ func (h *namespaceHandler) lookup(ctx context.Context, req mcp.CallToolRequest) 
 	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
 	if err != nil {
 		// Namespace not found — return full list so the LLM can pick the correct one
-		set, _, listErr := cmpService.DefaultNamespace.Find(ctx, cmpTypes.NamespaceFilter{})
+		set, _, listErr := cmpService.DefaultNamespace.Search(ctx, cmpTypes.NamespaceFilter{})
 		if listErr != nil {
 			return nil, fmt.Errorf("namespace lookup failed: %w", err)
 		}

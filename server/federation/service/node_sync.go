@@ -29,27 +29,24 @@ func NodeSync() NodeSyncService {
 	}
 }
 
-func (svc nodeSync) Create(ctx context.Context, new *types.NodeSync) (*types.NodeSync, error) {
-	var (
-		aProps = &nodeSyncActionProps{nodeSync: new}
-	)
-
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+// onCreate is the custom body for the generated Create. It verifies the
+// referenced node exists before storing the sync record.
+func (svc *nodeSync) onCreate(ctx context.Context, new *types.NodeSync) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if _, err := DefaultNode.FindByID(ctx, new.NodeID); err != nil {
 			return NodeSyncErrNodeNotFound()
 		}
 
 		return store.CreateFederationNodeSync(ctx, s, new)
 	})
-
-	return new, svc.recordAction(ctx, aProps, NodeSyncActionCreate, err)
 }
 
-func (svc nodeSync) Search(ctx context.Context, f types.NodeSyncFilter) (types.NodeSyncSet, types.NodeSyncFilter, error) {
+// onSearch is the custom body for the generated Search.
+func (svc *nodeSync) onSearch(ctx context.Context, f types.NodeSyncFilter, aProps *nodeSyncActionProps) (types.NodeSyncSet, types.NodeSyncFilter, error) {
 	return store.SearchFederationNodeSyncs(ctx, svc.store, f)
 }
 
-func (svc nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (ns *types.NodeSync, err error) {
+func (svc *nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (ns *types.NodeSync, err error) {
 	// todo - filter by sync-type does not work
 	s, _, err := store.SearchFederationNodeSyncs(ctx, svc.store, types.NodeSyncFilter{
 		NodeID:     nodeID,

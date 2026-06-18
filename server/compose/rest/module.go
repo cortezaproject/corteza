@@ -67,7 +67,8 @@ func (Module) New() *Module {
 	}
 }
 
-func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Module) makeFilter(ctx context.Context, r *request.ModuleList) (types.ModuleFilter, error) {
 	var (
 		err error
 		f   = types.ModuleFilter{
@@ -81,22 +82,39 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.module.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Module) Read(ctx context.Context, r *request.ModuleRead) (interface{}, error) {
-	mod, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID)
-	return ctrl.makePayload(ctx, mod, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params and the compound (namespace) id.
+func (ctrl Module) beforeCreate(ctx context.Context, res *types.Module, r *request.ModuleCreate) error {
+	res.Config = r.Config
+	res.Meta = r.Meta
+	res.Fields = r.Fields
+
+	return nil
+}
+
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params, the compound (namespace) id and
+// the resource ID/UpdatedAt.
+func (ctrl Module) beforeUpdate(ctx context.Context, res *types.Module, r *request.ModuleUpdate) error {
+	res.Config = r.Config
+	res.Meta = r.Meta
+	res.Fields = r.Fields
+
+	return nil
 }
 
 func (ctrl *Module) ListTranslations(ctx context.Context, r *request.ModuleListTranslations) (interface{}, error) {
@@ -105,53 +123,6 @@ func (ctrl *Module) ListTranslations(ctx context.Context, r *request.ModuleListT
 
 func (ctrl *Module) UpdateTranslations(ctx context.Context, r *request.ModuleUpdateTranslations) (interface{}, error) {
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
-}
-
-func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {
-	var (
-		err error
-		mod = &types.Module{
-			NamespaceID: r.NamespaceID,
-			Config:      r.Config,
-			Name:        r.Name,
-			Handle:      r.Handle,
-			Fields:      r.Fields,
-			Meta:        r.Meta,
-			Labels:      r.Labels,
-		}
-	)
-
-	mod, err = ctrl.module.Create(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
-}
-
-func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interface{}, error) {
-	var (
-		err error
-		mod = &types.Module{
-			ID:          r.ModuleID,
-			NamespaceID: r.NamespaceID,
-			Config:      r.Config,
-			Name:        r.Name,
-			Handle:      r.Handle,
-			Fields:      r.Fields,
-			Meta:        r.Meta,
-			Labels:      r.Labels,
-			UpdatedAt:   r.UpdatedAt,
-		}
-	)
-
-	mod, err = ctrl.module.Update(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
-}
-
-func (ctrl *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interface{}, error) {
-	_, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID)
-	if err != nil {
-		return nil, err
-	}
-
-	return api.OK(), ctrl.module.DeleteByID(ctx, r.NamespaceID, r.ModuleID)
 }
 
 func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerScript) (rsp interface{}, err error) {

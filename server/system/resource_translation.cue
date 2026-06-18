@@ -91,6 +91,8 @@ resource_translation: {
 		// NOTE: the public method names are unified by the generator
 		// (FindByID/Search/Create/Update/DeleteByID/UndeleteByID); the former
 		// Read/List/Delete/Undelete names are gone and all callers were updated.
+		genConstructor: true
+
 		undelete: true
 
 		customBodyOps:   ["lookup", "search", "create", "update", "delete", "undelete"]

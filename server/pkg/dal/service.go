@@ -43,6 +43,8 @@ type (
 		RemoveConnection(ctx context.Context, ID uint64) (err error)
 
 		SearchModels(ctx context.Context) (out ModelSet, err error)
+		SearchExternalModels(ctx context.Context, connectionID uint64) (out ModelSet, err error)
+		SearchExternalData(ctx context.Context, connectionID uint64, model *Model, f filter.Filter) (Iterator, error)
 		ReplaceModel(ctx context.Context, currentAlts []*Alteration, model *Model) (newAlts []*Alteration, err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
 		FindModelByResourceID(connectionID uint64, resourceID uint64) *Model
@@ -699,6 +701,54 @@ func (svc *service) SearchModels(ctx context.Context) (out ModelSet, err error) 
 		out = append(out, models...)
 	}
 	return
+}
+
+// SearchExternalModels introspects the live schema of an external connection
+// and returns it as a ModelSet. ConnectionID is stamped onto each model.
+func (svc *service) SearchExternalModels(ctx context.Context, connectionID uint64) (out ModelSet, err error) {
+	cw := svc.GetConnectionByID(connectionID)
+	if cw == nil {
+		return nil, fmt.Errorf("dal: connection %d not found", connectionID)
+	}
+
+	out, err = cw.connection.Models(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range out {
+		m.ConnectionID = connectionID
+	}
+	return out, nil
+}
+
+// SearchExternalData reads rows from an external connection's table.
+// It ensures the model is registered in the connection's local cache (without
+// creating the table — the table already exists externally), then returns an
+// iterator over the rows.
+func (svc *service) SearchExternalData(ctx context.Context, connectionID uint64, model *Model, f filter.Filter) (Iterator, error) {
+	cw := svc.GetConnectionByID(connectionID)
+	if cw == nil {
+		return nil, fmt.Errorf("dal: connection %d not found", connectionID)
+	}
+
+	// Register the model in the connection cache WITHOUT issuing DDL — the
+	// external table already exists and must not be created or altered.
+	reg, ok := cw.connection.(externalModelRegistrar)
+	if !ok {
+		return nil, fmt.Errorf("dal: connection %d does not support external schema reads", connectionID)
+	}
+	if err := reg.RegisterModelCache(ctx, model); err != nil {
+		return nil, fmt.Errorf("dal: register external model %q: %w", model.Ident, err)
+	}
+
+	return cw.connection.Search(ctx, model, f)
+}
+
+// externalModelRegistrar is implemented by connections that can cache a model
+// without issuing DDL — required to read pre-existing external tables safely.
+type externalModelRegistrar interface {
+	RegisterModelCache(ctx context.Context, mm ...*Model) error
 }
 
 // ReplaceModel adds new or updates an existing model

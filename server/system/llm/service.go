@@ -75,7 +75,7 @@ func (svc *Service) Create(ctx context.Context, p *sysTypes.LlmProvider, apiKey 
 	return p, nil
 }
 
-func (svc *Service) LookupByID(ctx context.Context, providerID uint64) (*sysTypes.LlmProvider, error) {
+func (svc *Service) FindByID(ctx context.Context, providerID uint64) (*sysTypes.LlmProvider, error) {
 	if providerID == 0 {
 		return nil, fmt.Errorf("invalid LLM provider ID")
 	}

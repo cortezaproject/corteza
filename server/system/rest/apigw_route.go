@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -54,7 +53,8 @@ func (ApigwRoute) New() *ApigwRoute {
 	}
 }
 
-func (ctrl *ApigwRoute) List(ctx context.Context, r *request.ApigwRouteList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *ApigwRoute) makeFilter(ctx context.Context, r *request.ApigwRouteList) (types.ApigwRouteFilter, error) {
 	var (
 		err error
 		f   = types.ApigwRouteFilter{
@@ -69,65 +69,32 @@ func (ctrl *ApigwRoute) List(ctx context.Context, r *request.ApigwRouteList) (in
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err := ctrl.svc.Search(ctx, f)
-
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *ApigwRoute) Create(ctx context.Context, r *request.ApigwRouteCreate) (interface{}, error) {
-	var (
-		err error
-		q   = &types.ApigwRoute{
-			Endpoint: r.Endpoint,
-			Method:   r.Method,
-			Enabled:  r.Enabled,
-		}
-	)
-
-	q, err = ctrl.svc.Create(ctx, q)
-
-	return ctrl.makePayload(ctx, q, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *ApigwRoute) beforeCreate(ctx context.Context, res *types.ApigwRoute, r *request.ApigwRouteCreate) error {
+	res.Meta = r.Meta
+	return nil
 }
 
-func (ctrl *ApigwRoute) Read(ctx context.Context, r *request.ApigwRouteRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.RouteID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *ApigwRoute) Update(ctx context.Context, r *request.ApigwRouteUpdate) (interface{}, error) {
-	var (
-		err error
-		q   = &types.ApigwRoute{
-			ID:        r.RouteID,
-			Endpoint:  r.Endpoint,
-			Method:    r.Method,
-			Group:     r.Group,
-			Enabled:   r.Enabled,
-			Meta:      r.Meta,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
-
-	q, err = ctrl.svc.Update(ctx, q)
-
-	return ctrl.makePayload(ctx, q, err)
-}
-
-func (ctrl *ApigwRoute) Delete(ctx context.Context, r *request.ApigwRouteDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.RouteID)
-}
-
-func (ctrl *ApigwRoute) Undelete(ctx context.Context, r *request.ApigwRouteUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.RouteID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *ApigwRoute) beforeUpdate(ctx context.Context, res *types.ApigwRoute, r *request.ApigwRouteUpdate) error {
+	res.Meta = r.Meta
+	return nil
 }
 
 func (ctrl *ApigwRoute) makePayload(ctx context.Context, q *types.ApigwRoute, err error) (*routePayload, error) {

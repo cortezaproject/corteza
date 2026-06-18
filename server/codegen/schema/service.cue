@@ -91,14 +91,26 @@ package schema
 		afterSearch:    bool | *false
 	}
 
+	// genAccessController generates the <resource>AccessController interface from the
+	// standard CRUD access checks, gated by the enabled ops (CanCreate when create,
+	// CanSearch when search, CanRead when lookup, CanUpdate when update, CanDelete
+	// when delete||undelete). Only safe when the interface is exactly that derivable
+	// set -- services whose access checks are cross-resource (e.g.
+	// CanCreateChartOnNamespace), grant-based, component-scoped or undelete-specific
+	// must keep the interface hand-written.
+	genAccessController: bool | *false
+
+	// genConstructor generates the service struct ({actionlog, store, ac} plus
+	// eventbus when events) and its Default*-wired singleton constructor (named after
+	// the resource's exported ident). Only safe for services whose struct carries no
+	// extra dependencies and whose constructor is pure Default* wiring with no extra
+	// setup logic.
+	genConstructor: bool | *false
+
 	// guard, when set, calls `svc.guard(ctx, res) error` after the record is loaded
 	// and before it is mutated in update/delete/undelete -- a hand-written hook to
 	// block changes on protected/built-in records (returns an error to abort).
 	guard: bool | *false
-
-	// Generate the exported <Resource>Service interface. Disable when the public
-	// contract is hand-maintained (also exposes custom methods, e.g. project_group).
-	"interface": bool | *false
 
 	// scoped emits the resource's model parent ids (e.g. namespaceID) as leading
 	// arguments on the by-id methods (FindByID/DeleteByID/UndeleteByID/loadXxx) and

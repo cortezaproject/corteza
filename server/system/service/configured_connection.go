@@ -29,6 +29,16 @@ import (
 	"go.uber.org/zap"
 )
 
+// The Create CRUD skeleton is generated in configured_connection.gen.go from
+// system/configured_connection.cue (style "old", value receiver, labels).
+//
+// This file owns the struct, access-controller interface, constructor, the
+// beforeCreate hook the generated Create calls into, the non-fitting CRUD ops
+// (FindByID / Search inject the live connection definition into read results,
+// Update has no per-resource RBAC and a draft-status guard, DeleteByID is an
+// unsupported stub) and all custom methods (Enable, Check, RefreshDiscovery,
+// operation/webhook registration, Google discovery, ...).
+
 type (
 	configuredConnection struct {
 		actionlog     actionlog.Recorder
@@ -100,49 +110,35 @@ func (svc *configuredConnection) FindByID(ctx context.Context, ID uint64) (res *
 	return res, svc.recordAction(ctx, aProps, ConfiguredConnectionActionLookup, err)
 }
 
-func (svc *configuredConnection) Create(ctx context.Context, new *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
-	var (
-		aProps = &configuredConnectionActionProps{new: new}
-	)
+// beforeCreate runs after the generated Create's access-control check, before
+// the generated id + CreatedAt assignment, store create and label.Create.
+//
+// It fetches and snapshots the source connection definition, resolves the
+// creator identity, defaults the status to "draft" and seeds the
+// connection-id / revision labels -- the resource-specific work the generated
+// CRUD shape cannot express. It intentionally does NOT set new.ID / CreatedAt
+// (the generator owns those) and nothing in this body depends on new.ID.
+func (svc *configuredConnection) beforeCreate(ctx context.Context, new *types.ConfiguredConnection) (err error) {
+	// Fetch and snapshot the connection definition
+	var conn *types.Connection
+	if conn, err = svc.connectionSvc.FindByID(ctx, new.ConnectionID); err != nil {
+		return err
+	}
 
-	err = func() (err error) {
-		if !svc.ac.CanCreateConfiguredConnection(ctx) {
-			return ConfiguredConnectionErrNotAllowedToCreate()
-		}
+	new.Connection = *conn
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		// Fetch and snapshot the connection definition
-		var conn *types.Connection
-		if conn, err = svc.connectionSvc.FindByID(ctx, new.ConnectionID); err != nil {
-			return err
-		}
+	if new.Status == "" {
+		new.Status = "draft"
+	}
 
-		new.ID = nextID()
-		new.Connection = *conn
-		new.CreatedAt = *now()
-		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+	if new.Labels == nil {
+		new.Labels = make(map[string]labelTypes.LabelValue)
+	}
+	new.Labels["human/connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(conn.ID, 10)}
+	new.Labels["human/connection-revision"] = labelTypes.LabelValue{Val: strconv.Itoa(conn.Revision)}
 
-		if new.Status == "" {
-			new.Status = "draft"
-		}
-
-		if new.Labels == nil {
-			new.Labels = make(map[string]labelTypes.LabelValue)
-		}
-		new.Labels["human/connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(conn.ID, 10)}
-		new.Labels["human/connection-revision"] = labelTypes.LabelValue{Val: strconv.Itoa(conn.Revision)}
-
-		if err = store.CreateConfiguredConnection(ctx, svc.store, new); err != nil {
-			return err
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return new, svc.recordAction(ctx, aProps, ConfiguredConnectionActionCreate, err)
+	return nil
 }
 
 func (svc *configuredConnection) Update(ctx context.Context, upd *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {

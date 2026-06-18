@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/reporting"
 	"github.com/crusttech/human/server/system/rest/request"
@@ -18,12 +17,12 @@ type (
 	}
 
 	reportService interface {
-		LookupByID(ctx context.Context, ID uint64) (app *types.Report, err error)
+		FindByID(ctx context.Context, ID uint64) (app *types.Report, err error)
 		Search(ctx context.Context, filter types.ReportFilter) (aa types.ReportSet, f types.ReportFilter, err error)
 		Create(ctx context.Context, new *types.Report) (app *types.Report, err error)
 		Update(ctx context.Context, upd *types.Report) (app *types.Report, err error)
-		Delete(ctx context.Context, ID uint64) (err error)
-		Undelete(ctx context.Context, ID uint64) (err error)
+		DeleteByID(ctx context.Context, ID uint64) (err error)
+		UndeleteByID(ctx context.Context, ID uint64) (err error)
 		Run(ctx context.Context, ID uint64, dd reporting.FrameDefinitionSet) (rr []*reporting.Frame, err error)
 		Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error)
 	}
@@ -64,7 +63,8 @@ func (Report) New() *Report {
 	}
 }
 
-func (ctrl *Report) List(ctx context.Context, r *request.ReportList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Report) makeFilter(ctx context.Context, r *request.ReportList) (types.ReportFilter, error) {
 	var (
 		err error
 		f   = types.ReportFilter{
@@ -76,66 +76,40 @@ func (ctrl *Report) List(ctx context.Context, r *request.ReportList) (interface{
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.report.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Report) Create(ctx context.Context, r *request.ReportCreate) (interface{}, error) {
-	var (
-		err error
-		app = &types.Report{
-			Handle:    r.Handle,
-			Meta:      r.Meta,
-			Scenarios: r.Scenarios,
-			Sources:   r.Sources,
-			Blocks:    r.Blocks,
-			Labels:    r.Labels,
-		}
-	)
-
-	app, err = ctrl.report.Create(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl Report) beforeCreate(ctx context.Context, res *types.Report, r *request.ReportCreate) error {
+	res.Meta = r.Meta
+	res.Scenarios = r.Scenarios
+	res.Sources = r.Sources
+	res.Blocks = r.Blocks
+	res.Labels = r.Labels
+	return nil
 }
 
-func (ctrl *Report) Update(ctx context.Context, r *request.ReportUpdate) (interface{}, error) {
-	var (
-		err error
-		app = &types.Report{
-			ID:        r.ReportID,
-			Handle:    r.Handle,
-			Meta:      r.Meta,
-			Scenarios: r.Scenarios,
-			Sources:   r.Sources,
-			Blocks:    r.Blocks,
-			Labels:    r.Labels,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
-
-	app, err = ctrl.report.Update(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
-}
-
-func (ctrl *Report) Read(ctx context.Context, r *request.ReportRead) (interface{}, error) {
-	app, err := ctrl.report.LookupByID(ctx, r.ReportID)
-	return ctrl.makePayload(ctx, app, err)
-}
-
-func (ctrl *Report) Delete(ctx context.Context, r *request.ReportDelete) (interface{}, error) {
-	return api.OK(), ctrl.report.Delete(ctx, r.ReportID)
-}
-
-func (ctrl *Report) Undelete(ctx context.Context, r *request.ReportUndelete) (interface{}, error) {
-	return api.OK(), ctrl.report.Undelete(ctx, r.ReportID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl Report) beforeUpdate(ctx context.Context, res *types.Report, r *request.ReportUpdate) error {
+	res.Meta = r.Meta
+	res.Scenarios = r.Scenarios
+	res.Sources = r.Sources
+	res.Blocks = r.Blocks
+	res.Labels = r.Labels
+	return nil
 }
 
 func (ctrl *Report) Describe(ctx context.Context, r *request.ReportDescribe) (interface{}, error) {

@@ -67,7 +67,7 @@ func TestDeDupRule_checkCaseSensitiveDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-                            Message: rule1.IssueMessage(),
+							Message: rule1.IssueMessage(),
 							Meta: map[string]interface{}{
 								"field":         "name",
 								"value":         "test",
@@ -195,12 +195,12 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-                            Message: rule1.IssueMultivalueMessage(),
+							Message: rule1.IssueMultivalueMessage(),
 							Meta: map[string]interface{}{
 								"field":         "name",
 								"dupValueField": "name",
 								"rule":          rule1.String(),
-                                "value": "test, test test",
+								"value":         "test, test test",
 							},
 						},
 					},
@@ -250,12 +250,12 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-                            Message: rule2.IssueMultivalueMessage(),
+							Message: rule2.IssueMultivalueMessage(),
 							Meta: map[string]interface{}{
 								"field":         "name",
 								"dupValueField": "name",
 								"rule":          rule2.String(),
-                                "value": "test, test tEst",
+								"value":         "test, test tEst",
 							},
 						},
 					},
@@ -304,12 +304,12 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-                            Message: numberRule.IssueMultivalueMessage(),
+							Message: numberRule.IssueMultivalueMessage(),
 							Meta: map[string]interface{}{
 								"field":         "count",
 								"dupValueField": "count",
 								"rule":          numberRule.String(),
-                                "value": "234, 897",
+								"value":         "234, 897",
 							},
 						},
 					},
@@ -358,12 +358,12 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-                            Message: locationRule.IssueMultivalueMessage(),
+							Message: locationRule.IssueMultivalueMessage(),
 							Meta: map[string]interface{}{
 								"field":         "location",
 								"dupValueField": "location",
 								"rule":          locationRule.String(),
-                                "value": "{\"coordinates\":[-6.7833479,20.3768206]}, {\"coordinates\":[0.7833479,10.3768206]}",
+								"value":         "{\"coordinates\":[-6.7833479,20.3768206]}, {\"coordinates\":[0.7833479,10.3768206]}",
 							},
 						},
 					},

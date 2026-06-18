@@ -5,24 +5,24 @@ import (
 	"fmt"
 
 	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
 
+// dalConnectionTypeDSN is the Config.DAL.Type value identifying an RDBMS
+// (DSN-backed) connection — the only kind DML can introspect in v1.
+const dalConnectionTypeDSN = "corteza::dal:connection:dsn"
+
 type (
-	// dalReader is the slice of dal.FullService the connection service
-	// consumes. Kept for the eventual real implementation; currently the
-	// service is fixture-backed and never reaches the DAL.
 	dalReader interface {
 		GetConnectionByID(connectionID uint64) *dal.ConnectionWrap
 		SearchModels(ctx context.Context) (dal.ModelSet, error)
+		SearchExternalModels(ctx context.Context, connectionID uint64) (dal.ModelSet, error)
 		SearchConnectionIssues(connectionID uint64) []dal.Issue
 	}
 
-	// Connection projects pkg/dal connection + model state into API-facing
-	// DML types. Today it returns canned fixtures; the real wiring against
-	// store + dal lives behind the dalReader interface, ready to be
-	// reconnected once the upstream surfaces are stable.
+	// Connection projects pkg/dal connection + model state into API-facing DML types.
 	Connection struct {
 		store store.Storer
 		dal   dalReader
@@ -33,165 +33,100 @@ func NewConnection(s store.Storer, d dalReader) *Connection {
 	return &Connection{store: s, dal: d}
 }
 
-// Find returns all DML connections matching the filter. Fixture data.
-func (r *Connection) Find(_ context.Context, f types.DmlConnectionFilter) ([]*types.DmlConnection, error) {
-	return filterConnections(fixtureConnections(), f), nil
+// Find returns all RDBMS DalConnections, projected into DML connections,
+// matching the filter.
+func (r *Connection) Find(ctx context.Context, f types.DmlConnectionFilter) ([]*types.DmlConnection, error) {
+	cc, err := r.listRdbmsConnections(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return filterConnections(cc, f), nil
 }
 
-// FindByID returns the DML connection with the given ID. Fixture data.
-func (r *Connection) FindByID(_ context.Context, connectionID uint64) (*types.DmlConnection, error) {
-	for _, c := range fixtureConnections() {
-		if c.ID == connectionID {
-			return c, nil
-		}
+// FindByID returns the DML connection with the given ID, backed by the
+// matching DalConnection record.
+func (r *Connection) FindByID(ctx context.Context, connectionID uint64) (*types.DmlConnection, error) {
+	c, err := store.LookupDalConnectionByID(ctx, r.store, connectionID)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("dml: connection %d not found", connectionID)
+	// Match the listing contract: only live RDBMS/DSN connections are visible.
+	// LookupDalConnectionByID applies no deleted/type predicate, so guard here
+	// — otherwise soft-deleted or non-DSN (REST/primary) connections would be
+	// resolvable by ID even though Find never lists them.
+	if c == nil || c.DeletedAt != nil || c.Config.DAL == nil || c.Config.DAL.Type != dalConnectionTypeDSN {
+		return nil, fmt.Errorf("dml: connection %d not found", connectionID)
+	}
+	return dmlConnectionFromDal(c), nil
 }
 
-// FindModels returns the models attached to the given connection.
-// connectionID 0 returns every model across every connection. Fixture data.
-func (r *Connection) FindModels(_ context.Context, connectionID uint64) ([]*types.DmlModel, error) {
-	out := fixtureModels()
-	if connectionID == 0 {
-		return out, nil
+// listRdbmsConnections reads DalConnections straight from the store (so
+// Config.DAL stays populated) and keeps only the RDBMS/DSN ones.
+func (r *Connection) listRdbmsConnections(ctx context.Context) ([]*types.DmlConnection, error) {
+	set, _, err := store.SearchDalConnections(ctx, r.store, types.DalConnectionFilter{
+		Deleted: filter.StateExcluded,
+	})
+	if err != nil {
+		return nil, err
 	}
-	filtered := make([]*types.DmlModel, 0, len(out))
-	for _, m := range out {
-		if m.ConnectionID == connectionID {
-			filtered = append(filtered, m)
+
+	out := make([]*types.DmlConnection, 0, len(set))
+	for _, c := range set {
+		if c.Config.DAL == nil || c.Config.DAL.Type != dalConnectionTypeDSN {
+			continue
 		}
+		out = append(out, dmlConnectionFromDal(c))
 	}
-	return filtered, nil
+	return out, nil
+}
+
+// dmlConnectionFromDal projects a persisted DalConnection into a DML connection.
+func dmlConnectionFromDal(c *types.DalConnection) *types.DmlConnection {
+	out := &types.DmlConnection{
+		ID:              c.ID,
+		DalConnectionID: c.ID,
+		Handle:          c.Handle,
+		Type:            c.Type,
+		Label:           c.Handle,
+	}
+	if c.Config.DAL != nil {
+		// Driver here is the DAL connection-kind (dsn/rest), not the concrete
+		// RDBMS driver — the real driver is parsed from the DSN at runtime.
+		out.Driver = c.Config.DAL.Type
+		out.ModelIdent = c.Config.DAL.ModelIdent
+	}
+	return out
+}
+
+// FindModels introspects the external connection's live schema and returns
+// the resulting models. connectionID 0 resolves to the primary DAL connection.
+// The connection must already be registered in the DAL pool, otherwise the
+// lookup fails with "connection not found".
+func (r *Connection) FindModels(ctx context.Context, connectionID uint64) ([]*types.DmlModel, error) {
+	models, err := r.dal.SearchExternalModels(ctx, connectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*types.DmlModel, 0, len(models))
+	for _, m := range models {
+		out = append(out, fromDalModel(m))
+	}
+	return out, nil
 }
 
 // FindModelByIdent resolves a single model on a connection by its ident.
-// Fixture data.
-func (r *Connection) FindModelByIdent(_ context.Context, connectionID uint64, ident string) (*types.DmlModel, error) {
-	for _, m := range fixtureModels() {
-		if m.ConnectionID == connectionID && m.Ident == ident {
+func (r *Connection) FindModelByIdent(ctx context.Context, connectionID uint64, ident string) (*types.DmlModel, error) {
+	models, err := r.FindModels(ctx, connectionID)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range models {
+		if m.Ident == ident {
 			return m, nil
 		}
 	}
 	return nil, fmt.Errorf("dml: model %q not found on connection %d", ident, connectionID)
-}
-
-// ----------------------------------------------------------------------------
-// Fixtures
-//
-// Temporary stubs so the API surface can be exercised before the DAL
-// projection is wired. Replace fixtureConnections / fixtureModels with
-// calls into r.store + r.dal once the real plumbing lands.
-// ----------------------------------------------------------------------------
-
-func fixtureConnections() []*types.DmlConnection {
-	return []*types.DmlConnection{
-		{
-			ID:           1,
-			Handle:       "primary-database",
-			Type:         "corteza::system:primary-dal-connection",
-			Label:        "Primary database",
-			Driver:       "corteza::dal:driver:rdbms",
-			Capabilities: []string{"create", "update", "delete", "search", "lookup"},
-			ModelIdent:   "{{namespace}}_{{module}}",
-		},
-		{
-			ID:           2,
-			Handle:       "warehouse",
-			Type:         "corteza::system:dal-connection",
-			Label:        "Analytics warehouse",
-			Driver:       "corteza::dal:driver:rdbms",
-			Capabilities: []string{"create", "search", "lookup"},
-			ModelIdent:   "wh_{{module}}",
-		},
-		{
-			ID:           3,
-			Handle:       "crm-api",
-			Type:         "corteza::system:dal-connection",
-			Label:        "External CRM (REST)",
-			Driver:       "corteza::dal:driver:api",
-			Capabilities: []string{"search", "lookup"},
-		},
-	}
-}
-
-func fixtureModels() []*types.DmlModel {
-	const (
-		codecAlias = "corteza::dal:attribute-codec:alias"
-		typeID     = "corteza::dal:attribute-type:id"
-		typeRef    = "corteza::dal:attribute-type:ref"
-		typeText   = "corteza::dal:attribute-type:text"
-		typeJSON   = "corteza::dal:attribute-type:json"
-		typeTS     = "corteza::dal:attribute-type:timestamp"
-		typeBool   = "corteza::dal:attribute-type:boolean"
-	)
-
-	return []*types.DmlModel{
-		{
-			ConnectionID: 1,
-			Ident:        "compose_record",
-			Label:        "Compose record",
-			ResourceType: "corteza::compose:record",
-			Attributes: []*types.DmlAttribute{
-				{Ident: "ID", PrimaryKey: true, Type: typeID, Store: codecAlias},
-				{Ident: "ModuleID", Type: typeRef, Store: codecAlias},
-				{Ident: "NamespaceID", Type: typeRef, Store: codecAlias},
-				{Ident: "Values", Type: typeJSON, Store: codecAlias},
-				{Ident: "Meta", Type: typeJSON, Store: codecAlias},
-				{Ident: "CreatedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "UpdatedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "DeletedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "OwnedBy", Type: typeRef, Store: codecAlias},
-				{Ident: "CreatedBy", Type: typeRef, Store: codecAlias},
-				{Ident: "UpdatedBy", Type: typeRef, Store: codecAlias},
-				{Ident: "DeletedBy", Type: typeRef, Store: codecAlias},
-			},
-		},
-		{
-			ConnectionID: 1,
-			Ident:        "users",
-			Label:        "User",
-			ResourceType: "corteza::system:user",
-			Attributes: []*types.DmlAttribute{
-				{Ident: "ID", PrimaryKey: true, Type: typeID, Store: codecAlias},
-				{Ident: "Email", Sortable: true, Type: typeText, Store: codecAlias},
-				{Ident: "EmailConfirmed", Type: typeBool, Store: codecAlias},
-				{Ident: "Username", Sortable: true, Type: typeText, Store: codecAlias},
-				{Ident: "Name", Sortable: true, Type: typeText, Store: codecAlias},
-				{Ident: "Handle", Type: typeText, Store: codecAlias},
-				{Ident: "Kind", Sortable: true, Type: typeText, Store: codecAlias},
-				{Ident: "Meta", Type: typeJSON, Store: codecAlias},
-				{Ident: "SuspendedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "CreatedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "UpdatedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "DeletedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-			},
-		},
-		{
-			ConnectionID: 2,
-			Ident:        "wh_record_fact",
-			Label:        "Record fact (warehouse)",
-			ResourceType: "corteza::warehouse:record-fact",
-			Attributes: []*types.DmlAttribute{
-				{Ident: "ID", PrimaryKey: true, Type: typeID, Store: codecAlias},
-				{Ident: "RecordID", Type: typeRef, Store: codecAlias},
-				{Ident: "IngestedAt", Sortable: true, Type: typeTS, Store: codecAlias},
-				{Ident: "Payload", Type: typeJSON, Store: codecAlias},
-			},
-		},
-		{
-			ConnectionID: 3,
-			Ident:        "crm_contact",
-			Label:        "CRM contact",
-			ResourceType: "corteza::crm:contact",
-			Attributes: []*types.DmlAttribute{
-				{Ident: "ID", PrimaryKey: true, Type: typeID, Store: codecAlias},
-				{Ident: "Email", Filterable: true, Type: typeText, Store: codecAlias},
-				{Ident: "FirstName", Type: typeText, Store: codecAlias},
-				{Ident: "LastName", Type: typeText, Store: codecAlias},
-				{Ident: "LifecycleStage", Type: typeText, Store: codecAlias},
-			},
-		},
-	}
 }
 
 func filterConnections(in []*types.DmlConnection, f types.DmlConnectionFilter) []*types.DmlConnection {

@@ -78,7 +78,8 @@ func (Tenant) New() *Tenant {
 	}
 }
 
-func (ctrl *Tenant) List(ctx context.Context, r *request.TenantList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Tenant) makeFilter(ctx context.Context, r *request.TenantList) (types.TenantFilter, error) {
 	var (
 		err error
 		f   = types.TenantFilter{
@@ -91,58 +92,37 @@ func (ctrl *Tenant) List(ctx context.Context, r *request.TenantList) (interface{
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *Tenant) Create(ctx context.Context, r *request.TenantCreate) (interface{}, error) {
-	t := &types.Tenant{
-		Handle: r.Handle,
-		Status: types.TenantStatus(r.Status),
-		Config: r.Config,
-		Meta:   r.Meta,
-		Labels: r.Labels,
-	}
-
-	t, err := ctrl.svc.Create(ctx, t)
-	return ctrl.makePayload(ctx, t, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params (handle, labels).
+func (ctrl *Tenant) beforeCreate(ctx context.Context, res *types.Tenant, r *request.TenantCreate) error {
+	res.Status = types.TenantStatus(r.Status)
+	res.Config = r.Config
+	res.Meta = r.Meta
+	return nil
 }
 
-func (ctrl *Tenant) Read(ctx context.Context, r *request.TenantRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.TenantID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *Tenant) Update(ctx context.Context, r *request.TenantUpdate) (interface{}, error) {
-	t := &types.Tenant{
-		ID:        r.TenantID,
-		Handle:    r.Handle,
-		Status:    types.TenantStatus(r.Status),
-		Config:    r.Config,
-		Meta:      r.Meta,
-		UpdatedAt: r.UpdatedAt,
-		Labels:    r.Labels,
-	}
-
-	t, err := ctrl.svc.Update(ctx, t)
-	return ctrl.makePayload(ctx, t, err)
-}
-
-func (ctrl *Tenant) Delete(ctx context.Context, r *request.TenantDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.TenantID)
-}
-
-func (ctrl *Tenant) Undelete(ctx context.Context, r *request.TenantUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.TenantID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (handle, labels) and
+// ID/UpdatedAt.
+func (ctrl *Tenant) beforeUpdate(ctx context.Context, res *types.Tenant, r *request.TenantUpdate) error {
+	res.Status = types.TenantStatus(r.Status)
+	res.Config = r.Config
+	res.Meta = r.Meta
+	return nil
 }
 
 func (ctrl *Tenant) Suspend(ctx context.Context, r *request.TenantSuspend) (interface{}, error) {

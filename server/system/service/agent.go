@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/errors"
-
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/label"
 
@@ -13,20 +11,23 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
+// The CRUD skeleton (FindByID, Search, Create, Update, DeleteByID and the
+// toLabeledAgents helper) is generated in agent.gen.go from system/agent.cue.
+//
+// This file owns the struct, access-controller interface, constructor, the
+// LLM-validator opt-in, the on<Op> custom bodies the generated FindByID /
+// Search / Create / Update delegate to, the hand-written UndeleteByID (the
+// generated undelete is disabled because it uses the non-standard
+// CanDeleteAgent + AgentErrNotAllowedToDelete pairing), and the
+// resource-specific helpers (Get, prepareTCL). The loadAgent helper is
+// generated in agent.gen.go.
+
 type (
 	agent struct {
 		actionlog actionlog.Recorder
 		store     store.Storer
 		ac        agentAccessController
 		llm       agentLLMValidator
-	}
-
-	agentAccessController interface {
-		CanCreateAgent(ctx context.Context) bool
-		CanSearchAgents(ctx context.Context) bool
-		CanReadAgent(ctx context.Context, a *types.Agent) bool
-		CanUpdateAgent(ctx context.Context, a *types.Agent) bool
-		CanDeleteAgent(ctx context.Context, a *types.Agent) bool
 	}
 
 	agentLLMValidator interface {
@@ -51,127 +52,100 @@ func (svc *agent) Get(ctx context.Context, ID uint64) (*types.Agent, error) {
 	return svc.FindByID(ctx, ID)
 }
 
-func (svc *agent) FindByID(ctx context.Context, ID uint64) (a *types.Agent, err error) {
-	err = func() error {
-		if a, err = loadAgent(ctx, svc.store, ID); err != nil {
-			return err
-		}
+// onLookup is the custom body for the generated FindByID. The generated method
+// owns the action-log scaffold + recordAction; the load, read access check and
+// label load (which the standard template does not emit) live here.
+func (svc *agent) onLookup(ctx context.Context, ID uint64, aProps *agentActionProps) (a *types.Agent, err error) {
+	if a, err = loadAgent(ctx, svc.store, ID); err != nil {
+		return nil, err
+	}
 
-		if !svc.ac.CanReadAgent(ctx, a) {
-			return AgentErrNotAllowedToRead()
-		}
+	aProps.setAgent(a)
 
-		if err = label.Load(ctx, svc.store, a); err != nil {
-			return err
-		}
+	if !svc.ac.CanReadAgent(ctx, a) {
+		return nil, AgentErrNotAllowedToRead()
+	}
 
-		return nil
-	}()
+	if err = label.Load(ctx, svc.store, a); err != nil {
+		return nil, err
+	}
 
-	return a, err
+	return a, nil
 }
 
-func (svc *agent) Create(ctx context.Context, new *types.Agent) (a *types.Agent, err error) {
-	err = func() (err error) {
-		if !svc.ac.CanCreateAgent(ctx) {
-			return AgentErrNotAllowedToCreate()
-		}
+// onCreate is the custom body for the generated Create. The generated method
+// owns the action-log scaffold + recordAction + the CanCreateAgent check; the
+// Revision / Status defaults, optional temperature validation, prepareTCL and
+// persistence live here.
+func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
+	new.ID = nextID()
+	new.CreatedAt = *now()
+	new.Revision = 1
 
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.Revision = 1
+	if new.Status == "" {
+		new.Status = "active"
+	}
 
-		if new.Status == "" {
-			new.Status = "active"
-		}
-
-		if new.Execution.Model.Temperature != nil && svc.llm != nil {
-			if err = svc.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
-				return
-			}
-		}
-
-		prepareTCL(&new.Behavior)
-
-		if err = store.CreateAgent(ctx, svc.store, new); err != nil {
+	if new.Execution.Model.Temperature != nil && svc.llm != nil {
+		if err = svc.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
 			return
 		}
+	}
 
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
+	prepareTCL(&new.Behavior)
 
-		a = new
-		return nil
-	}()
+	if err = store.CreateAgent(ctx, svc.store, new); err != nil {
+		return
+	}
 
-	return a, err
+	if err = label.Create(ctx, svc.store, new); err != nil {
+		return
+	}
+
+	return nil
 }
 
-func (svc *agent) Update(ctx context.Context, upd *types.Agent) (a *types.Agent, err error) {
-	err = func() (err error) {
-		if !svc.ac.CanUpdateAgent(ctx, upd) {
-			return AgentErrNotAllowedToUpdate()
+// onUpdate is the custom body for the generated Update. The generated method
+// owns the action-log scaffold + recordAction; the update access check (on the
+// incoming resource), the stale guard, the Revision bump, optional temperature
+// validation, prepareTCL and the whole-record persistence live here.
+func (svc *agent) onUpdate(ctx context.Context, upd *types.Agent, aProps *agentActionProps) (a *types.Agent, err error) {
+	if !svc.ac.CanUpdateAgent(ctx, upd) {
+		return nil, AgentErrNotAllowedToUpdate()
+	}
+
+	var existing *types.Agent
+	if existing, err = store.LookupAgentByID(ctx, svc.store, upd.ID); err != nil {
+		return nil, AgentErrNotFound()
+	}
+
+	// Test if stale (update has an older version of data)
+	if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
+		return nil, AgentErrStaleData()
+	}
+
+	upd.Revision = existing.Revision + 1
+	upd.UpdatedAt = now()
+	upd.CreatedAt = existing.CreatedAt
+	upd.DeletedAt = existing.DeletedAt
+
+	if upd.Execution.Model.Temperature != nil && svc.llm != nil {
+		if err = svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
+			return nil, err
 		}
+	}
 
-		var existing *types.Agent
-		if existing, err = store.LookupAgentByID(ctx, svc.store, upd.ID); err != nil {
-			return AgentErrNotFound()
-		}
+	prepareTCL(&upd.Behavior)
 
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-			return AgentErrStaleData()
-		}
+	if err = store.UpdateAgent(ctx, svc.store, upd); err != nil {
+		return nil, err
+	}
 
-		upd.Revision = existing.Revision + 1
-		upd.UpdatedAt = now()
-		upd.CreatedAt = existing.CreatedAt
-		upd.DeletedAt = existing.DeletedAt
+	if err = label.Update(ctx, svc.store, upd); err != nil {
+		return nil, err
+	}
 
-		if upd.Execution.Model.Temperature != nil && svc.llm != nil {
-			if err = svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
-				return
-			}
-		}
-
-		prepareTCL(&upd.Behavior)
-
-		if err = store.UpdateAgent(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		if err = label.Update(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		a = upd
-		return nil
-	}()
-
-	return a, err
-}
-
-func (svc *agent) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	err = func() (err error) {
-		var a *types.Agent
-		if a, err = loadAgent(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanDeleteAgent(ctx, a) {
-			return AgentErrNotAllowedToDelete()
-		}
-
-		a.DeletedAt = now()
-		if err = store.UpdateAgent(ctx, svc.store, a); err != nil {
-			return
-		}
-
-		return nil
-	}()
-
-	return err
+	return upd, nil
 }
 
 func (svc *agent) UndeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -196,7 +170,10 @@ func (svc *agent) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	return err
 }
 
-func (svc *agent) Search(ctx context.Context, filter types.AgentFilter) (set types.AgentSet, f types.AgentFilter, err error) {
+// onSearch is the custom body for the generated Search. The generated method
+// owns the action-log scaffold + recordAction + the CanSearchAgents check; the
+// Check predicate, label filtering and label load live here.
+func (svc *agent) onSearch(ctx context.Context, filter types.AgentFilter, aProps *agentActionProps) (set types.AgentSet, f types.AgentFilter, err error) {
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Agent) (bool, error) {
 		if !svc.ac.CanReadAgent(ctx, res) {
@@ -206,56 +183,34 @@ func (svc *agent) Search(ctx context.Context, filter types.AgentFilter) (set typ
 		return true, nil
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchAgents(ctx) {
-			return AgentErrNotAllowedToSearch()
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Agent{}.LabelResourceKind(),
+			filter.Labels,
+		)
+
+		if err != nil {
+			return set, f, err
 		}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Agent{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return set, f, nil
 		}
-
-		if set, f, err = store.SearchAgents(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledAgents(set)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return set, f, err
-}
-
-func toLabeledAgents(set types.AgentSet) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
 	}
 
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
+	if set, f, err = store.SearchAgents(ctx, svc.store, filter); err != nil {
+		return set, f, err
 	}
 
-	return ll
-}
+	if err = label.Load(ctx, svc.store, toLabeledAgents(set)...); err != nil {
+		return set, f, err
+	}
 
+	return set, f, nil
+}
 
 // prepareTCL ensures TCL is properly initialized on the agent behavior:
 // - if enabled and no articles selected, populate defaults
@@ -269,16 +224,4 @@ func prepareTCL(b *types.AgentBehavior) {
 	} else {
 		b.TreatyCLArticles = tcl.MergeWithHardwired(b.TreatyCLArticles)
 	}
-}
-
-func loadAgent(ctx context.Context, s store.Agents, ID uint64) (res *types.Agent, err error) {
-	if ID == 0 {
-		return nil, AgentErrInvalidID()
-	}
-
-	if res, err = store.LookupAgentByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, AgentErrNotFound()
-	}
-
-	return
 }

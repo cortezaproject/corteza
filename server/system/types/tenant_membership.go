@@ -1,30 +1,10 @@
 package types
 
 import (
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	// TenantMembership is the join record between a user and a tenant.
-	//
-	// One membership record per user per tenant. A user may hold at most one
-	// active membership across all tenants (one user = one tenant), enforced at
-	// the service layer.
-	TenantMembership struct {
-		ID        uint64             `json:"tenantMembershipID,string"`
-		TenantID  uint64             `json:"tenantID,string"`
-		ProjectID uint64             `json:"projectID,string,omitempty"`
-		UserID    uint64             `json:"userID,string"`
-		Role      TenantMemberRole   `json:"role"`
-		Status    TenantMemberStatus `json:"status"`
-		InvitedBy uint64             `json:"invitedBy,string,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	}
-
 	TenantMembershipFilter struct {
 		TenantMembershipID []string           `json:"tenantMembershipID"`
 		TenantID           uint64             `json:"tenantID,string,omitempty"`

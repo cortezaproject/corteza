@@ -10,7 +10,6 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
@@ -19,10 +18,10 @@ type (
 		TenantID  uint64   `json:"tenantID,string,omitempty"`
 		ProjectID uint64   `json:"projectID,string,omitempty"`
 		Username  string   `json:"username"`
-		Email    string   `json:"email"`
-		Name     string   `json:"name"`
-		Handle   string   `json:"handle"`
-		Kind     UserKind `json:"kind"`
+		Email     string   `json:"email"`
+		Name      string   `json:"name"`
+		Handle    string   `json:"handle"`
+		Kind      UserKind `json:"kind"`
 
 		UserGroupID uint64 `json:"userGroupID,string"`
 
@@ -89,7 +88,7 @@ type (
 		// Set to true if you want to get all kinds/types of users
 		AllKinds bool `json:"anyKind"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted   filter.State `json:"deleted"`

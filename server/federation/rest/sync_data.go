@@ -71,7 +71,7 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 		return nil, err
 	}
 
-	s, _, err := service.DefaultExposedModule.Find(ctx, types.ExposedModuleFilter{NodeID: node.ID})
+	s, _, err := service.DefaultExposedModule.Search(ctx, types.ExposedModuleFilter{NodeID: node.ID})
 
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 
 		// todo - handle error properly
 		// @todo !!!
-		if list, _, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerModule})).Find(ctx, rf); err != nil || len(list) == 0 {
+		if list, _, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerModule})).Search(ctx, rf); err != nil || len(list) == 0 {
 			continue
 		}
 
@@ -230,7 +230,7 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 	}
 
 	// @todo !!!
-	list, f, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerModule})).Find(ctx, f)
+	list, f, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerModule})).Search(ctx, f)
 
 	if err != nil {
 		return nil, err

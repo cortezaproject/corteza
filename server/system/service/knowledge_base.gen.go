@@ -9,10 +9,33 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type knowledgeBaseAccessController interface {
+	CanCreateKnowledgeBase(context.Context) bool
+	CanSearchKnowledgeBases(context.Context) bool
+	CanReadKnowledgeBase(context.Context, *types.KnowledgeBase) bool
+	CanUpdateKnowledgeBase(context.Context, *types.KnowledgeBase) bool
+	CanDeleteKnowledgeBase(context.Context, *types.KnowledgeBase) bool
+}
+
+type knowledgeBase struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        knowledgeBaseAccessController
+}
+
+func KnowledgeBase() *knowledgeBase {
+	return &knowledgeBase{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *knowledgeBase) FindByID(ctx context.Context, ID uint64) (res *types.KnowledgeBase, err error) {
 	var (

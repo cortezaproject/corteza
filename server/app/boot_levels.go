@@ -21,6 +21,7 @@ import (
 	discoveryService "github.com/crusttech/human/server/discovery/service"
 	fedService "github.com/crusttech/human/server/federation/service"
 	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/apigw"
 	apigwTypes "github.com/crusttech/human/server/pkg/apigw/types"
 	"github.com/crusttech/human/server/pkg/auth"
@@ -468,6 +469,12 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	if err != nil {
 		return fmt.Errorf("could not initialize compose services: %w", err)
 	}
+
+	sysService.SetDmlComposeDeps(sysService.DmlComposeDeps{
+		ModuleSvc:    cmpService.DefaultModule,
+		NamespaceSvc: cmpService.DefaultNamespace,
+		RecordSvc:    cmpService.DefaultRecord,
+	}, dal.Service())
 
 	sysService.DefaultAgenticRuntime.SetLookups(cmpService.DefaultNamespace, cmpService.DefaultModule)
 	sysService.DefaultAgenticRuntime.SetTAQService(autService.DefaultNgAutomation)

@@ -9,7 +9,6 @@ import (
 	"github.com/crusttech/human/server/automation/types"
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/api"
 	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/modern-go/reflect2"
@@ -17,9 +16,9 @@ import (
 
 type (
 	NgAutomation struct {
-		svc interface {
+		ngAutomation interface {
 			Search(ctx context.Context, filter types.NgAutomationFilter) (types.NgAutomationSet, types.NgAutomationFilter, error)
-			LookupByID(ctx context.Context, automationID uint64) (*types.NgAutomation, error)
+			FindByID(ctx context.Context, automationID uint64) (*types.NgAutomation, error)
 			Create(ctx context.Context, new *types.NgAutomation) (*types.NgAutomation, error)
 			Update(ctx context.Context, upd *types.NgAutomation) (*types.NgAutomation, error)
 			DeleteByID(ctx context.Context, automationID uint64) error
@@ -68,13 +67,14 @@ type (
 
 func (NgAutomation) New() *NgAutomation {
 	ctrl := &NgAutomation{}
-	ctrl.svc = service.DefaultNgAutomation
+	ctrl.ngAutomation = service.DefaultNgAutomation
 	ctrl.svcModule = cmpService.DefaultModule
 	ctrl.ac = service.DefaultAccessControl
 	return ctrl
 }
 
-func (ctrl NgAutomation) List(ctx context.Context, r *request.NgAutomationList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl NgAutomation) makeFilter(ctx context.Context, r *request.NgAutomationList) (types.NgAutomationFilter, error) {
 	var (
 		err error
 		f   = types.NgAutomationFilter{
@@ -87,72 +87,44 @@ func (ctrl NgAutomation) List(ctx context.Context, r *request.NgAutomationList) 
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl NgAutomation) Create(ctx context.Context, r *request.NgAutomationCreate) (interface{}, error) {
-	ngAutomation := &types.NgAutomation{
-		Handle:   r.Handle,
-		Labels:   r.Labels,
-		Meta:     r.Meta,
-		Enabled:  r.Enabled,
-		Scope:    r.Scope,
-		Triggers: r.Triggers,
-		Steps:    r.Steps,
-		Paths:    r.Paths,
-		RunAs:    r.RunAs,
-		OwnedBy:  r.OwnedBy,
-	}
-
-	wf, err := ctrl.svc.Create(ctx, ngAutomation)
-	return ctrl.makePayload(ctx, wf, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl NgAutomation) beforeCreate(ctx context.Context, res *types.NgAutomation, r *request.NgAutomationCreate) error {
+	res.Meta = r.Meta
+	res.Scope = r.Scope
+	res.Triggers = r.Triggers
+	res.Steps = r.Steps
+	res.Paths = r.Paths
+	return nil
 }
 
-func (ctrl NgAutomation) Update(ctx context.Context, r *request.NgAutomationUpdate) (interface{}, error) {
-	ngAutomation := &types.NgAutomation{
-		ID:        r.AutomationID,
-		Handle:    r.Handle,
-		Labels:    r.Labels,
-		Meta:      r.Meta,
-		Enabled:   r.Enabled,
-		Scope:     r.Scope,
-		Triggers:  r.Triggers,
-		Steps:     r.Steps,
-		Paths:     r.Paths,
-		RunAs:     r.RunAs,
-		OwnedBy:   r.OwnedBy,
-		UpdatedAt: r.UpdatedAt,
-	}
-
-	wf, err := ctrl.svc.Update(ctx, ngAutomation)
-	return ctrl.makePayload(ctx, wf, err)
-}
-
-func (ctrl NgAutomation) Read(ctx context.Context, r *request.NgAutomationRead) (interface{}, error) {
-	wf, err := ctrl.svc.LookupByID(ctx, r.AutomationID)
-	return ctrl.makePayload(ctx, wf, err)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl NgAutomation) beforeUpdate(ctx context.Context, res *types.NgAutomation, r *request.NgAutomationUpdate) error {
+	res.Meta = r.Meta
+	res.Scope = r.Scope
+	res.Triggers = r.Triggers
+	res.Steps = r.Steps
+	res.Paths = r.Paths
+	return nil
 }
 
 func (ctrl NgAutomation) Test(ctx context.Context, r *request.NgAutomationTest) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
-}
-
-func (ctrl NgAutomation) Delete(ctx context.Context, r *request.NgAutomationDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.AutomationID)
-}
-
-func (ctrl NgAutomation) Undelete(ctx context.Context, r *request.NgAutomationUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.AutomationID)
 }
 
 func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) (interface{}, error) {
@@ -165,17 +137,17 @@ func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) 
 		}
 	}
 
-	return ctrl.svc.ExecAndWait(ctx, r.AutomationID, types.NgAutomationExecParams{
+	return ctrl.ngAutomation.ExecAndWait(ctx, r.AutomationID, types.NgAutomationExecParams{
 		Input: input,
 	})
 }
 
 func (ctrl NgAutomation) Executions(ctx context.Context, r *request.NgAutomationExecutions) (interface{}, error) {
-	return ctrl.svc.GetExecutions(ctx, r.AutomationID)
+	return ctrl.ngAutomation.GetExecutions(ctx, r.AutomationID)
 }
 
 func (ctrl NgAutomation) AllExecutions(ctx context.Context, r *request.NgAutomationAllExecutions) (interface{}, error) {
-	return ctrl.svc.GetAllExecutions(ctx, execTypes.ExecutionFilter{
+	return ctrl.ngAutomation.GetAllExecutions(ctx, execTypes.ExecutionFilter{
 		AutomationID: r.AutomationID,
 		EventType:    r.EventType,
 		ResourceType: r.ResourceType,
@@ -184,7 +156,7 @@ func (ctrl NgAutomation) AllExecutions(ctx context.Context, r *request.NgAutomat
 }
 
 func (ctrl NgAutomation) ExecutionTrace(ctx context.Context, r *request.NgAutomationExecutionTrace) (interface{}, error) {
-	return ctrl.svc.GetExecutionTrace(
+	return ctrl.ngAutomation.GetExecutionTrace(
 		ctx,
 		r.AutomationID,
 		r.ExecutionID,

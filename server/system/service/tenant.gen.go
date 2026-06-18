@@ -9,11 +9,76 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type tenant struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        tenantAccessController
+}
+
+func Tenant() *tenant {
+	return &tenant{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
+
+func (svc *tenant) Search(ctx context.Context, filter types.TenantFilter) (set types.TenantSet, f types.TenantFilter, err error) {
+	var (
+		aProps = &tenantActionProps{search: &filter}
+	)
+
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Tenant) (bool, error) {
+		if !svc.ac.CanReadTenant(ctx, res) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	err = func() error {
+		if !svc.ac.CanSearchTenants(ctx) {
+			return TenantErrNotAllowedToSearch()
+		}
+
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.Tenant{}.LabelResourceKind(),
+				filter.Labels,
+			)
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
+
+		if set, f, err = store.SearchTenants(ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(ctx, svc.store, toLabeledTenants(set)...); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, TenantActionSearch, err)
+}
 
 func (svc *tenant) Create(ctx context.Context, new *types.Tenant) (res *types.Tenant, err error) {
 	var (

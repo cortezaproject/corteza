@@ -672,6 +672,7 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 		"ownedBy", auxOwnedBy,
 		"pageID", auxPageID,
 		"parentID", auxParentID,
+		"primary", res.Primary,
 		"projectID", res.ProjectID,
 		"tenantID", res.TenantID,
 		"updatedAt", auxUpdatedAt,

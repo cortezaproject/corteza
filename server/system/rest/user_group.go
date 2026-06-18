@@ -49,12 +49,10 @@ func (UserGroup) New() *UserGroup {
 	}
 }
 
-func (ctrl UserGroup) Read(ctx context.Context, r *request.UserGroupRead) (interface{}, error) {
-	userGroup, err := ctrl.userGroup.FindByID(ctx, r.UserGroupID.Num())
-	return ctrl.makePayload(ctx, userGroup, err)
-}
-
-func (ctrl UserGroup) List(ctx context.Context, r *request.UserGroupList) (interface{}, error) {
+// makeFilter builds the userGroup search filter from the list request.
+//
+// Companion hook for the generated List controller.
+func (ctrl UserGroup) makeFilter(ctx context.Context, r *request.UserGroupList) (types.UserGroupFilter, error) {
 	var (
 		err error
 		f   = types.UserGroupFilter{
@@ -69,80 +67,63 @@ func (ctrl UserGroup) List(ctx context.Context, r *request.UserGroupList) (inter
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.userGroup.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl UserGroup) Create(ctx context.Context, r *request.UserGroupCreate) (interface{}, error) {
-	var (
-		err       error
-		userGroup = &types.UserGroup{
-			Handle: r.Handle,
-			Labels: r.Labels,
-			Config: r.Config,
-			Meta:   r.Meta,
-		}
-	)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params (handle, labels).
+func (ctrl UserGroup) beforeCreate(ctx context.Context, res *types.UserGroup, r *request.UserGroupCreate) error {
+	res.Config = r.Config
+	res.Meta = r.Meta
 
-	userGroup, err = ctrl.userGroup.Create(ctx, userGroup)
-	if err != nil {
-		return nil, err
-	}
+	return nil
+}
 
+// afterCreate adds the requested members to the freshly created user group.
+// types.UserGroup has no Members field -- the ids are added one-by-one via
+// MemberAdd, which needs the assigned resource id, so it runs after Create.
+func (ctrl UserGroup) afterCreate(ctx context.Context, res *types.UserGroup, r *request.UserGroupCreate) error {
 	for _, userID := range payload.ParseUint64s(r.Members) {
-		err := ctrl.userGroup.MemberAdd(ctx, userGroup.ID, userID)
-		if err != nil {
-			return nil, err
+		if err := ctrl.userGroup.MemberAdd(ctx, res.ID, userID); err != nil {
+			return err
 		}
 	}
-	return ctrl.makePayload(ctx, userGroup, err)
+
+	return nil
 }
 
-func (ctrl UserGroup) Update(ctx context.Context, r *request.UserGroupUpdate) (interface{}, error) {
-	var (
-		err       error
-		userGroup = &types.UserGroup{
-			ID:        r.UserGroupID.Num(),
-			Handle:    r.Handle,
-			Labels:    r.Labels,
-			UpdatedAt: r.UpdatedAt,
-			Meta:      r.Meta,
-			Config:    r.Config,
-		}
-	)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (handle, labels) and ID/UpdatedAt.
+func (ctrl UserGroup) beforeUpdate(ctx context.Context, res *types.UserGroup, r *request.UserGroupUpdate) error {
+	res.Config = r.Config
+	res.Meta = r.Meta
 
-	userGroup, err = ctrl.userGroup.Update(ctx, userGroup)
-	if err != nil {
-		return nil, err
-	}
+	return nil
+}
 
+// afterUpdate adds the requested members to the updated user group. As with
+// create, MemberAdd needs the resource id and so runs after Update.
+func (ctrl UserGroup) afterUpdate(ctx context.Context, res *types.UserGroup, r *request.UserGroupUpdate) error {
 	if len(r.Members) > 0 {
 		for _, userID := range payload.ParseUint64s(r.Members) {
-			err := ctrl.userGroup.MemberAdd(ctx, userGroup.ID, userID)
-			if err != nil {
-				return nil, err
+			if err := ctrl.userGroup.MemberAdd(ctx, res.ID, userID); err != nil {
+				return err
 			}
 		}
 	}
 
-	return ctrl.makePayload(ctx, userGroup, err)
-}
-
-func (ctrl UserGroup) Delete(ctx context.Context, r *request.UserGroupDelete) (interface{}, error) {
-	return api.OK(), ctrl.userGroup.Delete(ctx, r.UserGroupID.Num())
-}
-
-func (ctrl UserGroup) Undelete(ctx context.Context, r *request.UserGroupUndelete) (interface{}, error) {
-	return api.OK(), ctrl.userGroup.Undelete(ctx, r.UserGroupID.Num())
+	return nil
 }
 
 func (ctrl UserGroup) MemberList(ctx context.Context, r *request.UserGroupMemberList) (interface{}, error) {

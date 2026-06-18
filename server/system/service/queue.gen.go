@@ -9,10 +9,33 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type queueAccessController interface {
+	CanCreateQueue(context.Context) bool
+	CanSearchQueues(context.Context) bool
+	CanReadQueue(context.Context, *types.Queue) bool
+	CanUpdateQueue(context.Context, *types.Queue) bool
+	CanDeleteQueue(context.Context, *types.Queue) bool
+}
+
+type queue struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        queueAccessController
+}
+
+func Queue() *queue {
+	return &queue{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *queue) FindByID(ctx context.Context, ID uint64) (res *types.Queue, err error) {
 	var (
@@ -34,6 +57,35 @@ func (svc *queue) FindByID(ctx context.Context, ID uint64) (res *types.Queue, er
 	}()
 
 	return res, svc.recordAction(ctx, aProps, QueueActionLookup, err)
+}
+
+func (svc *queue) Search(ctx context.Context, filter types.QueueFilter) (set types.QueueSet, f types.QueueFilter, err error) {
+	var (
+		aProps = &queueActionProps{search: &filter}
+	)
+
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Queue) (bool, error) {
+		if !svc.ac.CanReadQueue(ctx, res) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	err = func() error {
+		if !svc.ac.CanSearchQueues(ctx) {
+			return QueueErrNotAllowedToSearch()
+		}
+
+		if set, f, err = store.SearchQueues(ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, QueueActionSearch, err)
 }
 
 func (svc *queue) Create(ctx context.Context, new *types.Queue) (res *types.Queue, err error) {

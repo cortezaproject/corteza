@@ -1,37 +1,11 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	// Tenant is the top-level isolation unit. Every user belongs to exactly one
-	// tenant; projects and tenant-scoped resources nest beneath it.
-	Tenant struct {
-		ID     uint64       `json:"tenantID,string"`
-		Handle string       `json:"handle"`
-		Status TenantStatus `json:"status"`
-
-		Config TenantConfig `json:"config"`
-		Meta   TenantMeta   `json:"meta"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt   time.Time  `json:"createdAt,omitempty"`
-		CreatedBy   uint64     `json:"createdBy,string"`
-		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy   uint64     `json:"updatedBy,string,omitempty"`
-		SuspendedAt *time.Time `json:"suspendedAt,omitempty"`
-		DeletedAt   *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy   uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	TenantFilter struct {
 		TenantID []string     `json:"tenantID"`
 		Handle   string       `json:"handle"`
@@ -89,23 +63,3 @@ const (
 	TenantStatusSuspended TenantStatus = "suspended"
 	TenantStatusArchived  TenantStatus = "archived"
 )
-
-func (m *TenantConfig) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m TenantConfig) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *TenantMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m TenantMeta) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func ParseTenantConfig(ss []string) (p TenantConfig, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseTenantMeta(ss []string) (p TenantMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}

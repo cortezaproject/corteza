@@ -210,7 +210,7 @@ func (r *runtime) loadTAQInfos(ctx context.Context, agent *types.Agent) map[uint
 		if tac.ID == 0 {
 			continue
 		}
-		if info, err := r.taqService.LookupByID(ctx, tac.ID); err == nil {
+		if info, err := r.taqService.FindByID(ctx, tac.ID); err == nil {
 			infos[tac.ID] = info
 		}
 	}
@@ -368,7 +368,7 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 				if w.ID == 0 {
 					continue
 				}
-				info, err := r.workflowService.LookupByID(ctx, w.ID)
+				info, err := r.workflowService.FindByID(ctx, w.ID)
 				if err != nil {
 					continue
 				}

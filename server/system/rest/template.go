@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/renderer"
 	"github.com/crusttech/human/server/system/rest/request"
@@ -60,12 +59,8 @@ func (Template) New() *Template {
 	}
 }
 
-func (ctrl *Template) Read(ctx context.Context, r *request.TemplateRead) (interface{}, error) {
-	tpl, err := ctrl.renderer.FindByID(ctx, r.TemplateID)
-	return ctrl.makeTemplatePayload(ctx, tpl, err)
-}
-
-func (ctrl *Template) List(ctx context.Context, r *request.TemplateList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Template) makeFilter(ctx context.Context, r *request.TemplateList) (types.TemplateFilter, error) {
 	var (
 		err error
 		f   = types.TemplateFilter{
@@ -79,63 +74,34 @@ func (ctrl *Template) List(ctx context.Context, r *request.TemplateList) (interf
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.renderer.Search(ctx, f)
-	return ctrl.makeFilterTemplatePayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Template) Create(ctx context.Context, r *request.TemplateCreate) (interface{}, error) {
-	var (
-		err error
-		app = &types.Template{
-			Handle:   r.Handle,
-			Language: r.Language,
-			Type:     types.DocumentType(r.Type),
-			Partial:  r.Partial,
-			Meta:     r.Meta,
-			Template: r.Template,
-			OwnerID:  r.OwnerID,
-		}
-	)
-
-	app, err = ctrl.renderer.Create(ctx, app)
-	return ctrl.makeTemplatePayload(ctx, app, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *Template) beforeCreate(ctx context.Context, res *types.Template, r *request.TemplateCreate) error {
+	res.Type = types.DocumentType(r.Type)
+	res.Meta = r.Meta
+	return nil
 }
 
-func (ctrl *Template) Update(ctx context.Context, r *request.TemplateUpdate) (interface{}, error) {
-	var (
-		err error
-		app = &types.Template{
-			ID:        r.TemplateID,
-			Handle:    r.Handle,
-			Language:  r.Language,
-			Type:      types.DocumentType(r.Type),
-			Partial:   r.Partial,
-			Meta:      r.Meta,
-			Template:  r.Template,
-			OwnerID:   r.OwnerID,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
-
-	app, err = ctrl.renderer.Update(ctx, app)
-	return ctrl.makeTemplatePayload(ctx, app, err)
-}
-
-func (ctrl *Template) Delete(ctx context.Context, r *request.TemplateDelete) (interface{}, error) {
-	return api.OK(), ctrl.renderer.DeleteByID(ctx, r.TemplateID)
-}
-
-func (ctrl *Template) Undelete(ctx context.Context, r *request.TemplateUndelete) (interface{}, error) {
-	return api.OK(), ctrl.renderer.UndeleteByID(ctx, r.TemplateID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *Template) beforeUpdate(ctx context.Context, res *types.Template, r *request.TemplateUpdate) error {
+	res.Type = types.DocumentType(r.Type)
+	res.Meta = r.Meta
+	return nil
 }
 
 func (ctrl *Template) RenderDrivers(ctx context.Context, r *request.TemplateRenderDrivers) (interface{}, error) {
@@ -165,7 +131,7 @@ func (ctrl *Template) Render(ctx context.Context, r *request.TemplateRender) (in
 
 // Utilities
 
-func (ctrl Template) makeFilterTemplatePayload(ctx context.Context, nn types.TemplateSet, f types.TemplateFilter, err error) (*templateSetPayload, error) {
+func (ctrl Template) makeFilterPayload(ctx context.Context, nn types.TemplateSet, f types.TemplateFilter, err error) (*templateSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -173,13 +139,13 @@ func (ctrl Template) makeFilterTemplatePayload(ctx context.Context, nn types.Tem
 	msp := &templateSetPayload{Filter: f, Set: make([]*templatePayload, len(nn))}
 
 	for i := range nn {
-		msp.Set[i], _ = ctrl.makeTemplatePayload(ctx, nn[i], nil)
+		msp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
 	}
 
 	return msp, nil
 }
 
-func (ctrl Template) makeTemplatePayload(ctx context.Context, tpl *types.Template, err error) (*templatePayload, error) {
+func (ctrl Template) makePayload(ctx context.Context, tpl *types.Template, err error) (*templatePayload, error) {
 	if err != nil || tpl == nil {
 		return nil, err
 	}

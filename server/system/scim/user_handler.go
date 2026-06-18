@@ -167,7 +167,7 @@ func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := svc.Delete(ctx, res.ID); err != nil {
+	if err := svc.DeleteByID(ctx, res.ID); err != nil {
 		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 	} else {
 		w.WriteHeader(http.StatusNoContent)

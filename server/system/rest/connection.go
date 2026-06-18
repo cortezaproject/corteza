@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -59,10 +58,10 @@ func (Connection) New() *Connection {
 	}
 }
 
-func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Connection) makeFilter(ctx context.Context, r *request.ConnectionList) (types.ConnectionFilter, error) {
 	var (
 		err error
-		set types.ConnectionSet
 
 		f = types.ConnectionFilter{
 			Handle: r.Handle,
@@ -80,85 +79,51 @@ func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (int
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err = ctrl.svc.Search(ctx, f)
-	if err != nil {
-		return nil, err
-	}
-
-	return ctrl.makeFilterPayload(ctx, set, f)
+	return f, nil
 }
 
-func (ctrl Connection) Create(ctx context.Context, r *request.ConnectionCreate) (interface{}, error) {
-	connection := &types.Connection{
-		Handle:  r.Handle,
-		Meta:    r.Meta,
-		Service: r.Service,
-		Status:  "draft",
-	}
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl Connection) beforeCreate(ctx context.Context, res *types.Connection, r *request.ConnectionCreate) error {
+	res.Meta = r.Meta
+	res.Service = r.Service
+	res.Status = "draft"
 
 	if r.Resources != nil {
-		_ = json.Unmarshal(r.Resources, &connection.Resources)
+		_ = json.Unmarshal(r.Resources, &res.Resources)
 	}
 	if r.Operations != nil {
-		_ = json.Unmarshal(r.Operations, &connection.Operations)
+		_ = json.Unmarshal(r.Operations, &res.Operations)
 	}
 
-	res, err := ctrl.svc.Create(ctx, connection)
-	if err != nil {
-		return nil, err
-	}
-
-	return ctrl.makePayload(ctx, res), nil
+	return nil
 }
 
-func (ctrl Connection) Update(ctx context.Context, r *request.ConnectionUpdate) (interface{}, error) {
-	connection := &types.Connection{
-		ID:        r.ConnectionID,
-		Handle:    r.Handle,
-		Meta:      r.Meta,
-		Service:   r.Service,
-		UpdatedAt: r.UpdatedAt,
-	}
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl Connection) beforeUpdate(ctx context.Context, res *types.Connection, r *request.ConnectionUpdate) error {
+	res.Meta = r.Meta
+	res.Service = r.Service
 
 	if r.Resources != nil {
-		_ = json.Unmarshal(r.Resources, &connection.Resources)
+		_ = json.Unmarshal(r.Resources, &res.Resources)
 	}
 	if r.Operations != nil {
-		_ = json.Unmarshal(r.Operations, &connection.Operations)
+		_ = json.Unmarshal(r.Operations, &res.Operations)
 	}
 
-	res, err := ctrl.svc.Update(ctx, connection)
-	if err != nil {
-		return nil, err
-	}
-
-	return ctrl.makePayload(ctx, res), nil
-}
-
-func (ctrl Connection) Read(ctx context.Context, r *request.ConnectionRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.ConnectionID)
-	if err != nil {
-		return nil, err
-	}
-
-	return ctrl.makePayload(ctx, res), nil
-}
-
-func (ctrl Connection) Delete(ctx context.Context, r *request.ConnectionDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.ConnectionID)
-}
-
-func (ctrl Connection) Undelete(ctx context.Context, r *request.ConnectionUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ConnectionID)
+	return nil
 }
 
 func (ctrl Connection) Enable(ctx context.Context, r *request.ConnectionEnable) (interface{}, error) {
@@ -167,7 +132,7 @@ func (ctrl Connection) Enable(ctx context.Context, r *request.ConnectionEnable) 
 		return nil, err
 	}
 
-	return ctrl.makePayload(ctx, res), nil
+	return ctrl.makePayload(ctx, res, nil)
 }
 
 func (ctrl Connection) Generate(ctx context.Context, r *request.ConnectionGenerate) (interface{}, error) {
@@ -180,7 +145,7 @@ func (ctrl Connection) Import(ctx context.Context, r *request.ConnectionImport) 
 	if err != nil {
 		return nil, err
 	}
-	return ctrl.makePayload(ctx, res), nil
+	return ctrl.makePayload(ctx, res, nil)
 }
 
 func (ctrl Connection) Configure(ctx context.Context, r *request.ConnectionConfigure) (interface{}, error) {
@@ -242,25 +207,34 @@ func (ctrl Connection) UpdateConfiguration(ctx context.Context, r *request.Conne
 	return ctrl.makeConfigurePayload(ctx, res), nil
 }
 
-func (ctrl Connection) makeFilterPayload(ctx context.Context, set types.ConnectionSet, f types.ConnectionFilter) (*connectionSetPayload, error) {
+func (ctrl Connection) makeFilterPayload(ctx context.Context, set types.ConnectionSet, f types.ConnectionFilter, err error) (*connectionSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
 	out := &connectionSetPayload{
 		Filter: f,
 		Set:    make([]*connectionPayload, 0, len(set)),
 	}
 
 	for _, c := range set {
-		out.Set = append(out.Set, ctrl.makePayload(ctx, c))
+		p, _ := ctrl.makePayload(ctx, c, nil)
+		out.Set = append(out.Set, p)
 	}
 
 	return out, nil
 }
 
-func (ctrl Connection) makePayload(ctx context.Context, c *types.Connection) *connectionPayload {
+func (ctrl Connection) makePayload(ctx context.Context, c *types.Connection, err error) (*connectionPayload, error) {
+	if err != nil || c == nil {
+		return nil, err
+	}
+
 	return &connectionPayload{
 		Connection:          c,
 		CanUpdateConnection: ctrl.ac.CanUpdateConnection(ctx, c),
 		CanDeleteConnection: ctrl.ac.CanDeleteConnection(ctx, c),
-	}
+	}, nil
 }
 
 func (ctrl Connection) makeConfigurePayload(ctx context.Context, c *types.ConfiguredConnection) *configuredConnectionPayload {

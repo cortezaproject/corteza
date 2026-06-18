@@ -81,6 +81,9 @@ knowledge_base: {
 	}
 
 	service: {
+		genAccessController: true
+		genConstructor:      true
+
 		// no eventbus events: the original service does not emit any and the
 		// struct carries no eventbus dependency
 		events: false

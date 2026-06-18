@@ -71,8 +71,8 @@ func (ctrl ManageStructure) UpdateExposed(ctx context.Context, r *request.Manage
 }
 
 func (ctrl ManageStructure) RemoveExposed(ctx context.Context, r *request.ManageStructureRemoveExposed) (interface{}, error) {
-	em, err := (service.DefaultExposedModule).DeleteByID(ctx, r.NodeID, r.ModuleID)
-	return ctrl.makePayload(ctx, em, err)
+	err := (service.DefaultExposedModule).DeleteByID(ctx, r.NodeID, r.ModuleID)
+	return ctrl.makePayload(ctx, (*types.ExposedModule)(nil), err)
 }
 
 func (ctrl ManageStructure) ReadShared(ctx context.Context, r *request.ManageStructureReadShared) (interface{}, error) {
@@ -90,7 +90,7 @@ func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.Manag
 	}
 
 	// check if it exists, do an upsert
-	existing, _, err := service.DefaultModuleMapping.Find(ctx, types.ModuleMappingFilter{
+	existing, _, err := service.DefaultModuleMapping.Search(ctx, types.ModuleMappingFilter{
 		NodeID:             r.NodeID,
 		ComposeModuleID:    r.ComposeModuleID,
 		ComposeNamespaceID: r.ComposeNamespaceID,
@@ -120,7 +120,7 @@ func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageS
 		f.ComposeModuleID = r.ComposeModuleID
 	}
 
-	set, _, err := service.DefaultModuleMapping.Find(ctx, f)
+	set, _, err := service.DefaultModuleMapping.Search(ctx, f)
 
 	if err != nil {
 		return nil, err
@@ -142,17 +142,17 @@ func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStruct
 
 	switch true {
 	case r.Exposed:
-		list, _, err = (service.DefaultExposedModule).Find(ctx, types.ExposedModuleFilter{
+		list, _, err = (service.DefaultExposedModule).Search(ctx, types.ExposedModuleFilter{
 			NodeID: r.NodeID,
 		})
 		break
 	case r.Shared:
-		list, _, err = (service.DefaultSharedModule).Find(ctx, types.SharedModuleFilter{
+		list, _, err = (service.DefaultSharedModule).Search(ctx, types.SharedModuleFilter{
 			NodeID: r.NodeID,
 		})
 		break
 	case r.Mapped:
-		list, _, err = (service.DefaultModuleMapping).Find(ctx, types.ModuleMappingFilter{
+		list, _, err = (service.DefaultModuleMapping).Search(ctx, types.ModuleMappingFilter{
 			NodeID: r.NodeID,
 		})
 		break

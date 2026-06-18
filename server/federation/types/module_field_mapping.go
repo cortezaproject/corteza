@@ -1,11 +1,5 @@
 package types
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"github.com/crusttech/human/server/pkg/sql"
-)
-
 const (
 	ModuleFieldMappingSetFindTypeOrigin ModuleFieldMappingSetFindType = iota
 	ModuleFieldMappingSetFindTypeDestination
@@ -41,6 +35,3 @@ func (list *ModuleFieldMappingSet) FindByName(name string, findType ModuleFieldM
 
 	return nil, nil
 }
-
-func (list *ModuleFieldMappingSet) Scan(src any) error          { return sql.ParseJSON(src, list) }
-func (list ModuleFieldMappingSet) Value() (driver.Value, error) { return json.Marshal(list) }

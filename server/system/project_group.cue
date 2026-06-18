@@ -69,6 +69,8 @@ project_group: {
 
 	service: {
 
+		genConstructor: true
+
 		filterProp: "search"
 
 		undelete: false

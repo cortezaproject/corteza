@@ -22,7 +22,7 @@ props:
   - name: update
     type: "*types.Agent"
     fields: [ handle, ID ]
-  - name: search
+  - name: filter
     type: "*types.AgentFilter"
     fields: [ ]
 

@@ -1,12 +1,6 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
@@ -14,25 +8,6 @@ type (
 	DalSensitivityLevelMeta struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
-	}
-
-	DalSensitivityLevel struct {
-		ID        uint64 `json:"sensitivityLevelID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Handle    string `json:"handle"`
-		Level    int    `json:"level"`
-
-		Meta DalSensitivityLevelMeta `json:"meta"`
-
-		Labels map[string]string `json:"labels,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
 	DalSensitivityLevelFilter struct {
@@ -52,18 +27,6 @@ type (
 		filter.Sorting
 	}
 )
-
-func ParseDalSensitivityLevelMeta(ss []string) (m DalSensitivityLevelMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-
-	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func (nm *DalSensitivityLevelMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm DalSensitivityLevelMeta) Value() (driver.Value, error) { return json.Marshal(nm) }
 
 func (ss DalSensitivityLevelSet) Len() int { return len(ss) }
 func (ss DalSensitivityLevelSet) Less(i, j int) bool {

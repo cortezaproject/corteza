@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
@@ -13,12 +12,6 @@ import (
 )
 
 type (
-	tenant struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        tenantAccessController
-	}
-
 	tenantAccessController interface {
 		CanCreateTenant(ctx context.Context) bool
 		CanSearchTenants(ctx context.Context) bool
@@ -52,14 +45,6 @@ type (
 		ActivateMember(ctx context.Context, tenantID, userID uint64) error
 	}
 )
-
-func Tenant() *tenant {
-	return &tenant{
-		ac:        DefaultAccessControl,
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-	}
-}
 
 func (svc *tenant) FindByID(ctx context.Context, ID uint64) (t *types.Tenant, err error) {
 	var taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
@@ -111,46 +96,29 @@ func (svc *tenant) FindByHandle(ctx context.Context, h string) (t *types.Tenant,
 	return t, svc.recordAction(ctx, taProps, TenantActionLookup, err)
 }
 
-func (svc *tenant) Create(ctx context.Context, new *types.Tenant) (t *types.Tenant, err error) {
-	var taProps = &tenantActionProps{new: new}
+// beforeCreate runs after the create RBAC check and before id/timestamps are
+// assigned. It validates the incoming tenant, defaults + validates the status,
+// enforces handle uniqueness and stamps CreatedBy (the generated Create body
+// only sets ID + CreatedAt).
+func (svc *tenant) beforeCreate(ctx context.Context, new *types.Tenant) (err error) {
+	if !handle.IsValid(new.Handle) {
+		return TenantErrInvalidHandle()
+	}
 
-	err = func() (err error) {
-		if !svc.ac.CanCreateTenant(ctx) {
-			return TenantErrNotAllowedToCreate()
-		}
+	if new.Status == "" {
+		new.Status = types.TenantStatusActive
+	}
+	if err = validateTenantStatus(new.Status); err != nil {
+		return err
+	}
 
-		if !handle.IsValid(new.Handle) {
-			return TenantErrInvalidHandle()
-		}
+	if err = svc.uniqueCheck(ctx, new); err != nil {
+		return err
+	}
 
-		if new.Status == "" {
-			new.Status = types.TenantStatusActive
-		}
-		if err = validateTenantStatus(new.Status); err != nil {
-			return err
-		}
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = svc.uniqueCheck(ctx, new); err != nil {
-			return err
-		}
-
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.CreateTenant(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		t = new
-		return nil
-	}()
-
-	return t, svc.recordAction(ctx, taProps, TenantActionCreate, err)
+	return nil
 }
 
 func (svc *tenant) Update(ctx context.Context, upd *types.Tenant) (t *types.Tenant, err error) {
@@ -211,31 +179,12 @@ func (svc *tenant) Update(ctx context.Context, upd *types.Tenant) (t *types.Tena
 	return t, svc.recordAction(ctx, taProps, TenantActionUpdate, err)
 }
 
-func (svc *tenant) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	var taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
-
-	err = func() (err error) {
-		var t *types.Tenant
-		if t, err = loadTenant(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		taProps.setTenant(t)
-
-		if !svc.ac.CanDeleteTenant(ctx, t) {
-			return TenantErrNotAllowedToDelete()
-		}
-
-		t.DeletedAt = now()
-		t.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-		if err = store.UpdateTenant(ctx, svc.store, t); err != nil {
-			return
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, taProps, TenantActionDelete, err)
+// beforeDelete runs after the delete RBAC check and before the soft-delete
+// store update. It stamps DeletedBy from the context identity (the generated
+// delete body only sets DeletedAt).
+func (svc *tenant) beforeDelete(ctx context.Context, t *types.Tenant) error {
+	t.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
 }
 
 func (svc *tenant) UndeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -307,50 +256,6 @@ func (svc *tenant) setStatus(ctx context.Context, ID uint64, status types.Tenant
 	}()
 
 	return svc.recordAction(ctx, taProps, action, err)
-}
-
-func (svc *tenant) Search(ctx context.Context, filter types.TenantFilter) (set types.TenantSet, f types.TenantFilter, err error) {
-	var taProps = &tenantActionProps{search: &filter}
-
-	filter.Check = func(res *types.Tenant) (bool, error) {
-		if !svc.ac.CanReadTenant(ctx, res) {
-			return false, nil
-		}
-		return true, nil
-	}
-
-	err = func() error {
-		if !svc.ac.CanSearchTenants(ctx) {
-			return TenantErrNotAllowedToSearch()
-		}
-
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Tenant{}.LabelResourceKind(),
-				filter.Labels,
-			)
-			if err != nil {
-				return err
-			}
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if set, f, err = store.SearchTenants(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledTenants(set)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return set, f, svc.recordAction(ctx, taProps, TenantActionSearch, err)
 }
 
 // --- members ---
@@ -585,27 +490,4 @@ func validateTenantStatus(s types.TenantStatus) error {
 		return nil
 	}
 	return TenantErrInvalidStatus()
-}
-
-func toLabeledTenants(set types.TenantSet) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-	return ll
-}
-
-func loadTenant(ctx context.Context, s store.Tenants, ID uint64) (res *types.Tenant, err error) {
-	if ID == 0 {
-		return nil, TenantErrInvalidID()
-	}
-
-	if res, err = store.LookupTenantByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, TenantErrNotFound()
-	}
-
-	return
 }

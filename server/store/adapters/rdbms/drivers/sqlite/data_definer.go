@@ -57,6 +57,10 @@ func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, e
 	return dd.is.TableLookup(ctx, t, "public", dd.dbName)
 }
 
+func (dd *dataDefiner) TableSet(ctx context.Context) ([]*ddl.Table, error) {
+	return dd.is.TableSet(ctx)
+}
+
 func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.AddColumn{
 		Dialect: dd.d,

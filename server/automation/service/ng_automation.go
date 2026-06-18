@@ -21,6 +21,7 @@ import (
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/scope"
 	sysAutomation "github.com/crusttech/human/server/system/automation"
 
 	"github.com/crusttech/human/server/store"
@@ -38,7 +39,9 @@ type (
 
 		reg map[uint64]map[uint64]uintptr
 
-		execEngine executionEngine
+		// registry yields one execution engine per tenant/project scope; the
+		// engine is resolved per call from the scope on the request context.
+		registry *scope.ScopeRegistry
 
 		log *zap.Logger
 
@@ -90,7 +93,7 @@ const (
 	ngAutomationDefChanged    ngAutomationChanges = 4
 )
 
-func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, engine executionEngine) *ngAutomation {
+func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, registry *scope.ScopeRegistry) *ngAutomation {
 	return &ngAutomation{
 		log: log,
 
@@ -100,7 +103,7 @@ func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, engine execu
 		mux: &sync.RWMutex{},
 		reg: map[uint64]map[uint64]uintptr{},
 
-		execEngine: engine,
+		registry: registry,
 
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
@@ -111,58 +114,26 @@ func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, engine execu
 	}
 }
 
-func (svc *ngAutomation) Search(ctx context.Context, filter types.NgAutomationFilter) (rr types.NgAutomationSet, f types.NgAutomationFilter, err error) {
-	var (
-		wap = &ngAutomationActionProps{filter: &filter}
-	)
+// engine resolves the execution engine for the scope on ctx. NG automation is
+// project-scoped, so each tenant/project combination gets its own isolated
+// engine, lazily built by the registry on first access.
+func (svc *ngAutomation) engine(ctx context.Context) (executionEngine, error) {
+	sc := scope.GetScopeFromContext(ctx)
 
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.NgAutomation) (bool, error) {
-		if !svc.ac.CanReadNgAutomation(ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
+	rt, err := svc.registry.Project(sc.TenantID, sc.ProjectID)
+	if err != nil {
+		return nil, err
 	}
 
-	err = func() (err error) {
-		if !svc.ac.CanSearchNgAutomations(ctx) {
-			return NgAutomationErrNotAllowedToSearch()
-		}
+	eng, ok := scope.Get[executionEngine](rt.Container())
+	if !ok {
+		return nil, fmt.Errorf("automation engine missing for tenant %d project %d", sc.TenantID, sc.ProjectID)
+	}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.NgAutomation{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if rr, f, err = store.SearchAutomationNgAutomations(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledNgAutomations(rr)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return rr, f, svc.recordAction(ctx, wap, NgAutomationActionSearch, err)
+	return eng, nil
 }
 
-func (svc *ngAutomation) LookupByID(ctx context.Context, ngAutomationID uint64) (ngAtuomation *types.NgAutomation, err error) {
+func (svc *ngAutomation) FindByID(ctx context.Context, ngAutomationID uint64) (ngAtuomation *types.NgAutomation, err error) {
 	var (
 		wap = &ngAutomationActionProps{ngAutomation: &types.NgAutomation{ID: ngAutomationID}}
 	)
@@ -257,14 +228,19 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (a
 		}
 
 		if len(res.Issues) == 0 {
-			err = svc.execEngine.RegisterExecutable(ctx, exec)
+			eng, err := svc.engine(ctx)
 			if err != nil {
-				return
+				return err
+			}
+
+			err = eng.RegisterExecutable(ctx, exec)
+			if err != nil {
+				return err
 			}
 
 			err = svc.registerAutomation(ctx, automation)
 			if err != nil {
-				return
+				return err
 			}
 		}
 
@@ -337,7 +313,12 @@ func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.
 		return
 	}
 
-	executionID, err = svc.execEngine.Execute(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
+	eng, err := svc.engine(ctx)
+	if err != nil {
+		return
+	}
+
+	executionID, err = eng.Execute(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
 		EntryPoint:   p.EntryPoint,
 		Input:        p.Input,
 		EventType:    p.EventType,
@@ -379,7 +360,12 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 		return
 	}
 
-	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
+	eng, err := svc.engine(ctx)
+	if err != nil {
+		return
+	}
+
+	out, err = eng.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
 		EntryPoint:   entryPoint,
 		Input:        p.Input,
 		EventType:    p.EventType,
@@ -431,7 +417,12 @@ func (svc *ngAutomation) injectIdentities(ctx context.Context, runAsID uint64, i
 }
 
 func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64) ([]*execTypes.ExecutionResult, error) {
-	out, err := svc.execEngine.ListExecutions(ctx, id.MustNumID(automationID), 0)
+	eng, err := svc.engine(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := eng.ListExecutions(ctx, id.MustNumID(automationID), 0)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +431,12 @@ func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64)
 }
 
 func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID, executionID uint64, rev int) (out []execTypes.StackFrame, err error) {
-	out, err = svc.execEngine.GetExecutionTrace(ctx, id.MustNumID(exeID), 0, id.MustNumID(executionID))
+	eng, err := svc.engine(ctx)
+	if err != nil {
+		return
+	}
+
+	out, err = eng.GetExecutionTrace(ctx, id.MustNumID(exeID), 0, id.MustNumID(executionID))
 	if err != nil {
 		return
 	}
@@ -449,7 +445,12 @@ func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID, execution
 }
 
 func (svc *ngAutomation) GetAllExecutions(ctx context.Context, f execTypes.ExecutionFilter) ([]*execTypes.ExecutionResult, error) {
-	return svc.execEngine.ListAllExecutions(ctx, f)
+	eng, err := svc.engine(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return eng.ListAllExecutions(ctx, f)
 }
 
 func (svc ngAutomation) uniqueCheck(ctx context.Context, res *types.NgAutomation) (err error) {
@@ -510,9 +511,14 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 		}
 
 		if len(res.Issues) == 0 {
-			err = svc.execEngine.RegisterExecutable(ctx, exec)
+			eng, err := svc.engine(ctx)
 			if err != nil {
-				return
+				return err
+			}
+
+			err = eng.RegisterExecutable(ctx, exec)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -668,6 +674,14 @@ func (svc *ngAutomation) Load(ctx context.Context) error {
 		return err
 	}
 
+	// @todo Load currently registers every automation into the engine for the
+	//       scope on ctx (system scope at boot). Once automations are loaded
+	//       per project, resolve the engine per automation's scope instead.
+	eng, err := svc.engine(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, atn := range set {
 		atm, exe, err := svc.procAutomation(ctx, atn)
 		if err != nil {
@@ -676,7 +690,7 @@ func (svc *ngAutomation) Load(ctx context.Context) error {
 		}
 
 		if len(atm.Issues) == 0 {
-			err = svc.execEngine.RegisterExecutable(ctx, exe)
+			err = eng.RegisterExecutable(ctx, exe)
 			if err != nil {
 				// @todo?
 				return err
@@ -893,20 +907,6 @@ func makeAutomationHandler(svc *ngAutomation, a *types.NgAutomation, t *types.Ng
 		})
 		return err
 	}
-}
-
-// toLabeledWorkflows converts to []label.LabeledResource
-func toLabeledNgAutomations(set []*types.NgAutomation) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 func validateAgenticInput(schema types.NgAutomationTriggerSchema, input *expr.Vars) error {

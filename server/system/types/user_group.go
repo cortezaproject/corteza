@@ -1,36 +1,11 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
-	UserGroup struct {
-		ID        uint64 `json:"userGroupID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Handle    string `json:"handle"`
-
-		Config *UserGroupConfig `json:"config"`
-
-		IsRoot bool `json:"isRoot"`
-
-		Meta   *UserGroupMeta                   `json:"meta"`
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt  time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
-		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	UserGroupConfig struct {
 		Paths []UserGroupPath `json:"path"`
 	}
@@ -99,9 +74,3 @@ func (set UserGroupSet) FindByHandle(handle string) *UserGroup {
 
 	return nil
 }
-
-func (vv *UserGroupMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *UserGroupMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
-
-func (vv *UserGroupConfig) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *UserGroupConfig) Value() (driver.Value, error) { return json.Marshal(vv) }

@@ -4,28 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/crusttech/human/server/pkg/sql"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	Attachment struct {
-		ID         uint64         `json:"attachmentID,string"`
-		TenantID   uint64         `json:"tenantID,string,omitempty"`
-		ProjectID  uint64         `json:"projectID,string,omitempty"`
-		OwnerID    uint64         `json:"ownerID,string"`
-		Kind       string         `json:"-"`
-		Url        string         `json:"url,omitempty"`
-		PreviewUrl string         `json:"previewUrl,omitempty"`
-		Name       string         `json:"name,omitempty"`
-		Meta       AttachmentMeta `json:"meta"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	// AttachmentFilter is used for filtering and as a return value from Find
 	AttachmentFilter struct {
 		Kind   string `json:"kind,omitempty"`

@@ -758,7 +758,7 @@ func (h ngRecordsHandler) Each() atypes.ConstructFunction {
 
 				i.filter.PageCursor = i.filter.NextPage
 				i.filter.NextPage = nil
-				i.buffer, i.filter, err = h.rec.Find(ctx, i.filter)
+				i.buffer, i.filter, err = h.rec.Search(ctx, i.filter)
 
 				return
 			}
@@ -1237,7 +1237,7 @@ func (h ngRecordsHandler) fetchEdge(ctx context.Context, args interface{}, first
 		f.NamespaceID = ns.ID
 	}
 
-	rr, _, err := h.rec.Find(ctx, f)
+	rr, _, err := h.rec.Search(ctx, f)
 	if err != nil {
 		return nil, err
 	}

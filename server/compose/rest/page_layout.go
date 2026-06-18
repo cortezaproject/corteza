@@ -30,7 +30,7 @@ type (
 			FindByID(ctx context.Context, namespaceID, pageLayoutID uint64) (*types.PageLayout, error)
 			FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.PageLayout, error)
 			FindByPageLayoutID(ctx context.Context, namespaceID, pageLayoutID uint64) (*types.PageLayout, error)
-			Find(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error)
+			Search(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error)
 
 			Create(ctx context.Context, pageLayout *types.PageLayout) (*types.PageLayout, error)
 			Reorder(ctx context.Context, namespaceID uint64, pageID uint64, pageLayoutIDs []uint64) error
@@ -57,31 +57,6 @@ func (PageLayout) New() *PageLayout {
 	}
 }
 
-func (ctrl *PageLayout) List(ctx context.Context, r *request.PageLayoutList) (interface{}, error) {
-	var (
-		err error
-		f   = types.PageLayoutFilter{
-			NamespaceID: r.NamespaceID,
-			PageID:      r.PageID,
-			Labels:      r.Labels,
-
-			Handle: r.Handle,
-			Query:  r.Query,
-		}
-	)
-
-	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
-	}
-
-	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
-	}
-
-	set, filter, err := ctrl.pageLayout.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
-}
-
 func (ctrl *PageLayout) ListNamespace(ctx context.Context, r *request.PageLayoutListNamespace) (interface{}, error) {
 	var (
 		err error
@@ -102,44 +77,8 @@ func (ctrl *PageLayout) ListNamespace(ctx context.Context, r *request.PageLayout
 		return nil, err
 	}
 
-	set, filter, err := ctrl.pageLayout.Find(ctx, f)
+	set, filter, err := ctrl.pageLayout.Search(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
-}
-
-func (ctrl *PageLayout) Create(ctx context.Context, r *request.PageLayoutCreate) (interface{}, error) {
-	var (
-		err    error
-		layout = &types.PageLayout{
-			PageID:      r.PageID,
-			ParentID:    r.ParentID,
-			Weight:      r.Weight,
-			NamespaceID: r.NamespaceID,
-			Handle:      r.Handle,
-			Meta:        r.Meta,
-			Labels:      r.Labels,
-			OwnedBy:     r.OwnedBy,
-		}
-	)
-
-	if len(r.Config) > 2 {
-		if err = r.Config.Unmarshal(&layout.Config); err != nil {
-			return nil, err
-		}
-	}
-
-	if len(r.Blocks) > 2 {
-		if err = r.Blocks.Unmarshal(&layout.Blocks); err != nil {
-			return nil, err
-		}
-	}
-
-	layout, err = ctrl.pageLayout.Create(ctx, layout)
-	return ctrl.makePayload(ctx, layout, err)
-}
-
-func (ctrl *PageLayout) Read(ctx context.Context, r *request.PageLayoutRead) (interface{}, error) {
-	mod, err := ctrl.pageLayout.FindByID(ctx, r.NamespaceID, r.PageLayoutID)
-	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *PageLayout) ListTranslations(ctx context.Context, r *request.PageLayoutListTranslations) (interface{}, error) {
@@ -154,49 +93,74 @@ func (ctrl *PageLayout) Reorder(ctx context.Context, r *request.PageLayoutReorde
 	return api.OK(), ctrl.pageLayout.Reorder(ctx, r.NamespaceID, r.PageID, payload.ParseUint64s(r.PageIDs))
 }
 
-func (ctrl *PageLayout) Update(ctx context.Context, r *request.PageLayoutUpdate) (interface{}, error) {
-	var (
-		err error
-		mod = &types.PageLayout{
-			ID:          r.PageLayoutID,
-			PageID:      r.PageID,
-			Weight:      r.Weight,
-			ParentID:    r.ParentID,
-			NamespaceID: r.NamespaceID,
-			Handle:      r.Handle,
-			Meta:        r.Meta,
-			Labels:      r.Labels,
-			OwnedBy:     r.OwnedBy,
-			UpdatedAt:   r.UpdatedAt,
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl PageLayout) makeFilter(ctx context.Context, r *request.PageLayoutList) (f types.PageLayoutFilter, err error) {
+	f = types.PageLayoutFilter{
+		NamespaceID: r.NamespaceID,
+		PageID:      r.PageID,
+		Labels:      r.Labels,
+
+		Handle: r.Handle,
+		Query:  r.Query,
+	}
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return
+	}
+
+	return
+}
+
+// beforeCreate assigns the non-plain create params onto the resource for the
+// generated Create controller: the per-op page parent, meta, and the JSON
+// config/blocks payloads.
+func (ctrl PageLayout) beforeCreate(ctx context.Context, res *types.PageLayout, r *request.PageLayoutCreate) (err error) {
+	res.PageID = r.PageID
+	res.Meta = r.Meta
+
+	if len(r.Config) > 2 {
+		if err = r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
-	)
+	}
+
+	if len(r.Blocks) > 2 {
+		if err = r.Blocks.Unmarshal(&res.Blocks); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// beforeUpdate assigns the non-plain update params onto the resource for the
+// generated Update controller: the per-op page parent, meta, and the JSON
+// config/blocks payloads.
+func (ctrl PageLayout) beforeUpdate(ctx context.Context, res *types.PageLayout, r *request.PageLayoutUpdate) (err error) {
+	res.PageID = r.PageID
+	res.Meta = r.Meta
 
 	if len(r.Config) > 2 {
 		// Process config if it was included in the request
 		// if not, do not assume that config has been removed!
-		if err = r.Config.Unmarshal(&mod.Config); err != nil {
-			return nil, err
+		if err = r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
 
 	if len(r.Blocks) > 2 {
 		// Process blocks if they were included in the request
 		// if not, do not assume that blocks were removed!
-		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
-			return nil, err
+		if err = r.Blocks.Unmarshal(&res.Blocks); err != nil {
+			return err
 		}
 	}
 
-	mod, err = ctrl.pageLayout.Update(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
-}
-
-func (ctrl *PageLayout) Delete(ctx context.Context, r *request.PageLayoutDelete) (interface{}, error) {
-	return api.OK(), ctrl.pageLayout.DeleteByID(ctx, r.NamespaceID, r.PageID, r.PageLayoutID)
-}
-
-func (ctrl *PageLayout) Undelete(ctx context.Context, r *request.PageLayoutUndelete) (interface{}, error) {
-	return api.OK(), ctrl.pageLayout.UndeleteByID(ctx, r.NamespaceID, r.PageID, r.PageLayoutID)
+	return nil
 }
 
 func (ctrl PageLayout) makePayload(ctx context.Context, c *types.PageLayout, err error) (*pageLayoutPayload, error) {

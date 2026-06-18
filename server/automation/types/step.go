@@ -2,9 +2,6 @@ package types
 
 import (
 	"context"
-	"database/sql/driver"
-	"encoding/json"
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/expr"
 )
@@ -96,9 +93,6 @@ func (vv WorkflowStepSet) HasDeferred() bool {
 	return false
 }
 
-func (vv *WorkflowStepSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
-func (vv WorkflowStepSet) Value() (driver.Value, error) { return json.Marshal(vv) }
-
 func (t WorkflowPath) GetExpr() string              { return t.Expr }
 func (t *WorkflowPath) SetEval(eval expr.Evaluable) { t.eval = eval }
 func (t WorkflowPath) Eval(ctx context.Context, scope *expr.Vars) (interface{}, error) {
@@ -107,6 +101,3 @@ func (t WorkflowPath) Eval(ctx context.Context, scope *expr.Vars) (interface{}, 
 func (t WorkflowPath) Test(ctx context.Context, scope *expr.Vars) (bool, error) {
 	return t.eval.Test(ctx, scope)
 }
-
-func (vv *WorkflowPathSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
-func (vv WorkflowPathSet) Value() (driver.Value, error) { return json.Marshal(vv) }

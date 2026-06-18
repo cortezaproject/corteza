@@ -1,40 +1,15 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/geolocation"
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	DataPrivacyRequest struct {
-		ID        uint64 `json:"requestID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-
-		Kind   RequestKind   `json:"kind"`
-		Status RequestStatus `json:"status"`
-
-		Payload DataPrivacyRequestPayloadSet `json:"payload,omitempty"`
-
-		RequestedAt time.Time  `json:"requestedAt,omitempty"`
-		RequestedBy uint64     `json:"requestedBy,string"`
-		CompletedAt *time.Time `json:"completedAt,omitempty"`
-		CompletedBy uint64     `json:"completedBy,string,omitempty" `
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	DataPrivacyRequestFilter struct {
 		RequestID   []string `json:"requestID"`
 		RequestedBy []string `json:"requestedBy"`
@@ -74,19 +49,6 @@ type (
 		Name     string `json:"name"`
 		Value    string `json:"value"`
 		Position int    `json:"position"`
-	}
-
-	DataPrivacyRequestComment struct {
-		ID        uint64 `json:"commentID,string"`
-		RequestID uint64 `json:"requestID,string"`
-		Comment   string `json:"comment"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
 	DataPrivacyRequestCommentFilter struct {
@@ -204,6 +166,3 @@ func ParseDataPrivacyRequestPayload(ii []string) (out DataPrivacyRequestPayloadS
 
 	return out, err
 }
-
-func (bb *DataPrivacyRequestPayloadSet) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb DataPrivacyRequestPayloadSet) Value() (driver.Value, error) { return json.Marshal(bb) }

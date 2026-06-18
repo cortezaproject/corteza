@@ -93,46 +93,39 @@ func Trigger(log *zap.Logger, opt options.WorkflowOpt) *trigger {
 	}
 }
 
-func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (rr types.TriggerSet, f types.TriggerFilter, err error) {
-	var (
-		wap = &triggerActionProps{filter: &filter}
-	)
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper, aProps and the standard CanSearchTriggers access
+// check are owned by the generated trigger.gen.go. This returns the (possibly
+// label-augmented) input filter as f, preserving the original behaviour.
+func (svc *trigger) onSearch(ctx context.Context, filter types.TriggerFilter, wap *triggerActionProps) (rr types.TriggerSet, f types.TriggerFilter, err error) {
+	if len(filter.Labels) > 0 {
+		filter.LabeledIDs, err = label.Search(
+			ctx,
+			svc.store,
+			types.Trigger{}.LabelResourceKind(),
+			filter.Labels,
+		)
 
-	err = func() (err error) {
-		if !svc.ac.CanSearchTriggers(ctx) {
-			return TriggerErrNotAllowedToSearch()
+		if err != nil {
+			return rr, filter, err
 		}
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Trigger{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
+		// labels specified but no labeled resources found
+		if len(filter.LabeledIDs) == 0 {
+			return rr, filter, nil
 		}
+	}
 
-		if rr, f, err = store.SearchAutomationTriggers(ctx, svc.store, filter); err != nil {
-			return err
-		}
+	if rr, _, err = store.SearchAutomationTriggers(ctx, svc.store, filter); err != nil {
+		return rr, filter, err
+	}
 
-		if err = label.Load(ctx, svc.store, toLabeledTriggers(rr)...); err != nil {
-			return err
-		}
+	if err = label.Load(ctx, svc.store, toLabeledTriggers(rr)...); err != nil {
+		return rr, filter, err
+	}
 
-		return nil
-	}()
-
-	return rr, filter, svc.recordAction(ctx, wap, TriggerActionSearch, err)
+	return rr, filter, nil
 }
 
 // SearchOnManual finds first matching onManual trigger and returns it
@@ -161,7 +154,7 @@ func (svc *trigger) SearchOnManual(ctx context.Context, workflowID, stepID uint6
 	return nil, nil
 }
 
-func (svc *trigger) LookupByID(ctx context.Context, triggerID uint64) (res *types.Trigger, err error) {
+func (svc *trigger) FindByID(ctx context.Context, triggerID uint64) (res *types.Trigger, err error) {
 	var (
 		wap = &triggerActionProps{trigger: &types.Trigger{ID: triggerID}}
 	)
@@ -185,15 +178,22 @@ func (svc *trigger) LookupByID(ctx context.Context, triggerID uint64) (res *type
 	return res, svc.recordAction(ctx, wap, TriggerActionLookup, err)
 }
 
-// Create adds new trigger resource and saves it into store
-// It updates service's cache
-func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.Trigger, err error) {
+// onCreate is the generated Create body handler.
+//
+// The recordAction wrapper, aProps and the res=new assignment are owned by the
+// generated trigger.gen.go. Access runs against the loaded workflow
+// (CanManageTriggersOnWorkflow), so the generated scaffold emits no standard
+// access check (create is in customAccessOps).
+//
+// new is mutated in place so the generated res=new carries the created trigger.
+// It adds a new trigger resource, saves it into the store and updates the
+// service's registrations.
+func (svc *trigger) onCreate(ctx context.Context, new *types.Trigger) (err error) {
 	var (
-		wap   = &triggerActionProps{new: new}
 		cUser = auth.GetIdentityFromContext(ctx).Identity()
 	)
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			wf *types.Workflow
 		)
@@ -206,34 +206,26 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 			return TriggerErrNotAllowedToCreate()
 		}
 
-		res = &types.Trigger{
-			ID:           nextID(),
-			Enabled:      new.Enabled,
-			WorkflowID:   new.WorkflowID,
-			StepID:       new.StepID,
-			ResourceType: new.ResourceType,
-			EventType:    new.EventType,
-			Constraints:  new.Constraints,
-			Input:        new.Input,
-			Labels:       new.Labels,
-			Meta:         new.Meta,
-			OwnedBy:      cUser,
-			CreatedAt:    *now(),
-			CreatedBy:    cUser,
-		}
-		wap.new = res
+		new.ID = nextID()
+		new.OwnedBy = cUser
+		new.CreatedAt = *now()
+		new.CreatedBy = cUser
+		new.UpdatedAt = nil
+		new.UpdatedBy = 0
+		new.DeletedAt = nil
+		new.DeletedBy = 0
 
-		if err = store.CreateAutomationTrigger(ctx, s, res); err != nil {
+		if err = store.CreateAutomationTrigger(ctx, s, new); err != nil {
 			return
 		}
 
-		if err = label.Create(ctx, s, res); err != nil {
+		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
 
 		// Ignore workflow issues as those are defined by the workflow itself.
 		// Internal errors should still be reported.
-		if err = svc.registerWorkflow(ctx, wf, res); err != nil {
+		if err = svc.registerWorkflow(ctx, wf, new); err != nil {
 			if _, ok := err.(types.WorkflowIssueSet); ok {
 				err = nil
 			}
@@ -241,13 +233,15 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 
 		return
 	})
-
-	return res, svc.recordAction(ctx, wap, TriggerActionCreate, err)
 }
 
-// Update modifies existing trigger resource in the store
-func (svc *trigger) Update(ctx context.Context, upd *types.Trigger) (*types.Trigger, error) {
-	return svc.updater(ctx, upd.ID, TriggerActionUpdate, func(ctx context.Context, res *types.Trigger) (triggerChanges, error) {
+// onUpdate is the generated Update body handler.
+//
+// The recordAction wrapper and aProps are owned by the generated trigger.gen.go.
+// Access runs against the loaded workflow (canManageTrigger), so the generated
+// scaffold emits no standard access check (update is in customAccessOps).
+func (svc *trigger) onUpdate(ctx context.Context, upd *types.Trigger, aProps *triggerActionProps) (*types.Trigger, error) {
+	return svc.updater(ctx, upd.ID, aProps, func(ctx context.Context, res *types.Trigger) (triggerChanges, error) {
 		if err := svc.canManageTrigger(ctx, res, TriggerErrNotAllowedToUpdate()); err != nil {
 			return triggerUnchanged, err
 		}
@@ -257,21 +251,28 @@ func (svc *trigger) Update(ctx context.Context, upd *types.Trigger) (*types.Trig
 	})
 }
 
-func (svc *trigger) DeleteByID(ctx context.Context, triggerID uint64) error {
-	return trim1st(svc.updater(ctx, triggerID, TriggerActionDelete, svc.handleDelete))
+// onDelete is the generated DeleteByID body handler.
+func (svc *trigger) onDelete(ctx context.Context, triggerID uint64, aProps *triggerActionProps) error {
+	_, err := svc.updater(ctx, triggerID, aProps, svc.handleDelete)
+	return err
 }
 
-func (svc *trigger) UndeleteByID(ctx context.Context, triggerID uint64) error {
-	return trim1st(svc.updater(ctx, triggerID, TriggerActionUndelete, svc.handleUndelete))
+// onUndelete is the generated UndeleteByID body handler.
+func (svc *trigger) onUndelete(ctx context.Context, triggerID uint64, aProps *triggerActionProps) error {
+	_, err := svc.updater(ctx, triggerID, aProps, svc.handleUndelete)
+	return err
 }
 
-func (svc trigger) updater(ctx context.Context, triggerID uint64, action func(...*triggerActionProps) *triggerAction, fn triggerUpdateHandler) (*types.Trigger, error) {
+func (svc trigger) updater(ctx context.Context, triggerID uint64, aProps *triggerActionProps, fn triggerUpdateHandler) (*types.Trigger, error) {
 	var (
 		changes triggerChanges
 		res     *types.Trigger
-		aProps  = &triggerActionProps{trigger: &types.Trigger{ID: triggerID}}
 		err     error
 	)
+
+	if aProps.trigger == nil {
+		aProps.trigger = &types.Trigger{ID: triggerID}
+	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		res, err = loadTrigger(ctx, s, triggerID)
@@ -305,7 +306,7 @@ func (svc trigger) updater(ctx context.Context, triggerID uint64, action func(..
 		return err
 	})
 
-	return res, svc.recordAction(ctx, aProps, action, err)
+	return res, err
 }
 
 func (svc trigger) handleUpdate(upd *types.Trigger) triggerUpdateHandler {
@@ -664,20 +665,6 @@ func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64
 	}
 
 	return
-}
-
-// toLabeledTriggers converts to []label.LabeledResource
-func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 // Checks if triggers are compatible with the workflow

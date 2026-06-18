@@ -83,7 +83,7 @@ func (h *moduleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 
 	modRef, _ := args["module"].(string)
 	if modRef == "" {
-		set, _, err := cmpService.DefaultModule.Find(ctx, cmpTypes.ModuleFilter{NamespaceID: ns.ID})
+		set, _, err := cmpService.DefaultModule.Search(ctx, cmpTypes.ModuleFilter{NamespaceID: ns.ID})
 		if err != nil {
 			return nil, fmt.Errorf("module list failed: %w", err)
 		}

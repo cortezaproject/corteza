@@ -22,7 +22,7 @@ type (
 		ConvertModel(*dal.Model) (*Table, error)
 		ConvertAttribute(attr *dal.Attribute) (*Column, error)
 
-		// Tables(ctx context.Context) ([]*Table, error)
+		TableSet(context.Context) ([]*Table, error)
 		TableLookup(context.Context, string) (*Table, error)
 		TableCreate(context.Context, *Table) error
 		TableDrop(context.Context, string) error

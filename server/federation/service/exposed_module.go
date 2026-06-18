@@ -36,9 +36,9 @@ type (
 	ExposedModuleService interface {
 		Create(ctx context.Context, new *types.ExposedModule) (*types.ExposedModule, error)
 		Update(ctx context.Context, updated *types.ExposedModule) (*types.ExposedModule, error)
-		Find(ctx context.Context, filter types.ExposedModuleFilter) (types.ExposedModuleSet, types.ExposedModuleFilter, error)
+		Search(ctx context.Context, filter types.ExposedModuleFilter) (types.ExposedModuleSet, types.ExposedModuleFilter, error)
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.ExposedModule, error)
-		DeleteByID(ctx context.Context, nodeID, moduleID uint64) (*types.ExposedModule, error)
+		DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
 	}
 
 	moduleUpdateHandler func(ctx context.Context, ns *types.Node, c *types.ExposedModule) (bool, bool, error)
@@ -57,7 +57,7 @@ func ExposedModule() *exposedModule {
 }
 
 // FindByAny tries to find module in a particular namespace by id, handle or name
-func (svc exposedModule) FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (m *types.ExposedModule, err error) {
+func (svc *exposedModule) FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (m *types.ExposedModule, err error) {
 	if ID, ok := identifier.(uint64); ok {
 		m, err = svc.FindByID(ctx, nodeID, ID)
 	} else if strIdentifier, ok := identifier.(string); ok {
@@ -77,27 +77,27 @@ func (svc exposedModule) FindByAny(ctx context.Context, nodeID uint64, identifie
 	return m, nil
 }
 
-func (svc exposedModule) FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (module *types.ExposedModule, err error) {
-	err = func() error {
-		if module, err = loadExposedModule(ctx, svc.store, nodeID, moduleID); err != nil {
-			return err
-		}
+// onLookup is the generated FindByID body handler (node-scoped compound id).
+//
+// The recordAction wrapper and aProps (module) are owned by the generated
+// exposed_module.gen.go.
+func (svc *exposedModule) onLookup(ctx context.Context, nodeID, moduleID uint64, aProps *exposedModuleActionProps) (module *types.ExposedModule, err error) {
+	if module, err = loadExposedModule(ctx, svc.store, nodeID, moduleID); err != nil {
+		return nil, err
+	}
 
-		if !svc.ac.CanManageExposedModule(ctx, module) {
-			return ExposedModuleErrNotAllowedToManage()
-		}
+	if !svc.ac.CanManageExposedModule(ctx, module) {
+		return nil, ExposedModuleErrNotAllowedToManage()
+	}
 
-		return nil
-	}()
-
-	return module, err
+	return module, nil
 }
 
-func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModule) (*types.ExposedModule, error) {
-	var (
-		aProps = &exposedModuleActionProps{update: updated}
-	)
-
+// onUpdate is the generated Update body handler.
+//
+// The recordAction wrapper and aProps (update) are owned by the generated
+// exposed_module.gen.go.
+func (svc *exposedModule) onUpdate(ctx context.Context, updated *types.ExposedModule, aProps *exposedModuleActionProps) (*types.ExposedModule, error) {
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			m    *ct.Module
@@ -145,10 +145,10 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 		return nil
 	})
 
-	return updated, svc.recordAction(ctx, aProps, ExposedModuleActionUpdate, err)
+	return updated, err
 }
 
-func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, action func(...*exposedModuleActionProps) *exposedModuleAction, fn moduleUpdateHandler) (*types.ExposedModule, error) {
+func (svc *exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, action func(...*exposedModuleActionProps) *exposedModuleAction, fn moduleUpdateHandler) (*types.ExposedModule, error) {
 	var (
 		moduleChanged, fieldsChanged bool
 
@@ -177,12 +177,12 @@ func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, a
 	return m, svc.recordAction(ctx, aProps, action, err)
 }
 
-func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64) (m *types.ExposedModule, err error) {
-	var (
-		aProps = &exposedModuleActionProps{}
-	)
-
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+// onDelete is the generated DeleteByID body handler (node-scoped compound id).
+//
+// The recordAction wrapper and aProps are owned by the generated
+// exposed_module.gen.go.
+func (svc *exposedModule) onDelete(ctx context.Context, nodeID, moduleID uint64, aProps *exposedModuleActionProps) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			m *types.ExposedModule
 		)
@@ -210,11 +210,13 @@ func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64
 
 		return nil
 	})
-
-	return m, svc.recordAction(ctx, aProps, ExposedModuleActionDelete, err)
 }
 
-func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFilter) (set types.ExposedModuleSet, f types.ExposedModuleFilter, err error) {
+// onSearch is the generated Search body handler.
+//
+// The recordAction wrapper and aProps (filter) are owned by the generated
+// exposed_module.gen.go.
+func (svc *exposedModule) onSearch(ctx context.Context, filter types.ExposedModuleFilter, aProps *exposedModuleActionProps) (set types.ExposedModuleSet, f types.ExposedModuleFilter, err error) {
 	filter.Check = func(res *types.ExposedModule) (bool, error) {
 		if !svc.ac.CanManageExposedModule(ctx, res) {
 			return false, ExposedModuleErrNotAllowedToManage()
@@ -223,23 +225,19 @@ func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFil
 		return true, nil
 	}
 
-	err = func() error {
-		if set, f, err = store.SearchFederationExposedModules(ctx, svc.store, filter); err != nil {
-			return err
-		}
+	if set, f, err = store.SearchFederationExposedModules(ctx, svc.store, filter); err != nil {
+		return
+	}
 
-		return nil
-	}()
-
-	return set, f, err
+	return set, f, nil
 }
 
-func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (*types.ExposedModule, error) {
-	var (
-		aProps = &exposedModuleActionProps{create: new}
-	)
-
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+// onCreate is the generated Create body handler.
+//
+// The recordAction wrapper and aProps (module/create) are owned by the
+// generated exposed_module.gen.go.
+func (svc *exposedModule) onCreate(ctx context.Context, new *types.ExposedModule) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			m       *ct.Module
 			node    *types.Node
@@ -289,19 +287,15 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return err
 		}
 
-		aProps.setModule(new)
-
 		if err = store.CreateFederationExposedModule(ctx, s, new); err != nil {
 			return err
 		}
 
 		return nil
 	})
-
-	return new, svc.recordAction(ctx, aProps, ExposedModuleActionCreate, err)
 }
 
-func (svc exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule) (err error) {
+func (svc *exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule) (err error) {
 	f := types.ExposedModuleFilter{
 		NodeID:             m.NodeID,
 		ComposeModuleID:    m.ComposeModuleID,

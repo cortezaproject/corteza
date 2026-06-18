@@ -15,6 +15,14 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
+type agentAccessController interface {
+	CanCreateAgent(context.Context) bool
+	CanSearchAgents(context.Context) bool
+	CanReadAgent(context.Context, *types.Agent) bool
+	CanUpdateAgent(context.Context, *types.Agent) bool
+	CanDeleteAgent(context.Context, *types.Agent) bool
+}
+
 func (svc *agent) FindByID(ctx context.Context, ID uint64) (res *types.Agent, err error) {
 	var (
 		aProps = &agentActionProps{agent: &types.Agent{ID: ID}}

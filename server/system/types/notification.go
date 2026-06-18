@@ -3,30 +3,12 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
 	OpenModeType string
-
-	Notification struct {
-		ID        uint64 `json:"notificationID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-
-		Kind   NotificationKind   `json:"kind"`
-		Config NotificationConfig `json:"config"`
-
-		Recipient uint64    `json:"recipient,string"`
-		CreatedBy uint64    `json:"createdBy,string"`
-		CreatedAt time.Time `json:"createdAt,omitempty"`
-
-		ReadAt    *time.Time `json:"readAt"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
 
 	NotificationFilter struct {
 		NotificationID []uint64           `json:"notificationID"`

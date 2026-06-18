@@ -15,7 +15,7 @@ type (
 		Search(ctx context.Context, f types.NodeFilter) (types.NodeSet, types.NodeFilter, error)
 		Create(ctx context.Context, n *types.Node) (*types.Node, error)
 		CreateFromPairingURI(ctx context.Context, uri string) (*types.Node, error)
-		Read(ctx context.Context, ID uint64) (*types.Node, error)
+		FindByID(ctx context.Context, ID uint64) (*types.Node, error)
 		Update(ctx context.Context, n *types.Node) (*types.Node, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
@@ -28,7 +28,7 @@ type (
 	}
 
 	Node struct {
-		svcNode nodeServicer
+		node nodeServicer
 	}
 
 	moduleSetPayload struct {
@@ -46,11 +46,12 @@ type (
 
 func (Node) New() *Node {
 	return &Node{
-		svcNode: service.DefaultNode,
+		node: service.DefaultNode,
 	}
 }
 
-func (ctrl Node) Search(ctx context.Context, r *request.NodeSearch) (interface{}, error) {
+// makeFilter builds the search filter for the hand-written Search controller.
+func (ctrl Node) makeFilter(ctx context.Context, r *request.NodeSearch) (types.NodeFilter, error) {
 	var (
 		err error
 		f   = types.NodeFilter{
@@ -60,23 +61,47 @@ func (ctrl Node) Search(ctx context.Context, r *request.NodeSearch) (interface{}
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return f, err
+	}
+
+	return f, nil
+}
+
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The create api is genSkipped (the
+// hand-written Create branches on pairingURI), so this hook is part of the
+// generated-controller contract but currently unused.
+func (ctrl Node) beforeCreate(ctx context.Context, res *types.Node, r *request.NodeCreate) error {
+	return nil
+}
+
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID).
+func (ctrl Node) beforeUpdate(ctx context.Context, res *types.Node, r *request.NodeUpdate) error {
+	return nil
+}
+
+func (ctrl Node) Search(ctx context.Context, r *request.NodeSearch) (interface{}, error) {
+	f, err := ctrl.makeFilter(ctx, r)
+	if err != nil {
 		return nil, err
 	}
 
-	set, f, err := ctrl.svcNode.Search(ctx, f)
+	set, f, err := ctrl.node.Search(ctx, f)
 
 	return ctrl.makeFilterPayload(ctx, set, f, err)
 }
 
 func (ctrl Node) Create(ctx context.Context, r *request.NodeCreate) (interface{}, error) {
 	if r.PairingURI != "" {
-		return ctrl.svcNode.CreateFromPairingURI(ctx, r.PairingURI)
+		return ctrl.node.CreateFromPairingURI(ctx, r.PairingURI)
 	} else {
 		n := &types.Node{
 			BaseURL: r.BaseURL,
@@ -84,48 +109,25 @@ func (ctrl Node) Create(ctx context.Context, r *request.NodeCreate) (interface{}
 			Contact: r.Contact,
 		}
 
-		n, err := ctrl.svcNode.Create(ctx, n)
+		n, err := ctrl.node.Create(ctx, n)
 		return ctrl.makePayload(ctx, n, err)
 	}
 }
 
-func (ctrl Node) Read(ctx context.Context, r *request.NodeRead) (interface{}, error) {
-	n, err := ctrl.svcNode.Read(ctx, r.NodeID)
-
-	return ctrl.makePayload(ctx, n, err)
-}
-func (ctrl Node) Update(ctx context.Context, r *request.NodeUpdate) (interface{}, error) {
-	n, err := ctrl.svcNode.Update(ctx, &types.Node{
-		ID:      r.NodeID,
-		Name:    r.Name,
-		BaseURL: r.BaseURL,
-		Contact: r.Contact,
-	})
-
-	return ctrl.makePayload(ctx, n, err)
-}
-func (ctrl Node) Delete(ctx context.Context, r *request.NodeDelete) (interface{}, error) {
-	return api.OK(), ctrl.svcNode.DeleteByID(ctx, r.NodeID)
-}
-
-func (ctrl Node) Undelete(ctx context.Context, r *request.NodeUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svcNode.UndeleteByID(ctx, r.NodeID)
-}
-
 func (ctrl Node) GenerateURI(ctx context.Context, r *request.NodeGenerateURI) (interface{}, error) {
-	return ctrl.svcNode.RegenerateNodeURI(ctx, r.NodeID)
+	return ctrl.node.RegenerateNodeURI(ctx, r.NodeID)
 }
 
 func (ctrl Node) Pair(ctx context.Context, r *request.NodePair) (interface{}, error) {
-	return api.OK(), ctrl.svcNode.Pair(ctx, r.NodeID)
+	return api.OK(), ctrl.node.Pair(ctx, r.NodeID)
 }
 
 func (ctrl Node) HandshakeConfirm(ctx context.Context, r *request.NodeHandshakeConfirm) (interface{}, error) {
-	return api.OK(), ctrl.svcNode.HandshakeConfirm(ctx, r.NodeID)
+	return api.OK(), ctrl.node.HandshakeConfirm(ctx, r.NodeID)
 }
 
 func (ctrl Node) HandshakeComplete(ctx context.Context, r *request.NodeHandshakeComplete) (interface{}, error) {
-	return api.OK(), ctrl.svcNode.HandshakeComplete(ctx, r.NodeID, r.AuthToken)
+	return api.OK(), ctrl.node.HandshakeComplete(ctx, r.NodeID, r.AuthToken)
 }
 
 func (ctrl Node) makePayload(ctx context.Context, m *types.Node, err error) (*nodePayload, error) {

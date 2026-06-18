@@ -40,7 +40,7 @@ type (
 			FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Page, error)
 			FindByPageID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
 			FindBySelfID(ctx context.Context, namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
-			Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
+			Search(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 			Tree(ctx context.Context, namespaceID uint64) (pages types.PageSet, err error)
 
 			Create(ctx context.Context, page *types.Page) (*types.Page, error)
@@ -75,31 +75,26 @@ func (Page) New() *Page {
 	}
 }
 
-func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
-	var (
-		err error
-		f   = types.PageFilter{
-			NamespaceID: r.NamespaceID,
-			ModuleID:    r.ModuleID,
-			ParentID:    r.SelfID,
-			Labels:      r.Labels,
+func (ctrl *Page) makeFilter(_ context.Context, r *request.PageList) (f types.PageFilter, err error) {
+	f = types.PageFilter{
+		NamespaceID: r.NamespaceID,
+		ModuleID:    r.ModuleID,
+		ParentID:    r.SelfID,
+		Labels:      r.Labels,
 
-			Handle: r.Handle,
-			Query:  r.Query,
-		}
-	)
+		Handle: r.Handle,
+		Query:  r.Query,
+	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return
 	}
 
-	set, filter, err := ctrl.page.Find(ctx, f)
-
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return
 }
 
 func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {
@@ -107,42 +102,22 @@ func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, e
 	return ctrl.makeTreePayload(ctx, tree, err)
 }
 
-func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{}, error) {
-	var (
-		err error
-		mod = &types.Page{
-			NamespaceID: r.NamespaceID,
-			SelfID:      r.SelfID,
-			ModuleID:    r.ModuleID,
-			Title:       r.Title,
-			Handle:      r.Handle,
-			Description: r.Description,
-			Visible:     r.Visible,
-			Weight:      r.Weight,
-			Labels:      r.Labels,
-			Meta:        r.Meta,
-		}
-	)
+func (ctrl *Page) beforeCreate(_ context.Context, res *types.Page, r *request.PageCreate) (err error) {
+	res.Meta = r.Meta
 
 	if len(r.Config) > 2 {
-		if err = r.Config.Unmarshal(&mod.Config); err != nil {
-			return nil, err
+		if err = r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
 
 	if len(r.Blocks) > 2 {
-		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
-			return nil, err
+		if err = r.Blocks.Unmarshal(&res.Blocks); err != nil {
+			return err
 		}
 	}
 
-	mod, err = ctrl.page.Create(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
-}
-
-func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
-	mod, err := ctrl.page.FindByID(ctx, r.NamespaceID, r.PageID)
-	return ctrl.makePayload(ctx, mod, err)
+	return nil
 }
 
 func (ctrl *Page) ListTranslations(ctx context.Context, r *request.PageListTranslations) (interface{}, error) {
@@ -157,43 +132,26 @@ func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interfac
 	return api.OK(), ctrl.page.Reorder(ctx, r.NamespaceID, r.SelfID, payload.ParseUint64s(r.PageIDs))
 }
 
-func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{}, error) {
-	var (
-		err error
-		mod = &types.Page{
-			NamespaceID: r.NamespaceID,
-			ID:          r.PageID,
-			SelfID:      r.SelfID,
-			ModuleID:    r.ModuleID,
-			Title:       r.Title,
-			Handle:      r.Handle,
-			Description: r.Description,
-			Visible:     r.Visible,
-			Weight:      r.Weight,
-			Labels:      r.Labels,
-			Meta:        r.Meta,
-			UpdatedAt:   r.UpdatedAt,
-		}
-	)
+func (ctrl *Page) beforeUpdate(_ context.Context, res *types.Page, r *request.PageUpdate) (err error) {
+	res.Meta = r.Meta
 
 	if len(r.Config) > 2 {
 		// Process config if it was included in the request
 		// if not, do not assume that config has been removed!
-		if err = r.Config.Unmarshal(&mod.Config); err != nil {
-			return nil, err
+		if err = r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
 
 	if len(r.Blocks) > 2 {
 		// Process blocks if they were included in the request
 		// if not, do not assume that blocks were removed!
-		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
-			return nil, err
+		if err = r.Blocks.Unmarshal(&res.Blocks); err != nil {
+			return err
 		}
 	}
 
-	mod, err = ctrl.page.Update(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
+	return nil
 }
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {

@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -54,7 +53,8 @@ func (KnowledgeBase) New() *KnowledgeBase {
 	}
 }
 
-func (ctrl *KnowledgeBase) List(ctx context.Context, r *request.KnowledgeBaseList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *KnowledgeBase) makeFilter(ctx context.Context, r *request.KnowledgeBaseList) (types.KnowledgeBaseFilter, error) {
 	var (
 		err error
 		f   = types.KnowledgeBaseFilter{
@@ -65,68 +65,38 @@ func (ctrl *KnowledgeBase) List(ctx context.Context, r *request.KnowledgeBaseLis
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *KnowledgeBase) Create(ctx context.Context, r *request.KnowledgeBaseCreate) (interface{}, error) {
-	var (
-		err error
-		kb  = &types.KnowledgeBase{
-			Handle:      r.Handle,
-			Title:       r.Title,
-			Description: r.Description,
-		}
-	)
-
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *KnowledgeBase) beforeCreate(ctx context.Context, res *types.KnowledgeBase, r *request.KnowledgeBaseCreate) error {
 	if len(r.Context.Namespaces) > 0 {
-		kb.Context = &r.Context
+		res.Context = &r.Context
 	}
 
-	kb, err = ctrl.svc.Create(ctx, kb)
-	return ctrl.makePayload(ctx, kb, err)
+	return nil
 }
 
-func (ctrl *KnowledgeBase) Read(ctx context.Context, r *request.KnowledgeBaseRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.KnowledgeBaseID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *KnowledgeBase) Update(ctx context.Context, r *request.KnowledgeBaseUpdate) (interface{}, error) {
-	var (
-		err error
-		kb  = &types.KnowledgeBase{
-			ID:          r.KnowledgeBaseID,
-			Handle:      r.Handle,
-			Title:       r.Title,
-			Description: r.Description,
-			UpdatedAt:   r.UpdatedAt,
-		}
-	)
-
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *KnowledgeBase) beforeUpdate(ctx context.Context, res *types.KnowledgeBase, r *request.KnowledgeBaseUpdate) error {
 	if len(r.Context.Namespaces) > 0 {
-		kb.Context = &r.Context
+		res.Context = &r.Context
 	}
 
-	kb, err = ctrl.svc.Update(ctx, kb)
-	return ctrl.makePayload(ctx, kb, err)
-}
-
-func (ctrl *KnowledgeBase) Delete(ctx context.Context, r *request.KnowledgeBaseDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.KnowledgeBaseID)
-}
-
-func (ctrl *KnowledgeBase) Undelete(ctx context.Context, r *request.KnowledgeBaseUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.KnowledgeBaseID)
+	return nil
 }
 
 func (ctrl *KnowledgeBase) makePayload(ctx context.Context, kb *types.KnowledgeBase, err error) (*knowledgeBasePayload, error) {

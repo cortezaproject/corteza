@@ -1,31 +1,12 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	ChatbotSession struct {
-		ID          uint64              `json:"id,string"`
-		TenantID    uint64              `json:"tenantID,string,omitempty"`
-		ProjectID   uint64              `json:"projectID,string,omitempty"`
-		ChatbotID   uint64              `json:"chatbotID,string"`
-		Status      string              `json:"status"`
-		CurrentStep int                 `json:"currentStep"`
-		State       ChatbotSessionState `json:"state,omitempty"`
-		CreatedAt   time.Time           `json:"createdAt,omitempty"`
-		CreatedBy   uint64              `json:"createdBy,string"`
-		UpdatedAt   *time.Time          `json:"updatedAt,omitempty"`
-		UpdatedBy   uint64              `json:"updatedBy,string,omitempty"`
-		DeletedAt   *time.Time          `json:"deletedAt,omitempty"`
-		DeletedBy   uint64              `json:"deletedBy,string,omitempty"`
-	}
-
 	// ChatbotSessionState is per-scenario state for a session. Discriminated
 	// by Type — only the matching sub-field is populated. Stored as a JSON
 	// blob on the chatbot_sessions row.
@@ -137,9 +118,6 @@ type (
 		filter.Paging
 	}
 )
-
-func (s *ChatbotSessionState) Scan(src any) error          { return sql.ParseJSON(src, s) }
-func (s ChatbotSessionState) Value() (driver.Value, error) { return json.Marshal(s) }
 
 // ForScenario returns the existing per-scenario state entry, or nil.
 func (s ChatbotSessionState) ForScenario(scenarioID string) *ChatbotSessionStepState {

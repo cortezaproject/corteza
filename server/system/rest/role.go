@@ -56,12 +56,8 @@ func (Role) New() *Role {
 	}
 }
 
-func (ctrl Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, error) {
-	role, err := ctrl.role.FindByID(ctx, r.RoleID)
-	return ctrl.makePayload(ctx, role, err)
-}
-
-func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Role) makeFilter(ctx context.Context, r *request.RoleList) (types.RoleFilter, error) {
 	var (
 		err error
 		f   = types.RoleFilter{
@@ -78,17 +74,16 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.role.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
 func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}, error) {
@@ -155,14 +150,6 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 	}
 
 	return ctrl.makePayload(ctx, role, err)
-}
-
-func (ctrl Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
-	return api.OK(), ctrl.role.Delete(ctx, r.RoleID)
-}
-
-func (ctrl Role) Undelete(ctx context.Context, r *request.RoleUndelete) (interface{}, error) {
-	return api.OK(), ctrl.role.Undelete(ctx, r.RoleID)
 }
 
 func (ctrl Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {

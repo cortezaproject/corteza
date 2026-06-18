@@ -11,9 +11,9 @@ import (
 	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/spf13/cast"
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (

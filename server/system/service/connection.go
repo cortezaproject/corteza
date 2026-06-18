@@ -198,53 +198,63 @@ func (svc *connection) findByCatalogSyntheticID(ctx context.Context, id uint64) 
 	return nil, ConnectionErrNotFound()
 }
 
-func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *types.Connection, err error) {
-	var (
-		aProps = &connectionActionProps{new: new}
-	)
+// beforeCreate runs after the create RBAC check and before id/timestamps are
+// assigned. It normalises + validates the incoming connection, enforces handle
+// uniqueness and fills in the audit/default fields the generated body does not.
+func (svc *connection) beforeCreate(ctx context.Context, new *types.Connection) (err error) {
+	svc.preprocess(new)
 
-	err = func() (err error) {
-		if !svc.ac.CanCreateConnection(ctx) {
-			return ConnectionErrNotAllowedToCreate()
-		}
+	if err = svc.validateConnection(new); err != nil {
+		return err
+	}
 
-		svc.preprocess(new)
+	if err = svc.uniqueHandleCheck(ctx, new.Handle, 0); err != nil {
+		return err
+	}
 
-		if err = svc.validateConnection(new); err != nil {
-			return err
-		}
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+	new.Revision = 1
 
-		if err = svc.uniqueHandleCheck(ctx, new.Handle, 0); err != nil {
-			return err
-		}
+	if new.Status == "" {
+		new.Status = "draft"
+	}
 
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-		new.Revision = 1
+	if new.Source == "" {
+		new.Source = "local"
+	}
 
-		if new.Status == "" {
-			new.Status = "draft"
-		}
+	return nil
+}
 
-		if new.Source == "" {
-			new.Source = "local"
-		}
+// afterCreate derives the read-only DerivedParams on the freshly stored record.
+func (svc *connection) afterCreate(ctx context.Context, res *types.Connection) error {
+	svc.deriveParams(res)
+	return nil
+}
 
-		if err = store.CreateConnection(ctx, svc.store, new); err != nil {
-			return err
-		}
+// beforeDelete rejects deletion while active ConfiguredConnections reference the
+// connection.
+func (svc *connection) beforeDelete(ctx context.Context, res *types.Connection) error {
+	cc, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		ConnectionID: res.ID,
+	})
+	if err != nil {
+		return err
+	}
+	if len(cc) > 0 {
+		return ConnectionErrHasActiveConnections()
+	}
 
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return err
-		}
+	// stamp the deleter (the generated soft-delete only sets DeletedAt)
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		svc.deriveParams(new)
+	return nil
+}
 
-		return nil
-	}()
-
-	return new, svc.recordAction(ctx, aProps, ConnectionActionCreate, err)
+// beforeUndelete clears the deleter; the generated undelete only resets DeletedAt.
+func (svc *connection) beforeUndelete(ctx context.Context, res *types.Connection) error {
+	res.DeletedBy = 0
+	return nil
 }
 
 func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *types.Connection, err error) {
@@ -303,70 +313,6 @@ func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err)
-}
-
-func (svc *connection) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		res    *types.Connection
-		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
-	)
-
-	err = func() (err error) {
-		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
-			return err
-		}
-
-		aProps.setConnection(res)
-
-		if !svc.ac.CanDeleteConnection(ctx, res) {
-			return ConnectionErrNotAllowedToDelete()
-		}
-
-		// Fail if active connections exist
-		cc, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
-			ConnectionID: ID,
-		})
-		if err != nil {
-			return err
-		}
-		if len(cc) > 0 {
-			return ConnectionErrHasActiveConnections()
-		}
-
-		n := now()
-		res.DeletedAt = n
-		res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		return store.UpdateConnection(ctx, svc.store, res)
-	}()
-
-	return svc.recordAction(ctx, aProps, ConnectionActionDelete, err)
-}
-
-func (svc *connection) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		res    *types.Connection
-		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
-	)
-
-	err = func() (err error) {
-		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
-			return err
-		}
-
-		aProps.setConnection(res)
-
-		if !svc.ac.CanDeleteConnection(ctx, res) {
-			return ConnectionErrNotAllowedToUndelete()
-		}
-
-		res.DeletedAt = nil
-		res.DeletedBy = 0
-
-		return store.UpdateConnection(ctx, svc.store, res)
-	}()
-
-	return svc.recordAction(ctx, aProps, ConnectionActionUndelete, err)
 }
 
 func (svc *connection) Enable(ctx context.Context, ID uint64) (res *types.Connection, err error) {
@@ -1004,31 +950,4 @@ func sortConnectionSet(set types.ConnectionSet, ss filter.SortExprSet) {
 		}
 		return false
 	})
-}
-
-// -- helpers ------------------------------------------------------------------
-
-func loadConnection(ctx context.Context, s store.Connections, ID uint64) (res *types.Connection, err error) {
-	if ID == 0 {
-		return nil, ConnectionErrInvalidID()
-	}
-
-	if res, err = store.LookupConnectionByID(ctx, s, ID); errors.IsNotFound(err) {
-		err = ConnectionErrNotFound()
-	}
-
-	return
-}
-
-func toLabeledConnections(set types.ConnectionSet) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }

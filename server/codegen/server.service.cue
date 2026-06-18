@@ -143,9 +143,12 @@ _ServiceResource: {
 		flags:   res.features.flags
 		checkFn: res.features.checkFn
 
-		hooks:       res.service.hooks
-		guard:       res.service.guard
-		"interface": res.service.interface
+		hooks: res.service.hooks
+		guard: res.service.guard
+
+		// generate the AC interface / struct+constructor in the .gen.go (opt-in)
+		genAccessController: res.service.genAccessController
+		genConstructor:      res.service.genConstructor
 
 		// scoped (compound-id) support: namespace-scoped resources (compose) prepend
 		// their model parent ids as leading args on the by-id methods and on<Op> hooks.
@@ -154,33 +157,6 @@ _ServiceResource: {
 		// parents derived from the resource model -- each entry carries the call/arg
 		// param (e.g. "namespaceID") and the exported ref field (e.g. "NamespaceID").
 		parents: [ for p in res.parents {{param: p.param, refField: p.refField}} ]
-
-		// comma-joined param prefix usable as a call-arg prefix, e.g. "namespaceID, "
-		// -- empty for non-scoped resources.
-		if res.service.scoped {
-			parentParams: strings.Join([ for p in res.parents {p.param} ], ", ") + ", "
-		}
-		if !res.service.scoped {
-			parentParams: ""
-		}
-
-		// typed variant for method signatures, e.g. "namespaceID uint64, "
-		// -- empty for non-scoped resources.
-		if res.service.scoped {
-			parentParamsTyped: strings.Join([ for p in res.parents {"\(p.param) uint64"} ], ", ") + ", "
-		}
-		if !res.service.scoped {
-			parentParamsTyped: ""
-		}
-
-		// call-arg prefix sourced from the incoming resource's parent ref fields,
-		// e.g. "upd.NamespaceID, " -- used by the standard Update body's loadXxx call.
-		if res.service.scoped {
-			parentParamsFromUpd: strings.Join([ for p in res.parents {"upd.\(p.refField)"} ], ", ") + ", "
-		}
-		if !res.service.scoped {
-			parentParamsFromUpd: ""
-		}
 
 		// per-op parent overrides: by-id ops may use a subset of the declared
 		// model parents (non-uniform arity, e.g. compose page_layout). The helper

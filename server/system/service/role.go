@@ -61,7 +61,7 @@ type (
 		FindByName(ctx context.Context, name string) (*types.Role, error)
 		FindByHandle(ctx context.Context, handle string) (*types.Role, error)
 		FindByAny(ctx context.Context, identifier interface{}) (*types.Role, error)
-		Find(context.Context, types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
+		Search(context.Context, types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 
 		IsSystem(r *types.Role) bool
 		IsClosed(r *types.Role) bool
@@ -71,8 +71,8 @@ type (
 
 		Archive(ctx context.Context, ID uint64) error
 		Unarchive(ctx context.Context, ID uint64) error
-		Delete(ctx context.Context, ID uint64) error
-		Undelete(ctx context.Context, ID uint64) error
+		DeleteByID(ctx context.Context, ID uint64) error
+		UndeleteByID(ctx context.Context, ID uint64) error
 		CloneRules(ctx context.Context, ID uint64, cloneToRoleID ...uint64) error
 
 		Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error)
@@ -129,7 +129,7 @@ func (svc *role) SetSystem(hh ...string) {
 	delete(svc.system, "")
 }
 
-func (svc role) IsSystem(r *types.Role) bool {
+func (svc *role) IsSystem(r *types.Role) bool {
 	return len(r.Handle) > 0 && svc.system[r.Handle]
 }
 
@@ -141,19 +141,19 @@ func (svc *role) SetClosed(hh ...string) {
 	delete(svc.closed, "")
 }
 
-func (svc role) IsClosed(r *types.Role) bool {
+func (svc *role) IsClosed(r *types.Role) bool {
 	return len(r.Handle) > 0 && svc.closed[r.Handle]
 }
 
-func (svc role) IsContextual(r *types.Role) bool {
+func (svc *role) IsContextual(r *types.Role) bool {
 	return r.Meta != nil && r.Meta.Context != nil && len(r.Meta.Context.Expr) > 0
 }
 
-func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.RoleSet, f types.RoleFilter, err error) {
-	var (
-		raProps = &roleActionProps{filter: &filter}
-	)
-
+// beforeSearch runs at the top of the generated Search, before the access
+// check and store search. It reproduces the original ordering: the
+// MemberID/UserGroupID are mapped onto the Resource filter (only when Resource
+// is empty) and then the member/user-group mutual-exclusion is enforced.
+func (svc *role) beforeSearch(ctx context.Context, filter *types.RoleFilter) error {
 	if filter.Resource == "" {
 		if filter.MemberID > 0 {
 			filter.Resource = fmt.Sprintf("corteza::system:user/%d", filter.MemberID)
@@ -164,90 +164,31 @@ func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.Rol
 	}
 
 	if filter.MemberID > 0 && filter.UserGroupID > 0 {
-		err = RoleErrSearchByMemberUserGroup()
-		return
+		return RoleErrSearchByMemberUserGroup()
 	}
 
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Role) (bool, error) {
-		if !svc.ac.CanReadRole(ctx, res) {
-			return false, nil
-		}
+	return nil
+}
 
-		return true, nil
+// onLookup is the custom body for the generated FindByID. The generated method
+// owns the action-log scaffold + recordAction; everything below (findByID =
+// loadRole + proc, with NO read access-control) lives here, reproducing the
+// original FindByID exactly -- including proc's NotFound mapping and label load.
+func (svc *role) onLookup(ctx context.Context, roleID uint64, raProps *roleActionProps) (r *types.Role, err error) {
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return nil, err
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchRoles(ctx) {
-			return RoleErrNotAllowedToSearch()
-		}
-
-		if filter.Deleted > 0 {
-			// If list with deleted or suspended users is requested
-			// user must have access permissions to system (ie: is admin)
-			//
-			// not the best solution but ATM it allows us to have at least
-			// some kind of control over who can see deleted or archived roles
-			//if !svc.ac.CanAccess(ctx) {
-			//	return RoleErrNotAllowedToListRoles()
-			//}
-		}
-
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Role{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if rr, f, err = store.SearchRoles(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledRoles(rr)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return rr, f, svc.recordAction(ctx, raProps, RoleActionSearch, err)
+	raProps.setRole(r)
+	return r, nil
 }
 
-func (svc role) FindByID(ctx context.Context, roleID uint64) (r *types.Role, err error) {
-	var (
-		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
-	)
-
-	err = func() error {
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return err
-		}
-
-		raProps.setRole(r)
-		return nil
-	}()
-
-	return r, svc.recordAction(ctx, raProps, RoleActionLookup, err)
-}
-
-func (svc role) findByID(ctx context.Context, roleID uint64) (*types.Role, error) {
+func (svc *role) findByID(ctx context.Context, roleID uint64) (*types.Role, error) {
 	r, err := loadRole(ctx, svc.store, roleID)
 	return svc.proc(ctx, r, err)
 }
 
-func (svc role) FindByName(ctx context.Context, name string) (r *types.Role, err error) {
+func (svc *role) FindByName(ctx context.Context, name string) (r *types.Role, err error) {
 	var (
 		raProps = &roleActionProps{role: &types.Role{Name: name}}
 	)
@@ -265,7 +206,7 @@ func (svc role) FindByName(ctx context.Context, name string) (r *types.Role, err
 	return r, svc.recordAction(ctx, raProps, RoleActionLookup, err)
 }
 
-func (svc role) FindByHandle(ctx context.Context, h string) (r *types.Role, err error) {
+func (svc *role) FindByHandle(ctx context.Context, h string) (r *types.Role, err error) {
 	var (
 		raProps = &roleActionProps{role: &types.Role{Handle: h}}
 	)
@@ -284,7 +225,7 @@ func (svc role) FindByHandle(ctx context.Context, h string) (r *types.Role, err 
 }
 
 // FindByAny finds role by given identifier (id, handle, name)
-func (svc role) FindByAny(ctx context.Context, identifier interface{}) (r *types.Role, err error) {
+func (svc *role) FindByAny(ctx context.Context, identifier interface{}) (r *types.Role, err error) {
 	if ID, ok := identifier.(uint64); ok {
 		return svc.FindByID(ctx, ID)
 	} else if strIdentifier, ok := identifier.(string); ok {
@@ -304,7 +245,7 @@ func (svc role) FindByAny(ctx context.Context, identifier interface{}) (r *types
 	}
 }
 
-func (svc role) proc(ctx context.Context, r *types.Role, err error) (*types.Role, error) {
+func (svc *role) proc(ctx context.Context, r *types.Role, err error) (*types.Role, error) {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, RoleErrNotFound()
@@ -320,62 +261,53 @@ func (svc role) proc(ctx context.Context, r *types.Role, err error) (*types.Role
 	return r, nil
 }
 
-func (svc role) Create(ctx context.Context, new *types.Role) (r *types.Role, err error) {
-	var (
-		raProps = &roleActionProps{role: new}
-	)
+// validate runs at the top of the generated Create (before the access check).
+// It holds the handle validity check the original Create performed first.
+func (svc *role) validate(ctx context.Context, new *types.Role) error {
+	if !handle.IsValid(new.Handle) {
+		return RoleErrInvalidHandle()
+	}
 
-	err = func() (err error) {
-		if !handle.IsValid(new.Handle) {
-			return RoleErrInvalidHandle()
-		}
-
-		if !svc.ac.CanCreateRole(ctx) {
-			return RoleErrNotAllowedToCreate()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeCreate(new, r)); err != nil {
-			return
-		}
-
-		if new.Meta != nil && new.Meta.Context != nil {
-			if err = svc.validateContext(ctx, new.Meta.Context); err != nil {
-				return
-			}
-		}
-
-		if err = svc.UniqueCheck(ctx, new); err != nil {
-			return
-		}
-
-		new.ID = nextID()
-		new.CreatedAt = *now()
-
-		raProps.setNew(new)
-
-		if err = store.CreateRole(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		r = new
-
-		svc.eventbus.Dispatch(ctx, event.RoleAfterCreate(new, r))
-		return
-	}()
-
-	return r, svc.recordAction(ctx, raProps, RoleActionCreate, err)
-
+	return nil
 }
 
-func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err error) {
-	var (
-		raProps = &roleActionProps{update: upd}
-	)
+// beforeCreate runs after the access check and before the generated Create
+// assigns the ID / timestamps and persists. It reproduces the original ordering:
+// the RoleBeforeCreate event fires first, then the context expression is
+// validated and the handle/name uniqueness is checked.
+func (svc *role) beforeCreate(ctx context.Context, new *types.Role) (err error) {
+	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeCreate(new, nil)); err != nil {
+		return
+	}
 
+	if new.Meta != nil && new.Meta.Context != nil {
+		if err = svc.validateContext(ctx, new.Meta.Context); err != nil {
+			return
+		}
+	}
+
+	if err = svc.UniqueCheck(ctx, new); err != nil {
+		return
+	}
+
+	return nil
+}
+
+// afterCreate runs after the generated Create persists the record (and its
+// labels). It dispatches the RoleAfterCreate event asynchronously, matching the
+// original Dispatch (not WaitFor) behavior.
+func (svc *role) afterCreate(ctx context.Context, res *types.Role) error {
+	svc.eventbus.Dispatch(ctx, event.RoleAfterCreate(res, res))
+	return nil
+}
+
+// onUpdate is the custom body for the generated Update. The generated method
+// owns the action-log scaffold (aProps{update: upd}) + recordAction; everything
+// below is lifted verbatim from the original Update, preserving the eventbus
+// Before/AfterUpdate dispatch (events are off for the standard body), the
+// IsSystem guard with its skip-on-no-change branch, the context validation and
+// the uniqueness check.
+func (svc *role) onUpdate(ctx context.Context, upd *types.Role, raProps *roleActionProps) (r *types.Role, err error) {
 	err = func() (err error) {
 		if r, err = loadRole(ctx, svc.store, upd.ID); err != nil {
 			return
@@ -444,10 +376,10 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 		return nil
 	}()
 
-	return r, svc.recordAction(ctx, raProps, RoleActionUpdate, err)
+	return r, err
 }
 
-func (svc role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
+func (svc *role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
 	var (
 		raProps = &roleActionProps{role: r}
 	)
@@ -470,7 +402,7 @@ func (svc role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
 }
 
 // validateContext validates role context expression
-func (svc role) validateContext(ctx context.Context, r *types.RoleContext) error {
+func (svc *role) validateContext(ctx context.Context, r *types.RoleContext) error {
 	if len(strings.TrimSpace(r.Expr)) == 0 {
 		return nil
 	}
@@ -487,11 +419,17 @@ func (svc role) validateContext(ctx context.Context, r *types.RoleContext) error
 	return nil
 }
 
-func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
-	var (
-		r       *types.Role
-		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
-	)
+// onDelete is the custom body for the generated DeleteByID. The generated
+// method owns the action-log scaffold + recordAction; the body below is lifted
+// verbatim from the original DeleteByID, preserving the IsSystem guard (before
+// the access check), the eventbus RoleBefore/AfterDelete dispatch (events are
+// off for the standard body) and the soft-delete stamp. The initial
+// {role: {ID: roleID}} action prop -- not set by the generated empty aProps --
+// is restored here so failure paths log the same props as the original.
+func (svc *role) onDelete(ctx context.Context, roleID uint64, raProps *roleActionProps) (err error) {
+	var r *types.Role
+
+	raProps.setRole(&types.Role{ID: roleID})
 
 	err = func() (err error) {
 		if r, err = svc.findByID(ctx, roleID); err != nil {
@@ -523,14 +461,19 @@ func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
 		return
 	}()
 
-	return svc.recordAction(ctx, raProps, RoleActionDelete, err)
+	return err
 }
 
-func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
-	var (
-		r, upd  *types.Role
-		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
-	)
+// onUndelete is the custom body for the generated UndeleteByID. The generated
+// method owns the action-log scaffold + recordAction; the body below is lifted
+// verbatim from the original UndeleteByID, preserving its quirks: it dispatches
+// the RoleBefore/AfterUpdate events (NOT Undelete events), clones the loaded
+// record, guards system roles and clears the deleted_at stamp. The initial
+// {role: {ID: roleID}} action prop is restored here to match the original.
+func (svc *role) onUndelete(ctx context.Context, roleID uint64, raProps *roleActionProps) (err error) {
+	var r, upd *types.Role
+
+	raProps.setRole(&types.Role{ID: roleID})
 
 	err = func() (err error) {
 		if r, err = svc.findByID(ctx, roleID); err != nil {
@@ -561,10 +504,10 @@ func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, RoleActionUndelete, err)
+	return err
 }
 
-func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
+func (svc *role) Archive(ctx context.Context, roleID uint64) (err error) {
 	var (
 		r, upd  *types.Role
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
@@ -602,7 +545,7 @@ func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
 	return svc.recordAction(ctx, raProps, RoleActionArchive, err)
 }
 
-func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
+func (svc *role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 	var (
 		r, upd  *types.Role
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
@@ -640,7 +583,7 @@ func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 	return svc.recordAction(ctx, raProps, RoleActionUnarchive, err)
 }
 
-func (svc role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...uint64) (err error) {
+func (svc *role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...uint64) (err error) {
 	if !svc.ac.CanGrant(ctx) {
 		return RoleErrNotAllowedToCloneRules()
 	}
@@ -648,12 +591,12 @@ func (svc role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...
 	return svc.rbac.CloneRulesByRoleID(ctx, roleID, cloneToRoleID...)
 }
 
-func (svc role) Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error) {
+func (svc *role) Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error) {
 	mm, _, err := store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: fmt.Sprintf("corteza::system:user/%d", userID)})
 	return mm, err
 }
 
-func (svc role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMemberSet, err error) {
+func (svc *role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMemberSet, err error) {
 	var (
 		r *types.Role
 
@@ -687,7 +630,7 @@ func (svc role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMem
 }
 
 // MemberAdd adds member (user) to a role
-func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err error) {
+func (svc *role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err error) {
 	var (
 		r *types.Role
 		m *types.User
@@ -738,7 +681,7 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 	return svc.recordAction(ctx, raProps, RoleActionMemberAdd, err)
 }
 
-func (svc role) MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) (err error) {
+func (svc *role) MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) (err error) {
 	var (
 		r *types.Role
 
@@ -795,7 +738,7 @@ func (svc role) MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) 
 }
 
 // MemberRemove removes member (user) from a role
-func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err error) {
+func (svc *role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err error) {
 	var (
 		r       *types.Role
 		m       *types.User
@@ -856,7 +799,7 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 }
 
 // MemberRemove removes user group from a role
-func (svc role) MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint64) (err error) {
+func (svc *role) MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint64) (err error) {
 	var (
 		r       *types.Role
 		ug      *types.UserGroup
@@ -930,22 +873,6 @@ func loadRole(ctx context.Context, s store.Roles, ID uint64) (res *types.Role, e
 	}
 
 	return
-}
-
-// toLabeledRoles converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledRoles(set []*types.Role) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 // Initializes roles to RBAC and default role service

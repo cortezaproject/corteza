@@ -1,8 +1,6 @@
 package types
 
 import (
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
@@ -14,15 +12,6 @@ var (
 )
 
 type (
-	NodeSync struct {
-		NodeID     uint64 `json:"nodeID,string"`
-		ModuleID   uint64 `json:"moduleID,string"`
-		SyncStatus string `json:"syncStatus"`
-		SyncType   string `json:"syncType"`
-
-		TimeOfAction time.Time `json:"timeOfAction"`
-	}
-
 	NodeSyncFilter struct {
 		NodeID     uint64 `json:"nodeID"`
 		RelNodeID  uint64 `json:"relNodeID"`

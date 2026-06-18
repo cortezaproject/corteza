@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -45,7 +44,8 @@ func (ApigwFilter) New() *ApigwFilter {
 	}
 }
 
-func (ctrl *ApigwFilter) List(ctx context.Context, r *request.ApigwFilterList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *ApigwFilter) makeFilter(ctx context.Context, r *request.ApigwFilterList) (types.ApigwFilterFilter, error) {
 	var (
 		err error
 		f   = types.ApigwFilterFilter{
@@ -59,62 +59,32 @@ func (ctrl *ApigwFilter) List(ctx context.Context, r *request.ApigwFilterList) (
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, f, err := ctrl.svc.Search(ctx, f)
-
-	return ctrl.makeFilterPayload(ctx, set, f, err)
+	return f, nil
 }
 
-func (ctrl *ApigwFilter) Create(ctx context.Context, r *request.ApigwFilterCreate) (interface{}, error) {
-	var (
-		err error
-		q   = &types.ApigwFilter{
-			Route:   r.RouteID,
-			Weight:  r.Weight,
-			Kind:    r.Kind,
-			Ref:     r.Ref,
-			Enabled: r.Enabled,
-			Params:  r.Params,
-		}
-	)
-
-	q, err = ctrl.svc.Create(ctx, q)
-
-	return ctrl.makePayload(ctx, q, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl *ApigwFilter) beforeCreate(ctx context.Context, res *types.ApigwFilter, r *request.ApigwFilterCreate) error {
+	res.Route = r.RouteID
+	res.Params = r.Params
+	return nil
 }
 
-func (ctrl *ApigwFilter) Read(ctx context.Context, r *request.ApigwFilterRead) (interface{}, error) {
-	return ctrl.svc.FindByID(ctx, r.FilterID)
-}
-
-func (ctrl *ApigwFilter) Update(ctx context.Context, r *request.ApigwFilterUpdate) (interface{}, error) {
-	var (
-		err error
-		q   = &types.ApigwFilter{
-			ID:        r.FilterID,
-			Route:     r.RouteID,
-			Weight:    r.Weight,
-			Kind:      r.Kind,
-			Ref:       r.Ref,
-			Enabled:   r.Enabled,
-			Params:    r.Params,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
-
-	q, err = ctrl.svc.Update(ctx, q)
-
-	return ctrl.makePayload(ctx, q, err)
-}
-
-func (ctrl *ApigwFilter) Delete(ctx context.Context, r *request.ApigwFilterDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.FilterID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl *ApigwFilter) beforeUpdate(ctx context.Context, res *types.ApigwFilter, r *request.ApigwFilterUpdate) error {
+	res.Route = r.RouteID
+	res.Params = r.Params
+	return nil
 }
 
 func (ctrl *ApigwFilter) DefFilter(ctx context.Context, r *request.ApigwFilterDefFilter) (interface{}, error) {
@@ -123,10 +93,6 @@ func (ctrl *ApigwFilter) DefFilter(ctx context.Context, r *request.ApigwFilterDe
 
 func (ctrl *ApigwFilter) DefProxyAuth(ctx context.Context, r *request.ApigwFilterDefProxyAuth) (interface{}, error) {
 	return ctrl.svc.DefProxyAuth(ctx)
-}
-
-func (ctrl *ApigwFilter) Undelete(ctx context.Context, r *request.ApigwFilterUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.FilterID)
 }
 
 func (ctrl *ApigwFilter) makePayload(ctx context.Context, q *types.ApigwFilter, err error) (*functionPayload, error) {

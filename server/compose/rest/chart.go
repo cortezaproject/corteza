@@ -28,7 +28,7 @@ type (
 		chart interface {
 			FindByID(ctx context.Context, namespaceID, chartID uint64) (*types.Chart, error)
 			FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Chart, error)
-			Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
+			Search(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 
 			Create(ctx context.Context, chart *types.Chart) (*types.Chart, error)
 			Update(ctx context.Context, chart *types.Chart) (*types.Chart, error)
@@ -54,7 +54,8 @@ func (Chart) New() *Chart {
 	}
 }
 
-func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Chart) makeFilter(ctx context.Context, r *request.ChartList) (types.ChartFilter, error) {
 	var (
 		err error
 		f   = types.ChartFilter{
@@ -67,72 +68,43 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.chart.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface{}, error) {
-	var err error
-	mod := &types.Chart{
-		NamespaceID: r.NamespaceID,
-		Name:        r.Name,
-		Handle:      r.Handle,
-		Labels:      r.Labels,
-	}
-
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params and the compound (namespace) id.
+func (ctrl Chart) beforeCreate(ctx context.Context, res *types.Chart, r *request.ChartCreate) error {
 	if len(r.Config) > 2 {
-		if err = r.Config.Unmarshal(&mod.Config); err != nil {
-			return nil, err
+		if err := r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
-	mod, err = ctrl.chart.Create(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
+
+	return nil
 }
 
-func (ctrl Chart) Read(ctx context.Context, r *request.ChartRead) (interface{}, error) {
-	mod, err := ctrl.chart.FindByID(ctx, r.NamespaceID, r.ChartID)
-	return ctrl.makePayload(ctx, mod, err)
-
-}
-
-func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface{}, error) {
-	var (
-		err error
-		mod = &types.Chart{
-			ID:          r.ChartID,
-			Name:        r.Name,
-			Handle:      r.Handle,
-			NamespaceID: r.NamespaceID,
-			UpdatedAt:   r.UpdatedAt,
-			Labels:      r.Labels,
-		}
-	)
-
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params, the compound (namespace) id and
+// the resource ID/UpdatedAt.
+func (ctrl Chart) beforeUpdate(ctx context.Context, res *types.Chart, r *request.ChartUpdate) error {
 	if len(r.Config) > 2 {
-		if err = r.Config.Unmarshal(&mod.Config); err != nil {
-			return nil, err
+		if err := r.Config.Unmarshal(&res.Config); err != nil {
+			return err
 		}
 	}
-	mod, err = ctrl.chart.Update(ctx, mod)
-	return ctrl.makePayload(ctx, mod, err)
-}
 
-func (ctrl Chart) Delete(ctx context.Context, r *request.ChartDelete) (interface{}, error) {
-	_, err := ctrl.chart.FindByID(ctx, r.NamespaceID, r.ChartID)
-	if err != nil {
-		return nil, err
-	}
-
-	return api.OK(), ctrl.chart.DeleteByID(ctx, r.NamespaceID, r.ChartID)
+	return nil
 }
 
 func (ctrl Chart) ListTranslations(ctx context.Context, r *request.ChartListTranslations) (interface{}, error) {

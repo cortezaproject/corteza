@@ -117,58 +117,7 @@ func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.Work
 	}
 }
 
-func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (rr types.WorkflowSet, f types.WorkflowFilter, err error) {
-	var (
-		wap = &workflowActionProps{filter: &filter}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Workflow) (bool, error) {
-		if !svc.ac.CanReadWorkflow(ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
-	}
-
-	err = func() (err error) {
-		if !svc.ac.CanSearchWorkflows(ctx) {
-			return WorkflowErrNotAllowedToSearch()
-		}
-
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Workflow{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if rr, f, err = store.SearchAutomationWorkflows(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledWorkflows(rr)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return rr, f, svc.recordAction(ctx, wap, WorkflowActionSearch, err)
-}
-
-func (svc *workflow) LookupByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
+func (svc *workflow) FindByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
 	var (
 		wap = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
 	)
@@ -817,20 +766,6 @@ func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *
 	}
 
 	return
-}
-
-// toLabeledWorkflows converts to []label.LabeledResource
-func toLabeledWorkflows(set []*types.Workflow) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 func exprTypeSetter(reg *registry, e *types.Expr) func(string) (expr.Type, error) {

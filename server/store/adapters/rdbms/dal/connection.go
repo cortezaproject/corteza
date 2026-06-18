@@ -166,10 +166,20 @@ func (c *connection) Truncate(ctx context.Context, m *dal.Model) (err error) {
 }
 
 func (c *connection) Models(ctx context.Context) (dal.ModelSet, error) {
-	// not raising not-supported error
-	// because we do not want to break
-	// DAL service model adding procedure
-	return nil, nil
+	tables, err := c.dataDefiner.TableSet(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make(dal.ModelSet, 0, len(tables))
+	for _, t := range tables {
+		m, err := tableToModel(0, t)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, nil
 }
 
 // CreateModel checks/creates db tables in the database and catches the processed model
@@ -198,6 +208,29 @@ func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err err
 		}
 
 		// cache the model
+		c.models[cacheKey(m)] = Model(m, c.db, c.dialect)
+	}
+
+	return
+}
+
+// RegisterModelCache caches a model on the connection WITHOUT issuing any DDL.
+//
+// Used for reading from pre-existing (external) tables: the table already
+// exists in the source database, so we must not attempt to create it or alter
+// its indexes. Search/Lookup/etc. require the model to be present in the
+// connection cache (see withModel); this satisfies that requirement without
+// touching the remote schema.
+func (c *connection) RegisterModelCache(ctx context.Context, mm ...*dal.Model) (err error) {
+	for _, m := range mm {
+		if err = validate(m); err != nil {
+			return
+		}
+	}
+
+	c.mux.Lock()
+	defer c.mux.Unlock()
+	for _, m := range mm {
 		c.models[cacheKey(m)] = Model(m, c.db, c.dialect)
 	}
 

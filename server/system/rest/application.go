@@ -23,12 +23,12 @@ type (
 	}
 
 	applicationService interface {
-		LookupByID(ctx context.Context, ID uint64) (app *types.Application, err error)
+		FindByID(ctx context.Context, ID uint64) (app *types.Application, err error)
 		Search(ctx context.Context, filter types.ApplicationFilter) (aa types.ApplicationSet, f types.ApplicationFilter, err error)
 		Create(ctx context.Context, new *types.Application) (app *types.Application, err error)
 		Update(ctx context.Context, upd *types.Application) (app *types.Application, err error)
-		Delete(ctx context.Context, ID uint64) (err error)
-		Undelete(ctx context.Context, ID uint64) (err error)
+		DeleteByID(ctx context.Context, ID uint64) (err error)
+		UndeleteByID(ctx context.Context, ID uint64) (err error)
 		Reorder(ctx context.Context, order []uint64) (err error)
 		Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error
 		Unflag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error
@@ -63,7 +63,8 @@ func (Application) New() *Application {
 	}
 }
 
-func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl Application) makeFilter(ctx context.Context, r *request.ApplicationList) (types.ApplicationFilter, error) {
 	var (
 		err error
 		f   = types.ApplicationFilter{
@@ -78,81 +79,63 @@ func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.application.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Application) Create(ctx context.Context, r *request.ApplicationCreate) (interface{}, error) {
-	var (
-		err error
-		app = &types.Application{
-			Name:    r.Name,
-			Enabled: r.Enabled,
-			Weight:  r.Weight,
-			Labels:  r.Labels,
-		}
-	)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl Application) beforeCreate(ctx context.Context, res *types.Application, r *request.ApplicationCreate) error {
+	res.Labels = r.Labels
 
 	if r.Unify != nil {
-		app.Unify = &types.ApplicationUnify{}
-		if err := r.Unify.Unmarshal(app.Unify); err != nil {
-			return nil, err
+		res.Unify = &types.ApplicationUnify{}
+		if err := r.Unify.Unmarshal(res.Unify); err != nil {
+			return err
 		}
 	}
 
-	app, err = ctrl.application.Create(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
+	return nil
 }
 
-func (ctrl *Application) Update(ctx context.Context, r *request.ApplicationUpdate) (interface{}, error) {
-	var (
-		err error
-		app = &types.Application{
-			ID:        r.ApplicationID,
-			Name:      r.Name,
-			Enabled:   r.Enabled,
-			Weight:    r.Weight,
-			Labels:    r.Labels,
-			UpdatedAt: r.UpdatedAt,
-		}
-	)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl Application) beforeUpdate(ctx context.Context, res *types.Application, r *request.ApplicationUpdate) error {
+	res.Labels = r.Labels
 
 	if r.Unify != nil {
-		app.Unify = &types.ApplicationUnify{}
-		if err := r.Unify.Unmarshal(app.Unify); err != nil {
-			return nil, err
+		res.Unify = &types.ApplicationUnify{}
+		if err := r.Unify.Unmarshal(res.Unify); err != nil {
+			return err
 		}
 	}
 
-	app, err = ctrl.application.Update(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
+	return nil
 }
 
+// Read is kept as a custom method because the generated Read cannot
+// reproduce the flag.Load post-load enrichment: it depends on r.IncFlags
+// (only available on the request) and cannot be folded into makePayload,
+// which has no access to the request. The generator's Read does not call
+// an afterRead hook, so this enrichment must stay here to preserve behavior.
 func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (interface{}, error) {
-	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
+	app, err := ctrl.application.FindByID(ctx, r.ApplicationID)
 	if err != nil {
 		return ctrl.makePayload(ctx, app, err)
 	}
 
 	err = flag.Load(ctx, service.DefaultStore, r.IncFlags, auth.GetIdentityFromContext(ctx).Identity(), app)
 	return ctrl.makePayload(ctx, app, err)
-}
-
-func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelete) (interface{}, error) {
-	return api.OK(), ctrl.application.Delete(ctx, r.ApplicationID)
-}
-
-func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUndelete) (interface{}, error) {
-	return api.OK(), ctrl.application.Undelete(ctx, r.ApplicationID)
 }
 
 func (ctrl *Application) Upload(ctx context.Context, r *request.ApplicationUpload) (interface{}, error) {
@@ -181,7 +164,7 @@ func (ctrl *Application) TriggerScript(ctx context.Context, r *request.Applicati
 		application *types.Application
 	)
 
-	if application, err = ctrl.application.LookupByID(ctx, r.ApplicationID); err != nil {
+	if application, err = ctrl.application.FindByID(ctx, r.ApplicationID); err != nil {
 		return
 	}
 
@@ -206,7 +189,7 @@ func (ctrl *Application) Reorder(ctx context.Context, r *request.ApplicationReor
 }
 
 func (ctrl *Application) FlagCreate(ctx context.Context, r *request.ApplicationFlagCreate) (interface{}, error) {
-	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
+	app, err := ctrl.application.FindByID(ctx, r.ApplicationID)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +199,7 @@ func (ctrl *Application) FlagCreate(ctx context.Context, r *request.ApplicationF
 }
 
 func (ctrl *Application) FlagDelete(ctx context.Context, r *request.ApplicationFlagDelete) (interface{}, error) {
-	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
+	app, err := ctrl.application.FindByID(ctx, r.ApplicationID)
 	if err != nil {
 		return nil, err
 	}

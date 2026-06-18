@@ -18,7 +18,7 @@ import (
 type (
 	recordService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, *types.RecordValueErrorSet, error)
-		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
+		Search(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 
 		Create(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
@@ -120,7 +120,7 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 	}
 
 	var auxf types.RecordFilter
-	results.Records, auxf, err = h.rec.Find(ctx, f)
+	results.Records, auxf, err = h.rec.Search(ctx, f)
 	results.Total = uint64(auxf.Total)
 	if auxf.NextPage != nil {
 		results.NextPage = auxf.NextPage.Encode()
@@ -235,7 +235,7 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
-		i.buffer, i.filter, err = h.rec.Find(ctx, i.filter)
+		i.buffer, i.filter, err = h.rec.Search(ctx, i.filter)
 
 		return
 	}
@@ -373,7 +373,7 @@ func (h recordsHandler) fetchEdge(ctx context.Context, args interface{}, first b
 		f.NamespaceID = ns.ID
 	}
 
-	rr, _, err := h.rec.Find(ctx, f)
+	rr, _, err := h.rec.Search(ctx, f)
 	if err != nil {
 		return nil, err
 	}

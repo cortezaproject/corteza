@@ -6,11 +6,20 @@ import (
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/apigw"
 	a "github.com/crusttech/human/server/pkg/auth"
-	"github.com/crusttech/human/server/pkg/errors"
 
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
+
+// The CRUD skeleton (FindByID, Search, Create, Update, DeleteByID,
+// UndeleteByID and loadApigwRoute) is generated in apigw_route.gen.go from
+// system/apigw_route.cue.
+//
+// This file owns the struct, access-controller interface, constructor and the
+// custom on<Op> bodies that the generated Create / Update / DeleteByID /
+// UndeleteByID delegate to (CreatedBy/Group defaulting, endpoint-moved 404
+// handling, apigw reload / not-found signalling, soft-delete via
+// UpdateApigwRoute).
 
 type (
 	apigwRoute struct {
@@ -38,237 +47,152 @@ func Route() *apigwRoute {
 	}
 }
 
-func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (q *types.ApigwRoute, err error) {
-	var (
-		rProps = &apigwRouteActionProps{}
-	)
+// onCreate is the custom body for the generated Create. The generated method
+// owns the action-log scaffold + recordAction + the standard CanCreateApigwRoute
+// check; everything below (CreatedBy/Group defaulting, store create, apigw
+// reload signalling) lives here.
+func (svc *apigwRoute) onCreate(ctx context.Context, new *types.ApigwRoute) (err error) {
+	new.ID = nextID()
+	new.CreatedAt = *now()
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	err = func() error {
-		if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
-			return ApigwRouteErrInvalidID().Wrap(err)
-		}
+	// todo
+	new.Group = 0
 
-		rProps.setRoute(q)
+	if err = store.CreateApigwRoute(ctx, svc.store, new); err != nil {
+		return err
+	}
 
-		if !svc.ac.CanReadApigwRoute(ctx, q) {
-			return ApigwRouteErrNotAllowedToRead(rProps)
-		}
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, rProps, ApigwRouteActionLookup, err)
-}
-
-func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *types.ApigwRoute, err error) {
-	var (
-		qProps = &apigwRouteActionProps{route: new}
-	)
-
-	err = func() (err error) {
-		if !svc.ac.CanCreateApigwRoute(ctx) {
-			return ApigwRouteErrNotAllowedToCreate(qProps)
-		}
-
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		// todo
-		new.Group = 0
-
-		qProps.setNew(new)
-
-		if err = store.CreateApigwRoute(ctx, svc.store, new); err != nil {
+	// send the signal to reload new route
+	if new.Enabled {
+		if err = apigw.Service().ReloadEndpoint(ctx, new.Method, new.Endpoint); err != nil {
 			return err
 		}
-
-		q = new
-
-		// send the signal to reload new route
-		if new.Enabled {
-			if err = apigw.Service().ReloadEndpoint(ctx, new.Method, new.Endpoint); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, qProps, ApigwRouteActionCreate, err)
-}
-
-func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *types.ApigwRoute, err error) {
-	var (
-		qProps = &apigwRouteActionProps{update: upd}
-		e      error
-	)
-
-	err = func() (err error) {
-		if res, e = loadApigwRoute(ctx, svc.store, upd.ID); e != nil {
-			return ApigwRouteErrNotFound(qProps)
-		}
-
-		var (
-			// check if old endpoint moved and attach the 404 handler
-			endpointMoved = res.Enabled != upd.Enabled || res.Method != upd.Method || res.Endpoint != upd.Endpoint
-		)
-
-		if !svc.ac.CanUpdateApigwRoute(ctx, res) {
-			return ApigwRouteErrNotAllowedToUpdate(qProps)
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
-			return ApigwRouteErrStaleData()
-		}
-
-		// copy (potentially) updated files from the payload
-		res.Meta = upd.Meta
-		res.Method = upd.Method
-		res.Endpoint = upd.Endpoint
-		res.Enabled = upd.Enabled
-		res.Group = upd.Group
-
-		// ensure we have a valid endpoint
-		res.UpdatedAt = now()
-		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateApigwRoute(ctx, svc.store, res); err != nil {
-			return
-		}
-
-		// @todo move this into struct of the service (svc),
-		//       same as we do for services for other structs
-		ags := apigw.Service()
-
-		// old endpoint moved: attach 404 handler
-		if endpointMoved {
-			ags.NotFound(ctx, res.Method, res.Endpoint)
-		}
-
-		// send the signal to reload updated route
-		if upd.Enabled {
-			if err = ags.ReloadEndpoint(ctx, upd.Method, upd.Endpoint); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return res, svc.recordAction(ctx, qProps, ApigwRouteActionUpdate, err)
-}
-
-func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		qProps = &apigwRouteActionProps{}
-		q      *types.ApigwRoute
-	)
-
-	err = func() (err error) {
-		if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanDeleteApigwRoute(ctx, q) {
-			return ApigwRouteErrNotAllowedToDelete(qProps)
-		}
-
-		qProps.setRoute(q)
-
-		q.DeletedAt = now()
-		q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateApigwRoute(ctx, svc.store, q); err != nil {
-			return
-		}
-
-		// send the signal to reload deleted route
-		if q.Enabled {
-			apigw.Service().NotFound(ctx, q.Method, q.Endpoint)
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, qProps, ApigwRouteActionDelete, err)
-}
-
-func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	var (
-		qProps = &apigwRouteActionProps{}
-		q      *types.ApigwRoute
-	)
-
-	err = func() (err error) {
-		if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanDeleteApigwRoute(ctx, q) {
-			return ApigwRouteErrNotAllowedToUndelete(qProps)
-		}
-
-		qProps.setRoute(q)
-
-		q.DeletedAt = nil
-		q.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateApigwRoute(ctx, svc.store, q); err != nil {
-			return
-		}
-
-		// send the signal to reload all queues
-		if q.Enabled {
-			if err = apigw.Service().ReloadEndpoint(ctx, q.Method, q.Endpoint); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, qProps, ApigwRouteActionDelete, err)
-}
-
-func (svc *apigwRoute) Search(ctx context.Context, filter types.ApigwRouteFilter) (r types.ApigwRouteSet, f types.ApigwRouteFilter, err error) {
-	var (
-		aProps = &apigwRouteActionProps{search: &filter}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.ApigwRoute) (bool, error) {
-		if !svc.ac.CanReadApigwRoute(ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
 	}
 
-	err = func() error {
-		if !svc.ac.CanSearchApigwRoutes(ctx) {
-			return ApigwRouteErrNotAllowedToSearch()
-		}
+	return nil
+}
 
-		if r, f, err = store.SearchApigwRoutes(ctx, svc.store, filter); err != nil {
+// onUpdate is the custom body for the generated Update. The generated method
+// owns the action-log scaffold + recordAction; everything below (load,
+// endpoint-moved detection, resource-based access, stale check, field copy,
+// store update, apigw not-found / reload signalling) lives here.
+func (svc *apigwRoute) onUpdate(ctx context.Context, upd *types.ApigwRoute, qProps *apigwRouteActionProps) (res *types.ApigwRoute, err error) {
+	var e error
+
+	if res, e = loadApigwRoute(ctx, svc.store, upd.ID); e != nil {
+		return res, ApigwRouteErrNotFound(qProps)
+	}
+
+	var (
+		// check if old endpoint moved and attach the 404 handler
+		endpointMoved = res.Enabled != upd.Enabled || res.Method != upd.Method || res.Endpoint != upd.Endpoint
+	)
+
+	if !svc.ac.CanUpdateApigwRoute(ctx, res) {
+		return res, ApigwRouteErrNotAllowedToUpdate(qProps)
+	}
+
+	// Test if stale (update has an older version of data)
+	if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+		return res, ApigwRouteErrStaleData()
+	}
+
+	// copy (potentially) updated files from the payload
+	res.Meta = upd.Meta
+	res.Method = upd.Method
+	res.Endpoint = upd.Endpoint
+	res.Enabled = upd.Enabled
+	res.Group = upd.Group
+
+	// ensure we have a valid endpoint
+	res.UpdatedAt = now()
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.UpdateApigwRoute(ctx, svc.store, res); err != nil {
+		return res, err
+	}
+
+	// @todo move this into struct of the service (svc),
+	//       same as we do for services for other structs
+	ags := apigw.Service()
+
+	// old endpoint moved: attach 404 handler
+	if endpointMoved {
+		ags.NotFound(ctx, res.Method, res.Endpoint)
+	}
+
+	// send the signal to reload updated route
+	if upd.Enabled {
+		if err = ags.ReloadEndpoint(ctx, upd.Method, upd.Endpoint); err != nil {
+			return res, err
+		}
+	}
+
+	return res, nil
+}
+
+// onDelete is the custom body for the generated DeleteByID. The generated method
+// owns the action-log scaffold + recordAction; everything below (load,
+// resource-based access, soft-delete via UpdateApigwRoute, apigw not-found
+// signalling) lives here.
+func (svc *apigwRoute) onDelete(ctx context.Context, ID uint64, qProps *apigwRouteActionProps) (err error) {
+	var q *types.ApigwRoute
+
+	if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanDeleteApigwRoute(ctx, q) {
+		return ApigwRouteErrNotAllowedToDelete(qProps)
+	}
+
+	qProps.setRoute(q)
+
+	q.DeletedAt = now()
+	q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.UpdateApigwRoute(ctx, svc.store, q); err != nil {
+		return
+	}
+
+	// send the signal to reload deleted route
+	if q.Enabled {
+		apigw.Service().NotFound(ctx, q.Method, q.Endpoint)
+	}
+
+	return nil
+}
+
+// onUndelete is the custom body for the generated UndeleteByID. The generated
+// method owns the action-log scaffold + recordAction; everything below (load,
+// resource-based access, clear deleted_at, apigw reload signalling) lives here.
+func (svc *apigwRoute) onUndelete(ctx context.Context, ID uint64, qProps *apigwRouteActionProps) (err error) {
+	var q *types.ApigwRoute
+
+	if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanDeleteApigwRoute(ctx, q) {
+		return ApigwRouteErrNotAllowedToUndelete(qProps)
+	}
+
+	qProps.setRoute(q)
+
+	q.DeletedAt = nil
+	q.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.UpdateApigwRoute(ctx, svc.store, q); err != nil {
+		return
+	}
+
+	// send the signal to reload all queues
+	if q.Enabled {
+		if err = apigw.Service().ReloadEndpoint(ctx, q.Method, q.Endpoint); err != nil {
 			return err
 		}
-
-		return nil
-	}()
-
-	return r, f, svc.recordAction(ctx, aProps, ApigwRouteActionSearch, err)
-}
-
-func loadApigwRoute(ctx context.Context, s store.ApigwRoutes, ID uint64) (res *types.ApigwRoute, err error) {
-	if ID == 0 {
-		return nil, ApigwRouteErrInvalidID()
 	}
 
-	if res, err = store.LookupApigwRouteByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, ApigwRouteErrNotFound()
-	}
-
-	return
+	return nil
 }

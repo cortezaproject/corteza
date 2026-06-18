@@ -10,8 +10,8 @@ import (
 
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/locale"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/locale"
 )
 
 type (
@@ -125,7 +125,7 @@ type (
 		Handle      string   `json:"handle"`
 		Name        string   `json:"name"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`

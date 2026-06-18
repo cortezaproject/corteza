@@ -1,12 +1,7 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"fmt"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
@@ -14,41 +9,6 @@ import (
 )
 
 type (
-	// Workflow represents entire workflow definition
-	Workflow struct {
-		ID        uint64                           `json:"workflowID,string"`
-		TenantID  uint64                           `json:"tenantID,string,omitempty"`
-		ProjectID uint64                           `json:"projectID,string,omitempty"`
-		Handle    string                           `json:"handle"`
-		Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Meta      *WorkflowMeta                    `json:"meta,omitempty"`
-		Enabled   bool                             `json:"enabled"`
-
-		Trace bool `json:"trace"`
-
-		// how much time do we keep completed sessions (in sec)
-		KeepSessions int `json:"keepSessions"`
-
-		// Initial input scope
-		Scope *expr.Vars `json:"scope"`
-
-		Steps WorkflowStepSet `json:"steps"`
-		Paths WorkflowPathSet `json:"paths"`
-
-		// Collection of issues from the last parse
-		Issues WorkflowIssueSet `json:"issues,omitempty"`
-
-		RunAs uint64 `json:"runAs,string"`
-
-		OwnedBy   uint64     `json:"ownedBy,string"`
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	WorkflowFilter struct {
 		WorkflowID []string `json:"workflowID"`
 
@@ -163,15 +123,9 @@ func (r Workflow) Dict() map[string]interface{} {
 	}
 }
 
-func (vv *WorkflowMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *WorkflowMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
-
 func (issue *WorkflowIssue) String() string {
 	return fmt.Sprintf("%s [%v]", issue.Description, issue.Culprit)
 }
-
-func (set *WorkflowIssueSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set WorkflowIssueSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
 func (set WorkflowIssueSet) Error() string {
 	switch len(set) {

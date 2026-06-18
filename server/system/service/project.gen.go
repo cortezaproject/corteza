@@ -9,11 +9,26 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type project struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        projectAccessController
+}
+
+func Project() *project {
+	return &project{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *project) Search(ctx context.Context, filter types.ProjectFilter) (set types.ProjectSet, f types.ProjectFilter, err error) {
 	var (

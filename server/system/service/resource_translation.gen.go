@@ -8,8 +8,25 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type resourceTranslation struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        resourceTranslationAccessController
+}
+
+func ResourceTranslation() *resourceTranslation {
+	return &resourceTranslation{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *resourceTranslation) FindByID(ctx context.Context, ID uint64) (res *types.ResourceTranslation, err error) {
 	var (

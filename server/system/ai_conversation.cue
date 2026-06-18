@@ -68,6 +68,8 @@ ai_conversation: {
 	}
 
 	service: {
+		genAccessController: true
+		genConstructor:      true
 
 		undelete: true
 

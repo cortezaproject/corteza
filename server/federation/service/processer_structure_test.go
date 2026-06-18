@@ -175,11 +175,11 @@ func TestProcesserStructure_persist(t *testing.T) {
 	}
 }
 
-func (s testStructureSharedModuleServiceError) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
+func (s testStructureSharedModuleServiceError) Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
 	return types.SharedModuleSet{}, types.SharedModuleFilter{}, fmt.Errorf("db error")
 }
 
-func (s testStructureSharedModuleServiceCreateNewModule) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
+func (s testStructureSharedModuleServiceCreateNewModule) Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
 	return types.SharedModuleSet{}, types.SharedModuleFilter{}, nil
 }
 
@@ -187,7 +187,7 @@ func (s testStructureSharedModuleServiceCreateNewModule) Create(ctx context.Cont
 	return &types.SharedModule{}, nil
 }
 
-func (s testStructureSharedModuleServiceCreateNewModuleErr) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
+func (s testStructureSharedModuleServiceCreateNewModuleErr) Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
 	return types.SharedModuleSet{}, types.SharedModuleFilter{}, nil
 }
 
@@ -195,7 +195,7 @@ func (s testStructureSharedModuleServiceCreateNewModuleErr) Create(ctx context.C
 	return nil, fmt.Errorf("could not create new module")
 }
 
-func (s testStructureSharedModuleServiceUpdateModule) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
+func (s testStructureSharedModuleServiceUpdateModule) Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
 	return types.SharedModuleSet{
 			&types.SharedModule{
 				ID:     11,
@@ -219,7 +219,7 @@ func (s testStructureSharedModuleServiceUpdateModule) Update(ctx context.Context
 	return &types.SharedModule{}, nil
 }
 
-func (s testStructureSharedModuleServiceUpdateModuleErr) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
+func (s testStructureSharedModuleServiceUpdateModuleErr) Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
 	return types.SharedModuleSet{&types.SharedModule{
 			Fields: types.ModuleFieldSet{},
 		}},

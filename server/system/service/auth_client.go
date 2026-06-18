@@ -15,6 +15,16 @@ import (
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 )
 
+// The CRUD skeleton for Create and Undelete (plus the loadAuthClient and
+// toLabeledAuthClients helpers) is generated in auth_client.gen.go from
+// system/auth_client.cue.
+//
+// This file owns the struct, access-controller interface, constructor, the
+// `validate` and `beforeCreate` hooks the generated Create calls into, the
+// non-fitting CRUD ops (FindByID, Search, Update, DeleteByID -- each masks the
+// secret or runs validation the generated shape cannot express) and the custom
+// methods (ExposeSecret, RegenerateSecret, IsDefaultClient).
+
 type (
 	authClient struct {
 		ac        authClientAccessController
@@ -44,7 +54,7 @@ func AuthClient(s store.Storer, ac authClientAccessController, al actionlog.Reco
 	}
 }
 
-func (svc *authClient) LookupByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
+func (svc *authClient) FindByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
 	var (
 		aaProps = &authClientActionProps{authClient: &types.AuthClient{ID: ID}}
 	)
@@ -181,63 +191,6 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 	return aa, f, svc.recordAction(ctx, aaProps, AuthClientActionSearch, err)
 }
 
-func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *types.AuthClient, err error) {
-	var (
-		aaProps = &authClientActionProps{authClient: new}
-	)
-
-	err = func() (err error) {
-		if new.Meta == nil || new.Meta.Name == "" {
-			return AuthClientErrMissingName()
-		}
-
-		if !svc.ac.CanCreateAuthClient(ctx) {
-			return AuthClientErrNotAllowedToCreate()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeCreate(new, nil)); err != nil {
-			return
-		}
-
-		// Set new values after beforeCreate events are emitted
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.Secret = string(rand.Bytes(64))
-
-		if new.Security == nil {
-			new.Security = &types.AuthClientSecurity{}
-		}
-
-		if new.Meta == nil {
-			new.Meta = &types.AuthClientMeta{}
-		}
-
-		// Validate impersonated user
-		if new.ValidGrant == oauth2def.ClientCredentials.String() {
-			if new.Security == nil || new.Security.ImpersonateUser == 0 {
-				return errors.Internal("auth client security configuration invalid")
-			}
-		}
-
-		aaProps.setNew(new)
-
-		if err = store.CreateAuthClient(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		res = new
-
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterCreate(new, nil))
-		return nil
-	}()
-
-	return res, svc.recordAction(ctx, aaProps, AuthClientActionCreate, err)
-}
-
 func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
 		aaProps                = &authClientActionProps{update: upd}
@@ -341,7 +294,7 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 	return res, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err)
 }
 
-func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
+func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aaProps = &authClientActionProps{}
 		res     *types.AuthClient
@@ -378,65 +331,37 @@ func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, aaProps, AuthClientActionDelete, err)
 }
 
-func (svc *authClient) Undelete(ctx context.Context, ID uint64) (err error) {
-	var (
-		aaProps = &authClientActionProps{}
-		res     *types.AuthClient
-	)
+// validate runs at the top of the generated Create, on the incoming resource
+// (before the access-control check).
+func (svc *authClient) validate(ctx context.Context, new *types.AuthClient) error {
+	if new.Meta == nil || new.Meta.Name == "" {
+		return AuthClientErrMissingName()
+	}
 
-	err = func() (err error) {
-		if res, err = loadAuthClient(ctx, svc.store, ID); err != nil {
-			return
-		}
-
-		aaProps.setAuthClient(res)
-
-		if !svc.ac.CanDeleteAuthClient(ctx, res) {
-			return AuthClientErrNotAllowedToUndelete()
-		}
-
-		// @todo add event
-		//       if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUndelete(nil, res)); err != nil {
-		//       	return
-		//       }
-
-		res.DeletedAt = nil
-		if err = store.UpdateAuthClient(ctx, svc.store, res); err != nil {
-			return
-		}
-
-		// @todo add event
-		//       _ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUndelete(nil, res))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, aaProps, AuthClientActionUndelete, err)
+	return nil
 }
 
-func loadAuthClient(ctx context.Context, s store.AuthClients, ID uint64) (res *types.AuthClient, err error) {
-	if ID == 0 {
-		return nil, AuthClientErrInvalidID()
+// beforeCreate runs after the access-control check and BeforeCreate event,
+// before the generated id/timestamp assignment and store create. It performs
+// the secret generation, security/meta defaulting and client-credentials
+// impersonation validation the original Create did inline.
+func (svc *authClient) beforeCreate(ctx context.Context, new *types.AuthClient) error {
+	new.Secret = string(rand.Bytes(64))
+
+	if new.Security == nil {
+		new.Security = &types.AuthClientSecurity{}
 	}
 
-	if res, err = store.LookupAuthClientByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, AuthClientErrNotFound()
+	if new.Meta == nil {
+		new.Meta = &types.AuthClientMeta{}
 	}
 
-	return
-}
-
-// toLabeledAuthClients converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledAuthClients(set []*types.AuthClient) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
+	// Validate impersonated user
+	if new.ValidGrant == oauth2def.ClientCredentials.String() {
+		if new.Security == nil || new.Security.ImpersonateUser == 0 {
+			return errors.Internal("auth client security configuration invalid")
+		}
 	}
 
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
+	return nil
 }

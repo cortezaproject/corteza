@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/cast2"
 	"github.com/crusttech/human/server/pkg/filter"
@@ -13,26 +12,6 @@ import (
 )
 
 type (
-	ResourceTranslation struct {
-		ID        uint64 `json:"translationID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-
-		Lang     Lang   `json:"lang"`
-		Resource string `json:"resource"`
-		K        string `json:"key"`
-		Message  string `json:"message"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-
-		OwnedBy   uint64 `json:"ownedBy,string"`
-		CreatedBy uint64 `json:"createdBy,string" `
-		UpdatedBy uint64 `json:"updatedBy,string,omitempty" `
-		DeletedBy uint64 `json:"deletedBy,string,omitempty" `
-	}
-
 	ResourceTranslationFilter struct {
 		TranslationID []string `json:"translationID"`
 		Lang          string   `json:"lang"`

@@ -101,6 +101,10 @@ func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, e
 	return dd.is.TableLookup(ctx, t, dd.dbName)
 }
 
+func (dd *dataDefiner) TableSet(ctx context.Context) ([]*ddl.Table, error) {
+	return nil, fmt.Errorf("TableSet not implemented for MSSQL")
+}
+
 func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) error {
 	return ddl.Exec(ctx, dd.conn, &addColumn{
 		Dialect: dd.d,

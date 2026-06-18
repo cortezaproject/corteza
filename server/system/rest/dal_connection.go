@@ -8,7 +8,6 @@ import (
 
 	federationService "github.com/crusttech/human/server/federation/service"
 	federationTypes "github.com/crusttech/human/server/federation/types"
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/id"
@@ -71,19 +70,15 @@ func (DalConnection) New() *DalConnection {
 	}
 }
 
-func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList) (interface{}, error) {
-	var (
-		err            error
-		dalConnections types.DalConnectionSet
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl DalConnection) makeFilter(ctx context.Context, r *request.DalConnectionList) (types.DalConnectionFilter, error) {
+	f := types.DalConnectionFilter{
+		DalConnectionID: r.ConnectionID,
+		Handle:          r.Handle,
+		Type:            r.Type,
 
-		f = types.DalConnectionFilter{
-			DalConnectionID: r.ConnectionID,
-			Handle:          r.Handle,
-			Type:            r.Type,
-
-			Deleted: filter.State(r.Deleted),
-		}
-	)
+		Deleted: filter.State(r.Deleted),
+	}
 
 	if f.Deleted == 0 {
 		f.Deleted = filter.StateExcluded
@@ -91,76 +86,49 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 
 	f.IncTotal = r.IncTotal
 
-	dalConnections, f, err = ctrl.collectConnections(ctx, f)
+	return f, nil
+}
+
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params.
+func (ctrl DalConnection) beforeCreate(ctx context.Context, res *types.DalConnection, r *request.DalConnectionCreate) error {
+	res.Meta = r.Meta
+	res.Config = r.Config
+	return nil
+}
+
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (and ID/UpdatedAt).
+func (ctrl DalConnection) beforeUpdate(ctx context.Context, res *types.DalConnection, r *request.DalConnectionUpdate) error {
+	res.Meta = r.Meta
+	res.Config = r.Config
+	return nil
+}
+
+func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter, err error) (*dalConnectionSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	return ctrl.makeFilterPayload(ctx, dalConnections, f)
-}
-
-func (ctrl DalConnection) Create(ctx context.Context, r *request.DalConnectionCreate) (interface{}, error) {
-	connection := &types.DalConnection{
-		Handle: r.Handle,
-		Type:   r.Type,
-		Meta:   r.Meta,
-		Config: r.Config,
-	}
-
-	res, err := ctrl.svc.Create(ctx, connection)
-	if err != nil {
+	// Merge federation nodes into the base (service-searched) set and apply
+	// the in-memory filtering, preserving the original List behavior.
+	if connections, f, err = ctrl.collectConnections(ctx, connections, f); err != nil {
 		return nil, err
 	}
 
-	return ctrl.makePayload(ctx, res), nil
-}
-
-func (ctrl DalConnection) Update(ctx context.Context, r *request.DalConnectionUpdate) (interface{}, error) {
-	connection := &types.DalConnection{
-		ID:        r.ConnectionID,
-		Handle:    r.Handle,
-		Type:      r.Type,
-		Meta:      r.Meta,
-		Config:    r.Config,
-		UpdatedAt: r.UpdatedAt,
-	}
-
-	res, err := ctrl.svc.Update(ctx, connection)
-	if err != nil {
-		return nil, err
-	}
-
-	return ctrl.makePayload(ctx, res), nil
-}
-
-func (ctrl DalConnection) Read(ctx context.Context, r *request.DalConnectionRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.ConnectionID)
-	if err != nil {
-		return nil, err
-	}
-
-	return ctrl.makePayload(ctx, res), nil
-}
-
-func (ctrl DalConnection) Delete(ctx context.Context, r *request.DalConnectionDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.ConnectionID)
-}
-
-func (ctrl DalConnection) Undelete(ctx context.Context, r *request.DalConnectionUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ConnectionID)
-}
-
-func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter) (out *dalConnectionSetPayload, err error) {
-	out = &dalConnectionSetPayload{
+	out := &dalConnectionSetPayload{
 		Filter: f,
 		Set:    make([]*dalConnectionPayload, 0, len(connections)),
 	}
 
 	for _, c := range connections {
-		out.Set = append(out.Set, ctrl.makePayload(ctx, c))
+		p, _ := ctrl.makePayload(ctx, c, nil)
+		out.Set = append(out.Set, p)
 	}
 
-	return
+	return out, nil
 }
 
 // Make payload for dal-connection
@@ -168,7 +136,11 @@ func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections typ
 // # Payload is without connection params on the config prop
 //
 // An explicit call to /params
-func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection) *dalConnectionPayload {
+func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection, err error) (*dalConnectionPayload, error) {
+	if err != nil || c == nil {
+		return nil, err
+	}
+
 	return &dalConnectionPayload{
 		DalConnection: c,
 
@@ -176,7 +148,7 @@ func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnectio
 		CanUpdateConnection: ctrl.connectionAc.CanUpdateDalConnection(ctx, c),
 		CanDeleteConnection: ctrl.connectionAc.CanDeleteDalConnection(ctx, c),
 		CanManageDalConfig:  ctrl.connectionAc.CanManageDalConfigOnDalConnection(ctx, c),
-	}
+	}, nil
 }
 
 func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *types.DalConnection {
@@ -206,15 +178,12 @@ func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *ty
 	}
 }
 
-func (ctrl DalConnection) collectConnections(ctx context.Context, filter types.DalConnectionFilter) (out types.DalConnectionSet, f types.DalConnectionFilter, err error) {
+// collectConnections merges federation nodes into the base (already
+// service-searched) connection set and applies the in-memory filtering.
+func (ctrl DalConnection) collectConnections(ctx context.Context, dalConnections types.DalConnectionSet, f types.DalConnectionFilter) (out types.DalConnectionSet, _ types.DalConnectionFilter, err error) {
 	var (
-		dalConnections types.DalConnectionSet
 		federatedNodes federationTypes.NodeSet
 	)
-
-	if dalConnections, f, err = ctrl.svc.Search(ctx, filter); err != nil {
-		return nil, f, err
-	}
 
 	if !reflect2.IsNil(ctrl.federationSvc) {
 		if federatedNodes, _, err = ctrl.federationSvc.Search(ctx, federationTypes.NodeFilter{
@@ -237,7 +206,7 @@ func (ctrl DalConnection) collectConnections(ctx context.Context, filter types.D
 
 	out = ctrl.filterConnections(out, f)
 
-	return
+	return out, f, nil
 }
 
 func (ctrl DalConnection) filterConnections(baseConnections types.DalConnectionSet, f types.DalConnectionFilter) (out types.DalConnectionSet) {

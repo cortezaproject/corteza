@@ -20,7 +20,7 @@ props:
   - name: update
     type: "*types.Project"
     fields: [ handle, ID ]
-  - name: search
+  - name: filter
     type: "*types.ProjectFilter"
     fields: [ ]
 

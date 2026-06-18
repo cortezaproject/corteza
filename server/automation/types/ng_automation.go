@@ -1,48 +1,15 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"strings"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/ast"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	NgAutomation struct {
-		ID        uint64                           `json:"automationID,string"`
-		TenantID  uint64                           `json:"tenantID,string,omitempty"`
-		ProjectID uint64                           `json:"projectID,string,omitempty"`
-		Handle    string                           `json:"handle"`
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Meta   *NgAutomationMeta                `json:"meta,omitempty"`
-
-		Enabled bool `json:"enabled"`
-
-		Scope *expr.Vars `json:"scope"`
-
-		Triggers NgAutomationTriggerSet `json:"triggers"`
-		Steps    NgAutomationStepSet    `json:"steps"`
-		Paths    NgAutomationPathSet    `json:"paths"`
-
-		// Collection of issues from the last parse
-		Issues NgAutomationIssueSet `json:"issues,omitempty"`
-
-		RunAs     uint64     `json:"runAs,string"`
-		OwnedBy   uint64     `json:"ownedBy,string"`
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	NgAutomationFilter struct {
 		AutomationID []string `json:"automationID"`
 		TenantID     uint64   `json:"tenantID,string,omitempty"`
@@ -174,9 +141,9 @@ type (
 	}
 
 	NgAutomationPath struct {
-		ParentID  uint64        `json:"parentID,string"`
-		ChildID   uint64        `json:"childID,string"`
-		Condition *ast.ASTNode  `json:"condition,omitempty"`
+		ParentID  uint64       `json:"parentID,string"`
+		ChildID   uint64       `json:"childID,string"`
+		Condition *ast.ASTNode `json:"condition,omitempty"`
 
 		// Kind distinguishes special paths.
 		// "error" marks the catch handler path; empty = normal flow.
@@ -202,21 +169,6 @@ type (
 		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
 	}
 )
-
-func (set *NgAutomationMeta) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set NgAutomationMeta) Value() (driver.Value, error) { return json.Marshal(set) }
-
-func (set *NgAutomationTriggerSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set NgAutomationTriggerSet) Value() (driver.Value, error) { return json.Marshal(set) }
-
-func (set *NgAutomationStepSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set NgAutomationStepSet) Value() (driver.Value, error) { return json.Marshal(set) }
-
-func (set *NgAutomationPathSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set NgAutomationPathSet) Value() (driver.Value, error) { return json.Marshal(set) }
-
-func (set *NgAutomationIssueSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set NgAutomationIssueSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
 func (set NgAutomationIssueSet) Error() string {
 	out := make([]string, 0, 4)

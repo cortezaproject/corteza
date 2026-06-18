@@ -115,7 +115,7 @@ func (ctrl SyncStructure) readExposedAll(ctx context.Context, r *request.SyncStr
 		return nil, err
 	}
 
-	list, f, err := (service.ExposedModule()).Find(ctx, f)
+	list, f, err := (service.ExposedModule()).Search(ctx, f)
 
 	if err != nil {
 		return nil, err

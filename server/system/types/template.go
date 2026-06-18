@@ -1,46 +1,12 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
 	DocumentType string
-
-	Template struct {
-		ID        uint64 `json:"templateID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		Handle    string `json:"handle"`
-		// Language specifies the language the template is written for; leave empty for default
-		Language string `json:"language"`
-
-		Type DocumentType `json:"type"`
-		// Partial templates can be used to construct larger templates; for example headers and footers
-		Partial bool `json:"partial"`
-		// use int so JS can handle it normally
-		//
-		// @todo We'll handle this at a later point
-		// Revision int           `json:"revision,string"`
-		Meta TemplateMeta `json:"meta"`
-
-		Template string `json:"template"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		OwnerID    uint64     `json:"ownerID,string"`
-		CreatedAt  time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
-		LastUsedAt *time.Time `json:"lastUsedAt,omitempty"`
-	}
 
 	TemplateMeta struct {
 		Short       string `json:"short"`
@@ -77,9 +43,6 @@ const (
 	DocumentTypeHTML  DocumentType = "text/html"
 	DocumentTypePDF   DocumentType = "application/pdf"
 )
-
-func (t *TemplateMeta) Scan(src any) error          { return sql.ParseJSON(src, t) }
-func (t TemplateMeta) Value() (driver.Value, error) { return json.Marshal(t) }
 
 func (t Template) Clone() *Template {
 	c := &t

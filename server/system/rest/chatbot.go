@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -60,7 +59,8 @@ func (Chatbot) New() *Chatbot {
 	}
 }
 
-func (ctrl *Chatbot) List(ctx context.Context, r *request.ChatbotList) (interface{}, error) {
+// makeFilter builds the search filter for the generated List controller.
+func (ctrl *Chatbot) makeFilter(ctx context.Context, r *request.ChatbotList) (types.ChatbotFilter, error) {
 	var (
 		err error
 		f   = types.ChatbotFilter{
@@ -72,72 +72,38 @@ func (ctrl *Chatbot) List(ctx context.Context, r *request.ChatbotList) (interfac
 	)
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-		return nil, err
+		return f, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return f, nil
 }
 
-func (ctrl *Chatbot) Create(ctx context.Context, r *request.ChatbotCreate) (interface{}, error) {
-	var (
-		err error
-		c   = &types.Chatbot{
-			Handle:         r.Handle,
-			Name:           r.Name,
-			Enabled:        r.Enabled,
-			SessionTTL:     r.SessionTTL,
-			AllowedOrigins: r.AllowedOrigins,
-			Handoff:        r.Handoff,
-			Styling:        r.Styling,
-			Scenarios:      r.Scenarios,
-			Labels:         r.Labels,
-		}
-	)
-
-	c, err = ctrl.svc.Create(ctx, c)
-	return ctrl.makePayload(ctx, c, err)
+// beforeCreate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Create controller
+// already mapped the plain-value params (including Labels).
+func (ctrl *Chatbot) beforeCreate(ctx context.Context, res *types.Chatbot, r *request.ChatbotCreate) error {
+	res.AllowedOrigins = r.AllowedOrigins
+	res.Handoff = r.Handoff
+	res.Styling = r.Styling
+	res.Scenarios = r.Scenarios
+	return nil
 }
 
-func (ctrl *Chatbot) Read(ctx context.Context, r *request.ChatbotRead) (interface{}, error) {
-	res, err := ctrl.svc.FindByID(ctx, r.ChatbotID)
-	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl *Chatbot) Update(ctx context.Context, r *request.ChatbotUpdate) (interface{}, error) {
-	var (
-		err error
-		c   = &types.Chatbot{
-			ID:             r.ChatbotID,
-			Handle:         r.Handle,
-			Name:           r.Name,
-			Enabled:        r.Enabled,
-			SessionTTL:     r.SessionTTL,
-			AllowedOrigins: r.AllowedOrigins,
-			Handoff:        r.Handoff,
-			Styling:        r.Styling,
-			Scenarios:      r.Scenarios,
-			UpdatedAt:      r.UpdatedAt,
-			Labels:         r.Labels,
-		}
-	)
-
-	c, err = ctrl.svc.Update(ctx, c)
-	return ctrl.makePayload(ctx, c, err)
-}
-
-func (ctrl *Chatbot) Delete(ctx context.Context, r *request.ChatbotDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.ChatbotID)
-}
-
-func (ctrl *Chatbot) Undelete(ctx context.Context, r *request.ChatbotUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ChatbotID)
+// beforeUpdate fills the complex/hook-managed fields onto the resource
+// before it is handed to the service. The generated Update controller
+// already mapped the plain-value params (including Labels) and ID/UpdatedAt.
+func (ctrl *Chatbot) beforeUpdate(ctx context.Context, res *types.Chatbot, r *request.ChatbotUpdate) error {
+	res.AllowedOrigins = r.AllowedOrigins
+	res.Handoff = r.Handoff
+	res.Styling = r.Styling
+	res.Scenarios = r.Scenarios
+	return nil
 }
 
 func (ctrl *Chatbot) RegenerateWidgetKey(ctx context.Context, r *request.ChatbotRegenerateWidgetKey) (interface{}, error) {
@@ -231,4 +197,3 @@ func (ctrl *Chatbot) makeFilterPayload(ctx context.Context, nn types.ChatbotSet,
 
 	return msp, nil
 }
-

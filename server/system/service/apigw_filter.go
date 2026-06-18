@@ -12,6 +12,19 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
+// The public CRUD skeleton (FindByID, Search, Create, Update, DeleteByID) is
+// generated in apigw_filter.gen.go from system/apigw_filter.cue.
+//
+// Every op delegates to a hand-written on<Op> handler (customBodyOps) and skips
+// the generated access check (customAccessOps): access control is enforced on
+// the parent ApigwRoute, not the filter, and each op loads the route, validates
+// and fires an endpoint-reload side effect.
+//
+// This file owns the struct, constructor, the on<Op> bodies (verbatim from the
+// original service) and the resource-specific methods: validateAsyncRoute,
+// UndeleteByID (kept hand-written -- it records ApigwFilterActionDelete, which
+// the generated body cannot reproduce), DefFilter and DefProxyAuth.
+
 type (
 	apigwFilter struct {
 		actionlog actionlog.Recorder
@@ -30,82 +43,77 @@ func Filter() *apigwFilter {
 	}
 }
 
-func (svc *apigwFilter) FindByID(ctx context.Context, filterID uint64) (q *types.ApigwFilter, err error) {
+// onLookup is the custom body for the generated FindByID. The generated method
+// owns the action-log scaffold + recordAction; access control is enforced on
+// the parent route here.
+func (svc *apigwFilter) onLookup(ctx context.Context, filterID uint64, rProps *apigwFilterActionProps) (q *types.ApigwFilter, err error) {
 	var (
-		rProps = &apigwFilterActionProps{}
-		r      *types.ApigwRoute
+		r *types.ApigwRoute
 	)
 
-	err = func() error {
-		if filterID == 0 {
-			return ApigwFilterErrInvalidID()
-		}
+	if filterID == 0 {
+		return nil, ApigwFilterErrInvalidID()
+	}
 
-		if q, err = store.LookupApigwFilterByID(ctx, svc.store, filterID); err != nil {
-			return TemplateErrInvalidID().Wrap(err)
-		}
+	if q, err = store.LookupApigwFilterByID(ctx, svc.store, filterID); err != nil {
+		return nil, TemplateErrInvalidID().Wrap(err)
+	}
 
-		rProps.setFilter(q)
+	rProps.setFilter(q)
 
-		// Get route
-		if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
-			return err
-		}
+	// Get route
+	if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
+		return nil, err
+	}
 
-		if !svc.ac.CanReadApigwRoute(ctx, r) {
-			return ApigwRouteErrNotAllowedToRead()
-		}
+	if !svc.ac.CanReadApigwRoute(ctx, r) {
+		return nil, ApigwRouteErrNotAllowedToRead()
+	}
 
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, rProps, ApigwFilterActionLookup, err)
+	return q, nil
 }
 
-func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *types.ApigwFilter, err error) {
+// onCreate is the custom body for the generated Create. The generated method
+// owns the action-log scaffold + recordAction; access control is enforced on
+// the parent route here.
+func (svc *apigwFilter) onCreate(ctx context.Context, new *types.ApigwFilter) (err error) {
 	var (
 		qProps = &apigwFilterActionProps{filter: new}
 		r      *types.ApigwRoute
 	)
 
-	err = func() (err error) {
-		// Set new values after beforeCreate events are emitted
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+	// Set new values after beforeCreate events are emitted
+	new.ID = nextID()
+	new.CreatedAt = *now()
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if r, err = store.LookupApigwRouteByID(ctx, svc.store, new.Route); err != nil {
+	if r, err = store.LookupApigwRouteByID(ctx, svc.store, new.Route); err != nil {
+		return
+	}
+
+	if !svc.ac.CanUpdateApigwRoute(ctx, r) {
+		return ApigwRouteErrNotAllowedToUpdate()
+	}
+
+	// check for existing filters if route is async
+	if r.Meta.Async {
+		if err = svc.validateAsyncRoute(ctx, r, new, qProps); err != nil {
 			return
 		}
+	}
 
-		if !svc.ac.CanUpdateApigwRoute(ctx, r) {
-			return ApigwRouteErrNotAllowedToUpdate()
-		}
+	if err = store.CreateApigwFilter(ctx, svc.store, new); err != nil {
+		return err
+	}
 
-		// check for existing filters if route is async
-		if r.Meta.Async {
-			if err = svc.validateAsyncRoute(ctx, r, new, qProps); err != nil {
-				return
-			}
-		}
-
-		if err = store.CreateApigwFilter(ctx, svc.store, new); err != nil {
+	// send the signal to reload current route
+	if r.Enabled {
+		if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
 			return err
 		}
+	}
 
-		q = new
-
-		// send the signal to reload current route
-		if r.Enabled {
-			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, qProps, ApigwFilterActionCreate, err)
+	return nil
 }
 
 func (svc *apigwFilter) validateAsyncRoute(ctx context.Context, r *types.ApigwRoute, f *types.ApigwFilter, props *apigwFilterActionProps) (err error) {
@@ -135,101 +143,97 @@ func (svc *apigwFilter) validateAsyncRoute(ctx context.Context, r *types.ApigwRo
 	return
 }
 
-func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *types.ApigwFilter, err error) {
+// onUpdate is the custom body for the generated Update. The generated method
+// owns the action-log scaffold + recordAction; access control is enforced on
+// the parent route here.
+func (svc *apigwFilter) onUpdate(ctx context.Context, upd *types.ApigwFilter, qProps *apigwFilterActionProps) (q *types.ApigwFilter, err error) {
 	var (
-		qProps = &apigwFilterActionProps{filter: upd}
-		qq     *types.ApigwFilter
-		r      *types.ApigwRoute
-		e      error
+		qq *types.ApigwFilter
+		r  *types.ApigwRoute
+		e  error
 	)
 
-	err = func() (err error) {
-		if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e != nil {
-			return ApigwFilterErrNotFound(qProps)
+	if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e != nil {
+		return nil, ApigwFilterErrNotFound(qProps)
+	}
+
+	if r, err = svc.route.FindByID(ctx, upd.Route); err != nil {
+		return nil, err
+	}
+
+	if !svc.ac.CanUpdateApigwRoute(ctx, r) {
+		return nil, ApigwRouteErrNotAllowedToUpdate()
+	}
+
+	// Test if stale (update has an older version of data)
+	if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
+		return nil, ApigwFilterErrStaleData()
+	}
+
+	if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e == nil && qq == nil {
+		return nil, ApigwFilterErrNotFound(qProps)
+	}
+
+	upd.UpdatedAt = now()
+	upd.CreatedAt = qq.CreatedAt
+	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.UpdateApigwFilter(ctx, svc.store, upd); err != nil {
+		return nil, err
+	}
+
+	q = upd
+
+	// send the signal to reload current route
+	if r.Enabled {
+		if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
+			return nil, err
 		}
+	}
 
-		if r, err = svc.route.FindByID(ctx, upd.Route); err != nil {
-			return err
-		}
-
-		if !svc.ac.CanUpdateApigwRoute(ctx, r) {
-			return ApigwRouteErrNotAllowedToUpdate()
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
-			return ApigwFilterErrStaleData()
-		}
-
-		if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e == nil && qq == nil {
-			return ApigwFilterErrNotFound(qProps)
-		}
-
-		upd.UpdatedAt = now()
-		upd.CreatedAt = qq.CreatedAt
-		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateApigwFilter(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		q = upd
-
-		// send the signal to reload current route
-		if r.Enabled {
-			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, qProps, ApigwFilterActionUpdate, err)
+	return q, nil
 }
 
-func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
+// onDelete is the custom body for the generated DeleteByID. The generated
+// method owns the action-log scaffold + recordAction; access control is
+// enforced on the parent route here.
+func (svc *apigwFilter) onDelete(ctx context.Context, ID uint64, qProps *apigwFilterActionProps) (err error) {
 	var (
-		qProps = &apigwFilterActionProps{}
-		q      *types.ApigwFilter
-		r      *types.ApigwRoute
+		q *types.ApigwFilter
+		r *types.ApigwRoute
 	)
 
-	err = func() (err error) {
-		if q, err = store.LookupApigwFilterByID(ctx, svc.store, ID); err != nil {
-			return ApigwFilterErrNotFound(qProps)
+	if q, err = store.LookupApigwFilterByID(ctx, svc.store, ID); err != nil {
+		return ApigwFilterErrNotFound(qProps)
+	}
+
+	if r, err = store.LookupApigwRouteByID(ctx, svc.store, q.Route); err == store.ErrNotFound {
+		return ApigwRouteErrNotFound()
+	} else if err != nil {
+		return
+	}
+
+	if !svc.ac.CanDeleteApigwRoute(ctx, r) {
+		return ApigwRouteErrNotAllowedToDelete()
+	}
+
+	qProps.setFilter(q)
+
+	q.DeletedAt = now()
+	q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.UpdateApigwFilter(ctx, svc.store, q); err != nil {
+		return
+	}
+
+	// send the signal to reload current route
+	if r.Enabled {
+		if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
+			return err
 		}
+	}
 
-		if r, err = store.LookupApigwRouteByID(ctx, svc.store, q.Route); err == store.ErrNotFound {
-			return ApigwRouteErrNotFound()
-		} else if err != nil {
-			return
-		}
-
-		if !svc.ac.CanDeleteApigwRoute(ctx, r) {
-			return ApigwRouteErrNotAllowedToDelete()
-		}
-
-		qProps.setFilter(q)
-
-		q.DeletedAt = now()
-		q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateApigwFilter(ctx, svc.store, q); err != nil {
-			return
-		}
-
-		// send the signal to reload current route
-		if r.Enabled {
-			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, qProps, ApigwFilterActionDelete, err)
+	return nil
 }
 
 func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -276,43 +280,41 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 	return svc.recordAction(ctx, qProps, ApigwFilterActionDelete, err)
 }
 
-func (svc *apigwFilter) Search(ctx context.Context, filter types.ApigwFilterFilter) (r types.ApigwFilterSet, f types.ApigwFilterFilter, err error) {
+// onSearch is the custom body for the generated Search. The generated method
+// owns the action-log scaffold + recordAction; access control is enforced on
+// the parent route here.
+func (svc *apigwFilter) onSearch(ctx context.Context, f types.ApigwFilterFilter, aProps *apigwFilterActionProps) (r types.ApigwFilterSet, outFilter types.ApigwFilterFilter, err error) {
 	var (
-		aProps = &apigwFilterActionProps{search: &filter}
-		route  *types.ApigwRoute
+		route *types.ApigwRoute
 	)
 
-	err = func() error {
-		// Preload the corresponding API GW route for access control
-		if filter.RouteID == 0 {
-			return ApigwRouteErrInvalidID()
-		}
+	// Preload the corresponding API GW route for access control
+	if f.RouteID == 0 {
+		return nil, f, ApigwRouteErrInvalidID()
+	}
 
-		if route, err = store.LookupApigwRouteByID(ctx, svc.store, filter.RouteID); err != nil {
-			return ApigwRouteErrNotFound()
-		}
+	if route, err = store.LookupApigwRouteByID(ctx, svc.store, f.RouteID); err != nil {
+		return nil, f, ApigwRouteErrNotFound()
+	}
 
+	if !svc.ac.CanReadApigwRoute(ctx, route) {
+		return nil, f, ApigwRouteErrNotAllowedToRead()
+	}
+
+	// Prepare the filter checker so we can evaluate access to specific filters
+	f.Check = func(res *types.ApigwFilter) (bool, error) {
 		if !svc.ac.CanReadApigwRoute(ctx, route) {
-			return ApigwRouteErrNotAllowedToRead()
+			return false, nil
 		}
+		return true, nil
+	}
 
-		// Prepare the filter checker so we can evaluate access to specific filters
-		filter.Check = func(res *types.ApigwFilter) (bool, error) {
-			if !svc.ac.CanReadApigwRoute(ctx, route) {
-				return false, nil
-			}
-			return true, nil
-		}
+	// Go!
+	if r, outFilter, err = store.SearchApigwFilters(ctx, svc.store, f); err != nil {
+		return nil, f, err
+	}
 
-		// Go!
-		if r, f, err = store.SearchApigwFilters(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return r, f, svc.recordAction(ctx, aProps, ApigwFilterActionSearch, err)
+	return r, outFilter, nil
 }
 
 func (svc *apigwFilter) DefFilter(ctx context.Context, kind string) (l interface{}, err error) {

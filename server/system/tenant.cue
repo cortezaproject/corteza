@@ -83,10 +83,12 @@ tenant: {
 	}
 
 	service: {
-		events:   false
+		genConstructor: true
+		filterProp:     "search"
+
+		events: false
 
 		lookup:   false
-		search:   false
 		update:   false
 		undelete: false
 

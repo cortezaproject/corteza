@@ -12,11 +12,11 @@ import (
 
 type (
 	namespaceSearcher interface {
-		Find(ctx context.Context, filter types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
+		Search(ctx context.Context, filter types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
 	}
 
 	moduleSearcher interface {
-		Find(ctx context.Context, filter types.ModuleFilter) (types.ModuleSet, types.ModuleFilter, error)
+		Search(ctx context.Context, filter types.ModuleFilter) (types.ModuleSet, types.ModuleFilter, error)
 	}
 
 	composeAccessControl interface {
@@ -137,7 +137,7 @@ func (m composeMapping) Modules(ctx context.Context) ([]*Mapping, error) {
 
 func (m composeMapping) Records(ctx context.Context) ([]*Mapping, error) {
 	var (
-		nn, _, err = m.ns.Find(ctx, types.NamespaceFilter{})
+		nn, _, err = m.ns.Search(ctx, types.NamespaceFilter{})
 		out        = make([]*Mapping, 0, len(nn)*50)
 	)
 
@@ -151,7 +151,7 @@ func (m composeMapping) Records(ctx context.Context) ([]*Mapping, error) {
 			mm types.ModuleSet
 		)
 
-		mm, _, err = m.mod.Find(ctx, types.ModuleFilter{NamespaceID: ns.ID})
+		mm, _, err = m.mod.Search(ctx, types.ModuleFilter{NamespaceID: ns.ID})
 		if err != nil {
 			return err
 		}

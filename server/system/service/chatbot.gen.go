@@ -8,9 +8,34 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type chatbotAccessController interface {
+	CanCreateChatbot(context.Context) bool
+	CanSearchChatbots(context.Context) bool
+	CanReadChatbot(context.Context, *types.Chatbot) bool
+	CanUpdateChatbot(context.Context, *types.Chatbot) bool
+	CanDeleteChatbot(context.Context, *types.Chatbot) bool
+}
+
+type chatbot struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        chatbotAccessController
+}
+
+func Chatbot() *chatbot {
+	return &chatbot{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 func (svc *chatbot) FindByID(ctx context.Context, ID uint64) (res *types.Chatbot, err error) {
 	var (

@@ -44,8 +44,8 @@ func TestModuleField_decodeTranslationsOptionsOptionTexts(t *testing.T) {
 				},
 			},
 			[]interface{}{
-				map[string]interface {}{"value": "val1", "text": "TEXT-1", "style":map[string]interface {}{"backgroundColor":"", "textColor":""}},
-				map[string]interface {}{"value": "val2", "text": "val2", "style":map[string]interface {}{"backgroundColor":"", "textColor":""}},
+				map[string]interface{}{"value": "val1", "text": "TEXT-1", "style": map[string]interface{}{"backgroundColor": "", "textColor": ""}},
+				map[string]interface{}{"value": "val2", "text": "val2", "style": map[string]interface{}{"backgroundColor": "", "textColor": ""}},
 			},
 		},
 		{"options-valid-map",
@@ -56,8 +56,8 @@ func TestModuleField_decodeTranslationsOptionsOptionTexts(t *testing.T) {
 				},
 			},
 			[]interface{}{
-				map[string]interface {}{"value": "val1", "text": "TEXT-1", "style":map[string]interface {}{"backgroundColor":"", "textColor":""}},
-				map[string]interface {}{"value": "val2", "text": "Text2",  "style":map[string]interface {}{"backgroundColor":"", "textColor":""}},
+				map[string]interface{}{"value": "val1", "text": "TEXT-1", "style": map[string]interface{}{"backgroundColor": "", "textColor": ""}},
+				map[string]interface{}{"value": "val2", "text": "Text2", "style": map[string]interface{}{"backgroundColor": "", "textColor": ""}},
 			},
 		},
 	}

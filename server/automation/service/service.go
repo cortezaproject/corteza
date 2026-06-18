@@ -13,6 +13,7 @@ import (
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/objstore"
 	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
@@ -55,6 +56,12 @@ var (
 	DefaultSession  *session
 
 	DefaultNgAutomation      *ngAutomation
+
+	// DefaultAutomationRegistry indexes one NG-automation execution engine per
+	// tenant/project scope. The engine is store-free in-memory state (executable
+	// registry + ledger + runtime-manager), so each scope gets its own isolated
+	// instance, lazily built on first access.
+	DefaultAutomationRegistry *scope.ScopeRegistry
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -101,13 +108,30 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultWorkflow.triggers = DefaultTrigger
 
-	engine, err := runnerSvc.AutomationService(ctx, DefaultLogger.Named("automation-execution"), manager.Config{
-		MaxConcurrent: 10,
+	execLog := DefaultLogger.Named("automation-execution")
+
+	DefaultAutomationRegistry = scope.NewScopeRegistry(ctx)
+
+	// No tenant-level provider: NG automation is project-scoped.
+	DefaultAutomationRegistry.RegisterProject(scope.Provider{
+		Name: "automation-engine",
+		Apply: func(ctx context.Context, sc scope.Scope, c *scope.Container) error {
+			eng, err := runnerSvc.AutomationService(ctx,
+				execLog.With(
+					zap.Uint64("tenantID", sc.TenantID),
+					zap.Uint64("projectID", sc.ProjectID),
+				),
+				manager.Config{MaxConcurrent: 10},
+			)
+			if err != nil {
+				return err
+			}
+			scope.Set[executionEngine](c, eng)
+			return nil
+		},
 	})
-	if err != nil {
-		return err
-	}
-	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor, engine)
+
+	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor, DefaultAutomationRegistry)
 
 	Registry().AddTypes(
 		&expr.Any{},

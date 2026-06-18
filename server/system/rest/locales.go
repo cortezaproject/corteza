@@ -117,7 +117,7 @@ func (ctrl Locale) ListResource(ctx context.Context, r *request.LocaleListResour
 		return nil, err
 	}
 
-	set, filter, err := ctrl.svc.List(ctx, f)
+	set, filter, err := ctrl.svc.Search(ctx, f)
 	return ctrl.makeResourceTranslationSetPayload(ctx, set, filter, err)
 }
 
@@ -155,16 +155,16 @@ func (ctrl Locale) UpdateResource(ctx context.Context, r *request.LocaleUpdateRe
 }
 
 func (ctrl Locale) ReadResource(ctx context.Context, r *request.LocaleReadResource) (interface{}, error) {
-	tpl, err := ctrl.svc.Read(ctx, r.TranslationID)
+	tpl, err := ctrl.svc.FindByID(ctx, r.TranslationID)
 	return ctrl.makeResourceTranslationPayload(ctx, tpl, err)
 }
 
 func (ctrl Locale) DeleteResource(ctx context.Context, r *request.LocaleDeleteResource) (interface{}, error) {
-	return api.OK(), ctrl.svc.Delete(ctx, r.TranslationID)
+	return api.OK(), ctrl.svc.DeleteByID(ctx, r.TranslationID)
 }
 
 func (ctrl Locale) UndeleteResource(ctx context.Context, r *request.LocaleUndeleteResource) (interface{}, error) {
-	return api.OK(), ctrl.svc.Undelete(ctx, r.TranslationID)
+	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.TranslationID)
 }
 
 // Utilities
