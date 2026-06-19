@@ -18,9 +18,9 @@ func TestTriggerResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindAutomationWorkflow, ID: 600, Reason: resourceref.ReasonTriggerWorkflow, Path: "WorkflowID"},
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonTriggerModule, Path: "Constraints.0.Values.0"},
-		{Kind: resourceref.KindComposeModule, Ident: "lead-module", Reason: resourceref.ReasonTriggerModule, Path: "Constraints.0.Values.1"},
+		resourceref.Make(resourceref.KindAutomationWorkflow, 600, resourceref.ReasonTriggerWorkflow),
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonTriggerModule),
+		resourceref.MakeIdent(resourceref.KindComposeModule, "lead-module", resourceref.ReasonTriggerModule),
 	}, tr.ResourceRefs())
 }
 
@@ -60,10 +60,10 @@ func TestWorkflowResourceRefsSteps(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindComposeModule, Ident: "lead", Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
-		{Kind: resourceref.KindComposeNamespace, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.1", Dynamic: true},
-		{Kind: resourceref.KindAutomationWorkflow, ID: 601, Reason: resourceref.ReasonStepArgument, Path: "Steps.1.Arguments.0"},
-		{Kind: resourceref.KindAgent, ID: 6001, Reason: resourceref.ReasonStepArgument, Path: "Steps.3.Arguments.0"},
+		resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonStepArgument),
+		resourceref.MakeDynamic(resourceref.KindComposeNamespace, resourceref.ReasonStepArgument),
+		resourceref.Make(resourceref.KindAutomationWorkflow, 601, resourceref.ReasonStepArgument),
+		resourceref.Make(resourceref.KindAgent, 6001, resourceref.ReasonStepArgument),
 	}, w.ResourceRefs())
 }
 
@@ -95,13 +95,13 @@ func TestNgAutomationResourceRefsSteps(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
-		{Kind: resourceref.KindComposeNamespace, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.1", Dynamic: true},
-		{Kind: resourceref.KindConfiguredConnection, ID: 4001, Reason: resourceref.ReasonStepConnection, Path: "Steps.1.Ref"},
-		{Kind: resourceref.KindAgent, ID: 6001, Reason: resourceref.ReasonStepArgument, Path: "Steps.2.Arguments.0"},
-		{Kind: resourceref.KindComposeModule, Ident: "lead", Reason: resourceref.ReasonStepArgument, Path: "Steps.3.Arguments.0"},
-		{Kind: resourceref.KindRole, ID: 8001, Reason: resourceref.ReasonStepArgument, Path: "Steps.4.Arguments.0"},
-		{Kind: resourceref.KindTemplate, Ident: "invoice-tpl", Reason: resourceref.ReasonStepArgument, Path: "Steps.5.Arguments.0"},
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonStepArgument),
+		resourceref.MakeDynamic(resourceref.KindComposeNamespace, resourceref.ReasonStepArgument),
+		resourceref.Make(resourceref.KindConfiguredConnection, 4001, resourceref.ReasonStepConnection),
+		resourceref.Make(resourceref.KindAgent, 6001, resourceref.ReasonStepArgument),
+		resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonStepArgument),
+		resourceref.Make(resourceref.KindRole, 8001, resourceref.ReasonStepArgument),
+		resourceref.MakeIdent(resourceref.KindTemplate, "invoice-tpl", resourceref.ReasonStepArgument),
 	}, a.ResourceRefs())
 }
 
@@ -121,22 +121,22 @@ func TestNgAutomationStepResolution(t *testing.T) {
 				&Expr{Target: "module", Value: "1001"},
 				&Expr{Target: "namespace", Value: "55"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
-				{Kind: resourceref.KindComposeNamespace, ID: 55, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.1"},
+				resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonStepArgument),
+				resourceref.Make(resourceref.KindComposeNamespace, 55, resourceref.ReasonStepArgument),
 			},
 		},
 		{
 			"numeric JSON constant",
 			step("function", "composeRecordsCreate", &Expr{Target: "module", Value: float64(1001)}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonStepArgument),
 			},
 		},
 		{
-			"constant handle kept as ident",
+			"constant handle kept as label",
 			step("function", "composeRecordsLookup", &Expr{Target: "module", Value: "lead"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, Ident: "lead", Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonStepArgument),
 			},
 		},
 		{
@@ -145,24 +145,24 @@ func TestNgAutomationStepResolution(t *testing.T) {
 			nil,
 		},
 		{
-			"expression arg: dynamic warning ref",
+			"expression arg: unresolved warning ref",
 			step("function", "composeRecordsSearch", &Expr{Target: "module", Expr: "scope.mod"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0", Dynamic: true},
+				resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument),
 			},
 		},
 		{
-			"scope variable arg: dynamic warning ref",
+			"scope variable arg: unresolved warning ref",
 			step("function", "composeRecordsSearch", &Expr{Target: "module", Source: "mod"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0", Dynamic: true},
+				resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument),
 			},
 		},
 		{
 			"constant value wins over expression",
 			step("function", "composeRecordsSearch", &Expr{Target: "module", Value: "1001", Expr: "scope.mod"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonStepArgument),
 			},
 		},
 		{
@@ -181,7 +181,7 @@ func TestNgAutomationStepResolution(t *testing.T) {
 			"connection function: ID from ref itself",
 			step("function", "conn_4001_sheetAppend", &Expr{Target: "range", Value: "A1"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindConfiguredConnection, ID: 4001, Reason: resourceref.ReasonStepConnection, Path: "Steps.0.Ref"},
+				resourceref.Make(resourceref.KindConfiguredConnection, 4001, resourceref.ReasonStepConnection),
 			},
 		},
 		{
@@ -198,7 +198,7 @@ func TestNgAutomationStepResolution(t *testing.T) {
 			"nil argument tolerated",
 			step("function", "composeRecordsLookup", nil, &Expr{Target: "module", Value: "1001"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.1"},
+				resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonStepArgument),
 			},
 		},
 		{
@@ -207,28 +207,28 @@ func TestNgAutomationStepResolution(t *testing.T) {
 				&Expr{Target: "role", Value: "8001"},
 				&Expr{Target: "user", Value: "42"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindRole, ID: 8001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.Make(resourceref.KindRole, 8001, resourceref.ReasonStepArgument),
 			},
 		},
 		{
 			"templates lookup by handle",
 			step("function", "templatesRender", &Expr{Target: "lookup", Value: "invoice-tpl"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindTemplate, Ident: "invoice-tpl", Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.MakeIdent(resourceref.KindTemplate, "invoice-tpl", resourceref.ReasonStepArgument),
 			},
 		},
 		{
 			"agentPrompt by ID",
 			step("function", "agentPrompt", &Expr{Target: "agentID", Value: "6001"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindAgent, ID: 6001, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.Make(resourceref.KindAgent, 6001, resourceref.ReasonStepArgument),
 			},
 		},
 		{
 			"notificationSendRecord module",
 			step("function", "notificationSendRecord", &Expr{Target: "module", Value: "lead"}),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, Ident: "lead", Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.0"},
+				resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonStepArgument),
 			},
 		},
 	}
@@ -266,22 +266,22 @@ func TestNgAutomationTriggerResolution(t *testing.T) {
 			"module constraint by ID and handle",
 			trigger("compose:record", constraint("module", "1001", "lead")),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonTriggerModule, Path: "Triggers.0.Constraints.0.Values.0"},
-				{Kind: resourceref.KindComposeModule, Ident: "lead", Reason: resourceref.ReasonTriggerModule, Path: "Triggers.0.Constraints.0.Values.1"},
+				resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonTriggerModule),
+				resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule),
 			},
 		},
 		{
 			"module.handle constraint accepted",
 			trigger("compose:record", constraint("module.handle", "lead")),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, Ident: "lead", Reason: resourceref.ReasonTriggerModule, Path: "Triggers.0.Constraints.0.Values.0"},
+				resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule),
 			},
 		},
 		{
 			"long-form resource type accepted",
 			trigger("corteza::compose:record", constraint("module", "1001")),
 			[]resourceref.Ref{
-				{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonTriggerModule, Path: "Triggers.0.Constraints.0.Values.0"},
+				resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonTriggerModule),
 			},
 		},
 		{
@@ -336,7 +336,7 @@ func TestNgAutomationResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindComposeModule, Ident: "lead-module", Reason: resourceref.ReasonTriggerModule, Path: "Triggers.0.Constraints.0.Values.0"},
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonTriggerModule, Path: "Triggers.0.Constraints.0.Values.1"},
+		resourceref.MakeIdent(resourceref.KindComposeModule, "lead-module", resourceref.ReasonTriggerModule),
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonTriggerModule),
 	}, a.ResourceRefs())
 }

@@ -1,37 +1,12 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/sql"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
-	Namespace struct {
-		ID        uint64        `json:"namespaceID,string"`
-		TenantID  uint64        `json:"tenantID,string,omitempty"`
-		ProjectID uint64        `json:"projectID,string,omitempty"`
-		Slug      string        `json:"slug"`
-		Enabled bool          `json:"enabled"`
-		Meta    NamespaceMeta `json:"meta"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-
-		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Name string `json:"name"`
-	}
+	// Namespace is the resource struct; it is generated into namespace.gen.go.
 
 	NamespaceFilter struct {
 		NamespaceID []string `json:"namespaceID"`
@@ -42,7 +17,7 @@ type (
 		Slug  string `json:"slug"`
 		Name  string `json:"name"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -110,6 +85,3 @@ func (set NamespaceSet) FindByHandle(handle string) *Namespace {
 
 	return nil
 }
-
-func (nm *NamespaceMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm NamespaceMeta) Value() (driver.Value, error) { return json.Marshal(nm) }

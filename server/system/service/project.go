@@ -6,7 +6,6 @@ import (
 	"time"
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
@@ -16,11 +15,7 @@ import (
 )
 
 type (
-	project struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        projectAccessController
-	}
+	// project struct + the Project() constructor are generated into project.gen.go.
 
 	projectAccessController interface {
 		CanCreateProject(ctx context.Context) bool
@@ -47,14 +42,6 @@ type (
 		RemoveMember(ctx context.Context, projectID, userID uint64) error
 	}
 )
-
-func Project() *project {
-	return &project{
-		ac:        DefaultAccessControl,
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-	}
-}
 
 func (svc *project) FindByID(ctx context.Context, ID uint64) (p *types.Project, err error) {
 	var paProps = &projectActionProps{project: &types.Project{ID: ID}}
@@ -358,50 +345,6 @@ func (svc *project) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, paProps, ProjectActionUndelete, err)
 }
 
-func (svc *project) Search(ctx context.Context, filter types.ProjectFilter) (set types.ProjectSet, f types.ProjectFilter, err error) {
-	var paProps = &projectActionProps{search: &filter}
-
-	filter.Check = func(res *types.Project) (bool, error) {
-		if !svc.ac.CanReadProject(ctx, res) {
-			return false, nil
-		}
-		return true, nil
-	}
-
-	err = func() error {
-		if !svc.ac.CanSearchProjects(ctx) {
-			return ProjectErrNotAllowedToSearch()
-		}
-
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Project{}.LabelResourceKind(),
-				filter.Labels,
-			)
-			if err != nil {
-				return err
-			}
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
-		if set, f, err = store.SearchProjects(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledProjects(set)...); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return set, f, svc.recordAction(ctx, paProps, ProjectActionSearch, err)
-}
-
 // --- members ---
 
 func (svc *project) SearchMembers(ctx context.Context, filter types.ProjectMemberFilter) (set types.ProjectMemberSet, f types.ProjectMemberFilter, err error) {
@@ -566,16 +509,7 @@ func friaRequired(d types.ProjectDeployerCategories) bool {
 	return d.PublicAuthorityAnnex3 || d.PrivateEssentialServices || d.InsuranceBanking
 }
 
-func toLabeledProjects(set types.ProjectSet) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-	return ll
-}
+// toLabeledProjects is generated into project.gen.go.
 
 func loadProject(ctx context.Context, s store.Projects, ID uint64) (res *types.Project, err error) {
 	if ID == 0 {

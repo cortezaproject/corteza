@@ -19,7 +19,7 @@ func TestAssembleProjectGraphIDRefs(t *testing.T) {
 			Load: staticGraphSources(
 				&GraphSource{ID: 1, Name: "Lead", Sensitivity: "internal"},
 				&GraphSource{ID: 2, Name: "Opportunity", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef, "Fields.lead.Options.ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
 				}},
 			),
 		},
@@ -54,7 +54,7 @@ func TestAssembleProjectGraphHandleResolution(t *testing.T) {
 			Kind:         "automation",
 			Load: staticGraphSources(
 				&GraphSource{ID: 5, Name: "Lead Scoring", Refs: []resourceref.Ref{
-					resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule, "Triggers.0.Constraints.0.Values.0"),
+					resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule),
 				}},
 			),
 		},
@@ -77,11 +77,11 @@ func TestAssembleProjectGraphExternalTarget(t *testing.T) {
 			Kind:         "module",
 			Load: staticGraphSources(
 				&GraphSource{ID: 1, Name: "Lead", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection, "Config.DAL.ConnectionID"),
+					resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection),
 				}},
 				// second ref to same connection must reuse the node and dedup the edge
 				&GraphSource{ID: 2, Name: "Quote", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection, "Config.DAL.ConnectionID"),
+					resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection),
 				}},
 			),
 		},
@@ -120,13 +120,13 @@ func TestAssembleProjectGraphMissingRefs(t *testing.T) {
 			Load: staticGraphSources(
 				&GraphSource{ID: 1, Name: "Lead", Refs: []resourceref.Ref{
 					// ID target absent, kind has no LoadOne
-					resourceref.Make(resourceref.KindComposeModule, 99, resourceref.ReasonModuleFieldRef, "Fields.a.Options.ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 99, resourceref.ReasonModuleFieldRef),
 					// handle resolves to nothing
-					resourceref.MakeIdent(resourceref.KindComposeModule, "ghost", resourceref.ReasonModuleFieldRef, "Fields.b.Options.ModuleID"),
+					resourceref.MakeIdent(resourceref.KindComposeModule, "ghost", resourceref.ReasonModuleFieldRef),
 					// target kind not registered at all
-					resourceref.Make(resourceref.KindLlmProvider, 7, resourceref.ReasonAgentLlmProvider, "Execution.Model.LLMProviderID"),
+					resourceref.Make(resourceref.KindLlmProvider, 7, resourceref.ReasonAgentLlmProvider),
 					// LoadOne returns nil (deleted resource)
-					resourceref.Make(resourceref.KindDalConnection, 41, resourceref.ReasonModuleConnection, "Config.DAL.ConnectionID"),
+					resourceref.Make(resourceref.KindDalConnection, 41, resourceref.ReasonModuleConnection),
 				}},
 			),
 		},
@@ -160,8 +160,8 @@ func TestAssembleProjectGraphEdgeDedup(t *testing.T) {
 				&GraphSource{ID: 1, Name: "Lead"},
 				// two fields referencing the same module collapse into one edge
 				&GraphSource{ID: 2, Name: "Opportunity", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef, "Fields.a.Options.ModuleID"),
-					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef, "Fields.b.Options.ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
+					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
 				}},
 			),
 		},
@@ -194,7 +194,7 @@ func TestAssembleProjectGraphDynamicWarnings(t *testing.T) {
 			Kind:         "automation",
 			Load: staticGraphSources(
 				&GraphSource{ID: 5, Name: "Scoring", Refs: []resourceref.Ref{
-					resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument, "Steps.0.Arguments.1"),
+					resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument),
 				}},
 			),
 		},
@@ -206,7 +206,7 @@ func TestAssembleProjectGraphDynamicWarnings(t *testing.T) {
 	require.Empty(t, g.Missing)
 
 	require.Equal(t, []*types.ProjectGraphWarning{
-		{SourceID: 5, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument, Path: "Steps.0.Arguments.1"},
+		{SourceID: 5, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument},
 	}, g.Warnings)
 }
 
@@ -285,7 +285,7 @@ func TestProjectGraphNgAutomationResolution(t *testing.T) {
 	}, g.Edges)
 
 	require.Equal(t, []*types.ProjectGraphWarning{
-		{SourceID: 500, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument, Path: "Steps.2.Arguments.0"},
+		{SourceID: 500, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument},
 	}, g.Warnings)
 
 	require.Equal(t, []*types.ProjectGraphMissingRef{
@@ -312,7 +312,7 @@ func TestProjectGraphMockDataset(t *testing.T) {
 
 	// dynamic step argument surfaces as warning, not edge
 	require.Equal(t, []*types.ProjectGraphWarning{
-		{SourceID: 5001, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument, Path: "Steps.4.Arguments.0"},
+		{SourceID: 5001, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument},
 	}, g.Warnings)
 
 	byID := make(map[uint64]*types.ProjectGraphNode)

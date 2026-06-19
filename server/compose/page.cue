@@ -178,6 +178,13 @@ page: {
 		}
 	}
 
+	refs: {
+		items: [
+			{path: "ModuleID", kind: "KindComposeModule", reason: "ReasonPageModule"},
+		]
+		extended: true
+	}
+
 	service: {
 		// namespace-scoped compound-id resource: FindByID/DeleteByID/UndeleteByID
 		// and their on<Op> hooks take the parent namespaceID as a leading arg.

@@ -25,13 +25,13 @@ func TestAgentResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindKnowledgeBase, ID: 901, Reason: resourceref.ReasonAgentKnowledgeBase, Path: "Behavior.KnowledgeBases.0"},
-		{Kind: resourceref.KindKnowledgeBase, ID: 902, Reason: resourceref.ReasonAgentKnowledgeBase, Path: "Behavior.KnowledgeBases.1"},
-		{Kind: resourceref.KindLlmProvider, ID: 700, Reason: resourceref.ReasonAgentLlmProvider, Path: "Execution.Model.LLMProviderID"},
-		{Kind: resourceref.KindNgAutomation, ID: 501, Reason: resourceref.ReasonAgentAutomation, Path: "Access.TAQs.0.ID"},
-		{Kind: resourceref.KindAutomationWorkflow, ID: 601, Reason: resourceref.ReasonAgentAutomation, Path: "Access.Workflows.0.ID"},
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonAgentModule, Path: "Access.Tools.0.Allow.0.ModuleIDs.0"},
-		{Kind: resourceref.KindComposeModule, ID: 1002, Reason: resourceref.ReasonAgentModule, Path: "Access.Tools.0.Allow.0.ModuleIDs.1"},
+		resourceref.Make(resourceref.KindKnowledgeBase, 901, resourceref.ReasonAgentKnowledgeBase),
+		resourceref.Make(resourceref.KindKnowledgeBase, 902, resourceref.ReasonAgentKnowledgeBase),
+		resourceref.Make(resourceref.KindLlmProvider, 700, resourceref.ReasonAgentLlmProvider),
+		resourceref.Make(resourceref.KindNgAutomation, 501, resourceref.ReasonAgentAutomation),
+		resourceref.Make(resourceref.KindAutomationWorkflow, 601, resourceref.ReasonAgentAutomation),
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonAgentModule),
+		resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonAgentModule),
 	}, a.ResourceRefs())
 }
 
@@ -58,9 +58,9 @@ func TestChatbotResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindNgAutomation, ID: 77, Reason: resourceref.ReasonChatbotAutomation, Path: "Handoff.Automation.OnRequested.Automation"},
-		{Kind: resourceref.KindAgent, ID: 333, Reason: resourceref.ReasonChatbotAgent, Path: "Scenarios.0.AgentID"},
-		{Kind: resourceref.KindNgAutomation, ID: 88, Reason: resourceref.ReasonChatbotAutomation, Path: "Scenarios.0.Automation.Before.Automation"},
+		resourceref.Make(resourceref.KindNgAutomation, 77, resourceref.ReasonChatbotAutomation),
+		resourceref.Make(resourceref.KindAgent, 333, resourceref.ReasonChatbotAgent),
+		resourceref.Make(resourceref.KindNgAutomation, 88, resourceref.ReasonChatbotAutomation),
 	}, c.ResourceRefs())
 }
 
@@ -76,7 +76,7 @@ func TestKnowledgeBaseResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonKnowledgeBaseModule, Path: "Context.Namespaces.0.ModuleIDs.0"},
-		{Kind: resourceref.KindComposeModule, ID: 1002, Reason: resourceref.ReasonKnowledgeBaseModule, Path: "Context.Namespaces.0.ModuleIDs.1"},
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonKnowledgeBaseModule),
+		resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonKnowledgeBaseModule),
 	}, kb.ResourceRefs())
 }

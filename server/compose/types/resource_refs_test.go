@@ -19,8 +19,8 @@ func TestModuleResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindDalConnection, ID: 42, Reason: resourceref.ReasonModuleConnection, Path: "Config.DAL.ConnectionID"},
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonModuleFieldRef, Path: "Fields.lead.Options.ModuleID"},
+		resourceref.Make(resourceref.KindDalConnection, 42, resourceref.ReasonModuleConnection),
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonModuleFieldRef),
 	}, m.ResourceRefs())
 }
 
@@ -33,12 +33,12 @@ func TestModuleFieldResourceRefs(t *testing.T) {
 		{
 			"ID ref",
 			ModuleFieldOptions{"moduleID": "1001"},
-			[]resourceref.Ref{{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonModuleFieldRef, Path: "Options.ModuleID"}},
+			[]resourceref.Ref{resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonModuleFieldRef)},
 		},
 		{
 			"handle ref",
 			ModuleFieldOptions{"moduleID": "lead-module"},
-			[]resourceref.Ref{{Kind: resourceref.KindComposeModule, Ident: "lead-module", Reason: resourceref.ReasonModuleFieldRef, Path: "Options.ModuleID"}},
+			[]resourceref.Ref{resourceref.MakeIdent(resourceref.KindComposeModule, "lead-module", resourceref.ReasonModuleFieldRef)},
 		},
 		{"empty", ModuleFieldOptions{}, nil},
 		{"zero", ModuleFieldOptions{"moduleID": "0"}, nil},
@@ -64,8 +64,8 @@ func TestChartResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonChartModule, Path: "Config.Reports.0.ModuleID"},
-		{Kind: resourceref.KindComposeModule, ID: 1002, Reason: resourceref.ReasonChartModule, Path: "Config.Reports.3.ModuleID"},
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonChartModule),
+		resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonChartModule),
 	}, c.ResourceRefs())
 }
 
@@ -98,12 +98,12 @@ func TestPageResourceRefs(t *testing.T) {
 	}
 
 	require.Equal(t, []resourceref.Ref{
-		{Kind: resourceref.KindComposeModule, ID: 1001, Reason: resourceref.ReasonPageModule, Path: "ModuleID"},
-		{Kind: resourceref.KindComposeModule, ID: 1002, Reason: resourceref.ReasonPageModule, Path: "Blocks.0.Options.ModuleID"},
-		{Kind: resourceref.KindComposeChart, ID: 3001, Reason: resourceref.ReasonPageChart, Path: "Blocks.1.Options.ChartID"},
-		{Kind: resourceref.KindComposeModule, ID: 1003, Reason: resourceref.ReasonPageModule, Path: "Blocks.2.Options.feeds.0.ModuleID"},
-		{Kind: resourceref.KindComposeModule, ID: 1004, Reason: resourceref.ReasonPageModule, Path: "Blocks.3.Options.metrics.0.ModuleID"},
-		{Kind: resourceref.KindComposeModule, ID: 1005, Reason: resourceref.ReasonPageModule, Path: "Blocks.4.Options.value.ModuleID"},
-		{Kind: resourceref.KindAutomationWorkflow, ID: 5001, Reason: resourceref.ReasonPageWorkflow, Path: "Blocks.5.Options.buttons.0.WorkflowID"},
+		resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonPageModule),
+		resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonPageModule),
+		resourceref.Make(resourceref.KindComposeChart, 3001, resourceref.ReasonPageChart),
+		resourceref.Make(resourceref.KindComposeModule, 1003, resourceref.ReasonPageModule),
+		resourceref.Make(resourceref.KindComposeModule, 1004, resourceref.ReasonPageModule),
+		resourceref.Make(resourceref.KindComposeModule, 1005, resourceref.ReasonPageModule),
+		resourceref.Make(resourceref.KindAutomationWorkflow, 5001, resourceref.ReasonPageWorkflow),
 	}, p.ResourceRefs())
 }

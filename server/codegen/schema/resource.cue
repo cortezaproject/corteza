@@ -111,6 +111,12 @@ import (
 		resourceExpIdent: expIdent
 	}
 
+	// refs declares cross-resource references emitted by ResourceRefs().
+	// Drives $component_resource_refs.go.tpl; generates one file per resource
+	// that declares this block. Complex refs (nested loops, conditional logic)
+	// are delegated to a hand-written resourceRefsExt via extended:true.
+	refs?: #ResourceRefs
+
 	// types codegen: generate the resource struct from the model into
 	// <comp>/types/<snake>.gen.go. Struct fields come from model.attributes
 	// (+ a Labels field when features.labels); nested types, the Filter, the Set,

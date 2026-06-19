@@ -15,17 +15,18 @@ import (
 )
 
 type Namespace struct {
-	ID        uint64                           `json:"namespaceID,string"`
-	TenantID  uint64                           `json:"tenantID,string,omitempty"`
-	ProjectID uint64                           `json:"projectID,string,omitempty"`
-	Slug      string                           `json:"slug"`
-	Enabled   bool                             `json:"enabled"`
-	Meta      NamespaceMeta                    `json:"meta"`
-	Name      string                           `json:"name"`
-	CreatedAt time.Time                        `json:"createdAt,omitempty"`
-	UpdatedAt *time.Time                       `json:"updatedAt,omitempty"`
-	DeletedAt *time.Time                       `json:"deletedAt,omitempty"`
-	Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+	ID             uint64                           `json:"namespaceID,string"`
+	TenantID       uint64                           `json:"tenantID,string,omitempty"`
+	ProjectID      uint64                           `json:"projectID,string,omitempty"`
+	Slug           string                           `json:"slug"`
+	Enabled        bool                             `json:"enabled"`
+	Meta           NamespaceMeta                    `json:"meta"`
+	Name           string                           `json:"name"`
+	CreatedAt      time.Time                        `json:"createdAt,omitempty"`
+	UpdatedAt      *time.Time                       `json:"updatedAt,omitempty"`
+	DeletedAt      *time.Time                       `json:"deletedAt,omitempty"`
+	CreatedByAgent uint64                           `json:"createdByAgent,string,omitempty"`
+	Labels         map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
 func (m *NamespaceMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }

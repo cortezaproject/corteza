@@ -147,13 +147,13 @@ func toEnvoyRefs(rr []resourceref.Ref) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, len(rr))
 
 	for _, r := range rr {
-		var ident any = r.Ident
-		if r.ID > 0 {
-			ident = r.ID
+		var ident any = r.Label
+		if id := r.ID(); id > 0 {
+			ident = id
 		}
 
-		refs[r.Path] = envoyx.Ref{
-			ResourceType: r.Kind,
+		refs[r.Resource] = envoyx.Ref{
+			ResourceType: r.Kind(),
 			Identifiers:  envoyx.MakeIdentifiers(ident),
 		}
 	}

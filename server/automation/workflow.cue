@@ -154,6 +154,10 @@ workflow: {
 		}
 	}
 
+	refs: {
+		extended: true
+	}
+
 	service: {
 		events:   false
 

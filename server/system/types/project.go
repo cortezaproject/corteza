@@ -1,41 +1,12 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-	"github.com/crusttech/human/server/pkg/sql"
 )
 
 type (
-	// Project is a secondary isolation unit that belongs to exactly one tenant.
-	//
-	// TenantID is carried for the multi-tenancy model but is not yet wired into
-	// scope routing; it defaults to 0 until tenant scoping lands.
-	Project struct {
-		ID       uint64        `json:"projectID,string"`
-		TenantID uint64        `json:"tenantID,string,omitempty"`
-		Handle   string        `json:"handle"`
-		Status   ProjectStatus `json:"status"`
-
-		Config ProjectConfig `json:"config"`
-		Meta   ProjectMeta   `json:"meta"`
-
-		// Governance tracks the per-step build/approval workflow state.
-		Governance ProjectGovernance `json:"governance"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
+	// Project is the resource struct; it is generated into project.gen.go.
 
 	ProjectFilter struct {
 		ProjectID []string      `json:"projectID"`
@@ -155,24 +126,4 @@ const (
 // Valid reports whether m is a known build mode.
 func (m ProjectMode) Valid() bool {
 	return m == ProjectModeFree || m == ProjectModeGated
-}
-
-func (m *ProjectConfig) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ProjectConfig) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func (m *ProjectMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ProjectMeta) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func ParseProjectConfig(ss []string) (p ProjectConfig, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseProjectMeta(ss []string) (p ProjectMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
 }

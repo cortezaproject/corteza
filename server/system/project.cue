@@ -96,14 +96,15 @@ project: {
 
 		events:   false
 
+		// Only Search (+ the struct/ctor via genConstructor) is generated.
+		// FindByID/FindByHandle, Create, Update, DeleteByID (namespace-cascade),
+		// UndeleteByID and the member ops are bespoke and stay hand-written in
+		// project.go.
 		lookup:   false
+		create:   false
 		update:   false
+		delete:   false
 		undelete: false
-
-		hooks: {
-			beforeCreate: true
-			beforeDelete: true
-		}
 	}
 
 	store: {

@@ -136,12 +136,11 @@ func assembleProjectGraph(ctx context.Context, projectID uint64, registry []*Gra
 	seen := make(map[edgeKey]bool)
 	for _, ls := range sources {
 		for _, ref := range ls.src.Refs {
-			if ref.Dynamic {
+			if ref.Unresolved {
 				g.Warnings = append(g.Warnings, &types.ProjectGraphWarning{
 					SourceID: ls.src.ID,
-					Kind:     ref.Kind,
+					Kind:     ref.Kind(),
 					Reason:   ref.Reason,
-					Path:     ref.Path,
 				})
 				continue
 			}
@@ -149,24 +148,24 @@ func assembleProjectGraph(ctx context.Context, projectID uint64, registry []*Gra
 			miss := func() {
 				g.Missing = append(g.Missing, &types.ProjectGraphMissingRef{
 					SourceID:    ls.src.ID,
-					Kind:        ref.Kind,
-					TargetID:    ref.ID,
-					TargetIdent: ref.Ident,
+					Kind:        ref.Kind(),
+					TargetID:    ref.ID(),
+					TargetIdent: ref.Label,
 					Reason:      ref.Reason,
 				})
 			}
 
-			targetID := ref.ID
+			targetID := ref.ID()
 			if targetID == 0 {
-				targetID = handles[ref.Kind][ref.Ident]
+				targetID = handles[ref.Kind()][ref.Label]
 			}
 			if targetID == 0 {
 				miss()
 				continue
 			}
 
-			if !nodes[nodeKey{ref.Kind, targetID}] {
-				k := kinds[ref.Kind]
+			if !nodes[nodeKey{ref.Kind(), targetID}] {
+				k := kinds[ref.Kind()]
 				if k == nil || k.LoadOne == nil {
 					miss()
 					continue
@@ -215,14 +214,14 @@ func mockProjectGraphRegistry() []*GraphKind {
 			Kind:         "module",
 			Load: staticGraphSources(
 				&GraphSource{ID: 1001, Name: "Lead", Handle: "lead", Sensitivity: "internal", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindDalConnection, 4001, resourceref.ReasonModuleConnection, "Config.DAL.ConnectionID"),
+					resourceref.Make(resourceref.KindDalConnection, 4001, resourceref.ReasonModuleConnection),
 				}},
 				&GraphSource{ID: 1002, Name: "Opportunity", Handle: "opportunity", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonModuleFieldRef, "Fields.lead.Options.ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonModuleFieldRef),
 				}},
 				&GraphSource{ID: 1003, Name: "Quote", Handle: "quote", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonModuleFieldRef, "Fields.opportunity.Options.ModuleID"),
-					resourceref.Make(resourceref.KindDalConnection, 4002, resourceref.ReasonModuleConnection, "Config.DAL.ConnectionID"),
+					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonModuleFieldRef),
+					resourceref.Make(resourceref.KindDalConnection, 4002, resourceref.ReasonModuleConnection),
 				}},
 			),
 		},
@@ -231,10 +230,10 @@ func mockProjectGraphRegistry() []*GraphKind {
 			Kind:         "page",
 			Load: staticGraphSources(
 				&GraphSource{ID: 2001, Name: "Lead List", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonPageModule, "ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 1001, resourceref.ReasonPageModule),
 				}},
 				&GraphSource{ID: 2002, Name: "Opportunity Board", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonPageModule, "ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonPageModule),
 				}},
 			),
 		},
@@ -243,7 +242,7 @@ func mockProjectGraphRegistry() []*GraphKind {
 			Kind:         "chart",
 			Load: staticGraphSources(
 				&GraphSource{ID: 3001, Name: "Pipeline Forecast", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonChartModule, "Config.Reports.0.ModuleID"),
+					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonChartModule),
 				}},
 			),
 		},
@@ -263,9 +262,9 @@ func mockProjectGraphRegistry() []*GraphKind {
 				// reference modules by handle); dynamic ref exercises the
 				// runtime-resolved-argument warning
 				&GraphSource{ID: 5001, Name: "Lead Scoring", Refs: []resourceref.Ref{
-					resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule, "Triggers.0.Constraints.0.Values.0"),
-					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonStepArgument, "Steps.2.Arguments.0"),
-					resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument, "Steps.4.Arguments.0"),
+					resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule),
+					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonStepArgument),
+					resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument),
 				}},
 			),
 		},
@@ -274,7 +273,7 @@ func mockProjectGraphRegistry() []*GraphKind {
 			Kind:         "agent",
 			Load: staticGraphSources(
 				&GraphSource{ID: 6001, Name: "Sales Assistant", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonAgentModule, "Access.Tools.0.Allow.0.ModuleIDs.0"),
+					resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonAgentModule),
 				}},
 			),
 		},
@@ -283,7 +282,7 @@ func mockProjectGraphRegistry() []*GraphKind {
 			Kind:         "chatbot",
 			Load: staticGraphSources(
 				&GraphSource{ID: 7001, Name: "Support Bot", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindAgent, 6001, resourceref.ReasonChatbotAgent, "Scenarios.0.AgentID"),
+					resourceref.Make(resourceref.KindAgent, 6001, resourceref.ReasonChatbotAgent),
 				}},
 			),
 		},

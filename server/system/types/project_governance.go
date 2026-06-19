@@ -1,12 +1,5 @@
 package types
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-
-	"github.com/crusttech/human/server/pkg/sql"
-)
-
 type (
 	// ProjectGovernance tracks per-step workflow state of the project build
 	// pipeline, keyed by step key (e.g. "summary", "data-sensitivity"). The
@@ -99,6 +92,3 @@ func (s *ProjectGovernanceStep) Transition(action ProjectGovernanceAction, note 
 func (s *ProjectGovernanceStep) Editable() bool {
 	return s.Status == ProjectGovernanceStatusDraft || s.Status == ProjectGovernanceStatusChangesRequested
 }
-
-func (g *ProjectGovernance) Scan(src any) error          { return sql.ParseJSON(src, g) }
-func (g ProjectGovernance) Value() (driver.Value, error) { return json.Marshal(g) }

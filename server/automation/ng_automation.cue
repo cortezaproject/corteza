@@ -134,6 +134,10 @@ ng_automation: {
 		}
 	}
 
+	refs: {
+		extended: true
+	}
+
 	service: {
 		events: false
 

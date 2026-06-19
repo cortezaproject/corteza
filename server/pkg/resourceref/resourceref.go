@@ -2,44 +2,24 @@ package resourceref
 
 import (
 	"strconv"
+	"strings"
 )
 
-type (
-	// Ref describes a configuration-level reference from one resource to another
-	//
-	// Extractors living next to resource type definitions emit Refs; consumers
-	// (dependency graph assembly, envoy decoders, ...) resolve and interpret them.
-	Ref struct {
-		// Kind of the referenced resource (see Kind* constants)
-		Kind string
+type Ref struct {
+	// "corteza::component:kind/id" for ID refs, "corteza::component:kind" for label/unresolved
+	Resource string
 
-		// ID of the referenced resource when the configuration holds a concrete ID
-		ID uint64
+	// textual handle when the config references by something other than an ID
+	Label string
 
-		// Ident holds a textual identifier (handle) when the configuration
-		// references the resource by something other than an ID
-		Ident string
+	Reason string
 
-		// Reason classifies the dependency (see Reason* constants)
-		Reason string
+	// target only known at runtime; surface as warning, not edge
+	Unresolved bool
+}
 
-		// Path points to the location inside the source resource's
-		// configuration where the reference was found
-		Path string
-
-		// Dynamic marks a reference whose target is only known at runtime
-		// (computed step arguments, scope variables); no ID/Ident is set and
-		// consumers should surface these as warnings, not edges
-		Dynamic bool
-	}
-)
-
-// Resource kinds; values mirror the generated *ResourceType constants
-// (see {compose,system,automation}/types/resources.gen.go).
-//
-// Duplicated here so resource type packages can emit cross-component refs
-// without importing each other (would cause import cycles; e.g. system/types
-// can not import automation/types).
+// Kind constants mirror *ResourceType constants in {compose,system,automation}/types/resources.gen.go.
+// Duplicated here to avoid import cycles between component type packages.
 const (
 	KindComposeNamespace = "corteza::compose:namespace"
 	KindComposeModule    = "corteza::compose:module"
@@ -58,7 +38,6 @@ const (
 	KindTemplate             = "corteza::system:template"
 )
 
-// Dependency reasons
 const (
 	ReasonModuleFieldRef      = "module-field-ref"
 	ReasonModuleConnection    = "module-connection"
@@ -79,48 +58,53 @@ const (
 	ReasonStepConnection      = "step-connection"
 )
 
-// Make returns an ID-based Ref; zero ID yields an empty Ref (dropped by Append)
-func Make(kind string, id uint64, reason, path string) Ref {
+func Make(kind string, id uint64, reason string) Ref {
 	if id == 0 {
 		return Ref{}
 	}
-
-	return Ref{Kind: kind, ID: id, Reason: reason, Path: path}
+	return Ref{Resource: kind + "/" + strconv.FormatUint(id, 10), Reason: reason}
 }
 
-// MakeIdent returns a Ref from a textual identifier; numeric identifiers are
-// parsed into the ID field, anything else is kept as Ident
-func MakeIdent(kind, ident, reason, path string) Ref {
+func MakeIdent(kind, ident, reason string) Ref {
 	if ident == "" || ident == "0" {
 		return Ref{}
 	}
-
 	if id, err := strconv.ParseUint(ident, 10, 64); err == nil {
-		return Ref{Kind: kind, ID: id, Reason: reason, Path: path}
+		return Ref{Resource: kind + "/" + strconv.FormatUint(id, 10), Reason: reason}
 	}
-
-	return Ref{Kind: kind, Ident: ident, Reason: reason, Path: path}
+	return Ref{Resource: kind, Label: ident, Reason: reason}
 }
 
-// MakeDynamic returns a Ref for a runtime-resolved reference; kind may be
-// empty when even the target kind can not be determined from the config
-func MakeDynamic(kind, reason, path string) Ref {
-	return Ref{Kind: kind, Reason: reason, Path: path, Dynamic: true}
+func MakeDynamic(kind, reason string) Ref {
+	return Ref{Resource: kind, Reason: reason, Unresolved: true}
 }
 
-// Append appends the given refs to out, dropping empty ones
 func Append(out []Ref, rr ...Ref) []Ref {
 	for _, r := range rr {
 		if r.IsEmpty() {
 			continue
 		}
-
 		out = append(out, r)
 	}
-
 	return out
 }
 
+func (r Ref) Kind() string {
+	if i := strings.Index(r.Resource, "/"); i >= 0 {
+		return r.Resource[:i]
+	}
+	return r.Resource
+}
+
+func (r Ref) ID() uint64 {
+	i := strings.LastIndex(r.Resource, "/")
+	if i < 0 || i == len(r.Resource)-1 {
+		return 0
+	}
+	id, _ := strconv.ParseUint(r.Resource[i+1:], 10, 64)
+	return id
+}
+
 func (r Ref) IsEmpty() bool {
-	return r.ID == 0 && r.Ident == "" && !r.Dynamic
+	return r.Resource == "" && r.Label == "" && !r.Unresolved
 }

@@ -1,49 +1,18 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/cast2"
 	"github.com/crusttech/human/server/pkg/locale"
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
-	PageLayout struct {
-		ID          uint64 `json:"pageLayoutID,string"`
-		TenantID    uint64 `json:"tenantID,string,omitempty"`
-		ProjectID   uint64 `json:"projectID,string,omitempty"`
-		NamespaceID uint64 `json:"namespaceID,string"`
-		PageID      uint64 `json:"pageID,string"`
-		ParentID    uint64 `json:"parentID,string"`
-		Handle      string `json:"handle"`
-		Primary     bool   `json:"primary"`
-
-		Weight int `json:"weight"`
-
-		Meta PageLayoutMeta `json:"meta,omitempty"`
-
-		Config PageLayoutConfig `json:"config"`
-		Blocks PageLayoutBlocks `json:"blocks,omitempty"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		OwnedBy uint64 `json:"ownedBy,string"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-
-		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
-	}
+	// PageLayout is the resource struct; it is generated into page_layout.gen.go.
 
 	PageLayoutBlocks []PageLayoutBlock
 
@@ -141,7 +110,7 @@ type (
 		Name         string   `json:"name"`
 		Query        string   `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -264,12 +233,3 @@ func (r *PageLayout) setValue(name string, pos uint, value any) (err error) {
 	}
 	return nil
 }
-
-func (bb *PageLayoutConfig) Scan(src any) error          { return sql.ParseJSON(src, &bb) }
-func (bb PageLayoutConfig) Value() (driver.Value, error) { return json.Marshal(bb) }
-
-func (vv *PageLayoutMeta) Scan(src any) error          { return sql.ParseJSON(src, &vv) }
-func (vv PageLayoutMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
-
-func (bb *PageLayoutBlocks) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageLayoutBlocks) Value() (driver.Value, error) { return json.Marshal(bb) }

@@ -118,6 +118,10 @@ chatbot: {
 		}
 	}
 
+	refs: {
+		extended: true
+	}
+
 	service: {
 		genAccessController: true
 		genConstructor:      true

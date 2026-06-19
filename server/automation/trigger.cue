@@ -136,6 +136,13 @@ trigger: {
 		byFalseState: ["disabled"]
 	}
 
+	refs: {
+		items: [
+			{path: "WorkflowID", kind: "KindAutomationWorkflow", reason: "ReasonTriggerWorkflow"},
+		]
+		extended: true
+	}
+
 	service: {
 		// no eventbus Before/After CRUD events
 		events: false

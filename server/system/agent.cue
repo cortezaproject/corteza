@@ -127,6 +127,16 @@ agent: {
 		customBodyOps: ["lookup", "search", "create", "update"]
 	}
 
+	refs: {
+		items: [
+			{path: "Behavior.KnowledgeBases",        kind: "KindKnowledgeBase",      reason: "ReasonAgentKnowledgeBase", iter: "sliceID"},
+			{path: "Execution.Model.LLMProviderID",  kind: "KindLlmProvider",         reason: "ReasonAgentLlmProvider"},
+			{path: "Access.TAQs",                    kind: "KindNgAutomation",         reason: "ReasonAgentAutomation",    iter: "sliceField"},
+			{path: "Access.Workflows",               kind: "KindAutomationWorkflow",   reason: "ReasonAgentAutomation",    iter: "sliceField"},
+		]
+		extended: true
+	}
+
 	envoy: {
 		omit: true
 	}

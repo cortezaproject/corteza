@@ -28,21 +28,6 @@ func Label() LabelService {
 	}
 }
 
-// Delete removes every label entry matching the given name (optionally scoped
-// to a resource kind), across all resources.
-func (svc labelSvc) Delete(ctx context.Context, name, kind string) (err error) {
-	set, _, err := store.SearchLabels(ctx, svc.store, types.LabelFilter{Name: name, Kind: kind})
-	if err != nil {
-		return err
-	}
-
-	if len(set) == 0 {
-		return nil
-	}
-
-	return store.DeleteLabel(ctx, svc.store, set...)
-}
-
 func (svc labelSvc) List(ctx context.Context, f types.LabelFilter) (set types.LabelSet, outF types.LabelFilter, err error) {
 	set, outF, err = store.SearchLabels(ctx, svc.store, f)
 	if err != nil {

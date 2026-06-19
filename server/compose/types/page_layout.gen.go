@@ -15,23 +15,24 @@ import (
 )
 
 type PageLayout struct {
-	ID          uint64                           `json:"pageLayoutID,string"`
-	TenantID    uint64                           `json:"tenantID,string,omitempty"`
-	ProjectID   uint64                           `json:"projectID,string,omitempty"`
-	Handle      string                           `json:"handle"`
-	Primary     bool                             `json:"primary"`
-	PageID      uint64                           `json:"pageID,string"`
-	ParentID    uint64                           `json:"parentID,string"`
-	NamespaceID uint64                           `json:"namespaceID,string"`
-	Weight      int                              `json:"weight"`
-	Meta        PageLayoutMeta                   `json:"meta,omitempty"`
-	Config      PageLayoutConfig                 `json:"config"`
-	Blocks      PageLayoutBlocks                 `json:"blocks,omitempty"`
-	OwnedBy     uint64                           `json:"ownedBy,string"`
-	CreatedAt   time.Time                        `json:"createdAt,omitempty"`
-	UpdatedAt   *time.Time                       `json:"updatedAt,omitempty"`
-	DeletedAt   *time.Time                       `json:"deletedAt,omitempty"`
-	Labels      map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+	ID             uint64                           `json:"pageLayoutID,string"`
+	TenantID       uint64                           `json:"tenantID,string,omitempty"`
+	ProjectID      uint64                           `json:"projectID,string,omitempty"`
+	Handle         string                           `json:"handle"`
+	Primary        bool                             `json:"primary"`
+	PageID         uint64                           `json:"pageID,string"`
+	ParentID       uint64                           `json:"parentID,string"`
+	NamespaceID    uint64                           `json:"namespaceID,string"`
+	Weight         int                              `json:"weight"`
+	Meta           PageLayoutMeta                   `json:"meta,omitempty"`
+	Config         PageLayoutConfig                 `json:"config"`
+	Blocks         PageLayoutBlocks                 `json:"blocks,omitempty"`
+	OwnedBy        uint64                           `json:"ownedBy,string"`
+	CreatedAt      time.Time                        `json:"createdAt,omitempty"`
+	UpdatedAt      *time.Time                       `json:"updatedAt,omitempty"`
+	DeletedAt      *time.Time                       `json:"deletedAt,omitempty"`
+	CreatedByAgent uint64                           `json:"createdByAgent,string,omitempty"`
+	Labels         map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
 func (m *PageLayoutMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }

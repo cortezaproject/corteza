@@ -80,6 +80,10 @@ knowledge_base: {
 		}
 	}
 
+	refs: {
+		extended: true
+	}
+
 	service: {
 		genAccessController: true
 		genConstructor:      true

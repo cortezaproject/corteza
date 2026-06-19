@@ -15,25 +15,26 @@ import (
 )
 
 type Page struct {
-	ID          uint64                           `json:"pageID,string"`
-	TenantID    uint64                           `json:"tenantID,string,omitempty"`
-	ProjectID   uint64                           `json:"projectID,string,omitempty"`
-	Title       string                           `json:"title"`
-	Handle      string                           `json:"handle"`
-	SelfID      uint64                           `json:"selfID,string"`
-	ModuleID    uint64                           `json:"moduleID,string"`
-	NamespaceID uint64                           `json:"namespaceID,string"`
-	Meta        PageMeta                         `json:"meta"`
-	Config      PageConfig                       `json:"config"`
-	Blocks      PageBlocks                       `json:"blocks"`
-	Children    PageSet                          `json:"children,omitempty"`
-	Visible     bool                             `json:"visible"`
-	Weight      int                              `json:"weight"`
-	Description string                           `json:"description"`
-	CreatedAt   time.Time                        `json:"createdAt,omitempty"`
-	UpdatedAt   *time.Time                       `json:"updatedAt,omitempty"`
-	DeletedAt   *time.Time                       `json:"deletedAt,omitempty"`
-	Labels      map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+	ID             uint64                           `json:"pageID,string"`
+	TenantID       uint64                           `json:"tenantID,string,omitempty"`
+	ProjectID      uint64                           `json:"projectID,string,omitempty"`
+	Title          string                           `json:"title"`
+	Handle         string                           `json:"handle"`
+	SelfID         uint64                           `json:"selfID,string"`
+	ModuleID       uint64                           `json:"moduleID,string"`
+	NamespaceID    uint64                           `json:"namespaceID,string"`
+	Meta           PageMeta                         `json:"meta"`
+	Config         PageConfig                       `json:"config"`
+	Blocks         PageBlocks                       `json:"blocks"`
+	Children       PageSet                          `json:"children,omitempty"`
+	Visible        bool                             `json:"visible"`
+	Weight         int                              `json:"weight"`
+	Description    string                           `json:"description"`
+	CreatedAt      time.Time                        `json:"createdAt,omitempty"`
+	UpdatedAt      *time.Time                       `json:"updatedAt,omitempty"`
+	DeletedAt      *time.Time                       `json:"deletedAt,omitempty"`
+	CreatedByAgent uint64                           `json:"createdByAgent,string,omitempty"`
+	Labels         map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
 func (m *PageMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }

@@ -116,6 +116,10 @@ moduleField: {
 		}
 	}
 
+	refs: {
+		extended: true
+	}
+
 	filter: {
 		struct: {
 			tenant_id:  schema.TenantFilterField

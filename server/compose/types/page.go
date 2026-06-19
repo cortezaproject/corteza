@@ -1,63 +1,20 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/crusttech/human/server/pkg/sql"
 	"github.com/modern-go/reflect2"
 
 	"github.com/crusttech/human/server/pkg/filter"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/spf13/cast"
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
-	Page struct {
-		ID        uint64 `json:"pageID,string"`
-		TenantID  uint64 `json:"tenantID,string,omitempty"`
-		ProjectID uint64 `json:"projectID,string,omitempty"`
-		SelfID    uint64 `json:"selfID,string"`
-
-		NamespaceID uint64 `json:"namespaceID,string"`
-
-		ModuleID uint64 `json:"moduleID,string"`
-
-		Handle string `json:"handle"`
-
-		Config PageConfig `json:"config"`
-		Blocks PageBlocks `json:"blocks"`
-
-		Meta PageMeta `json:"meta"`
-
-		Children PageSet `json:"children,omitempty"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		Visible bool `json:"visible"`
-		Weight  int  `json:"weight"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-
-		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Title string `json:"title"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Description string `json:"description"`
-	}
+	// Page is the resource struct; it is generated into page.gen.go.
 
 	PageBlocks []PageBlock
 
@@ -82,8 +39,8 @@ type (
 	}
 
 	PageMeta struct {
-		AllowPersonalLayouts bool `json:"allowPersonalLayouts"`
-		Notifications map[string]any `json:"notifications,omitempty"`
+		AllowPersonalLayouts bool           `json:"allowPersonalLayouts"`
+		Notifications        map[string]any `json:"notifications,omitempty"`
 	}
 
 	PageBlockStyle struct {
@@ -145,7 +102,7 @@ type (
 		Title       string   `json:"title"`
 		Query       string   `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -440,12 +397,6 @@ func (set PageSet) FindByHandle(handle string) *Page {
 	return nil
 }
 
-func (bb *PageBlocks) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageBlocks) Value() (driver.Value, error) { return json.Marshal(bb) }
-
-func (bb *PageMeta) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageMeta) Value() (driver.Value, error) { return json.Marshal(bb) }
-
 // Helper to extract old encoding to new one
 func (b *PageBlock) UnmarshalJSON(data []byte) (err error) {
 	type internalPageBlock PageBlock
@@ -507,6 +458,3 @@ func (set PageSet) RecursiveWalk(parent *Page, fn func(c *Page, parent *Page) er
 
 	return
 }
-
-func (bb *PageConfig) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageConfig) Value() (driver.Value, error) { return json.Marshal(bb) }

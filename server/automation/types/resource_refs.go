@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -9,86 +8,80 @@ import (
 	"github.com/spf13/cast"
 )
 
-// ResourceRefs returns configuration-level references to other resources
-func (t Trigger) ResourceRefs() (out []resourceref.Ref) {
-	out = resourceref.Append(out, resourceref.Make(
-		resourceref.KindAutomationWorkflow,
-		t.WorkflowID,
-		resourceref.ReasonTriggerWorkflow,
-		"WorkflowID",
-	))
-
-	for i, c := range t.Constraints {
+// resourceRefsExt extends the generated Trigger.ResourceRefs() with the
+// Constraints module-scope refs that require an isModuleConstraint check.
+func (t Trigger) resourceRefsExt(out []resourceref.Ref) []resourceref.Ref {
+	for _, c := range t.Constraints {
 		if c == nil || !isModuleConstraint(t.ResourceType, c.Name) {
 			continue
 		}
 
-		for j, v := range c.Values {
+		for _, v := range c.Values {
 			out = resourceref.Append(out, resourceref.MakeIdent(
 				resourceref.KindComposeModule,
 				v,
 				resourceref.ReasonTriggerModule,
-				fmt.Sprintf("Constraints.%d.Values.%d", i, j),
 			))
 		}
 	}
 
-	return
+	return out
 }
 
-// ResourceRefs returns configuration-level references to other resources
-func (w Workflow) ResourceRefs() (out []resourceref.Ref) {
-	for i, s := range w.Steps {
+// resourceRefsExt extends the generated Workflow.ResourceRefs() with
+// step-argument refs.
+func (w Workflow) resourceRefsExt(out []resourceref.Ref) []resourceref.Ref {
+	for _, s := range w.Steps {
 		if s == nil {
 			continue
 		}
 
-		out = append(out, stepResourceRefs(string(s.Kind), s.Ref, s.Arguments, fmt.Sprintf("Steps.%d", i))...)
+		out = append(out, stepResourceRefs(string(s.Kind), s.Ref, s.Arguments)...)
 	}
 
-	return
+	return out
 }
 
-// ResourceRefs returns configuration-level references to other resources
-func (a NgAutomation) ResourceRefs() (out []resourceref.Ref) {
-	for i, t := range a.Triggers {
+// resourceRefsExt extends the generated NgAutomation.ResourceRefs() with
+// trigger-constraint + step refs.
+func (a NgAutomation) resourceRefsExt(out []resourceref.Ref) []resourceref.Ref {
+	for _, t := range a.Triggers {
 		if t == nil {
 			continue
 		}
 
-		for j, c := range t.Constraints {
+		for _, c := range t.Constraints {
 			if !isModuleConstraint(t.ResourceType, c.Name) {
 				continue
 			}
 
-			for k, v := range c.Values {
+			for _, v := range c.Values {
 				out = resourceref.Append(out, resourceref.MakeIdent(
 					resourceref.KindComposeModule,
 					v.Value,
 					resourceref.ReasonTriggerModule,
-					fmt.Sprintf("Triggers.%d.Constraints.%d.Values.%d", i, j, k),
 				))
 			}
 		}
 	}
 
-	for i, s := range a.Steps {
+	for _, s := range a.Steps {
 		if s == nil {
 			continue
 		}
 
-		out = append(out, stepResourceRefs(s.Kind, s.Ref, s.Arguments, fmt.Sprintf("Steps.%d", i))...)
+		out = append(out, stepResourceRefs(s.Kind, s.Ref, s.Arguments)...)
 	}
 
-	return
+	return out
 }
 
 // stepResourceRefs extracts references from a step's arguments
 //
 // Constant argument values produce resolvable refs; computed arguments
 // (expressions, scope variables) targeting resource-typed parameters produce
-// dynamic refs which consumers surface as warnings instead of edges.
-func stepResourceRefs(kind, ref string, args []*Expr, pathPrefix string) (out []resourceref.Ref) {
+// unresolved refs which consumers surface as warnings instead of edges.
+func stepResourceRefs(kind, ref string, args []*Expr) (out []resourceref.Ref) {
 	// connection-generated functions encode the configured connection in the
 	// ref itself: conn_{connectionID}_{operation} (see configured connection
 	// function registration in system/service/configured_connection.go)
@@ -97,7 +90,6 @@ func stepResourceRefs(kind, ref string, args []*Expr, pathPrefix string) (out []
 			resourceref.KindConfiguredConnection,
 			id,
 			resourceref.ReasonStepConnection,
-			pathPrefix+".Ref",
 		))
 	}
 
@@ -113,7 +105,7 @@ func stepResourceRefs(kind, ref string, args []*Expr, pathPrefix string) (out []
 		return
 	}
 
-	for i, a := range args {
+	for _, a := range args {
 		if a == nil {
 			continue
 		}
@@ -123,17 +115,15 @@ func stepResourceRefs(kind, ref string, args []*Expr, pathPrefix string) (out []
 			continue
 		}
 
-		path := fmt.Sprintf("%s.Arguments.%d", pathPrefix, i)
-
 		if a.Value != nil {
-			if r := resourceref.MakeIdent(k, cast.ToString(a.Value), resourceref.ReasonStepArgument, path); !r.IsEmpty() {
+			if r := resourceref.MakeIdent(k, cast.ToString(a.Value), resourceref.ReasonStepArgument); !r.IsEmpty() {
 				out = append(out, r)
 				continue
 			}
 		}
 
 		if a.Expr != "" || a.Source != "" {
-			out = append(out, resourceref.MakeDynamic(k, resourceref.ReasonStepArgument, path))
+			out = append(out, resourceref.MakeDynamic(k, resourceref.ReasonStepArgument))
 		}
 	}
 

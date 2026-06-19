@@ -108,6 +108,10 @@ chart: {
 		}
 	}
 
+	refs: {
+		extended: true
+	}
+
 	service: {
 		// namespace-scoped compound-id resource: FindByID/DeleteByID/UndeleteByID
 		// and their on<Op> hooks take the parent namespaceID as a leading arg.
