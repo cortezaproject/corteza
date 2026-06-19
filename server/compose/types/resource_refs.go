@@ -67,6 +67,12 @@ func (b PageBlock) resourceRefs() (out []resourceref.Ref) {
 			resourceref.ReasonPageModule,
 		))
 
+		// RecordList selection buttons trigger workflows / ng-automations
+		// (same Button shape as the Automation block)
+		for _, btn := range blockOptSlice(b.Options, "selectionButtons") {
+			out = append(out, buttonRefs(btn)...)
+		}
+
 	case "Chart":
 		out = resourceref.Append(out, resourceref.MakeIdent(
 			resourceref.KindComposeChart,
@@ -114,19 +120,89 @@ func (b PageBlock) resourceRefs() (out []resourceref.Ref) {
 		}
 
 	case "Automation":
-		bb, _ := b.Options["buttons"].([]interface{})
-		for _, btn := range bb {
-			button, _ := btn.(map[string]interface{})
+		for _, btn := range blockOptSlice(b.Options, "buttons") {
+			out = append(out, buttonRefs(btn)...)
+		}
+
+	case "AgentChat":
+		out = resourceref.Append(out, resourceref.MakeIdent(
+			resourceref.KindAgent,
+			blockOptString(b.Options, "defaultAgentID"),
+			resourceref.ReasonPageAgent,
+		))
+		for _, id := range cast.ToStringSlice(b.Options["allowedAgentIDs"]) {
+			out = resourceref.Append(out, resourceref.MakeIdent(
+				resourceref.KindAgent, id, resourceref.ReasonPageAgent,
+			))
+		}
+
+	case "ChatbotInbox":
+		for _, id := range cast.ToStringSlice(b.Options["chatbotIDs"]) {
+			out = resourceref.Append(out, resourceref.MakeIdent(
+				resourceref.KindChatbot, id, resourceref.ReasonPageChatbot,
+			))
+		}
+
+	case "Geometry":
+		for _, f := range blockOptSlice(b.Options, "feeds") {
+			opt, _ := f["options"].(map[string]interface{})
 
 			out = resourceref.Append(out, resourceref.MakeIdent(
-				resourceref.KindAutomationWorkflow,
-				blockOptString(button, "workflow", "workflowID"),
-				resourceref.ReasonPageWorkflow,
+				resourceref.KindComposeModule,
+				blockOptString(opt, "module", "moduleID"),
+				resourceref.ReasonPageModule,
 			))
+		}
+
+	case "Navigation":
+		for _, it := range blockOptSlice(b.Options, "navigationItems") {
+			opt, _ := it["options"].(map[string]interface{})
+			item, _ := opt["item"].(map[string]interface{})
+			if item == nil {
+				continue
+			}
+
+			out = resourceref.Append(out,
+				resourceref.MakeIdent(resourceref.KindComposePage, blockOptString(item, "pageID"), resourceref.ReasonPageNavigation),
+				resourceref.MakeIdent(resourceref.KindComposePageLayout, blockOptString(item, "pageLayoutID"), resourceref.ReasonPageNavigation),
+				resourceref.MakeIdent(resourceref.KindComposeModule, blockOptString(item, "moduleID"), resourceref.ReasonPageModule),
+			)
 		}
 	}
 
 	return
+}
+
+// buttonRefs emits the workflow + ng-automation refs declared on a page-block
+// button. Automation-block buttons and RecordList selection buttons share the
+// Button shape (workflowID / automationID).
+func buttonRefs(button map[string]interface{}) (out []resourceref.Ref) {
+	out = resourceref.Append(out, resourceref.MakeIdent(
+		resourceref.KindAutomationWorkflow,
+		blockOptString(button, "workflow", "workflowID"),
+		resourceref.ReasonPageWorkflow,
+	))
+	out = resourceref.Append(out, resourceref.MakeIdent(
+		resourceref.KindNgAutomation,
+		blockOptString(button, "automation", "automationID"),
+		resourceref.ReasonPageAutomation,
+	))
+
+	return
+}
+
+// blockOptSlice returns a page-block option as a slice of string-keyed maps,
+// skipping entries that are not objects.
+func blockOptSlice(opt map[string]interface{}, key string) []map[string]interface{} {
+	raw, _ := opt[key].([]interface{})
+	out := make([]map[string]interface{}, 0, len(raw))
+	for _, v := range raw {
+		if m, ok := v.(map[string]interface{}); ok {
+			out = append(out, m)
+		}
+	}
+
+	return out
 }
 
 // blockOptString returns the first present option value as a string

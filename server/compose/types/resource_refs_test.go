@@ -107,3 +107,95 @@ func TestPageResourceRefs(t *testing.T) {
 		resourceref.Make(resourceref.KindAutomationWorkflow, 5001, resourceref.ReasonPageWorkflow),
 	}, p.ResourceRefs())
 }
+
+func TestPageBlockResourceRefs(t *testing.T) {
+	cc := []struct {
+		name string
+		b    PageBlock
+		out  []resourceref.Ref
+	}{
+		{
+			"RecordList selection buttons",
+			PageBlock{Kind: "RecordList", Options: map[string]interface{}{
+				"moduleID": "1002",
+				"selectionButtons": []interface{}{
+					map[string]interface{}{"workflowID": "5001"},
+					map[string]interface{}{"automationID": "6001"},
+				},
+			}},
+			[]resourceref.Ref{
+				resourceref.Make(resourceref.KindComposeModule, 1002, resourceref.ReasonPageModule),
+				resourceref.Make(resourceref.KindAutomationWorkflow, 5001, resourceref.ReasonPageWorkflow),
+				resourceref.Make(resourceref.KindNgAutomation, 6001, resourceref.ReasonPageAutomation),
+			},
+		},
+		{
+			"Automation button workflow + ng-automation",
+			PageBlock{Kind: "Automation", Options: map[string]interface{}{
+				"buttons": []interface{}{
+					map[string]interface{}{"workflowID": "5001", "automationID": "6001"},
+				},
+			}},
+			[]resourceref.Ref{
+				resourceref.Make(resourceref.KindAutomationWorkflow, 5001, resourceref.ReasonPageWorkflow),
+				resourceref.Make(resourceref.KindNgAutomation, 6001, resourceref.ReasonPageAutomation),
+			},
+		},
+		{
+			"AgentChat default + allowed",
+			PageBlock{Kind: "AgentChat", Options: map[string]interface{}{
+				"defaultAgentID":  "7001",
+				"allowedAgentIDs": []interface{}{"7002", "7003"},
+			}},
+			[]resourceref.Ref{
+				resourceref.Make(resourceref.KindAgent, 7001, resourceref.ReasonPageAgent),
+				resourceref.Make(resourceref.KindAgent, 7002, resourceref.ReasonPageAgent),
+				resourceref.Make(resourceref.KindAgent, 7003, resourceref.ReasonPageAgent),
+			},
+		},
+		{
+			"ChatbotInbox",
+			PageBlock{Kind: "ChatbotInbox", Options: map[string]interface{}{
+				"chatbotIDs": []interface{}{"8001", "8002"},
+			}},
+			[]resourceref.Ref{
+				resourceref.Make(resourceref.KindChatbot, 8001, resourceref.ReasonPageChatbot),
+				resourceref.Make(resourceref.KindChatbot, 8002, resourceref.ReasonPageChatbot),
+			},
+		},
+		{
+			"Geometry feeds",
+			PageBlock{Kind: "Geometry", Options: map[string]interface{}{
+				"feeds": []interface{}{
+					map[string]interface{}{"options": map[string]interface{}{"moduleID": "1009"}},
+				},
+			}},
+			[]resourceref.Ref{
+				resourceref.Make(resourceref.KindComposeModule, 1009, resourceref.ReasonPageModule),
+			},
+		},
+		{
+			"Navigation items",
+			PageBlock{Kind: "Navigation", Options: map[string]interface{}{
+				"navigationItems": []interface{}{
+					map[string]interface{}{"options": map[string]interface{}{"item": map[string]interface{}{
+						"pageID":       "2001",
+						"pageLayoutID": "2002",
+						"moduleID":     "1010",
+					}}},
+				},
+			}},
+			[]resourceref.Ref{
+				resourceref.Make(resourceref.KindComposePage, 2001, resourceref.ReasonPageNavigation),
+				resourceref.Make(resourceref.KindComposePageLayout, 2002, resourceref.ReasonPageNavigation),
+				resourceref.Make(resourceref.KindComposeModule, 1010, resourceref.ReasonPageModule),
+			},
+		},
+	}
+
+	for _, c := range cc {
+		t.Run(c.name, func(t *testing.T) {
+			require.Equal(t, c.out, PageBlocks{c.b}.ResourceRefs())
+		})
+	}
+}

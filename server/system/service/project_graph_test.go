@@ -2,30 +2,27 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	automationTypes "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/resourceref"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 
+// noExternal is the loadExternal stub for tests with no out-of-scope targets.
+func noExternal(context.Context, string, uint64) (*GraphSource, error) { return nil, nil }
+
 func TestAssembleProjectGraphIDRefs(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: staticGraphSources(
-				&GraphSource{ID: 1, Name: "Lead", Sensitivity: "internal"},
-				&GraphSource{ID: 2, Name: "Opportunity", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
-				}},
-			),
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1, Name: "Lead", Sensitivity: "internal"},
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 2, Name: "Opportunity", Refs: []resourceref.Ref{
+			resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
+		}},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	g, err := assembleProjectGraph(context.Background(), sources, noExternal)
 	require.NoError(t, err)
 
 	require.Equal(t, []*types.ProjectGraphNode{
@@ -41,26 +38,14 @@ func TestAssembleProjectGraphIDRefs(t *testing.T) {
 }
 
 func TestAssembleProjectGraphHandleResolution(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: staticGraphSources(
-				&GraphSource{ID: 1, Name: "Lead", Handle: "lead"},
-			),
-		},
-		{
-			ResourceType: resourceref.KindNgAutomation,
-			Kind:         "automation",
-			Load: staticGraphSources(
-				&GraphSource{ID: 5, Name: "Lead Scoring", Refs: []resourceref.Ref{
-					resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule),
-				}},
-			),
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1, Name: "Lead", Handle: "lead"},
+		{ResourceType: resourceref.KindNgAutomation, Kind: "automation", ID: 5, Name: "Lead Scoring", Refs: []resourceref.Ref{
+			resourceref.MakeIdent(resourceref.KindComposeModule, "lead", resourceref.ReasonTriggerModule),
+		}},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	g, err := assembleProjectGraph(context.Background(), sources, noExternal)
 	require.NoError(t, err)
 
 	require.Equal(t, []*types.ProjectGraphEdge{
@@ -71,33 +56,24 @@ func TestAssembleProjectGraphHandleResolution(t *testing.T) {
 }
 
 func TestAssembleProjectGraphExternalTarget(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: staticGraphSources(
-				&GraphSource{ID: 1, Name: "Lead", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection),
-				}},
-				// second ref to same connection must reuse the node and dedup the edge
-				&GraphSource{ID: 2, Name: "Quote", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection),
-				}},
-			),
-		},
-		{
-			ResourceType: resourceref.KindDalConnection,
-			Kind:         "connection",
-			LoadOne: func(_ context.Context, id uint64) (*GraphSource, error) {
-				if id != 40 {
-					return nil, nil
-				}
-				return &GraphSource{ID: 40, Name: "Google Sheets", Sensitivity: "confidential"}, nil
-			},
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1, Name: "Lead", Refs: []resourceref.Ref{
+			resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection),
+		}},
+		// second ref to same connection must reuse the node and dedup the edge
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 2, Name: "Quote", Refs: []resourceref.Ref{
+			resourceref.Make(resourceref.KindDalConnection, 40, resourceref.ReasonModuleConnection),
+		}},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	loadExternal := func(_ context.Context, rt string, id uint64) (*GraphSource, error) {
+		if rt != resourceref.KindDalConnection || id != 40 {
+			return nil, nil
+		}
+		return &GraphSource{ResourceType: rt, Kind: "connection", ID: 40, Name: "Google Sheets", Sensitivity: "confidential"}, nil
+	}
+
+	g, err := assembleProjectGraph(context.Background(), sources, loadExternal)
 	require.NoError(t, err)
 
 	require.Equal(t, []*types.ProjectGraphNode{
@@ -113,33 +89,21 @@ func TestAssembleProjectGraphExternalTarget(t *testing.T) {
 }
 
 func TestAssembleProjectGraphMissingRefs(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: staticGraphSources(
-				&GraphSource{ID: 1, Name: "Lead", Refs: []resourceref.Ref{
-					// ID target absent, kind has no LoadOne
-					resourceref.Make(resourceref.KindComposeModule, 99, resourceref.ReasonModuleFieldRef),
-					// handle resolves to nothing
-					resourceref.MakeIdent(resourceref.KindComposeModule, "ghost", resourceref.ReasonModuleFieldRef),
-					// target kind not registered at all
-					resourceref.Make(resourceref.KindLlmProvider, 7, resourceref.ReasonAgentLlmProvider),
-					// LoadOne returns nil (deleted resource)
-					resourceref.Make(resourceref.KindDalConnection, 41, resourceref.ReasonModuleConnection),
-				}},
-			),
-		},
-		{
-			ResourceType: resourceref.KindDalConnection,
-			Kind:         "connection",
-			LoadOne: func(context.Context, uint64) (*GraphSource, error) {
-				return nil, nil
-			},
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1, Name: "Lead", Refs: []resourceref.Ref{
+			// ID target absent, no external loader hit
+			resourceref.Make(resourceref.KindComposeModule, 99, resourceref.ReasonModuleFieldRef),
+			// handle resolves to nothing
+			resourceref.MakeIdent(resourceref.KindComposeModule, "ghost", resourceref.ReasonModuleFieldRef),
+			// target kind the external loader does not know
+			resourceref.Make(resourceref.KindLlmProvider, 7, resourceref.ReasonAgentLlmProvider),
+			// external loader returns nil (deleted resource)
+			resourceref.Make(resourceref.KindDalConnection, 41, resourceref.ReasonModuleConnection),
+		}},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	// every external lookup misses
+	g, err := assembleProjectGraph(context.Background(), sources, noExternal)
 	require.NoError(t, err)
 	require.Empty(t, g.Edges)
 
@@ -152,55 +116,28 @@ func TestAssembleProjectGraphMissingRefs(t *testing.T) {
 }
 
 func TestAssembleProjectGraphEdgeDedup(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: staticGraphSources(
-				&GraphSource{ID: 1, Name: "Lead"},
-				// two fields referencing the same module collapse into one edge
-				&GraphSource{ID: 2, Name: "Opportunity", Refs: []resourceref.Ref{
-					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
-					resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
-				}},
-			),
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1, Name: "Lead"},
+		// two fields referencing the same module collapse into one edge
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 2, Name: "Opportunity", Refs: []resourceref.Ref{
+			resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
+			resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonModuleFieldRef),
+		}},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	g, err := assembleProjectGraph(context.Background(), sources, noExternal)
 	require.NoError(t, err)
 	require.Len(t, g.Edges, 1)
 }
 
-func TestAssembleProjectGraphLoadError(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: func(context.Context, uint64) ([]*GraphSource, error) {
-				return nil, fmt.Errorf("store down")
-			},
-		},
-	}
-
-	_, err := assembleProjectGraph(context.Background(), 0, registry)
-	require.ErrorContains(t, err, "store down")
-}
-
 func TestAssembleProjectGraphDynamicWarnings(t *testing.T) {
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindNgAutomation,
-			Kind:         "automation",
-			Load: staticGraphSources(
-				&GraphSource{ID: 5, Name: "Scoring", Refs: []resourceref.Ref{
-					resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument),
-				}},
-			),
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindNgAutomation, Kind: "automation", ID: 5, Name: "Scoring", Refs: []resourceref.Ref{
+			resourceref.MakeDynamic(resourceref.KindComposeModule, resourceref.ReasonStepArgument),
+		}},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	g, err := assembleProjectGraph(context.Background(), sources, noExternal)
 	require.NoError(t, err)
 	require.Empty(t, g.Edges)
 	require.Empty(t, g.Missing)
@@ -210,10 +147,10 @@ func TestAssembleProjectGraphDynamicWarnings(t *testing.T) {
 	}, g.Warnings)
 }
 
-// TestProjectGraphNgAutomationResolution drives a realistic NgAutomation
-// config through the real extractor and assembler: trigger constraint by
-// handle, constant step argument, connection function, computed argument and
-// a dangling target all resolve to their respective graph outputs.
+// TestProjectGraphNgAutomationResolution drives a realistic NgAutomation config
+// through the real extractor and assembler: trigger constraint by handle,
+// constant step argument, connection function, computed argument and a dangling
+// target all resolve to their respective graph outputs.
 func TestProjectGraphNgAutomationResolution(t *testing.T) {
 	au := automationTypes.NgAutomation{
 		ID: 500,
@@ -243,36 +180,21 @@ func TestProjectGraphNgAutomationResolution(t *testing.T) {
 		},
 	}
 
-	registry := []*GraphKind{
-		{
-			ResourceType: resourceref.KindComposeModule,
-			Kind:         "module",
-			Load: staticGraphSources(
-				&GraphSource{ID: 1001, Name: "Lead", Handle: "lead"},
-				&GraphSource{ID: 1002, Name: "Opportunity", Handle: "opportunity"},
-			),
-		},
-		{
-			ResourceType: resourceref.KindNgAutomation,
-			Kind:         "automation",
-			Load: staticGraphSources(
-				// what a real store-backed loader will produce
-				&GraphSource{ID: au.ID, Name: "Lead Scoring", Refs: au.ResourceRefs()},
-			),
-		},
-		{
-			ResourceType: resourceref.KindConfiguredConnection,
-			Kind:         "connection",
-			LoadOne: func(_ context.Context, id uint64) (*GraphSource, error) {
-				if id != 40 {
-					return nil, nil
-				}
-				return &GraphSource{ID: 40, Name: "Google Sheets", Sensitivity: "confidential"}, nil
-			},
-		},
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1001, Name: "Lead", Handle: "lead"},
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1002, Name: "Opportunity", Handle: "opportunity"},
+		// what a real store-backed loader will produce
+		{ResourceType: resourceref.KindNgAutomation, Kind: "automation", ID: au.ID, Name: "Lead Scoring", Refs: au.ResourceRefs()},
 	}
 
-	g, err := assembleProjectGraph(context.Background(), 0, registry)
+	loadExternal := func(_ context.Context, rt string, id uint64) (*GraphSource, error) {
+		if rt != resourceref.KindConfiguredConnection || id != 40 {
+			return nil, nil
+		}
+		return &GraphSource{ResourceType: rt, Kind: "connection", ID: 40, Name: "Google Sheets", Sensitivity: "confidential"}, nil
+	}
+
+	g, err := assembleProjectGraph(context.Background(), sources, loadExternal)
 	require.NoError(t, err)
 
 	require.Equal(t, []*types.ProjectGraphEdge{
@@ -301,30 +223,52 @@ func TestProjectGraphNgAutomationResolution(t *testing.T) {
 	require.Equal(t, "confidential", byID[40].Sensitivity)
 }
 
-func TestProjectGraphMockDataset(t *testing.T) {
-	g, err := DefaultProjectGraph.Graph(context.Background(), 0)
-	require.NoError(t, err)
-
-	// 12 in-scope nodes + 2 external connections
-	require.Len(t, g.Nodes, 14)
-	require.Len(t, g.Edges, 11)
-	require.Empty(t, g.Missing)
-
-	// dynamic step argument surfaces as warning, not edge
-	require.Equal(t, []*types.ProjectGraphWarning{
-		{SourceID: 5001, Kind: resourceref.KindComposeModule, Reason: resourceref.ReasonStepArgument},
-	}, g.Warnings)
-
-	byID := make(map[uint64]*types.ProjectGraphNode)
-	for _, n := range g.Nodes {
-		byID[n.ID] = n
+// TestRoleRuleRefs drives RBAC rules through the role->resource extractor:
+// specific resources resolve by ID, whole-kind grants (trailing wildcard)
+// become wildcard refs, per-operation duplicates collapse, and rules on
+// non-graph resources (users, records) are dropped.
+func TestRoleRuleRefs(t *testing.T) {
+	rules := rbac.RuleSet{
+		{RoleID: 1, Resource: "corteza::compose:module/12/34", Operation: "read"},
+		{RoleID: 1, Resource: "corteza::compose:module/12/34", Operation: "update"}, // dup -> collapse
+		{RoleID: 1, Resource: "corteza::compose:module/*/*", Operation: "read"},      // whole kind -> wildcard
+		{RoleID: 1, Resource: "corteza::compose:page/*/55", Operation: "delete"},     // specific page, any namespace
+		{RoleID: 1, Resource: "corteza::system:user/*", Operation: "read"},           // non-graph -> skip
+		{RoleID: 1, Resource: "corteza::compose:record/12/34/7", Operation: "read"},  // non-graph -> skip
 	}
 
-	// connections resolved through LoadOne, flagged external
-	require.True(t, byID[4001].External)
-	require.Equal(t, "confidential", byID[4001].Sensitivity)
-	require.True(t, byID[4002].External)
+	require.Equal(t, []resourceref.Ref{
+		resourceref.Make(resourceref.KindComposeModule, 34, resourceref.ReasonRoleRbac),
+		resourceref.MakeWildcard(resourceref.KindComposeModule, resourceref.ReasonRoleRbac),
+		resourceref.Make(resourceref.KindComposePage, 55, resourceref.ReasonRoleRbac),
+	}, roleRuleRefs(rules))
+}
 
-	// handle-based trigger constraint resolved to the Lead module
-	require.Contains(t, g.Edges, &types.ProjectGraphEdge{SourceID: 5001, TargetID: 1001, Reason: resourceref.ReasonTriggerModule})
+// TestAssembleProjectGraphWildcardFanout verifies a wildcard role ref expands
+// to one edge per in-scope node of the kind and skips the role's self-edge.
+func TestAssembleProjectGraphWildcardFanout(t *testing.T) {
+	sources := []*GraphSource{
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 1, Name: "Lead"},
+		{ResourceType: resourceref.KindComposeModule, Kind: "module", ID: 2, Name: "Quote"},
+		{ResourceType: resourceref.KindRole, Kind: "role", ID: 10, Name: "Admin", Refs: []resourceref.Ref{
+			resourceref.MakeWildcard(resourceref.KindComposeModule, resourceref.ReasonRoleRbac),
+			// wildcard over roles must not produce a 10 -> 10 self-edge
+			resourceref.MakeWildcard(resourceref.KindRole, resourceref.ReasonRoleRbac),
+		}},
+		{ResourceType: resourceref.KindRole, Kind: "role", ID: 11, Name: "Editor", Refs: []resourceref.Ref{
+			resourceref.Make(resourceref.KindComposeModule, 1, resourceref.ReasonRoleRbac),
+		}},
+	}
+
+	g, err := assembleProjectGraph(context.Background(), sources, noExternal)
+	require.NoError(t, err)
+
+	require.Equal(t, []*types.ProjectGraphEdge{
+		{SourceID: 10, TargetID: 1, Reason: resourceref.ReasonRoleRbac},
+		{SourceID: 10, TargetID: 2, Reason: resourceref.ReasonRoleRbac},
+		{SourceID: 10, TargetID: 11, Reason: resourceref.ReasonRoleRbac},
+		{SourceID: 11, TargetID: 1, Reason: resourceref.ReasonRoleRbac},
+	}, g.Edges)
+
+	require.Empty(t, g.Missing)
 }

@@ -16,15 +16,22 @@ type Ref struct {
 
 	// target only known at runtime; surface as warning, not edge
 	Unresolved bool
+
+	// Wildcard ref: connects to every resource of Resource (kind). Used by
+	// RBAC-derived role edges where a rule grants/denies on a whole kind
+	// (e.g. "corteza::compose:module/*/*"). Resolved by fanning out to all
+	// in-scope nodes of the kind, not a single target.
+	Wildcard bool
 }
 
 // Kind constants mirror *ResourceType constants in {compose,system,automation}/types/resources.gen.go.
 // Duplicated here to avoid import cycles between component type packages.
 const (
-	KindComposeNamespace = "corteza::compose:namespace"
-	KindComposeModule    = "corteza::compose:module"
-	KindComposeChart     = "corteza::compose:chart"
-	KindComposePage      = "corteza::compose:page"
+	KindComposeNamespace  = "corteza::compose:namespace"
+	KindComposeModule     = "corteza::compose:module"
+	KindComposeChart      = "corteza::compose:chart"
+	KindComposePage       = "corteza::compose:page"
+	KindComposePageLayout = "corteza::compose:page-layout"
 
 	KindAutomationWorkflow = "corteza::automation:workflow"
 	KindNgAutomation       = "corteza::automation:ng-automation"
@@ -34,6 +41,7 @@ const (
 	KindLlmProvider          = "corteza::system:llm-provider"
 	KindKnowledgeBase        = "corteza::system:knowledge-base"
 	KindAgent                = "corteza::system:agent"
+	KindChatbot              = "corteza::system:chatbot"
 	KindRole                 = "corteza::system:role"
 	KindTemplate             = "corteza::system:template"
 )
@@ -44,6 +52,10 @@ const (
 	ReasonPageModule          = "page-module"
 	ReasonPageChart           = "page-chart"
 	ReasonPageWorkflow        = "page-workflow"
+	ReasonPageAutomation      = "page-automation"
+	ReasonPageAgent           = "page-agent"
+	ReasonPageChatbot         = "page-chatbot"
+	ReasonPageNavigation      = "page-navigation"
 	ReasonChartModule         = "chart-module"
 	ReasonTriggerModule       = "trigger-module"
 	ReasonTriggerWorkflow     = "trigger-workflow"
@@ -56,6 +68,7 @@ const (
 	ReasonKnowledgeBaseModule = "knowledge-base-module"
 	ReasonStepArgument        = "step-argument"
 	ReasonStepConnection      = "step-connection"
+	ReasonRoleRbac            = "role-rbac"
 )
 
 func Make(kind string, id uint64, reason string) Ref {
@@ -77,6 +90,11 @@ func MakeIdent(kind, ident, reason string) Ref {
 
 func MakeDynamic(kind, reason string) Ref {
 	return Ref{Resource: kind, Reason: reason, Unresolved: true}
+}
+
+// MakeWildcard builds a ref that targets every resource of the given kind.
+func MakeWildcard(kind, reason string) Ref {
+	return Ref{Resource: kind, Reason: reason, Wildcard: true}
 }
 
 func Append(out []Ref, rr ...Ref) []Ref {
@@ -106,5 +124,5 @@ func (r Ref) ID() uint64 {
 }
 
 func (r Ref) IsEmpty() bool {
-	return r.Resource == "" && r.Label == "" && !r.Unresolved
+	return r.Resource == "" && r.Label == "" && !r.Unresolved && !r.Wildcard
 }
