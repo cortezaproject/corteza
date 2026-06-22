@@ -12,3 +12,4 @@ ignore
 dist
 .docker-build
 config.js
+.claude

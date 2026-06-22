@@ -742,15 +742,18 @@ func (s *Store) fetchFullPageOfAgents(
 // scopeGuardAgent builds the tenancy WHERE conditions for Agent
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAgent(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -1431,15 +1434,18 @@ func (s *Store) fetchFullPageOfAiConversations(
 // scopeGuardAiConversation builds the tenancy WHERE conditions for AiConversation
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAiConversation(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -2038,15 +2044,18 @@ func (s *Store) fetchFullPageOfApigwFilters(
 // scopeGuardApigwFilter builds the tenancy WHERE conditions for ApigwFilter
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardApigwFilter(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -2697,15 +2706,18 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 // scopeGuardApigwRoute builds the tenancy WHERE conditions for ApigwRoute
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardApigwRoute(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -3360,15 +3372,18 @@ func (s *Store) fetchFullPageOfApplications(
 // scopeGuardApplication builds the tenancy WHERE conditions for Application
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardApplication(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -3973,15 +3988,18 @@ func (s *Store) fetchFullPageOfAttachments(
 // scopeGuardAttachment builds the tenancy WHERE conditions for Attachment
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAttachment(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -4581,15 +4599,18 @@ func (s *Store) fetchFullPageOfAuthClients(
 // scopeGuardAuthClient builds the tenancy WHERE conditions for AuthClient
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAuthClient(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -6399,15 +6420,18 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 // scopeGuardAutomationNgAutomation builds the tenancy WHERE conditions for AutomationNgAutomation
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAutomationNgAutomation(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -7091,15 +7115,18 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 // scopeGuardAutomationSession builds the tenancy WHERE conditions for AutomationSession
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAutomationSession(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -7714,15 +7741,18 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 // scopeGuardAutomationTrigger builds the tenancy WHERE conditions for AutomationTrigger
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAutomationTrigger(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -8333,15 +8363,18 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 // scopeGuardAutomationWorkflow builds the tenancy WHERE conditions for AutomationWorkflow
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardAutomationWorkflow(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -9025,15 +9058,18 @@ func (s *Store) fetchFullPageOfChatbots(
 // scopeGuardChatbot builds the tenancy WHERE conditions for Chatbot
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardChatbot(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -9786,15 +9822,18 @@ func (s *Store) fetchFullPageOfChatbotSessions(
 // scopeGuardChatbotSession builds the tenancy WHERE conditions for ChatbotSession
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardChatbotSession(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -11740,15 +11779,18 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 // scopeGuardComposeAttachment builds the tenancy WHERE conditions for ComposeAttachment
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposeAttachment(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -12352,15 +12394,18 @@ func (s *Store) fetchFullPageOfComposeCharts(
 // scopeGuardComposeChart builds the tenancy WHERE conditions for ComposeChart
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposeChart(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -13010,15 +13055,18 @@ func (s *Store) fetchFullPageOfComposeModules(
 // scopeGuardComposeModule builds the tenancy WHERE conditions for ComposeModule
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposeModule(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -13563,15 +13611,18 @@ func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.Mod
 // scopeGuardComposeModuleField builds the tenancy WHERE conditions for ComposeModuleField
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposeModuleField(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -14223,15 +14274,18 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 // scopeGuardComposeNamespace builds the tenancy WHERE conditions for ComposeNamespace
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposeNamespace(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -14906,15 +14960,18 @@ func (s *Store) fetchFullPageOfComposePages(
 // scopeGuardComposePage builds the tenancy WHERE conditions for ComposePage
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposePage(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -15618,15 +15675,18 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 // scopeGuardComposePageLayout builds the tenancy WHERE conditions for ComposePageLayout
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardComposePageLayout(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -16332,15 +16392,18 @@ func (s *Store) fetchFullPageOfConfiguredConnections(
 // scopeGuardConfiguredConnection builds the tenancy WHERE conditions for ConfiguredConnection
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardConfiguredConnection(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -19102,15 +19165,18 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 // scopeGuardDalSensitivityLevel builds the tenancy WHERE conditions for DalSensitivityLevel
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardDalSensitivityLevel(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -19713,15 +19779,18 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 // scopeGuardDataPrivacyRequest builds the tenancy WHERE conditions for DataPrivacyRequest
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardDataPrivacyRequest(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -20837,15 +20906,18 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 // scopeGuardFederationExposedModule builds the tenancy WHERE conditions for FederationExposedModule
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardFederationExposedModule(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -21442,15 +21514,18 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 // scopeGuardFederationModuleMapping builds the tenancy WHERE conditions for FederationModuleMapping
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardFederationModuleMapping(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -22091,15 +22166,18 @@ func (s *Store) fetchFullPageOfFederationNodes(
 // scopeGuardFederationNode builds the tenancy WHERE conditions for FederationNode
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardFederationNode(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	return ee
 }
 
@@ -23384,15 +23462,18 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 // scopeGuardFederationSharedModule builds the tenancy WHERE conditions for FederationSharedModule
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardFederationSharedModule(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -24354,15 +24435,18 @@ func (s *Store) fetchFullPageOfKnowledgeBases(
 // scopeGuardKnowledgeBase builds the tenancy WHERE conditions for KnowledgeBase
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardKnowledgeBase(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -25377,15 +25461,18 @@ func (s *Store) fetchFullPageOfLlmProviders(
 // scopeGuardLlmProvider builds the tenancy WHERE conditions for LlmProvider
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardLlmProvider(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -26069,15 +26156,18 @@ func (s *Store) fetchFullPageOfNotifications(
 // scopeGuardNotification builds the tenancy WHERE conditions for Notification
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardNotification(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -26678,15 +26768,18 @@ func (s *Store) fetchFullPageOfProjects(
 // scopeGuardProject builds the tenancy WHERE conditions for Project
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardProject(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	return ee
 }
 
@@ -27358,15 +27451,18 @@ func (s *Store) fetchFullPageOfProjectGroups(
 // scopeGuardProjectGroup builds the tenancy WHERE conditions for ProjectGroup
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardProjectGroup(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -28378,15 +28474,18 @@ func (s *Store) fetchFullPageOfProjectMembers(
 // scopeGuardProjectMember builds the tenancy WHERE conditions for ProjectMember
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardProjectMember(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -29060,15 +29159,18 @@ func (s *Store) fetchFullPageOfQueues(
 // scopeGuardQueue builds the tenancy WHERE conditions for Queue
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardQueue(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -30500,15 +30602,18 @@ func (s *Store) fetchFullPageOfReminders(
 // scopeGuardReminder builds the tenancy WHERE conditions for Reminder
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardReminder(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -31117,15 +31222,18 @@ func (s *Store) fetchFullPageOfReports(
 // scopeGuardReport builds the tenancy WHERE conditions for Report
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardReport(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -32086,15 +32194,18 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 // scopeGuardResourceTranslation builds the tenancy WHERE conditions for ResourceTranslation
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardResourceTranslation(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -32677,15 +32788,18 @@ func (s *Store) fetchFullPageOfRoles(
 // scopeGuardRole builds the tenancy WHERE conditions for Role
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardRole(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -34063,15 +34177,18 @@ func (s *Store) fetchFullPageOfTemplates(
 // scopeGuardTemplate builds the tenancy WHERE conditions for Template
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardTemplate(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -35395,15 +35512,18 @@ func (s *Store) fetchFullPageOfTenantMemberships(
 // scopeGuardTenantMembership builds the tenancy WHERE conditions for TenantMembership
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardTenantMembership(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	return ee
 }
 
@@ -36083,15 +36203,18 @@ func (s *Store) fetchFullPageOfUsers(
 // scopeGuardUser builds the tenancy WHERE conditions for User
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardUser(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}
@@ -36934,15 +37057,18 @@ func (s *Store) fetchFullPageOfUserGroups(
 // scopeGuardUserGroup builds the tenancy WHERE conditions for UserGroup
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuardUserGroup(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
 	}

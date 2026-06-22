@@ -572,11 +572,19 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // --- resource graph ------------------------------------------------------------
-  // The backend project graph endpoint has been removed. The graph panel is
-  // kept in the UI but is not yet wired to a data source, so this returns an
-  // empty graph for now (to be re-sourced from list/read endpoints later).
-  async function graph() {
-    return { nodes: [], edges: [] }
+  // Single backend endpoint re-derives the project's dependency graph from saved
+  // state. We pass nodes through untouched and only rename edge endpoints to the
+  // source/target shape the graph component (ECharts) expects.
+  async function graph(projectID) {
+    const { nodes = [], edges = [] } = await $SystemAPI.projectGraph({ projectID })
+    return {
+      nodes,
+      edges: edges.map(e => ({
+        source: e.sourceID,
+        target: e.targetID,
+        reason: e.reason,
+      })),
+    }
   }
 
   return {

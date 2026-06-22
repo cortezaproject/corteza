@@ -293,6 +293,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultChatbot = Chatbot()
 	DefaultChatbotSession = ChatbotSession()
 	DefaultProject = Project()
+	DefaultProjectGraph = ProjectGraph(DefaultStore)
 	DefaultProjectGroup = ProjectGroup()
 	DefaultProjectResolver = NewProjectResolver(DefaultStore)
 	DefaultTenant = Tenant()

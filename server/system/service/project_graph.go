@@ -34,7 +34,11 @@ type (
 	}
 )
 
-var DefaultProjectGraph = &projectGraphService{store: DefaultStore}
+var DefaultProjectGraph *projectGraphService
+
+func ProjectGraph(s store.Storer) *projectGraphService {
+	return &projectGraphService{store: s}
+}
 
 func (s *projectGraphService) Graph(ctx context.Context, projectID uint64) (*types.ProjectGraph, error) {
 	ctx, sources, err := s.fetch(ctx, projectID)

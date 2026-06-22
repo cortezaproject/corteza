@@ -398,15 +398,18 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 // scopeGuard{{ .expIdent }} builds the tenancy WHERE conditions for {{ .expIdent }}
 // from the scope carried in ctx.
 //
-// System-scope requests (tenant 0) produce no conditions, leaving the query
+// Each scope dimension is applied independently of the others: a set tenant
+// constrains rel_tenant and a set project constrains rel_project, so a project
+// still narrows the query even at tenant 0 (single-tenant deployments). A fully
+// empty scope (tenant 0, project 0) produces no conditions, leaving the query
 // unrestricted. This function is auto-generated.
 func scopeGuard{{ .expIdent }}(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return nil
-	}
 
-	ee := []goqu.Expression{goqu.I("rel_tenant").Eq(sc.TenantID)}
+	var ee []goqu.Expression
+	if sc.TenantID != 0 {
+		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	}
 	{{- if .features.projectScoped }}
 	if sc.ProjectID != 0 {
 		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
