@@ -54,8 +54,17 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, provide, ref, watch } from 'vue'
 import { resolveFieldEditor } from './registry'
+
+// PrimeVue editable inputs (InputText, Textarea, InputNumber, …) auto-bind to
+// the nearest @primevue/forms <FormField> via injected $pcFormField/$pcForm.
+// An input without its own `name` adopts the FormField's name, so every input
+// CFieldEditor renders for a multi-value field would share that field's single
+// value — typing in one would change all of them. CFieldEditor manages its own
+// model explicitly, so sever the injection for its sub-editors.
+provide('$pcFormField', undefined)
+provide('$pcForm', undefined)
 
 const props = defineProps({
   field: {
