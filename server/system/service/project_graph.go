@@ -7,6 +7,7 @@ import (
 	automationTypes "github.com/crusttech/human/server/automation/types"
 	composeTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/resourceref"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
@@ -36,37 +37,116 @@ type (
 var DefaultProjectGraph = &projectGraphService{store: DefaultStore}
 
 func (s *projectGraphService) Graph(ctx context.Context, projectID uint64) (*types.ProjectGraph, error) {
-	g, err := s.build(ctx, projectID)
+	ctx, sources, err := s.fetch(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return filterProjectGraph(g), nil
+	sources = filterSources(sources)
+
+	return s.transform(ctx, sources)
 }
 
-func (s *projectGraphService) build(ctx context.Context, projectID uint64) (*types.ProjectGraph, error) {
+func (s *projectGraphService) fetch(ctx context.Context, projectID uint64) (context.Context, []*GraphSource, error) {
 	proj, err := store.LookupProjectByID(ctx, s.store, projectID)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	ctx = scope.SetScopeToContext(ctx, scope.Scope{TenantID: proj.TenantID, ProjectID: projectID})
 
 	sens, err := s.loadSensitivityLevels(ctx)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	sources, err := s.loadSources(ctx, sens)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
-	return assembleProjectGraph(ctx, sources, s.loadExternal)
+	return ctx, sources, nil
 }
 
-func filterProjectGraph(g *types.ProjectGraph) *types.ProjectGraph {
-	return g
+// graphNodeKinds is the set of GraphSource.Kind values shown on the project
+// graph. Sources of any other kind (knowledge-base, role, …) are dropped whole.
+var graphNodeKinds = map[string]bool{
+	"module":     true,
+	"page":       true,
+	"chart":      true,
+	"connection": true,
+	"automation": true,
+	"agent":      true,
+	"chatbot":    true,
+}
+
+// graphTargetKind maps a ref's target resource type to its displayed node kind.
+// Refs whose target type is absent (workflow, llm-provider, knowledge-base,
+// namespace, page-layout, template, role) are dropped.
+var graphTargetKind = map[string]string{
+	resourceref.KindComposeModule:        "module",
+	resourceref.KindComposePage:          "page",
+	resourceref.KindComposeChart:         "chart",
+	resourceref.KindNgAutomation:         "automation",
+	resourceref.KindAgent:                "agent",
+	resourceref.KindChatbot:              "chatbot",
+	resourceref.KindDalConnection:        "connection",
+	resourceref.KindConfiguredConnection: "connection",
+}
+
+// graphEdgeKinds is the allowed set of unordered node-kind pairs, mirroring the
+// resource-relationship matrix. Keys are sorted so direction does not matter.
+var graphEdgeKinds = map[[2]string]bool{
+	{"module", "module"}:         true,
+	{"module", "page"}:           true,
+	{"chart", "module"}:          true,
+	{"automation", "module"}:     true,
+	{"agent", "module"}:          true,
+	{"chart", "page"}:            true,
+	{"automation", "page"}:       true,
+	{"agent", "page"}:            true,
+	{"chatbot", "page"}:          true,
+	{"automation", "connection"}: true,
+	{"agent", "automation"}:      true,
+	{"automation", "chatbot"}:    true,
+	{"agent", "chatbot"}:         true,
+}
+
+func filterSources(sources []*GraphSource) []*GraphSource {
+	out := sources[:0]
+	for _, src := range sources {
+		if !graphNodeKinds[src.Kind] {
+			continue
+		}
+		src.Refs = filterRefs(src.Kind, src.Refs)
+		out = append(out, src)
+	}
+	return out
+}
+
+func filterRefs(srcKind string, refs []resourceref.Ref) []resourceref.Ref {
+	out := refs[:0]
+	for _, ref := range refs {
+		targetKind, ok := graphTargetKind[ref.Kind()]
+		if !ok {
+			continue
+		}
+		if graphEdgeKinds[graphEdgeKey(srcKind, targetKind)] {
+			out = append(out, ref)
+		}
+	}
+	return out
+}
+
+func graphEdgeKey(a, b string) [2]string {
+	if a > b {
+		a, b = b, a
+	}
+	return [2]string{a, b}
+}
+
+func (s *projectGraphService) transform(ctx context.Context, sources []*GraphSource) (*types.ProjectGraph, error) {
+	return assembleProjectGraph(ctx, sources, s.loadExternal)
 }
 
 func (s *projectGraphService) loadSources(ctx context.Context, sens map[uint64]string) ([]*GraphSource, error) {
@@ -191,6 +271,42 @@ func (s *projectGraphService) loadSources(ctx context.Context, sens map[uint64]s
 		})
 	}
 
+	// roles: their edges come from RBAC rules, not a ResourceRefs() extractor.
+	// Roles are project-scoped so the scoped search returns this project's
+	// roles; rules carry no project scope and the store filter can't narrow by
+	// role, so load all rules once and group them by role in memory.
+	rr, _, err := store.SearchRoles(ctx, s.store, types.RoleFilter{})
+	if err != nil {
+		return nil, err
+	}
+	if len(rr) > 0 {
+		rules, _, err := store.SearchRbacRules(ctx, s.store, rbac.RuleFilter{})
+		if err != nil {
+			return nil, err
+		}
+
+		byRole := make(map[uint64]rbac.RuleSet, len(rr))
+		for _, rule := range rules {
+			byRole[rule.RoleID] = append(byRole[rule.RoleID], rule)
+		}
+
+		for _, r := range rr {
+			refs := roleRuleRefs(byRole[r.ID])
+			if len(refs) == 0 {
+				// role grants nothing on graph resources; omit the node
+				continue
+			}
+			out = append(out, &GraphSource{
+				ResourceType: resourceref.KindRole,
+				Kind:         "role",
+				ID:           r.ID,
+				Name:         firstNonEmpty(r.Name, r.Handle),
+				Handle:       r.Handle,
+				Refs:         refs,
+			})
+		}
+	}
+
 	return out, nil
 }
 
@@ -237,6 +353,13 @@ func (s *projectGraphService) loadExternal(ctx context.Context, resourceType str
 			return nil, ignoreNotFound(err)
 		}
 		return &GraphSource{ResourceType: resourceType, Kind: "namespace", ID: ns.ID, Name: firstNonEmpty(ns.Name, ns.Slug), Handle: ns.Slug}, nil
+
+	case resourceref.KindComposePageLayout:
+		l, err := store.LookupComposePageLayoutByID(ctx, s.store, id)
+		if err != nil {
+			return nil, ignoreNotFound(err)
+		}
+		return &GraphSource{ResourceType: resourceType, Kind: "page-layout", ID: l.ID, Name: firstNonEmpty(l.Meta.Title, l.Handle), Handle: l.Handle}, nil
 	}
 
 	return nil, nil
@@ -249,9 +372,8 @@ func assembleProjectGraph(ctx context.Context, sources []*GraphSource, loadExter
 			id           uint64
 		}
 		edgeKey struct {
-			sourceID uint64
-			targetID uint64
-			reason   string
+			a uint64
+			b uint64
 		}
 	)
 
@@ -261,8 +383,9 @@ func assembleProjectGraph(ctx context.Context, sources []*GraphSource, loadExter
 	}
 
 	var (
-		nodes   = make(map[nodeKey]bool)
-		handles = make(map[string]map[string]uint64)
+		nodes       = make(map[nodeKey]bool)
+		nodesByKind = make(map[string][]uint64)
+		handles     = make(map[string]map[string]uint64)
 	)
 
 	addNode := func(src *GraphSource, external bool) {
@@ -271,6 +394,7 @@ func assembleProjectGraph(ctx context.Context, sources []*GraphSource, loadExter
 			return
 		}
 		nodes[key] = true
+		nodesByKind[src.ResourceType] = append(nodesByKind[src.ResourceType], src.ID)
 
 		g.Nodes = append(g.Nodes, &types.ProjectGraphNode{
 			ID:          src.ID,
@@ -293,6 +417,24 @@ func assembleProjectGraph(ctx context.Context, sources []*GraphSource, loadExter
 	}
 
 	seen := make(map[edgeKey]bool)
+	addEdge := func(sourceID, targetID uint64, reason string) {
+		// normalize to unordered pair so A→B, B→A and duplicate reasons collapse to one edge
+		ek := edgeKey{sourceID, targetID}
+		if ek.a > ek.b {
+			ek.a, ek.b = ek.b, ek.a
+		}
+		if seen[ek] {
+			return
+		}
+		seen[ek] = true
+
+		g.Edges = append(g.Edges, &types.ProjectGraphEdge{
+			SourceID: sourceID,
+			TargetID: targetID,
+			Reason:   reason,
+		})
+	}
+
 	for _, src := range sources {
 		for _, ref := range src.Refs {
 			if ref.Unresolved {
@@ -301,6 +443,18 @@ func assembleProjectGraph(ctx context.Context, sources []*GraphSource, loadExter
 					Kind:     ref.Kind(),
 					Reason:   ref.Reason,
 				})
+				continue
+			}
+
+			// wildcard ref (RBAC role grant on a whole kind): fan out to every
+			// in-scope node of the kind, skipping the source's self-edge.
+			if ref.Wildcard {
+				for _, targetID := range nodesByKind[ref.Kind()] {
+					if targetID == src.ID && ref.Kind() == src.ResourceType {
+						continue
+					}
+					addEdge(src.ID, targetID, ref.Reason)
+				}
 				continue
 			}
 
@@ -336,21 +490,74 @@ func assembleProjectGraph(ctx context.Context, sources []*GraphSource, loadExter
 				addNode(ext, true)
 			}
 
-			ek := edgeKey{src.ID, targetID, ref.Reason}
-			if seen[ek] {
-				continue
-			}
-			seen[ek] = true
-
-			g.Edges = append(g.Edges, &types.ProjectGraphEdge{
-				SourceID: src.ID,
-				TargetID: targetID,
-				Reason:   ref.Reason,
-			})
+			addEdge(src.ID, targetID, ref.Reason)
 		}
 	}
 
 	return
+}
+
+// graphResourceKinds is the set of rbac/resourceref kinds that correspond to
+// project-graph nodes. Role RBAC rules on any other resource (records, grants,
+// settings, users, …) are not graph edges and are ignored.
+var graphResourceKinds = map[string]bool{
+	resourceref.KindComposeNamespace:   true,
+	resourceref.KindComposeModule:      true,
+	resourceref.KindComposeChart:       true,
+	resourceref.KindComposePage:        true,
+	resourceref.KindComposePageLayout:  true,
+	resourceref.KindAutomationWorkflow: true,
+	resourceref.KindNgAutomation:       true,
+	resourceref.KindDalConnection:      true,
+	resourceref.KindLlmProvider:        true,
+	resourceref.KindKnowledgeBase:      true,
+	resourceref.KindAgent:              true,
+	resourceref.KindChatbot:            true,
+	resourceref.KindRole:               true,
+	resourceref.KindTemplate:           true,
+}
+
+// roleRuleRefs converts a role's RBAC rules into graph refs. A rule on a
+// specific resource yields a direct ref; a rule on a whole kind (trailing
+// wildcard, e.g. "corteza::compose:module/*/*") yields a wildcard ref the
+// assembler fans out to every in-scope node of the kind. Rules on non-graph
+// resources are skipped; allow and deny both count as a relationship. Refs are
+// deduplicated so a role's many per-operation rules collapse to one edge.
+func roleRuleRefs(rules rbac.RuleSet) []resourceref.Ref {
+	var (
+		out  = make([]resourceref.Ref, 0, len(rules))
+		seen = make(map[string]bool)
+	)
+
+	for _, rule := range rules {
+		kind := rbac.ResourceType(rule.Resource)
+		if !graphResourceKinds[kind] {
+			continue
+		}
+
+		var ref resourceref.Ref
+		if id := rbac.ResourceID(rule.Resource); id > 0 {
+			ref = resourceref.Make(kind, id, resourceref.ReasonRoleRbac)
+		} else {
+			ref = resourceref.MakeWildcard(kind, resourceref.ReasonRoleRbac)
+		}
+		if ref.IsEmpty() {
+			continue
+		}
+
+		key := ref.Resource
+		if ref.Wildcard {
+			key = "*" + ref.Resource
+		}
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+
+		out = append(out, ref)
+	}
+
+	return out
 }
 
 func (s *projectGraphService) loadSensitivityLevels(ctx context.Context) (map[uint64]string, error) {
