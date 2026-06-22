@@ -8054,7 +8054,7 @@ export default class System {
 
   // Configure a connection (create configured connection)
   async connectionConfigure(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, catalogID, name, config, labels } = (a as KV) || {}
+    const { connectionID, name, catalogID, config, labels, projectID } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8069,10 +8069,11 @@ export default class System {
       }),
     }
     cfg.data = {
-      catalogID,
       name,
+      catalogID,
       config,
       labels,
+      projectID,
     }
     return this.api()
       .request(cfg)
@@ -8101,7 +8102,8 @@ export default class System {
 
   // Update connection configuration
   async connectionUpdateConfiguration(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, configuredConnectionID, name, config, labels } = (a as KV) || {}
+    const { connectionID, configuredConnectionID, name, config, labels, projectID } =
+      (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
     }
@@ -8123,6 +8125,7 @@ export default class System {
       name,
       config,
       labels,
+      projectID,
     }
     return this.api()
       .request(cfg)
@@ -8151,8 +8154,18 @@ export default class System {
 
   // List configured connections
   async configuredConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, status, query, deleted, labels, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      connectionID,
+      projectID,
+      status,
+      query,
+      deleted,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8160,6 +8173,7 @@ export default class System {
     }
     cfg.params = {
       connectionID,
+      projectID,
       status,
       query,
       deleted,

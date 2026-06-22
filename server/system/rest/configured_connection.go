@@ -56,6 +56,7 @@ func (ctrl ConfiguredConnection) makeFilter(ctx context.Context, r *request.Conf
 		err error
 		f   = types.ConfiguredConnectionFilter{
 			ConnectionID: r.ConnectionID,
+			ProjectID:    r.ProjectID,
 			Status:       r.Status,
 			Query:        r.Query,
 			Deleted:      filter.State(r.Deleted),

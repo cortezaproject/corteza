@@ -41,6 +41,11 @@ type (
 		// Filter by connection ID
 		ConnectionID uint64 `json:",string"`
 
+		// ProjectID GET parameter
+		//
+		// Filter by project ID
+		ProjectID uint64 `json:",string"`
+
 		// Status GET parameter
 		//
 		// Filter by status
@@ -120,6 +125,7 @@ func NewConfiguredConnectionList() *ConfiguredConnectionList {
 func (r ConfiguredConnectionList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
+		"projectID":    r.ProjectID,
 		"status":       r.Status,
 		"query":        r.Query,
 		"deleted":      r.Deleted,
@@ -134,6 +140,11 @@ func (r ConfiguredConnectionList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ConfiguredConnectionList) GetConnectionID() uint64 {
 	return r.ConnectionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -185,6 +196,12 @@ func (r *ConfiguredConnectionList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["connectionID"]; ok && len(val) > 0 {
 			r.ConnectionID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

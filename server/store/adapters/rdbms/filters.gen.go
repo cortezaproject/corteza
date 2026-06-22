@@ -1062,6 +1062,10 @@ func ConfiguredConnectionFilter(d drivers.Dialect, f systemType.ConfiguredConnec
 		ee = append(ee, goqu.C("status").In(ss))
 	}
 
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}

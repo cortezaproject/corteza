@@ -231,15 +231,15 @@ type (
 		// Connection ID
 		ConnectionID uint64 `json:",string"`
 
-		// CatalogID POST parameter
-		//
-		// Catalog ID to auto-import on first configure
-		CatalogID string
-
 		// Name POST parameter
 		//
 		// Connection name
 		Name string
+
+		// CatalogID POST parameter
+		//
+		// Catalog ID to auto-import on first configure
+		CatalogID string
 
 		// Config POST parameter
 		//
@@ -250,6 +250,11 @@ type (
 		//
 		// Labels
 		Labels map[string]labelTypes.LabelValue
+
+		// ProjectID POST parameter
+		//
+		// Project to scope the configured connection to
+		ProjectID uint64 `json:",string"`
 	}
 
 	ConnectionUpdateConfiguration struct {
@@ -277,6 +282,11 @@ type (
 		//
 		// Labels
 		Labels map[string]labelTypes.LabelValue
+
+		// ProjectID POST parameter
+		//
+		// Project to scope the configured connection to
+		ProjectID uint64 `json:",string"`
 	}
 )
 
@@ -1217,10 +1227,11 @@ func NewConnectionConfigure() *ConnectionConfigure {
 func (r ConnectionConfigure) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
-		"catalogID":    r.CatalogID,
 		"name":         r.Name,
+		"catalogID":    r.CatalogID,
 		"config":       r.Config,
 		"labels":       r.Labels,
+		"projectID":    r.ProjectID,
 	}
 }
 
@@ -1230,13 +1241,13 @@ func (r ConnectionConfigure) GetConnectionID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionConfigure) GetCatalogID() string {
-	return r.CatalogID
+func (r ConnectionConfigure) GetName() string {
+	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionConfigure) GetName() string {
-	return r.Name
+func (r ConnectionConfigure) GetCatalogID() string {
+	return r.CatalogID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1247,6 +1258,11 @@ func (r ConnectionConfigure) GetConfig() types.ConfiguredConnectionConfig {
 // Auditable returns all auditable/loggable parameters
 func (r ConnectionConfigure) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionConfigure) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Fill processes request and fills internal variables
@@ -1269,13 +1285,6 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
-
-			if val, ok := req.MultipartForm.Value["catalogID"]; ok && len(val) > 0 {
-				r.CatalogID, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
 
 			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
 				r.Name, err = val[0], nil
@@ -1314,6 +1323,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1323,13 +1339,6 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
-
-		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
-			r.CatalogID, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
@@ -1368,6 +1377,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{
@@ -1398,6 +1414,7 @@ func (r ConnectionUpdateConfiguration) Auditable() map[string]interface{} {
 		"name":                   r.Name,
 		"config":                 r.Config,
 		"labels":                 r.Labels,
+		"projectID":              r.ProjectID,
 	}
 }
 
@@ -1424,6 +1441,11 @@ func (r ConnectionUpdateConfiguration) GetConfig() types.ConfiguredConnectionCon
 // Auditable returns all auditable/loggable parameters
 func (r ConnectionUpdateConfiguration) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionUpdateConfiguration) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Fill processes request and fills internal variables
@@ -1477,6 +1499,13 @@ func (r *ConnectionUpdateConfiguration) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1513,6 +1542,13 @@ func (r *ConnectionUpdateConfiguration) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

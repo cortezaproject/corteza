@@ -33,6 +33,14 @@ export const useProjectsStore = defineStore('projects', () => {
   const resourcesByProject = ref({})
   const resourcesFor = computed(() => projectId => resourcesByProject.value[String(projectId)] || [])
 
+  // The connection library (catalog + already-configured connections) — the
+  // same set the Admin connection screen lists. Loaded once and shared across
+  // projects; the Connections step filters it down to the Resource Management
+  // whitelist. A project's own connections are kept separately, keyed by id.
+  const connectionLibrary = ref([])
+  const connectionsByProject = ref({})
+  const connectionsFor = computed(() => projectId => connectionsByProject.value[String(projectId)] || [])
+
   // --- payload mapping --------------------------------------------------------
 
   // Approved gates, derived from governance state against the gated pipeline.
@@ -571,6 +579,131 @@ export const useProjectsStore = defineStore('projects', () => {
     }
   }
 
+  // --- connections ---------------------------------------------------------------
+  // The Connections step instantiates connections the project is permitted to
+  // use. The catalogue is the shared connection library; the whitelist comes
+  // from the Resource Management governance step.
+
+  // Load the connection library (catalog + configured), normalised for the
+  // picker. Same source as the Admin connection screen.
+  async function loadConnectionLibrary() {
+    const { set = [] } = await $SystemAPI.connectionList({}).catch(() => ({ set: [] }))
+    connectionLibrary.value = set.map(c => ({
+      catalogID: c.catalogID || '',
+      connectionID: c.connectionID ? String(c.connectionID) : null,
+      label: c.meta?.short || c.handle || c.catalogID || 'Connection',
+      description: c.meta?.description || '',
+      handle: c.handle || '',
+      status: c.status || '',
+      source: c.source || '',
+    }))
+    return connectionLibrary.value
+  }
+
+  // Permitted connection catalogIDs from the Resource Management whitelist, or
+  // null when no whitelist exists (e.g. Free mode) — meaning "no constraint".
+  function allowedConnectorIds(projectId) {
+    const p = findById.value(projectId)
+    const wl = p?.governance?.['resource-management']?.values?.connections
+    if (!wl || !wl.length) return null
+    return new Set(wl.map(c => c.connector).filter(Boolean))
+  }
+
+  // A project's connections — the configured connections stamped with its
+  // projectID. Fetched from the backend filtered by projectID.
+  async function loadConnections(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $SystemAPI
+      .configuredConnectionList({ projectID: String(projectId), limit: 100 })
+      .catch(() => ({ set: null }))
+    if (set === null) {
+      if (!connectionsByProject.value[key]) connectionsByProject.value[key] = []
+      return connectionsByProject.value[key]
+    }
+    connectionsByProject.value[key] = set.map(c => ({
+      id: String(c.configurationID),
+      configuredConnectionID: String(c.configurationID),
+      connectionID: String(c.connectionID),
+      catalogID: c.catalogID || '',
+      name: c.name,
+      status: c.status || 'active',
+      config: c.config,
+    }))
+    touch()
+    return connectionsByProject.value[key]
+  }
+
+  // Picking a connector "does the actual connection": import the catalog entry
+  // (when it isn't already a real connection) and read it back so we have its
+  // connectionID and auth-field schema (derivedParams) for the configure
+  // dialog.
+  async function prepareConnection(item) {
+    let connectionID = item.connectionID
+    if (!connectionID) {
+      const imported = await $SystemAPI.connectionImport({ catalogID: item.catalogID })
+      connectionID = imported.connectionID
+    }
+    return $SystemAPI.connectionRead({ connectionID })
+  }
+
+  // Create or update a configured connection (the auth/params) on a base
+  // connection, scoped to the project. `projectID` is sent so the configured
+  // connection is stamped to the project once the backend honours it; extra
+  // params are ignored server-side until then.
+  async function saveConnection(projectId, { connection, configuredConnectionID, name, config }) {
+    const projectID = String(projectId)
+    let saved
+    if (configuredConnectionID) {
+      saved = await $SystemAPI.connectionUpdateConfiguration({
+        connectionID: connection.connectionID,
+        configuredConnectionID,
+        name,
+        config,
+        labels: {},
+        projectID,
+      })
+    } else {
+      saved = await $SystemAPI.connectionConfigure({
+        connectionID: connection.connectionID,
+        catalogID: connection.catalogID,
+        name,
+        config,
+        labels: {},
+        projectID,
+      })
+    }
+
+    const entry = {
+      id: String(saved?.configurationID || configuredConnectionID),
+      configuredConnectionID: String(saved?.configurationID || configuredConnectionID),
+      connectionID: String(connection.connectionID),
+      catalogID: connection.catalogID || '',
+      name,
+      status: saved?.status || 'active',
+      // kept for in-session edit prefill (full listing-by-project is a backend dep)
+      config,
+    }
+    const key = String(projectId)
+    const list = connectionsByProject.value[key] || []
+    const i = list.findIndex(c => c.id === entry.id)
+    connectionsByProject.value[key] =
+      i === -1 ? [...list, entry] : list.map(c => (c.id === entry.id ? entry : c))
+    touch()
+    return entry
+  }
+
+  async function removeConnection(projectId, connectionId) {
+    const key = String(projectId)
+    const entry = (connectionsByProject.value[key] || []).find(c => c.id === connectionId)
+    if (entry?.configuredConnectionID) {
+      await $SystemAPI.configuredConnectionDelete({ connectionID: entry.configuredConnectionID })
+    }
+    connectionsByProject.value[key] = (connectionsByProject.value[key] || []).filter(
+      c => c.id !== connectionId,
+    )
+    touch()
+  }
+
   // --- resource graph ------------------------------------------------------------
   // Single backend endpoint re-derives the project's dependency graph from saved
   // state. We pass nodes through untouched and only rename edge endpoints to the
@@ -605,6 +738,14 @@ export const useProjectsStore = defineStore('projects', () => {
     addResource,
     removeResource,
     updateResource,
+    connectionLibrary,
+    connectionsFor,
+    loadConnectionLibrary,
+    allowedConnectorIds,
+    loadConnections,
+    prepareConnection,
+    saveConnection,
+    removeConnection,
     updateField,
     addField,
     removeField,

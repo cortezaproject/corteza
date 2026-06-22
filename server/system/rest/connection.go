@@ -175,6 +175,7 @@ func (ctrl Connection) Configure(ctx context.Context, r *request.ConnectionConfi
 
 	conn := &types.ConfiguredConnection{
 		ConnectionID: connectionID,
+		ProjectID:    r.ProjectID,
 		Name:         r.Name,
 		Config:       r.Config,
 		Status:       "draft",
@@ -193,6 +194,7 @@ func (ctrl Connection) UpdateConfiguration(ctx context.Context, r *request.Conne
 	conn := &types.ConfiguredConnection{
 		ID:           r.ConfiguredConnectionID,
 		ConnectionID: r.ConnectionID,
+		ProjectID:    r.ProjectID,
 		Name:         r.Name,
 		Config:       r.Config,
 		Status:       "draft",

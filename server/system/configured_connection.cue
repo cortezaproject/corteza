@@ -65,7 +65,7 @@ configured_connection: {
 			query:        {goType: "string"}
 			deleted:      {goType: "filter.State", storeIdent: "deleted_at"}
 		}
-		byValue: ["connection_id", "status"]
+		byValue: ["connection_id", "status", "project_id"]
 		byNilState: ["deleted"]
 	}
 

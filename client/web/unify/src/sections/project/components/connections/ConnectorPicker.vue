@@ -29,7 +29,7 @@
           </span>
           <div class="min-w-0">
             <div class="font-medium text-sm leading-tight">{{ c.label }}</div>
-            <div class="text-xs text-muted-color line-clamp-2">{{ $t(c.descriptionKey) }}</div>
+            <div class="text-xs text-muted-color line-clamp-2">{{ describe(c) }}</div>
           </div>
         </button>
       </div>
@@ -53,6 +53,11 @@ const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  // The connectors to offer. Defaults to the static catalog (used by Resource
+  // Management); the Connections step passes the live library filtered to the
+  // project's whitelist. Each item: { id, label, icon, description?,
+  // descriptionKey?, tags? }.
+  items: { type: Array, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'pick'])
 
@@ -61,6 +66,11 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
+const source = computed(() => props.items || CONNECTORS)
+
+// Description may be a raw string (live library) or an i18n key (static catalog).
+const describe = c => c.description || (c.descriptionKey ? t(c.descriptionKey) : '')
+
 const query = ref('')
 watch(visible, v => {
   if (v) query.value = ''
@@ -68,11 +78,11 @@ watch(visible, v => {
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return CONNECTORS
-  return CONNECTORS.filter(
+  if (!q) return source.value
+  return source.value.filter(
     c =>
       c.label.toLowerCase().includes(q) ||
-      t(c.descriptionKey).toLowerCase().includes(q) ||
+      describe(c).toLowerCase().includes(q) ||
       (c.tags || []).some(tag => tag.includes(q)),
   )
 })

@@ -37,12 +37,13 @@
         <div ref="splitRef" class="flex-1 min-h-0 flex">
           <div
             class="min-h-0"
-            :class="isDataModel ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
+            :class="isDataModel || isConnections ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
             :style="{ width: leftPct + '%' }"
           >
-            <template v-if="isDataModel">
+            <template v-if="isDataModel || isConnections">
               <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-              <DataModelStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
+              <DataModelStep v-if="isDataModel" :project="project" :disabled="locked" class="flex-1 min-h-0" />
+              <ConnectionsStep v-else :project="project" :disabled="locked" class="flex-1 min-h-0" />
             </template>
             <template v-else>
               <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
@@ -135,6 +136,7 @@ import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
+import ConnectionsStep from '@/sections/project/components/wizard/steps/ConnectionsStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
@@ -215,6 +217,7 @@ const isSummary = computed(() => activeKey.value === 'summary')
 const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
 const isMembers = computed(() => activeKey.value === 'members')
 const isDataModel = computed(() => activeKey.value === 'data-model')
+const isConnections = computed(() => activeKey.value === 'connections')
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 // On a resource step the graph narrows to that step's kind; form steps show
 // the whole-system overview.

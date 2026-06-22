@@ -285,11 +285,12 @@ import ConnectorPicker from '@/sections/project/components/connections/Connector
 import LlmProviderDialog from '@/sections/project/components/wizard/LlmProviderDialog.vue'
 import { connector } from '@/sections/project/config/connectors'
 import { kindConfig } from '@/sections/project/config/kinds'
-import { components } from '@planetcrust/human-vue'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const { confirmDelete } = useConfirmDelete()
 const { CInputLLM, CInputModel, CInputToggleCard } = components
 
 // Working copy of the governance step values ({ ai, infra, connections });
@@ -355,7 +356,12 @@ const addInfra = () =>
   ])
 const updateInfra = (id, patch) =>
   setInfraProviders(infraProviders.value.map(p => (p.id === id ? { ...p, ...patch } : p)))
-const removeInfra = id => setInfraProviders(infraProviders.value.filter(p => p.id !== id))
+const removeInfra = id =>
+  confirmDelete({
+    header: t('project.resourceManagement.infra.removeConfirm.header'),
+    message: t('project.resourceManagement.infra.removeConfirm.message'),
+    onConfirm: () => setInfraProviders(infraProviders.value.filter(p => p.id !== id)),
+  })
 
 const addProvider = () => {
   providers.value = [...providers.value, { id: localId('llm'), provider: null, model: null }]
@@ -370,7 +376,14 @@ const setProvider = (row, provider) => {
 const setConnections = next => emit('update:modelValue', { ...props.modelValue, connections: next })
 const updateConn = (id, patch) =>
   setConnections(connections.value.map(c => (c.id === id ? { ...c, ...patch } : c)))
-const removeConn = id => setConnections(connections.value.filter(c => c.id !== id))
+const removeConn = id =>
+  confirmDelete({
+    header: t('project.resourceManagement.connections.removeConfirm.header'),
+    message: t('project.resourceManagement.connections.removeConfirm.message', {
+      name: connections.value.find(c => c.id === id)?.name || '',
+    }),
+    onConfirm: () => setConnections(connections.value.filter(c => c.id !== id)),
+  })
 const addConn = c =>
   setConnections([
     ...connections.value,

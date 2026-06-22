@@ -27,6 +27,7 @@ type (
 
 	ConfiguredConnectionFilter struct {
 		ConnectionID uint64   `json:"connectionID,string"`
+		ProjectID    uint64   `json:"projectID,string"`
 		Status       []string `json:"status"`
 		Query        string   `json:"query"`
 

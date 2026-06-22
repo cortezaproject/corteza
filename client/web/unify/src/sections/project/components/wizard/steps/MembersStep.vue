@@ -162,6 +162,7 @@ import YesNo from '@/sections/project/components/wizard/YesNo.vue'
 import { ROLE_PRESETS, rolePreset } from '@/sections/project/config/roles'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
+import { useConfirmDelete } from '@planetcrust/human-vue'
 import { useToast } from 'primevue/usetoast'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -172,6 +173,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const { confirmDelete } = useConfirmDelete()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
 const toast = useToast()
@@ -232,7 +234,15 @@ async function setRole(row, role) {
   }
 }
 
-async function remove(row) {
+function remove(row) {
+  confirmDelete({
+    header: t('project.members.removeConfirm.header'),
+    message: t('project.members.removeConfirm.message', { name: row.user.name }),
+    onConfirm: () => handleRemove(row),
+  })
+}
+
+async function handleRemove(row) {
   try {
     await store.removeMember(props.project.id, row.userId)
   } catch (err) {

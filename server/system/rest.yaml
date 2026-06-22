@@ -685,7 +685,13 @@ endpoints:
             # members has no UserGroup struct field; the afterUpdate hook adds
             # them one-by-one via MemberAdd. genHook keeps the generated
             # Update from assigning it.
-            - { type: '[]string', name: 'members', required: false, title: 'user group member IDs', genHook: true }
+            - {
+                type: '[]string',
+                name: 'members',
+                required: false,
+                title: 'user group member IDs',
+                genHook: true,
+              }
             - {
                 type: '*types.UserGroupConfig',
                 name: 'config',
@@ -3333,9 +3339,12 @@ endpoints:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
           post:
-            - { type: 'string', name: 'catalogID', title: 'Catalog ID to auto-import on first configure' }
             - { type: 'string', name: 'name', required: true, title: 'Connection name' }
-            - { type: 'string', name: 'catalogID', title: 'Catalog ID to auto-import on first configure' }
+            - {
+                type: 'string',
+                name: 'catalogID',
+                title: 'Catalog ID to auto-import on first configure',
+              }
             - {
                 type: 'types.ConfiguredConnectionConfig',
                 name: 'config',
@@ -3348,6 +3357,7 @@ endpoints:
                 title: 'Labels',
                 parser: 'label.ParseStrings',
               }
+            - { type: 'uint64', name: 'projectID', title: 'Project to scope the configured connection to' }
 
       - name: updateConfiguration
         method: PATCH
@@ -3376,6 +3386,7 @@ endpoints:
                 title: 'Labels',
                 parser: 'label.ParseStrings',
               }
+            - { type: 'uint64', name: 'projectID', title: 'Project to scope the configured connection to' }
 
   - title: Configured Connections
     path: '/configured-connections'
@@ -3394,6 +3405,7 @@ endpoints:
         parameters:
           get:
             - { type: 'uint64', name: 'connectionID', title: 'Filter by connection ID' }
+            - { type: 'uint64', name: 'projectID', title: 'Filter by project ID' }
             - { type: '[]string', name: 'status', title: 'Filter by status' }
             - { type: 'string', name: 'query', title: 'Search query' }
             - {
@@ -3776,7 +3788,11 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: string, name: handle, title: Search by handle }
-            - { type: uint, name: deleted, title: 'Exclude (0, default), include (1) or return only (2) deleted knowledge bases' }
+            - {
+                type: uint,
+                name: deleted,
+                title: 'Exclude (0, default), include (1) or return only (2) deleted knowledge bases',
+              }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
             - { type: string, name: pageCursor, title: Page cursor }
@@ -3790,7 +3806,12 @@ endpoints:
             - { type: string, name: handle, title: Handle }
             - { type: string, name: title, required: true, title: Title }
             - { type: string, name: description, title: Description }
-            - { type: 'types.KnowledgeBaseContext', name: context, title: Compose context, parser: 'types.ParseKnowledgeBaseContext' }
+            - {
+                type: 'types.KnowledgeBaseContext',
+                name: context,
+                title: Compose context,
+                parser: 'types.ParseKnowledgeBaseContext',
+              }
       - name: read
         method: GET
         title: Read knowledge base
@@ -3809,8 +3830,17 @@ endpoints:
             - { type: string, name: handle, title: Handle }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
-            - { type: 'types.KnowledgeBaseContext', name: context, title: Compose context, parser: 'types.ParseKnowledgeBaseContext' }
-            - { type: '*time.Time', name: updatedAt, title: Last update (used for stale data check) }
+            - {
+                type: 'types.KnowledgeBaseContext',
+                name: context,
+                title: Compose context,
+                parser: 'types.ParseKnowledgeBaseContext',
+              }
+            - {
+                type: '*time.Time',
+                name: updatedAt,
+                title: Last update (used for stale data check),
+              }
       - name: delete
         method: DELETE
         title: Delete knowledge base
@@ -4323,14 +4353,14 @@ endpoints:
               required: true
               title: Project ID
           get:
-            - { type: string,     name: query,          title: Search query }
-            - { type: string,     name: handle,          title: Handle filter }
-            - { type: '[]string', name: projectGroupID,  title: Filter by group IDs }
-            - { type: uint,       name: deleted,         title: "Deleted filter (0=exclude 1=only 2=include)" }
-            - { type: uint,       name: limit,           title: Limit }
-            - { type: bool,       name: incTotal,        title: Include total count }
-            - { type: string,     name: pageCursor,      title: Page cursor }
-            - { type: string,     name: sort,            title: Sort }
+            - { type: string, name: query, title: Search query }
+            - { type: string, name: handle, title: Handle filter }
+            - { type: '[]string', name: projectGroupID, title: Filter by group IDs }
+            - { type: uint, name: deleted, title: 'Deleted filter (0=exclude 1=only 2=include)' }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total count }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort }
 
       - name: create
         method: POST
@@ -4344,9 +4374,9 @@ endpoints:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
           post:
-            - { type: string, name: handle,      required: true, title: Handle }
-            - { type: string, name: name,         title: Name, genHook: true }
-            - { type: string, name: description,  title: Description, genHook: true }
+            - { type: string, name: handle, required: true, title: Handle }
+            - { type: string, name: name, title: Name, genHook: true }
+            - { type: string, name: description, title: Description, genHook: true }
 
       - name: read
         method: GET
@@ -4354,8 +4384,8 @@ endpoints:
         path: '/{projectGroupID}'
         parameters:
           path:
-            - { type: uint64, name: projectID,      required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
 
       - name: update
         method: PUT
@@ -4366,13 +4396,13 @@ endpoints:
         path: '/{projectGroupID}'
         parameters:
           path:
-            - { type: uint64, name: projectID,      required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
           post:
-            - { type: string,      name: handle,      title: Handle }
-            - { type: string,      name: name,         title: Name, genHook: true }
-            - { type: string,      name: description,  title: Description, genHook: true }
-            - { type: '*time.Time', name: updatedAt,   title: Last update timestamp }
+            - { type: string, name: handle, title: Handle }
+            - { type: string, name: name, title: Name, genHook: true }
+            - { type: string, name: description, title: Description, genHook: true }
+            - { type: '*time.Time', name: updatedAt, title: Last update timestamp }
 
       - name: delete
         method: DELETE
@@ -4380,8 +4410,8 @@ endpoints:
         path: '/{projectGroupID}'
         parameters:
           path:
-            - { type: uint64, name: projectID,      required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID,  required: true, title: Project Group ID }
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
 
       - name: entryAdd
         method: POST
@@ -4389,9 +4419,14 @@ endpoints:
         path: '/{projectGroupID}/entries/{resourceRef}'
         parameters:
           path:
-            - { type: uint64,  name: projectID,      required: true, title: Project ID }
-            - { type: uint64,  name: projectGroupID,  required: true, title: Project Group ID }
-            - { type: string,  name: resourceRef,     required: true, title: Resource ref (corteza::component:type/ID) }
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - {
+                type: string,
+                name: resourceRef,
+                required: true,
+                title: Resource ref (corteza::component:type/ID),
+              }
 
       - name: entryRemove
         method: DELETE
@@ -4399,9 +4434,14 @@ endpoints:
         path: '/{projectGroupID}/entries/{resourceRef}'
         parameters:
           path:
-            - { type: uint64,  name: projectID,      required: true, title: Project ID }
-            - { type: uint64,  name: projectGroupID,  required: true, title: Project Group ID }
-            - { type: string,  name: resourceRef,     required: true, title: Resource ref (corteza::component:type/ID) }
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - {
+                type: string,
+                name: resourceRef,
+                required: true,
+                title: Resource ref (corteza::component:type/ID),
+              }
 
   - title: Tenants
     path: '/tenants'

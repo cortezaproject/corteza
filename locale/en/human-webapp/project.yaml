@@ -155,6 +155,8 @@ steps:
     label: Project Members
   data-model:
     label: Data Model
+  connections:
+    label: Connections
   data-sensitivity:
     label: Data Sensitivity
 summaryForm:
@@ -241,6 +243,9 @@ resourceManagement:
     description: The infrastructure the project may run on, with self-hosting and failover declared per entry.
     add: Add infrastructure
     empty: No infrastructure providers yet.
+    removeConfirm:
+      header: Remove infrastructure
+      message: Remove this infrastructure provider?
     selfHosting:
       label: Self-Hosting
       description: The platform is hosted on your own infrastructure.
@@ -262,6 +267,9 @@ resourceManagement:
     description: The whitelist of connections the Connections step may later choose from.
     add: Add connection
     empty: No permitted connections yet.
+    removeConfirm:
+      header: Remove permitted connection
+      message: Remove “{name}” from the permitted connections?
     name: External Connection Name
     type: Connection Type
     typePlaceholder: Select type
@@ -293,6 +301,9 @@ members:
     addFailed: Could not add member
     changeRoleFailed: Could not change role
     removeFailed: Could not remove member
+  removeConfirm:
+    header: Remove member
+    message: Remove “{name}” from this project?
 dataModel:
   label: Modules
   addModule: Add module
@@ -402,6 +413,23 @@ connectorPicker:
   blurb: Pick a connection your system needs. Credentials are configured later in Admin.
   searchPlaceholder: Search connections…
   noResults: No connections match “{query}”.
+connections:
+  title: Connections
+  add: Add connection
+  remove: Remove connection
+  empty: No connections yet.
+  configured: Configured
+  removeConfirm:
+    header: Remove connection
+    message: Remove “{name}” from this project? This deletes its configuration.
+configureConnection:
+  createTitle: Configure connection
+  editTitle: Edit connection
+  blurb: Enter the credentials and settings for {connector}.
+  name: Name
+  noParams: This connection needs no extra configuration.
+  toastFailed: Could not save connection
+  toastImportFailed: Could not prepare connection
 graph:
   resources: Resources
   reloadTitle: Reload from the backend
